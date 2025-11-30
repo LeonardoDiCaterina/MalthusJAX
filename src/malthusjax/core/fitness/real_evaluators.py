@@ -21,7 +21,7 @@ class SphereConfig:
     The Sphere function: f(x) = sum(x_i^2)
     Global minimum: f(0, 0, ..., 0) = 0
     """
-    minimize: bool = True  # True = minimize (standard), False = maximize
+    maximize: bool = struct.field(pytree_node=False, default=True)  # Static configuration
     
 
 @struct.dataclass
@@ -45,16 +45,16 @@ class SphereEvaluator:
             Fitness value (sum of squares)
         """
         sphere_value = float(jnp.sum(genome.values ** 2))
-        if self.config.minimize:
-            return -sphere_value  # Negative for minimization (higher = better)
+        if self.config.maximize:
+            return sphere_value 
         else:
-            return sphere_value
+            return -sphere_value
             
-    def evaluate_batch(self, population: RealPopulation) -> List[float]:
+    def evaluate_batch(self, population: RealPopulation) -> jnp.ndarray:
         """Evaluate a population of real genomes."""
         fitness_fn = self.get_tensor_fitness_function()
         fitness_values = fitness_fn(population.genes.values)
-        return fitness_values.tolist()
+        return fitness_values
             
     def get_tensor_fitness_function(self):
         """Get pure JAX function for batch evaluation."""
@@ -69,10 +69,10 @@ class SphereEvaluator:
                 Fitness values of shape (batch_size,)
             """
             sphere_values = jnp.sum(values_batch ** 2, axis=1)
-            if self.config.minimize:
-                return -sphere_values  # Negative for minimization
+            if self.config.maximize:
+                return sphere_values  # Negative for minimization
             else:
-                return sphere_values
+                return -sphere_values
                 
         return _sphere_fitness
 
@@ -85,7 +85,7 @@ class GriewankConfig:
     Global minimum: f(0, 0, ..., 0) = 0
     Typically evaluated on domain [-600, 600]^n
     """
-    minimize: bool = True  # True = minimize (standard), False = maximize
+    maximize: bool = struct.field(pytree_node=False, default=True)  # Static configuration
     
 
 @struct.dataclass
@@ -119,16 +119,16 @@ class GriewankEvaluator:
         
         griewank_value = float(1.0 + quad_term - cos_term)
         
-        if self.config.minimize:
-            return -griewank_value  # Negative for minimization
+        if self.config.maximize:
+            return griewank_value  # Negative for minimization
         else:
-            return griewank_value
+            return -griewank_value
             
-    def evaluate_batch(self, population: RealPopulation) -> List[float]:
+    def evaluate_batch(self, population: RealPopulation) -> jnp.ndarray:
         """Evaluate a population of real genomes."""
         fitness_fn = self.get_tensor_fitness_function()
         fitness_values = fitness_fn(population.genes.values)
-        return fitness_values.tolist()
+        return fitness_values
             
     def get_tensor_fitness_function(self):
         """Get pure JAX function for batch evaluation."""
@@ -153,10 +153,10 @@ class GriewankEvaluator:
             
             griewank_values = 1.0 + quad_terms - cos_terms
             
-            if self.config.minimize:
-                return -griewank_values  # Negative for minimization
+            if self.config.maximize:
+                return griewank_values  # Negative for minimization
             else:
-                return griewank_values
+                return -griewank_values
                 
         return _griewank_fitness
 
@@ -171,14 +171,7 @@ class BoxConfig:
     target_point: jnp.ndarray  # Target point to reach
     box_bounds: Tuple[jnp.ndarray, jnp.ndarray]  # (lower_bounds, upper_bounds)
     penalty_factor: float = 1000.0  # Penalty for violating constraints
-    objective_type: str = "distance"  # "distance" or "sphere"
-    
-    def __post_init__(self):
-        lower, upper = self.box_bounds
-        if len(lower) != len(upper) or len(lower) != len(self.target_point):
-            raise ValueError("Bounds and target point must have same dimension")
-        if jnp.any(lower >= upper):
-            raise ValueError("Lower bounds must be < upper bounds")
+    objective_type: str = struct.field(pytree_node=False, default="distance")  # Static configuration
             
 
 @struct.dataclass
@@ -224,11 +217,11 @@ class BoxEvaluator:
         # Return negative (for maximization, since we want to minimize distance)
         return float(-objective - penalty)
         
-    def evaluate_batch(self, population: RealPopulation) -> List[float]:
+    def evaluate_batch(self, population: RealPopulation) -> jnp.ndarray:
         """Evaluate a population of real genomes."""
         fitness_fn = self.get_tensor_fitness_function()
         fitness_values = fitness_fn(population.genes.values)
-        return fitness_values.tolist()
+        return fitness_values
         
     def get_tensor_fitness_function(self):
         """Get pure JAX function for batch evaluation."""

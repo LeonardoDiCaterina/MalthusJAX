@@ -6,7 +6,7 @@ is treated as an atomic tree, enabling symbiotic evolution where the best
 sub-components compete and are selected independently.
 """
 
-from typing import Tuple
+from typing import Optional, Tuple
 from functools import partial
 from flax import struct  # type: ignore
 import jax  # type: ignore
@@ -14,46 +14,122 @@ import jax.numpy as jnp  # type: ignore
 import chex  # type: ignore
 
 from malthusjax.core.fitness.evaluators import BaseEvaluator, RegressionData
-from malthusjax.core.genome.linear import LinearGenome, LinearGenomeConfig
+from malthusjax.core.genome.linear import LinearGenome, LinearGenomeConfig, LinearPopulation
+
+PROTECTED_DIV_EPS = 1e-6
 
 
-# --- Robust Primitive Functions ---
-def op_add(x: float, y: float) -> float:
-    """Addition operation."""
-    return x + y
+# --- 1. Math Operators ---
+def op_add(x, y, z): return x + y
+def op_sub(x, y, z): return x - y
+def op_mult(x, y, z): return x * y
 
-def op_sub(x: float, y: float) -> float:
-    """Subtraction operation."""
-    return x - y
+# TensorGP Div: Returns 0 if nan/inf, but standard is usually 1.0. 
+# TensorGP uses `tf.math.divide_no_nan`.
+def op_div(x, y, z): 
+    return jnp.where(jnp.abs(y) < PROTECTED_DIV_EPS, 0.0, x / y)
 
-def op_mul(x: float, y: float) -> float:
-    """Multiplication operation."""
-    return x * y
+def op_abs(x, y, z): return jnp.abs(x)
+def op_neg(x, y, z): return -x
 
-def op_div(x: float, y: float) -> float:
-    """Protected division operation."""
-    return jnp.where(jnp.abs(y) < 1e-6, 1.0, x / y)
+# TensorGP scales trig inputs by PI: cos(pi * x)
+def op_sin(x, y, z): return jnp.sin(jnp.pi * x)
+def op_cos(x, y, z): return jnp.cos(jnp.pi * x)
+def op_tan(x, y, z): 
+    # Protected tan
+    val = jnp.tan(jnp.pi * x)
+    return jnp.where(jnp.isinf(val) | jnp.isnan(val), 0.0, val)
 
-def op_sin(x: float, y: float) -> float:
-    """Sine operation (uses only first argument)."""
-    return jnp.sin(x)
+# Protected Log: log(x) if x > 0 else -1
+def op_log(x, y, z): 
+    return jnp.where(x > 0, jnp.log(x), -1.0)
 
-def op_cos(x: float, y: float) -> float:
-    """Cosine operation (uses only first argument)."""
-    return jnp.cos(x)
+# Protected Sqrt: sqrt(x) if x > 0 else 0
+def op_sqrt(x, y, z):
+    return jnp.where(x > 0, jnp.sqrt(x), 0.0)
 
-def op_exp(x: float, y: float) -> float:
-    """Protected exponential operation."""
-    return jnp.where(x > 10.0, jnp.exp(10.0), jnp.exp(x))
+# Protected Pow: |x|^|y| (returns 0 if x=0)
+def op_pow(x, y, z):
+    base = jnp.abs(x)
+    exp = jnp.abs(y)
+    return jnp.where(base == 0, 0.0, jnp.power(base, exp))
 
-def op_log(x: float, y: float) -> float:
-    """Protected logarithm operation."""
-    return jnp.where(x <= 0.0, 0.0, jnp.log(jnp.abs(x)))
+def op_exp(x, y, z): return jnp.exp(x)
 
+def op_sign(x, y, z): return jnp.sign(x)
+def op_max(x, y, z): return jnp.maximum(x, y)
+def op_min(x, y, z): return jnp.minimum(x, y)
+def op_mod(x, y, z): return jnp.mod(x, y)
+def op_frac(x, y, z): return x - jnp.floor(x)
 
-# Function registry for jax.lax.switch
-OP_FUNCTIONS = (op_add, op_sub, op_mul, op_div, op_sin, op_cos, op_exp, op_log)
-OP_NAMES = ["ADD", "SUB", "MUL", "DIV", "SIN", "COS", "EXP", "LOG"]
+# Mean Distance: (x + y) / 2
+def op_mdist(x, y, z): return 0.5 * (x + y)
+
+# Length: sqrt(x^2 + y^2)
+def op_len(x, y, z): return jnp.sqrt(x**2 + y**2)
+
+# --- 2. Logic / Bitwise Operators ---
+# TensorGP casts to int, scales by 1e6, does bitwise, then scales back
+def _bitwise_helper(a, b, func):
+    a_int = (a * 1e6).astype(jnp.int32)
+    b_int = (b * 1e6).astype(jnp.int32)
+    return func(a_int, b_int).astype(jnp.float32) / 1e6
+
+def op_and(x, y, z): return _bitwise_helper(x, y, jnp.bitwise_and)
+def op_or(x, y, z):  return _bitwise_helper(x, y, jnp.bitwise_or)
+def op_xor(x, y, z): return _bitwise_helper(x, y, jnp.bitwise_xor)
+
+# Step: 1 if x >= 0 else -1 (TensorGP style)
+def op_step(x, y, z):
+    return jnp.where(x < 0, -1.0, 1.0)
+
+# --- 3. Ternary Operators (Requires max_arity=3) ---
+
+# If x < 0 return y else z
+def op_if(x, y, z): return jnp.where(x < 0, y, z)
+
+# Linear Interpolation: x + (y - x) * z
+def op_lerp(x, y, z): return x + (y - x) * z
+
+# Clip: constrain x between y and z
+def op_clip(x, y, z): return jnp.clip(x, y, z)
+
+# --- 4. Special "Smooth" Operators (Image Gen) ---
+# SmoothStep: x^2 * (3 - 2x)
+def op_sstep(x, y, z):
+    # TensorGP clamps input to [0,1] domain first usually, but check implementation
+    x_c = jnp.clip(x, 0.0, 1.0) 
+    return x_c**2 * (3.0 - 2.0 * x_c)
+
+# Perlin SmoothStep: x^3 * (x * (x * 6 - 15) + 10)
+def op_sstepp(x, y, z):
+    x_c = jnp.clip(x, 0.0, 1.0)
+    return x_c**3 * (x_c * (x_c * 6.0 - 15.0) + 10.0)
+
+# The registry used by lax.switch (Index matches OpCode)
+TENSORGP_FUNCTIONS = (
+    op_add, op_sub, op_mult, op_div, 
+    op_abs, op_neg, op_sin, op_cos, op_tan,
+    op_log, op_sqrt, op_pow, op_exp,
+    op_sign, op_max, op_min, op_mod, op_frac,
+    op_mdist, op_len,
+    op_and, op_or, op_xor, op_step,
+    op_if, op_lerp, op_clip,
+    op_sstep, op_sstepp
+)
+
+# Usage in Evaluator:
+# res = jax.lax.switch(op_code, TENSORGP_FUNCTIONS, args[0], args[1], args[2])# The string names for rendering (Index matches OpCode in TENSORGP_FUNCTIONS)
+TENSORGP_NAMES = [
+    "ADD", "SUB", "MUL", "DIV", 
+    "ABS", "NEG", "SIN", "COS", "TAN",
+    "LOG", "SQRT", "POW", "EXP",
+    "SIGN", "MAX", "MIN", "MOD", "FRAC",
+    "MDIST", "LEN",
+    "AND", "OR", "XOR", "STEP",
+    "IF", "LERP", "CLIP",
+    "SSTEP", "SSTEPP"
+]
 
 
 @struct.dataclass
@@ -89,7 +165,7 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGenomeConfig, Regressi
             
             # Fetch arguments and execute operation
             args_val = jnp.take(mem, arg_indices)
-            result = jax.lax.switch(op_code, OP_FUNCTIONS, args_val[0], args_val[1])
+            result = jax.lax.switch(op_code, TENSORGP_FUNCTIONS, args_val[0], args_val[1], args_val[2])
             result = jnp.nan_to_num(result, nan=0.0, posinf=1e6, neginf=-1e6)
             
             # Store result in memory
@@ -107,7 +183,7 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGenomeConfig, Regressi
         
         return instruction_outputs
 
-    def evaluate(self, genome: LinearGenome, data: RegressionData) -> chex.Array:
+    def evaluate(self, genome: LinearGenome) -> chex.Array:
         """
         Evaluate genome with symbiotic fitness.
         
@@ -117,25 +193,23 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGenomeConfig, Regressi
             
         Returns:
             Array of shape (length,) with fitness of each instruction
-        """
-        X, y = data
+        """        
+        # 1. Vectorize Prediction (Data Parallelism)
+        all_preds = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, self.config.X)
         
-        # 1. Get predictions for all instructions on all data points
-        # Shape: (n_samples, n_instructions)
-        all_predictions = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, X)
+        # 2. Calculate MSE for EVERY instruction column
+        Y_bcast = self.config.y[:, None]
+        squared_errors = (all_preds - Y_bcast) ** 2
+        mse_per_tree = jnp.mean(squared_errors, axis=0)
         
-        # 2. Calculate MSE for each instruction
-        # Broadcast targets to shape (n_samples, n_instructions)
-        y_broadcast = y[:, None]
+        # 3. The "Symbiotic" Selection (Best Atomic Tree)
+        best_mse = jnp.min(mse_per_tree)
         
-        # Compute squared errors for all instruction-sample pairs
-        squared_errors = (all_predictions - y_broadcast) ** 2
-        
-        # Mean over samples (axis 0) -> shape (n_instructions,)
-        mse_per_instruction = jnp.mean(squared_errors, axis=0)
-        
-        # 3. Return negative MSE (higher is better)
-        return -mse_per_instruction
+        return -best_mse
+    
+    def evaluate_batch(self, population: LinearPopulation) -> chex.Array:
+        """Evaluate entire population."""
+        return jax.vmap(self.evaluate)(population.genes)
 
     def get_best_instruction_fitness(self, fitness: chex.Array) -> float:
         """

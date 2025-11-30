@@ -88,6 +88,7 @@ class BinaryPopulation(BasePopulation[BinaryGenome]):
     """Population container for BinaryGenome objects."""
     genes: BinaryGenome
     fitness: chex.Array
+    config: BinaryGenomeConfig = struct.field(pytree_node=False)
     
     GENOME_CLS: ClassVar[Type[BinaryGenome]] = BinaryGenome
 
@@ -96,4 +97,4 @@ class BinaryPopulation(BasePopulation[BinaryGenome]):
         """Create random population of binary genomes."""
         batched_genes = BinaryGenome.create_population(key, config, size)
         initial_fitness = jnp.full((size,), -jnp.inf)
-        return cls(genes=batched_genes, fitness=initial_fitness)
+        return cls(genes=batched_genes, fitness=initial_fitness, config=config)

@@ -80,6 +80,7 @@ class BasePopulation(Generic[G]):
     """
     genes: G  # Batch of genomes
     fitness: chex.Array  # Shape (pop_size,) or (pop_size, num_objectives)
+    config: Any = struct.field(pytree_node=False)  # Genome configuration (static)
     
     GENOME_CLS: ClassVar[Type[G]] = None  # Override in concrete classes
 

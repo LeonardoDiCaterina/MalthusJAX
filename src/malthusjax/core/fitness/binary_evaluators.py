@@ -68,16 +68,7 @@ class KnapsackConfig:
     values: jnp.ndarray   # Item values, shape (n_items,)
     capacity: float       # Maximum weight capacity
     penalty_factor: float = 1000.0  # Penalty for exceeding capacity
-    
-    def __post_init__(self):
-        # Validate inputs
-        if len(self.weights) != len(self.values):
-            raise ValueError("Weights and values must have same length")
-        if self.capacity <= 0:
-            raise ValueError("Capacity must be positive")
-        if jnp.any(self.weights <= 0):
-            raise ValueError("All weights must be positive")
-            
+    maximize: bool = struct.field(pytree_node=False, default=True)
 
 @struct.dataclass
 class KnapsackEvaluator:
@@ -110,17 +101,21 @@ class KnapsackEvaluator:
         total_value = jnp.sum(selected_values)
         
         # Apply penalty for exceeding capacity
-        if total_weight > self.config.capacity:
-            penalty = (total_weight - self.config.capacity) * self.config.penalty_factor
-            return float(total_value - penalty)
-        else:
-            return float(total_value)
+        # Use jnp.where for JIT compatibility instead of if/else
+        penalty = (total_weight - self.config.capacity) * self.config.penalty_factor
+        
+        # If weight > capacity, return value - penalty, else return value
+        # We use jnp.where to handle the conditional logic in a trace-safe way
+        is_over = total_weight > self.config.capacity
+        fitness = jnp.where(is_over, total_value - penalty, total_value)
+        
+        return fitness
             
     def evaluate_batch(self, population: BinaryPopulation) -> jnp.ndarray:
         """Evaluate a population of binary genomes."""
         fitness_fn = self.get_tensor_fitness_function()
         fitness_values = fitness_fn(population.genes.bits)
-        return fitness_values.tolist()
+        return fitness_values
             
     def get_tensor_fitness_function(self):
         """Get pure JAX function for batch evaluation."""

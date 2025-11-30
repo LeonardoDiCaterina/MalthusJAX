@@ -107,6 +107,7 @@ class RealPopulation(BasePopulation[RealGenome]):
     """Population container for RealGenome objects."""
     genes: RealGenome
     fitness: chex.Array
+    config: RealGenomeConfig = struct.field(pytree_node=False)
     
     GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
 
@@ -115,4 +116,4 @@ class RealPopulation(BasePopulation[RealGenome]):
         """Create random population of real genomes."""
         batched_genes = RealGenome.create_population(key, config, size)
         initial_fitness = jnp.full((size,), -jnp.inf)
-        return cls(genes=batched_genes, fitness=initial_fitness)
+        return cls(genes=batched_genes, fitness=initial_fitness, config=config)

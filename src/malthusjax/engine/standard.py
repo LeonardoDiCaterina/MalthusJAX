@@ -138,10 +138,14 @@ class StandardGeneticEngine(AbstractEngine):
         p2_indices = jar.permutation(k_cross, jnp.arange(len(parents)))
         p2 = parents[p2_indices]
         
+        # Determine config to use (prefer population config if available)
+        # This allows operators to access genome bounds/length
+        op_config = getattr(parents, 'config', self.evaluator.config)
+        
         # B. Crossover (Returns Batch)
-        # We pass evaluator.config so operators know bounds/shapes
+        # We pass op_config so operators know bounds/shapes
         # Result shape: (Num_Offspring_Cross, Pop_Size, Genome_Shape...)
-        offspring_genes_batch = self.crossover(k_cross, p1.genes, p2.genes, self.evaluator.config)
+        offspring_genes_batch = self.crossover(k_cross, p1.genes, p2.genes, op_config)
         
         # Helper to flatten batch dimensions
         def flatten_batch(x):
@@ -155,7 +159,7 @@ class StandardGeneticEngine(AbstractEngine):
         
         # C. Mutation
         # Result shape: (Num_Offspring_Mut, Pop_Size_Crossed, Genome_Shape...)
-        mutant_genes_batch = self.mutation(k_mut, offspring_genes, self.evaluator.config)
+        mutant_genes_batch = self.mutation(k_mut, offspring_genes, op_config)
         
         # Flatten mutation batch
         mutant_genes = jax.tree_util.tree_map(flatten_batch, mutant_genes_batch)

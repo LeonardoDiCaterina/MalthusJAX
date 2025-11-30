@@ -18,10 +18,13 @@ from malthusjax.core.base import BaseGenome, BasePopulation
 @struct.dataclass
 class LinearGenomeConfig:
     """Configuration for Linear GP genomes."""
-    length: int        # L: Number of instructions
-    num_inputs: int    # N: Number of input features  
-    num_ops: int       # Number of available functions
-    max_arity: int = 2 # Arguments per instruction
+    length: int  = struct.field(pytree_node=False)      # L: Number of instructions
+    num_inputs: int  = struct.field(pytree_node=False)  # N: Number of input features  
+    num_ops: int   = struct.field(pytree_node=False)    # Number of available functions
+    max_arity: int = struct.field(pytree_node=False)
+    X: Optional[chex.Array] = struct.field(pytree_node=False)
+    y: Optional[chex.Array] = struct.field(pytree_node=False)
+    maximize: bool = struct.field(pytree_node=False, default=True)  # Static configuration
 
 
 @struct.dataclass
@@ -110,7 +113,7 @@ class LinearGenome(BaseGenome):
         return "\n".join(lines)
 
     def __repr__(self) -> str:
-        return f"<LinearGenome(L={self.ops.shape[-1]})>"
+        return f"<LinearGenome(L={self.ops.shape})>"
 
 
 @struct.dataclass  
@@ -123,6 +126,7 @@ class LinearPopulation(BasePopulation[LinearGenome]):
     """
     genes: LinearGenome
     fitness: chex.Array
+    config: LinearGenomeConfig = struct.field(pytree_node=False)
     
     GENOME_CLS: ClassVar[Type[LinearGenome]] = LinearGenome
 
@@ -145,4 +149,4 @@ class LinearPopulation(BasePopulation[LinearGenome]):
         # Initialize fitness to negative infinity
         initial_fitness = jnp.full((size,), -jnp.inf)
         
-        return cls(genes=batched_genes, fitness=initial_fitness)
+        return cls(genes=batched_genes, fitness=initial_fitness, config=config)
