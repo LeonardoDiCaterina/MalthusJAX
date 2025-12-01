@@ -27,8 +27,10 @@ class TestBinaryEvolutionPipeline:
         assert len(population) == pop_size
 
         # 2. Eval
-        evaluator = BinarySumEvaluator(BinarySumConfig(maximize=True))
-        fitness = jnp.array(evaluator.evaluate_batch(population))
+        eval_config = BinarySumConfig(maximize=True)
+        evaluator = BinarySumEvaluator(config=eval_config, data=None)
+        evaluated_pop = evaluator.evaluate_population(population)
+        fitness = evaluated_pop.fitness
 
         # 3. Select (Using Clean Namespace)
         # mjx.selection.Tournament matches your new __init__.py
