@@ -1,91 +1,92 @@
-# Project MalthusJAX: Development Recap & Architectural Decisions
+# MalthusJAX
 
-## Document 1: Visual Identity & Theoretical Positioning
-**Theme:** Defining the "MalthusJax" Brand and Competitive Edge.
+**A JAX-Based Framework for Evolutionary Computation**
 
-### 1. Aesthetic Direction: "Clean Tech Dark Mode"
-We moved away from "Cyberpunk Neon" (too distracting) and "Academic Beige" (too boring) to a hybrid professional aesthetic:
-* **Background:** Deep Charcoal (`#1E1E2E`) to reduce eye strain and signal "Developer Tool."
-* **Palette:** Functional Syntax Highlighting colors (Coral for Ops, Emerald for Data, Cyan for Structure).
-* **Graphics:** Flat, 2D schematic diagrams with subtle glows, avoiding complex 3D wireframes to emphasize architectural clarity.
+MalthusJAX is an evolutionary computation framework built on JAX, designed with a modular 3-level architecture that emphasizes composability, type safety, and JIT compilation compatibility. The framework provides a principled approach to evolutionary algorithm design through strict separation of concerns and functional programming patterns.
 
-### 2. The "Hardware Lottery" Argument
-We defined the core narrative for why MalthusJax exists:
-* **The Problem:** Standard Genetic Programming (Tree-based) fails on GPUs due to **Warp Divergence** (threads waiting for neighbors) and **Pointer Chasing** (memory latency).
-* **The Competitors:**
-    * **TensorGP:** Uses "Data Parallelism" (1 Tree vs N Pixels). Fails at population scaling due to memory fragmentation and lack of JIT (Eager execution).
-    * **Kozax:** Uses a "Matrix-of-Trees." Efficient, but suffers from **Sparse Utilization** (padding empty nodes) and enforces a rigid Tree Topology.
-* **The MalthusJax Solution:** **Population Parallelism** via Linear Genomes. We treat the GPU as a massive, lockstep Stack Machine. 100% memory utilization, 0% warp divergence.
+## Design Philosophy
 
-### 3. Theoretical Innovations
-* **The Symbiotic Genome:** The genome is not one solution, but a container of $L$ potential solutions (Atomic Trees).
-* **Topological Constraints:** We enforce a Directed Acyclic Graph (DAG) structure where instruction $i$ can only reference memory indices $< i$.
+MalthusJAX follows three core principles:
 
----
+1. **Compositional Architecture**: Components at each level are independently developed and compose cleanly through well-defined interfaces
+2. **Functional Purity**: All operations are pure functions operating on immutable data structures, enabling reliable JIT compilation
+3. **Type Safety**: Generic type parameters ensure compile-time verification of component compatibility
 
-## Document 2: Core Architecture (The "Great Pytree Refactor")
-**Theme:** Enforcing JAX-Correctness and Functional Purity.
+## Architecture Overview
 
-### 1. The "Russian Doll" Class Hierarchy
-We restructured the code to separate concerns and ensure every object is a valid JAX Pytree (`@struct.dataclass`).
-* **`GenomeConfig`:** Static blueprints (Length, Inputs, Ops). Passed to functions to determine array shapes.
-* **`BaseGenome` (Abstract):** Defines the interface (`distance`, `autocorrect`, `random_init`).
-* **`LinearGenome` / `ContinuousGenome` (Concrete):** The actual data containers.
-    * **Linear:** `int32` arrays for Ops/Args.
-    * **Continuous:** `float32` arrays for Santa 2025 ($x, y, \theta$).
-* **`BasePopulation` (Abstract):** A generic container for batches of genomes.
-* **`EvolutionState`:** The carrier object passed through the `jax.lax.scan` loop, holding the Population, RNG Key, and Hall of Fame (Global Best).
+### Level 1: Core Components
+- **Genome Representations**: Immutable genome types (`BinaryGenome`, `RealGenome`, `CategoricalGenome`, `LinearGenome`) implemented as Flax `struct.dataclass` for JAX compatibility
+- **Population Containers**: Type-safe population wrappers (`BasePopulation[G]`) providing vectorized operations
+- **Fitness Evaluators**: Generic evaluators (`BaseEvaluator[G, C, D]`) with automatic vectorization via `jax.vmap()`
 
-### 2. The "Structure of Arrays" (SoA) Pattern
-We resolved the ambiguity between "Individual" and "Population":
-* A **Genome** object holds the data.
-* A **Population** object wraps a *batch* of Genomes.
-* We implemented "Kebab-Friendly" magic methods (`__getitem__`, `__len__`, `__iter__`) on the Population class so users can interact with it like a Python list, while JAX treats it as a contiguous tensor.
+### Level 2: Genetic Operators
+- **Selection Operators**: Parent selection strategies (`TournamentSelection`, `RouletteWheelSelection`)
+- **Crossover Operators**: Recombination operators with batch-first output (`UniformCrossover`, `SimulatedBinaryCrossover`)
+- **Mutation Operators**: Variation operators supporting multiple offspring (`BitFlipMutation`, `GaussianMutation`)
 
-### 3. Initialization & Autocorrection
-* **Topological Init:** We wrote a vectorized factory that generates random genomes guaranteed to be valid DAGs.
-* **Autocorrect:** A repair mechanism using `jnp.clip` to fix invalid references after mutation, ensuring the graph never cycles or crashes.
+All operators follow a unified factory pattern using `@struct.dataclass` with `__call__` methods, enabling direct JIT compilation.
 
----
+### Level 3: Evolution Engines
+- **Abstract Engine Interface**: `AbstractEngine` defines the evolutionary loop contract
+- **Genetic Engine Implementation**: `GeneticEngine` provides a standard genetic algorithm with pluggable components
+- **State Management**: Immutable `AbstractEvolutionState` enables JIT compilation via `jax.lax.scan`
 
-## Document 3: The Execution Engine & Operators
-**Theme:** High-Performance Compilation and Operator Logic.
+## Installation
 
-### 1. The Interpreter (`LinearGPEvaluator`)
-* **`jax.lax.scan`:** We replaced Python loops with XLA-compiled loops to execute linear programs on the GPU.
-* **Symbiotic Evaluation:** Instead of returning just the final result, the evaluator returns the **History** of every instruction's output. This allows us to evaluate 50 sub-solutions for the price of 1 execution.
-* **Flexible Architecture:** We separated the **Config** (Context) from the **Data** (Input Batch), allowing the same evaluator to handle Regression, Knapsack, or Geometry.
+```bash
+# Clone the repository
+git clone https://github.com/LeonardoDiCaterina/MalthusJAX.git
+cd MalthusJAX
 
-### 2. The Operator Paradigm (Batch-First)
-We standardized all genetic operators (Mutation, Crossover, Selection) to follow a strict JAX pattern:
-* **Static Parameters:** (`num_offspring`, `tournament_size`) are marked `pytree_node=False`. Changing them triggers re-compilation.
-* **Dynamic Parameters:** (`mutation_rate`, `mixing_ratio`) are traced arrays. They can be annealed/changed at runtime without penalty.
-* **Batch Output:** Crossover was refactored to return a **Batch** `(N, L)` instead of a Tuple, removing "glue code" from the engine loop.
+# Install with development dependencies
+make install-dev
+```
 
-### 3. Selection Strategies
-* **Symbiotic Tournament:** Selects parents based on their best *internal* components (Top $K$ atomic trees), preserving genetic diversity.
-* **Standard Tournament:** Selects based on total fitness (used for interdependent problems like Santa 2025).
+## Example Usage
 
----
+```python
+import malthusjax as mjx
+import jax.random as jar
 
-## Document 4: Use Cases & Demonstrations
-**Theme:** Proving Versatility: From Code Synthesis to Tree Packing.
+# Define problem: optimize a 100-bit binary string
+genome_config = mjx.BinaryGenomeConfig(length=100)
 
-### 1. Use Case A: Symbolic Regression (Linear GP)
-* **Goal:** Find a mathematical formula to fit data.
-* **Genome:** Integers (ADD, SUB, Inputs, Registers).
-* **Operators:** Bit-flip mutation, Uniform Crossover.
-* **Result:** Successfully compiled a loop running millions of evaluations per second to solve regression tasks.
+# Configure evolutionary parameters
+params = mjx.StandardEngineParams(
+    pop_size=1000,
+    num_generations=50,
+    elitism=5
+)
 
-### 2. Use Case B: Santa 2025 (Continuous Optimization)
-* **Goal:** Pack 50 Christmas trees into the smallest bounding box without overlap.
-* **Genome:** Floats ($x, y, \theta$).
-* **Evaluator:** A custom **Differentiable Geometric Engine** (`JaxSantaEvaluator`).
-    * Replaced `shapely` with pure JAX matrix rotations and bounding box logic.
-    * Implemented a collision penalty using vector distances.
-* **Operators:** `GaussianMutation` (nudge position) and `ContinuousCrossover` (swap trees).
-* **Result:** A fully JIT-compiled solver (`run_santa_solver.py`) that optimizes geometric packing on the GPU.
+# Initialize population
+key = jar.PRNGKey(42)
+key, k_pop = jar.split(key)
+initial_pop = mjx.BinaryPopulation.init_random(k_pop, genome_config, params.pop_size)
 
-### 3. The Notebooks (Levels 1 & 2)
-* We reviewed and refined `Level_1_Demo.ipynb` (Genomes/Fitness) and `Level_2_Demo.ipynb` (Operators).
-* We verified the "Clean Pipeline" where Selection $\to$ Crossover $\to$ Mutation flows seamlessly without shape mismatches.
+# Assemble engine with desired operators
+engine = mjx.StandardGeneticEngine(
+    evaluator=mjx.BinarySumEvaluator(mjx.BinarySumConfig(maximize=True)),
+    selection=mjx.selection.Tournament(num_selections=params.pop_size, tournament_size=3),
+    crossover=mjx.crossover.Uniform(num_offspring=2, crossover_rate=0.8),
+    mutation=mjx.mutation.BitFlip(num_offspring=1, mutation_rate=0.01)
+)
+
+# Initialize and run evolution
+key, k_init = jar.split(key)
+state = engine.init_state(k_init, initial_pop)
+final_state, history, elapsed_time = engine.run(state, params, time_it=True)
+```
+
+## Implementation Details
+
+The 3-level architecture enforces separation of concerns:
+
+**Level 1 (Core)**: Genome types implement immutable data structures using Flax `struct.dataclass`. Population containers provide vectorized operations via JAX transformations. Fitness evaluators define pure functions with automatic batching through `jax.vmap()`.
+
+**Level 2 (Operators)**: All operators are stateless callables implementing standard interfaces (`BaseMutation`, `BaseCrossover`, `BaseSelection`). The batch-first convention ensures outputs have shape `(num_offspring, ...genome_shape)`, enabling efficient vectorization.
+
+**Level 3 (Engines)**: The `AbstractEngine` interface defines `init_state()`, `step()`, and `run()` methods. Evolution loops use `jax.lax.scan` for efficient iteration with compile-time loop fusion. State objects are immutable PyTrees containing population, generation counter, and algorithm-specific data.
+
+## License
+
+[MIT License](LICENSE)
