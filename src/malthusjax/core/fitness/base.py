@@ -57,14 +57,20 @@ class BaseEvaluator(Generic[G, C, D]):
         """
         Evaluate entire population with automatic vectorization.
         
+        The population.genes is a batched genome structure (e.g., RealGenome
+        with values of shape (pop_size, length)). JAX's vmap automatically
+        maps over the first axis of PyTree nodes to extract individual genomes.
+        
         Args:
-            population: Population to evaluate
+            population: Population with batched genes
             
         Returns:
-            Population with updated fitness values
+            Population with updated fitness values of shape (pop_size,)
         """
-        # Vectorize over genes (axis 0), keep self constant (including data)
-        fitness_scores = jax.vmap(self.evaluate, in_axes=(0,))(population.genes)
+        # vmap over the batched genome structure
+        # JAX automatically handles the PyTree structure of population.genes
+        # mapping over axis 0 to extract individual genomes
+        fitness_scores = jax.vmap(self.evaluate)(population.genes)
         return population.replace(fitness=fitness_scores)
 
 

@@ -18,6 +18,7 @@ from malthusjax.core.base import BaseGenome, BasePopulation
 class BinaryGenomeConfig:
     """Configuration for Binary genomes."""
     length: int        # Number of bits in the binary string
+    p: int = 0.5
 
 
 def validate_binary_config(config: BinaryGenomeConfig) -> None:
@@ -39,7 +40,7 @@ class BinaryGenome(BaseGenome):
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: BinaryGenomeConfig) -> "BinaryGenome":
         """Create random binary genome."""
-        bits = jax.random.bernoulli(key, 0.5, (config.length,)).astype(jnp.int32)
+        bits = jax.random.bernoulli(key, config.p, (config.length,)).astype(jnp.int32)
         return cls(bits=bits)
 
     def autocorrect(self, config: BinaryGenomeConfig) -> "BinaryGenome":
