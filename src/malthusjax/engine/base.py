@@ -289,8 +289,9 @@ class AbstractEngine(ABC):
             )
         
         # Compile and cache the evolution function
-        self._compiled_evolution_fn = jax.jit(_run_evolution)
-        self._compiled_for_params = params
+        # Use object.__setattr__ for frozen Flax dataclasses
+        object.__setattr__(self, '_compiled_evolution_fn', jax.jit(_run_evolution))
+        object.__setattr__(self, '_compiled_for_params', params)
         
         # Note: Warmup removed to avoid state type mismatches
         # The function will be compiled on first actual use with correct state type
@@ -335,8 +336,9 @@ class AbstractEngine(ABC):
             >>> engine.clear_compilation_cache()  # Free memory
             >>> engine.compile_evolution(params2)  # Compile for new params
         """
-        self._compiled_evolution_fn = None
-        self._compiled_for_params = None
+        # Use object.__setattr__ for frozen Flax dataclasses
+        object.__setattr__(self, '_compiled_evolution_fn', None)
+        object.__setattr__(self, '_compiled_for_params', None)
     
     def run(
         self, 
