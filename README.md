@@ -29,7 +29,9 @@ All operators follow a unified factory pattern using `@struct.dataclass` with `_
 ### Level 3: Evolution Engines
 - **Abstract Engine Interface**: `AbstractEngine` defines the evolutionary loop contract
 - **Genetic Engine Implementation**: `GeneticEngine` provides a standard genetic algorithm with pluggable components
+- **Template Method Pattern**: Engines expose overridable methods (`_select_parents`, `_select_elites`, `_create_offspring`) for custom evolutionary strategies
 - **State Management**: Immutable `AbstractEvolutionState` enables JIT compilation via `jax.lax.scan`
+- **Extensibility**: Subclass engines to incorporate custom selection strategies (e.g., diversity preservation, novelty search)
 
 ## Installation
 
@@ -86,6 +88,34 @@ The 3-level architecture enforces separation of concerns:
 **Level 2 (Operators)**: All operators are stateless callables implementing standard interfaces (`BaseMutation`, `BaseCrossover`, `BaseSelection`). The batch-first convention ensures outputs have shape `(num_offspring, ...genome_shape)`, enabling efficient vectorization.
 
 **Level 3 (Engines)**: The `AbstractEngine` interface defines `init_state()`, `step()`, and `run()` methods. Evolution loops use `jax.lax.scan` for efficient iteration with compile-time loop fusion. State objects are immutable PyTrees containing population, generation counter, and algorithm-specific data.
+
+### Engine Extensibility
+
+MalthusJAX engines use the **Template Method pattern** to enable custom evolutionary strategies without reimplementing core logic. Key overridable methods include:
+
+- **`_select_parents()`**: Customize parent selection (e.g., diversity-aware, novelty-based)
+- **`_select_elites()`**: Control elite preservation strategy
+- **`_create_offspring()`**: Modify variation operators or adaptive mechanisms
+- **`_merge_and_evaluate()`**: Customize population assembly and fitness evaluation
+
+Example diversity-aware extension:
+```python
+from malthusjax.engine import GeneticEngine
+
+class DiversityAwareEngine(GeneticEngine):
+    diversity_weight: float = 0.3
+    
+    def _select_parents(self, key, population):
+        # Combine fitness with crowding distance
+        crowding = self._compute_crowding_scores(population)
+        diversity_fitness = self._combine_fitness_diversity(
+            population.fitness, crowding
+        )
+        indices = self.selection(key, diversity_fitness)
+        return population[indices]
+```
+
+This architecture enables researchers to experiment with novel selection mechanisms (e.g., quality-diversity, MAP-Elites) while maintaining full JIT compilation compatibility.
 
 ## License
 

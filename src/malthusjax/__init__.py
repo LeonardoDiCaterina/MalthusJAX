@@ -12,7 +12,7 @@ from .core.genome.categorical_genome import CategoricalGenome, CategoricalGenome
 from .core.genome.linear import LinearGenome, LinearGenomeConfig, LinearPopulation
 
 # Evaluators
-from .core.fitness.evaluators import BaseEvaluator
+from .core.fitness.base import BaseEvaluator
 from .core.fitness.binary_evaluators import BinarySumEvaluator, BinarySumConfig, KnapsackEvaluator, KnapsackConfig
 from .core.fitness.real_evaluators import SphereEvaluator, SphereConfig, GriewankEvaluator, GriewankConfig, BoxEvaluator, BoxConfig
 from .core.fitness.linear_gp_evaluator import LinearGPEvaluator
@@ -59,4 +59,4 @@ class selection:
 
 # --- 3. ENGINE (Top Level) ---
 from .engine.base import AbstractEngine, AbstractEvolutionState, AbstractEngineParams
-from .engine.standard import StandardGeneticEngine, StandardEngineParams, StandardGenerationOutput
+from .engine.genetic_engine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
