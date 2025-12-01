@@ -6,9 +6,8 @@ for efficient batch evaluation using JAX JIT compilation.
 """
 
 # NEW architecture evaluators
-from .base import AbstractFitnessEvaluator  # Keep for compatibility
-from .evaluators import BaseEvaluator, RegressionData
-from .linear_gp_evaluator import LinearGPEvaluator,TENSORGP_FUNCTIONS, TENSORGP_NAMES
+from .base import BaseEvaluator, RegressionData
+from .linear_gp_evaluator import LinearGPEvaluator, LinearGPEvaluatorConfig, TENSORGP_FUNCTIONS, TENSORGP_NAMES
 from .binary_evaluators import (
     BinarySumEvaluator, BinarySumConfig,
     KnapsackEvaluator, KnapsackConfig
@@ -21,10 +20,9 @@ from .real_evaluators import (
 
 __all__ = [
     # Base classes
-    "AbstractFitnessEvaluator",  # Keep for compatibility
     "BaseEvaluator", "RegressionData",
     # NEW evaluators
-    "LinearGPEvaluator", "OP_FUNCTIONS", "OP_NAMES",
+    "LinearGPEvaluator", "LinearGPEvaluatorConfig", "OP_FUNCTIONS", "OP_NAMES",
     # Binary evaluators
     "BinarySumEvaluator", "BinarySumConfig",
     "KnapsackEvaluator", "KnapsackConfig", 

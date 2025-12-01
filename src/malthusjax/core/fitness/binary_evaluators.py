@@ -9,23 +9,24 @@ import jax.numpy as jnp
 import jax.random as jr
 from flax import struct
 
-from ..base import BaseGenome
-from ..genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
+from typing import Any
+
+from malthusjax.core.genome.binary_genome import BinaryGenome
+from .base import BaseEvaluator, BaseEvaluatorConfig
 
 
 @struct.dataclass
-class BinarySumConfig:
+class BinarySumConfig(BaseEvaluatorConfig):
     """Configuration for BinarySum (OneMax) fitness evaluator.
     
     The OneMax problem is to maximize the number of 1s in a binary string.
     This is a classic benchmark problem in evolutionary computation.
     """
-    # Marked as static (pytree_node=False) to allow use in Python control flow within JIT
-    maximize: bool = struct.field(pytree_node=False, default=True)
+    pass
     
 
 @struct.dataclass
-class BinarySumEvaluator:
+class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
     """BinarySum (OneMax) fitness evaluator.
     
     Evaluates binary genomes by counting the number of 1s (or 0s).
@@ -34,8 +35,9 @@ class BinarySumEvaluator:
     """
     
     config: BinarySumConfig
+    data: Any = struct.field(pytree_node=False, default=None)
         
-    def evaluate_single(self, genome: BinaryGenome) -> float:
+    def evaluate(self, genome: BinaryGenome) -> float:
         """Evaluate a single binary genome.
         
         Args:
@@ -50,15 +52,10 @@ class BinarySumEvaluator:
         else:
             length = jnp.array(len(genome.bits), dtype=jnp.float32)
             return length - ones_count
-            
-    def evaluate_batch(self, population: BinaryPopulation) -> jnp.ndarray:
-        """Evaluate a population of binary genomes using NEW paradigm."""
-        # Use vmap for efficient batch evaluation - return JAX array for JIT compatibility
-        return jax.vmap(self.evaluate_single)(population.genes)
 
 
 @struct.dataclass 
-class KnapsackConfig:
+class KnapsackConfig(BaseEvaluatorConfig):
     """Configuration for Knapsack problem fitness evaluator.
     
     The 0/1 Knapsack problem: given items with weights and values,
@@ -68,10 +65,9 @@ class KnapsackConfig:
     values: jnp.ndarray   # Item values, shape (n_items,)
     capacity: float       # Maximum weight capacity
     penalty_factor: float = 1000.0  # Penalty for exceeding capacity
-    maximize: bool = struct.field(pytree_node=False, default=True)
 
 @struct.dataclass
-class KnapsackEvaluator:
+class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
     """Knapsack problem fitness evaluator.
     
     Evaluates binary genomes where each bit indicates whether
@@ -80,8 +76,9 @@ class KnapsackEvaluator:
     """
     
     config: KnapsackConfig
+    data: Any = struct.field(pytree_node=False, default=None)
         
-    def evaluate_single(self, genome: BinaryGenome) -> float:
+    def evaluate(self, genome: BinaryGenome) -> float:
         """Evaluate a single binary genome for knapsack fitness.
         
         Args:
@@ -110,39 +107,6 @@ class KnapsackEvaluator:
         fitness = jnp.where(is_over, total_value - penalty, total_value)
         
         return fitness
-            
-    def evaluate_batch(self, population: BinaryPopulation) -> jnp.ndarray:
-        """Evaluate a population of binary genomes."""
-        fitness_fn = self.get_tensor_fitness_function()
-        fitness_values = fitness_fn(population.genes.bits)
-        return fitness_values
-            
-    def get_tensor_fitness_function(self):
-        """Get pure JAX function for batch evaluation."""
-        
-        def _knapsack_fitness(bits_batch: jnp.ndarray) -> jnp.ndarray:
-            """Pure JAX function for knapsack fitness.
-            
-            Args:
-                bits_batch: Shape (batch_size, n_items) binary array
-                
-            Returns:
-                Fitness values of shape (batch_size,)
-            """
-            # Calculate weights and values for all solutions
-            weights_batch = bits_batch * self.config.weights[None, :]  # (batch_size, n_items)
-            values_batch = bits_batch * self.config.values[None, :]    # (batch_size, n_items)
-            
-            total_weights = jnp.sum(weights_batch, axis=1)  # (batch_size,)
-            total_values = jnp.sum(values_batch, axis=1)    # (batch_size,)
-            
-            # Apply penalty for exceeding capacity
-            over_capacity = jnp.maximum(0, total_weights - self.config.capacity)
-            penalties = over_capacity * self.config.penalty_factor
-            
-            return total_values - penalties
-            
-        return _knapsack_fitness
         
     @staticmethod
     def create_random_problem(key: jnp.ndarray, n_items: int, 

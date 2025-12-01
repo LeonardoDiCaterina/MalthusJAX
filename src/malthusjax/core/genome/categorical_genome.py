@@ -121,6 +121,7 @@ class CategoricalPopulation(BasePopulation[CategoricalGenome]):
     """Population container for CategoricalGenome objects."""
     genes: CategoricalGenome
     fitness: chex.Array
+    config: CategoricalGenomeConfig
     
     GENOME_CLS: ClassVar[Type[CategoricalGenome]] = CategoricalGenome
 
@@ -129,4 +130,4 @@ class CategoricalPopulation(BasePopulation[CategoricalGenome]):
         """Create random population of categorical genomes."""
         batched_genes = CategoricalGenome.create_population(key, config, size)
         initial_fitness = jnp.full((size,), -jnp.inf)
-        return cls(genes=batched_genes, fitness=initial_fitness)
+        return cls(genes=batched_genes, fitness=initial_fitness, config=config)

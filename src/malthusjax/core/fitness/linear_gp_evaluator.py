@@ -13,7 +13,7 @@ import jax  # type: ignore
 import jax.numpy as jnp  # type: ignore
 import chex  # type: ignore
 
-from malthusjax.core.fitness.evaluators import BaseEvaluator, RegressionData
+from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig, RegressionData
 from malthusjax.core.genome.linear import LinearGenome, LinearGenomeConfig, LinearPopulation
 
 PROTECTED_DIV_EPS = 1e-6
@@ -133,7 +133,17 @@ TENSORGP_NAMES = [
 
 
 @struct.dataclass
-class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGenomeConfig, RegressionData]):
+class LinearGPEvaluatorConfig(BaseEvaluatorConfig):
+    """Configuration for Linear GP Evaluator."""
+    # Data can be static or dynamic, usually static for a run
+    X: chex.Array = struct.field(pytree_node=False) 
+    y: chex.Array = struct.field(pytree_node=False)
+    num_inputs: int = struct.field(pytree_node=False)
+    length: int = struct.field(pytree_node=False)
+
+
+@struct.dataclass
+class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, RegressionData]):
     """
     Linear Genetic Programming evaluator with symbiotic fitness.
     
@@ -189,16 +199,17 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGenomeConfig, Regressi
         
         Args:
             genome: Genome to evaluate
-            data: Tuple of (X, y) for regression
             
         Returns:
             Array of shape (length,) with fitness of each instruction
-        """        
+        """
+        X, y = self.data
+        
         # 1. Vectorize Prediction (Data Parallelism)
-        all_preds = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, self.config.X)
+        all_preds = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, X)
         
         # 2. Calculate MSE for EVERY instruction column
-        Y_bcast = self.config.y[:, None]
+        Y_bcast = y[:, None]
         squared_errors = (all_preds - Y_bcast) ** 2
         mse_per_tree = jnp.mean(squared_errors, axis=0)
         
@@ -206,10 +217,6 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGenomeConfig, Regressi
         best_mse = jnp.min(mse_per_tree)
         
         return -best_mse
-    
-    def evaluate_batch(self, population: LinearPopulation) -> chex.Array:
-        """Evaluate entire population."""
-        return jax.vmap(self.evaluate)(population.genes)
 
     def get_best_instruction_fitness(self, fitness: chex.Array) -> float:
         """

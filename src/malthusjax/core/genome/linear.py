@@ -22,9 +22,6 @@ class LinearGenomeConfig:
     num_inputs: int  = struct.field(pytree_node=False)  # N: Number of input features  
     num_ops: int   = struct.field(pytree_node=False)    # Number of available functions
     max_arity: int = struct.field(pytree_node=False)
-    X: Optional[chex.Array] = struct.field(pytree_node=False)
-    y: Optional[chex.Array] = struct.field(pytree_node=False)
-    maximize: bool = struct.field(pytree_node=False, default=True)  # Static configuration
 
 
 @struct.dataclass

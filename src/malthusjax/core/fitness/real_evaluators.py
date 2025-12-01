@@ -4,28 +4,29 @@ This module provides classic continuous optimization benchmark functions
 including Griewank, Sphere, and constrained Box optimization problems.
 """
 
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Any
 import jax
 import jax.numpy as jnp
 import jax.random as jr
 from flax import struct
 
-from ..base import BaseGenome
+from ..base import BaseGenome, BasePopulation
+from .base import BaseEvaluator, BaseEvaluatorConfig
 from ..genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 
 
 @struct.dataclass
-class SphereConfig:
+class SphereConfig(BaseEvaluatorConfig):
     """Configuration for Sphere function optimization.
     
     The Sphere function: f(x) = sum(x_i^2)
     Global minimum: f(0, 0, ..., 0) = 0
     """
-    maximize: bool = struct.field(pytree_node=False, default=True)  # Static configuration
+    pass
     
 
 @struct.dataclass
-class SphereEvaluator:
+class SphereEvaluator(BaseEvaluator[RealGenome, SphereConfig, Any]):
     """Sphere function fitness evaluator.
     
     The Sphere function is one of the simplest continuous optimization
@@ -34,8 +35,9 @@ class SphereEvaluator:
     """
     
     config: SphereConfig
+    data: Any = struct.field(pytree_node=False, default=None)
         
-    def evaluate_single(self, genome: RealGenome) -> float:
+    def evaluate(self, genome: RealGenome) -> float:
         """Evaluate a single real genome on Sphere function.
         
         Args:
@@ -44,52 +46,26 @@ class SphereEvaluator:
         Returns:
             Fitness value (sum of squares)
         """
-        sphere_value = float(jnp.sum(genome.values ** 2))
+        sphere_value = jnp.sum(genome.values ** 2).astype(jnp.float32)
         if self.config.maximize:
             return sphere_value 
         else:
             return -sphere_value
-            
-    def evaluate_batch(self, population: RealPopulation) -> jnp.ndarray:
-        """Evaluate a population of real genomes."""
-        fitness_fn = self.get_tensor_fitness_function()
-        fitness_values = fitness_fn(population.genes.values)
-        return fitness_values
-            
-    def get_tensor_fitness_function(self):
-        """Get pure JAX function for batch evaluation."""
-        
-        def _sphere_fitness(values_batch: jnp.ndarray) -> jnp.ndarray:
-            """Pure JAX function for Sphere fitness.
-            
-            Args:
-                values_batch: Shape (batch_size, dimensions) real array
-                
-            Returns:
-                Fitness values of shape (batch_size,)
-            """
-            sphere_values = jnp.sum(values_batch ** 2, axis=1)
-            if self.config.maximize:
-                return sphere_values  # Negative for minimization
-            else:
-                return -sphere_values
-                
-        return _sphere_fitness
 
 
 @struct.dataclass
-class GriewankConfig:
+class GriewankConfig(BaseEvaluatorConfig):
     """Configuration for Griewank function optimization.
     
     The Griewank function: f(x) = 1 + (1/4000)*sum(x_i^2) - prod(cos(x_i/sqrt(i)))
     Global minimum: f(0, 0, ..., 0) = 0
     Typically evaluated on domain [-600, 600]^n
     """
-    maximize: bool = struct.field(pytree_node=False, default=True)  # Static configuration
+    pass
     
 
 @struct.dataclass
-class GriewankEvaluator:
+class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
     """Griewank function fitness evaluator.
     
     The Griewank function is a multimodal benchmark with many local optima.
@@ -98,8 +74,9 @@ class GriewankEvaluator:
     """
     
     config: GriewankConfig
+    data: Any = struct.field(pytree_node=False, default=None)
         
-    def evaluate_single(self, genome: RealGenome) -> float:
+    def evaluate(self, genome: RealGenome) -> float:
         """Evaluate a single real genome on Griewank function.
         
         Args:
@@ -117,52 +94,16 @@ class GriewankEvaluator:
         indices = jnp.arange(1, len(x) + 1, dtype=jnp.float32)
         cos_term = jnp.prod(jnp.cos(x / jnp.sqrt(indices)))
         
-        griewank_value = float(1.0 + quad_term - cos_term)
+        griewank_value = (1.0 + quad_term - cos_term).astype(jnp.float32)
         
         if self.config.maximize:
             return griewank_value  # Negative for minimization
         else:
             return -griewank_value
-            
-    def evaluate_batch(self, population: RealPopulation) -> jnp.ndarray:
-        """Evaluate a population of real genomes."""
-        fitness_fn = self.get_tensor_fitness_function()
-        fitness_values = fitness_fn(population.genes.values)
-        return fitness_values
-            
-    def get_tensor_fitness_function(self):
-        """Get pure JAX function for batch evaluation."""
-        
-        def _griewank_fitness(values_batch: jnp.ndarray) -> jnp.ndarray:
-            """Pure JAX function for Griewank fitness.
-            
-            Args:
-                values_batch: Shape (batch_size, dimensions) real array
-                
-            Returns:
-                Fitness values of shape (batch_size,)
-            """
-            batch_size, dimensions = values_batch.shape
-            
-            # Quadratic terms
-            quad_terms = jnp.sum(values_batch ** 2, axis=1) / 4000.0
-            
-            # Cosine product terms
-            indices = jnp.arange(1, dimensions + 1, dtype=jnp.float32)
-            cos_terms = jnp.prod(jnp.cos(values_batch / jnp.sqrt(indices)[None, :]), axis=1)
-            
-            griewank_values = 1.0 + quad_terms - cos_terms
-            
-            if self.config.maximize:
-                return griewank_values  # Negative for minimization
-            else:
-                return -griewank_values
-                
-        return _griewank_fitness
 
 
 @struct.dataclass
-class BoxConfig:
+class BoxConfig(BaseEvaluatorConfig):
     """Configuration for Box-constrained optimization.
     
     Constrained optimization problem where the goal is to stay within
@@ -175,7 +116,7 @@ class BoxConfig:
             
 
 @struct.dataclass
-class BoxEvaluator:
+class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
     """Box-constrained optimization fitness evaluator.
     
     Evaluates real genomes on constrained optimization problems.
@@ -184,8 +125,9 @@ class BoxEvaluator:
     """
     
     config: BoxConfig
+    data: Any = struct.field(pytree_node=False, default=None)
         
-    def evaluate_single(self, genome: RealGenome) -> float:
+    def evaluate(self, genome: RealGenome) -> float:
         """Evaluate a single real genome on box-constrained problem.
         
         Args:
@@ -215,51 +157,7 @@ class BoxEvaluator:
         penalty = total_violation * self.config.penalty_factor
         
         # Return negative (for maximization, since we want to minimize distance)
-        return float(-objective - penalty)
-        
-    def evaluate_batch(self, population: RealPopulation) -> jnp.ndarray:
-        """Evaluate a population of real genomes."""
-        fitness_fn = self.get_tensor_fitness_function()
-        fitness_values = fitness_fn(population.genes.values)
-        return fitness_values
-        
-    def get_tensor_fitness_function(self):
-        """Get pure JAX function for batch evaluation."""
-        
-        def _box_fitness(values_batch: jnp.ndarray) -> jnp.ndarray:
-            """Pure JAX function for box-constrained fitness.
-            
-            Args:
-                values_batch: Shape (batch_size, dimensions) real array
-                
-            Returns:
-                Fitness values of shape (batch_size,)
-            """
-            lower, upper = self.config.box_bounds
-            target = self.config.target_point
-            
-            # Calculate objective function
-            if self.config.objective_type == "distance":
-                diff = values_batch - target[None, :]
-                objectives = jnp.sqrt(jnp.sum(diff ** 2, axis=1))
-            elif self.config.objective_type == "sphere":
-                diff = values_batch - target[None, :]
-                objectives = jnp.sum(diff ** 2, axis=1)
-            else:
-                raise ValueError(f"Unknown objective type: {self.config.objective_type}")
-                
-            # Calculate constraint violations
-            lower_violations = jnp.maximum(0, lower[None, :] - values_batch)
-            upper_violations = jnp.maximum(0, values_batch - upper[None, :])
-            total_violations = jnp.sum(lower_violations, axis=1) + jnp.sum(upper_violations, axis=1)
-            
-            # Apply penalties
-            penalties = total_violations * self.config.penalty_factor
-            
-            # Return negative (for maximization)
-            return -(objectives + penalties)
-            
-        return _box_fitness
+        return (-objective - penalty).astype(jnp.float32)
         
     @staticmethod
     def create_random_problem(key: jnp.ndarray, dimensions: int,
