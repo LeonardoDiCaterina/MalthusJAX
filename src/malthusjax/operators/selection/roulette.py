@@ -62,7 +62,3 @@ def _roulette_selection(
         p=probabilities
     )
     return selected_indices
-
-
-# JIT compile with static arguments
-_roulette_selection = jax.jit(_roulette_selection, static_argnames=["number_of_choices"])

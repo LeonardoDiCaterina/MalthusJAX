@@ -75,8 +75,4 @@ def _tournament_selection(
     return selected_indices
 
 
-# JIT compile with static arguments
-_tournament_selection = jax.jit(_tournament_selection, static_argnames=["number_of_choices", "tournament_size"])
-
-
 __all__ = ["TournamentSelection"]

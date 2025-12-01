@@ -98,18 +98,19 @@ class BaseSelection:
     Design Philosophy:
     - Operates purely on fitness arrays, genome-agnostic
     - Returns indices for population gathering
-    - Supports both standard and symbiotic fitness landscapes
     """
-    # STATIC: How many parents do we want to pick?
+    # --- STATIC PARAMS (Re-compile if changed) ---
     num_selections: int = struct.field(pytree_node=False)
 
     def __call__(self, key: chex.PRNGKey, fitness: chex.Array) -> chex.Array:
         """
+        Select individuals based on fitness.
+        
         Args:
-            key: RNG Key
-            fitness: Shape (Pop_Size,) or (Pop_Size, Symbionts) 
+            key: PRNG Key
+            fitness: Fitness array (pop_size,)
             
         Returns:
-            Selected Indices: Shape (num_selections,) int32
+            Selected indices (num_selections,)
         """
         raise NotImplementedError("Subclasses must implement __call__")
