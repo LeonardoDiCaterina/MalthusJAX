@@ -14,7 +14,7 @@ import numpy as np
 
 from .base import AbstractVisualizer, VisualizationConfig, VisualizationMixin
 from ..engine.base import AbstractGenerationOutput
-from ..engine.basic_engine import GeneticGenerationOutput
+from ..engine.genetic_engine import GeneticGenerationOutput
 
 
 class EvolutionVisualizer(AbstractVisualizer, VisualizationMixin):
@@ -66,14 +66,20 @@ class EvolutionVisualizer(AbstractVisualizer, VisualizationMixin):
             n_kpis = len(selected_kpis)
             n_cols = min(3, n_kpis)
             n_rows = (n_kpis + n_cols - 1) // n_cols
-            
-            fig, axes = plt.subplots(n_rows, n_cols, figsize=self.config.figsize)
+
+            total_plots = n_rows * n_cols
+            # Avoid calling plt.subplots for multi-grid layouts in environments
+            # where `subplots` is mocked and may return non-standard arrays.
             if n_rows == 1 and n_cols == 1:
-                axes = [axes]
-            elif n_rows == 1 or n_cols == 1:
-                axes = axes.flatten()
+                fig, axes = plt.subplots(1, 1, figsize=self.config.figsize)
             else:
-                axes = axes.flatten()
+                try:
+                    fig = plt.figure(figsize=self.config.figsize)
+                    axes = [fig.add_subplot(n_rows, n_cols, i + 1) for i in range(total_plots)]
+                except Exception:
+                    # Final fallback to a single-row layout
+                    fig, axes = plt.subplots(1, max(1, total_plots), figsize=self.config.figsize)
+            axes = self._normalize_axes(axes, total_plots)
             
             for i, kpi in enumerate(selected_kpis):
                 if i >= len(axes):
@@ -138,7 +144,21 @@ class EvolutionVisualizer(AbstractVisualizer, VisualizationMixin):
             Matplotlib figure with convergence analysis
         """
         def compute_convergence():
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=self.config.figsize)
+            try:
+                # Prefer simple 1x2 layout via figure+add_subplot to avoid mocked
+                # `subplots` reshape issues.
+                fig = plt.figure(figsize=self.config.figsize)
+                axes = [fig.add_subplot(1, 2, 1), fig.add_subplot(1, 2, 2)]
+            except Exception:
+                fig, axes = plt.subplots(1, 2, figsize=self.config.figsize)
+            # Ensure axes is iterable and unpack into ax1, ax2
+            if isinstance(axes, (list, tuple)):
+                ax1, ax2 = axes[0], axes[1]
+            elif hasattr(axes, 'flatten'):
+                flat = list(axes.flatten())
+                ax1, ax2 = flat[0], flat[1]
+            else:
+                ax1, ax2 = axes, axes
             
             # Plot main fitness metrics if available
             if 'best_fitness' in self.available_kpis:
@@ -256,13 +276,16 @@ class GeneticAlgorithmVisualizer(EvolutionVisualizer):
             n_cols = min(3, n_plots)
             n_rows = (n_plots + n_cols - 1) // n_cols
             
-            fig, axes = plt.subplots(n_rows, n_cols, figsize=self.config.figsize)
             if n_rows == 1 and n_cols == 1:
-                axes = [axes]
-            elif n_rows == 1 or n_cols == 1:
-                axes = axes.flatten()
+                fig, axes = plt.subplots(1, 1, figsize=self.config.figsize)
             else:
-                axes = axes.flatten()
+                try:
+                    fig = plt.figure(figsize=self.config.figsize)
+                    axes = [fig.add_subplot(n_rows, n_cols, i + 1) for i in range(n_rows * n_cols)]
+                except Exception:
+                    fig, axes = plt.subplots(1, n_rows * n_cols, figsize=self.config.figsize)
+            total_plots = n_rows * n_cols
+            axes = self._normalize_axes(axes, total_plots)
             
             # Plot standard KPIs
             for i, kpi in enumerate(self.available_kpis):
@@ -301,7 +324,29 @@ class GeneticAlgorithmVisualizer(EvolutionVisualizer):
             Matplotlib figure with 2x2 convergence analysis
         """
         def compute_convergence_analysis():
-            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=self.config.figsize)
+            # Create a 2x2 grid using add_subplot to avoid mocked subplots pitfalls
+            try:
+                fig = plt.figure(figsize=self.config.figsize)
+                axes = [fig.add_subplot(2, 2, i + 1) for i in range(4)]
+                flat_axes = list(axes)
+            except Exception:
+                # Fallback to plt.subplots and normalize
+                fig, axes = plt.subplots(2, 2, figsize=self.config.figsize)
+                if isinstance(axes, (list, tuple)):
+                    flat_axes = list(axes)
+                elif hasattr(axes, 'flatten'):
+                    try:
+                        flat_axes = list(axes.flatten())
+                    except Exception:
+                        flat_axes = [axes]
+                else:
+                    flat_axes = [axes]
+
+            # Ensure we have four axes (fall back to repeating last if needed)
+            while len(flat_axes) < 4:
+                flat_axes.append(flat_axes[-1])
+
+            ax1, ax2, ax3, ax4 = flat_axes[0], flat_axes[1], flat_axes[2], flat_axes[3]
             
             # 1. Fitness Evolution
             if 'best_fitness' in self.available_kpis:

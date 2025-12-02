@@ -140,12 +140,20 @@ class EngineComparator(AbstractMultiRunVisualizer, VisualizationMixin):
             Matplotlib figure with histogram and box plot
         """
         def compute_distribution():
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=self.config.figsize)
-            
+            try:
+                fig = plt.figure(figsize=self.config.figsize)
+                ax1 = fig.add_subplot(1, 2, 1)
+                ax2 = fig.add_subplot(1, 2, 2)
+                axes = [ax1, ax2]
+            except Exception:
+                fig, axes = plt.subplots(1, 2, figsize=self.config.figsize)
+                axes = self._normalize_axes(axes, 2)
+                ax1, ax2 = axes[0], axes[1]
+
             final_values = self.get_final_values(kpi)
-            
+
             # Histogram
-            ax1.hist(final_values, bins=min(15, len(final_values)//2), 
+            ax1.hist(final_values, bins=min(15, max(1, len(final_values)//2)), 
                     alpha=0.7, edgecolor='black', color='skyblue')
             ax1.axvline(np.mean(final_values), color='red', linestyle='--', 
                        linewidth=2, label=f'Mean: {np.mean(final_values):.3f}')

@@ -17,46 +17,46 @@ from .core.fitness.binary_evaluators import BinarySumEvaluator, BinarySumConfig,
 from .core.fitness.real_evaluators import SphereEvaluator, SphereConfig, GriewankEvaluator, GriewankConfig, BoxEvaluator, BoxConfig
 from .core.fitness.linear_gp_evaluator import LinearGPEvaluator
 
-# --- 2. OPERATOR NAMESPACES (Grouped) ---
+# --- 2. OPERATORS (Top Level + Namespaces) ---
+# Import operators at top level for direct access: mjx.TournamentSelection()
+from .operators.selection.tournament import TournamentSelection
+from .operators.selection.roulette import RouletteWheelSelection
+from .operators.crossover.binary import UniformCrossover, SinglePointCrossover
+from .operators.crossover.real import BlendCrossover, SimulatedBinaryCrossover
+from .operators.crossover.linear import LinearCrossover
+from .operators.mutation.binary import BitFlipMutation, ScrambleMutation, SwapMutation
+from .operators.mutation.real import GaussianMutation, BallMutation, PolynomialMutation
+from .operators.mutation.categorical import CategoricalFlipMutation, RandomCategoryMutation
+from .operators.mutation.linear import LinearMutation, LinearPointMutation
 
-class mutation:
-    """Namespace for Mutation Operators."""
-    # Binary
-    from .operators.mutation.binary import BitFlipMutation as BitFlip
-    from .operators.mutation.binary import ScrambleMutation as Scramble
-    from .operators.mutation.binary import SwapMutation as Swap  
-    
-    # Real
-    from .operators.mutation.real import GaussianMutation as Gaussian
-    from .operators.mutation.real import BallMutation as Ball
-    from .operators.mutation.real import PolynomialMutation as Polynomial
-    
-    # Categorical
-    from .operators.mutation.categorical import CategoricalFlipMutation as CategoryFlip
-    from .operators.mutation.categorical import RandomCategoryMutation as RandomCategory
-    
-    # Linear
-    from .operators.mutation.linear import LinearMutation as Linear
-    from .operators.mutation.linear import LinearPointMutation as LinearPoint
-
-class crossover:
-    """Namespace for Crossover Operators."""
-    # Binary
-    from .operators.crossover.binary import UniformCrossover as Uniform
-    from .operators.crossover.binary import SinglePointCrossover as SinglePoint
-    
-    # Real
-    from .operators.crossover.real import BlendCrossover as Blend
-    from .operators.crossover.real import SimulatedBinaryCrossover as SBX
-    
-    # Linear
-    from .operators.crossover.linear import LinearCrossover as Linear
-
+# Also provide namespaces for organized access: mjx.selection.Tournament()
 class selection:
     """Namespace for Selection Operators."""
     from .operators.selection.tournament import TournamentSelection as Tournament
     from .operators.selection.roulette import RouletteWheelSelection as Roulette
 
+class crossover:
+    """Namespace for Crossover Operators."""
+    from .operators.crossover.binary import UniformCrossover as Uniform
+    from .operators.crossover.binary import SinglePointCrossover as SinglePoint
+    from .operators.crossover.real import BlendCrossover as Blend
+    from .operators.crossover.real import SimulatedBinaryCrossover as SBX
+    from .operators.crossover.linear import LinearCrossover as Linear
+
+class mutation:
+    """Namespace for Mutation Operators."""
+    from .operators.mutation.binary import BitFlipMutation as BitFlip
+    from .operators.mutation.binary import ScrambleMutation as Scramble
+    from .operators.mutation.binary import SwapMutation as Swap
+    from .operators.mutation.real import GaussianMutation as Gaussian
+    from .operators.mutation.real import BallMutation as Ball
+    from .operators.mutation.real import PolynomialMutation as Polynomial
+    from .operators.mutation.categorical import CategoricalFlipMutation as CategoryFlip
+    from .operators.mutation.categorical import RandomCategoryMutation as RandomCategory
+    from .operators.mutation.linear import LinearMutation as Linear
+    from .operators.mutation.linear import LinearPointMutation as LinearPoint
+
 # --- 3. ENGINE (Top Level) ---
 from .engine.base import AbstractEngine, AbstractEvolutionState, AbstractEngineParams
 from .engine.genetic_engine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
+from .engine.diversity_engine import DiversityAwareEngine

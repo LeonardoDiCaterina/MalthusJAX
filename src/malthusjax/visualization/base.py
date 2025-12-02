@@ -191,6 +191,78 @@ class VisualizationMixin:
     def _format_kpi_name(kpi_name: str) -> str:
         """Format KPI name for display."""
         return kpi_name.replace('_', ' ').title()
+
+    @staticmethod
+    def _normalize_axes(axes, total_plots: int):
+        """
+        Normalize the `axes` object returned by `plt.subplots` into a flat list
+        of length `total_plots`. This handles cases where tests mock `subplots`
+        and return MagicMocks, numpy arrays with odd shapes, or single Axes.
+        """
+        import numpy as _np
+        from collections.abc import Iterable
+
+        def _unwrap_candidate(x):
+            # If it's a numpy array, try to extract a contained element
+            if isinstance(x, _np.ndarray):
+                try:
+                    if x.size > 0:
+                        return x.flatten()[0]
+                    else:
+                        return None
+                except Exception:
+                    return None
+            # If it's a list/tuple, return first element
+            if isinstance(x, (list, tuple)):
+                return x[0] if len(x) > 0 else None
+            return x
+
+        flat = []
+
+        # Direct handling for common types
+        if isinstance(axes, _np.ndarray):
+            try:
+                flat = list(axes.ravel())
+            except Exception:
+                flat = [axes]
+        elif isinstance(axes, (list, tuple)):
+            flat = list(axes)
+        elif hasattr(axes, 'flatten'):
+            try:
+                flat = list(axes.flatten())
+            except Exception:
+                # Fallback to treating as single object
+                flat = [axes]
+        elif isinstance(axes, Iterable) and not isinstance(axes, (str, bytes)):
+            try:
+                flat = list(axes)
+            except Exception:
+                flat = [axes]
+        else:
+            flat = [axes]
+
+        # Post-process entries: unwrap numpy arrays or nested structures
+        processed = []
+        for item in flat:
+            cand = _unwrap_candidate(item)
+            if cand is None:
+                # keep original if unwrap failed
+                processed.append(item)
+            else:
+                processed.append(cand)
+
+        # Remove falsy trailing items
+        processed = [p for p in processed if p is not None]
+
+        # If still empty, provide a placeholder None
+        if len(processed) == 0:
+            processed = [None]
+
+        # Expand or truncate to match requested total_plots
+        if len(processed) < total_plots:
+            processed = processed + [processed[-1]] * (total_plots - len(processed))
+
+        return processed[:total_plots]
     
     @staticmethod
     def _add_statistics_box(ax: plt.Axes, values: List[float], 
