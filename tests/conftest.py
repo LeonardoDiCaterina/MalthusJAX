@@ -17,6 +17,27 @@ from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.core.genome.categorical_genome import CategoricalGenome, CategoricalGenomeConfig
 
 
+import pytest
+import jax
+import jax.numpy as jnp
+
+@pytest.fixture
+def key_fixture():
+    return jax.random.PRNGKey(42)
+
+def get_batch_shape(pytree_obj):
+    """
+    Generic way to get the shape of a genome batch.
+    Works for Binary (bits), Real (values), and Linear (ops, args).
+    """
+    # Get the first array (leaf) found in the structure
+    leaves = jax.tree_util.tree_leaves(pytree_obj)
+    if not leaves:
+        return (0,)
+    # Return the shape of that first array
+    return leaves[0].shape
+
+
 @pytest.fixture
 def rng_key() -> jax.Array:
     """Base random key for deterministic tests."""
