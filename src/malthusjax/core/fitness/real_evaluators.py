@@ -161,7 +161,7 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
         
     @staticmethod
     def create_random_problem(key: jnp.ndarray, dimensions: int,
-                            box_size: float = 10.0) -> 'BoxConfig':
+                            box_size: float = 10.0, maximize: bool = False) -> BoxConfig:
         """Create a random box-constrained optimization problem.
         
         Args:
@@ -185,5 +185,6 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
         return BoxConfig(
             target_point=target,
             box_bounds=(lower, upper),
-            objective_type="distance"
+            objective_type="distance",
+            maximize=maximize
         )
