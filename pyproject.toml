@@ -32,6 +32,7 @@ dependencies = [
     "typing-extensions>=4.0.0",
     "flax>=0.7.0",
     "chex>=0.1.7",
+    "scikit-learn>=1.0.0", 
 ]
 
 [project.optional-dependencies]

@@ -12,7 +12,8 @@ import chex
 from flax import struct
 from typing import Any
 
-from .genetic_engine import GeneticEngine
+from .genetic_engine import GeneticEngine, GeneticEngineParams
+from .base import AbstractEvolutionState
 from ..core.base import BasePopulation
 
 
@@ -41,14 +42,7 @@ class DiversityAwareEngine(GeneticEngine):
         """
         Compute crowding distance scores for each individual.
         
-        Higher scores indicate more isolated (diverse) individuals in the population.
-        Based on the sum of distances to all other individuals.
-        
-        Args:
-            population: Current population
-            
-        Returns:
-            Array of shape (pop_size,) with crowding scores
+        Higher scores indicate more isolated (diverse) individuals.
         """
         # Compute distance matrix: (pop_size, pop_size)
         dist_matrix = population.distance_matrix(metric=self.distance_metric)
@@ -69,71 +63,59 @@ class DiversityAwareEngine(GeneticEngine):
     ) -> chex.Array:
         """
         Combine fitness and diversity into a single selection criterion.
-        
-        Args:
-            fitness: Raw fitness values (pop_size,)
-            crowding: Crowding distance scores (pop_size,)
-            
-        Returns:
-            Combined scores for selection (pop_size,)
         """
         # Normalize both to [0, 1] range for fair weighting
-        fitness_norm = (fitness - jnp.min(fitness)) / (jnp.max(fitness) - jnp.min(fitness) + 1e-8)
-        crowding_norm = (crowding - jnp.min(crowding)) / (jnp.max(crowding) - jnp.min(crowding) + 1e-8)
+        fitness_min, fitness_max = jnp.min(fitness), jnp.max(fitness)
+        crowding_min, crowding_max = jnp.min(crowding), jnp.max(crowding)
+        
+        fitness_norm = (fitness - fitness_min) / (fitness_max - fitness_min + 1e-8)
+        crowding_norm = (crowding - crowding_min) / (crowding_max - crowding_min + 1e-8)
         
         # Weighted combination
         combined = (1 - self.diversity_weight) * fitness_norm + self.diversity_weight * crowding_norm
         
         return combined
     
-    def _select_parents(self, key: chex.Array, population: BasePopulation) -> BasePopulation:
+    def _select_parents(self, key: chex.PRNGKey, state: AbstractEvolutionState, params: GeneticEngineParams) -> BasePopulation:
         """
         Override parent selection to incorporate diversity.
         
-        This method:
-        1. Computes crowding distance for diversity
-        2. Combines fitness and diversity into a single score
-        3. Uses the base selection operator on the combined score
-        
-        Args:
-            key: Random key for selection
-            population: Current population
-            
-        Returns:
-            Selected parent population
+        New Signature: (key, state, params)
         """
-        # Compute diversity metrics
+        population = state.population
+        
+        # 1. Compute diversity metrics
         crowding_scores = self._compute_crowding_scores(population)
         
-        # Create diversity-aware fitness
+        # 2. Create diversity-aware fitness
         diversity_fitness = self._compute_diversity_fitness(
             population.fitness, 
             crowding_scores
         )
         
-        # Use the base selection operator with diversity-aware fitness
-        # Note: We temporarily modify the fitness for selection purposes only
+        # 3. Use the base selection operator with diversity-aware fitness
+        # Note: We pass diversity_fitness instead of raw fitness
         indices = self.selection(key, diversity_fitness)
+        
+        # CRITICAL FIX: Flatten indices to avoid (N, 1, 1) dimension errors in downstream merge
+        indices = indices.flatten()
         
         # Return selected parents with ORIGINAL fitness values
         # (fitness is used for actual evaluation, diversity only for selection)
         return population[indices]
     
-    def _select_elites(self, population: BasePopulation, n_elites: int) -> Any:
+    def _select_elites(self, key: chex.PRNGKey, state: AbstractEvolutionState, params: GeneticEngineParams) -> chex.ArrayTree:
         """
         Override elite selection to balance fitness and diversity.
         
-        Instead of selecting only the fittest individuals, we select a mix:
+        New Signature: (key, state, params)
+        Strategy:
         - Top 70% by fitness (exploitation)
         - Top 30% by diversity (exploration)
-        
-        Args:
-            population: Current population
-            n_elites: Number of elites to preserve
-            
-        Returns:
-            Elite genome batch
         """
+        n_elites = params.elitism
+        population = state.population
+        
         if n_elites == 0:
             # Return empty structure matching genome shape
             return jax.tree_util.tree_map(lambda x: x[:0], population.genes)
@@ -142,15 +124,15 @@ class DiversityAwareEngine(GeneticEngine):
         n_fitness_elites = int(n_elites * 0.7)
         n_diversity_elites = n_elites - n_fitness_elites
         
-        # Select top fitness elites
+        # 1. Select top fitness elites
         _, fitness_elite_indices = jax.lax.top_k(population.fitness, n_fitness_elites)
         
-        # Select top diversity elites
+        # 2. Select top diversity elites
         crowding_scores = self._compute_crowding_scores(population)
         _, diversity_elite_indices = jax.lax.top_k(crowding_scores, n_diversity_elites)
         
-        # Combine indices (may have duplicates, but that's acceptable)
+        # 3. Combine indices
         elite_indices = jnp.concatenate([fitness_elite_indices, diversity_elite_indices])
         
-        # Return elite genes
+        # Return elite genes (chex.ArrayTree)
         return population[elite_indices].genes

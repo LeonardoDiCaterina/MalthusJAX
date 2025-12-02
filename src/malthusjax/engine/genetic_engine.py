@@ -1,6 +1,6 @@
 """
 Standard Genetic Algorithm Engine.
-Implements a modular, extensible evolutionary loop with callback support.
+Implements a modular, extensible evolutionary loop with 'Full Access' component design.
 """
 import functools
 import time
@@ -30,6 +30,7 @@ def _host_progress_callback(gen, best_fit):
 @struct.dataclass
 class GeneticEngineParams(AbstractEngineParams):
     """Configuration for Genetic Engine."""
+    # Add any specific parameters here if needed, otherwise inherits basics
     pass
 
 @struct.dataclass
@@ -37,18 +38,16 @@ class GeneticGenerationOutput(AbstractGenerationOutput):
     """KPIs returned by Genetic Engine."""
     pass
 
+
 @struct.dataclass
 class GeneticEngine(AbstractEngine):
     """
     A modular, extensible Genetic Engine.
     
-    The 'step' function acts as a conductor, calling these replaceable parts:
-    1. _select_elites()
-    2. _select_parents()
-    3. _create_offspring()
-    4. _merge_and_evaluate()
-    5. _update_hall_of_fame()
-    6. _execute_hooks()
+    Architecture: 'Full Access' Components
+    Every internal method receives (key, state, params) to allow for 
+    adaptive logic (e.g. changing mutation rates based on state.stagnation)
+    and easy unit testing.
     """
     # Core Components
     genome_config: Any  # Configuration for genome creation
@@ -68,155 +67,159 @@ class GeneticEngine(AbstractEngine):
     enable_progress_bar: bool = struct.field(pytree_node=False, default=False)
     
     # ==========================================
-    # 1. TEMPLATE METHODS (Override these!)
+    # 1. MODULAR COMPONENT METHODS
     # ==========================================
 
-    def _select_elites(self, population: BasePopulation, n_elites: int) -> Any:
-        """Preserve the top K individual GENES."""
-        # Note: We return genes, not population, for easier merging
-        _, elite_indices = jax.lax.top_k(population.fitness, n_elites)
-        # Slicing returns a Population, we extract .genes
-        return population[elite_indices].genes
+    def _select_elites(self, key: chex.PRNGKey, state: AbstractEvolutionState, params: GeneticEngineParams) -> chex.ArrayTree:
+        """
+        Preserve the top individuals.
+        """
+        # FIX: Use 'params.elitism' (standard name), not 'n_elites'
+        _, elite_indices = jax.lax.top_k(state.population.fitness, params.elitism)
+        return state.population[elite_indices].genes
 
-    def _select_parents(self, key: chex.Array, population: BasePopulation) -> BasePopulation:
-        """Select parents for reproduction."""
-        # Simple implementation: Select N parents where N = Pop Size
-        # FIX: Use fitness_values from state if available, otherwise fallback to population.fitness
-        # But here we receive population object which might not have updated fitness if we separate it
-        # In the new paradigm, fitness is stored in state.fitness_values
-        # However, _select_parents signature takes population.
-        # We should update the signature or assume population has fitness property
+    def _select_parents(self, key: chex.PRNGKey, state: AbstractEvolutionState, params: GeneticEngineParams) -> BasePopulation:
+        """
+        Select parents for reproduction.
+        """
+        indices = self.selection(key, state.population.fitness)
         
-        # For now, we assume population object has the fitness property populated
-        # This is ensured by _merge_and_evaluate which returns a population with fitness
-        indices = self.selection(key, population.fitness)
-        return population[indices]
+        # FIX: This is the specific line that prevents the dimension error!
+        # Ensures indices are (N,) instead of (N, 1) or (N, 1, 1)
+        indices = indices.flatten()
+        
+        return state.population[indices]
 
-    def _create_offspring(self, key: chex.Array, parents: BasePopulation) -> Any:
-        """Apply Variation (Crossover -> Mutation)."""
+    def _create_offspring(self, key: chex.PRNGKey, parents: BasePopulation, state: AbstractEvolutionState, params: GeneticEngineParams) -> chex.ArrayTree:
+        """
+        Apply Variation (Crossover -> Mutation) with automatic flattening.
+        Handles cases where operators return multiple offspring per parent.
+        """
         k_cross, k_mut = jar.split(key)
         
-        # A. Pairing - create pairs of parents for crossover
+        # A. Pairing
         p1 = parents
-        # Permute parents to create random pairs
         k_perm, k_cross = jar.split(k_cross)
         p2_indices = jar.permutation(k_perm, jnp.arange(len(parents)))
         p2 = parents[p2_indices]
         
-        # Determine config to use (prefer population config if available)
         op_config = getattr(parents, 'config', self.genome_config)
         
-        # B. Apply crossover to each parent pair
-        # crossover expects individual genomes, not batched populations
-        # Use vmap to apply crossover to each pair
-        def crossover_pair(key_i, genome1, genome2):
-            return self.crossover(key_i, genome1, genome2, op_config)
-        
-        # Generate keys for each parent pair
+        # B. Crossover
+        def crossover_pair(k, g1, g2):
+            return self.crossover(k, g1, g2, op_config)
+            
         cross_keys = jar.split(k_cross, len(parents))
+        # Shape: (N_Pairs, Num_Offspring_Cross, Genome_Len) -> e.g., (100, 2, 100)
+        offspring_genes = jax.vmap(crossover_pair)(cross_keys, p1.genes, p2.genes)
         
-        # Apply crossover using vmap over parent pairs
-        # Result shape: (num_parents, num_offspring, ...genome_shape)
-        offspring_batched = jax.vmap(crossover_pair)(cross_keys, p1.genes, p2.genes)
-        
-        # Reshape to flatten parent and offspring dimensions
-        # From (num_parents, num_offspring, ...genome_shape) 
-        # To (num_parents * num_offspring, ...genome_shape)
-        def flatten_first_two_dims(x):
-            # x has shape (num_parents, num_offspring, ...genome_shape)
+        # FLATTEN STEP 1: Collapse the first two dimensions
+        # (100, 2, 100) -> (200, 100)
+        def flatten_batch(x):
             return x.reshape(-1, *x.shape[2:])
+            
+        offspring_genes = jax.tree_util.tree_map(flatten_batch, offspring_genes)
         
-        offspring_genes = jax.tree_util.tree_map(flatten_first_two_dims, offspring_batched)
+        # C. Mutation
+        def mutate_single(k, g):
+            return self.mutation(k, g, op_config)
+            
+        # We now have more genes (e.g., 200), so we need more keys
+        num_current_offspring = jax.tree_util.tree_leaves(offspring_genes)[0].shape[0]
+        mut_keys = jar.split(k_mut, num_current_offspring)
         
-        # C. Apply mutation to each offspring
-        def mutate_single(key_i, genome):
-            return self.mutation(key_i, genome, op_config)
+        # Shape: (N_Offspring, Num_Offspring_Mut, Genome_Len) -> e.g., (200, 2, 100)
+        mutant_genes = jax.vmap(mutate_single)(mut_keys, offspring_genes)
         
-        # Generate keys for each offspring
-        mut_keys = jar.split(k_mut, jax.tree_util.tree_leaves(offspring_genes)[0].shape[0])
-        
-        # Apply mutation using vmap
-        # Result shape: (num_offspring_total, num_mutants, ...genome_shape)
-        mutants_batched = jax.vmap(mutate_single)(mut_keys, offspring_genes)
-        
-        # Flatten mutation batch dimension
-        mutant_genes = jax.tree_util.tree_map(flatten_first_two_dims, mutants_batched)
+        # FLATTEN STEP 2: Collapse again
+        # (200, 2, 100) -> (400, 100)
+        mutant_genes = jax.tree_util.tree_map(flatten_batch, mutant_genes)
         
         return mutant_genes
 
-    def _merge_and_evaluate(self, elites_genes: Any, mutant_genes: Any, original_pop: BasePopulation) -> Tuple[BasePopulation, chex.Array]:
-        """Combine elites and mutants, truncate to size, and evaluate."""
-        pop_size = len(original_pop)
+    def _merge_and_evaluate(
+        self, 
+        key: chex.PRNGKey,
+        elites_genes: chex.ArrayTree, 
+        mutant_genes: chex.ArrayTree, 
+        state: AbstractEvolutionState,
+        params: GeneticEngineParams
+    ) -> Tuple[BasePopulation, chex.Array]:
+        """
+        Combine elites and mutants, truncate to original size, and evaluate.
+        """
+        # Use state.population as the prototype for size and structure
+        target_size = len(state.population)
         
-        # Infer num_elites from the array shape
+        # 1. Determine sizes
         leaves = jax.tree_util.tree_leaves(elites_genes)
         num_elites = leaves[0].shape[0] if leaves else 0
         
-        num_mutants_needed = pop_size - num_elites
+        num_mutants_needed = target_size - num_elites
         
-        # Truncate mutants (take the first N needed)
-        # We rely on tree_map to slice all arrays in the genome
+        # 2. Truncate mutants
         mutants_keep = jax.tree_util.tree_map(lambda x: x[:num_mutants_needed], mutant_genes)
         
-        # Concatenate Elites + Mutants
+        # 3. Concatenate
         next_genes = jax.tree_util.tree_map(
             lambda e, m: jnp.concatenate([e, m], axis=0),
             elites_genes,
             mutants_keep
         )
         
-        # Wrap & Eval
-        # We reuse the original population object to wrap the new genes (preserves type)
-        unevaluated_pop = original_pop.replace(
+        # 4. Wrap & Eval
+        unevaluated_pop = state.population.replace(
             genes=next_genes,
-            fitness=jnp.full((pop_size,), -jnp.inf)
+            fitness=jnp.full((target_size,), -jnp.inf)
         )
         
-        # Delegate to Evaluator for vectorization (NEW paradigm)
         evaluated_pop = self.evaluator.evaluate_population(unevaluated_pop)
         fitness_values = evaluated_pop.fitness
         
-        # Return both population (with updated fitness) and the fitness array
         return evaluated_pop, fitness_values
 
-    def _update_hall_of_fame(self, state: AbstractEvolutionState, new_pop: BasePopulation) -> Tuple[Any, float, int]:
-        """Update global best and stagnation counter."""
+    def _update_hall_of_fame(self, state: AbstractEvolutionState, new_pop: BasePopulation, params: GeneticEngineParams) -> Tuple[Any, float, int]:
+        """
+        Update global best genome, fitness, and stagnation counter.
+        """
         best_idx = jnp.argmax(new_pop.fitness)
         curr_best_fit = new_pop.fitness[best_idx]
-        curr_best_genome = new_pop[best_idx] # Returns Genome object via __getitem__
+        
+        # FIX: Extract .genes! 
+        # new_pop[best_idx] is a Genome Object, state.best_genome is Raw Data.
+        curr_best_genome = new_pop[best_idx].genes 
 
+        # Opt direction correction for best fitness comparison
+        # (Assuming maximization logic in fitness values)
         is_new_record = curr_best_fit > state.best_fitness
         
-        # Conditionally update best genome
         new_best_genome = jax.tree_util.tree_map(
             lambda old, new: jnp.where(is_new_record, new, old),
             state.best_genome,
             curr_best_genome
         )
-        new_best_fit = jnp.maximum(state.best_fitness, curr_best_fit)
         
-        # Reset stagnation if new record, else increment
+        new_best_fit = jnp.maximum(state.best_fitness, curr_best_fit)
         new_stagnation = jnp.where(is_new_record, 0, state.stagnation_counter + 1)
         
         return new_best_genome, new_best_fit, new_stagnation
 
-    def _execute_hooks(self, state: AbstractEvolutionState, params: AbstractEngineParams) -> AbstractEvolutionState:
-        """Run all registered hooks (e.g., adaptive mutation)."""
+    def _execute_hooks(self, state: AbstractEvolutionState, params: GeneticEngineParams) -> AbstractEvolutionState:
+        """Run all registered hooks."""
         new_state = state
         for hook in self.hooks:
             new_state = hook(new_state, params)
         return new_state
 
     # ==========================================
-    # 3. INITIALIZATION & STEP
+    # 2. INITIALIZATION & MAIN LOOP
     # ==========================================
     
     def init_state(self, rng_key: chex.Array, params: GeneticEngineParams) -> AbstractEvolutionState:
         """Initialize state from configuration."""
-        # 1. Create initial population
         init_pop_key, rng_key = jar.split(rng_key)
         
-        # Determine population class from genome config type
+        # 1. Create initial population
         if isinstance(self.genome_config, BinaryGenomeConfig):
             population_class = BinaryPopulation
         elif isinstance(self.genome_config, RealGenomeConfig):
@@ -228,22 +231,24 @@ class GeneticEngine(AbstractEngine):
         
         population = population_class.init_random(init_pop_key, self.genome_config, params.pop_size)
 
-        # 2. Evaluate initial population using NEW paradigm
+        # 2. Evaluate initial population
         evaluated_pop = self.evaluator.evaluate_population(population)
         fitness_values = evaluated_pop.fitness
         
         # 3. Find best
+        # Optimization direction correction
         opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
         adjusted_fitness = fitness_values * opt_sign
-        best_idx = jnp.argmax(adjusted_fitness)
-        best_genome = evaluated_pop[best_idx].genes  # Index population, not genes
         
-        # 4. Create state
+        best_idx = jnp.argmax(adjusted_fitness)
+        best_genome = evaluated_pop[best_idx].genes 
+        best_fit_val = fitness_values[best_idx]
+        
         return AbstractEvolutionState(
             population=evaluated_pop,
             fitness_values=fitness_values,
             best_genome=best_genome,
-            best_fitness=fitness_values[best_idx],
+            best_fitness=best_fit_val,
             generation=0,
             rng_key=rng_key,
             stagnation_counter=0
@@ -256,52 +261,31 @@ class GeneticEngine(AbstractEngine):
         params: GeneticEngineParams
     ) -> Tuple[chex.Array, AbstractEvolutionState, GeneticGenerationOutput]:
         """
-        The Master Loop.
+        Master Loop.
         """
-        k_sel, k_gen, k_next = jar.split(key, 3)
+        k_sel, k_gen, k_eval, k_next, k_misc = jar.split(key, 5)
         
         # 1. Elitism
-        elites_genes = self._select_elites(state.population, params.elitism)
+        elites_genes = self._select_elites(k_misc, state, params)
         
         # 2. Selection
-        parents = self._select_parents(k_sel, state.population)
+        parents = self._select_parents(k_sel, state, params)
         
         # 3. Variation
-        mutants_genes = self._create_offspring(k_gen, parents)
+        mutants_genes = self._create_offspring(k_gen, parents, state, params)
         
         # 4. Merge & Eval
-        new_pop, fitness_values = self._merge_and_evaluate(elites_genes, mutants_genes, state.population)
+        new_pop, fitness_values = self._merge_and_evaluate(k_eval, elites_genes, mutants_genes, state, params)
         
-        # 5. Stats
-        # Use JAX operations for optimization direction
-        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
-        
-        # Find best in current generation
-        adjusted_fitness = fitness_values * opt_sign
-        current_best_idx = jnp.argmax(adjusted_fitness)
-        current_best_fitness = fitness_values[current_best_idx]
-        current_best_genome = new_pop[current_best_idx].genes  # Extract genes from population
-        
-        # Check improvement
-        is_improvement = (current_best_fitness * opt_sign) > (state.best_fitness * opt_sign)
-        
-        # Update global bests
-        new_best_fitness = jnp.where(is_improvement, current_best_fitness, state.best_fitness)
-        new_best_genome = jax.tree_util.tree_map(
-            lambda new, old: jnp.where(is_improvement, new, old),
-            current_best_genome,
-            state.best_genome
-        )
-        
-        # Update stagnation
-        new_stagnation = jnp.where(is_improvement, 0, state.stagnation_counter + 1)
+        # 5. Update Statistics & State
+        new_best_genome, new_best_fit, new_stagnation = self._update_hall_of_fame(state, new_pop, params)
         
         # 6. Create Intermediate State
         temp_state = state.replace(
             population=new_pop,
             fitness_values=fitness_values,
             best_genome=new_best_genome,
-            best_fitness=new_best_fitness,
+            best_fitness=new_best_fit,
             stagnation_counter=new_stagnation,
             generation=state.generation + 1,
             rng_key=k_next
@@ -310,7 +294,7 @@ class GeneticEngine(AbstractEngine):
         # 7. Run Hooks
         final_state = self._execute_hooks(temp_state, params)
         
-        # 8. Runtime Logging (Callback)
+        # 8. Runtime Logging
         if self.enable_progress_bar:
             jax.debug.callback(
                 _host_progress_callback, 
@@ -318,7 +302,7 @@ class GeneticEngine(AbstractEngine):
                 final_state.best_fitness
             )
 
-        # 9. Metrics
+        # 9. Return Metrics
         metrics = GeneticGenerationOutput(
             best_fitness=final_state.best_fitness,
             mean_fitness=jnp.mean(new_pop.fitness),

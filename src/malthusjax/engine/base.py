@@ -60,9 +60,9 @@ class AbstractEngineParams:
         ...     num_generations=50
         ... )
     """
-    pop_size: int = flax.struct.field(pytree_node=False)
-    elitism: int = flax.struct.field(pytree_node=False)
-    num_generations: int = flax.struct.field(pytree_node=False)
+    pop_size: int = flax.struct.field(pytree_node=False, default=100)
+    elitism: int = flax.struct.field(pytree_node=False, default=0)
+    num_generations: int = flax.struct.field(pytree_node=False, default=50)
     
     # Note: __post_init__ validation removed to ensure JIT compatibility
     # Validation should be done at engine construction time instead
