@@ -44,6 +44,31 @@ cd MalthusJAX
 make install-dev
 ```
 
+## Extensible Architecture
+
+Unlike rigid GA libraries that hide internal state, MalthusJAX uses a **"Full Access" component design** that gives you complete control over the evolutionary process. Every internal method in `GeneticEngine` receives the full evolution state, enabling you to:
+
+- **Adaptive Algorithms**: Modify operator behavior based on convergence metrics (e.g., increase mutation rate when `state.stagnation_counter` is high)
+- **Multi-Objective Selection**: Access `state.population` directly to compute auxiliary metrics (diversity, novelty, age) and combine them with fitness
+- **Stateful Evolution**: Track custom metrics across generations (e.g., lineage, speciation, niching) by subclassing `AbstractEvolutionState`
+- **Context-Aware Operators**: Make operator decisions based on `state.generation`, `state.best_fitness`, or population statistics
+
+### Full Access Method Signature
+
+All component methods follow a unified signature:
+```python
+def _select_parents(self, key: PRNGKey, state: AbstractEvolutionState, params: EngineParams) -> BasePopulation:
+    # Full access to:
+    # - state.population (current population with fitness)
+    # - state.generation (current generation number)
+    # - state.stagnation_counter (generations without improvement)
+    # - state.best_fitness, state.best_genome (hall of fame)
+    # - params (pop_size, elitism, num_generations, etc.)
+    pass
+```
+
+This architecture enables **rapid prototyping** of evolutionary strategies without rewriting the main JIT-compiled evolution loop. Override just the methods you need—the framework handles state management, JIT compilation, and performance optimization.
+
 ## Example Usage
 
 ```python
@@ -89,33 +114,70 @@ The 3-level architecture enforces separation of concerns:
 
 **Level 3 (Engines)**: The `AbstractEngine` interface defines `init_state()`, `step()`, and `run()` methods. Evolution loops use `jax.lax.scan` for efficient iteration with compile-time loop fusion. State objects are immutable PyTrees containing population, generation counter, and algorithm-specific data.
 
-### Engine Extensibility
+### Engine Extensibility: Full Access Component Methods
 
-MalthusJAX engines use the **Template Method pattern** to enable custom evolutionary strategies without reimplementing core logic. Key overridable methods include:
+MalthusJAX engines use the **Template Method pattern** with **Full Access signatures**, giving every component method complete visibility into the evolution state. This enables sophisticated adaptive algorithms without breaking JIT compilation.
 
-- **`_select_parents()`**: Customize parent selection (e.g., diversity-aware, novelty-based)
-- **`_select_elites()`**: Control elite preservation strategy
-- **`_create_offspring()`**: Modify variation operators or adaptive mechanisms
-- **`_merge_and_evaluate()`**: Customize population assembly and fitness evaluation
+**Key Overridable Methods** (all receive `key`, `state`, `params`):
+- **`_select_parents(key, state, params)`**: Customize parent selection with access to population, generation, stagnation
+- **`_select_elites(key, state, params)`**: Control elite preservation with context-aware logic
+- **`_create_offspring(key, parents, state, params)`**: Implement adaptive variation (e.g., mutation rate scheduling)
+- **`_merge_and_evaluate(key, elites, offspring, state, params)`**: Custom population assembly and fitness evaluation
 
-Example diversity-aware extension:
+**Example: Diversity-Aware Selection with Full State Access**
 ```python
+from flax import struct
 from malthusjax.engine import GeneticEngine
 
+@struct.dataclass
 class DiversityAwareEngine(GeneticEngine):
-    diversity_weight: float = 0.3
+    diversity_weight: float = struct.field(default=0.3, pytree_node=False)
     
-    def _select_parents(self, key, population):
-        # Combine fitness with crowding distance
-        crowding = self._compute_crowding_scores(population)
-        diversity_fitness = self._combine_fitness_diversity(
-            population.fitness, crowding
+    def _select_parents(self, key, state, params):
+        # Full access to state enables computing auxiliary metrics
+        population = state.population
+        
+        # Compute crowding distance using distance matrix
+        dist_matrix = population.distance_matrix(metric="hamming")
+        crowding = self._compute_crowding_scores(dist_matrix)
+        
+        # Combine fitness and diversity into selection criterion
+        diversity_fitness = (
+            (1 - self.diversity_weight) * population.fitness + 
+            self.diversity_weight * crowding
         )
-        indices = self.selection(key, diversity_fitness)
+        
+        # Use standard selection operator with diversity-aware fitness
+        indices = self.selection(key, diversity_fitness).flatten()
         return population[indices]
 ```
 
-This architecture enables researchers to experiment with novel selection mechanisms (e.g., quality-diversity, MAP-Elites) while maintaining full JIT compilation compatibility.
+**Example: Adaptive Mutation Based on Stagnation**
+```python
+@struct.dataclass
+class AdaptiveMutationEngine(GeneticEngine):
+    base_mutation_rate: float = struct.field(default=0.01, pytree_node=False)
+    
+    def _create_offspring(self, key, parents, state, params):
+        # Increase mutation rate when evolution stagnates
+        adaptive_rate = self.base_mutation_rate * (1 + 0.2 * state.stagnation_counter)
+        
+        # Create modified mutation operator with adaptive rate
+        adaptive_mutation = self.mutation.replace(mutation_rate=adaptive_rate)
+        
+        # Use parent implementation with modified operator
+        # (simplified example - actual implementation may vary)
+        return super()._create_offspring(key, parents, state, params)
+```
+
+This **Full Access architecture** enables researchers to experiment with:
+- **Quality-Diversity algorithms** (MAP-Elites, Novelty Search)
+- **Multi-objective optimization** (NSGA-II, SPEA2)
+- **Adaptive parameter control** (self-adaptive mutation, learning rate schedules)
+- **Age-layered population models** (ALPS)
+- **Island models** with migration strategies
+
+All while maintaining **full JIT compilation compatibility** and **functional purity**.
 
 ## License
 

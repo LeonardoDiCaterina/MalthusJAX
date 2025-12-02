@@ -14,7 +14,7 @@ from .crossover.real import BlendCrossover, SimulatedBinaryCrossover
 from .crossover.linear import LinearCrossover
 
 # Mutation operators
-from .mutation.binary import BitFlipMutation, ScrambleMutation
+from .mutation.binary import BitFlipMutation, ScrambleMutation, SwapMutation
 from .mutation.real import GaussianMutation, BallMutation, PolynomialMutation
 from .mutation.categorical import CategoricalFlipMutation, RandomCategoryMutation
 from .mutation.linear import LinearMutation, LinearPointMutation
@@ -31,7 +31,7 @@ __all__ = [
     "BlendCrossover", "SimulatedBinaryCrossover",
     "LinearCrossover", 
     # Mutation operators
-    "BitFlipMutation", "ScrambleMutation",
+    "BitFlipMutation", "ScrambleMutation", "SwapMutation",
     "GaussianMutation", "BallMutation", "PolynomialMutation", 
     "CategoricalFlipMutation", "RandomCategoryMutation",
     "LinearMutation", "LinearPointMutation",

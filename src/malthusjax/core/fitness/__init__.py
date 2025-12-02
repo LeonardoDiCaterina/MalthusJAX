@@ -22,7 +22,7 @@ __all__ = [
     # Base classes
     "BaseEvaluator", "RegressionData",
     # NEW evaluators
-    "LinearGPEvaluator", "LinearGPEvaluatorConfig", "OP_FUNCTIONS", "OP_NAMES",
+    "LinearGPEvaluator", "LinearGPEvaluatorConfig", "TENSORGP_FUNCTIONS", "TENSORGP_NAMES",
     # Binary evaluators
     "BinarySumEvaluator", "BinarySumConfig",
     "KnapsackEvaluator", "KnapsackConfig", 
