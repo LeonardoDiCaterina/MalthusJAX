@@ -19,6 +19,11 @@ from ..core.genome.binary_genome import BinaryGenomeConfig, BinaryPopulation
 from ..core.genome.real_genome import RealGenomeConfig, RealPopulation
 from ..core.genome.categorical_genome import CategoricalGenomeConfig, CategoricalPopulation
 
+
+#TODO: Better Docstrings for all methods
+#TODO: Add type hints for all methods
+#TODO: slecting elites -> use get becaues select has a different meaning in selection operators
+
 # --- Host-Side Callback for Progress Bar ---
 def _host_progress_callback(gen, best_fit):
     """
@@ -74,7 +79,6 @@ class GeneticEngine(AbstractEngine):
         """
         Preserve the top individuals.
         """
-        # FIX: Use 'params.elitism' (standard name), not 'n_elites'
         _, elite_indices = jax.lax.top_k(state.population.fitness, params.elitism)
         return state.population[elite_indices].genes
 
@@ -83,9 +87,7 @@ class GeneticEngine(AbstractEngine):
         Select parents for reproduction.
         """
         indices = self.selection(key, state.population.fitness)
-        
-        # FIX: This is the specific line that prevents the dimension error!
-        # Ensures indices are (N,) instead of (N, 1) or (N, 1, 1)
+    
         indices = indices.flatten()
         
         return state.population[indices]
