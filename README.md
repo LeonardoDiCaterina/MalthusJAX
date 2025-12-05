@@ -55,16 +55,48 @@ Unlike rigid GA libraries that hide internal state, MalthusJAX uses a **"Full Ac
 
 ### Full Access Method Signature
 
-All component methods follow a unified signature:
+All component methods follow a unified, strongly-typed signature. Below are the primary methods you are expected to override and their exact signatures used throughout the codebase:
+
 ```python
-def _select_parents(self, key: PRNGKey, state: AbstractEvolutionState, params: EngineParams) -> BasePopulation:
-    # Full access to:
-    # - state.population (current population with fitness)
-    # - state.generation (current generation number)
-    # - state.stagnation_counter (generations without improvement)
-    # - state.best_fitness, state.best_genome (hall of fame)
-    # - params (pop_size, elitism, num_generations, etc.)
-    pass
+from typing import Tuple
+import jax
+import jax.numpy as jnp
+
+# Parent selection: returns a `BasePopulation` (selected parents)
+def _select_parents(
+    self,
+    key: jax.Array,                      # PRNG key (jax.random.PRNGKey)
+    state: AbstractEvolutionState,      # Full evolution state (population, metrics)
+    params: GeneticEngineParams         # Engine configuration (pop_size, elitism, ...)
+) -> BasePopulation:
+    """Select parents for reproduction.
+
+    Full access to `state` enables computing auxiliary metrics (distance matrices,
+    novelty, age) and implementing adaptive behaviour based on `state.generation`
+    or `state.stagnation_counter`.
+    """
+    ...
+
+# Elite selection: returns genes (ArrayTree) representing elite individuals
+def _select_elites(
+    self,
+    key: jax.Array,
+    state: AbstractEvolutionState,
+    params: GeneticEngineParams
+) -> jax.Array:
+    """Return elite genes (not a population object)."""
+    ...
+
+# Offspring creation: returns genes (ArrayTree) for offspring after crossover/mutation
+def _create_offspring(
+    self,
+    key: jax.Array,
+    parents: BasePopulation,
+    state: AbstractEvolutionState,
+    params: GeneticEngineParams
+) -> jax.Array:
+    """Create offspring from parents; supports adaptive operators using `state`."""
+    ...
 ```
 
 This architecture enables **rapid prototyping** of evolutionary strategies without rewriting the main JIT-compiled evolution loop. Override just the methods you need—the framework handles state management, JIT compilation, and performance optimization.
