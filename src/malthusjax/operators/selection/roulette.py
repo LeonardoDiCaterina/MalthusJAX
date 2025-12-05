@@ -8,7 +8,7 @@ import chex # type: ignore
 from flax import struct # type: ignore
 from malthusjax.operators.base import BaseSelection
 
-
+#TODO: handle minimization problems (currently assumes maximization)
 @struct.dataclass
 class RouletteWheelSelection(BaseSelection):
     """

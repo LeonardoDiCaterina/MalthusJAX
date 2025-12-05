@@ -7,8 +7,7 @@ fitness values or other criteria. All selection operators inherit from BaseSelec
 
 from .tournament import TournamentSelection
 from .roulette import RouletteWheelSelection
+from .truncation import Truncation
+from .elite_pool import ElitePoolSelection
 
-__all__ = [
-    "TournamentSelection",
-    "RouletteWheelSelection",
-]
+__all__ = ["TournamentSelection", "RouletteWheelSelection", "Truncation", "ElitePoolSelection"]

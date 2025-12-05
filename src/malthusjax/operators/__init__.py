@@ -10,7 +10,7 @@ from .base import BaseMutation, BaseCrossover, BaseSelection
 
 # Crossover operators  
 from .crossover.binary import UniformCrossover, SinglePointCrossover
-from .crossover.real import BlendCrossover, SimulatedBinaryCrossover
+from .crossover.real import BlendCrossover, SimulatedBinaryCrossover, SimulatedBinaryCrossover,  UniformCrossover as realUniform
 from .crossover.linear import LinearCrossover
 
 # Mutation operators
@@ -22,6 +22,8 @@ from .mutation.linear import LinearMutation, LinearPointMutation
 # Selection operators
 from .selection.tournament import TournamentSelection
 from .selection.roulette import RouletteWheelSelection
+from .selection.truncation import Truncation
+from .selection.elite_pool import ElitePoolSelection
 
 __all__ = [
     # Base abstractions
@@ -29,12 +31,12 @@ __all__ = [
     # Crossover operators
     "UniformCrossover", "SinglePointCrossover", 
     "BlendCrossover", "SimulatedBinaryCrossover",
-    "LinearCrossover", 
+    "LinearCrossover", "realUniform",
     # Mutation operators
     "BitFlipMutation", "ScrambleMutation", "SwapMutation",
     "GaussianMutation", "BallMutation", "PolynomialMutation", 
     "CategoricalFlipMutation", "RandomCategoryMutation",
     "LinearMutation", "LinearPointMutation",
     # Selection operators
-    "TournamentSelection", "RouletteWheelSelection"
+    "TournamentSelection", "RouletteWheelSelection", "Truncation", "ElitePoolSelection"
 ]
