@@ -34,12 +34,16 @@ class selection:
     """Namespace for Selection Operators."""
     from .operators.selection.tournament import TournamentSelection as Tournament
     from .operators.selection.roulette import RouletteWheelSelection as Roulette
+    from .operators.selection.truncation import Truncation as Truncation
+    from .operators.selection.elite_pool import ElitePoolSelection as ElitePool
 
 class crossover:
     """Namespace for Crossover Operators."""
     from .operators.crossover.binary import UniformCrossover as Uniform
     from .operators.crossover.binary import SinglePointCrossover as SinglePoint
     from .operators.crossover.real import BlendCrossover as Blend
+    from .operators.crossover.real import UniformCrossover as realUniform
+    from .operators.crossover.real import SimulatedBinaryCrossover as realSBX
     from .operators.crossover.real import SimulatedBinaryCrossover as SBX
     from .operators.crossover.linear import LinearCrossover as Linear
 
