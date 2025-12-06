@@ -64,11 +64,15 @@ class DiversityAwareEngine(GeneticEngine):
         """
         Combine fitness and diversity into a single selection criterion.
         """
+        # Respect optimization direction: convert fitness so that higher is better
+        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        adj_fitness = fitness * opt_sign
+
         # Normalize both to [0, 1] range for fair weighting
-        fitness_min, fitness_max = jnp.min(fitness), jnp.max(fitness)
+        fitness_min, fitness_max = jnp.min(adj_fitness), jnp.max(adj_fitness)
         crowding_min, crowding_max = jnp.min(crowding), jnp.max(crowding)
-        
-        fitness_norm = (fitness - fitness_min) / (fitness_max - fitness_min + 1e-8)
+
+        fitness_norm = (adj_fitness - fitness_min) / (fitness_max - fitness_min + 1e-8)
         crowding_norm = (crowding - crowding_min) / (crowding_max - crowding_min + 1e-8)
         
         # Weighted combination
@@ -124,8 +128,9 @@ class DiversityAwareEngine(GeneticEngine):
         n_fitness_elites = int(n_elites * 0.7)
         n_diversity_elites = n_elites - n_fitness_elites
         
-        # 1. Select top fitness elites
-        _, fitness_elite_indices = jax.lax.top_k(population.fitness, n_fitness_elites)
+        # 1. Select top fitness elites (respect optimization direction)
+        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        _, fitness_elite_indices = jax.lax.top_k(population.fitness * opt_sign, n_fitness_elites)
         
         # 2. Select top diversity elites
         crowding_scores = self._compute_crowding_scores(population)

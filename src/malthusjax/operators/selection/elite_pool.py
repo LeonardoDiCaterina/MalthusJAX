@@ -43,17 +43,18 @@ class ElitePoolSelection(BaseSelection):
         return selected_indices
 
     # --- Identity Card / Kernel Interface ---
-    def num_keys(self, params, input_shape) -> int:
-        """ElitePoolSelection requires RNG to sample from the elite pool."""
+    def num_keys(self, input_shape) -> int:
+        """ElitePoolSelection requires RNG to sample from the elite pool.
+
+        Signature matches `BaseSelection.num_keys(input_shape)`.
+        """
         return 1
 
-    def get_output_shape(self, params, input_shape):
+    def get_output_shape(self, input_shape):
         """Return shape of the selected population rows.
 
-        `input_shape` may be the population shape `(pop_size, genome_length)`.
-        Output: `(num_selections,)` for indices or `(num_selections, genome_length)`
-        if returning rows. We follow the engine convention to return rows
-        for selection kernels, so compute `(num_selections, genome_length)`.
+        `input_shape` is expected to be the population shape `(pop_size, genome_length)`.
+        The kernel returns rows with shape `(num_selections, genome_length)`.
         """
         pop_shape = tuple(input_shape)
         if len(pop_shape) < 2:

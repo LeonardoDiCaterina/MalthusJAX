@@ -85,10 +85,17 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
 
         # Ensure dtype consistency
         dtype = getattr(data, "dtype", jnp.float32)
-        # Generate full noise tensor in one call
-        noise = jar.normal(keys, shape=data.shape, dtype=dtype) * jnp.asarray(sigma, dtype=dtype)
-
-        return data + noise
+        
+        # Handle batched keys: keys shape is (batch, 2) in FAST_LANE mode
+        if keys.ndim == 2:  # Batched keys (batch, 2)
+            # Use vmap to apply normal to each key independently
+            def add_noise_single(key, x):
+                noise = jar.normal(key, shape=x.shape, dtype=dtype) * jnp.asarray(sigma, dtype=dtype)
+                return x + noise
+            return jax.vmap(add_noise_single)(keys, data)
+        else:  # Single key (2,)
+            noise = jar.normal(keys, shape=data.shape, dtype=dtype) * jnp.asarray(sigma, dtype=dtype)
+            return data + noise
         
 
 @struct.dataclass

@@ -37,6 +37,51 @@ class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
         # Create new genome using replace
         return genome.replace(bits=mutated_bits)
 
+    # --- KERNEL IDENTITY CARD ---
+    def num_keys(self, config: BinaryGenomeConfig, input_shape: tuple) -> int:
+        """BitFlip uses a single PRNG key which is broadcasted for children.
+
+        Returns 1 so the fast-lane can pre-allocate a single key per operation.
+        """
+        return 1
+
+    def get_output_shape(self, config: BinaryGenomeConfig, input_shape: tuple) -> tuple:
+        """Return the output genome shape (same as input)."""
+        return input_shape
+
+    def apply_kernel(self, keys: chex.Array, genome: BinaryGenome, config: BinaryGenomeConfig) -> BinaryGenome:
+        """Kernel-style implementation that accepts pre-allocated keys.
+
+        Args:
+            keys: either a single PRNGKey or array-like of keys (uses first key).
+            genome: input BinaryGenome
+            config: genome config
+
+        Returns:
+            Mutated BinaryGenome (same shape as input)
+        """
+        # Accept both a single key (shape (2,)) and an array of keys (shape (N,2)).
+        # Only index into the array when keys.ndim == 2 (multiple keys).
+        if hasattr(keys, "ndim") and getattr(keys, "ndim") == 2:
+            key = keys[0]
+        else:
+            key = keys
+
+        # Generate boolean mask using bernoulli
+        mask = jar.bernoulli(key, p=self.mutation_rate, shape=genome.bits.shape)
+
+        # Preserve original dtype: if bits are integer, convert back after xor
+        bits_is_bool = jnp.issubdtype(genome.bits.dtype, jnp.bool_)
+
+        if bits_is_bool:
+            mutated = jnp.logical_xor(genome.bits, mask)
+        else:
+            # Perform xor in boolean domain then cast back to original dtype
+            mutated_bool = jnp.logical_xor(genome.bits.astype(bool), mask)
+            mutated = mutated_bool.astype(genome.bits.dtype)
+
+        return genome.replace(bits=mutated)
+
 
 @struct.dataclass
 class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):

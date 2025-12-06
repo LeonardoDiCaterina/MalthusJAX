@@ -270,14 +270,21 @@ class AbstractEngine(ABC):
             carry: Tuple[jnp.ndarray, AbstractEvolutionState], 
             _
         ) -> Tuple[Tuple[jnp.ndarray, AbstractEvolutionState], AbstractGenerationOutput]:
-            """Inner scan function - must be pure for JIT compilation."""
+            """Inner scan function - must be pure for JIT compilation.
+
+            NOTE: Do NOT pre-split the rng_key here. Pass the raw `rng_key` into
+            `step_fn` so the engine's fast-path can perform a single master split
+            and then derive a static `all_keys` block from the `ResourceMap`.
+            This avoids ad-hoc splitting at the scan level and centralizes
+            static allocation logic inside engine implementations.
+            """
             rng_key, state = carry
-            step_key, new_rng_key = jar.split(rng_key)
-            
-            # Execute one generation
-            _, new_state, history_item = step_fn(step_key, state)
-            
-            return (new_rng_key, new_state), history_item
+
+            # Execute one generation. `step_fn` is expected to consume the raw
+            # rng_key and return the next RNG key as its first return value.
+            next_key, new_state, history_item = step_fn(rng_key, state)
+
+            return (next_key, new_state), history_item
         
         # Define and compile the complete scan operation
         def _run_evolution(init_carry):
@@ -444,12 +451,14 @@ class AbstractEngine(ABC):
             ) -> Tuple[Tuple[jnp.ndarray, AbstractEvolutionState], AbstractGenerationOutput]:
                 """Inner scan function - must be pure for JIT compilation."""
                 rng_key, state = carry
-                step_key, new_rng_key = jar.split(rng_key)
-                
-                # Execute one generation
-                _, new_state, history_item = step_fn(step_key, state)
-                
-                return (new_rng_key, new_state), history_item
+
+                # Execute one generation. `step_fn` consumes the current
+                # `rng_key` and returns the next key so the engine can perform
+                # exactly one split per generation and allocate the full
+                # `all_keys` entropy block from the ResourceMap.
+                next_key, new_state, history_item = step_fn(rng_key, state)
+
+                return (next_key, new_state), history_item
             
             # Define the complete scan operation without JIT
             def evolution_fn(init_carry):

@@ -81,7 +81,14 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
             promoted = True
 
         # Generate mask: same shape as p1 (batch, length)
-        mask = jar.bernoulli(keys, p=self.crossover_rate, shape=p1.shape)
+        # Handle batched keys: keys shape is (batch, 2) in FAST_LANE mode
+        if keys.ndim == 2:  # Batched keys (batch, 2)
+            # Use vmap to apply bernoulli to each key independently
+            def make_mask_single(key):
+                return jar.bernoulli(key, p=self.crossover_rate, shape=p1.shape[1:])
+            mask = jax.vmap(make_mask_single)(keys)
+        else:  # Single key (2,)
+            mask = jar.bernoulli(keys, p=self.crossover_rate, shape=p1.shape)
 
         offspring = jnp.where(mask, p2, p1)
 

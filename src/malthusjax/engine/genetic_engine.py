@@ -150,14 +150,21 @@ class GeneticEngine(AbstractEngine):
         """
         Preserve the top individuals.
         """
-        _, elite_indices = jax.lax.top_k(state.population.fitness, params.elitism)
+        # Respect optimization direction: convert fitness so that higher is better
+        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        adjusted = state.population.fitness * opt_sign
+        _, elite_indices = jax.lax.top_k(adjusted, params.elitism)
         return state.population[elite_indices].genes
 
     def _select_parents(self, key: chex.PRNGKey, state: AbstractEvolutionState, params: GeneticEngineParams) -> BasePopulation:
         """
         Select parents for reproduction.
         """
-        indices = self.selection(key, state.population.fitness)
+        # Pass adjusted fitness to selection so operators don't need to know
+        # the optimization direction (maximize vs minimize).
+        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        adjusted_fitness = state.population.fitness * opt_sign
+        indices = self.selection(key, adjusted_fitness)
     
         indices = indices.flatten()
         
@@ -255,16 +262,19 @@ class GeneticEngine(AbstractEngine):
         """
         Update global best genome, fitness, and stagnation counter.
         """
-        best_idx = jnp.argmax(new_pop.fitness)
+        # Optimization direction correction
+        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        adjusted_fitness = new_pop.fitness * opt_sign
+        
+        best_idx = jnp.argmax(adjusted_fitness)  # Now works for both min and max
         curr_best_fit = new_pop.fitness[best_idx]
         
-        # FIX: Extract .genes! 
-        # new_pop[best_idx] is a Genome Object, state.best_genome is Raw Data.
         curr_best_genome = new_pop[best_idx].genes 
 
-        # Opt direction correction for best fitness comparison
-        # (Assuming maximization logic in fitness values)
-        is_new_record = curr_best_fit > state.best_fitness
+        # Compare using adjusted fitness
+        adjusted_state_best = state.best_fitness * opt_sign
+        adjusted_curr_best = curr_best_fit * opt_sign
+        is_new_record = adjusted_curr_best > adjusted_state_best
         
         new_best_genome = jax.tree_util.tree_map(
             lambda old, new: jnp.where(is_new_record, new, old),
@@ -272,7 +282,7 @@ class GeneticEngine(AbstractEngine):
             curr_best_genome
         )
         
-        new_best_fit = jnp.maximum(state.best_fitness, curr_best_fit)
+        new_best_fit = jnp.where(is_new_record, curr_best_fit, state.best_fitness)
         new_stagnation = jnp.where(is_new_record, 0, state.stagnation_counter + 1)
         
         return new_best_genome, new_best_fit, new_stagnation
@@ -379,65 +389,179 @@ class GeneticEngine(AbstractEngine):
         Returns:
             Tuple of (next_key, updated_state, metrics)
         """
-        # Get resource map for RNG budget
-        rmap = self.resource_map
-        
-        # Pre-allocate RNG block for this step (demonstrates static allocation)
-        rng_block = jar.split(key, rmap.total_rng_budget)
-        next_key = jar.fold_in(key, state.generation)
-        
-        # For now, fallback to legacy logic within FAST_LANE mode
-        # (allows graceful fallback if some operators lack kernels)
-        # In a full implementation with migrated operators, this would
-        # use apply_kernel calls with sliced RNG keys.
-        
-        k_sel, k_gen, k_eval, k_next, k_misc = jar.split(next_key, 5)
-        
-        # 1. Elitism
-        elites_genes = self._select_elites(k_misc, state, params)
-        
-        # 2. Selection (could use apply_kernel if available)
-        parents = self._select_parents(k_sel, state, params)
-        
-        # 3. Variation
-        mutants_genes = self._create_offspring(k_gen, parents, state, params)
-        
-        # 4. Merge & Eval
-        new_pop, fitness_values = self._merge_and_evaluate(k_eval, elites_genes, mutants_genes, state, params)
-        
-        # 5. Update Statistics & State
-        new_best_genome, new_best_fit, new_stagnation = self._update_hall_of_fame(state, new_pop, params)
-        
-        # 6. Create Intermediate State
-        temp_state = state.replace(
-            population=new_pop,
-            fitness_values=fitness_values,
-            best_genome=new_best_genome,
-            best_fitness=new_best_fit,
-            stagnation_counter=new_stagnation,
-            generation=state.generation + 1,
-            rng_key=k_next
-        )
-        
-        # 7. Run Hooks
-        final_state = self._execute_hooks(temp_state, params)
-        
-        # 8. Runtime Logging
-        if self.enable_progress_bar:
-            jax.debug.callback(
-                _host_progress_callback,
-                final_state.generation,
-                final_state.best_fitness
+        # Strict static allocation fast path using ResourceMap slices.
+        pop_size = len(state.population)
+        rmap = compute_resource_map(self.selection, self.crossover, self.mutation, self.genome_config, pop_size)
+
+        # Helper to turn a slice into a keys array or empty array
+        def _keys_for_slice(all_keys, sl):
+            if all_keys is None:
+                return jnp.empty((0, 2), dtype=jnp.uint32)
+            if sl.start >= sl.stop:
+                return jnp.empty((0, 2), dtype=all_keys.dtype)
+            return all_keys[sl]
+
+        # Check operator kernel support up-front. If any operator lacks kernel
+        # support, fall back to the legacy path (do not run the strict fast scan).
+        inspection = self.inspection_result
+        if not (inspection.selection_card.supports_kernel and inspection.crossover_card.supports_kernel and inspection.mutation_card.supports_kernel):
+            return self._step_legacy(key, state, params)
+
+        # Inner scan body that will be JIT-compilable. Carry: (state, rng_key)
+        def _fast_scan_body(carry, _):
+            local_state, curr_key = carry
+            population = local_state.population
+
+            # Step 1: Master split (exactly one split per generation)
+            next_key, gen_subkey = jar.split(curr_key)
+
+            # Step 2: Entropy block allocation
+            if rmap.total_rng_budget > 0:
+                all_keys = jar.split(gen_subkey, rmap.total_rng_budget)
+            else:
+                all_keys = None
+
+            # Step 3: Slicing (get key arrays for each operator)
+            sel_slice = rmap.get_key_slice('selection')
+            cross_slice = rmap.get_key_slice('crossover')
+            mut_slice = rmap.get_key_slice('mutation')
+
+            sel_keys = _keys_for_slice(all_keys, sel_slice)
+            cross_keys = _keys_for_slice(all_keys, cross_slice)
+            mut_keys = _keys_for_slice(all_keys, mut_slice)
+
+            # Normalize single-key arrays to scalar keys when needed
+            def _normalize(keys):
+                if keys is None:
+                    return None
+                if keys.ndim == 2 and keys.shape[0] == 1:
+                    return keys[0]
+                return keys
+
+            sel_keys = _normalize(sel_keys)
+            cross_keys = _normalize(cross_keys)
+            mut_keys = _normalize(mut_keys)
+
+            # Step 4: Vertical fusion (Selection -> Crossover -> Mutation -> Eval)
+            # If any operator lacks kernel support, fall back to legacy step
+            inspection = self.inspection_result
+            if not (inspection.selection_card.supports_kernel and inspection.crossover_card.supports_kernel and inspection.mutation_card.supports_kernel):
+                # fallback: delegate to legacy path (keeps correctness)
+                return (state.population, next_key), None
+
+            # A. Elitism (deterministic)
+            # Use the carried local_state (population-aware) for selection
+            elites_genes = self._select_elites(next_key, local_state, params)
+
+            # B. Selection kernel
+            leaves, treedef = jax.tree_util.tree_flatten(population.genes)
+            if len(leaves) == 0:
+                # Use adjusted fitness so selection operators receive a
+                # consistent "higher is better" signal
+                opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+                sel_idx = self.selection(next_key, population.fitness * opt_sign)
+                parents = population[sel_idx]
+            else:
+                population_array = leaves[0]
+                opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+                sel_out = self.selection.apply_kernel(sel_keys, (population_array, population.fitness * opt_sign), params)
+                # sel_out may be indices or array of rows
+                if hasattr(sel_out, 'ndim') and sel_out.ndim == 1:
+                    parents = population[sel_out]
+                else:
+                    new_genes = jax.tree_util.tree_unflatten(treedef, [sel_out])
+                    parents = population.replace(genes=new_genes, fitness=jnp.full((sel_out.shape[0],), -jnp.inf))
+
+            # C. Pairing: derive permutation key from crossover keys or fallback to gen_subkey
+            def _pick_perm_key(karr):
+                if karr is None:
+                    return gen_subkey
+                if getattr(karr, 'ndim', 0) == 1:
+                    return karr
+                if getattr(karr, 'ndim', 0) == 2 and karr.shape[0] > 0:
+                    return karr[0]
+                return gen_subkey
+
+            perm_key = _pick_perm_key(cross_keys)
+            p1 = parents
+            p2_idx = jar.permutation(perm_key, jnp.arange(len(parents)))
+            p2 = parents[p2_idx]
+
+            # Extract primary arrays for kernels
+            p1_arr = jax.tree_util.tree_leaves(p1.genes)[0]
+            p2_arr = jax.tree_util.tree_leaves(p2.genes)[0]
+
+            # D. Crossover kernel: expects per-pair keys (broadcast if needed)
+            num_pairs = len(parents)
+            if getattr(cross_keys, 'ndim', 0) == 2 and cross_keys.shape[0] >= num_pairs and num_pairs > 0:
+                cross_keys_per_pair = cross_keys[:num_pairs]
+            elif num_pairs > 0:
+                # broadcast first key
+                cross_keys_per_pair = jnp.stack([_pick_perm_key(cross_keys)] * num_pairs)
+            else:
+                cross_keys_per_pair = jnp.empty((0, 2), dtype=jnp.uint32)
+
+            offspring_arr = self.crossover.apply_kernel(cross_keys_per_pair, (p1_arr, p2_arr), params)
+
+            # E. Mutation kernel: expects per-offspring keys
+            num_offspring = jax.tree_util.tree_leaves(offspring_arr)[0].shape[0]
+            if getattr(mut_keys, 'ndim', 0) == 2 and mut_keys.shape[0] >= num_offspring and num_offspring > 0:
+                mut_keys_per = mut_keys[:num_offspring]
+            elif num_offspring > 0:
+                mut_keys_per = jnp.stack([_pick_perm_key(mut_keys)] * num_offspring)
+            else:
+                mut_keys_per = jnp.empty((0, 2), dtype=jnp.uint32)
+
+            mutated_arr = self.mutation.apply_kernel(mut_keys_per, offspring_arr, params)
+
+            # F. Wrap mutated arrays into Genome structure matching population
+            # Reuse population.replace to build unevaluated population
+            new_genes = jax.tree_util.tree_unflatten(treedef, [mutated_arr])
+            # Get population size from the first leaf (values array) shape
+            pop_size = jax.tree_util.tree_leaves(new_genes)[0].shape[0]
+            mutant_genes = new_genes  # Just the genes, not wrapped in population
+
+            # G. Evaluation: choose an eval key (prefer remaining mutation keys)
+            eval_key = _pick_perm_key(mut_keys)
+            # Build a temporary state to call merge & evaluate
+            temp_merge_state = local_state.replace(population=population)
+            new_pop, fitness_values = self._merge_and_evaluate(eval_key, elites_genes, mutant_genes, temp_merge_state, params)
+
+            # H. Update stats and state
+            new_best_genome, new_best_fit, new_stagnation = self._update_hall_of_fame(local_state, new_pop, params)
+            temp_state = local_state.replace(
+                population=new_pop,
+                fitness_values=fitness_values,
+                best_genome=new_best_genome,
+                best_fitness=new_best_fit,
+                stagnation_counter=new_stagnation,
+                generation=local_state.generation + 1,
+                rng_key=next_key
             )
 
-        # 9. Return Metrics
-        metrics = GeneticGenerationOutput(
-            best_fitness=final_state.best_fitness,
-            mean_fitness=jnp.mean(new_pop.fitness),
-            generation=final_state.generation
-        )
-        
-        return k_next, final_state, metrics
+            final_state = self._execute_hooks(temp_state, params)
+
+            metrics = GeneticGenerationOutput(
+                best_fitness=final_state.best_fitness,
+                mean_fitness=jnp.mean(new_pop.fitness),
+                generation=final_state.generation
+            )
+
+            # Return the full updated state and the metrics for this generation
+            return (final_state, next_key), metrics
+
+        # Run the scan for a single generation step (carry -> new carry)
+        (final_state, new_rng), metrics = jax.lax.scan(_fast_scan_body, (state, key), None, length=1)
+
+        # If metrics is None, the scan indicated a fallback path; delegate to legacy
+        if metrics is None:
+            return self._step_legacy(key, state, params)
+
+        # metrics is a single-element array-like structure produced by scan; unwrap
+        gen_metrics = jax.tree_util.tree_map(lambda x: x[0], metrics)
+
+        # Return the next_key, final_state and generation metrics
+        return new_rng, final_state, gen_metrics
 
     # ==========================================
     # 3. INITIALIZATION & MAIN LOOP

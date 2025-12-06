@@ -94,12 +94,17 @@ class RealGenome(BaseGenome):
         return self.replace(values=noisy_values)
 
     def __repr__(self) -> str:
-        if self.size <= 5:
-            values_str = ", ".join(f"{v:.3f}" for v in self.values)
-        else:
-            values_str = ", ".join(f"{v:.3f}" for v in self.values[:3])
-            values_str += f", ..., {self.values[-1]:.3f}"
-        return f"<RealGenome([{values_str}], len={self.size})>"
+        try:
+            # Avoid formatting traced values during JIT compilation
+            if self.size <= 5:
+                values_str = ", ".join(f"{float(v):.3f}" for v in self.values)
+            else:
+                values_str = ", ".join(f"{float(v):.3f}" for v in self.values[:3])
+                values_str += f", ..., {float(self.values[-1]):.3f}"
+            return f"<RealGenome([{values_str}], len={self.size})>"
+        except:
+            # Fallback for traced values or other issues
+            return f"<RealGenome(shape={self.values.shape})>"
 
 
 @struct.dataclass
