@@ -12,6 +12,8 @@ import chex
 from typing import Any, Tuple, Optional
 
 from .base import AbstractEngine, AbstractEvolutionState, AbstractEngineParams, AbstractGenerationOutput, AbstractHook
+from .inspector import inspect_engine_operators, EngineInspectionResult, ExecutionMode
+from .resource_mapper import compute_resource_map, ResourceMap
 from ..operators.base import BaseMutation, BaseCrossover, BaseSelection
 from ..core.fitness.base import BaseEvaluator
 from ..core.base import BasePopulation
@@ -53,6 +55,10 @@ class GeneticEngine(AbstractEngine):
     Every internal method receives (key, state, params) to allow for 
     adaptive logic (e.g. changing mutation rates based on state.stagnation)
     and easy unit testing.
+    
+    Step 2 Enhancement: Inspector Integration
+    The engine now automatically detects operator kernel support at
+    initialization and sets execution mode (FAST_LANE vs LEGACY).
     """
     # Core Components
     genome_config: Any  # Configuration for genome creation
@@ -70,6 +76,71 @@ class GeneticEngine(AbstractEngine):
     
     # Debug Config
     enable_progress_bar: bool = struct.field(pytree_node=False, default=False)
+    
+    @property
+    def mode(self) -> ExecutionMode:
+        """
+        Get the current execution mode of the engine.
+        
+        Returns:
+            ExecutionMode.FAST_LANE if all operators support kernel interface,
+            ExecutionMode.LEGACY otherwise.
+            
+        Note:
+            Inspection is performed on each access. For repeated access,
+            use inspection_result property.
+        """
+        result = inspect_engine_operators(
+            self.mutation, self.crossover, self.selection
+        )
+        return result.mode
+    
+    @property
+    def inspection_result(self) -> EngineInspectionResult:
+        """
+        Get detailed inspection results for all operators.
+        
+        Returns:
+            EngineInspectionResult with operator identity cards and mode.
+            
+        Note:
+            Inspection is performed on each access since the engine is immutable.
+        """
+        return inspect_engine_operators(
+            self.mutation, self.crossover, self.selection
+        )
+    
+    @property
+    def resource_map(self) -> ResourceMap:
+        """
+        Get the resource allocation map for this engine.
+        
+        Computes RNG budget and key slices for all operators based on
+        genome configuration and population size. This enables static
+        allocation and eliminates runtime RNG splitting overhead.
+        
+        Returns:
+            ResourceMap with complete RNG budget allocation
+            
+        Note:
+            Computed on each access. Cache externally if needed.
+            
+        Example:
+            >>> engine = GeneticEngine(...)
+            >>> rmap = engine.resource_map
+            >>> print(f"Total RNG budget: {rmap.total_rng_budget}")
+        """
+        # Use a reasonable default pop_size if params not available
+        # In practice, this will be called after init_state where pop_size is known
+        default_pop_size = 100
+        
+        return compute_resource_map(
+            self.selection,
+            self.crossover,
+            self.mutation,
+            self.genome_config,
+            default_pop_size
+        )
     
     # ==========================================
     # 1. MODULAR COMPONENT METHODS
