@@ -28,6 +28,67 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         
         return RealGenome(values=new_values)
 
+    # --- Identity Card / Kernel Interface ---
+    def num_keys(self, params: "UniformCrossover", input_shape) -> int:
+        """Return number of PRNG keys required by the kernel.
+
+        We use a single key to generate the full bernoulli mask in one call,
+        so return 1 per batched invocation.
+        """
+        return 1
+
+    def get_output_shape(self, params: "UniformCrossover", input_shape):
+        """Return the offspring array shape matching parent shapes.
+
+        Expect `input_shape` to be the shape of a parent array (batch, length)
+        or (length,) for single pair. We return the same shape as the parents.
+        """
+        return tuple(input_shape)
+
+    def apply_kernel(self, keys: chex.PRNGKey, data, params) -> jnp.ndarray:
+        """Pure kernel for uniform crossover.
+
+        `data` can be either a tuple/list `(p1_array, p2_array)` where each is
+        shape `(batch, length)` (or `(length,)` treated as single batch), or a
+        stacked array of shape `(2, batch, length)` or `(batch, 2, length)`.
+
+        The kernel generates a bernoulli mask with the same shape as parents
+        and returns offspring = where(mask, p2, p1).
+        """
+        # Normalize data into (batch, length) arrays p1, p2
+        if isinstance(data, (tuple, list)):
+            p1, p2 = data
+        else:
+            arr = jnp.asarray(data)
+            if arr.ndim == 3 and arr.shape[0] == 2:
+                # shape (2, batch, length)
+                p1, p2 = arr[0], arr[1]
+            elif arr.ndim == 3 and arr.shape[1] == 2:
+                # shape (batch, 2, length)
+                p1, p2 = arr[:, 0, :], arr[:, 1, :]
+            else:
+                raise ValueError("Unsupported data layout for UniformCrossover.apply_kernel")
+
+        # Ensure arrays are jax arrays
+        p1 = jnp.asarray(p1)
+        p2 = jnp.asarray(p2)
+
+        # If inputs are single-parent vectors (length,), promote to batch dim
+        promoted = False
+        if p1.ndim == 1:
+            p1 = p1[None, ...]
+            p2 = p2[None, ...]
+            promoted = True
+
+        # Generate mask: same shape as p1 (batch, length)
+        mask = jar.bernoulli(keys, p=self.crossover_rate, shape=p1.shape)
+
+        offspring = jnp.where(mask, p2, p1)
+
+        if promoted:
+            return offspring[0]
+        return offspring
+
 @struct.dataclass
 class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """

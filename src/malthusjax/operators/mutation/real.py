@@ -46,6 +46,49 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
         
         # Create new genome using replace
         return genome.replace(values=clipped_values)
+    
+    # --- Identity Card / Kernel Interface ---
+    def num_keys(self, params: "GaussianMutation", input_shape) -> int:
+        """Return number of PRNG keys required by the kernel.
+
+        We use a single key to generate the full Gaussian tensor via
+        `jax.random.normal(key, shape=...)`, so return 1 per batch.
+        """
+        # Standardize on 1 key for the whole tensor generation
+        return 1
+
+    def get_output_shape(self, params: "GaussianMutation", input_shape):
+        """Return the shape of the kernel output for given input shape.
+
+        The kernel operates on raw genome value arrays, so the output
+        shape matches the input `data.shape`.
+        """
+        return tuple(input_shape)
+
+    def apply_kernel(self, keys: chex.PRNGKey, data: jnp.ndarray, params) -> jnp.ndarray:
+        """Pure, stateless kernel for Gaussian mutation.
+
+        Contract:
+        - `keys`: a single PRNG key (or pytree) pre-allocated by the Engine
+        - `data`: jax array with shape (length,) or (batch, length)
+        - `params`: object exposing `mutation_strength` (float)
+
+        The kernel does not call `jax.random.split` and returns a new
+        jax array with the same shape and dtype as `data`.
+        Operation: x' = x + sigma * N(0,1)
+        """
+        # Resolve sigma from params (prefer explicit param, fallback to self)
+        try:
+            sigma = params.mutation_strength
+        except Exception:
+            sigma = self.mutation_strength
+
+        # Ensure dtype consistency
+        dtype = getattr(data, "dtype", jnp.float32)
+        # Generate full noise tensor in one call
+        noise = jar.normal(keys, shape=data.shape, dtype=dtype) * jnp.asarray(sigma, dtype=dtype)
+
+        return data + noise
         
 
 @struct.dataclass

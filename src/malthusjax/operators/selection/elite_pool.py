@@ -41,3 +41,55 @@ class ElitePoolSelection(BaseSelection):
         selected_indices = best_k_indices[random_selections]
         
         return selected_indices
+
+    # --- Identity Card / Kernel Interface ---
+    def num_keys(self, params, input_shape) -> int:
+        """ElitePoolSelection requires RNG to sample from the elite pool."""
+        return 1
+
+    def get_output_shape(self, params, input_shape):
+        """Return shape of the selected population rows.
+
+        `input_shape` may be the population shape `(pop_size, genome_length)`.
+        Output: `(num_selections,)` for indices or `(num_selections, genome_length)`
+        if returning rows. We follow the engine convention to return rows
+        for selection kernels, so compute `(num_selections, genome_length)`.
+        """
+        pop_shape = tuple(input_shape)
+        if len(pop_shape) < 2:
+            raise ValueError("Expected population shape (pop_size, genome_length)")
+        genome_length = pop_shape[1]
+        return (self.num_selections, genome_length)
+
+    def apply_kernel(self, keys, data, params=None):
+        """Kernel: select `num_selections` parents by sampling from top-`elite_k`.
+
+        Args:
+            keys: PRNGKey used for sampling (single key expected)
+            data: tuple `(population, fitness)`
+            params: optional
+
+        Returns:
+            selected population rows with shape `(num_selections, genome_length)`
+        """
+        population, fitness = data
+        population = jnp.asarray(population)
+        fitness = jnp.asarray(fitness)
+
+        # Identify elite pool indices
+        _, best_k_indices = jax.lax.top_k(fitness, self.elite_k)
+
+        # Sample with replacement from elite pool using provided key
+        sample_indices = jax.random.randint(
+            keys,
+            shape=(self.num_selections,),
+            minval=0,
+            maxval=self.elite_k,
+        )
+
+        selected_indices = best_k_indices[sample_indices]
+
+        # Gather rows from population
+        selected = jnp.take(population, selected_indices, axis=0)
+
+        return selected
