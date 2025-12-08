@@ -151,8 +151,8 @@ class GeneticEngine(AbstractEngine):
         Preserve the top individuals.
         """
         # Respect optimization direction: convert fitness so that higher is better
-        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
-        adjusted = state.population.fitness * opt_sign
+        #opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        adjusted = state.population.fitness #* opt_sign
         _, elite_indices = jax.lax.top_k(adjusted, params.elitism)
         return state.population[elite_indices].genes
 
@@ -162,8 +162,8 @@ class GeneticEngine(AbstractEngine):
         """
         # Pass adjusted fitness to selection so operators don't need to know
         # the optimization direction (maximize vs minimize).
-        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
-        adjusted_fitness = state.population.fitness * opt_sign
+        #opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        adjusted_fitness = state.population.fitness #* opt_sign
         indices = self.selection(key, adjusted_fitness)
     
         indices = indices.flatten()
@@ -263,8 +263,8 @@ class GeneticEngine(AbstractEngine):
         Update global best genome, fitness, and stagnation counter.
         """
         # Optimization direction correction
-        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
-        adjusted_fitness = new_pop.fitness * opt_sign
+        #opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        adjusted_fitness = new_pop.fitness #* opt_sign
         
         best_idx = jnp.argmax(adjusted_fitness)  # Now works for both min and max
         curr_best_fit = new_pop.fitness[best_idx]
@@ -272,8 +272,8 @@ class GeneticEngine(AbstractEngine):
         curr_best_genome = new_pop[best_idx].genes 
 
         # Compare using adjusted fitness
-        adjusted_state_best = state.best_fitness * opt_sign
-        adjusted_curr_best = curr_best_fit * opt_sign
+        adjusted_state_best = state.best_fitness #* opt_sign
+        adjusted_curr_best = curr_best_fit #* opt_sign
         is_new_record = adjusted_curr_best > adjusted_state_best
         
         new_best_genome = jax.tree_util.tree_map(
@@ -458,13 +458,13 @@ class GeneticEngine(AbstractEngine):
             if len(leaves) == 0:
                 # Use adjusted fitness so selection operators receive a
                 # consistent "higher is better" signal
-                opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
-                sel_idx = self.selection(next_key, population.fitness * opt_sign)
+                #opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+                sel_idx = self.selection(next_key, population.fitness )#* opt_sign)
                 parents = population[sel_idx]
             else:
                 population_array = leaves[0]
-                opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
-                sel_out = self.selection.apply_kernel(sel_keys, (population_array, population.fitness * opt_sign), params)
+                #opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+                sel_out = self.selection.apply_kernel(sel_keys, (population_array, population.fitness), params) #* opt_sign), params)
                 # sel_out may be indices or array of rows
                 if hasattr(sel_out, 'ndim') and sel_out.ndim == 1:
                     parents = population[sel_out]
@@ -589,8 +589,8 @@ class GeneticEngine(AbstractEngine):
         
         # 3. Find best
         # Optimization direction correction
-        opt_sign = jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
-        adjusted_fitness = fitness_values * opt_sign
+        # opt_sign= jnp.where(self.evaluator.config.maximize, 1.0, -1.0)
+        adjusted_fitness = fitness_values #* opt_sign
         
         best_idx = jnp.argmax(adjusted_fitness)
         best_genome = evaluated_pop[best_idx].genes 

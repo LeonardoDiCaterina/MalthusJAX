@@ -1,16 +1,12 @@
 """
-Real-valued mutation operators using the new paradigm.
-
-This module provides mutation operators for RealGenome using the new 
-@struct.dataclass factory pattern for JIT compilation and vectorization.
+Real-valued Mutation Operators.
+Refactored for the 'Consumer Paradigm': Pure single-genome logic.
+Batching and key management are handled by the BaseMutation class.
 """
-
-from typing import Callable
-import jax
 import jax.numpy as jnp
 import jax.random as jar
-from flax import struct
 import chex
+from flax import struct
 from malthusjax.operators.base import BaseMutation
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 
@@ -18,167 +14,108 @@ from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 @struct.dataclass
 class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
-    Gaussian (normal) mutation operator for real genomes using the new paradigm.
-    
-    Adds random noise from a normal distribution to each gene.
-    Most commonly used mutation operator for real-valued optimization.
+    Gaussian (Normal) Mutation.
+    Adds random noise from a normal distribution to genes.
     """
-    # --- DYNAMIC PARAMS (Runtime configurable) ---
     mutation_rate: float = 0.1
     mutation_strength: float = 0.1
     
     def _mutate_one(self, key: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
-        """Apply Gaussian mutation to a single genome."""
-        k1, k2 = jar.split(key)
+        """
+        Mutates ONE genome using ONE key.
+        """
+        # Split the assigned key locally for mask and noise generation
+        k_mask, k_noise = jar.split(key)
         
-        # Generate mutation mask
-        mutation_mask = jar.bernoulli(k1, self.mutation_rate, genome.values.shape)
+        # 1. Generate Mutation Mask (Which genes change?)
+        mutation_mask = jar.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
         
-        # Generate Gaussian noise
-        noise = jar.normal(k2, genome.values.shape) * self.mutation_strength
+        # 2. Generate Gaussian Noise
+        noise = jar.normal(k_noise, shape=genome.values.shape) * self.mutation_strength
         
-        # Apply noise only where mask is True
+        # 3. Apply noise only where mask is True
         mutated_values = jnp.where(mutation_mask, genome.values + noise, genome.values)
         
-        # Clip to bounds
+        # 4. Clip to bounds
         min_val, max_val = config.bounds
         clipped_values = jnp.clip(mutated_values, min_val, max_val)
         
-        # Create new genome using replace
         return genome.replace(values=clipped_values)
-    
-    # --- Identity Card / Kernel Interface ---
-    def num_keys(self, params: "GaussianMutation", input_shape) -> int:
-        """Return number of PRNG keys required by the kernel.
 
-        We use a single key to generate the full Gaussian tensor via
-        `jax.random.normal(key, shape=...)`, so return 1 per batch.
-        """
-        # Standardize on 1 key for the whole tensor generation
-        return 1
-
-    def get_output_shape(self, params: "GaussianMutation", input_shape):
-        """Return the shape of the kernel output for given input shape.
-
-        The kernel operates on raw genome value arrays, so the output
-        shape matches the input `data.shape`.
-        """
-        return tuple(input_shape)
-
-    def apply_kernel(self, keys: chex.PRNGKey, data: jnp.ndarray, params) -> jnp.ndarray:
-        """Pure, stateless kernel for Gaussian mutation.
-
-        Contract:
-        - `keys`: a single PRNG key (or pytree) pre-allocated by the Engine
-        - `data`: jax array with shape (length,) or (batch, length)
-        - `params`: object exposing `mutation_strength` (float)
-
-        The kernel does not call `jax.random.split` and returns a new
-        jax array with the same shape and dtype as `data`.
-        Operation: x' = x + sigma * N(0,1)
-        """
-        # Resolve sigma from params (prefer explicit param, fallback to self)
-        try:
-            sigma = params.mutation_strength
-        except Exception:
-            sigma = self.mutation_strength
-
-        # Ensure dtype consistency
-        dtype = getattr(data, "dtype", jnp.float32)
-        
-        # Handle batched keys: keys shape is (batch, 2) in FAST_LANE mode
-        if keys.ndim == 2:  # Batched keys (batch, 2)
-            # Use vmap to apply normal to each key independently
-            def add_noise_single(key, x):
-                noise = jar.normal(key, shape=x.shape, dtype=dtype) * jnp.asarray(sigma, dtype=dtype)
-                return x + noise
-            return jax.vmap(add_noise_single)(keys, data)
-        else:  # Single key (2,)
-            noise = jar.normal(keys, shape=data.shape, dtype=dtype) * jnp.asarray(sigma, dtype=dtype)
-            return data + noise
-        
 
 @struct.dataclass
 class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
-    Ball (uniform) mutation operator for real genomes using the new paradigm.
-    
-    Adds random noise from a uniform distribution to each gene.
+    Ball (Uniform) Mutation.
+    Adds random noise from a uniform distribution to genes.
     """
-    # --- DYNAMIC PARAMS ---
     mutation_rate: float = 0.1
     mutation_strength: float = 0.1
     
     def _mutate_one(self, key: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
-        """Apply ball mutation to a single genome."""
-        k1, k2 = jar.split(key)
+        """
+        Mutates ONE genome using ONE key.
+        """
+        k_mask, k_noise = jar.split(key)
         
-        # Generate mutation mask
-        mutation_mask = jar.bernoulli(k1, self.mutation_rate, genome.values.shape)
+        # 1. Generate Mutation Mask
+        mutation_mask = jar.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
         
-        # Generate uniform noise
+        # 2. Generate Uniform Noise [-strength, +strength]
         noise = jar.uniform(
-            k2, 
-            genome.values.shape,
+            k_noise, 
+            shape=genome.values.shape,
             minval=-self.mutation_strength,
             maxval=self.mutation_strength
         )
         
-        # Apply noise only where mask is True
+        # 3. Apply noise and Clip
         mutated_values = jnp.where(mutation_mask, genome.values + noise, genome.values)
-        
-        # Clip to bounds
         min_val, max_val = config.bounds
         clipped_values = jnp.clip(mutated_values, min_val, max_val)
         
-        # Create new genome using replace
         return genome.replace(values=clipped_values)
 
 
 @struct.dataclass
 class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
-    Polynomial mutation operator for real genomes using the new paradigm.
-    
-    Uses polynomial distribution to generate mutations, commonly used
-    in evolutionary algorithms like NSGA-II.
+    Polynomial Mutation.
+    Uses polynomial distribution to generate mutations (common in NSGA-II).
     """
-    # --- DYNAMIC PARAMS ---
     mutation_rate: float = 0.1
     eta: float = 20.0  # Distribution index parameter
     
     def _mutate_one(self, key: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
-        """Apply polynomial mutation to a single genome."""
-        k1, k2 = jar.split(key)
+        """
+        Mutates ONE genome using ONE key.
+        """
+        k_mask, k_val = jar.split(key)
         
-        # Generate mutation mask
-        mutation_mask = jar.bernoulli(k1, self.mutation_rate, genome.values.shape)
+        # 1. Generate Mutation Mask
+        mutation_mask = jar.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
         
-        # Generate uniform random values
-        u = jar.uniform(k2, genome.values.shape)
+        # 2. Generate Random values for polynomial calculation
+        u = jar.uniform(k_val, shape=genome.values.shape)
         
-        # Calculate polynomial mutation delta
+        # 3. Calculate polynomial mutation delta
+        # Equation from Deb & Agrawal (1995)
         delta_1 = jnp.where(
             u <= 0.5,
             jnp.power(2.0 * u, 1.0 / (self.eta + 1.0)) - 1.0,
             1.0 - jnp.power(2.0 * (1.0 - u), 1.0 / (self.eta + 1.0))
         )
         
-        # Scale by bounds
+        # 4. Scale by bounds
         min_val, max_val = config.bounds
         bound_range = max_val - min_val
-        delta = delta_1 * bound_range * 0.1  # Scale factor
+        # Note: The scaling factor implies the max mutation is proportional to domain size
+        delta = delta_1 * bound_range 
         
-        # Apply mutation and clamp to bounds
+        # 5. Apply and Clip
         mutated_values = jnp.where(mutation_mask, genome.values + delta, genome.values)
         clipped_values = jnp.clip(mutated_values, min_val, max_val)
         
-        # Create new genome using replace
         return genome.replace(values=clipped_values)
 
-
-__all__ = [
-    "GaussianMutation",
-    "BallMutation", 
-    "PolynomialMutation"
-]
+__all__ = ["GaussianMutation", "BallMutation", "PolynomialMutation"]

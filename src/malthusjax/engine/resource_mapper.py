@@ -1,120 +1,61 @@
 """
-Resource Mapper - RNG Budget Calculation and Key Map Generation
+Resource Mapper - Static RNG Budget Allocator & Data Flow Calculator.
 
-This module implements Step 3 of the Optimization Roadmap:
-Pre-calculation of RNG requirements for all operators to enable
-static allocation and eliminate runtime splitting overhead.
+Step 3 of Optimization Roadmap: 
+Pre-calculates exact RNG requirements and operator output shapes
+to enable static allocation and precise "cascade" data flow.
 """
-from typing import NamedTuple, Dict, Any
+from typing import NamedTuple, Any
 from flax import struct
-import jax.numpy as jnp
 
 from ..operators.base import BaseMutation, BaseCrossover, BaseSelection
 
 
-class OperatorRNGBudget(NamedTuple):
+class OperatorAllocation(NamedTuple):
     """
-    RNG budget information for a single operator.
+    Allocation details for a single operator stage.
     
     Attributes:
-        num_keys: Number of random keys required
-        start_idx: Starting index in the global key array
-        end_idx: Ending index (exclusive) in the global key array
-        operator_type: Type of operator ('mutation', 'crossover', 'selection')
+        num_keys: Total random keys required for this stage.
+        start_idx: Start index in the global key buffer.
+        end_idx: End index in the global key buffer.
+        input_count: Number of items (genomes/pairs) entering this operator.
+        output_count: Number of items (genomes/indices) produced by this operator.
+        operator_type: 'selection', 'crossover', 'mutation', or 'next_key'.
     """
     num_keys: int
     start_idx: int
     end_idx: int
+    input_count: int
+    output_count: int
     operator_type: str
 
 
 @struct.dataclass
 class ResourceMap:
     """
-    Complete resource allocation map for an engine.
-    
-    Attributes:
-        total_rng_budget: Total number of random keys needed per step
-        selection_budget: RNG budget info for selection operator
-        crossover_budget: RNG budget info for crossover operator
-        mutation_budget: RNG budget info for mutation operator
-        pop_size: Population size (static parameter)
-        genome_shape: Shape of a single genome
+    Master plan for RNG distribution and Data Flow in one generation.
     """
     total_rng_budget: int = struct.field(pytree_node=False)
-    selection_budget: OperatorRNGBudget = struct.field(pytree_node=False)
-    crossover_budget: OperatorRNGBudget = struct.field(pytree_node=False)
-    mutation_budget: OperatorRNGBudget = struct.field(pytree_node=False)
+    
+    # Per-Operator Allocations
+    selection: OperatorAllocation = struct.field(pytree_node=False)
+    crossover: OperatorAllocation = struct.field(pytree_node=False)
+    mutation:  OperatorAllocation = struct.field(pytree_node=False)
+    next_key:  OperatorAllocation = struct.field(pytree_node=False)
+    
+    # Metadata
     pop_size: int = struct.field(pytree_node=False)
     genome_shape: tuple = struct.field(pytree_node=False)
-    
-    def get_key_slice(self, operator_type: str) -> slice:
-        """
-        Get the slice for a specific operator's keys.
-        
-        Args:
-            operator_type: One of 'selection', 'crossover', 'mutation'
-            
-        Returns:
-            slice object for indexing into the global key array
-            
-        Example:
-            >>> resource_map = compute_resource_map(...)
-            >>> keys = jax.random.split(main_key, resource_map.total_rng_budget)
-            >>> selection_keys = keys[resource_map.get_key_slice('selection')]
-        """
-        if operator_type == 'selection':
-            budget = self.selection_budget
-        elif operator_type == 'crossover':
-            budget = self.crossover_budget
-        elif operator_type == 'mutation':
-            budget = self.mutation_budget
-        else:
-            raise ValueError(f"Unknown operator type: {operator_type}")
-        
-        return slice(budget.start_idx, budget.end_idx)
 
-
-def compute_operator_budget(
-    operator: Any,
-    operator_type: str,
-    config: Any,
-    input_shape: tuple,
-    start_idx: int = 0
-) -> OperatorRNGBudget:
-    """
-    Compute RNG budget for a single operator.
+    def get_key_slice(self, op_name: str) -> slice:
+        """Returns the slice to extract this operator's keys from the master buffer."""
+        alloc = getattr(self, op_name)
+        return slice(alloc.start_idx, alloc.end_idx)
     
-    Args:
-        operator: The genetic operator (mutation/crossover/selection)
-        operator_type: Type string ('mutation', 'crossover', 'selection')
-        config: Genome configuration for the operator (not used for selection)
-        input_shape: Shape of input data (e.g., genome shape or fitness array shape)
-        start_idx: Starting index in the global key array
-        
-    Returns:
-        OperatorRNGBudget with computed requirements
-        
-    Example:
-        >>> mutation = GaussianMutation(mutation_rate=0.1, num_offspring=2)
-        >>> budget = compute_operator_budget(
-        ...     mutation, 'mutation', genome_config, (100,), start_idx=0
-        ... )
-        >>> print(budget.num_keys)  # 2 (for 2 offspring)
-    """
-    # Call the operator's num_keys method to get requirements
-    # Selection operators only take input_shape, mutation/crossover take config and input_shape
-    if operator_type == 'selection':
-        num_keys = operator.num_keys(input_shape)
-    else:
-        num_keys = operator.num_keys(config, input_shape)
-    
-    return OperatorRNGBudget(
-        num_keys=num_keys,
-        start_idx=start_idx,
-        end_idx=start_idx + num_keys,
-        operator_type=operator_type
-    )
+    def get_output_count(self, op_name: str) -> int:
+        """Returns the number of items produced by this operator."""
+        return getattr(self, op_name).output_count
 
 
 def compute_resource_map(
@@ -125,104 +66,145 @@ def compute_resource_map(
     pop_size: int
 ) -> ResourceMap:
     """
-    Compute complete resource map for an engine's operators.
+    Compiles the RNG requirements and Data Flow for the entire evolution loop.
     
-    This function implements the core of Step 3: it queries each operator
-    for its RNG requirements and builds a static allocation plan that
-    can be used throughout the evolution run.
-    
-    Args:
-        selection: Selection operator
-        crossover: Crossover operator
-        mutation: Mutation operator
-        genome_config: Genome configuration object
-        pop_size: Population size
-        
-    Returns:
-        ResourceMap with complete RNG budget allocation
-        
-    Example:
-        >>> from malthusjax.operators.mutation import GaussianMutation
-        >>> from malthusjax.operators.crossover import UniformCrossover
-        >>> from malthusjax.operators.selection import TournamentSelection
-        >>> 
-        >>> resource_map = compute_resource_map(
-        ...     TournamentSelection(tournament_size=3, num_selections=100),
-        ...     UniformCrossover(num_offspring=2),
-        ...     GaussianMutation(mutation_rate=0.1, num_offspring=1),
-        ...     RealGenomeConfig(size=10, low=-5.0, high=5.0),
-        ...     pop_size=100
-        ... )
-        >>> print(resource_map.total_rng_budget)
+    Calculates the 'Cascade Effect':
+    Selection(N) -> Parents(P) -> Crossover(P/2) -> Offspring(O) -> Mutation(O) -> Mutants(M)
     """
-    # Determine genome shape from config
+    # Helper to track key indices
+    current_key_idx = 0
+    
+    # Determine genome shape (for metadata)
     if hasattr(genome_config, 'length'):
         genome_shape = (genome_config.length,)
     elif hasattr(genome_config, 'size'):
         genome_shape = (genome_config.size,)
-    elif hasattr(genome_config, 'num_categories'):
-        genome_shape = (genome_config.num_categories,)
     else:
-        # Fallback: assume scalar or simple shape
         genome_shape = ()
+
+    # ==========================================
+    # 1. SELECTION
+    # ==========================================
+    # Input: Current Population (pop_size)
+    # Output: Selected Indices (num_selections)
+    # ------------------------------------------
+    sel_input_count = pop_size
+    sel_output_count = selection.num_selections
     
-    # Compute budgets in order: selection, crossover, mutation
-    current_idx = 0
+    # RNG: Ask operator how many keys it needs for the *entire* batch of selections
+    sel_keys_needed = selection.num_keys((sel_input_count,))
     
-    # Selection budget
-    selection_budget = compute_operator_budget(
-        selection, 'selection', genome_config, (pop_size,), current_idx
+    selection_alloc = OperatorAllocation(
+        num_keys=sel_keys_needed,
+        start_idx=current_key_idx,
+        end_idx=current_key_idx + sel_keys_needed,
+        input_count=sel_input_count,
+        output_count=sel_output_count,
+        operator_type='selection'
     )
-    current_idx = selection_budget.end_idx
+    current_key_idx += sel_keys_needed
+
+    # ==========================================
+    # 2. CROSSOVER
+    # ==========================================
+    # Input: Selected Parents (sel_output_count)
+    # Logic: Parents are paired. Number of pairs = Input // 2.
+    # Output: Pairs * num_offspring_per_pair
+    # ------------------------------------------
+    cross_input_count = sel_output_count
+    num_pairs = cross_input_count // 2
     
-    # Crossover budget (operates on pairs of genomes)
-    crossover_budget = compute_operator_budget(
-        crossover, 'crossover', genome_config, genome_shape, current_idx
+    # Output size depends on how many children the crossover produces per pair
+    # We query the static attribute 'num_offspring' from the operator
+    cross_offspring_per_pair = getattr(crossover, 'num_offspring', 1)
+    cross_output_count = num_pairs * cross_offspring_per_pair
+    
+    # RNG: (Keys per pair) * (Number of pairs)
+    # We pass a dummy input_shape=() because crossover consumes Genomes, not shapes
+    keys_per_pair = crossover.num_keys(genome_config, input_shape=())
+    total_cross_keys = num_pairs * keys_per_pair
+    
+    crossover_alloc = OperatorAllocation(
+        num_keys=total_cross_keys,
+        start_idx=current_key_idx,
+        end_idx=current_key_idx + total_cross_keys,
+        input_count=cross_input_count, # Total parents entering
+        output_count=cross_output_count,
+        operator_type='crossover'
     )
-    current_idx = crossover_budget.end_idx
+    current_key_idx += total_cross_keys
+
+    # ==========================================
+    # 3. MUTATION
+    # ==========================================
+    # Input: Crossover Offspring (cross_output_count)
+    # Output: Mutated Individuals (Input * num_offspring_per_mut)
+    # ------------------------------------------
+    mut_input_count = cross_output_count
     
-    # Mutation budget
-    mutation_budget = compute_operator_budget(
-        mutation, 'mutation', genome_config, genome_shape, current_idx
+    # Mutation might produce 1 (standard) or N mutants per child
+    mut_offspring_per_ind = getattr(mutation, 'num_offspring', 1)
+    mut_output_count = mut_input_count * mut_offspring_per_ind
+    
+    # RNG: (Keys per individual) * (Number of individuals)
+    keys_per_ind = mutation.num_keys(genome_config, input_shape=())
+    total_mut_keys = mut_input_count * keys_per_ind
+    
+    mutation_alloc = OperatorAllocation(
+        num_keys=total_mut_keys,
+        start_idx=current_key_idx,
+        end_idx=current_key_idx + total_mut_keys,
+        input_count=mut_input_count,
+        output_count=mut_output_count,
+        operator_type='mutation'
     )
-    current_idx = mutation_budget.end_idx
-    
-    total_budget = current_idx
-    
+    current_key_idx += total_mut_keys
+
+    # ==========================================
+    # 4. NEXT GENERATION KEY
+    # ==========================================
+    # System requirement: 1 key to seed the next step
+    # ------------------------------------------
+    next_key_alloc = OperatorAllocation(
+        num_keys=1,
+        start_idx=current_key_idx,
+        end_idx=current_key_idx + 1,
+        input_count=0,  # N/A
+        output_count=1, # N/A
+        operator_type='next_key'
+    )
+    current_key_idx += 1
+
     return ResourceMap(
-        total_rng_budget=total_budget,
-        selection_budget=selection_budget,
-        crossover_budget=crossover_budget,
-        mutation_budget=mutation_budget,
+        total_rng_budget=current_key_idx,
+        selection=selection_alloc,
+        crossover=crossover_alloc,
+        mutation=mutation_alloc,
+        next_key=next_key_alloc,
         pop_size=pop_size,
         genome_shape=genome_shape
     )
 
-
-def get_resource_summary(resource_map: ResourceMap) -> str:
-    """
-    Generate a human-readable summary of resource allocation.
+def get_resource_summary(rmap: ResourceMap) -> str:
+    """Generate a cascade data flow summary."""
+    s = rmap.selection
+    c = rmap.crossover
+    m = rmap.mutation
     
-    Useful for debugging and logging during engine initialization.
-    
-    Args:
-        resource_map: The resource map to summarize
-        
-    Returns:
-        Formatted string with resource allocation details
-    """
     lines = [
-        f"Resource Allocation Summary:",
-        f"  Total RNG Budget: {resource_map.total_rng_budget} keys",
-        f"  Population Size: {resource_map.pop_size}",
-        f"  Genome Shape: {resource_map.genome_shape}",
+        f"Pipeline Resource & Flow Summary:",
+        f"  Total RNG Budget: {rmap.total_rng_budget} keys",
         "",
-        "Operator Allocations:",
-        f"  Selection:  {resource_map.selection_budget.num_keys} keys "
-        f"[{resource_map.selection_budget.start_idx}:{resource_map.selection_budget.end_idx}]",
-        f"  Crossover:  {resource_map.crossover_budget.num_keys} keys "
-        f"[{resource_map.crossover_budget.start_idx}:{resource_map.crossover_budget.end_idx}]",
-        f"  Mutation:   {resource_map.mutation_budget.num_keys} keys "
-        f"[{resource_map.mutation_budget.start_idx}:{resource_map.mutation_budget.end_idx}]",
+        "  [1. SELECTION]",
+        f"     In: {s.input_count} -> Out: {s.output_count} indices",
+        f"     Keys: {s.num_keys} (Slice {s.start_idx}:{s.end_idx})",
+        "",
+        "  [2. CROSSOVER]",
+        f"     In: {c.input_count} parents ({c.input_count//2} pairs) -> Out: {c.output_count} offspring",
+        f"     Keys: {c.num_keys} (Slice {c.start_idx}:{c.end_idx})",
+        "",
+        "  [3. MUTATION]",
+        f"     In: {m.input_count} -> Out: {m.output_count} mutants",
+        f"     Keys: {m.num_keys} (Slice {m.start_idx}:{m.end_idx})",
     ]
     return "\n".join(lines)

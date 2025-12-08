@@ -62,5 +62,5 @@ class mutation:
 
 # --- 3. ENGINE (Top Level) ---
 from .engine.base import AbstractEngine, AbstractEvolutionState, AbstractEngineParams
-from .engine.genetic_engine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
+from .engine.genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
 from .engine.diversity_engine import DiversityAwareEngine

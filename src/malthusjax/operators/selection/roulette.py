@@ -1,64 +1,60 @@
 """
-Roulette Wheel Selection implementation for MalthusJAX.
+Roulette Wheel Selection (Fitness-Proportionate).
+Refactored for the 'Consumer Paradigm' and Robust Numerical Stability.
 """
-import jax # type: ignore
-import jax.numpy as jnp # type: ignore
-import jax.random as jar # type: ignore
-import chex # type: ignore
-from flax import struct # type: ignore
+from flax import struct
+import jax
+import jax.numpy as jnp
+import chex
 from malthusjax.operators.base import BaseSelection
 
-#TODO: handle minimization problems (currently assumes maximization)
+
 @struct.dataclass
 class RouletteWheelSelection(BaseSelection):
     """
-    Selects individuals using roulette wheel (fitness-proportionate) selection.
-    Assumes fitness values are non-negative.
+    Selects individuals proportional to their fitness.
     
-    Uses the new paradigm with @struct.dataclass for immutable, JIT-friendly operations.
+    Robustness Strategy:
+    Uses 'Softmax' scaling to handle negative fitness values and minimization.
+    Probability = exp(fitness / temperature) / sum(exp(fitness / temperature))
+    
+    This works for ANY fitness range (positive/negative) and avoids division by zero.
     """
+    temperature: float = 1.0  # Controls selection pressure (Lower = greedier)
 
-    def __call__(self, key: chex.PRNGKey, fitness: chex.Array) -> chex.Array:
+    def num_keys(self, input_shape: tuple) -> int:
+        """Need 1 key for the stochastic choice."""
+        return 1
+
+    def __call__(self, keys: chex.PRNGKey, fitness: chex.Array) -> chex.Array:
         """
-        Perform roulette wheel selection.
+        Perform robust roulette wheel selection.
         
         Args:
-            key: PRNG Key
-            fitness: Fitness array (pop_size,)
-            
-        Returns:
-            Selected indices (num_selections,)
+            key: Single PRNG Key.
+            fitness: Fitness array. Assumes 'Higher is Better'.
+                     (Engine handles minimization by flipping sign before passing here if needed,
+                      BUT if raw fitness is passed, softmax handles negatives fine).
         """
-        return _roulette_selection(key, fitness, self.num_selections)
-
-# --- Pure JAX Function ---
-
-def _roulette_selection(
-    key: chex.PRNGKey,
-    fitness_values: chex.Array,
-    number_of_choices: int
-) -> chex.Array:
-    """
-    Pure JAX function for roulette wheel selection.
-    
-    Args:
-        key: PRNGKey
-        fitness_values: 1D array of non-negative fitnesses.
-        number_of_choices: Static int. Total individuals to select.
         
-    Returns:
-        1D array of indices for the selected individuals.
-    """
-    # 1. Calculate probabilities
-    fitness_sum = jnp.sum(fitness_values)
-    # Add epsilon to avoid division by zero if all fitnesses are 0
-    probabilities = (fitness_values + 1e-6) / (fitness_sum + 1e-6)
-    
-    # 2. Choose indices based on probabilities
-    selected_indices = jar.choice(
-        key,
-        jnp.arange(fitness_values.shape[0]),
-        shape=(number_of_choices,),
-        p=probabilities
-    )
-    return selected_indices
+        # Robust Probability Calculation: Softmax
+        # 1. Scale by temperature
+        logits = fitness / self.temperature
+        
+        # 2. Subtract max for numerical stability (prevents overflow in exp)
+        logits = logits - jnp.max(logits)
+        
+        # 3. Calculate probabilities
+        # exp_vals = jnp.exp(logits)
+        # probs = exp_vals / jnp.sum(exp_vals)
+        # However, jax.random.categorical accepts logits directly! 
+        # This is more numerically stable than manual probability calculation.
+
+        # jax.random.categorical takes log-probabilities (logits)
+        selected_indices = jax.random.categorical(
+            keys, 
+            logits, 
+            shape=(self.num_selections,)
+        )
+        
+        return selected_indices
