@@ -4,6 +4,7 @@ Wraps evosax's BBOB suite for use in MalthusJAX engines.
 """
 from typing import Any, Tuple
 from flax import struct
+import flax
 import jax
 import jax.numpy as jnp
 import chex
@@ -29,8 +30,8 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
     """
     # We store the evosax problem instance and its state as 'data'
     # evosax problems are Flax dataclasses, so they are valid PyTree nodes.
-    evosax_problem: BBOBProblem = struct.field(pytree_node=True)
-    evosax_state: Any = struct.field(pytree_node=True)
+    evosax_problem: Any = flax.struct.field(pytree_node=False)
+    evosax_state: Any = flax.struct.field(pytree_node=True)
 
     @classmethod
     def create(cls, config: BBOBConfig) -> "BBOBEvaluator":

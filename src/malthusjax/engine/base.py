@@ -199,72 +199,160 @@ class AbstractEngine(ABC):
         
         if verbose:
             print(f"Starting evolution: {params.num_generations} generations, "
-                  f"population size {params.pop_size}, compile={compile}")
+                  f"population size {params.pop_size}, compile={compile}")        
         
-        start_time = time.time() if time_it else None
+        evolve_fn = _get_evolution_kernel(params, compile_jit=compile)  
         
-        # --- 1. Define the Scan Body ---
-        # We define this inside run() to capture 'self' and 'params'.
-        # Because 'params' fields are static (pytree_node=False), JAX treats
-        # this closure as a stable function signature suitable for caching.
-        def _scan_body(state, _):
-            
-            rng_key = state.rng_key
-            
-            # The engine's step() handles key splitting internally.
-            # We pass the full 'params' struct, which acts as static config.
-            _, new_state, history_item = self.step(rng_key, state, params)            
-            return new_state, history_item
-
-        # --- 2. Define the Execution Wrapper ---
-        def _evolve_loop(init_carry):
-            return jax.lax.scan(
-                _scan_body,
-                init_carry,
-                None,
-                length=params.num_generations
-            )
-
-        # --- 3. JIT Compilation ---
-        # If compile=True, we wrap the loop in jit.
-        if compile:
-            # Use functools.lru_cache to cache the JIT-compiled function
-            # This prevents recompilation when run() is called multiple times
-            # with the same engine instance and parameter structure
-            @functools.lru_cache(maxsize=1)
-            def _get_jitted_fn():
-                return jax.jit(_evolve_loop, donate_argnums=0)
-
-            evolution_fn = _get_jitted_fn()
-        else:
-            evolution_fn = _evolve_loop
-
-        # --- 4. Execution ---
-            
+        start_time = time.time()
+        
         try:
-            # First execution triggers JIT compilation (trace) if not cached.
-            final_state, history = evolution_fn(initial_state)
+            final_state, history = evolve_fn(self, initial_state)        
             
-            # If timing, we must block until computation finishes on device
             if time_it:
                 jax.block_until_ready(final_state)
                 
         except Exception as e:
-            raise RuntimeError(
-                f"Evolution loop failed at generation {initial_state.generation}: {str(e)}"
-            ) from e    
+            raise RuntimeError(f"Evolution failed: {str(e)}") from e    
         
-        # --- 5. Finalization ---
         elapsed_time = None
         if time_it:
             elapsed_time = time.time() - start_time
             if verbose:
-                gen_time = elapsed_time / params.num_generations
-                print(f"Evolution completed in {elapsed_time:.3f}s "
-                      f"({gen_time*1000:.2f}ms/gen)")
-        
-        if verbose:
-            print(f"Final generation: {final_state.generation}")
-            print(f"Best fitness: {float(final_state.best_fitness):.6f}")
+                print(f"Done in {elapsed_time:.3f}s")
         
         return final_state, history, elapsed_time
+    def get_hlo_text(
+        self,
+        initial_state: AbstractEvolutionState,
+        params: AbstractEngineParams,
+        print_analysis: bool = True
+    ) -> str:
+        """
+        Extracts the compiled HLO (High Level Optimizer) text for analysis.
+        
+        This is useful for debugging:
+        - Fusion: Check if ops are fused (fewer 'kernels' is better).
+        - Memory: Check buffer allocation and donation.
+        - Loop Unrolling: Verify if XLA unrolled the generation loop.
+        
+        Args:
+            initial_state: A sample state (used for shape/type tracing only).
+            params: The configuration to compile for.
+            print_analysis: If True, prints a summary of the HLO stats.
+            
+        Returns:
+            The raw HLO text string.
+        """
+        print(f"--- Lowering HLO for params: {params} ---")
+        
+        # 1. Get the JIT-wrapped kernel
+        # We enforce compile_jit=True to access the .lower() API
+        jit_kernel = _get_evolution_kernel(params, compile_jit=True)
+        
+        # 2. Lower the function (Trace + Convert to IR)
+        # We must pass the exact same argument types as run(): (self, initial_state)
+        lowered = jit_kernel.lower(self, initial_state)
+        
+        # 3. Compile (Optional here, but necessary to see post-optimization fusion)
+        # Use .as_text() to get the HLO IR
+        hlo_text = lowered.as_text()
+        
+        if print_analysis:
+            # Simple heuristic analysis of the text
+            #  - conceptually what we are parsing
+            line_count = len(hlo_text.split('\n'))
+            fusion_count = hlo_text.count("fusion")
+            loop_count = hlo_text.count("while")
+            
+            print(f"HLO Analysis:")
+            print(f"  - Total Lines of IR: {line_count}")
+            print(f"  - Fusion Kernels:    {fusion_count} (Higher is usually better for GPU)")
+            print(f"  - Explicit Loops:    {loop_count} (Should ideally be 1 for the main loop)")
+            print(f"  - Input Donation:    {'donate_argnums' in str(jit_kernel)}")
+            print("-" * 30)
+            
+        return hlo_text
+
+@functools.lru_cache(maxsize=32)
+def _get_evolution_kernel(params: AbstractEngineParams, compile_jit: bool = True):
+    """
+    Factory that builds and compiles the evolution loop.
+    
+    Because this is cached via lru_cache, the expensive logic inside 
+    (tracing and compiling) only happens ONCE per unique 'params' configuration.
+    
+    Args:
+        params: Static configuration (hashable key).
+        compile_jit: Whether to wrap in jax.jit.
+        
+    Returns:
+        A compiled function with signature (engine, initial_state) -> (final, history)
+    """
+    
+    # 1. Define the scan body
+    # This captures 'params' as a closure (static constant in the graph)
+    def _scan_body(carry, _):
+        engine, state = carry
+        
+        # Extract key from state (state contains the master key)
+        rng_key = state.rng_key
+        
+        # Call the engine's step. 
+        # Note: We pass 'engine' from the carry, preserving polymorphism.
+        _, new_state, history_item = engine.step(rng_key, state, params)
+        
+        # Return (carry, accumulated_output)
+        return (engine, new_state), history_item
+
+    # 2. Define the outer loop
+    def _evolve_loop(engine: AbstractEngine, initial_state: AbstractEvolutionState):
+        
+        # jax.lax.scan requires a carry. We bundle (engine, state) as carry.
+        # JAX is smart enough to see 'engine' doesn't change and optimizes it out.
+        init_carry = (engine, initial_state)
+        
+        (final_engine, final_state), history = jax.lax.scan(
+            _scan_body,
+            init_carry,
+            None, # Scan over None (length driven)
+            length=params.num_generations
+        )
+        
+        return final_state, history
+
+    # 3. JIT Compile
+    if compile_jit:
+        # donate_argnums=1: Donate 'initial_state' memory to 'final_state' 
+        # to save VRAM. We do NOT donate arg 0 (engine).
+        return jax.jit(_evolve_loop, donate_argnums=1)
+    else:
+        return _evolve_loop
+    
+    
+    
+#==============================================================================
+# 4. PyTree Registration Helper
+# ==============================================================================
+
+# We must ensure AbstractEngine (and subclasses) are treated as PyTrees 
+# so they can be passed through jax.jit and jax.lax.scan.
+# This registers the base class and effectively any subclass that doesn't 
+# override tree_flatten (unless they use flax.struct.dataclass, which handles this).
+
+def _engine_flatten(v):
+    # Flatten strategy: assume engine has no dynamic data (parameters are separate).
+    # If subclasses have data, they must implement their own registration or
+    # use @flax.struct.dataclass
+    return (), None
+
+def _engine_unflatten(aux, children):
+    # This is tricky for an ABC. 
+    # Realistically, subclasses should be dataclasses. 
+    # For the abstract base, we provide a dummy impl to satisfy JAX registry 
+    # if it's ever inspected, but typically 'aux' would contain the class type 
+    # in a more complex setup.
+    #
+    # Best Practice: Subclasses of AbstractEngine MUST be valid PyTrees.
+    return object.__new__(AbstractEngine) 
+
+jax.tree_util.register_pytree_node(AbstractEngine, _engine_flatten, _engine_unflatten)
