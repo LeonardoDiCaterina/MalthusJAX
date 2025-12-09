@@ -8,7 +8,6 @@ NOTE: To enable persistent disk caching (saving compilation time across restarts
 add the following to your main script before running:
     jax.config.update("jax_compilation_cache_dir", "/tmp/jax_cache")
 """
-
 import jax
 import chex
 import jax.numpy as jnp 
@@ -18,7 +17,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, Optional, Tuple, Any, List, Generic, TypeVar
 import functools
 import time
-
+from flax import struct
 # Import for generic typing
 from malthusjax.core.base import BaseGenome, BasePopulation
 
@@ -123,7 +122,7 @@ class NoOpHook(AbstractHook):
     def __call__(self, state: AbstractEvolutionState, params: AbstractEngineParams) -> AbstractEvolutionState:
         return state
 
-
+@struct.dataclass
 class AbstractEngine(ABC):
     """
     Abstract base class for all evolutionary engines.
@@ -131,17 +130,20 @@ class AbstractEngine(ABC):
     Standardizes the evolution loop using JAX scan.
     Leverages JAX's internal compilation cache (memory & disk) automatically.
     """
-    
-    def __init__(self):
-        """Initialize engine."""
-        pass
+    engine_params: AbstractEngineParams = struct.field(pytree_node=False)
     
     @abstractmethod
     def init_state(self, rng_key: jnp.ndarray, params: AbstractEngineParams) -> AbstractEvolutionState:
         """
         Initialize the evolution state.
         """
-        pass
+        # Input validation
+        validate_engine_params(self.engine_params)
+        
+        if not isinstance(self.engine_params, AbstractEngineParams):
+            raise TypeError(
+                f"params must be AbstractEngineParams, got {type(self.engine_params)}"
+            )
     
     @abstractmethod
     def step(
@@ -158,7 +160,6 @@ class AbstractEngine(ABC):
     def run(
         self, 
         initial_state: AbstractEvolutionState, 
-        params: AbstractEngineParams,
         time_it: bool = False,
         compile: bool = True,
         verbose: bool = False
@@ -184,25 +185,16 @@ class AbstractEngine(ABC):
         Returns:
             Tuple of (final_state, history, elapsed_time)
         """
-        # Input validation
-        validate_engine_params(params)
-        
         if not isinstance(initial_state, AbstractEvolutionState):
             raise TypeError(
                 f"initial_state must be AbstractEvolutionState, got {type(initial_state)}"
             )
-        
-        if not isinstance(params, AbstractEngineParams):
-            raise TypeError(
-                f"params must be AbstractEngineParams, got {type(params)}"
-            )
-        
         if verbose:
-            print(f"Starting evolution: {params.num_generations} generations, "
-                  f"population size {params.pop_size}, compile={compile}")        
-        
-        evolve_fn = _get_evolution_kernel(params, compile_jit=compile)  
-        
+            print(f"Starting evolution: {self.engine_params.num_generations} generations, "
+                  f"population size {self.engine_params.pop_size}, compile={compile}")
+
+        evolve_fn = _get_evolution_kernel(self.engine_params, compile_jit=compile)
+
         start_time = time.time()
         
         try:
@@ -224,7 +216,6 @@ class AbstractEngine(ABC):
     def get_hlo_text(
         self,
         initial_state: AbstractEvolutionState,
-        params: AbstractEngineParams,
         print_analysis: bool = True
     ) -> str:
         """
@@ -243,11 +234,11 @@ class AbstractEngine(ABC):
         Returns:
             The raw HLO text string.
         """
-        print(f"--- Lowering HLO for params: {params} ---")
+        print(f"--- Lowering HLO for params: {self.engine_params} ---")
         
         # 1. Get the JIT-wrapped kernel
         # We enforce compile_jit=True to access the .lower() API
-        jit_kernel = _get_evolution_kernel(params, compile_jit=True)
+        jit_kernel = _get_evolution_kernel(self.engine_params, compile_jit=True)
         
         # 2. Lower the function (Trace + Convert to IR)
         # We must pass the exact same argument types as run(): (self, initial_state)
@@ -299,7 +290,7 @@ def _get_evolution_kernel(params: AbstractEngineParams, compile_jit: bool = True
         
         # Call the engine's step. 
         # Note: We pass 'engine' from the carry, preserving polymorphism.
-        _, new_state, history_item = engine.step(rng_key, state, params)
+        _, new_state, history_item = engine.step(rng_key, state)
         
         # Return (carry, accumulated_output)
         return (engine, new_state), history_item
@@ -355,4 +346,4 @@ def _engine_unflatten(aux, children):
     # Best Practice: Subclasses of AbstractEngine MUST be valid PyTrees.
     return object.__new__(AbstractEngine) 
 
-jax.tree_util.register_pytree_node(AbstractEngine, _engine_flatten, _engine_unflatten)
+#jax.tree_util.register_pytree_node(AbstractEngine, _engine_flatten, _engine_unflatten)

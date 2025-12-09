@@ -100,7 +100,6 @@ class GeneticEngine(AbstractEngine):
         """
         return state.replace(
             population=None,      # Sever dependency on heavy buffer
-            #fitness_values=None,  # Sever dependency on heavy buffer
             # best_genome=None,   # Optional: sever if operators don't need it
             # best_fitness remains available
             # generation remains available
@@ -213,7 +212,7 @@ class GeneticEngine(AbstractEngine):
 
 
     @traceable("GeneticEngine_Step")
-    def step(self, key: chex.Array, state: AbstractEvolutionState, params: AbstractEngineParams):
+    def step(self, key: chex.Array, state: AbstractEvolutionState)-> Tuple[chex.Array, AbstractEvolutionState, AbstractGenerationOutput]:
         
         rmap = state.resource_map
 
@@ -238,7 +237,7 @@ class GeneticEngine(AbstractEngine):
         # --- FIX ENDS HERE ---
 
         # 2. READ
-        elites, parents = self._selection_phase(k_sel, state.population, params)
+        elites, parents = self._selection_phase(k_sel, state.population, self.engine_params)
 
         # 3. PRUNE
         context = self._extract_context(state)
@@ -263,7 +262,7 @@ class GeneticEngine(AbstractEngine):
         # 7. HOOKS & METRICS
         final_state = next_state
         for hook in self.hooks:
-            final_state = hook(final_state, params)
+            final_state = hook(final_state, self.engine_params)
 
         metrics = GeneticGenerationOutput(
             best_fitness=final_state.best_fitness,
@@ -282,7 +281,7 @@ class GeneticEngine(AbstractEngine):
     # 3. INITIALIZATION (Compiler)
     # ==========================================
     
-    def init_state(self, rng_key: chex.Array, params: GeneticEngineParams) -> GeneticEvolutionState:
+    def init_state(self, rng_key: chex.Array) -> GeneticEvolutionState:
         """
         Compiles the Execution Plan and initializes the population.
         """
@@ -293,7 +292,7 @@ class GeneticEngine(AbstractEngine):
             self.crossover,
             self.mutation,
             self.genome_config,
-            params.pop_size
+            self.engine_params.pop_size
         )
         
         # Log the compilation result (Plan Summary)
@@ -314,8 +313,8 @@ class GeneticEngine(AbstractEngine):
             pop_cls = CategoricalPopulation
         else:
             raise ValueError(f"Unsupported config: {type(self.genome_config)}")
-        
-        population = pop_cls.init_random(init_pop_key, self.genome_config, params.pop_size)
+
+        population = pop_cls.init_random(init_pop_key, self.genome_config, self.engine_params.pop_size)
         evaluated_pop = self.evaluator.evaluate_population(population)
         
         # 3. Create State with Embedded Plan
@@ -323,7 +322,6 @@ class GeneticEngine(AbstractEngine):
         
         return GeneticEvolutionState(
             population=evaluated_pop,
-            #fitness_values=evaluated_pop.fitness,
             best_genome=evaluated_pop[best_idx].genes,
             best_fitness=evaluated_pop.fitness[best_idx],
             generation=0,
