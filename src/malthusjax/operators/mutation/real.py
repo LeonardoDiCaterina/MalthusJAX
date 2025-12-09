@@ -16,13 +16,22 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
     Gaussian (Normal) Mutation.
     Adds random noise from a normal distribution to genes.
+    
+    Args:
+        mutation_rate: Probability of mutating each gene [0, 1]
+        mutation_strength: Standard deviation of Gaussian noise (sigma)
+        clip: If True, clip mutated values to config.bounds (static, non-traceable)
     """
     mutation_rate: float = 0.1
     mutation_strength: float = 0.1
+    clip: bool = struct.field(pytree_node=False, default=True)
     
     def _mutate_one(self, key: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
         """
         Mutates ONE genome using ONE key.
+        
+        Note: `clip` is a static boolean (pytree_node=False), so the if/else branch
+        is resolved at trace time, not runtime. This avoids tracer boolean conversion errors.
         """
         # Split the assigned key locally for mask and noise generation
         k_mask, k_noise = jar.split(key)
@@ -36,11 +45,12 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
         # 3. Apply noise only where mask is True
         mutated_values = jnp.where(mutation_mask, genome.values + noise, genome.values)
         
-        # 4. Clip to bounds
-        min_val, max_val = config.bounds
-        clipped_values = jnp.clip(mutated_values, min_val, max_val)
+        # 4. Clip to bounds if requested (static branch: resolved at compile time)
+        if self.clip:
+            min_val, max_val = config.bounds
+            mutated_values = jnp.clip(mutated_values, min_val, max_val)
         
-        return genome.replace(values=clipped_values)
+        return genome.replace(values=mutated_values)            
 
 
 @struct.dataclass
@@ -51,7 +61,8 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
     mutation_rate: float = 0.1
     mutation_strength: float = 0.1
-    
+    clip: bool = struct.field(pytree_node=False, default=True)
+
     def _mutate_one(self, key: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
         """
         Mutates ONE genome using ONE key.
@@ -72,9 +83,12 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
         # 3. Apply noise and Clip
         mutated_values = jnp.where(mutation_mask, genome.values + noise, genome.values)
         min_val, max_val = config.bounds
-        clipped_values = jnp.clip(mutated_values, min_val, max_val)
+        # 4. Clip to bounds if requested (static branch: resolved at compile time)
+        if self.clip:
+            min_val, max_val = config.bounds
+            mutated_values = jnp.clip(mutated_values, min_val, max_val)
         
-        return genome.replace(values=clipped_values)
+        return genome.replace(values=mutated_values)           
 
 
 @struct.dataclass
@@ -85,6 +99,7 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
     mutation_rate: float = 0.1
     eta: float = 20.0  # Distribution index parameter
+    clip: bool = struct.field(pytree_node=False, default=True)
     
     def _mutate_one(self, key: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
         """
@@ -114,8 +129,12 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
         
         # 5. Apply and Clip
         mutated_values = jnp.where(mutation_mask, genome.values + delta, genome.values)
-        clipped_values = jnp.clip(mutated_values, min_val, max_val)
         
-        return genome.replace(values=clipped_values)
+        # 4. Clip to bounds if requested (static branch: resolved at compile time)
+        if self.clip:
+            min_val, max_val = config.bounds
+            mutated_values = jnp.clip(mutated_values, min_val, max_val)
+        
+        return genome.replace(values=mutated_values)   
 
 __all__ = ["GaussianMutation", "BallMutation", "PolynomialMutation"]

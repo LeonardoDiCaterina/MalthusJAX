@@ -1,6 +1,6 @@
 """
 Roulette Wheel Selection (Fitness-Proportionate).
-Refactored for the 'Consumer Paradigm' and Robust Numerical Stability.
+
 """
 from flax import struct
 import jax
