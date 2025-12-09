@@ -213,6 +213,36 @@ class AbstractEngine(ABC):
                 print(f"Done in {elapsed_time:.3f}s")
         
         return final_state, history, elapsed_time
+    
+    
+    def ask(self, state: AbstractEvolutionState) -> BasePopulation:
+        """
+        Get the current population parameters (genes) to be evaluated.
+        
+        Args:
+            state: Current evolution state.
+            
+        Returns:
+            Population
+        """
+        return state.population    
+    
+    @abstractmethod
+    def tell(self, state: AbstractEvolutionState, population: BasePopulation) -> AbstractEvolutionState:
+        """
+        Update the algorithm with fitness scores and produce the next generation.
+        
+        Args:
+            state: Current evolution state (containing the population that was just evaluated).
+            params: Static engine parameters.
+            fitness_scores: JAX Array of shape (pop_size,) containing external fitness.
+            
+        Returns:
+            New state containing the *unevaluated* population for the next generation.
+        """
+        pass
+    
+    
     def get_hlo_text(
         self,
         initial_state: AbstractEvolutionState,

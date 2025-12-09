@@ -3,7 +3,7 @@ Standard Genetic Algorithm Engine.
 Refactored for 'Init-Phase Compilation': Resource mapping happens once at initialization.
 """
 from functools import partial
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 from flax import struct
 import jax
 import jax.numpy as jnp
@@ -20,6 +20,13 @@ from ..core.genome.real_genome import RealGenomeConfig, RealPopulation
 from ..core.genome.categorical_genome import CategoricalGenomeConfig, CategoricalPopulation
 
 
+#TODO:  _update_hof must be enhanced to reutrn a state directly
+#TODO:  implement ask/tell interface properly
+#TODO:  implement entropy buffer properly
+#TODO:  add typed docstrings to all methods
+#TODO:  optimize the operators with the double vmap trick
+#TODO:  implement a proper logging mechanism
+#TODO:  rename the traceable decorators to something more meaningful
 def traceable(name):
     """
     Correctly wraps a method in jax.named_call for HLO profiling labels.
@@ -72,6 +79,27 @@ class GeneticEngine(AbstractEngine):
     # Hooks
     hooks: Tuple[AbstractHook] = struct.field(default_factory=tuple)
     enable_progress_bar: bool = struct.field(pytree_node=False, default=False)
+    _entropy_buffer: List[Any] = struct.field(pytree_node=False, default_factory=list)
+    
+    @traceable("Phase_0_allocate_entropy")
+    def _allocate_entropy(self, state: GeneticEvolutionState) -> Tuple:
+            
+            rmap = state.resource_map
+            all_keys = jar.split(state.rng_key, rmap.total_rng_budget)
+            k_sel_slice = all_keys[rmap.get_key_slice('selection')]
+            if rmap.selection.num_keys == 1:
+                k_sel = k_sel_slice[0]
+            else:
+                k_sel = k_sel_slice
+                
+            k_cross = all_keys[rmap.get_key_slice('crossover')]
+            k_mut   = all_keys[rmap.get_key_slice('mutation')]
+        
+            # Next Key: Always 1, so we explicitly index [0]
+            k_next  = all_keys[rmap.get_key_slice('next_key')][0]
+            
+            return k_sel,k_cross,k_mut,k_next
+    
     
     @traceable("Phase_1_Selection_Read")
     def _selection_phase(self, key_selection: chex.Array, population: Any, params: Any):
@@ -171,8 +199,8 @@ class GeneticEngine(AbstractEngine):
         return mutant_genes      
     
     
-    @traceable("Phase_3__Merge_and_Evaluate")
-    def _merge_and_evaluate(self, elites_genes, mutant_genes, old_state: AbstractEvolutionState):
+    @traceable("Phase_3a_Merge")
+    def _merge(self, elites_genes, mutant_genes, old_state: AbstractEvolutionState)-> chex.Array:
         """
         Constructs the new population using the old_state shell.
         """
@@ -191,13 +219,16 @@ class GeneticEngine(AbstractEngine):
             elites_genes, mutants_keep
         )
         
-        # 3. Buffer Reuse & Eval
-        unevaluated_pop = old_state.population.replace(
-            genes=next_genes,
-            fitness=jnp.full((target_size,), -jnp.inf)
-        )
-        evaluated_pop = self.evaluator.evaluate_population(unevaluated_pop)
-
+        return next_genes
+    
+    @traceable("Phase_3b_Evaluate")
+    def _evaluate(self, new_genes, old_state: AbstractEvolutionState):
+        new_population = old_state.population.replace(genes=new_genes)
+        evaluated_pop = self.evaluator.evaluate_population(new_population)
+        return evaluated_pop
+    
+    @traceable("Phase_3c_update_hof")
+    def _update_hof(self, evaluated_pop, old_state: AbstractEvolutionState) -> Tuple[chex.Array, chex.Array, chex.Array]: 
         # 4. Hall of Fame
         best_idx = jnp.argmax(evaluated_pop.fitness)
         curr_best_fit = evaluated_pop.fitness[best_idx]
@@ -207,34 +238,14 @@ class GeneticEngine(AbstractEngine):
             lambda old, new: jnp.where(is_new, new, old),
             old_state.best_genome, evaluated_pop[best_idx].genes
         )
-        
-        return evaluated_pop, new_best_genome, curr_best_fit, is_new    
+        return is_new, new_best_genome, curr_best_fit
 
 
     @traceable("GeneticEngine_Step")
     def step(self, key: chex.Array, state: AbstractEvolutionState)-> Tuple[chex.Array, AbstractEvolutionState, AbstractGenerationOutput]:
-        
-        rmap = state.resource_map
 
         # 1. KEY ALLOCATION
-        all_keys = jar.split(key, rmap.total_rng_budget)
-        
-        # --- FIX STARTS HERE ---
-        # Selection: usually needs just 1 key for the global operation.
-        # If the slice has size 1, we must extract the item [0] to get shape (2,)
-        k_sel_slice = all_keys[rmap.get_key_slice('selection')]
-        if rmap.selection.num_keys == 1:
-            k_sel = k_sel_slice[0]
-        else:
-            k_sel = k_sel_slice
-
-        # Crossover/Mutation: usually need arrays of keys for vmap, so slicing is fine.
-        k_cross = all_keys[rmap.get_key_slice('crossover')]
-        k_mut   = all_keys[rmap.get_key_slice('mutation')]
-        
-        # Next Key: Always 1, so we explicitly index [0]
-        k_next  = all_keys[rmap.get_key_slice('next_key')][0]
-        # --- FIX ENDS HERE ---
+        k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
 
         # 2. READ
         elites, parents = self._selection_phase(k_sel, state.population, self.engine_params)
@@ -243,15 +254,20 @@ class GeneticEngine(AbstractEngine):
         context = self._extract_context(state)
 
         # 4. COMPUTE
-        mutants = self._reproduction_phase(k_cross, k_mut, parents, context, rmap)
+        mutants = self._reproduction_phase(k_cross, k_mut, parents, context, state.resource_map)
 
         # 5. WRITE
-        new_pop, new_best_g, new_best_f, is_new = self._merge_and_evaluate(elites, mutants, state)
-
+        next_genes = self._merge(elites, mutants, state)
+        
+        
+        
+        new_pop = self._evaluate(next_genes, state)
+        
+        is_new, new_best_g, new_best_f = self._update_hof(new_pop, state)
+        
         # 6. FINALIZE
         next_state = state.replace(
             population=new_pop,
-            #fitness_values=new_pop.fitness,
             best_genome=new_best_g,
             best_fitness=jnp.where(is_new, new_best_f, state.best_fitness),
             stagnation_counter=jnp.where(is_new, 0, state.stagnation_counter + 1),
@@ -277,6 +293,31 @@ class GeneticEngine(AbstractEngine):
             )
             
         return k_next, final_state, metrics
+    
+    def ask(self, state: AbstractEvolutionState) -> BasePopulation:
+        """
+        Get the current population parameters (genes) to be evaluated.
+        
+        Args:
+            state: Current evolution state.
+            
+        Returns:
+            Population
+        """
+        # We modify the list *contents*, not the class attribute
+        self._entropy_buffer[:] = self._allocate_entropy(state)
+
+        return state.population        
+    
+    def tell(self, state: GeneticEvolutionState, population: BasePopulation) -> GeneticEvolutionState:
+        
+        updated_state = self.upday
+        
+        
+        
+        return 
+
+
     # ==========================================
     # 3. INITIALIZATION (Compiler)
     # ==========================================

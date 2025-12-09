@@ -8,6 +8,8 @@ This module defines the operator abstractions following the new paradigm:
 - Generic type support for all genome types
 """
 
+#TODO: vmap a second time over num_offspring inside each operator to avoid reshaping in the engine
+
 from typing import Generic, TypeVar, Tuple
 import jax
 import chex
