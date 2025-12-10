@@ -133,7 +133,6 @@ class GeneticEngine(AbstractEngine):
             # custom_fields remain available
         )    
         
-        
     @traceable("Phase_2_Reproduction_Compute")
     def _reproduction_phase(
         self, 
@@ -144,58 +143,54 @@ class GeneticEngine(AbstractEngine):
         rmap: ResourceMap 
     ):
         """
-        Applies crossover and mutation with proper batching.
+        Optimized Reproduction Phase.
         
-        Key insight: Operators expect (keys_per_call, 2) keys and SINGLE genomes.
-        We vmap over parent pairs/individuals to apply operators in parallel.
+        New Paradigm:
+        - No manual reshaping of keys.
+        - No explicit vmap over pairs/individuals here.
+        - Operators accept FLAT batches of keys and stacked parent genomes.
+        - Operators handle internal 'double vmap' scheduling.
         """
+        
         # A. CROSSOVER
         # --------------------------------------
+        # 1. Prepare Parent Batches
+        # Split the selected parents into two groups (P1, P2)
         num_pairs = rmap.crossover.input_count // 2
-        keys_per_pair = rmap.crossover.num_keys // num_pairs
-        
-        # Reshape Crossover Keys: (total_keys, 2) -> (num_pairs, keys_per_pair, 2)
-        key_crossover_batched = key_crossover.reshape(num_pairs, keys_per_pair, -1)
-        
-        # Split Parents into two batches
         p1 = parents[:num_pairs]
         p2 = parents[num_pairs:]
         
-        # Vmap over parent pairs: each call gets (keys_per_pair, 2) and single parent genomes
-        # Result shape: (num_pairs, keys_per_pair, ...genome_shape)
-        offspring_genes = jax.vmap(
-            lambda k, g1, g2: self.crossover(k, g1, g2, self.genome_config),
-            in_axes=(0, 0, 0)
-        )(key_crossover_batched, p1.genes, p2.genes)
+        # 2. Execute Crossover
+        # Input: 
+        #   - key_crossover: Flat tensor (Total_Offspring * Keys_Per_Op, 2)
+        #   - p1.genes, p2.genes: Stacked parent batches (Num_Pairs, ...)
+        # Output:
+        #   - offspring_genes: Flat batch (Total_Offspring, ...)
         
-        # Flatten offspring: (num_pairs, keys_per_pair, ...) -> (num_pairs * keys_per_pair, ...)
-        offspring_genes = jax.tree_util.tree_map(
-            lambda x: x.reshape(-1, *x.shape[2:]),
-            offspring_genes
+        print("Crossover Keys Shape:", key_crossover.shape)
+        print("P1 Genes Shape:", jax.tree_util.tree_leaves(p1.genes)[0].shape)
+        offspring_genes = self.crossover(
+            key_crossover, 
+            p1, 
+            p2, 
+            self.genome_config
         )
 
         # B. MUTATION
         # -------------------------------------
-        num_individuals = rmap.mutation.input_count 
-        keys_per_ind = rmap.mutation.num_keys // num_individuals
-        
-        # Reshape Mutation Keys: (total_keys, 2) -> (num_individuals, keys_per_ind, 2)
-        key_mutation_batched = key_mutation.reshape(num_individuals, keys_per_ind, -1)
-
-        # Vmap over individuals: each call gets (keys_per_ind, 2) and single genome
-        # Result shape: (num_individuals, keys_per_ind, ...genome_shape)
-        mutant_genes = jax.vmap(
-            lambda k, g: self.mutation(k, g, self.genome_config),
-            in_axes=(0, 0)
-        )(key_mutation_batched, offspring_genes)
-        
-        # Flatten mutants: (num_individuals, keys_per_ind, ...) -> (num_individuals * keys_per_ind, ...)
-        mutant_genes = jax.tree_util.tree_map(
-            lambda x: x.reshape(-1, *x.shape[2:]),
-            mutant_genes
+        # 1. Execute Mutation
+        # Input:
+        #   - key_mutation: Flat tensor (Total_Mutants * Keys_Per_Op, 2)
+        #   - offspring_genes: Flat batch from crossover
+        # Output:
+        #   - mutant_genes: Flat batch (Total_Mutants, ...)
+        mutant_genes = self.mutation(
+            key_mutation, 
+            offspring_genes, 
+            self.genome_config
         )
         
-        return mutant_genes      
+        return mutant_genes
     
     
     @traceable("Phase_3a_Merge")

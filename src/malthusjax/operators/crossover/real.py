@@ -1,5 +1,7 @@
 """
-Real-valued Crossover Operators
+Real-valued Crossover Operators.
+Refactored to be purely atomic consumers.
+Optimized to consume pre-allocated keys directly, avoiding internal splitting.
 """
 from flax import struct
 import jax.numpy as jnp
@@ -13,18 +15,29 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """
     Uniform Crossover.
     Mixes genes from both parents based on a per-gene probability.
+    Requires 1 key for the mixing mask.
     """
-    crossover_rate: float = 0.5  # Probability of taking gene from Parent 2
+    crossover_rate: float = 0.5
     
-    def _cross_one(self, key: chex.PRNGKey, p1: RealGenome, p2: RealGenome, config: RealGenomeConfig) -> RealGenome:
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 1
+
+    def _cross_one(self, keys: chex.PRNGKey, p1: RealGenome, p2: RealGenome, config: RealGenomeConfig) -> RealGenome:
         """
-        Creates ONE child from two parents using ONE key.
+        Atomic logic.
+        Args:
+            keys: A slice of keys. Shape (1, 2) or (2,) depending on the base slice.
         """
-        # 1. Generate Mixing Mask (1 = Swap/Take P2, 0 = Keep/Take P1)
-        mask = jar.bernoulli(key, p=self.crossover_rate, shape=p1.values.shape)
+        # Handle the slice safe-guard (take the first key if we got a slice)
+        rng = keys[0] if keys.ndim > 1 else keys
+        print("UniformCrossover _cross_one keys shape:", keys.shape)
+        print("UniformCrossover p1.genes.size:", p1.genes.size)
+        # 1. Generate Mixing Mask (1 = Swap/Take P2, 0 = Keep/Take P1) RealPopulation
+        mask = jar.bernoulli(rng, p=self.crossover_rate, shape=(p1.genes.size,))
         
         # 2. Select values
-        new_values = jnp.where(mask, p2.values, p1.values)
+        new_values = jnp.where(mask, p2.genes.values, p1.genes.values)
         
         return RealGenome(values=new_values)
 
@@ -33,16 +46,21 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
 class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """
     Blend Crossover (BLX-α).
-    Creates offspring in a range [min - alpha*diff, max + alpha*diff].
+    Requires 2 keys: [0] for decision mask, [1] for random value generation.
     """
-    crossover_rate: float = 0.9 # Probability of applying operator
+    crossover_rate: float = 0.9 
     alpha: float = 0.5
     
-    def _cross_one(self, key: chex.PRNGKey, p1: RealGenome, p2: RealGenome, config: RealGenomeConfig) -> RealGenome:
-        k_do, k_val = jar.split(key)
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 2
+
+    def _cross_one(self, keys: chex.PRNGKey, p1: RealGenome, p2: RealGenome, config: RealGenomeConfig) -> RealGenome:
+        # DIRECT UNPACKING - No split needed
+        k_do = keys[0]
+        k_val = keys[1]
         
         # 1. Calculate Potential Offspring
-        # Logic: always compute to avoid warp divergence, then mask result
         diff = jnp.abs(p1.values - p2.values)
         cmin = jnp.minimum(p1.values, p2.values) - self.alpha * diff
         cmax = jnp.maximum(p1.values, p2.values) + self.alpha * diff
@@ -55,10 +73,8 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
              offspring_values = jnp.clip(offspring_values, config.min_value, config.max_value)
              
         # 2. Apply Crossover Rate via Masking
-        # If the operator fails the prob check, we just return Parent 1
         should_cross = jar.bernoulli(k_do, p=self.crossover_rate)
         
-        # Broadcast the scalar decision to the whole array
         final_values = jnp.where(should_cross, offspring_values, p1.values)
         
         return RealGenome(values=final_values)
@@ -68,32 +84,35 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
 class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """
     Simulated Binary Crossover (SBX).
-    Mimics the self-adaptive properties of binary crossover in continuous domains.
+    Requires 3 keys: [0] for op mask, [1] for beta calc, [2] for symmetry swap.
     """
     crossover_rate: float = 0.9
     eta: float = 20.0
     
-    def _cross_one(self, key: chex.PRNGKey, p1: RealGenome, p2: RealGenome, config: RealGenomeConfig) -> RealGenome:
-        k_do, k_beta, k_swap = jar.split(key, 3)
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 3
+
+    def _cross_one(self, keys: chex.PRNGKey, p1: RealGenome, p2: RealGenome, config: RealGenomeConfig) -> RealGenome:
+        # DIRECT UNPACKING - No split needed
+        k_do = keys[0]
+        k_beta = keys[1]
+        k_swap = keys[2]
         
         # 1. Calculate Beta (Spread Factor)
         u = jar.uniform(k_beta, shape=p1.values.shape)
         
-        # SBX Formula for Beta
         beta = jnp.where(
             u <= 0.5,
             (2.0 * u) ** (1.0 / (self.eta + 1.0)),
             (1.0 / (2.0 * (1.0 - u))) ** (1.0 / (self.eta + 1.0))
         )
         
-        # 2. Generate Two Candidate Children from the SBX formula
-        # We only need one for this function call, but SBX is symmetric.
-        # We calculate C1 and C2, then randomly pick one to preserve symmetry 
-        # even when generating single children.
+        # 2. Generate Two Candidate Children
         c1 = 0.5 * ((1.0 + beta) * p1.values + (1.0 - beta) * p2.values)
         c2 = 0.5 * ((1.0 - beta) * p1.values + (1.0 + beta) * p2.values)
         
-        # 3. Randomly pick C1 or C2 (Symmetry preservation)
+        # 3. Randomly pick C1 or C2
         swap_mask = jar.bernoulli(k_swap, p=0.5, shape=p1.values.shape)
         child_vals = jnp.where(swap_mask, c2, c1)
         
@@ -101,7 +120,7 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         if hasattr(config, 'min_value') and hasattr(config, 'max_value'):
              child_vals = jnp.clip(child_vals, config.min_value, config.max_value)
 
-        # 4. Apply Rate Mask (Op success vs failure)
+        # 4. Apply Rate Mask
         should_cross = jar.bernoulli(k_do, p=self.crossover_rate)
         final_values = jnp.where(should_cross, child_vals, p1.values)
         
