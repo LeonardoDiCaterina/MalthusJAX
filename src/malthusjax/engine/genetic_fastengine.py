@@ -20,8 +20,7 @@ from ..core.genome.real_genome import RealGenomeConfig, RealPopulation
 from ..core.genome.categorical_genome import CategoricalGenomeConfig, CategoricalPopulation
 
 
-#TODO:  _update_hof must be enhanced to reutrn a state directly
-#TODO:  implement ask/tell interface properly
+#TODO:  fix key that is not being passed properly
 #TODO:  implement entropy buffer properly
 #TODO:  add typed docstrings to all methods
 #TODO:  optimize the operators with the double vmap trick
@@ -228,7 +227,7 @@ class GeneticEngine(AbstractEngine):
         return evaluated_pop
     
     @traceable("Phase_3c_update_hof")
-    def _update_hof(self, evaluated_pop, old_state: AbstractEvolutionState) -> Tuple[chex.Array, chex.Array, chex.Array]: 
+    def _update_hof(self, evaluated_pop: BasePopulation, old_state: AbstractEvolutionState, k_next: chex.Array) -> AbstractEvolutionState:
         # 4. Hall of Fame
         best_idx = jnp.argmax(evaluated_pop.fitness)
         curr_best_fit = evaluated_pop.fitness[best_idx]
@@ -238,7 +237,17 @@ class GeneticEngine(AbstractEngine):
             lambda old, new: jnp.where(is_new, new, old),
             old_state.best_genome, evaluated_pop[best_idx].genes
         )
-        return is_new, new_best_genome, curr_best_fit
+            # 6. FINALIZE
+        next_state = old_state.replace(
+            population=evaluated_pop,
+            best_genome=new_best_genome,
+            best_fitness=jnp.where(is_new, curr_best_fit, old_state.best_fitness),
+            stagnation_counter=jnp.where(is_new, 0, old_state.stagnation_counter + 1),
+            generation=old_state.generation + 1,
+            rng_key=k_next
+        )
+        
+        return next_state
 
 
     @traceable("GeneticEngine_Step")
@@ -263,20 +272,10 @@ class GeneticEngine(AbstractEngine):
         
         new_pop = self._evaluate(next_genes, state)
         
-        is_new, new_best_g, new_best_f = self._update_hof(new_pop, state)
+        final_state = self._update_hof(new_pop, state, k_next)
         
-        # 6. FINALIZE
-        next_state = state.replace(
-            population=new_pop,
-            best_genome=new_best_g,
-            best_fitness=jnp.where(is_new, new_best_f, state.best_fitness),
-            stagnation_counter=jnp.where(is_new, 0, state.stagnation_counter + 1),
-            generation=state.generation + 1,
-            rng_key=k_next
-        )
         
         # 7. HOOKS & METRICS
-        final_state = next_state
         for hook in self.hooks:
             final_state = hook(final_state, self.engine_params)
 
@@ -310,13 +309,70 @@ class GeneticEngine(AbstractEngine):
         return state.population        
     
     def tell(self, state: GeneticEvolutionState, population: BasePopulation) -> GeneticEvolutionState:
+        """
+        Update state with externally evaluated population and produce next generation.
         
-        updated_state = self.upday
+        This method:
+        1. Retrieves pre-allocated keys from the entropy buffer
+        2. Updates Hall of Fame with external fitness
+        3. Executes Selection -> Reproduction -> Merge pipeline
         
+        Args:
+            state: Current evolution state
+            population: Externally evaluated population with fitness values
+            
+        Returns:
+            Updated state with next generation population
+        """
+        # 1. RETRIEVE ENTROPY (from sidecar buffer)
+        if not self._entropy_buffer:
+            raise RuntimeError("tell() called before ask(). Call ask() first to allocate keys.")
         
+        k_sel, k_cross, k_mut, k_next = self._entropy_buffer
         
-        return 
-
+        # 2. UPDATE STATE WITH EXTERNAL FITNESS
+        state = state.replace(population=population)
+        
+        # 3. UPDATE HALL OF FAME
+        best_idx = jnp.argmax(population.fitness)
+        curr_best_fit = population.fitness[best_idx]
+        is_new = curr_best_fit > state.best_fitness
+        
+        new_best_genome = jax.tree_util.tree_map(
+            lambda old, new: jnp.where(is_new, new, old),
+            state.best_genome, population[best_idx].genes
+        )
+        
+        state = state.replace(
+            best_genome=new_best_genome,
+            best_fitness=jnp.where(is_new, curr_best_fit, state.best_fitness),
+            stagnation_counter=jnp.where(is_new, 0, state.stagnation_counter + 1)
+        )
+        
+        # 4. SELECTION PHASE
+        elites, parents = self._selection_phase(k_sel, state.population, self.engine_params)
+        
+        # 5. REPRODUCTION PHASE
+        context = self._extract_context(state)
+        mutants = self._reproduction_phase(k_cross, k_mut, parents, context, state.resource_map)
+        
+        # 6. MERGE & CREATE NEXT GENERATION
+        next_genes = self._merge(elites, mutants, state)
+        next_population = state.population.replace(genes=next_genes)
+        
+        # 7. FINALIZE STATE
+        final_state = state.replace(
+            population=next_population,
+            generation=state.generation + 1,
+            rng_key=k_next
+        )
+        
+        # 9. HOOKS
+        for hook in self.hooks:
+            final_state = hook(final_state, self.engine_params)
+        
+        return final_state
+        
 
     # ==========================================
     # 3. INITIALIZATION (Compiler)
