@@ -21,6 +21,7 @@ except ImportError as e:
 # Suppress JAX/TensorFlow warnings for clean output
 warnings.filterwarnings("ignore")
 
+print("this is the new version")
 # ==============================================================================
 # 1. ENGINE BUILDERS (Setup Logic)
 # ==============================================================================
