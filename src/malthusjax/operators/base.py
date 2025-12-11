@@ -9,133 +9,89 @@ G = TypeVar("G")  # Genome Type
 C = TypeVar("C")  # Config Type
 
 # ==========================================
-# 1. MUTATION (Index-Based Vmap)
+# 1. MUTATION (Reshape-Based Vmap)
 # ==========================================
 @struct.dataclass
 class BaseMutation(Generic[G, C]):
     """
-    BaseMutation using the 'Double Vmap' Indexing Strategy.
+    BaseMutation using the 'Reshape + Nested Vmap' Strategy.
+    This avoids dynamic slicing and index math inside the kernel.
     """
     num_offspring: int = struct.field(pytree_node=False, default=1)
     
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        return self.num_offspring
+        raise NotImplementedError
 
     def num_keys(self, config: C, input_shape: tuple) -> int:
-        return self.num_offspring
+        # Total keys = Offspring_Count * Keys_Per_Operation
+        return self.num_offspring * self.num_keys_per_atomic_operation
 
-    # --- 1. The Atomic Logic (User Implementation) ---
+    # --- 1. The Atomic Logic ---
     def _atomic_operation(self, keys: chex.Array, genome: G, config: C) -> G:
-        """
-        Implementation specific logic (Aliases to _mutate_one for compatibility).
-        """
-        # We bridge to the existing concrete method name
         return self._mutate_one(keys, genome, config)
 
     def _mutate_one(self, key: chex.Array, genome: G, config: C) -> G:
         raise NotImplementedError
 
-    # --- 2. The Data Retrieval (Index -> Data) ---
-    def _atomic_operation_from_index(self,
-                                     keys_index: int,
-                                     genome_index: int,
-                                     all_keys: chex.Array,
-                                     population: BasePopulation, # Or generic G batch
-                                     config: C) -> G:
-        
-        # Dynamic Slice for keys: [start : start + N]
-        # keys_index is a scalar tracer here from the inner vmap
-        keys_slice = jax.lax.dynamic_slice(
-            all_keys, 
-            (keys_index, 0), 
-            (self.num_keys_per_atomic_operation, all_keys.shape[1])
-        )
-        
-        # Simple Gather for the genome
-        # Use tree_map to extract genome at index from PyTree structure
-        genome = jax.tree_util.tree_map(lambda x: x[genome_index], population)
-        
-        # Depending on your specific concrete implementation, 
-        # _mutate_one might expect (N, 2) keys or (2,) key.
-        # If _mutate_one expects a single key but num_offspring > 1, 
-        # you might need another vmap here or pass the slice.
-        # For now, we pass the slice (N, 2).
-        return self._atomic_operation(keys_slice, genome, config)
-
-    # --- 3. The Scheduler (Double Vmap) ---
+    # --- 2. The Scheduler (Nested Vmap) ---
     def _double_vmap(self,
-                     population_arange: chex.Array,
-                     num_offspring_arange: chex.Array,
-                     all_keys: chex.Array,
+                     # Keys are already reshaped to (Pop, Offspring, Key_Dim)
+                     # So we map over the Population Dimension (0)
+                     keys_structured: chex.Array, 
                      population: BasePopulation,
                      config: C) -> G:
         
-        # Scale offspring indices to match key consumption
-        # e.g., if we need 2 keys per op: [0, 1] -> [0, 2]
-        key_start_indices = num_offspring_arange * self.num_keys_per_atomic_operation
-        
-        # Outer Vmap: Iterate over Population
+        # Outer Vmap: Iterate over Population (Map keys and genome)
         return jax.vmap(
-            lambda g_idx: jax.vmap(
-                lambda k_idx: self._atomic_operation_from_index(
-                    k_idx,
-                    g_idx,
-                    all_keys,
-                    population,
-                    config
-                )
-            )(key_start_indices) # Inner Vmap: Iterate over Offspring count
-        )(population_arange)
+            lambda p_keys, p_genome: jax.vmap(
+                # Inner Vmap: Iterate over Offspring (Map p_keys)
+                lambda o_keys: self._atomic_operation(o_keys, p_genome, config)
+            )(p_keys) 
+        )(keys_structured, population)
 
-    # --- 4. Public Interface ---
+    # --- 3. Public Interface ---
     def __call__(self, all_keys: chex.Array, population: Any, config: C) -> G:
         """
         Args:
-            all_keys: Flat tensor of keys (total_mutations, 2)
+            all_keys: Flat tensor of keys (Total_Mutations * Keys_Per_Op, 2)
             population: Input population/batch (N_indiv, ...)
-        Returns:
-            Nested batch of mutants (N_indiv, num_offspring, ...)
         """
-        # 1. Setup Ranges
-        # If population is a PyTree, getting size is slightly different, 
-        # but usually shape[0] of a leaf works.
-        # Here assuming population has __len__ or .shape
-        print("BaseMutation __call__ all_keys shape:", all_keys.shape)
-        print("BaseMutation type(population):", type(population))
-        print("BaseMutation population:", population)
-        
+        # 1. Setup Shapes
         pop_size = len(population) if hasattr(population, '__len__') else population.values.shape[0]
         
-        population_arange = jnp.arange(pop_size)
-        num_offspring_arange = jnp.arange(self.num_offspring)
+        # 2. THE FIX: Reshape keys to match the hierarchy
+        # From: (Pop * Offspring * KeysPerOp, 2)
+        # To:   (Pop, Offspring, KeysPerOp, 2) OR (Pop, Offspring, 2) if KeysPerOp=1
         
-        # 2. Execute Double Vmap
+        # If your atomic op expects a shape of (K, 2), preserve that last dimension
+        if self.num_keys_per_atomic_operation > 1:
+             keys_reshaped = all_keys.reshape(pop_size, self.num_offspring, self.num_keys_per_atomic_operation, 2)
+        else:
+             # If it expects a single key (2,), reshape absorbs the extra dim
+             keys_reshaped = all_keys.reshape(pop_size, self.num_offspring, 2)
+
+        # 3. Execute (Fast Nested Vmap)
         nested_result = self._double_vmap(
-            population_arange,
-            num_offspring_arange,
-            all_keys,
+            keys_reshaped,
             population,
             config
         )
         
-        # 3. Flatten (Optional, but usually required by Engine)
-        # Result is currently (N_pop, N_offspring, ...). 
-        # We flatten to (N_pop * N_offspring, ...)
+        # 4. Flatten Results
         return jax.tree_util.tree_map(
             lambda x: x.reshape((-1,) + x.shape[2:]), 
             nested_result
         )
 
-
 # ==========================================
 # 2. CROSSOVER (Index-Based Vmap)
 # ==========================================
+# ==========================================
+# 2. CROSSOVER (Reshape-Based Vmap)
+# ==========================================
 @struct.dataclass
 class BaseCrossover(Generic[G, C]):
-    """
-    BaseCrossover using the 'Double Vmap' Indexing Strategy.
-    """
     num_offspring: int = struct.field(pytree_node=False, default=1)
 
     @property
@@ -151,82 +107,39 @@ class BaseCrossover(Generic[G, C]):
     def _cross_one(self, key: chex.Array, p1: G, p2: G, config: C) -> G:
         raise NotImplementedError
 
-    def _atomic_operation_from_index(self,
-                                     keys_index: int,
-                                     pair_index: int,
-                                     all_keys: chex.Array,
-                                     p1_batch: Any, 
-                                     p2_batch: Any,
-                                     config: C) -> G:
-        
-        # Dynamic Slice Keys
-        keys_slice = jax.lax.dynamic_slice(
-            all_keys, 
-            (keys_index, 0), 
-            (self.num_keys_per_atomic_operation, all_keys.shape[1])
-        )
-        
-        # Gather Parents using tree_map for PyTree compatibility
-        p1 = jax.tree_util.tree_map(lambda x: x[pair_index], p1_batch)
-        p2 = jax.tree_util.tree_map(lambda x: x[pair_index], p2_batch)
-        
-        return self._atomic_operation(keys_slice, p1, p2, config)
-
     def _double_vmap(self,
-                     pair_arange: chex.Array,
-                     offspring_arange: chex.Array,
-                     all_keys: chex.Array,
+                     keys_structured: chex.Array, # (Num_Pairs, Offspring, Key_Dim)
                      p1_batch: Any,
                      p2_batch: Any,
                      config: C) -> G:
         
-        key_start_indices = offspring_arange * self.num_keys_per_atomic_operation
-        
+        # Outer Vmap: Iterate over Pairs (Map keys, p1, p2)
         return jax.vmap(
-            lambda p_idx: jax.vmap(
-                lambda k_idx: self._atomic_operation_from_index(
-                    k_idx,
-                    p_idx,
-                    all_keys,
-                    p1_batch,
-                    p2_batch,
-                    config
-                )
-            )(key_start_indices)
-        )(pair_arange)
+            lambda k_block, parent1, parent2: jax.vmap(
+                # Inner Vmap: Iterate over Offspring (Map keys only)
+                lambda k: self._atomic_operation(k, parent1, parent2, config)
+            )(k_block)
+        )(keys_structured, p1_batch, p2_batch)
 
     def __call__(self, all_keys: chex.Array, p1_batch: Any, p2_batch: Any, config: C) -> G:
-        """
-        Args:
-            all_keys: Flat keys (num_pairs * num_offspring, 2)
-            p1_batch: (num_pairs, ...)
-            p2_batch: (num_pairs, ...)
-        """
-        # 1. Setup Ranges
-        # Assume p1_batch is indexable
+        
         num_pairs = len(p1_batch) if hasattr(p1_batch, '__len__') else p1_batch.genes.shape[0]
         
-        pair_arange = jnp.arange(num_pairs)
-        offspring_arange = jnp.arange(self.num_offspring)
+        # Reshape Keys: (Pairs, Offspring, 2)
+        # Assuming KeysPerOp = 1 for crossover usually
+        keys_reshaped = all_keys.reshape(num_pairs, self.num_offspring, -1)
         
-        # 2. Double Vmap
         nested_result = self._double_vmap(
-            pair_arange,
-            offspring_arange,
-            all_keys,
+            keys_reshaped,
             p1_batch,
             p2_batch,
             config
         )
         
-        # 3. Flatten (num_pairs * num_offspring, ...)
         return jax.tree_util.tree_map(
             lambda x: x.reshape((-1,) + x.shape[2:]), 
             nested_result
         )
-        
-        
-
 # ==========================================
 # 3. SELECTION (Consumer)
 # ==========================================

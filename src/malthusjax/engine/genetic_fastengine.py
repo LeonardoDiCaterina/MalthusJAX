@@ -47,6 +47,7 @@ class GeneticEngineParams(AbstractEngineParams):
 @struct.dataclass
 class GeneticGenerationOutput(AbstractGenerationOutput):
     """KPIs returned by Genetic Engine."""
+    random_key: chex.Array
     pass
 
 # --- EXTENDED STATE ---
@@ -136,8 +137,8 @@ class GeneticEngine(AbstractEngine):
     @traceable("Phase_2_Reproduction_Compute")
     def _reproduction_phase(
         self, 
-        key_crossover: chex.Array,
-        key_mutation: chex.Array,
+        keys_crossover: chex.Array,
+        keys_mutation: chex.Array,
         parents: Any, 
         context_state: AbstractEvolutionState,
         rmap: ResourceMap 
@@ -167,10 +168,12 @@ class GeneticEngine(AbstractEngine):
         # Output:
         #   - offspring_genes: Flat batch (Total_Offspring, ...)
         
-        print("Crossover Keys Shape:", key_crossover.shape)
-        print("P1 Genes Shape:", jax.tree_util.tree_leaves(p1.genes)[0].shape)
+        print("******************************")
+        print(f"p1 type: {type(p1)}")
+        print("******************************")
+        
         offspring_genes = self.crossover(
-            key_crossover, 
+            keys_crossover, 
             p1, 
             p2, 
             self.genome_config
@@ -184,8 +187,10 @@ class GeneticEngine(AbstractEngine):
         #   - offspring_genes: Flat batch from crossover
         # Output:
         #   - mutant_genes: Flat batch (Total_Mutants, ...)
+        print("Mutation Keys Shape:", keys_mutation.shape)
+        print("Offspring Genes Shape:", jax.tree_util.tree_leaves(offspring_genes)[0].shape)
         mutant_genes = self.mutation(
-            key_mutation, 
+            keys_mutation, 
             offspring_genes, 
             self.genome_config
         )
@@ -264,7 +269,6 @@ class GeneticEngine(AbstractEngine):
         next_genes = self._merge(elites, mutants, state)
         
         
-        
         new_pop = self._evaluate(next_genes, state)
         
         final_state = self._update_hof(new_pop, state, k_next)
@@ -277,7 +281,8 @@ class GeneticEngine(AbstractEngine):
         metrics = GeneticGenerationOutput(
             best_fitness=final_state.best_fitness,
             mean_fitness=jnp.mean(new_pop.fitness),
-            generation=final_state.generation
+            generation=final_state.generation,
+            random_key=final_state.rng_key
         )
         
         if self.enable_progress_bar:
@@ -387,11 +392,19 @@ class GeneticEngine(AbstractEngine):
             self.engine_params.pop_size
         )
         
+        # Bake input sizes into operators for optimal performance
+        # Each operator gets its specific input count from the resource map
+        crossover_input_size = rmap.crossover.input_count 
+        mutation_input_size = rmap.mutation.input_count
+        
         # Log the compilation result (Plan Summary)
         # Note: In JIT, this prints only once at trace time.
         print("*"*60)
         print("Genetic Engine: Execution Plan Compiled")
         print(get_resource_summary(rmap))
+        print(f"Operators optimized:")
+        print(f"  - Crossover: {crossover_input_size} pairs")
+        print(f"  - Mutation: {mutation_input_size} individuals")
         print("*"*60)
 
         # 2. Initialize Population
