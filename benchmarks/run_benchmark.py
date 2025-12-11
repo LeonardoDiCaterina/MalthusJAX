@@ -27,23 +27,22 @@ warnings.filterwarnings("ignore")
 
 def setup_bbob_problem(problem_name, dim, seed):
     """Creates the objective function for both frameworks."""
-    # MalthusJAX
     bbob_config = BBOBConfig(fn_name=problem_name, num_dims=dim, seed=seed, maximize=True)
     mjx_evaluator = BBOBEvaluator.create(bbob_config)
     
-    # EvoSax
+    # EvoSax - minimization by default
     es_problem = BBOBProblem(problem_name, num_dims=dim, seed=seed)
     return mjx_evaluator, es_problem
 
 def build_malthusjax(evaluator, pop_size, num_gen, crossover_rate=0.5):
     """Builds the MalthusJAX Genetic Engine."""
     genome_config = mjx.RealGenomeConfig(length=evaluator.config.num_dims, bounds=(-5.0, 5.0))
-    params = mjx.AbstractEngineParams(pop_size=pop_size, num_generations=num_gen, elitism=1) # Enable Elitism!
+    params = mjx.AbstractEngineParams(pop_size=pop_size, num_generations=num_gen, elitism=0) # Match notebook
 
     # Operators
     selection = mjx.selection.ElitePool(num_selections=pop_size, elite_k=int(pop_size * 0.5))
-    crossover = mjx.crossover.realUniform(num_offspring=2, crossover_rate=crossover_rate) # 2 keys fixed
-    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1, clip=False) # 2 keys fixed
+    crossover = mjx.crossover.realUniform(num_offspring=2, crossover_rate=crossover_rate)
+    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=1.0, mutation_strength=1.0, clip=False) # Match notebook params
 
     return mjx.GeneticEngine(
         genome_config=genome_config, evaluator=evaluator, selection=selection,
@@ -94,7 +93,8 @@ def run_single_experiment(framework, problem_name, pop_size, dim=20, gens=50, se
         jax.block_until_ready(final_state.best_fitness) # CRITICAL: Block Async
         runtime = time.time() - start
         
-        return -float(final_state.best_fitness), runtime # Flip sign (Minimization)
+        # Return cost directly (best_fitness already contains the true cost)
+        return float(final_state.best_fitness), runtime
 
     elif framework == "EvoSax":
         # Configure Strategy (Default Crossover=0.0 for ES logic)
@@ -126,14 +126,19 @@ def run_single_experiment(framework, problem_name, pop_size, dim=20, gens=50, se
         state = strategy.init(r_init, init_pop, init_fit, params)
         
         # Warmup
-        _ = run_loop(r_run, state, p_state)
+        r_warmup, r_run = jax.random.split(r_run)
+        _ = run_loop(r_warmup, state, p_state)
         
-        # Measurement
+        # Measurement (reset state for fresh run)
+        init_fit, p_state, _ = es_prob.eval(r_init, init_pop, p_state)
+        state = strategy.init(r_init, init_pop, init_fit, params)
+        
         start = time.time()
         final_state = run_loop(r_run, state, p_state)
         jax.block_until_ready(final_state.best_fitness) # CRITICAL: Block Async
         runtime = time.time() - start
         
+        # Return cost (EvoSax uses minimization directly, no sign flip)
         return float(final_state.best_fitness), runtime
 
 # ==============================================================================
@@ -215,8 +220,8 @@ class BenchmarkScorecard:
         print("="*60)
         
         # 1. Speed Score (Peak Throughput Ratio)
-        peak_mjx = speed_df['mjx_throughput'].max()
-        peak_es = speed_df['es_throughput'].max()
+        peak_mjx = speed_df['mjx_throughput'].mean()
+        peak_es = speed_df['es_throughput'].mean()
         speed_score = peak_mjx / peak_es
         
         # 2. Latency Penalty (Low Pop)
