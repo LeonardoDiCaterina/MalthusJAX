@@ -31,8 +31,6 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         """
         # Handle the slice safe-guard (take the first key if we got a slice)
         rng = keys[0] if keys.ndim > 1 else keys
-        print("UniformCrossover _cross_one keys shape:", keys.shape)
-        print("UniformCrossover p1.genes.size:", p1.genes.size)
         # 1. Generate Mixing Mask (1 = Swap/Take P2, 0 = Keep/Take P1) RealPopulation
         mask = jar.bernoulli(rng, p=self.crossover_rate, shape=(p1.genes.size,))
         

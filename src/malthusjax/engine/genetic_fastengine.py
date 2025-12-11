@@ -26,6 +26,8 @@ from ..core.genome.categorical_genome import CategoricalGenomeConfig, Categorica
 #TODO:  optimize the operators with the double vmap trick
 #TODO:  implement a proper logging mechanism
 #TODO:  rename the traceable decorators to something more meaningful
+
+
 def traceable(name):
     """
     Correctly wraps a method in jax.named_call for HLO profiling labels.
@@ -168,10 +170,6 @@ class GeneticEngine(AbstractEngine):
         # Output:
         #   - offspring_genes: Flat batch (Total_Offspring, ...)
         
-        print("******************************")
-        print(f"p1 type: {type(p1)}")
-        print("******************************")
-        
         offspring_genes = self.crossover(
             keys_crossover, 
             p1, 
@@ -187,8 +185,6 @@ class GeneticEngine(AbstractEngine):
         #   - offspring_genes: Flat batch from crossover
         # Output:
         #   - mutant_genes: Flat batch (Total_Mutants, ...)
-        print("Mutation Keys Shape:", keys_mutation.shape)
-        print("Offspring Genes Shape:", jax.tree_util.tree_leaves(offspring_genes)[0].shape)
         mutant_genes = self.mutation(
             keys_mutation, 
             offspring_genes, 
@@ -399,13 +395,13 @@ class GeneticEngine(AbstractEngine):
         
         # Log the compilation result (Plan Summary)
         # Note: In JIT, this prints only once at trace time.
-        print("*"*60)
-        print("Genetic Engine: Execution Plan Compiled")
-        print(get_resource_summary(rmap))
-        print(f"Operators optimized:")
-        print(f"  - Crossover: {crossover_input_size} pairs")
-        print(f"  - Mutation: {mutation_input_size} individuals")
-        print("*"*60)
+        #print("*"*60)
+        #print("Genetic Engine: Execution Plan Compiled")
+        #print(get_resource_summary(rmap))
+        #print(f"Operators optimized:")
+        #print(f"  - Crossover: {crossover_input_size} pairs")
+        #print(f"  - Mutation: {mutation_input_size} individuals")
+        #print("*"*60)
 
         # 2. Initialize Population
         init_pop_key, rng_key = jar.split(rng_key)
