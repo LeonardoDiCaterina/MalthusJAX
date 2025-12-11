@@ -42,8 +42,8 @@ def build_malthusjax(evaluator, pop_size, num_gen, crossover_rate=0.5):
 
     # Operators
     selection = mjx.selection.ElitePool(num_selections=pop_size, elite_k=int(pop_size * 0.5))
-    crossover = mjx.crossover.realUniform(num_offspring=2, crossover_rate=crossover_rate) # Configurable
-    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1) # 2 keys fixed
+    crossover = mjx.crossover.realUniform(num_offspring=2, crossover_rate=crossover_rate, clip=False) # 2 keys fixed
+    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1, clip=False) # 2 keys fixed
 
     return mjx.GeneticEngine(
         genome_config=genome_config, evaluator=evaluator, selection=selection,
