@@ -24,6 +24,7 @@ except ImportError as e:
     print(f"❌ Critical Dependency Missing: {e}")
     raise e
 
+# Suppress JAX/TensorFlow warnings for clean output
 warnings.filterwarnings("ignore")
 
 # ==============================================================================
@@ -43,7 +44,8 @@ def build_malthusjax(evaluator, pop_size, num_gen, crossover_rate=0.5):
     params = mjx.AbstractEngineParams(pop_size=pop_size, num_generations=num_gen, elitism=1) 
     selection = mjx.selection.ElitePool(num_selections=pop_size, elite_k=int(pop_size * 0.5))
     crossover = mjx.crossover.realUniform(num_offspring=2, crossover_rate=crossover_rate)
-    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
+    # CLIP=FALSE is necessary because JAX JIT compilation often struggles with conditional clipping
+    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1, clip=False) 
     return mjx.GeneticEngine(
         genome_config=genome_config, evaluator=evaluator, selection=selection,
         crossover=crossover, mutation=mutation, engine_params=params
@@ -67,6 +69,7 @@ def run_single_experiment(framework, problem_name, pop_size, dim, gens, seed, cr
     mjx_eval, es_prob = setup_bbob_problem(problem_name, dim, seed)
     key = jax.random.PRNGKey(seed)
     
+    # --- MalthusJAX RUN ---
     if framework == "MalthusJAX":
         engine = build_malthusjax(mjx_eval, pop_size, gens, crossover_rate=crossover_rate)
         
@@ -76,17 +79,19 @@ def run_single_experiment(framework, problem_name, pop_size, dim, gens, seed, cr
         state = engine.init_state(key)
         _ = run_loop(state) # Warmup (Compilation)
         state = engine.init_state(key) # Reset state for timing
+        
         start = time.time()
         final_state, _, _ = run_loop(state)
         jax.block_until_ready(final_state.best_fitness) # Critical Sync
         runtime = time.time() - start
         
-        # Cleanup after MalthusJAX run
-        del engine, state, final_state
-        gc.collect()
+        cost = -float(final_state.best_fitness) # Flip sign (Minimization)
         
-        return -float(final_state.best_fitness), runtime # Flip sign (Minimization)
+        # Explicitly delete all large PyTree/device objects returned by this run
+        del engine, state, final_state
+        return cost, runtime 
 
+    # --- EvoSax RUN ---
     elif framework == "EvoSax":
         strategy, params = build_evosax(es_prob, pop_size, crossover_rate=0.0) 
         
@@ -118,11 +123,14 @@ def run_single_experiment(framework, problem_name, pop_size, dim, gens, seed, cr
         jax.block_until_ready(final_state.best_fitness) # Critical Sync
         runtime = time.time() - start
         
-        # Cleanup after EvoSax run
-        del strategy, state, final_state, p_state
-        gc.collect()
+        cost = float(final_state.best_fitness)
         
-        return float(final_state.best_fitness), runtime
+        # Explicitly delete all large PyTree/device objects returned by this run
+        del strategy, state, final_state, p_state
+        return cost, runtime
+    
+    # If control flow reaches here (shouldn't happen)
+    return float('nan'), float('nan') 
 
 # ==============================================================================
 # 3. SCORECARD ENGINE (JSON, CSV, & Plotting)
@@ -145,16 +153,15 @@ class BenchmarkScorecard:
     def _cleanup_memory(self):
         """Forces the JAX runtime to clean up device memory."""
         # JAX's internal memory allocator often holds onto memory for future use.
-        # This function signals to release it, though JAX doesn't offer a direct "free all" command.
+        # This clears internal JIT caches and runs Python GC.
         jax.clear_caches()
-        # Explicit garbage collection is the best way to release Python objects referencing device memory
         gc.collect()
         
     def run_suite(self):
         print("\n🚀 STARTING COMPREHENSIVE BBOB BENCHMARK")
         print("=" * 80)
         
-        # ... (same logic for checking sphere baseline) ...
+        # Ensure 'sphere' is always run for speed baseline if required
         def check_sphere_baseline():
             for config_set in self.test_configs:
                 if config_set['problem'] == 'sphere' and 0.0 in config_set['crossover_rates']:
@@ -285,9 +292,9 @@ class BenchmarkScorecard:
         
         print(acc_summary[['problem', 'dim', 'crossover_rate', 'accuracy_ratio', 'std_mjx_cost']].to_string(index=False))
 
+        
     # --- PLOTTING FUNCTIONS ---
     def plot_all(self, df_raw):
-        # ... (Plotting imports are at the top)
         
         if not self.show_plots:
              plt.switch_backend('Agg')
@@ -341,9 +348,6 @@ class BenchmarkScorecard:
         plt.savefig(f'benchmark_plots/{self.base_filename_prefix}_accuracy_by_rate.png', bbox_inches='tight', dpi=300)
         plt.close()
 
-
-    def run_full_suite(self):
-        self.run_suite()
         self.generate_report()
         
         if self.show_plots:
