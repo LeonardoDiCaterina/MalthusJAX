@@ -387,4 +387,4 @@ if __name__ == "__main__":
 
     # --- Execute Suite ---
     scorecard = BenchmarkScorecard(config=config, device_type=device_slug, show_plots=args.plot)
-    scorecard.run_full_suite()
+    scorecard.run_suite()
