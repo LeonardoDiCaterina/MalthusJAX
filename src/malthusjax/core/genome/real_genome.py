@@ -73,6 +73,11 @@ class RealGenome(BaseGenome):
     def size(self) -> int:
         """Return number of real values."""
         return self.values.shape[-1]
+    
+    @property
+    def shape(self) -> tuple: 
+        """Return shape of the genome values."""
+        return self.values.shape
 
     def magnitude(self) -> float:
         """Compute L2 norm (magnitude) of the genome vector."""

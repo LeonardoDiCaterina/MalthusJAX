@@ -61,6 +61,11 @@ class BinaryGenome(BaseGenome):
     def size(self) -> int:
         """Return number of bits."""
         return self.bits.shape[-1]
+    
+    @property
+    def shape(self) -> tuple:
+        """Return shape of genome as (length,)."""
+        return self.bits.shape
 
     def to_int(self) -> int:
         """Convert binary genome to integer representation."""

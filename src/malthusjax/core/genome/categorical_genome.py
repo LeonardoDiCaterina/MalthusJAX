@@ -69,6 +69,11 @@ class CategoricalGenome(BaseGenome):
     def size(self) -> int:
         """Return number of categorical positions."""
         return self.categories.shape[-1]
+    
+    @property
+    def shape(self) -> tuple:
+        """Return shape of genome as (length,)."""
+        return self.categories.shape
 
     def is_permutation(self) -> bool:
         """Check if this genome represents a valid permutation (all unique values)."""

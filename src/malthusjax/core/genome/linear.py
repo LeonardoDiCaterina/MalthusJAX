@@ -76,6 +76,11 @@ class LinearGenome(BaseGenome):
     def size(self) -> int:
         """Return number of instructions in genome."""
         return self.ops.shape[-1]
+    
+    @property
+    def shape(self) -> tuple:
+        """Return shape of genome as (length,)."""
+        return self.ops.shape + self.args.shape[1:]
 
     def render(self, config: LinearGenomeConfig, op_names: Optional[List[str]] = None) -> str:
         """

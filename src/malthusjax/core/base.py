@@ -40,6 +40,11 @@ class BaseGenome:
     @abstractmethod
     def size(self) -> int:
         raise NotImplementedError
+    
+    @property
+    @abstractmethod
+    def shape(self) -> tuple:
+        raise NotImplementedError
 
     @classmethod
     def create_population(cls: Type[G], key: chex.PRNGKey, config: Any, pop_size: int) -> G:
