@@ -2,16 +2,16 @@
 Real-valued Mutation Operators.
 Optimized to consume pre-allocated keys directly, avoiding internal splitting.
 """
+from typing import TypeVar
 from flax import struct
 import jax.numpy as jnp
-import jax.random as jar
+import jax.random
 import chex
 from malthusjax.operators.base import BaseMutation
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
-
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 
 @struct.dataclass
-class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
+class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
     """
     Gaussian (Normal) Mutation.
     Requires 2 keys per mutation: [0] for Mask, [1] for Noise Value.
@@ -22,24 +22,21 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        # We need exactly 2 keys per attempt: one for the Bernoulli mask, one for the Normal noise.
         return 2
 
-    def _mutate_one(self, keys: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
+    def _mutate_one(self, keys: chex.Array, genome: "RealGenome", config: "RealGenomeConfig") -> "RealGenome":
         """
         Atomic logic.
-        Args:
-            keys: A slice of keys. Shape guaranteed to be (2, 2) because of the property above.
         """
         # DIRECT UNPACKING - No expensive split!
         k_mask = keys[0]
         k_noise = keys[1]
         
         # 1. Generate Mutation Mask (Which genes change?)
-        mutation_mask = jar.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
+        mutation_mask = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
         
         # 2. Generate Gaussian Noise
-        noise = jar.normal(k_noise, shape=genome.values.shape) * self.mutation_strength
+        noise = jax.random.normal(k_noise, shape=genome.values.shape) * self.mutation_strength
         
         # 3. Apply
         mutated_values = jnp.where(mutation_mask, genome.values + noise, genome.values)
@@ -53,7 +50,7 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
 
 
 @struct.dataclass
-class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
+class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
     """
     Ball (Uniform) Mutation.
     Requires 2 keys: [0] for Mask, [1] for Uniform Noise.
@@ -66,16 +63,16 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     def num_keys_per_atomic_operation(self) -> int:
         return 2
 
-    def _mutate_one(self, keys: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
+    def _mutate_one(self, keys: chex.Array, genome: "RealGenome", config: "RealGenomeConfig") -> "RealGenome":
         # DIRECT UNPACKING
         k_mask = keys[0]
         k_noise = keys[1]
         
         # 1. Generate Mutation Mask
-        mutation_mask = jar.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
+        mutation_mask = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
         
         # 2. Generate Uniform Noise
-        noise = jar.uniform(
+        noise = jax.random.uniform(
             k_noise, 
             shape=genome.values.shape,
             minval=-self.mutation_strength,
@@ -93,7 +90,7 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
 
 
 @struct.dataclass
-class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
+class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
     """
     Polynomial Mutation.
     Requires 2 keys: [0] for Mask, [1] for random 'u' value.
@@ -106,27 +103,28 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     def num_keys_per_atomic_operation(self) -> int:
         return 2
 
-    def _mutate_one(self, keys: chex.PRNGKey, genome: RealGenome, config: RealGenomeConfig) -> RealGenome:
+    def _mutate_one(self, keys: chex.Array, genome: "RealGenome", config: "RealGenomeConfig") -> "RealGenome":
         # DIRECT UNPACKING
         k_mask = keys[0]
         k_val = keys[1]
         
         # 1. Generate Mutation Mask
-        mutation_mask = jar.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
+        mutation_mask = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
         
         # 2. Generate Random values
-        u = jar.uniform(k_val, shape=genome.values.shape)
+        u = jax.random.uniform(k_val, shape=genome.values.shape)
         
         # 3. Calculate Delta (Standard NSGA-II Logic)
-        delta_1 = jnp.where(
+        delta_q = jnp.where(
             u <= 0.5,
             jnp.power(2.0 * u, 1.0 / (self.eta + 1.0)) - 1.0,
             1.0 - jnp.power(2.0 * (1.0 - u), 1.0 / (self.eta + 1.0))
         )
         
+        # Scale delta by the search space range
         min_val, max_val = config.bounds
         bound_range = max_val - min_val
-        delta = delta_1 * bound_range 
+        delta = delta_q * bound_range 
         
         # 4. Apply
         mutated_values = jnp.where(mutation_mask, genome.values + delta, genome.values)
