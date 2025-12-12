@@ -1,6 +1,6 @@
 {
     "benchmark_params": {
-        "runs_per_combination": 30,
+        "runs_per_combination": 5,
         "generations": 100,
         "base_seed": 42,
         "output_prefix": "final_tpu_run"
