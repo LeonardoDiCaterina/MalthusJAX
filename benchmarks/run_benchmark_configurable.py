@@ -10,7 +10,8 @@ from scipy import stats
 import json
 from math import pi
 import matplotlib.pyplot as plt
-import seaborn as sns # Used for plotting
+import seaborn as sns 
+import gc # Added for memory cleanup
 from functools import partial
 
 # --- FRAMEWORK IMPORTS ---
@@ -23,7 +24,6 @@ except ImportError as e:
     print(f"❌ Critical Dependency Missing: {e}")
     raise e
 
-# Suppress JAX/TensorFlow warnings for clean output
 warnings.filterwarnings("ignore")
 
 # ==============================================================================
@@ -40,11 +40,10 @@ def setup_bbob_problem(problem_name, dim, seed):
 def build_malthusjax(evaluator, pop_size, num_gen, crossover_rate=0.5):
     """Builds the MalthusJAX Genetic Engine."""
     genome_config = mjx.RealGenomeConfig(length=evaluator.config.num_dims, bounds=(-5.0, 5.0))
-    # Elitism=1 is set to enable a 1-elite survival strategy, often necessary for GA stabilization
     params = mjx.AbstractEngineParams(pop_size=pop_size, num_generations=num_gen, elitism=1) 
     selection = mjx.selection.ElitePool(num_selections=pop_size, elite_k=int(pop_size * 0.5))
     crossover = mjx.crossover.realUniform(num_offspring=2, crossover_rate=crossover_rate)
-    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1, clip=False) 
+    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
     return mjx.GeneticEngine(
         genome_config=genome_config, evaluator=evaluator, selection=selection,
         crossover=crossover, mutation=mutation, engine_params=params
@@ -56,7 +55,6 @@ def build_evosax(problem, pop_size, crossover_rate=0.0):
     init_sol = problem.sample(rng)
     strategy = SimpleGA(population_size=pop_size, solution=init_sol)
     strategy.elite_ratio = 0.5
-    # EvoSax parameters are usually set to their default ES/Clone mode for the baseline
     es_params = strategy.default_params.replace(crossover_rate=crossover_rate)
     return strategy, es_params
 
@@ -83,10 +81,13 @@ def run_single_experiment(framework, problem_name, pop_size, dim, gens, seed, cr
         jax.block_until_ready(final_state.best_fitness) # Critical Sync
         runtime = time.time() - start
         
+        # Cleanup after MalthusJAX run
+        del engine, state, final_state
+        gc.collect()
+        
         return -float(final_state.best_fitness), runtime # Flip sign (Minimization)
 
     elif framework == "EvoSax":
-        # EvoSax Baseline (Fixed Cr=0.0 for consistent ES comparison)
         strategy, params = build_evosax(es_prob, pop_size, crossover_rate=0.0) 
         
         @jax.jit
@@ -107,7 +108,6 @@ def run_single_experiment(framework, problem_name, pop_size, dim, gens, seed, cr
         r_init, r_prob = jax.random.split(r_init)
         p_state = es_prob.init(r_prob)
         
-        # Consistent initialization for fair timing
         init_pop = jax.random.uniform(r_ask, (pop_size, dim), minval=-5.0, maxval=5.0)
         init_fit, p_state, _ = es_prob.eval(r_init, init_pop, p_state)
         state = strategy.init(r_init, init_pop, init_fit, params)
@@ -117,6 +117,10 @@ def run_single_experiment(framework, problem_name, pop_size, dim, gens, seed, cr
         final_state = run_loop(r_run, state, p_state)
         jax.block_until_ready(final_state.best_fitness) # Critical Sync
         runtime = time.time() - start
+        
+        # Cleanup after EvoSax run
+        del strategy, state, final_state, p_state
+        gc.collect()
         
         return float(final_state.best_fitness), runtime
 
@@ -138,11 +142,19 @@ class BenchmarkScorecard:
         
         os.makedirs('benchmark_plots', exist_ok=True)
         
+    def _cleanup_memory(self):
+        """Forces the JAX runtime to clean up device memory."""
+        # JAX's internal memory allocator often holds onto memory for future use.
+        # This function signals to release it, though JAX doesn't offer a direct "free all" command.
+        jax.clear_caches()
+        # Explicit garbage collection is the best way to release Python objects referencing device memory
+        gc.collect()
+        
     def run_suite(self):
         print("\n🚀 STARTING COMPREHENSIVE BBOB BENCHMARK")
         print("=" * 80)
         
-        # Ensure 'sphere' is always run for speed baseline if required
+        # ... (same logic for checking sphere baseline) ...
         def check_sphere_baseline():
             for config_set in self.test_configs:
                 if config_set['problem'] == 'sphere' and 0.0 in config_set['crossover_rates']:
@@ -162,6 +174,10 @@ class BenchmarkScorecard:
                         
                         # Use a fixed run count from benchmark_params
                         for run_id in range(self.benchmark_params['runs_per_combination']):
+                            
+                            # --- MEMORY CLEANUP BEFORE EACH TRIAL ---
+                            self._cleanup_memory()
+                            
                             seed = self.benchmark_params['base_seed'] + run_id
                             
                             print(f"   [RUN {run_id+1}/{self.benchmark_params['runs_per_combination']}] {problem} (D={dim}, N={pop}, Cr={rate})", end="", flush=True)
@@ -271,8 +287,7 @@ class BenchmarkScorecard:
 
     # --- PLOTTING FUNCTIONS ---
     def plot_all(self, df_raw):
-        import matplotlib.pyplot as plt
-        import seaborn as sns
+        # ... (Plotting imports are at the top)
         
         if not self.show_plots:
              plt.switch_backend('Agg')
@@ -304,16 +319,13 @@ class BenchmarkScorecard:
         df_plot_acc = df_raw[df_raw['problem'] != 'sphere'] 
         
         if df_plot_acc.empty:
-            print("Skipping accuracy plot: No non-sphere problems tested.")
             return
 
         plt.figure(figsize=(12, 6))
         
-        # Use boxplot/violin plot to show the distribution of the 30 runs
         sns.boxplot(data=df_plot_acc, x='problem', y='mjx_cost', hue='crossover_rate', 
                     palette='viridis', dodge=True)
         
-        # Overlay ES baseline mean cost as a horizontal line/marker
         es_baseline_costs = df_plot_acc.groupby('problem')['es_cost'].mean().reset_index()
         
         for index, row in es_baseline_costs.iterrows():
