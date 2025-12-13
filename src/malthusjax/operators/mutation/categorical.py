@@ -12,15 +12,14 @@ import jax.random as jar
 from flax import struct
 import chex
 from malthusjax.operators.base import BaseMutation
-from malthusjax.core.genome.categorical_genome import CategoricalGenome, CategoricalGenomeConfig
+from malthusjax.core.genome.categorical_genome import CategoricalGenome, CategoricalGenomeConfig, CategoricalPopulation
 import functools
 
-# Import permutation-style mutations for categorical genomes
 from malthusjax.operators.mutation.permutation import SwapMutation, ScrambleMutation
 
 
 @struct.dataclass 
-class CategoricalFlipMutation(BaseMutation[CategoricalGenome, CategoricalGenomeConfig]):
+class CategoricalFlipMutation(BaseMutation[CategoricalGenome, CategoricalGenomeConfig, CategoricalPopulation]):
     """
     Categorical flip mutation using the new paradigm.
     
@@ -53,7 +52,7 @@ class CategoricalFlipMutation(BaseMutation[CategoricalGenome, CategoricalGenomeC
 
 
 @struct.dataclass
-class RandomCategoryMutation(BaseMutation[CategoricalGenome, CategoricalGenomeConfig]):
+class RandomCategoryMutation(BaseMutation[CategoricalGenome, CategoricalGenomeConfig, CategoricalPopulation]):
     """
     Advanced categorical mutation that ensures new categories are different from current ones.
     Uses the new paradigm with automatic vectorization.

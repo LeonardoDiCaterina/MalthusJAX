@@ -12,15 +12,15 @@ import jax.numpy as jnp  # type: ignore
 import chex  # type: ignore
 
 from malthusjax.operators.base import BaseCrossover
-from malthusjax.core.genome.linear import LinearGenome, LinearGenomeConfig
+from malthusjax.core.genome.linear import LinearGenome, LinearGenomeConfig, LinearPopulation
 
 # Generic Types
-G = TypeVar("G", bound="BaseGenome")
+G = TypeVar("G", bound="LinearGenome")  # Genome Type
 C = TypeVar("C")  # Config Type
 
 
 @struct.dataclass
-class LinearCrossover(BaseCrossover[LinearGenome, LinearGenomeConfig]):
+class LinearCrossover(BaseCrossover[LinearGenome, LinearGenomeConfig, LinearPopulation]):
     """
     Linear GP uniform crossover operator.
     

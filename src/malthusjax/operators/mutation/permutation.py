@@ -12,9 +12,10 @@ from malthusjax.operators.base import BaseMutation
 
 G = TypeVar("G")
 C = TypeVar("C")
+P = TypeVar("P")
 
 @struct.dataclass
-class SwapMutation(BaseMutation[G, C]):
+class SwapMutation(BaseMutation[G, C, P]):
     """
     Swap Mutation.
     Exchanges two random genes.
@@ -45,7 +46,7 @@ class SwapMutation(BaseMutation[G, C]):
         return genome.replace(genome=final_data)
 
 @struct.dataclass
-class ScrambleMutation(BaseMutation[G, C]):
+class ScrambleMutation(BaseMutation[G, C, P]):
     """
     Scramble Mutation.
     Shuffles the entire genome (or a subsequence).

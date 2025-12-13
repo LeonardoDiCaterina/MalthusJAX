@@ -11,11 +11,11 @@ import jax.numpy as jnp  # type: ignore
 import chex  # type: ignore
 
 from malthusjax.operators.base import BaseMutation
-from malthusjax.core.genome.linear import LinearGenome, LinearGenomeConfig
+from malthusjax.core.genome.linear import LinearGenome, LinearGenomeConfig, LinearPopulation
 
 
 @struct.dataclass
-class LinearMutation(BaseMutation[LinearGenome, LinearGenomeConfig]):
+class LinearMutation(BaseMutation[LinearGenome, LinearGenomeConfig, LinearPopulation]):
     """
     Linear GP mutation operator.
     
@@ -51,7 +51,7 @@ class LinearMutation(BaseMutation[LinearGenome, LinearGenomeConfig]):
 
 
 @struct.dataclass
-class LinearPointMutation(BaseMutation[LinearGenome, LinearGenomeConfig]):
+class LinearPointMutation(BaseMutation[LinearGenome, LinearGenomeConfig, LinearPopulation]):
     """
     Point mutation for linear genomes - mutates exactly one position.
     
