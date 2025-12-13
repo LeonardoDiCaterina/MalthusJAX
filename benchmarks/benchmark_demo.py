@@ -1,5 +1,4 @@
 import time
-import sys
 import pandas as pd
 import jax
 import jax.numpy as jnp
@@ -7,10 +6,13 @@ import jax.random as jar
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# --- Imports ---
+# --- Evosax Imports ---
 from evosax.algorithms.population_based.simple_ga import SimpleGA
 from evosax.problems import BBOBProblem
-from malthusjax.core.genome.real_genome import RealGenomeConfig
+
+# --- MalthusJAX Imports ---
+# FIX 1: Import RealGenome class explicitly
+from malthusjax.core.genome.real_genome import RealGenomeConfig, RealGenome
 from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
@@ -18,172 +20,257 @@ from malthusjax.operators.crossover.real import UniformCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
 
 # ==========================================
-# DEMO CONFIGURATION
+# CONFIGURATION
 # ==========================================
-POPULATION_SIZES = [128, 512, 2048, 8192, 16384]
-NUM_SEEDS = 3        
-NUM_GENS = 500       
+POP_SIZE = 2048
+NUM_SEEDS = 30
+NUM_GENS_FAST = 10     # For Python loops (Speed test only)
+NUM_GENS_FULL = 10   # For Compiled loops (Convergence test)
 DIMENSIONS = 20
+FIXED_PROBLEM_SEED = 0 # Crucial: Both frameworks must solve the same landscape
+
+CROSSOVER_RATE = 0.5
+ELITE_RATIO = 0.2
+MUTATION_RATE = 0.3
+MUTATION_STRENGTH = 0.1
+ELITE_POOL_SIZE = int(POP_SIZE * ELITE_RATIO)
 
 # ==========================================
-# SYSTEM UTILS
+# SETUP HELPERS
 # ==========================================
-def get_environment_info():
-    """Detects Colab vs Local and Device Name."""
-    # 1. Detect Environment
-    if 'google.colab' in sys.modules:
-        env_name = "Google Colab"
-    else:
-        env_name = "Local/Server"
-        
-    # 2. Detect Hardware
-    try:
-        device = jax.devices()[0]
-        hw_name = f"{device.platform.upper()} ({device.device_kind})"
-    except:
-        hw_name = "UNKNOWN DEVICE"
-        
-    return env_name, hw_name
-
-def run_comparison(pop_size, seed):
-    # ------------------------------------------
-    # 1. MalthusJAX (The Challenger)
-    # ------------------------------------------
-    # Setup
+def setup_malthus(seed):
+    """Creates MalthusJAX components."""
     genome_config = RealGenomeConfig(length=DIMENSIONS, bounds=(-5.0, 5.0))
-    # Note: maximize=True because GeneticEngine usually assumes higher is better
-    eval_config = BBOBConfig(fn_name="sphere", num_dims=DIMENSIONS, maximize=True)
+    
+    # SETUP EVALUATOR (Correctly)
+    # 1. Create config
+    # We ensure maximize=True is passed clearly
+    eval_config = BBOBConfig(
+        fn_name="sphere", 
+        num_dims=DIMENSIONS, 
+        seed=FIXED_PROBLEM_SEED, 
+        maximize=True 
+    )
     evaluator = BBOBEvaluator.create(eval_config)
     
-    selection = ElitePoolSelection(num_selections=pop_size, elite_k=int(pop_size*0.2), input_length=pop_size)
-    crossover = UniformCrossover(num_offspring=2, crossover_rate=0.5)
-    mutation = GaussianMutation(num_offspring=1, mutation_rate=0.3, mutation_strength=0.1)
+    # 2. Sanity Check: Ensure sign flipping is working
+    # FIX 2: Instantiate RealGenome directly, not via config
+    test_genome = RealGenome(values=jnp.ones(DIMENSIONS))
+    test_fit = evaluator.evaluate(test_genome)
+    
+    # Sphere(1,1...) > 0. Since maximize=True, output should be NEGATIVE.
+    if test_fit > 0:
+        print(f"⚠️ WARNING: Evaluator check failed! Fitness is positive ({test_fit}) but maximize=True.")
+    
+    selection = ElitePoolSelection(num_selections=POP_SIZE, elite_k=ELITE_POOL_SIZE, input_length=POP_SIZE)
+    crossover = UniformCrossover(num_offspring=2, crossover_rate =  CROSSOVER_RATE)
+    mutation = GaussianMutation(num_offspring=1, mutation_rate=MUTATION_RATE, mutation_strength=MUTATION_STRENGTH, clip = False)
+    
+    engine_params = GeneticEngineParams(pop_size=POP_SIZE, num_generations=NUM_GENS_FULL)
     
     engine = GeneticEngine(
         evaluator=evaluator, selection=selection, crossover=crossover, mutation=mutation,
-        genome_config=genome_config,
-        engine_params=GeneticEngineParams(pop_size=pop_size, num_generations=NUM_GENS)
+        genome_config=genome_config, engine_params=engine_params
     )
     
-    # Warmup & Run
     key = jar.PRNGKey(seed)
     state = engine.init_state(key)
-    # Warmup
-    _ = engine.run(state, compile=True)
+    return engine, state
+
+def setup_evosax(seed):
+    """Creates Evosax components."""
+    rng = jar.PRNGKey(seed)
+    rng, rng_init = jax.random.split(rng)
     
-    # Timed Run
-    state = engine.init_state(key) # Reset
-    t0 = time.time()
-    _, _, _ = engine.run(state, compile=True)
-    mjx_time = time.time() - t0
+    # FIX: Use FIXED_PROBLEM_SEED for Problem Init
+    problem = BBOBProblem("sphere", num_dims=DIMENSIONS, seed=FIXED_PROBLEM_SEED)
+    # The 'rng' passed to problem.init determines the shift/rotation. 
+    # We MUST use a fixed key here to match MalthusJAX's fixed environment.
+    param_state = problem.init(jar.PRNGKey(FIXED_PROBLEM_SEED))
     
-    # ------------------------------------------
-    # 2. Evosax (The Baseline)
-    # ------------------------------------------
-    problem = BBOBProblem("sphere", num_dims=DIMENSIONS, seed=0)
-    strategy = SimpleGA(population_size=pop_size, solution=problem.sample(jar.PRNGKey(0)))
-    es_params = strategy.default_params.replace(crossover_rate=0.5)
+    strategy = SimpleGA(population_size=POP_SIZE, solution=problem.sample(jar.PRNGKey(0)))
+    es_params = strategy.default_params.replace(crossover_rate = CROSSOVER_RATE)
     
-    # Define Scan Loop
-    def step_impl(carry, _):
-        state, p_state, rng = carry
-        r_a, r_e, r_t, r_next = jax.random.split(rng, 4)
+    # Init Strategy State
+    initial_pop = jax.random.uniform(rng_init, (POP_SIZE, DIMENSIONS), minval=-5.0, maxval=5.0)
+    initial_fitness = jnp.full((POP_SIZE,), jnp.inf)
+    state = strategy.init(rng, initial_pop, initial_fitness, es_params)
+    
+    return strategy, problem, es_params, (state, param_state, rng)
+
+# ==========================================
+# EXECUTION LOOPS
+# ==========================================
+def run_evosax_uncompiled(strategy, problem, es_params, carry):
+    # Pure Python loop driving JAX ops
+    state, p_state, rng = carry
+    for _ in range(NUM_GENS_FAST):
+        rng, r_a, r_e, r_t = jax.random.split(rng, 4)
         x, state = strategy.ask(r_a, state, es_params)
         fit, p_state, _ = problem.eval(r_e, x, p_state)
         state, _ = strategy.tell(r_t, x, fit, state, es_params)
-        return (state, p_state, r_next), None
+        
+    return state.best_fitness
 
-    # Init
-    rng = jar.PRNGKey(seed)
-    carry_init = (
-        strategy.init(rng, jnp.zeros((pop_size, DIMENSIONS)), jnp.zeros(pop_size), es_params),
-        problem.init(rng),
-        rng
-    )
-    
-    # Warmup & Run
-    scan_fn = jax.jit(lambda c: jax.lax.scan(step_impl, c, None, length=NUM_GENS))
-    _ = scan_fn(carry_init) # Warmup
-    
-    t0 = time.time()
-    _ = scan_fn(carry_init)
-    es_time = time.time() - t0
-    
-    return {
-        "Pop_Size": pop_size,
-        "MalthusJAX_GensPerSec": NUM_GENS / mjx_time,
-        "Evosax_GensPerSec": NUM_GENS / es_time,
-        "Speedup": (NUM_GENS / mjx_time) / (NUM_GENS / es_time)
-    }
+def run_evosax_scan(strategy, problem, es_params, carry, length):
+    # The scan body to be JIT-compiled
+    def step(c, _):
+        s, p, r = c
+        r, r_a, r_e, r_t = jax.random.split(r, 4)
+        x, s = strategy.ask(r_a, s, es_params)
+        fit, p, _ = problem.eval(r_e, x, p)
+        s, _ = strategy.tell(r_t, x, fit, s, es_params)
+        return (s, p, r), None
 
+    final_carry, _ = jax.lax.scan(step, carry, None, length=length)
+    return final_carry[0].best_fitness
+
+# ==========================================
+# MAIN BENCHMARK
+# ==========================================
 def main():
-    env_name, hw_name = get_environment_info()
-    
-    print(f"🚀 Running Demo Benchmark...")
-    print(f"Environment: {env_name}")
-    print(f"Hardware:    {hw_name}")
-    print(f"Goal:        Prove scaling advantage on this hardware.")
-    print("-" * 50)
-    
-    results = []
-    
-    for pop in POPULATION_SIZES:
-        print(f"  Testing Population: {pop}...", end="", flush=True)
-        # Average over seeds
-        seed_results = [run_comparison(pop, s) for s in range(NUM_SEEDS)]
-        
-        avg_speedup = sum(r["Speedup"] for r in seed_results) / NUM_SEEDS
-        avg_mjx = sum(r["MalthusJAX_GensPerSec"] for r in seed_results) / NUM_SEEDS
-        
-        print(f" Done. Speedup: {avg_speedup:.2f}x ({avg_mjx:,.0f} gen/s)")
-        
-        results.extend(seed_results)
+    print(f"🚀 Benchmarking Comparison (Pop: {POP_SIZE}, Seeds: {NUM_SEEDS})")
+    print(f"   Device: {jax.devices()[0].device_kind}")
+    print("-" * 60)
 
+    results = []
+
+    for seed in range(NUM_SEEDS):
+        print(f"\r  Running Seed {seed+1}/{NUM_SEEDS}...", end="", flush=True)
+        
+        # -------------------------------------------------
+        # 1. MALTHUSJAX
+        # -------------------------------------------------
+        engine, state = setup_malthus(seed)
+        
+        # A. Uncompiled (Speed Test Only)
+        engine_py = engine.replace(engine_params=engine.engine_params.replace(num_generations=NUM_GENS_FAST))
+        t0 = time.time()
+        _ = engine_py.run(state, compile=False)
+        dt = time.time() - t0
+        results.append({
+            "Framework": "MalthusJAX", "Mode": "Uncompiled", 
+            "Speed": NUM_GENS_FAST/dt, "Final_Cost": None 
+        })
+        
+        # B. Cold Compiled
+        engine, state = setup_malthus(seed) # Refresh
+        t0 = time.time()
+        final, _, _ = engine.run(state, compile=True)
+        _ = final.best_fitness.block_until_ready()
+        dt = time.time() - t0
+        # Metric: Flip sign back to positive cost
+        cost = -float(final.best_fitness) 
+        results.append({
+            "Framework": "MalthusJAX", "Mode": "Cold", 
+            "Speed": NUM_GENS_FULL/dt, "Final_Cost": cost
+        })
+        
+        # C. Warm Compiled
+        state = engine.init_state(jar.PRNGKey(seed))
+        t0 = time.time()
+        final, _, _ = engine.run(state, compile=True)
+        _ = final.best_fitness.block_until_ready()
+        dt = time.time() - t0
+        cost = -float(final.best_fitness)
+        results.append({
+            "Framework": "MalthusJAX", "Mode": "Warm", 
+            "Speed": NUM_GENS_FULL/dt, "Final_Cost": cost
+        })
+
+        # -------------------------------------------------
+        # 2. EVOSAX
+        # -------------------------------------------------
+        strat, prob, params, carry = setup_evosax(seed)
+        
+        # A. Uncompiled
+        _, _, _, carry_py = setup_evosax(seed)
+        t0 = time.time()
+        fit = run_evosax_uncompiled(strat, prob, params, carry_py)
+        fit.block_until_ready()
+        dt = time.time() - t0
+        results.append({
+            "Framework": "Evosax", "Mode": "Uncompiled", 
+            "Speed": NUM_GENS_FAST/dt, "Final_Cost": None
+        })
+
+        # Setup JIT Scan
+        scan_jit = jax.jit(lambda c: run_evosax_scan(strat, prob, params, c, NUM_GENS_FULL))
+        
+        # B. Cold Compiled
+        _, _, _, carry_cold = setup_evosax(seed)
+        t0 = time.time()
+        fit = scan_jit(carry_cold)
+        fit.block_until_ready()
+        dt = time.time() - t0
+        results.append({
+            "Framework": "Evosax", "Mode": "Cold", 
+            "Speed": NUM_GENS_FULL/dt, "Final_Cost": float(fit)
+        })
+        
+        # C. Warm Compiled
+        _, _, _, carry_warm = setup_evosax(seed)
+        t0 = time.time()
+        fit = scan_jit(carry_warm)
+        fit.block_until_ready()
+        dt = time.time() - t0
+        results.append({
+            "Framework": "Evosax", "Mode": "Warm", 
+            "Speed": NUM_GENS_FULL/dt, "Final_Cost": float(fit)
+        })
+
+    print("\n\n✅ Benchmark Complete.")
     df = pd.DataFrame(results)
     
     # ==========================================
-    # GENERATE SALES PITCH PLOT
+    # PLOT 1: SPEED BOXPLOT
     # ==========================================
     plt.figure(figsize=(10, 6))
     sns.set_style("whitegrid")
     
-    # Plot Throughput
-    df_melt = df.melt(id_vars=["Pop_Size"], value_vars=["MalthusJAX_GensPerSec", "Evosax_GensPerSec"], 
-                      var_name="Framework", value_name="Throughput")
+    ax = sns.boxplot(x="Mode", y="Speed", hue="Framework", data=df, showfliers=False, palette="viridis")
+    sns.stripplot(x="Mode", y="Speed", hue="Framework", data=df, dodge=True, color="black", alpha=0.5, jitter=True, legend=False)
     
-    sns.lineplot(data=df_melt, x="Pop_Size", y="Throughput", hue="Framework", marker="o", linewidth=2.5)
-    
-    plt.xscale("log")
     plt.yscale("log")
-    plt.title(f"MalthusJAX Scaling: {env_name}\n({hw_name})", fontsize=14, fontweight='bold')
-    plt.xlabel("Population Size (Log Scale)", fontsize=12)
+    plt.title(f"Speed Comparison: MalthusJAX vs Evosax\n(Pop Size: {POP_SIZE}, 30 Seeds)", fontsize=14, fontweight='bold')
     plt.ylabel("Generations Per Second (Log Scale)", fontsize=12)
-    plt.grid(True, which="minor", ls="--", alpha=0.3)
+    plt.legend(title="Framework")
     
-    filename = "benchmark_demo_plot.png"
-    plt.savefig(filename, dpi=300)
-    print(f"\n📊 Plot saved to {filename}")
+    filename_speed = "benchmark_speed_boxplot.png"
+    plt.savefig(filename_speed, dpi=300, bbox_inches='tight')
+    print(f"📊 Speed Plot saved to {filename_speed}")
     
     # ==========================================
-    # PRINT THE "ASK"
+    # PLOT 2: ACCURACY VIOLIN PLOT
     # ==========================================
-    # Extrapolate for a large run (e.g. 1M generations)
-    large_pop_perf = df[df["Pop_Size"] == POPULATION_SIZES[-1]]["MalthusJAX_GensPerSec"].mean()
-    baseline_perf = df[df["Pop_Size"] == POPULATION_SIZES[-1]]["Evosax_GensPerSec"].mean()
+    plt.figure(figsize=(8, 6))
+    df_warm = df[df["Mode"] == "Warm"]
     
-    workload_gens = 1_000_000
-    time_mjx = workload_gens / large_pop_perf / 60 # minutes
-    time_base = workload_gens / baseline_perf / 60 # minutes
+    # Explicit hue assignment to match x
+    sns.violinplot(x="Framework", y="Final_Cost", hue="Framework", data=df_warm, palette="muted", inner="quartile", legend=False)
+    sns.stripplot(x="Framework", y="Final_Cost", hue="Framework", data=df_warm, color="black", alpha=0.3, jitter=True, legend=False)
+    
+    plt.title(f"Algorithmic Accuracy Distribution\n(Sphere Problem, 1000 Gens)", fontsize=14, fontweight='bold')
+    plt.ylabel("Final Cost (Lower is Better)", fontsize=12)
+    plt.xlabel("")
+    plt.yscale("log") 
+    
+    filename_fitness = "benchmark_accuracy_violin.png"
+    plt.savefig(filename_fitness, dpi=300, bbox_inches='tight')
+    print(f"📊 Accuracy Plot saved to {filename_fitness}")
 
-    print("="*50)
-    print(f"Context: {env_name} on {hw_name}")
-    print(f"For a standard research run ({workload_gens/1e6:.0f}M generations, {POPULATION_SIZES[-1]} pop):")
-    print(f"  - Current Method:  {time_base:.1f} minutes")
-    print(f"  - MalthusJAX:      {time_mjx:.1f} minutes")
-    
-    speedup = large_pop_perf / baseline_perf
-    print(f"  - Performance:     {speedup:.1f}x Faster")
-    print("="*50)
+    # Auto-download for Colab
+    try:
+        from google.colab import files # type: ignore
+        files.download(filename_speed)
+        files.download(filename_fitness)
+    except ImportError:
+        pass
+
+    # Print Summary Table
+    print("\nSummary Statistics (Warm Mode):")
+    summary = df_warm.groupby("Framework")[["Speed", "Final_Cost"]].describe()
+    print(summary)
 
 if __name__ == "__main__":
     main()
