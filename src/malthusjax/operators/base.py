@@ -201,46 +201,59 @@ class BaseCrossover(Generic[G, C, P]):
 # 3. SELECTION (Consumer)
 # ==========================================
 @struct.dataclass
-class BaseSelection:
+class BaseSelection(Generic[P, C]):
     """
-    BaseSelection with strict Resource Management
-    Selects indices from a population based on fitness
+    BaseSelection using the Template Method Pattern.
+    
+    The Engine calls: __call__(keys, population, config)
+    Subclasses implement: _select(keys, fitness, config)
     """
     num_selections: int = struct.field(pytree_node=False)
-    input_length: int = struct.field(pytree_node=False)
-    
+    input_length: int = struct.field(pytree_node=False, default=-1)
+
     # --- 1. Immutability Helper ---
-    def set_input_length(self, length: int) -> "BaseSelection":
-        """
-        Returns a NEW instance with updated input_length (Population Size).
-        """
+    def set_input_length(self, length: int) -> "BaseSelection[P, C]":
         return self.replace(input_length=length)
-    
+
     # --- 2. Resource Contract ---
     @property
     def keys_per_selection(self) -> int:
-        """
-        CONTRACT: How many keys are needed for ONE selection event?
-        Example: Tournament might need 1 key. Roulette might need 1 global key (handle in num_keys).
-        Default is 1 per selection (Atomic strategy).
-        """
         return 1
-    
+
     def num_keys(self, input_shape: Tuple[int, ...] = None) -> int:
-        """
-        CONTRACT: Calculates total keys needed.
-        """
-        # Note: Selection keys usually depend on 'num_selections', not input_shape.
-        # But we keep signature consistent.
-        # Logic: Total Keys = (Number of Selections to make) * (Keys per selection)
         return self.num_selections * self.keys_per_selection
 
-    def __call__(self, keys: chex.Array, fitness: chex.Array) -> chex.Array:
+    # --- 3. The Template Method (PUBLIC INTERFACE) ---
+    def __call__(self, keys: chex.Array, population: P, config: C = None) -> chex.Array:
         """
+        Standardizes the input from the Engine.
+        1. Unwraps 'fitness' from the Population.
+        2. Normalizes 'keys' shape (handling single-key vs batch-key nuances).
+        3. Delegates math to _select().
+        """
+        # A. Unwrap Fitness
+        fitness = population.fitness
+        
+        # B. Normalize Keys
+        # The engine often passes a slice (1, 2) even if we need just one key (2,)
+        # We assume if the logic needs a single key, we give it the first one.
+        # Subclasses that need the whole batch should handle dimensions accordingly,
+        # but for safety, we pass the raw 'keys' and let _select handle it 
+        # OR we normalize here.
+        # Simplest approach: Pass raw keys, let logic decide.
+        
+        return self._select(keys, fitness, config)
+
+    # --- 4. The Abstract Logic (SUBCLASS INTERFACE) ---
+    def _select(self, keys: chex.Array, fitness: chex.Array, config: C) -> chex.Array:
+        """
+        Implementation of the selection logic.
         Args:
-            keys: Random keys. Shape determined by num_keys().
-            fitness: Population fitness array.
+            keys: The random keys allocated for selection.
+            fitness: The raw fitness array (N,).
+            config: Context configuration.
         Returns:
-            Selected indices. Shape: (num_selections,)
+            Selected indices (num_selections,).
         """
         raise NotImplementedError
+    
