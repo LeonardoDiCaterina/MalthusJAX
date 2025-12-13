@@ -191,6 +191,59 @@ class TestLevel3Engine(unittest.TestCase):
         # Verify Output Shape
         self.assertEqual(final_state.population.genes.values.shape[0], 17)
         print("  Odd population handled correctly.")
+        
+        
+    def test_06_ask_tell_equivalence(self):
+        """
+        Verify that the Ask-Tell interface produces identical genes to the Step interface.
+        This ensures the decoupled execution mode is mathematically consistent with the fused mode.
+        """
+        print("\n[Test] Ask-Tell vs Step Equivalence")
+        
+        # 1. Initialize State
+        state_0 = self.engine.init_state(self.key)
+        
+        # --- PATH A: Fused Step ---
+        # Run one generation using the standard fused step
+        # Note: step() performs eval and HOF update at the end of the generation
+        state_step, _ = self.engine.step(state_0)
+        
+        # --- PATH B: Ask-Tell ---
+        # 1. Ask: Allocate entropy for the next step
+        # This populates self.engine._entropy_buffer
+        _ = self.engine.ask(state_0)
+        
+        # 2. Tell: Execute evolutionary logic using the buffered entropy
+        # Note: tell() performs HOF update at the START (using input pop) 
+        # and returns an UNEVALUATED new population.
+        state_tell = self.engine.tell(state_0, state_0.population)
+        
+        # --- COMPARISON ---
+        
+        # 1. Check Genomes (The most critical check)
+        # The genes produced by reproduction/mutation must be identical bit-for-bit
+        genes_step = state_step.population.genes.values
+        genes_tell = state_tell.population.genes.values
+        
+        diff = jnp.abs(genes_step - genes_tell).sum()
+        print(f"  Gene Difference: {diff}")
+        self.assertEqual(diff, 0.0, "Ask-Tell produced different genes than Step!")
+        
+        # 2. Check RNG Forwarding
+        # Both methods consume 'k_next' from the ResourceMap, so the resulting
+        # state.rng_key must be identical to ensure future generations stay synced.
+        print(f"  RNG Step: {state_step.rng_key}")
+        print(f"  RNG Tell: {state_tell.rng_key}")
+        self.assertTrue(jnp.array_equal(state_step.rng_key, state_tell.rng_key), 
+                        "RNG state diverged between Ask-Tell and Step.")
+        
+        # Note on Fitness:
+        # We DO NOT compare fitness or best_fitness here.
+        # - 'state_step' has Evaluated fitness (computed at end of step)
+        # - 'state_tell' has Unevaluated/Stale fitness (computed at start of next tell)
+        # This difference is by design.
+        
+        print("  Equivalence verified successfully.")
 
 if __name__ == '__main__':
     unittest.main()
