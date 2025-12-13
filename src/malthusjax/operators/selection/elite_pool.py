@@ -8,6 +8,9 @@ import jax.numpy as jnp
 import chex
 from malthusjax.operators.base import BaseSelection
 
+from typing import TypeVar
+
+C = TypeVar("C")  # Config Type
 
 @struct.dataclass
 class ElitePoolSelection(BaseSelection):
@@ -18,7 +21,7 @@ class ElitePoolSelection(BaseSelection):
     
     Efficient for large populations as it avoids full sorting.
     """
-    elite_k: int = struct.field(pytree_node=False) 
+    elite_k: int = struct.field(pytree_node=False, default=10)
 
     def num_keys(self, input_shape: tuple) -> int:
         """
@@ -26,7 +29,7 @@ class ElitePoolSelection(BaseSelection):
         """
         return 1
 
-    def __call__(self, keys: chex.Array, fitness: chex.Array) -> chex.Array:
+    def _select(self, keys: chex.Array, fitness: chex.Array, config: C = None) -> chex.Array:
         """
         Selects parents.
         
@@ -37,6 +40,7 @@ class ElitePoolSelection(BaseSelection):
         Returns:
             selected_indices: Shape (num_selections,)
         """
+        rng = keys[0] if keys.ndim > 1 else keys
         
         # 1. Find indices of the top K best individuals
         # Note: We assume Higher Fitness = Better
@@ -45,7 +49,7 @@ class ElitePoolSelection(BaseSelection):
         # 2. Randomly sample from these elite indices
         # We sample with replacement so elites can be picked multiple times
         random_selections = jax.random.randint(
-            keys, 
+            rng, 
             shape=(self.num_selections,), 
             minval=0, 
             maxval=self.elite_k

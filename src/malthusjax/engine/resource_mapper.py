@@ -5,23 +5,14 @@ Step 3 of Optimization Roadmap:
 Pre-calculates exact RNG requirements and operator output shapes
 to enable static allocation and precise "cascade" data flow.
 """
-from typing import NamedTuple, Any
+from typing import NamedTuple, Any, Tuple
 from flax import struct
 
-from ..operators.base import BaseMutation, BaseCrossover, BaseSelection
-
+from malthusjax.operators.base import BaseMutation, BaseCrossover, BaseSelection
 
 class OperatorAllocation(NamedTuple):
     """
     Allocation details for a single operator stage.
-    
-    Attributes:
-        num_keys: Total random keys required for this stage.
-        start_idx: Start index in the global key buffer.
-        end_idx: End index in the global key buffer.
-        input_count: Number of items (genomes/pairs) entering this operator.
-        output_count: Number of items (genomes/indices) produced by this operator.
-        operator_type: 'selection', 'crossover', 'mutation', or 'next_key'.
     """
     num_keys: int
     start_idx: int
@@ -46,7 +37,7 @@ class ResourceMap:
     
     # Metadata
     pop_size: int = struct.field(pytree_node=False)
-    genome_shape: tuple = struct.field(pytree_node=False)
+    genome_shape: Tuple[int, ...] = struct.field(pytree_node=False)
 
     def get_key_slice(self, op_name: str) -> slice:
         """Returns the slice to extract this operator's keys from the master buffer."""
@@ -75,10 +66,13 @@ def compute_resource_map(
     current_key_idx = 0
     
     # Determine genome shape (for metadata)
+    # This logic depends on your Config structure
     if hasattr(genome_config, 'length'):
         genome_shape = (genome_config.length,)
     elif hasattr(genome_config, 'size'):
         genome_shape = (genome_config.size,)
+    elif hasattr(genome_config, 'shape'):
+        genome_shape = genome_config.shape
     else:
         genome_shape = ()
 
@@ -91,8 +85,12 @@ def compute_resource_map(
     sel_input_count = pop_size
     sel_output_count = selection.num_selections
     
-    # RNG: Ask operator how many keys it needs for the *entire* batch of selections
-    sel_keys_needed = selection.num_keys((sel_input_count,))
+    # Update Operator Context (New Paradigm)
+    selection = selection.set_input_length(sel_input_count)
+    
+    # RNG: Calculate keys needed based on contract
+    # We pass input_shape mainly for validation, the operator uses num_selections internally
+    sel_keys_needed = selection.num_keys(input_shape=(sel_input_count,))
     
     selection_alloc = OperatorAllocation(
         num_keys=sel_keys_needed,
@@ -109,56 +107,56 @@ def compute_resource_map(
     # ==========================================
     # Input: Selected Parents (sel_output_count)
     # Logic: Parents are paired. Number of pairs = Input // 2.
-    # Output: Pairs * num_offspring_per_pair
+    # Output: Pairs * num_offspring (per pair)
     # ------------------------------------------
     cross_input_count = sel_output_count
     num_pairs = cross_input_count // 2
     
-    # Output size depends on how many children the crossover produces per pair
-    # We query the static attribute 'num_offspring' from the operator
-    cross_offspring_per_pair = getattr(crossover, 'num_offspring', 1)
-    cross_output_count = num_pairs * cross_offspring_per_pair
+    # Update Operator Context with number of PAIRS
+    crossover = crossover.set_input_length(num_pairs)
     
-    # RNG: (Keys per pair) * (Number of pairs)
-    # We pass a dummy input_shape=() because crossover consumes Genomes, not shapes
-    keys_per_pair = crossover.num_keys(genome_config, input_shape=())
-    total_cross_keys = num_pairs * keys_per_pair
+    # Output Logic
+    cross_output_count = num_pairs * crossover.num_offspring
+    
+    # RNG: Calculate keys needed for 'num_pairs' operations
+    cross_keys_needed = crossover.num_keys(input_shape=(num_pairs,))
     
     crossover_alloc = OperatorAllocation(
-        num_keys=total_cross_keys,
+        num_keys=cross_keys_needed,
         start_idx=current_key_idx,
-        end_idx=current_key_idx + total_cross_keys,
+        end_idx=current_key_idx + cross_keys_needed,
         input_count=cross_input_count, # Total parents entering
         output_count=cross_output_count,
         operator_type='crossover'
     )
-    current_key_idx += total_cross_keys
+    current_key_idx += cross_keys_needed
 
     # ==========================================
     # 3. MUTATION
     # ==========================================
     # Input: Crossover Offspring (cross_output_count)
-    # Output: Mutated Individuals (Input * num_offspring_per_mut)
+    # Output: Mutated Individuals (Input * num_offspring per mutant)
     # ------------------------------------------
     mut_input_count = cross_output_count
     
-    # Mutation might produce 1 (standard) or N mutants per child
-    mut_offspring_per_ind = getattr(mutation, 'num_offspring', 1)
-    mut_output_count = mut_input_count * mut_offspring_per_ind
+    # Update Operator Context
+    mutation = mutation.set_input_length(mut_input_count)
     
-    # RNG: (Keys per individual) * (Number of individuals)
-    keys_per_ind = mutation.num_keys(genome_config, input_shape=())
-    total_mut_keys = mut_input_count * keys_per_ind
+    # Output Logic
+    mut_output_count = mut_input_count * mutation.num_offspring
+    
+    # RNG: Calculate keys needed
+    mut_keys_needed = mutation.num_keys(input_shape=(mut_input_count,))
     
     mutation_alloc = OperatorAllocation(
-        num_keys=total_mut_keys,
+        num_keys=mut_keys_needed,
         start_idx=current_key_idx,
-        end_idx=current_key_idx + total_mut_keys,
+        end_idx=current_key_idx + mut_keys_needed,
         input_count=mut_input_count,
         output_count=mut_output_count,
         operator_type='mutation'
     )
-    current_key_idx += total_mut_keys
+    current_key_idx += mut_keys_needed
 
     # ==========================================
     # 4. NEXT GENERATION KEY
@@ -196,7 +194,7 @@ def get_resource_summary(rmap: ResourceMap) -> str:
         f"  Total RNG Budget: {rmap.total_rng_budget} keys",
         "",
         "  [1. SELECTION]",
-        f"     In: {s.input_count} -> Out: {s.output_count} indices",
+        f"     In: {s.input_count} (Pop Size) -> Out: {s.output_count} indices",
         f"     Keys: {s.num_keys} (Slice {s.start_idx}:{s.end_idx})",
         "",
         "  [2. CROSSOVER]",

@@ -163,27 +163,35 @@ class AbstractEngine(ABC):
     def get_hlo_text(
         self,
         initial_state: AbstractEvolutionState,
+        optimize: bool = True,  # <--- NEW FLAG
         print_analysis: bool = True
     ) -> str:
         """
-        Extracts the compiled HLO (High Level Optimizer) text for analysis.
+        Extracts HLO text. 
+        If optimize=True, runs the full XLA compiler to show FUSION.
+        If optimize=False, shows the raw graph (faster, good for debugging shapes).
         """
-        print(f"--- Lowering HLO for params: {self.engine_params} ---")
+        print(f"--- Extracting HLO (Optimize={optimize}) ---")
         
-        # 1. Get the JIT-wrapped kernel
+        # 1. Get JIT Kernel
         jit_kernel = _get_evolution_kernel(self.engine_params, compile_jit=True)
         
-        # 2. Lower the function
-        # Correctly pass arguments matching _evolve_loop signature: (engine, initial_state)
+        # 2. Lower (Trace to StableHLO)
         lowered = jit_kernel.lower(self, initial_state)
         
-        # 3. Compile to text
-        hlo_text = lowered.as_text()
+        # 3. Compile (Run XLA Optimizations)
+        if optimize:
+            # This triggers the fusion strategies!
+            compiled = lowered.compile()
+            hlo_text = compiled.as_text()
+        else:
+            hlo_text = lowered.as_text()
         
         if print_analysis:
             line_count = len(hlo_text.split('\n'))
             fusion_count = hlo_text.count("fusion")
             loop_count = hlo_text.count("while")
+            # Note: In optimized HLO, 'while' might become 'custom-call' or similar depending on backend
             
             print(f"HLO Analysis:")
             print(f"  - Total Lines of IR: {line_count}")
