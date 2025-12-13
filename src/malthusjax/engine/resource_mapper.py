@@ -66,7 +66,6 @@ def compute_resource_map(
     current_key_idx = 0
     
     # Determine genome shape (for metadata)
-    # This logic depends on your Config structure
     if hasattr(genome_config, 'length'):
         genome_shape = (genome_config.length,)
     elif hasattr(genome_config, 'size'):
@@ -77,20 +76,32 @@ def compute_resource_map(
         genome_shape = ()
 
     # ==========================================
-    # 1. SELECTION
+    # 1. SELECTION & PARENT CALCULATIONS (The Fix)
     # ==========================================
     # Input: Current Population (pop_size)
-    # Output: Selected Indices (num_selections)
+    # Logic: We must ensure we select enough parents to generate AT LEAST pop_size offspring.
     # ------------------------------------------
+    
+    # 1. Determine how many offspring one pair produces (usually 2)
+    offspring_per_pair = getattr(crossover, 'num_offspring', 2)
+    
+    # 2. Calculate pairs needed to satisfy pop_size (Coverage Strategy)
+    # Formula: ceil(pop_size / offspring_per_pair)
+    # Implementation: (pop_size + n - 1) // n
+    pairs_needed = (pop_size + offspring_per_pair - 1) // offspring_per_pair
+    
+    # 3. Parents needed (2 parents per pair)
+    parents_needed = pairs_needed * 2
+    
+    # 4. Selection Configuration
     sel_input_count = pop_size
-    sel_output_count = selection.num_selections
+    sel_output_count = parents_needed
     
-    # Update Operator Context (New Paradigm)
-    selection = selection.set_input_length(sel_input_count)
-    
-    # RNG: Calculate keys needed based on contract
-    # We pass input_shape mainly for validation, the operator uses num_selections internally
-    sel_keys_needed = selection.num_keys(input_shape=(sel_input_count,))
+    # Update Selection Context: 
+    # We create a temporary shadow operator with the CORRECT num_selections
+    # so num_keys returns the right amount for the resource budget.
+    temp_sel = selection.replace(num_selections=sel_output_count).set_input_length(sel_input_count)
+    sel_keys_needed = temp_sel.num_keys(input_shape=(sel_input_count,))
     
     selection_alloc = OperatorAllocation(
         num_keys=sel_keys_needed,
@@ -106,16 +117,16 @@ def compute_resource_map(
     # 2. CROSSOVER
     # ==========================================
     # Input: Selected Parents (sel_output_count)
-    # Logic: Parents are paired. Number of pairs = Input // 2.
-    # Output: Pairs * num_offspring (per pair)
+    # Logic: Parents are paired.
     # ------------------------------------------
-    cross_input_count = sel_output_count
-    num_pairs = cross_input_count // 2
+    cross_input_count = sel_output_count # e.g. 18 (if pop_size=17)
+    num_pairs = cross_input_count // 2   # e.g. 9
     
     # Update Operator Context with number of PAIRS
     crossover = crossover.set_input_length(num_pairs)
     
-    # Output Logic
+    # Output: Pairs * num_offspring (per pair)
+    # This might be slightly larger than pop_size (e.g. 18), which is fine.
     cross_output_count = num_pairs * crossover.num_offspring
     
     # RNG: Calculate keys needed for 'num_pairs' operations
@@ -194,7 +205,7 @@ def get_resource_summary(rmap: ResourceMap) -> str:
         f"  Total RNG Budget: {rmap.total_rng_budget} keys",
         "",
         "  [1. SELECTION]",
-        f"     In: {s.input_count} (Pop Size) -> Out: {s.output_count} indices",
+        f"     In: {s.input_count} (Pop Size) -> Out: {s.output_count} indices (Parents needed)",
         f"     Keys: {s.num_keys} (Slice {s.start_idx}:{s.end_idx})",
         "",
         "  [2. CROSSOVER]",
@@ -204,5 +215,8 @@ def get_resource_summary(rmap: ResourceMap) -> str:
         "  [3. MUTATION]",
         f"     In: {m.input_count} -> Out: {m.output_count} mutants",
         f"     Keys: {m.num_keys} (Slice {m.start_idx}:{m.end_idx})",
+        "",
+        "  [4. NEXT GENERATION KEY]",
+        f"     Keys: {rmap.next_key.num_keys} (Slice {rmap.next_key.start_idx}:{rmap.next_key.end_idx})",
     ]
     return "\n".join(lines)

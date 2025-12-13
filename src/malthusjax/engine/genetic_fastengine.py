@@ -257,7 +257,11 @@ class GeneticEngine(AbstractEngine):
         
         # 2. BAKE: Create Optimized Operators
         # Freeze input sizes now, so step() is zero-overhead.
-        active_sel   = self.selection.set_input_length(rmap.selection.input_count)
+        active_sel = self.selection \
+            .replace(num_selections=rmap.selection.output_count) \
+            .set_input_length(rmap.selection.input_count)
+        
+        active_sel   = active_sel.set_input_length(rmap.selection.input_count)
         active_cross = self.crossover.set_input_length(rmap.crossover.input_count // 2)
         active_mut   = self.mutation.set_input_length(rmap.mutation.input_count)
         
