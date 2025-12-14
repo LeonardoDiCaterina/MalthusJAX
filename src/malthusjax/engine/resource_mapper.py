@@ -7,8 +7,69 @@ to enable static allocation and precise "cascade" data flow.
 """
 from typing import NamedTuple, Any, Tuple
 from flax import struct
+import jax
+from jax.sharding import Mesh, NamedSharding, PartitionSpec as P
+import jax.numpy as jnp
 
 from malthusjax.operators.base import BaseMutation, BaseCrossover, BaseSelection
+
+class ShardingManager:
+    """
+    Manages the GSPMD layout for the population.
+    Works for 1 Device (Layout Optimization) and N Devices (Parallelism).
+    """
+    def __init__(self, axis_name='batch'):
+        self.axis_name = axis_name
+        self.devices = jax.devices()
+        self.mesh = Mesh(self.devices, (self.axis_name,))
+        
+        # Rule 1: Matrices (Genomes) -> (Batch, Length)
+        # Split dim 0, Keep dim 1 whole
+        self.matrix_spec = P(self.axis_name, None)
+        self.matrix_sharding = NamedSharding(self.mesh, self.matrix_spec)
+
+        # Rule 2: Vectors (Fitness) -> (Batch,)  <--- NEW
+        # Split dim 0, no other dims exist
+        self.vector_spec = P(self.axis_name)
+        self.vector_sharding = NamedSharding(self.mesh, self.vector_spec)
+        
+        # Rule 3: Replicated (Scalars/Config)
+        self.replicated_spec = P()
+        self.replicated_sharding = NamedSharding(self.mesh, self.replicated_spec)        
+        # 1. Create the Mesh
+        # Even if you have 1 GPU, creating a mesh tells XLA:
+        # "This axis exists conceptually."
+        self.mesh = Mesh(self.devices, (self.axis_name,))
+        
+        # 2. Define the Rules (PartitionSpecs)
+        # Rule: Split the first dim (Population), keep the rest whole (None).
+        self.pop_spec = P(self.axis_name, None)  
+        
+        # Rule: Replicate scalars (Mutation Rate, etc.) on all devices.
+        self.replicated_spec = P() 
+        
+        # 3. Create the Sharding Objects
+        self.pop_sharding = NamedSharding(self.mesh, self.pop_spec)
+        self.replicated_sharding = NamedSharding(self.mesh, self.replicated_spec)
+
+    def alloc_population(self, shape, dtype=jnp.float32):
+        """
+        Allocates a zero-filled population tensor with enforced sharding.
+        """
+        # We use jax.device_put to force the layout immediately upon creation.
+        # This prevents XLA from creating it on Host then moving to Device.
+        return jax.device_put(jnp.zeros(shape, dtype=dtype), self.pop_sharding)
+
+    def split_key_sharded(self, key, num):
+        """
+        Splits RNG keys such that each device gets its own independent stream.
+        This is crucial for Multi-GPU stochasticity.
+        """
+        # Standard split
+        keys = jax.random.split(key, num)
+        # Enforce that the keys are sharded across the batch dimension
+        return jax.device_put(keys, self.pop_sharding)
+    
 
 class OperatorAllocation(NamedTuple):
     """

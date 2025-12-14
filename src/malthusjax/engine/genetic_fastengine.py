@@ -10,7 +10,7 @@ import jax.random as jar
 import chex
 
 from .base import AbstractEngine, AbstractEvolutionState, AbstractEngineParams, AbstractGenerationOutput
-from .resource_mapper import compute_resource_map, ResourceMap, get_resource_summary
+from .resource_mapper import compute_resource_map, ResourceMap, get_resource_summary, ShardingManager
 from ..operators.base import BaseMutation, BaseCrossover, BaseSelection
 from ..core.fitness.base import BaseEvaluator
 from ..core.base import BasePopulation
@@ -253,12 +253,14 @@ class GeneticEngine(AbstractEngine):
     # ==========================================
     # 3. INITIALIZATION (Compiler)
     # ==========================================
-    
     def init_state(self, rng_key: chex.Array) -> GeneticEvolutionState:
         """
-        Compiles the Execution Plan (ResourceMap) & Bakes Operators.
+        Compiles the Execution Plan (ResourceMap), Bakes Operators, 
+        and Enforces GSPMD Sharding Layout.
         """
+        # ==========================================
         # 1. COMPILE: Compute static Resource Map
+        # ==========================================
         rmap = compute_resource_map(
             self.selection,
             self.crossover,
@@ -267,13 +269,21 @@ class GeneticEngine(AbstractEngine):
             self.engine_params.pop_size
         )
         
-        # 2. BAKE: Create Optimized Operators
-        # Freeze input sizes now, so step() is zero-overhead.
+        # ==========================================
+        # 2. SETUP GSPMD: Create the Sharding Manager
+        # ==========================================
+        # This defines the "Batch-Parallel" layout rule.
+        # Ensure ShardingManager is imported from resource_mapper!
+        sharding_mgr = ShardingManager(axis_name='batch')
+        
+        # ==========================================
+        # 3. BAKE: Create Optimized Operators
+        # ==========================================
+        # Freeze input sizes now so step() has zero shape-polymorphism overhead.
         active_sel = self.selection \
             .replace(num_selections=rmap.selection.output_count) \
             .set_input_length(rmap.selection.input_count)
         
-        active_sel   = active_sel.set_input_length(rmap.selection.input_count)
         active_cross = self.crossover.set_input_length(rmap.crossover.input_count // 2)
         active_mut   = self.mutation.set_input_length(rmap.mutation.input_count)
         
@@ -283,12 +293,10 @@ class GeneticEngine(AbstractEngine):
             mutation=active_mut
         )
         
-        # Log Plan (JIT trace time only)
-        # print(get_resource_summary(rmap))
-
-        # 3. Initialize Population
-        init_pop_key, rng_key = jar.split(rng_key)
-        
+        # ==========================================
+        # 4. INITIALIZE POPULATION (Crucial Step!)
+        # ==========================================
+        # Determine appropriate Population Class
         if isinstance(self.genome_config, BinaryGenomeConfig):
             pop_cls = BinaryPopulation
         elif isinstance(self.genome_config, RealGenomeConfig):
@@ -298,23 +306,75 @@ class GeneticEngine(AbstractEngine):
         else:
             raise ValueError(f"Unsupported config: {type(self.genome_config)}")
 
-        population = pop_cls.init_random(init_pop_key, self.genome_config, self.engine_params.pop_size)
+        # Split key for initialization
+        init_pop_key, rng_key = jar.split(rng_key)
+
+        # Generate standard population (initially on default device/host)
+        # THIS DEFINES 'population'
+        population = pop_cls.init_random(
+            init_pop_key, 
+            self.genome_config, 
+            self.engine_params.pop_size
+        )
+        
+        # ==========================================
+        # 5. ENFORCE SHARDING (The GSPMD Optimization)
+        # ==========================================
+        # We explicitly move the data to the correct sharded layout immediately.
+        
+        target_dtype = self.genome_config.dtype  # Ensure this is set to jnp.bfloat16
+    
+        def _enforce_layout(leaf):
+            # 1. Cast to Target Precision (if it's a float)
+            if hasattr(leaf, 'dtype') and jnp.issubdtype(leaf.dtype, jnp.floating):
+                leaf = leaf.astype(target_dtype)
+
+            # 2. Apply Sharding
+            if hasattr(leaf, 'shape') and len(leaf.shape) >= 2 and leaf.shape[0] == self.engine_params.pop_size:
+                return jax.device_put(leaf, sharding_mgr.matrix_sharding)
+            elif hasattr(leaf, 'shape') and len(leaf.shape) == 1 and leaf.shape[0] == self.engine_params.pop_size:
+                return jax.device_put(leaf, sharding_mgr.vector_sharding)
+            
+            return jax.device_put(leaf, sharding_mgr.replicated_sharding)
+
+        # Apply to Genes (The Heavy Payload)
+        sharded_genes = jax.tree_util.tree_map(_enforce_layout, population.genes)        
+        # Apply to Fitness (The Metadata)
+        fitness_casted = population.fitness.astype(target_dtype)
+        sharded_fitness = jax.device_put(fitness_casted, sharding_mgr.vector_sharding)
+        
+        # Reconstruct Population with Sharded Data
+        population = population.replace(genes=sharded_genes, fitness=sharded_fitness)
+
+        # ==========================================
+        # 6. INITIAL EVALUATION (Distributed)
+        # ==========================================
+        # Because inputs are explicitly sharded, JAX automatically creates a 
+        # sharded computation graph for the evaluator.
         evaluated_pop = self.evaluator.evaluate_population(population)
         
-        # 4. Create State with Embedded Plan & Tools
+        # ==========================================
+        # 7. FINALIZE STATE
+        # ==========================================
         best_idx = jnp.argmax(evaluated_pop.fitness)
         
+        # Ensure the best genome is replicated (available on all devices)
+        best_genome = jax.tree_util.tree_map(
+            lambda x: jax.device_put(x[best_idx], sharding_mgr.replicated_sharding),
+            evaluated_pop.genes
+        )
+
         return GeneticEvolutionState(
             population=evaluated_pop,
-            best_genome=evaluated_pop[best_idx].genes,
+            best_genome=best_genome,
             best_fitness=evaluated_pop.fitness[best_idx],
             generation=0,
             rng_key=rng_key,
             stagnation_counter=0,
-            resource_map=rmap,      # <--- Plan Stored
-            operators=op_state      # <--- Tools Stored
-        )
-
+            resource_map=rmap,      
+            operators=op_state      
+        )    
+        
     # ==========================================
     # ASK / TELL Interface
     # ==========================================
