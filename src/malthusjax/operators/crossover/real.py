@@ -71,9 +71,11 @@ class BlendCrossover(BaseCrossover["RealGenome", "RealGenomeConfig", "RealPopula
         # diff = |p1 - p2|
         diff = jnp.abs(p1.values - p2.values)
         
+        alpha = jnp.array(self.alpha, dtype=p1.values.dtype)
+        
         # Interval: [min - alpha*diff, max + alpha*diff]
-        cmin = jnp.minimum(p1.values, p2.values) - (self.alpha * diff)
-        cmax = jnp.maximum(p1.values, p2.values) + (self.alpha * diff)
+        cmin = jnp.minimum(p1.values, p2.values) - (alpha * diff)
+        cmax = jnp.maximum(p1.values, p2.values) + (alpha * diff)
         
         # 3. Generate Candidate Values
         # Note: jar -> jax.random
@@ -124,13 +126,13 @@ class SimulatedBinaryCrossover(BaseCrossover["RealGenome", "RealGenomeConfig", "
         
         # 2. Calculate Beta (Spread Factor)
         # u is uniform(0, 1)
-        u = jax.random.uniform(k_beta, shape=p1.values.shape)
+        u = jax.random.uniform(k_beta, shape=p1.values.shape, dtype=p1.values.dtype)
         
         # SBX Formula:
         # if u <= 0.5: beta = (2u)^(1 / (eta + 1))
         # else:        beta = (1 / (2(1-u)))^(1 / (eta + 1))
         
-        exponent = 1.0 / (self.eta + 1.0)
+        exponent = jnp.array(1.0 / (self.eta + 1.0), dtype=p1.values.dtype)
         beta = jnp.where(
             u <= 0.5,
             (2.0 * u) ** exponent,

@@ -34,9 +34,9 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
         
         # 1. Generate Mutation Mask (Which genes change?)
         mutation_mask = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
-        
+        strength = jnp.array(self.mutation_strength, dtype=genome.values.dtype)
         # 2. Generate Gaussian Noise
-        noise = jax.random.normal(k_noise, shape=genome.values.shape) * self.mutation_strength
+        noise = jax.random.normal(k_noise, shape=genome.values.shape, dtype=genome.values.dtype) * strength
         
         # 3. Apply
         mutated_values = jnp.where(mutation_mask, genome.values + noise, genome.values)
@@ -67,7 +67,7 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
         # DIRECT UNPACKING
         k_mask = keys[0]
         k_noise = keys[1]
-        
+        strength = jnp.array(self.mutation_strength, dtype=genome.values.dtype)
         # 1. Generate Mutation Mask
         mutation_mask = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
         
@@ -75,8 +75,8 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
         noise = jax.random.uniform(
             k_noise, 
             shape=genome.values.shape,
-            minval=-self.mutation_strength,
-            maxval=self.mutation_strength
+            minval=-strength,
+            maxval=strength
         )
         
         # 3. Apply
@@ -108,11 +108,12 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
         k_mask = keys[0]
         k_val = keys[1]
         
+        eta = jnp.array(self.eta, dtype=genome.values.dtype)
         # 1. Generate Mutation Mask
         mutation_mask = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=genome.values.shape)
         
         # 2. Generate Random values
-        u = jax.random.uniform(k_val, shape=genome.values.shape)
+        u = jax.random.uniform(k_val, shape=genome.values.shape, dtype=genome.values.dtype)
         
         # 3. Calculate Delta (Standard NSGA-II Logic)
         delta_q = jnp.where(
