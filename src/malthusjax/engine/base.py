@@ -52,6 +52,14 @@ class AbstractEngineParams:
     pop_size: int = flax.struct.field(pytree_node=False, default=100)
     elitism: int = flax.struct.field(pytree_node=False, default=0)
     num_generations: int = flax.struct.field(pytree_node=False, default=50)
+    unroll_num: int = flax.struct.field(pytree_node=False, default=1)
+    
+    def __post_init__(self):
+        
+        # make unroll_num a 10% of num_generations if possible
+        object.__setattr__(self, 'unroll_num', 
+                           min(max(1, self.num_generations // 10), self.num_generations))
+        
 
 
 @flax.struct.dataclass
@@ -137,7 +145,7 @@ class AbstractEngine(ABC):
                   f"population size {self.engine_params.pop_size}, compile={compile}")
 
         # Retrieve the compiled loop function
-        evolve_fn = _get_evolution_kernel(self.engine_params, compile_jit=compile)
+        evolve_fn = _get_evolution_kernel(self.engine_params, compile_jit=compile, unroll_num=self.engine_params.unroll_num)
 
         start_time = time.time()
         
@@ -174,7 +182,7 @@ class AbstractEngine(ABC):
         print(f"--- Extracting HLO (Optimize={optimize}) ---")
         
         # 1. Get JIT Kernel
-        jit_kernel = _get_evolution_kernel(self.engine_params, compile_jit=True)
+        jit_kernel = _get_evolution_kernel(self.engine_params, compile_jit=True, unroll_num=self.engine_params.unroll_num)
         
         # 2. Lower (Trace to StableHLO)
         lowered = jit_kernel.lower(self, initial_state)
@@ -202,7 +210,7 @@ class AbstractEngine(ABC):
         return hlo_text
 
 @functools.lru_cache(maxsize=32)
-def _get_evolution_kernel(params: AbstractEngineParams, compile_jit: bool = True):
+def _get_evolution_kernel(params: AbstractEngineParams, compile_jit: bool = True, unroll_num: int = 1):
     """
     Factory that builds and compiles the evolution loop.
     Cached by 'params' to ensure we only compile once per configuration.
@@ -230,7 +238,8 @@ def _get_evolution_kernel(params: AbstractEngineParams, compile_jit: bool = True
             _scan_body,
             init_carry,
             None, # Scan over range(num_generations) implicitly
-            length=params.num_generations
+            length=params.num_generations,
+            unroll= unroll_num
         )
         
         return final_state, history

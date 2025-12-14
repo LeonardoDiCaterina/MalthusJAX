@@ -93,7 +93,7 @@ class GeneticEngine(AbstractEngine):
         return k_sel_slice, k_cross, k_mut, k_next
     
     @traceable("Phase_1_Selection_Read")
-    def _selection_phase(self, key_selection: chex.Array, population: Any, operators: OperatorState, params: Any):
+    def _selection_phase(self, key_selection: chex.Array, population: Any, operators: OperatorState, params: Any) -> Tuple[chex.Array, chex.Array]:
         """
         Input: Specific key slice for selection.
         Output: Elites (small copy) and Parents (copy).
@@ -106,29 +106,31 @@ class GeneticEngine(AbstractEngine):
         selected_idx = operators.selection(key_selection, population)
         parents = population[selected_idx]
         
-        return elites_genes, parents
+        return elites_genes, selected_idx 
     
-    @traceable("Phase_2_Reproduction_Compute")
+    
+    @traceable("Phase_2_Reproduction_Fused")
     def _reproduction_phase(
         self, 
         keys_crossover: chex.Array,
         keys_mutation: chex.Array,
-        parents: Any, 
-        operators: OperatorState, # <--- USE BAKED OPERATORS
+        parent_indices: chex.Array, 
+        population: Any,             
+        operators: OperatorState,
         rmap: ResourceMap
     ) -> Any: 
-        """
-        Optimized Reproduction Phase.
-        Uses the specific 'operators' bundle passed to it.
-        """
-        # A. CROSSOVER
-        # --------------------------------------
-        # 1. Slice Parents (Trust the rmap count)
-        num_pairs = rmap.crossover.input_count // 2
-        p1_pop = parents[:num_pairs]
-        p2_pop = parents[num_pairs : num_pairs * 2]
         
-        # 2. Execute (Baked Crossover)
+        # 1. Slice Indices (Cheap metadata op)
+        num_pairs = rmap.crossover.input_count // 2
+        p1_idx = parent_indices[:num_pairs]
+        p2_idx = parent_indices[num_pairs : num_pairs * 2]
+
+        # 2. Gather (INSIDE the fusion scope of crossover)
+        # XLA sees: Gather -> Crossover. It fuses them.
+        p1_pop = population[p1_idx]
+        p2_pop = population[p2_idx]
+        
+        # 3. Execute Crossover
         offspring_pop = operators.crossover(
             keys_crossover, 
             p1_pop, 
@@ -136,9 +138,14 @@ class GeneticEngine(AbstractEngine):
             self.genome_config
         )
         
-        # B. MUTATION
-        # -------------------------------------
-        # 1. Execute (Baked Mutation)
+        # 2. Execute Crossover
+        offspring_pop = operators.crossover(
+            keys_crossover, 
+            p1_pop, 
+            p2_pop, 
+            self.genome_config
+        )
+        # 3. Execute Mutation
         final_pop = operators.mutation(
             keys_mutation, 
             offspring_pop, 
@@ -204,12 +211,17 @@ class GeneticEngine(AbstractEngine):
 
         # 2. SELECTION (Read)
         # Pass state.operators so it uses the optimized version
-        elites, parents = self._selection_phase(k_sel, state.population, state.operators, self.engine_params)
-
+        elites, parent_indices = self._selection_phase(k_sel, state.population, state.operators, self.engine_params)
         # 3. REPRODUCTION (Compute)
         # Pass state.operators
-        mutants = self._reproduction_phase(k_cross, k_mut, parents, state.operators, state.resource_map)
-
+        mutants = self._reproduction_phase(
+                    k_cross, 
+                    k_mut, 
+                    parent_indices, 
+                    state.population,
+                    state.operators, 
+                    state.resource_map
+                )
         # 4. MERGE (Write)
         next_genes = self._merge(elites, mutants.genes, state)
         
@@ -334,10 +346,17 @@ class GeneticEngine(AbstractEngine):
         )
         
         # Pipeline Execution using State Operators
-        elites, parents = self._selection_phase(k_sel, state.population, state.operators, self.engine_params)
+        elites, parent_indices = self._selection_phase(k_sel, state.population, state.operators, self.engine_params)
         
         # Use state.resource_map and state.operators
-        mutants = self._reproduction_phase(k_cross, k_mut, parents, state.operators, state.resource_map)
+        mutants = self._reproduction_phase(
+                    k_cross, 
+                    k_mut, 
+                    parent_indices, 
+                    state.population,
+                    state.operators, 
+                    state.resource_map
+                )
         
         next_genes = self._merge(elites, mutants.genes, state)
         next_population = state.population.replace(genes=next_genes)

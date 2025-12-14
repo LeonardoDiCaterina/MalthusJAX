@@ -18,8 +18,10 @@ from malthusjax.core.base import BaseGenome, BasePopulation
 class RealGenomeConfig:
     """Configuration for Real-valued genomes."""
     length: int           # Number of real values in the vector
-    bounds: Tuple[float, float] = (-5.0, 5.0)  # (min, max) bounds for each value
-
+    bounds: Tuple[float, float] = struct.field(  # (min, max) bounds for each value
+        pytree_node=False, default=(-jnp.inf, jnp.inf)
+    )
+    dtype: jnp.dtype = struct.field(pytree_node=False, default=jnp.float32)  # Data type of the values
 
 def validate_real_config(config: RealGenomeConfig) -> None:
     """Validate real genome configuration parameters."""
@@ -44,7 +46,7 @@ class RealGenome(BaseGenome):
         """Create random real-valued genome within bounds."""
         min_val, max_val = config.bounds
         values = jax.random.uniform(
-            key, (config.length,), minval=min_val, maxval=max_val
+            key, (config.length,), minval=min_val, maxval=max_val, dtype=config.dtype
         )
         return cls(values=values)
 
