@@ -15,12 +15,7 @@ try:
     # 1. Prioritize the path used in the notebook
     from evosax.algorithms.population_based.simple_ga import SimpleGA
     HAS_EVOSAX = True
-except ImportError:
-    try:
-        # 2. Fallback for newer versions
-        from evosax.strategies import SimpleGA
-        HAS_EVOSAX = True
-    except ImportError as e:
+except ImportError as e:
         print(f"⚠️ Evosax Import Error: {e}")
         HAS_EVOSAX = False
 

@@ -1,6 +1,7 @@
 [experiment]
 name = "GECCO_2026_Submission_Benchmarks"
 output_dir = "results/gecco_run"
+repeats = 3
 
 [grid]
 # Match the key registered in registry.py
@@ -20,6 +21,9 @@ pop_sizes = [128, 1024, 16384]
 
 seeds = [42, 43, 44]
 generations = 2000
+
+# Optional scan unroll factors to sweep (affects `jax.lax.scan` unroll)
+unroll_factors = [1, 10, 100]
 
 # Overrides for the Registry defaults
 [grid.hyperparams]

@@ -16,7 +16,9 @@ def run_adapter_benchmark(
     adapter: AbstractBenchmarkAdapter, 
     num_gens: int, 
     seed: int,
-    framework_name: str
+    framework_name: str,
+    unroll: int = 1,
+    repeats: int = 1,
 ) -> BenchmarkResult:
     """
     Standardized JIT + Run + Time routine.
@@ -29,9 +31,10 @@ def run_adapter_benchmark(
     # 2. Get the Step Function
     step_fn = adapter.make_step_fn()
     
-    # 3. Define the Scan Loop
+    # 3. Define the Scan Loop (honor the unroll factor)
     def scan_loop(carry):
-        return jax.lax.scan(step_fn, carry, None, length=num_gens)
+        # pass `unroll` into lax.scan to allow loop unrolling where supported
+        return jax.lax.scan(step_fn, carry, None, length=num_gens, unroll=unroll)
     
     # 4. Compilation (Warmup)
     print(f"[{framework_name}] Compiling...", end="", flush=True)
@@ -44,20 +47,26 @@ def run_adapter_benchmark(
     print(f" Done ({t_compile:.4f}s)")
     
     # 5. Execution (Hot Run)
-    # Note: We run the compiled executable directly
-    t0 = time.perf_counter()
-    final_carry, _ = compiled_scan(init_carry)
-    # Block on the result to ensure GPU sync
-    fitness_scalar = adapter.get_best_fitness(final_carry)
-    # Creating a jax array block is necessary to force sync
-    _ = jax.block_until_ready(jax.numpy.array(fitness_scalar))
-    t_exec = time.perf_counter() - t0
+    # Note: We run the compiled executable directly. Execute `repeats` times
+    # and average the execution time for more stable measurements.
+    total_exec_time = 0.0
+    final_carry = None
+    for i in range(max(1, repeats)):
+        t0 = time.perf_counter()
+        final_carry, _ = compiled_scan(init_carry)
+        # Block on the result to ensure device sync
+        fitness_scalar = adapter.get_best_fitness(final_carry)
+        _ = jax.block_until_ready(jax.numpy.array(fitness_scalar))
+        t_run = time.perf_counter() - t0
+        total_exec_time += t_run
+
+    avg_exec = total_exec_time / max(1, repeats)
     
     return BenchmarkResult(
         framework=framework_name,
         device=adapter.get_device_info(),
         compile_time=t_compile,
-        execution_time=t_exec,
-        generations_per_sec=num_gens / t_exec,
+        execution_time=avg_exec,
+        generations_per_sec=num_gens / avg_exec,
         best_fitness=fitness_scalar
     )
