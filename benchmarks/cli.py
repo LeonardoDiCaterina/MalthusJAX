@@ -136,6 +136,7 @@ def run_single_benchmark(
         "Exec_Time": res_m.execution_time,
         "GPS": res_m.generations_per_sec,
         "Best_Fitness": res_m.best_fitness,
+        "Fitness_Std": res_m.fitness_std,
     }
 
     rec_e = {
@@ -145,15 +146,26 @@ def run_single_benchmark(
         "Exec_Time": res_e.execution_time,
         "GPS": res_e.generations_per_sec,
         "Best_Fitness": res_e.best_fitness,
+        "Fitness_Std": res_e.fitness_std,
     }
 
     # F. Print Quick Stat
     speedup = res_m.generations_per_sec / res_e.generations_per_sec
+    fitness_diff = res_m.best_fitness - res_e.best_fitness
     print(
         f"   >>> Speedup: {speedup:.2f}x "
         f"(Malthus={res_m.generations_per_sec:.0f}, "
         f"Evosax={res_e.generations_per_sec:.0f} GPS)"
     )
+    print(
+        f"   >>> Fitness: MalthusJAX={res_m.best_fitness:.4e}±{res_m.fitness_std:.4e}, "
+        f"Evosax={res_e.best_fitness:.4e}±{res_e.fitness_std:.4e}, "
+        f"Δ={fitness_diff:+.4e}"
+    )
+
+    # G. Clean up memory to prevent accumulation across runs
+    del m_adapter, e_adapter, m_eval, e_prob, res_m, res_e
+    jax.clear_caches()
 
     return rec_m, rec_e
 
@@ -234,6 +246,23 @@ def main():
     print("\n=== Scaling Summary (Mean GPS) ===")
     summary = df.groupby(["Framework", "Pop_Size"])["GPS"].mean().unstack().T
     print(summary)
+    
+    # 6. Print Fitness Comparison Summary
+    print("\n=== Fitness Quality Comparison ===")
+    fitness_summary = df.groupby(["Framework", "Task"])[["Best_Fitness", "Fitness_Std"]].mean()
+    print(fitness_summary)
+    
+    # Calculate statistical significance of fitness differences
+    print("\n=== Fitness Difference by Task ===")
+    for task in df["Task"].unique():
+        task_data = df[df["Task"] == task]
+        m_fitness = task_data[task_data["Framework"] == "MalthusJAX"]["Best_Fitness"].values
+        e_fitness = task_data[task_data["Framework"] == "Evosax"]["Best_Fitness"].values
+        
+        if len(m_fitness) > 0 and len(e_fitness) > 0:
+            diff = m_fitness.mean() - e_fitness.mean()
+            rel_diff = (diff / abs(e_fitness.mean())) * 100 if e_fitness.mean() != 0 else 0
+            print(f"{task:15s}: Δ={diff:+.4e} ({rel_diff:+.2f}%)")
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ class BenchmarkResult:
     execution_time: float # Seconds
     generations_per_sec: float
     best_fitness: float
+    fitness_std: float = 0.0  # Standard deviation across repeats
 
 def run_adapter_benchmark(
     adapter: AbstractBenchmarkAdapter, 
@@ -51,6 +52,8 @@ def run_adapter_benchmark(
     # and average the execution time for more stable measurements.
     total_exec_time = 0.0
     final_carry = None
+    fitness_values = []
+    
     for i in range(max(1, repeats)):
         t0 = time.perf_counter()
         final_carry, _ = compiled_scan(init_carry)
@@ -59,8 +62,14 @@ def run_adapter_benchmark(
         _ = jax.block_until_ready(jax.numpy.array(fitness_scalar))
         t_run = time.perf_counter() - t0
         total_exec_time += t_run
+        fitness_values.append(fitness_scalar)
 
     avg_exec = total_exec_time / max(1, repeats)
+    
+    # Calculate fitness statistics
+    import numpy as np
+    fitness_mean = float(np.mean(fitness_values))
+    fitness_std = float(np.std(fitness_values)) if len(fitness_values) > 1 else 0.0
     
     return BenchmarkResult(
         framework=framework_name,
@@ -68,5 +77,6 @@ def run_adapter_benchmark(
         compile_time=t_compile,
         execution_time=avg_exec,
         generations_per_sec=num_gens / avg_exec,
-        best_fitness=fitness_scalar
+        best_fitness=fitness_mean,
+        fitness_std=fitness_std,
     )
