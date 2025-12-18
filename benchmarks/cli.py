@@ -260,7 +260,7 @@ def main():
         e_fitness = task_data[task_data["Framework"] == "Evosax"]["Best_Fitness"].values
         
         if len(m_fitness) > 0 and len(e_fitness) > 0:
-            diff = m_fitness.mean() - e_fitness.mean()
+            diff = abs(m_fitness.mean()) - abs(e_fitness.mean()) # Absolute difference because of maximization problems
             rel_diff = (diff / abs(e_fitness.mean())) * 100 if e_fitness.mean() != 0 else 0
             print(f"{task:15s}: Δ={diff:+.4e} ({rel_diff:+.2f}%)")
 

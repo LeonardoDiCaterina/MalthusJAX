@@ -21,7 +21,7 @@ class RealGenomeConfig:
     bounds: Tuple[float, float] = struct.field(  # (min, max) bounds for each value
         pytree_node=False, default=(-jnp.inf, jnp.inf)
     )
-    dtype: jnp.dtype = struct.field(pytree_node=False, default=jnp.bfloat16) # <--- NEW
+    dtype: jnp.dtype = struct.field(pytree_node=False, default=jnp.bfloat16) 
 
 def validate_real_config(config: RealGenomeConfig) -> None:
     """Validate real genome configuration parameters."""
