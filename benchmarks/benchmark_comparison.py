@@ -102,7 +102,7 @@ def run_malthusjax_benchmark():
         "Compile Time (s)": compile_time,
         "Execution Time (s)": exec_time,
         "Generations/Sec": throughput,
-        "Final Fitness (Cost)": float(final_fitness)
+        "Final Fitness (Cost)": -float(final_fitness) # Return cost as positive
     }
 
 def run_evosax_benchmark():
