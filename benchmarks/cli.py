@@ -5,6 +5,7 @@ import pandas as pd
 import jax
 import sys
 from datetime import datetime
+from itertools import product
 from typing import Any
 
 # Handle TOML parsing (Python 3.11+ native, else tomli)
@@ -194,45 +195,37 @@ def main():
     results = []
 
     # 3. Generate all parameter combinations and run benchmarks
-    total_runs = (
-        len(grid['algorithms'])
-        * len(grid['tasks'])
-        * len(grid['dimensions'])
-        * len(grid['pop_sizes'])
-        * len(grid['seeds'])
-        * len(unroll_factors)
-    )
+    param_grid = list(product(
+        grid['algorithms'],
+        grid['tasks'],
+        grid['dimensions'],
+        grid['pop_sizes'],
+        grid['seeds'],
+        unroll_factors,
+    ))
+    total_runs = len(param_grid)
 
-    current_run = 0
-
-    for algo_name in grid['algorithms']:
+    for run_num, (algo_name, task, dim, pop_size, seed, unroll) in enumerate(param_grid, 1):
         spec = ComparisonRegistry.get(algo_name)
         hypers = {**spec.default_hypers, **grid.get('hyperparams', {})}
 
-        for task in grid['tasks']:
-            for dim in grid['dimensions']:
-                for pop_size in grid['pop_sizes']:
-                    for seed in grid['seeds']:
-                        for unroll in unroll_factors:
-                            current_run += 1
-                            
-                            rec_m, rec_e = run_single_benchmark(
-                                algo_name=algo_name,
-                                spec=spec,
-                                hypers=hypers,
-                                task=task,
-                                dim=dim,
-                                pop_size=pop_size,
-                                seed=seed,
-                                unroll=unroll,
-                                generations=grid['generations'],
-                                repeats=repeats,
-                                run_num=current_run,
-                                total_runs=total_runs,
-                            )
-                            
-                            results.append(rec_m)
-                            results.append(rec_e)
+        rec_m, rec_e = run_single_benchmark(
+            algo_name=algo_name,
+            spec=spec,
+            hypers=hypers,
+            task=task,
+            dim=dim,
+            pop_size=pop_size,
+            seed=seed,
+            unroll=unroll,
+            generations=grid['generations'],
+            repeats=repeats,
+            run_num=run_num,
+            total_runs=total_runs,
+        )
+
+        results.append(rec_m)
+        results.append(rec_e)
 
     # 4. Save Final Data
     df = pd.DataFrame(results)

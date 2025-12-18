@@ -48,7 +48,7 @@ def _build_malthus_ga(pop_size, dims, seed, hypers, problem_evaluator):
     
     mutation = GaussianMutation(
         mutation_rate=hypers.get('mutation_rate', 0.1),
-        mutation_strength=hypers.get('sigma', 0.1)
+        mutation_strength=hypers.get('sigma', 0.1),
     )
     
     crossover = UniformCrossover(
