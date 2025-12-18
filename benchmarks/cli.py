@@ -151,15 +151,15 @@ def run_single_benchmark(
 
     # F. Print Quick Stat
     speedup = res_m.generations_per_sec / res_e.generations_per_sec
-    fitness_diff = res_m.best_fitness - res_e.best_fitness
+    fitness_diff = abs(res_m.best_fitness) - abs(res_e.best_fitness)
     print(
         f"   >>> Speedup: {speedup:.2f}x "
-        f"(Malthus={res_m.generations_per_sec:.0f}, "
-        f"Evosax={res_e.generations_per_sec:.0f} GPS)"
+        f"(Malthus={abs(res_m.generations_per_sec):.0f}, " # Absolute value for maximization
+        f"Evosax={abs(res_e.generations_per_sec):.0f} GPS)" 
     )
     print(
-        f"   >>> Fitness: MalthusJAX={res_m.best_fitness:.4e}±{res_m.fitness_std:.4e}, "
-        f"Evosax={res_e.best_fitness:.4e}±{res_e.fitness_std:.4e}, "
+        f"   >>> Fitness: MalthusJAX={abs(res_m.best_fitness):.4e}±{res_m.fitness_std:.4e}, "
+        f"Evosax={abs(res_e.best_fitness):.4e}±{res_e.fitness_std:.4e}, "
         f"Δ={fitness_diff:+.4e}"
     )
 
@@ -262,7 +262,7 @@ def main():
         if len(m_fitness) > 0 and len(e_fitness) > 0:
             diff = abs(m_fitness.mean()) - abs(e_fitness.mean()) # Absolute difference because of maximization problems
             rel_diff = (diff / abs(e_fitness.mean())) * 100 if e_fitness.mean() != 0 else 0
-            print(f"{task:15s}: Δ={diff:+.4e} ({rel_diff:+.2f}%)")
+            print(f"{task:15s}: Δ(abs)={diff:+.4e} ({rel_diff:+.2f}%)")
 
 
 if __name__ == "__main__":
