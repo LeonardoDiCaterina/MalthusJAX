@@ -9,15 +9,9 @@ from malthusjax.operators.crossover.real import UniformCrossover
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 
-# --- Evosax Imports (Notebook Compatible) ---
-HAS_EVOSAX = False
-try:
-    # 1. Prioritize the path used in the notebook
-    from evosax.algorithms.population_based.simple_ga import SimpleGA
-    HAS_EVOSAX = True
-except ImportError as e:
-        print(f"⚠️ Evosax Import Error: {e}")
-        HAS_EVOSAX = False
+# --- Evosax Components ---    
+from evosax.algorithms.population_based.simple_ga import SimpleGA
+
 
 class ComparisonSpec(NamedTuple):
     name: str
@@ -84,8 +78,6 @@ def _build_evosax_ga(pop_size, dims, seed, hypers, problem_object):
     """
     Builds Evosax strategy following 'evosax_benchmark_old.ipynb' EXACTLY.
     """
-    if not HAS_EVOSAX:
-        raise ImportError("Evosax is not installed or SimpleGA failed to import.")
 
     # 1. Sample init solution (Notebook Pattern)
     rng = jax.random.PRNGKey(seed)

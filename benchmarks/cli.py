@@ -233,7 +233,7 @@ def main():
     filename = os.path.join(output_dir, f"benchmark_{timestamp}.csv")
     df.to_csv(filename, index=False)
 
-    print(f"\n✅ Benchmark Complete. Results saved to: {filename}")
+    print(f"\nBenchmark Complete. Results saved to: {filename}")
 
     # 5. Print Summary Table (Pop Size Scaling)
     print("\n=== Scaling Summary (Mean GPS) ===")

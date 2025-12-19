@@ -7,14 +7,7 @@ import jax.numpy as jnp
 from malthusjax.engine.genetic_fastengine import GeneticEngine
 
 # --- Evosax Imports ---
-try:
-    from evosax.problems.problem import Problem as EvosaxProblem
-    HAS_EVOSAX = True
-except ImportError:
-    HAS_EVOSAX = False
-    # Define dummies so Type Hints don't crash the script
-    Strategy = Any 
-    EvosaxProblem = Any
+from evosax.problems.problem import Problem as EvosaxProblem
 
 class AbstractBenchmarkAdapter(ABC):
     """
@@ -70,10 +63,7 @@ class MalthusAdapter(AbstractBenchmarkAdapter):
 
 
 class EvosaxAdapter(AbstractBenchmarkAdapter):
-    # Fix: Use the dummy Strategy/EvosaxProblem if import failed
     def __init__(self, strategy: Any, params: Any, problem: EvosaxProblem):
-        if not HAS_EVOSAX: 
-            raise ImportError("Evosax missing. Install with 'pip install evosax'")
         self.strategy = strategy
         self.es_params = params
         self.problem = problem
@@ -84,13 +74,9 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
 
         # Infer population size from the strategy
         pop_size = getattr(self.strategy, 'population_size', None) or getattr(self.strategy, 'pop_size', None)
-        if pop_size is None:
-            raise AttributeError("Evosax strategy is missing 'population_size' attribute. Cannot build initial population.")
 
         # Infer problem dimensionality
-        num_dims = getattr(self.problem, 'num_dims', None)
-        if num_dims is None:
-            raise AttributeError("Evosax problem is missing 'num_dims' attribute. Cannot build initial population.")
+        num_dims = getattr(self.problem, 'num_dims', None) or getattr(self.problem, 'dimension', None)
 
         # Build a simple initial population and placeholder fitness array.
         # This mirrors the approach used in the repo's demos: uniform samples in [-5, 5].
