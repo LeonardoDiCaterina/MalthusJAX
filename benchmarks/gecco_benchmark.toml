@@ -1,31 +1,45 @@
 [experiment]
-name = "GECCO_2026_Submission_Benchmarks"
-output_dir = "results/gecco_run"
-repeats = 3
+name = "GECCO_2026_Alignment_Stress_Test"
+output_dir = "results/gecco_final"
 
 [grid]
-# Match the key registered in registry.py
-algorithms = ["Standard_GA"] 
+algorithms = ["Standard_GA"]
 
-# BBOB Function names (strings)
-tasks = ["sphere", "rastrigin"]
+# THE GECCO 5 (Representative Subset)
+tasks = [
+    "sphere",               # Baseline
+    "rosenbrock",           # Valley
+    "ellipsoidal_rotated",  # Ill-Conditioned
+    "rastrigin",            # Multimodal
+    "schaffers_f7"          # Deceptive
+]
 
-# Problem Dimensions
-dimensions = [10, 50]
+# DIMENSIONS
+dimensions = [20, 50]
 
-# THE KILL SHOT SCALING
-# 128: Interactive
-# 1024: Batch
-# 16384: Hyperscale (Power of 2 for TPU padding efficiency)
-pop_sizes = [128, 1024, 16384]
+# POPULATION SCALING (The "Padding Penalty" Test)
+# We test "Perfect Alignment" vs "Worst Case Misalignment"
+pop_sizes = [
+    128, 129,       # Small Scale (4 Warps vs 5 Warps)
+    1024, 1025,     # Neuroevolution Scale (32 Warps vs 33 Warps)
+    16384, 16385    # Hyperscale (512 Warps vs 513 Warps)
+]
 
-seeds = [42, 43, 44]
+# UNROLL FACTORS
+unroll_factors = [1, 50]
+
+# STATISTICS
+repeats = 30
+
+# SEEDS
+seeds = [
+    42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
+    62, 63, 64, 65, 66, 67, 68, 69, 70, 71
+]
+
 generations = 2000
 
-# Optional scan unroll factors to sweep (affects `jax.lax.scan` unroll)
-unroll_factors = [1, 10, 100]
-
-# Overrides for the Registry defaults
 [grid.hyperparams]
 mutation_rate = 0.05
 crossover_rate = 0.6
