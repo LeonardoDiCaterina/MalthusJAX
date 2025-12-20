@@ -11,8 +11,7 @@ from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
-from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticEvolutionState
-
+from malthusjax.engine.MR15_GA import OneFifthGeneticEngine, OneFifthGeneticEngineParams, GeneticEvolutionState
 class TestLevel3Engine(unittest.TestCase):
     def setUp(self):
         """Standard Setup for all tests."""
@@ -29,10 +28,11 @@ class TestLevel3Engine(unittest.TestCase):
             bounds=self.bounds
         )
         
-        self.engine_params = GeneticEngineParams(
+        self.engine_params = OneFifthGeneticEngineParams(
             pop_size=self.pop_size,
             elitism=2,
-            num_generations=self.generations
+            num_generations=self.generations,
+            
         )
         
         # 2. Operators
@@ -59,7 +59,7 @@ class TestLevel3Engine(unittest.TestCase):
         )
         
         # 3. Engine
-        self.engine = GeneticEngine(
+        self.engine = OneFifthGeneticEngine(
             engine_params=self.engine_params,
             genome_config=self.genome_config,
             evaluator=self.evaluator,
