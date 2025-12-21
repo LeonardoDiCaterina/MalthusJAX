@@ -1,119 +1,122 @@
-import time
-import os
-import argparse
-import warnings
-import itertools
-import numpy as np
-import pandas as pd
 import jax
-from datetime import datetime
+import jax.numpy as jnp
+from abc import ABC, abstractmethod
+from typing import Tuple, Any, Callable
 
-# Import your internal modules
-from benchmarks.framework.registry import ComparisonRegistry
-from benchmarks.framework.runner import run_adapter_benchmark
-from benchmarks.framework.adapters import setup_bbob_instances
+# --- MalthusJAX Imports ---
+from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
+# --- Evosax Imports ---
+from evosax.problems import BBOBProblem
 
-# TOML Loader
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib 
+# ==============================================================================
+# 1. HELPER: Problem Instantiation
+# ==============================================================================
 
-def load_config(path):
-    with open(path, "rb") as f:
-        return tomllib.load(f)
-
-def main():
-    parser = argparse.ArgumentParser(description="MalthusJAX vs Evosax Benchmark Runner")
-    parser.add_argument("config", help="Path to .toml configuration file")
-    args = parser.parse_args()
-
-    cfg = load_config(args.config)
-    exp_name = cfg['experiment']['name']
-    output_dir = cfg['experiment']['output_dir']
-    os.makedirs(output_dir, exist_ok=True)
+def setup_bbob_instances(problem_name: str, dim: int, seed: int):
+    """
+    Creates the objective function for both frameworks.
+    """
+    # Malthus uses Maximization by default, so we flip BBOB (min) to max
+    # This ensures both frameworks are solving the same math, just signed differently
+    bbob_config = BBOBConfig(fn_name=problem_name, num_dims=dim, seed=seed, maximize=True)
+    mjx_evaluator = BBOBEvaluator.create(bbob_config)
     
-    # Grid Parameters
-    grid = cfg['grid']
+    # EvoSax - minimization by default
+    es_problem = BBOBProblem(problem_name, num_dims=dim, seed=seed)
     
-    # 1. Define the Parameter Space
-    algorithms = grid['algorithms']
-    tasks = grid['tasks']
-    dimensions = grid['dimensions']
-    pop_sizes = grid['pop_sizes']
-    unroll_factors = grid.get('unroll_factors', [1])
-    repeats = grid.get('repeats', 30)
-    master_seed = grid['seeds'][0]
+    return mjx_evaluator, es_problem
 
-    # 2. Create the Cartesian Product (Flattened Job List)
-    # This creates a single list of tuples: (algo, task, dim, pop, unroll)
-    job_queue = list(itertools.product(algorithms, tasks, dimensions, pop_sizes, unroll_factors))
-    total_jobs = len(job_queue)
+# ==============================================================================
+# 2. ABSTRACT ADAPTERS
+# ==============================================================================
+
+class AbstractBenchmarkAdapter(ABC):
+    """
+    Unified interface for benchmarking different frameworks.
+    Guarantees that the Runner sees the same API regardless of backend.
+    """
+    @abstractmethod
+    def init(self, rng: jax.Array) -> Any:
+        pass
+
+    @abstractmethod
+    def make_step_fn(self) -> Callable:
+        """Returns a function: step(carry) -> (new_carry, metrics)"""
+        pass
     
-    print(f"🚀 Starting Benchmark: {exp_name}")
-    print(f"📋 Total Configurations: {total_jobs}")
-    print(f"📊 Repeats per Config:   {repeats}")
-    print(f"⚙️  Hardware:             {jax.devices()[0].device_kind}")
-    print("=" * 60)
+    @abstractmethod
+    def get_device_info(self) -> str:
+        pass
 
-    results = []
+# ==============================================================================
+# 3. CONCRETE ADAPTERS
+# ==============================================================================
+
+class MalthusJaxAdapter(AbstractBenchmarkAdapter):
+    def __init__(self, engine):
+        self.engine = engine
     
-    # 3. Iterate linearly
-    for i, (algo_name, task, dim, pop_size, unroll) in enumerate(job_queue, 1):
-        print(f"\n[{i}/{total_jobs}] {task} | D={dim} | N={pop_size} | Unroll={unroll}")
-
-        # --- A. Setup ---
-        spec = ComparisonRegistry.get(algo_name)
-        hypers = {**spec.default_hypers, **grid.get('hyperparams', {})}
+    def init(self, rng):
+        return self.engine.init_state(rng)
+    
+    def make_step_fn(self):
+        # MalthusJAX engine.step returns (state, metrics)
+        # The runner expects exactly this signature.
+        return self.engine.step
         
-        m_eval, e_prob = setup_bbob_instances(task, dim, master_seed)
-        m_adapter = spec.malthus_factory(pop_size, dim, master_seed, hypers, m_eval)
-        e_adapter = spec.evosax_factory(pop_size, dim, master_seed, hypers, e_prob)
+    def get_device_info(self):
+        return str(jax.devices()[0].device_kind)
 
-        # --- B. Run Benchmark (Compile Once, Run N times) ---
-        # MalthusJAX
-        res_m = run_adapter_benchmark(
-            m_adapter, grid['generations'], master_seed, "MalthusJAX",
-            pop_size=pop_size, unroll_factor=unroll, repeats=repeats
-        )
+class EvosaxAdapter(AbstractBenchmarkAdapter):
+    def __init__(self, strategy, params, problem):
+        self.strategy = strategy
+        self.params = params
+        self.problem = problem
         
-        # Evosax
-        res_e = run_adapter_benchmark(
-            e_adapter, grid['generations'], master_seed, "Evosax",
-            pop_size=pop_size, unroll_factor=unroll, repeats=repeats
-        )
-
-        # --- C. Log & Report ---
-        speedup = res_m.mean_gps / res_e.mean_gps
-        print(f"   >>> Result: Malthus={res_m.mean_gps:.0f} GPS | Evosax={res_e.mean_gps:.0f} GPS")
-        print(f"   >>> Speedup: {speedup:.2f}x")
+    def init(self, rng):
+        r_init, r_start = jax.random.split(rng)
         
-        # Helper to package result row
-        base_rec = {
-            "Algorithm": algo_name, "Task": task, "Dim": dim,
-            "Pop_Size": pop_size, "Unroll": unroll, "Gens": grid['generations']
-        }
+        # 1. Init Problem State
+        p_state = self.problem.init(r_init)
         
-        def package(res):
-            return {
-                **base_rec,
-                "Framework": res.framework,
-                "Mean_GPS": res.mean_gps,
-                "Mean_Time": res.mean_exec_time,
-                "Std_Time": res.std_exec_time,
-                "Compile_Time": res.compile_time,
-                "Device": res.device
-            }
+        # 2. Init Strategy State
+        # Evosax usually needs an initial solution to shape the state
+        # We sample one randomly just for shape inference
+        init_x = self.problem.sample(r_init)
+        
+        # Note: Some Evosax strats need 'init_fitness' too
+        # We'll do a dummy eval to get it
+        init_fit, p_state, _ = self.problem.eval(r_init, init_x, p_state)
+        
+        state = self.strategy.init(r_init, self.problem.sample(r_init), init_fit, self.params)
+        
+        return (state, p_state, r_start)
 
-        results.append(package(res_m))
-        results.append(package(res_e))
+    def make_step_fn(self):
+        # We must capture 'strategy', 'params', 'problem' in closure
+        strategy = self.strategy
+        params = self.params
+        problem = self.problem
+        
+        def step(carry, _=None):
+            state, p_state, rng = carry
+            rng, rng_step = jax.random.split(rng)
+            
+            # 1. ASK
+            x, state = strategy.ask(rng_step, state, params)
+            
+            # 2. EVAL
+            # EvoSax returns (fitness, new_p_state, metrics)
+            fitness, p_state, _ = problem.eval(rng_step, x, p_state)
+            
+            # 3. TELL
+            state, _ = strategy.tell(rng_step, x, fitness, state, params)
+            
+            # Return matching Malthus signature: (new_carry, metrics)
+            # We return None for metrics to keep overhead minimal
+            return (state, p_state, rng), None
+            
+        return step
 
-    # 4. Save Final
-    df = pd.DataFrame(results)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = os.path.join(output_dir, f"final_benchmark_{timestamp}.csv")
-    df.to_csv(filename, index=False)
-    print(f"\n✅ Benchmark Complete. Saved to: {filename}")
-
-if __name__ == "__main__":
-    main()
+    def get_device_info(self):
+        return str(jax.devices()[0].device_kind)
