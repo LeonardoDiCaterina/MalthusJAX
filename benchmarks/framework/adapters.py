@@ -75,11 +75,19 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
         p_state = self.problem.init(r_init)
         
         # 2. Init Strategy State
-        init_x = self.problem.sample(r_init)
+        # FIX: Explicitly sample (N, D) population instead of relying on single sample
+        # We use standard BBOB initialization bounds [-5, 5]
+        pop_size = self.strategy.popsize
+        num_dims = self.problem.num_dims
         
-        # FIX: Create a VECTOR of infinities, not a scalar.
-        # init_x has shape (pop_size, dim), so index 0 is pop_size.
-        pop_size = init_x.shape[0]
+        init_x = jax.random.uniform(
+            r_init, 
+            (pop_size, num_dims), 
+            minval=-5.0, 
+            maxval=5.0
+        )
+        
+        # Create correct fitness vector (N,)
         init_fit = jnp.full((pop_size,), jnp.inf)
         
         state = self.strategy.init(r_init, init_x, init_fit, self.params)
