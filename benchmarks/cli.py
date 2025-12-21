@@ -1,262 +1,119 @@
-import argparse
-import os
 import time
+import os
+import argparse
+import warnings
+import itertools
+import numpy as np
 import pandas as pd
 import jax
-import sys
 from datetime import datetime
-from itertools import product
-from typing import Any
 
-# Handle TOML parsing (Python 3.11+ native, else tomli)
+# Import your internal modules
+from benchmarks.framework.registry import ComparisonRegistry
+from benchmarks.framework.runner import run_adapter_benchmark
+from benchmarks.framework.adapters import setup_bbob_instances
+
+# TOML Loader
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib
+    import tomli as tomllib 
 
-# --- Internal Imports ---
-# Ensure we can import from the local project
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from benchmarks.framework.registry import ComparisonRegistry
-from benchmarks.framework.runner import run_adapter_benchmark
-
-# Malthus BBOB Factory (Serves as the Single Source of Truth for Problem Def)
-from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
-
-
-def load_config(path: str) -> dict:
+def load_config(path):
     with open(path, "rb") as f:
         return tomllib.load(f)
-
-
-def setup_bbob_instances(task_name: str, dim: int, seed: int):
-    """
-    Creates a synchronized pair of problem evaluators.
-    We create the Malthus evaluator first, then extract its internal
-    Evosax problem to ensure 100% alignment.
-    """
-    # 1. Create Malthus Config
-    config = BBOBConfig(
-        fn_name=task_name,
-        num_dims=dim,
-        seed=seed,
-        maximize=True,  # Malthus assumes Maximization
-    )
-
-    # 2. Instantiate Malthus Evaluator
-    malthus_evaluator = BBOBEvaluator.create(config)
-
-    # 3. Extract the underlying Evosax Problem
-    evosax_problem = malthus_evaluator.evosax_problem
-
-    return malthus_evaluator, evosax_problem
-
-
-def run_single_benchmark(
-    algo_name: str,
-    spec: Any,
-    hypers: dict,
-    task: str,
-    dim: int,
-    pop_size: int,
-    seed: int,
-    unroll: int,
-    generations: int,
-    repeats: int,
-    run_num: int,
-    total_runs: int,
-) -> tuple[dict, dict]:
-    """
-    Run a single benchmark comparison between MalthusJAX and Evosax.
-    
-    Returns:
-        Tuple of (malthus_record, evosax_record) dictionaries for CSV logging.
-    """
-    print(
-        f"\n[{run_num}/{total_runs}] Comparing {algo_name} on {task} "
-        f"(D={dim}, N={pop_size}, Unroll={unroll})..."
-    )
-
-    # A. Instantiate Problems
-    m_eval, e_prob = setup_bbob_instances(task, dim, seed)
-
-    # B. Build Malthus Adapter
-    m_adapter = spec.malthus_factory(
-        pop_size=pop_size,
-        dims=dim,
-        seed=seed,
-        hypers=hypers,
-        problem_evaluator=m_eval,
-    )
-
-    # C. Build Evosax Adapter
-    e_adapter = spec.evosax_factory(
-        pop_size=pop_size,
-        dims=dim,
-        seed=seed,
-        hypers=hypers,
-        problem_object=e_prob,
-    )
-
-    # D. Run Benchmarks
-    res_m = run_adapter_benchmark(
-        m_adapter,
-        generations,
-        seed,
-        "MalthusJAX",
-        unroll=unroll,
-        repeats=repeats,
-    )
-
-    res_e = run_adapter_benchmark(
-        e_adapter,
-        generations,
-        seed,
-        "Evosax",
-        unroll=unroll,
-        repeats=repeats,
-    )
-
-    # E. Build Result Records
-    base_record = {
-        "Algorithm": algo_name,
-        "Task": task,
-        "Dim": dim,
-        "Pop_Size": pop_size,
-        "Generations": generations,
-        "Seed": seed,
-        "Unroll": unroll,
-        "Device": res_m.device,
-    }
-
-    rec_m = {
-        **base_record,
-        "Framework": "MalthusJAX",
-        "Compile_Time": res_m.compile_time,
-        "Exec_Time": res_m.execution_time,
-        "GPS": res_m.generations_per_sec,
-        "Best_Fitness": res_m.best_fitness,
-        "Fitness_Std": res_m.fitness_std,
-    }
-
-    rec_e = {
-        **base_record,
-        "Framework": "Evosax",
-        "Compile_Time": res_e.compile_time,
-        "Exec_Time": res_e.execution_time,
-        "GPS": res_e.generations_per_sec,
-        "Best_Fitness": res_e.best_fitness,
-        "Fitness_Std": res_e.fitness_std,
-    }
-
-    # F. Print Quick Stat
-    speedup = res_m.generations_per_sec / res_e.generations_per_sec
-    fitness_diff = abs(res_m.best_fitness) - abs(res_e.best_fitness)
-    print(
-        f"   >>> Speedup: {speedup:.2f}x "
-        f"(Malthus={abs(res_m.generations_per_sec):.0f}, " # Absolute value for maximization
-        f"Evosax={abs(res_e.generations_per_sec):.0f} GPS)" 
-    )
-    print(
-        f"   >>> Fitness: MalthusJAX={abs(res_m.best_fitness):.4e}±{res_m.fitness_std:.4e}, "
-        f"Evosax={abs(res_e.best_fitness):.4e}±{res_e.fitness_std:.4e}, "
-        f"Δ={fitness_diff:+.4e}"
-    )
-
-    # G. Clean up memory to prevent accumulation across runs
-    del m_adapter, e_adapter, m_eval, e_prob, res_m, res_e
-    jax.clear_caches()
-
-    return rec_m, rec_e
-
 
 def main():
     parser = argparse.ArgumentParser(description="MalthusJAX vs Evosax Benchmark Runner")
     parser.add_argument("config", help="Path to .toml configuration file")
     args = parser.parse_args()
 
-    # 1. Load Config
     cfg = load_config(args.config)
     exp_name = cfg['experiment']['name']
     output_dir = cfg['experiment']['output_dir']
     os.makedirs(output_dir, exist_ok=True)
-
-    # Read repeats from the experiment config (used to average execution timings)
-    repeats = cfg.get('experiment', {}).get('repeats', 1)
-    # Get unroll factors to sweep (defaults to single factor of 1)
+    
+    # Grid Parameters
     grid = cfg['grid']
+    
+    # 1. Define the Parameter Space
+    algorithms = grid['algorithms']
+    tasks = grid['tasks']
+    dimensions = grid['dimensions']
+    pop_sizes = grid['pop_sizes']
     unroll_factors = grid.get('unroll_factors', [1])
+    repeats = grid.get('repeats', 30)
+    master_seed = grid['seeds'][0]
 
-    print(f"🚀 Starting Benchmark Suite: {exp_name}")
-    print(f"📂 Output Directory: {output_dir}")
-    print(f"⚙️  Device: {jax.devices()[0].device_kind}")
+    # 2. Create the Cartesian Product (Flattened Job List)
+    # This creates a single list of tuples: (algo, task, dim, pop, unroll)
+    job_queue = list(itertools.product(algorithms, tasks, dimensions, pop_sizes, unroll_factors))
+    total_jobs = len(job_queue)
+    
+    print(f"🚀 Starting Benchmark: {exp_name}")
+    print(f"📋 Total Configurations: {total_jobs}")
+    print(f"📊 Repeats per Config:   {repeats}")
+    print(f"⚙️  Hardware:             {jax.devices()[0].device_kind}")
+    print("=" * 60)
 
     results = []
+    
+    # 3. Iterate linearly
+    for i, (algo_name, task, dim, pop_size, unroll) in enumerate(job_queue, 1):
+        print(f"\n[{i}/{total_jobs}] {task} | D={dim} | N={pop_size} | Unroll={unroll}")
 
-    # 3. Generate all parameter combinations and run benchmarks
-    param_grid = list(product(
-        grid['algorithms'],
-        grid['tasks'],
-        grid['dimensions'],
-        grid['pop_sizes'],
-        grid['seeds'],
-        unroll_factors,
-    ))
-    total_runs = len(param_grid)
-
-    for run_num, (algo_name, task, dim, pop_size, seed, unroll) in enumerate(param_grid, 1):
+        # --- A. Setup ---
         spec = ComparisonRegistry.get(algo_name)
         hypers = {**spec.default_hypers, **grid.get('hyperparams', {})}
+        
+        m_eval, e_prob = setup_bbob_instances(task, dim, master_seed)
+        m_adapter = spec.malthus_factory(pop_size, dim, master_seed, hypers, m_eval)
+        e_adapter = spec.evosax_factory(pop_size, dim, master_seed, hypers, e_prob)
 
-        rec_m, rec_e = run_single_benchmark(
-            algo_name=algo_name,
-            spec=spec,
-            hypers=hypers,
-            task=task,
-            dim=dim,
-            pop_size=pop_size,
-            seed=seed,
-            unroll=unroll,
-            generations=grid['generations'],
-            repeats=repeats,
-            run_num=run_num,
-            total_runs=total_runs,
+        # --- B. Run Benchmark (Compile Once, Run N times) ---
+        # MalthusJAX
+        res_m = run_adapter_benchmark(
+            m_adapter, grid['generations'], master_seed, "MalthusJAX",
+            pop_size=pop_size, unroll_factor=unroll, repeats=repeats
+        )
+        
+        # Evosax
+        res_e = run_adapter_benchmark(
+            e_adapter, grid['generations'], master_seed, "Evosax",
+            pop_size=pop_size, unroll_factor=unroll, repeats=repeats
         )
 
-        results.append(rec_m)
-        results.append(rec_e)
+        # --- C. Log & Report ---
+        speedup = res_m.mean_gps / res_e.mean_gps
+        print(f"   >>> Result: Malthus={res_m.mean_gps:.0f} GPS | Evosax={res_e.mean_gps:.0f} GPS")
+        print(f"   >>> Speedup: {speedup:.2f}x")
+        
+        # Helper to package result row
+        base_rec = {
+            "Algorithm": algo_name, "Task": task, "Dim": dim,
+            "Pop_Size": pop_size, "Unroll": unroll, "Gens": grid['generations']
+        }
+        
+        def package(res):
+            return {
+                **base_rec,
+                "Framework": res.framework,
+                "Mean_GPS": res.mean_gps,
+                "Mean_Time": res.mean_exec_time,
+                "Std_Time": res.std_exec_time,
+                "Compile_Time": res.compile_time,
+                "Device": res.device
+            }
 
-    # 4. Save Final Data
+        results.append(package(res_m))
+        results.append(package(res_e))
+
+    # 4. Save Final
     df = pd.DataFrame(results)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = os.path.join(output_dir, f"benchmark_{timestamp}.csv")
+    filename = os.path.join(output_dir, f"final_benchmark_{timestamp}.csv")
     df.to_csv(filename, index=False)
-
-    print(f"\nBenchmark Complete. Results saved to: {filename}")
-
-    # 5. Print Summary Table (Pop Size Scaling)
-    print("\n=== Scaling Summary (Mean GPS) ===")
-    summary = df.groupby(["Framework", "Pop_Size"])["GPS"].mean().unstack().T
-    print(summary)
-    
-    # 6. Print Fitness Comparison Summary
-    print("\n=== Fitness Quality Comparison ===")
-    fitness_summary = df.groupby(["Framework", "Task"])[["Best_Fitness", "Fitness_Std"]].mean()
-    print(fitness_summary)
-    
-    # Calculate statistical significance of fitness differences
-    print("\n=== Fitness Difference by Task ===")
-    for task in df["Task"].unique():
-        task_data = df[df["Task"] == task]
-        m_fitness = task_data[task_data["Framework"] == "MalthusJAX"]["Best_Fitness"].values
-        e_fitness = task_data[task_data["Framework"] == "Evosax"]["Best_Fitness"].values
-        
-        if len(m_fitness) > 0 and len(e_fitness) > 0:
-            diff = abs(m_fitness.mean()) - abs(e_fitness.mean()) # Absolute difference because of maximization problems
-            rel_diff = (diff / abs(e_fitness.mean())) * 100 if e_fitness.mean() != 0 else 0
-            print(f"{task:15s}: Δ(abs)={diff:+.4e} ({rel_diff:+.2f}%)")
-
+    print(f"\n✅ Benchmark Complete. Saved to: {filename}")
 
 if __name__ == "__main__":
     main()
