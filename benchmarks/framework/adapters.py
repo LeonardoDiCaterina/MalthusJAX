@@ -61,7 +61,11 @@ class MalthusAdapter(AbstractBenchmarkAdapter):
         
     def get_device_info(self):
         return str(jax.devices()[0].device_kind)
-
+    
+    def extract_best_fitness(self, state):
+        # Malthus (Maximization): The best is the MAX of the final population
+        return float(state.best_fitness)
+\
 class EvosaxAdapter(AbstractBenchmarkAdapter):
     # FIX: We now accept pop_size explicitly in the constructor
     def __init__(self, strategy, params, problem, pop_size):
@@ -112,3 +116,7 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
 
     def get_device_info(self):
         return str(jax.devices()[0].device_kind)
+    
+    def extract_best_fitness(self, carry):
+        state, _, _ = carry
+        return float(state.best_fitness)
