@@ -68,8 +68,8 @@ def run_adapter_benchmark(
     mean_time = float(np.mean(exec_times))
     mean_gps = num_gens / mean_time if mean_time > 0 else 0.0
     
-    # We report the MEDIAN final fitness across the 30 runs (robust to outliers)
-    best_final = float(np.median(final_fitnesses))
+    # We report the average final fitness across the 30 runs (robust to outliers)
+    best_final = float(np.average(final_fitnesses))
 
     return BenchmarkResult(
         framework=framework_name,

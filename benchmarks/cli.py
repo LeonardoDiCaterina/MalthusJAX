@@ -65,7 +65,7 @@ def main():
         print(f"   >>> MalthusJAX Mean GPS: {res_m.mean_gps:.2f}")
         print(f"   >>> Evosax Mean GPS:     {res_e.mean_gps:.2f}")
         print(f"   >>> Speedup: {speedup:.2f}x")
-        print(f"   >>> Final Fit (Median): Malthus={res_m.best_fitness_final:.2e} | Evosax={res_e.best_fitness_final:.2e}")
+        print(f"   >>> Final Fit (average): Malthus={res_m.best_fitness_final:.2e} | Evosax={res_e.best_fitness_final:.2e}")
         
         base = {"Algorithm": algo, "Task": task, "Dim": dim, "Pop_Size": pop, "Unroll": unroll, "Gens": grid['generations']}
         
