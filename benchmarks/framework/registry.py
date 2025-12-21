@@ -12,7 +12,6 @@ from malthusjax.core.genome.real_genome import RealGenomeConfig
 # --- Evosax Components ---    
 from evosax.algorithms.population_based.simple_ga import SimpleGA
 
-
 class ComparisonSpec(NamedTuple):
     name: str
     malthus_factory: Callable
@@ -40,36 +39,26 @@ def _build_malthus_ga(pop_size, dims, seed, hypers, problem_evaluator):
     """Builds MalthusJAX engine matching the Standard GA spec."""
     genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
     
+    # 1. Operators
     mutation = GaussianMutation(
-        mutation_rate=hypers.get('mutation_rate', 0.1),
-        mutation_strength=hypers.get('sigma', 0.1),
+        sigma=hypers.get('sigma', 0.1),
+        rate=hypers.get('mutation_rate', 0.1)
     )
-    
     crossover = UniformCrossover(
-        crossover_rate=hypers.get('crossover_rate', 0.5)
+        rate=hypers.get('crossover_rate', 0.5)
     )
-    
-    elite_ratio = hypers.get('elite_ratio', 0.5)
-    elite_count = max(1, int(pop_size * elite_ratio))
-    
     selection = ElitePoolSelection(
-        num_selections=pop_size,
-        elite_k=elite_count
+        elite_ratio=hypers.get('elite_ratio', 0.1)
     )
-    
-    engine_params = GeneticEngineParams(
-        pop_size=pop_size,
-        num_generations=1,
-        elitism=elite_count
-    )
-    
+
+    # 2. Engine
     engine = GeneticEngine(
-        evaluator=problem_evaluator,
+        population_size=pop_size,
         genome_config=genome_config,
-        selection=selection,
-        crossover=crossover,
-        mutation=mutation,
-        engine_params=engine_params
+        fitness_evaluator=problem_evaluator,
+        mutation_op=mutation,
+        crossover_op=crossover,
+        selection_op=selection
     )
     
     return MalthusAdapter(engine)
@@ -79,35 +68,26 @@ def _build_evosax_ga(pop_size, dims, seed, hypers, problem_object):
     Builds Evosax strategy following 'evosax_benchmark_old.ipynb' EXACTLY.
     """
 
-    # 1. Sample init solution (Notebook Pattern)
+    # 1. Sample init solution
     rng = jax.random.PRNGKey(seed)
     init_solution = problem_object.sample(rng)
     
-    # 2. Instantiate Strategy (Notebook Pattern)
-    # Uses 'population_size' and 'solution'
+    # 2. Instantiate Strategy
     strategy = SimpleGA(
         population_size=pop_size,
         solution=init_solution
     )
     
-    # 3. Configure Elitism (Notebook Pattern)
-    # Explicitly sets the attribute
+    # 3. Configure Elitism
     strategy.elite_ratio = hypers.get('elite_ratio', 0.5)
     
-    # 4. Configure Params (Notebook Pattern)
-    # The notebook ONLY replaces 'crossover_rate'. 
-    # It does NOT touch mutation_rate/sigma, avoiding the TypeError.
+    # 4. Configure Params
     es_params = strategy.default_params.replace(
         crossover_rate=hypers.get('crossover_rate', 0.5)
     )
     
-    print(f"\n[Registry] Built Evosax SimpleGA:")
-    print(f" - Pop Size: {pop_size}")
-    print(f" - Elite Ratio: {strategy.elite_ratio}")
-    print(f" - Crossover Rate: {es_params.crossover_rate}")
-    # print(f" - Mutation: (Using Evosax Default to avoid API mismatch)")
-    
-    return EvosaxAdapter(strategy, es_params, problem_object)
+    # FIX: Pass pop_size explicitly to the adapter
+    return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
 
 # Register "Standard_GA"
 ComparisonRegistry.register(ComparisonSpec(
@@ -115,9 +95,9 @@ ComparisonRegistry.register(ComparisonSpec(
     malthus_factory=_build_malthus_ga,
     evosax_factory=_build_evosax_ga,
     default_hypers={
-        'mutation_rate': 0.1, 
-        'sigma': 0.1, 
-        'crossover_rate': 0.5,
-        'elite_ratio': 0.5
+        'mutation_rate': 0.05,
+        'crossover_rate': 0.6,
+        'sigma': 0.1,
+        'elite_ratio': 0.1
     }
 ))
