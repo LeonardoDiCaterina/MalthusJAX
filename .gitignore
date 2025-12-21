@@ -83,3 +83,9 @@ Level3_Engine_Architecture_files/libs/quarto-html/quarto.js
 Level3_Engine_Architecture_files/libs/quarto-html/tippy.css
 Level3_Engine_Architecture_files/libs/quarto-html/tippy.umd.min.js
 examples/jax_playground.ipynb
+my_local_results/ellipsoidal_rotated/final_benchmark_20251221_141557.csv
+my_local_results/rastrigin/final_benchmark_20251221_145235.csv
+my_local_results/rosenbrock/final_benchmark_20251221_134253.csv
+my_local_results/schaffers_f7/final_benchmark_20251221_152644.csv
+my_local_results/sphere/final_benchmark_20251221_120814.csv
+my_local_results/sphere/final_benchmark_20251221_130805.csv
