@@ -52,7 +52,7 @@ class AbstractBenchmarkAdapter(ABC):
 # 3. CONCRETE ADAPTERS
 # ==============================================================================
 
-class MalthusJaxAdapter(AbstractBenchmarkAdapter):
+class MalthusAdapter(AbstractBenchmarkAdapter):  # <--- RENAMED CORRECTLY
     def __init__(self, engine):
         self.engine = engine
     
