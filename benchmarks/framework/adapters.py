@@ -17,7 +17,6 @@ def setup_bbob_instances(problem_name: str, dim: int, seed: int):
     Creates the objective function for both frameworks.
     """
     # Malthus uses Maximization by default, so we flip BBOB (min) to max
-    # This ensures both frameworks are solving the same math, just signed differently
     bbob_config = BBOBConfig(fn_name=problem_name, num_dims=dim, seed=seed, maximize=True)
     mjx_evaluator = BBOBEvaluator.create(bbob_config)
     
@@ -31,17 +30,12 @@ def setup_bbob_instances(problem_name: str, dim: int, seed: int):
 # ==============================================================================
 
 class AbstractBenchmarkAdapter(ABC):
-    """
-    Unified interface for benchmarking different frameworks.
-    Guarantees that the Runner sees the same API regardless of backend.
-    """
     @abstractmethod
     def init(self, rng: jax.Array) -> Any:
         pass
 
     @abstractmethod
     def make_step_fn(self) -> Callable:
-        """Returns a function: step(carry) -> (new_carry, metrics)"""
         pass
     
     @abstractmethod
@@ -60,9 +54,9 @@ class MalthusAdapter(AbstractBenchmarkAdapter):
         return self.engine.init_state(rng)
     
     def make_step_fn(self):
+        # FIX: Wrap the engine step to handle the 'x' argument from scan
         def step(carry, _):
             return self.engine.step(carry)
-            
         return step
         
     def get_device_info(self):
@@ -81,20 +75,18 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
         p_state = self.problem.init(r_init)
         
         # 2. Init Strategy State
-        # Evosax usually needs an initial solution to shape the state
-        # We sample one randomly just for shape inference
+        # We sample a prototype to let Evosax infer shapes
         init_x = self.problem.sample(r_init)
         
-        # Note: Some Evosax strats need 'init_fitness' too
-        # We'll do a dummy eval to get it
-        init_fit, p_state, _ = self.problem.eval(r_init, init_x, p_state)
+        # FIX: Do NOT call eval here. Just use infinity (worst case for Min).
+        # This avoids the shape crash in BBOB Sphere.
+        init_fit = jnp.array(float('inf')) 
         
-        state = self.strategy.init(r_init, self.problem.sample(r_init), init_fit, self.params)
+        state = self.strategy.init(r_init, init_x, init_fit, self.params)
         
         return (state, p_state, r_start)
 
     def make_step_fn(self):
-        # We must capture 'strategy', 'params', 'problem' in closure
         strategy = self.strategy
         params = self.params
         problem = self.problem
@@ -107,14 +99,11 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
             x, state = strategy.ask(rng_step, state, params)
             
             # 2. EVAL
-            # EvoSax returns (fitness, new_p_state, metrics)
             fitness, p_state, _ = problem.eval(rng_step, x, p_state)
             
             # 3. TELL
             state, _ = strategy.tell(rng_step, x, fitness, state, params)
             
-            # Return matching Malthus signature: (new_carry, metrics)
-            # We return None for metrics to keep overhead minimal
             return (state, p_state, rng), None
             
         return step
