@@ -52,7 +52,7 @@ class AbstractBenchmarkAdapter(ABC):
 # 3. CONCRETE ADAPTERS
 # ==============================================================================
 
-class MalthusAdapter(AbstractBenchmarkAdapter):  # <--- RENAMED CORRECTLY
+class MalthusAdapter(AbstractBenchmarkAdapter):
     def __init__(self, engine):
         self.engine = engine
     
@@ -60,9 +60,10 @@ class MalthusAdapter(AbstractBenchmarkAdapter):  # <--- RENAMED CORRECTLY
         return self.engine.init_state(rng)
     
     def make_step_fn(self):
-        # MalthusJAX engine.step returns (state, metrics)
-        # The runner expects exactly this signature.
-        return self.engine.step
+        def step(carry, _):
+            return self.engine.step(carry)
+            
+        return step
         
     def get_device_info(self):
         return str(jax.devices()[0].device_kind)
