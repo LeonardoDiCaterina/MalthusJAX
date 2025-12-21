@@ -1,112 +1,122 @@
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict
 import jax
 import jax.numpy as jnp
+from abc import ABC, abstractmethod
+from typing import Tuple, Any, Callable
 
 # --- MalthusJAX Imports ---
-from malthusjax.engine.genetic_fastengine import GeneticEngine
-
+from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
 # --- Evosax Imports ---
-from evosax.problems.problem import Problem as EvosaxProblem
+from evosax.problems import BBOBProblem
+
+# ==============================================================================
+# 1. HELPER: Problem Instantiation
+# ==============================================================================
+
+def setup_bbob_instances(problem_name: str, dim: int, seed: int):
+    """
+    Creates the objective function for both frameworks.
+    """
+    # Malthus uses Maximization by default, so we flip BBOB (min) to max
+    # This ensures both frameworks are solving the same math, just signed differently
+    bbob_config = BBOBConfig(fn_name=problem_name, num_dims=dim, seed=seed, maximize=True)
+    mjx_evaluator = BBOBEvaluator.create(bbob_config)
+    
+    # EvoSax - minimization by default
+    es_problem = BBOBProblem(problem_name, num_dims=dim, seed=seed)
+    
+    return mjx_evaluator, es_problem
+
+# ==============================================================================
+# 2. ABSTRACT ADAPTERS
+# ==============================================================================
 
 class AbstractBenchmarkAdapter(ABC):
     """
-    The Universal Plug. 
-    Guarantees that any engine provides a 'step' function compatible with jax.lax.scan.
+    Unified interface for benchmarking different frameworks.
+    Guarantees that the Runner sees the same API regardless of backend.
     """
-    
     @abstractmethod
     def init(self, rng: jax.Array) -> Any:
-        """Returns the initial carry state for the loop."""
         pass
 
     @abstractmethod
     def make_step_fn(self) -> Callable:
-        """Returns (carry, _) -> (new_carry, metrics_scalar)."""
+        """Returns a function: step(carry) -> (new_carry, metrics)"""
         pass
     
     @abstractmethod
-    def get_best_fitness(self, carry: Any) -> float:
-        """Extracts scalar best fitness."""
-        pass
-
-    @abstractmethod
     def get_device_info(self) -> str:
-        """Returns the JAX device name (e.g., 'NVIDIA A100-SXM4-40GB')."""
         pass
 
+# ==============================================================================
+# 3. CONCRETE ADAPTERS
+# ==============================================================================
 
-class MalthusAdapter(AbstractBenchmarkAdapter):
-    def __init__(self, engine: GeneticEngine):
+class MalthusJaxAdapter(AbstractBenchmarkAdapter):
+    def __init__(self, engine):
         self.engine = engine
-
-    def init(self, rng: jax.Array) -> Any:
+    
+    def init(self, rng):
         return self.engine.init_state(rng)
-
-    def make_step_fn(self) -> Callable:
-        def step(carry, _):
-            state = carry
-            new_state, metrics = self.engine.step(state)
-            return new_state, metrics.best_fitness
-        return step
-
-    def get_best_fitness(self, carry: Any) -> float:
-        # Assuming Malthus Engine handles direction (max/min) internally
-        return float(carry.best_fitness)
-
-    def get_device_info(self) -> str:
-        # Check the device of the initial state if available, else default
-        try:
-            return jax.devices()[0].device_kind
-        except Exception:
-            return "Unknown Device"
-
+    
+    def make_step_fn(self):
+        # MalthusJAX engine.step returns (state, metrics)
+        # The runner expects exactly this signature.
+        return self.engine.step
+        
+    def get_device_info(self):
+        return str(jax.devices()[0].device_kind)
 
 class EvosaxAdapter(AbstractBenchmarkAdapter):
-    def __init__(self, strategy: Any, params: Any, problem: EvosaxProblem):
+    def __init__(self, strategy, params, problem):
         self.strategy = strategy
-        self.es_params = params
+        self.params = params
         self.problem = problem
-
-    def init(self, rng: jax.Array) -> Any:
-        # Prepare RNGs
-        rng, rng_init = jax.random.split(rng, 2)
-
-        # Infer population size from the strategy
-        pop_size = getattr(self.strategy, 'population_size', None) or getattr(self.strategy, 'pop_size', None)
-
-        # Infer problem dimensionality
-        num_dims = getattr(self.problem, 'num_dims', None) or getattr(self.problem, 'dimension', None)
-
-        # Build a simple initial population and placeholder fitness array.
-        # This mirrors the approach used in the repo's demos: uniform samples in [-5, 5].
-        initial_pop = jax.random.uniform(rng_init, (pop_size, num_dims), minval=-5.0, maxval=5.0)
-        initial_fitness = jnp.full((pop_size,), jnp.inf)
-
-        # Initialize strategy and problem states using the Evosax API: init(rng, pop, fitness, params)
-        state = self.strategy.init(rng, initial_pop, initial_fitness, self.es_params)
-
-        # Initialize problem-specific parameters/state. Use a fixed key if the problem expects deterministic setup,
-        # otherwise pass a split key derived from rng.
-        problem_state = self.problem.init(rng)
-
-        return (state, problem_state, rng)
-
-    def make_step_fn(self) -> Callable:
-        strategy, problem, es_params = self.strategy, self.problem, self.es_params
         
-        def step(carry, _):
-            state, param_state, rng = carry
-            rng, rng_ask, rng_eval, rng_tell = jax.random.split(rng, 4)
-            x, state = strategy.ask(rng_ask, state, es_params)
-            fitness, new_param_state, _ = problem.eval(rng_eval, x, param_state)
-            state, _ = strategy.tell(rng_tell, x, fitness, state, es_params)
-            return (state, new_param_state, rng), state.best_fitness
+    def init(self, rng):
+        r_init, r_start = jax.random.split(rng)
+        
+        # 1. Init Problem State
+        p_state = self.problem.init(r_init)
+        
+        # 2. Init Strategy State
+        # Evosax usually needs an initial solution to shape the state
+        # We sample one randomly just for shape inference
+        init_x = self.problem.sample(r_init)
+        
+        # Note: Some Evosax strats need 'init_fitness' too
+        # We'll do a dummy eval to get it
+        init_fit, p_state, _ = self.problem.eval(r_init, init_x, p_state)
+        
+        state = self.strategy.init(r_init, self.problem.sample(r_init), init_fit, self.params)
+        
+        return (state, p_state, r_start)
+
+    def make_step_fn(self):
+        # We must capture 'strategy', 'params', 'problem' in closure
+        strategy = self.strategy
+        params = self.params
+        problem = self.problem
+        
+        def step(carry, _=None):
+            state, p_state, rng = carry
+            rng, rng_step = jax.random.split(rng)
+            
+            # 1. ASK
+            x, state = strategy.ask(rng_step, state, params)
+            
+            # 2. EVAL
+            # EvoSax returns (fitness, new_p_state, metrics)
+            fitness, p_state, _ = problem.eval(rng_step, x, p_state)
+            
+            # 3. TELL
+            state, _ = strategy.tell(rng_step, x, fitness, state, params)
+            
+            # Return matching Malthus signature: (new_carry, metrics)
+            # We return None for metrics to keep overhead minimal
+            return (state, p_state, rng), None
+            
         return step
 
-    def get_best_fitness(self, carry: Any) -> float:
-        state, _, _ = carry
-        return float(state.best_fitness)
-
-    def get_device_info(self) -> str:
-        return jax.devices()[0].device_kind
+    def get_device_info(self):
+        return str(jax.devices()[0].device_kind)
