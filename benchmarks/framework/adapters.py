@@ -75,12 +75,12 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
         p_state = self.problem.init(r_init)
         
         # 2. Init Strategy State
-        # We sample a prototype to let Evosax infer shapes
         init_x = self.problem.sample(r_init)
         
-        # FIX: Do NOT call eval here. Just use infinity (worst case for Min).
-        # This avoids the shape crash in BBOB Sphere.
-        init_fit = jnp.array(float('inf')) 
+        # FIX: Create a VECTOR of infinities, not a scalar.
+        # init_x has shape (pop_size, dim), so index 0 is pop_size.
+        pop_size = init_x.shape[0]
+        init_fit = jnp.full((pop_size,), jnp.inf)
         
         state = self.strategy.init(r_init, init_x, init_fit, self.params)
         
