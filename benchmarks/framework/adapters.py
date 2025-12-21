@@ -63,10 +63,12 @@ class MalthusAdapter(AbstractBenchmarkAdapter):
         return str(jax.devices()[0].device_kind)
 
 class EvosaxAdapter(AbstractBenchmarkAdapter):
-    def __init__(self, strategy, params, problem):
+    # FIX: We now accept pop_size explicitly in the constructor
+    def __init__(self, strategy, params, problem, pop_size):
         self.strategy = strategy
         self.params = params
         self.problem = problem
+        self.pop_size = pop_size # Store it safely
         
     def init(self, rng):
         r_init, r_start = jax.random.split(rng)
@@ -75,20 +77,17 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
         p_state = self.problem.init(r_init)
         
         # 2. Init Strategy State
-        # FIX: Explicitly sample (N, D) population instead of relying on single sample
-        # We use standard BBOB initialization bounds [-5, 5]
-        pop_size = self.strategy.popsize
         num_dims = self.problem.num_dims
         
+        # Use the stored self.pop_size (Guaranteed to exist)
         init_x = jax.random.uniform(
             r_init, 
-            (pop_size, num_dims), 
+            (self.pop_size, num_dims), 
             minval=-5.0, 
             maxval=5.0
         )
         
-        # Create correct fitness vector (N,)
-        init_fit = jnp.full((pop_size,), jnp.inf)
+        init_fit = jnp.full((self.pop_size,), jnp.inf)
         
         state = self.strategy.init(r_init, init_x, init_fit, self.params)
         
@@ -103,13 +102,8 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
             state, p_state, rng = carry
             rng, rng_step = jax.random.split(rng)
             
-            # 1. ASK
             x, state = strategy.ask(rng_step, state, params)
-            
-            # 2. EVAL
             fitness, p_state, _ = problem.eval(rng_step, x, p_state)
-            
-            # 3. TELL
             state, _ = strategy.tell(rng_step, x, fitness, state, params)
             
             return (state, p_state, rng), None
