@@ -39,27 +39,36 @@ def _build_malthus_ga(pop_size, dims, seed, hypers, problem_evaluator):
     """Builds MalthusJAX engine matching the Standard GA spec."""
     genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
     
-    # 1. Operators
-    # FIX: Changed 'sigma' to 'std' to match MalthusJAX API
     mutation = GaussianMutation(
-        std=hypers.get('sigma', 0.1),
-        rate=hypers.get('mutation_rate', 0.1)
+        mutation_rate=hypers.get('mutation_rate', 0.1),
+        mutation_strength=hypers.get('sigma', 0.1)
     )
+    
     crossover = UniformCrossover(
-        rate=hypers.get('crossover_rate', 0.5)
+        crossover_rate=hypers.get('crossover_rate', 0.5)
     )
+    
+    elite_ratio = hypers.get('elite_ratio', 0.5)
+    elite_count = max(1, int(pop_size * elite_ratio))
+    
     selection = ElitePoolSelection(
-        elite_ratio=hypers.get('elite_ratio', 0.1)
+        num_selections=pop_size,
+        elite_k=elite_count
     )
-
-    # 2. Engine
+    
+    engine_params = GeneticEngineParams(
+        pop_size=pop_size,
+        num_generations=1,
+        elitism=elite_count
+    )
+    
     engine = GeneticEngine(
-        population_size=pop_size,
+        evaluator=problem_evaluator,
         genome_config=genome_config,
-        fitness_evaluator=problem_evaluator,
-        mutation_op=mutation,
-        crossover_op=crossover,
-        selection_op=selection
+        selection=selection,
+        crossover=crossover,
+        mutation=mutation,
+        engine_params=engine_params
     )
     
     return MalthusAdapter(engine)
