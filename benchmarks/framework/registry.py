@@ -45,11 +45,12 @@ def _build_malthus_ga(pop_size, dims, seed, hypers, problem_evaluator):
     )
     
     crossover = UniformCrossover(
+        num_offspring=2,
         crossover_rate=hypers.get('crossover_rate', 0.5)
     )
     
     elite_ratio = hypers.get('elite_ratio', 0.5)
-    elite_count = max(1, int(pop_size * elite_ratio))
+    elite_count = int(pop_size * elite_ratio)
     
     selection = ElitePoolSelection(
         num_selections=pop_size,
