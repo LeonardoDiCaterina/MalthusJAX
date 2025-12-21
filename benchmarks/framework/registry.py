@@ -40,8 +40,9 @@ def _build_malthus_ga(pop_size, dims, seed, hypers, problem_evaluator):
     genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
     
     # 1. Operators
+    # FIX: Changed 'sigma' to 'std' to match MalthusJAX API
     mutation = GaussianMutation(
-        sigma=hypers.get('sigma', 0.1),
+        std=hypers.get('sigma', 0.1),
         rate=hypers.get('mutation_rate', 0.1)
     )
     crossover = UniformCrossover(
@@ -70,6 +71,7 @@ def _build_evosax_ga(pop_size, dims, seed, hypers, problem_object):
 
     # 1. Sample init solution
     rng = jax.random.PRNGKey(seed)
+    # Returns a single sample (D,)
     init_solution = problem_object.sample(rng)
     
     # 2. Instantiate Strategy
@@ -86,7 +88,7 @@ def _build_evosax_ga(pop_size, dims, seed, hypers, problem_object):
         crossover_rate=hypers.get('crossover_rate', 0.5)
     )
     
-    # FIX: Pass pop_size explicitly to the adapter
+    # Pass pop_size explicitly to the adapter (Retaining the fix from previous step)
     return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
 
 # Register "Standard_GA"
