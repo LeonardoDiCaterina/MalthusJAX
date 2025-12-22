@@ -163,4 +163,68 @@ class SimulatedBinaryCrossover(BaseCrossover["RealGenome", "RealGenomeConfig", "
         # 7. Safe Return
         return p1.replace(values=final_values)
     
-__all__ = ['UniformCrossover' , 'SimulatedBinaryCrossover' , 'BlendCrossover']
+    
+    
+
+
+@struct.dataclass
+class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+    """
+    DE Binomial Crossover.
+    Requires 1 key per operation: [0] for the Crossover Mask.
+    """
+    crossover_rate: float = 0.9
+
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 1
+
+    def _cross_one(
+        self, 
+        keys: chex.Array, 
+        target: RealGenome, 
+        mutant: RealGenome, 
+        config: RealGenomeConfig
+    ) -> RealGenome:
+        """
+        Atomic Logic.
+        """
+        # DIRECT UNPACKING
+        k_mask = keys[0]
+        
+        # 1. Generate Crossover Mask (Bernoulli)
+        # shape matches genome.values
+        # True = Take Mutant, False = Take Target
+        # Note: In DE, we usually ensure at least one gene is swapped (Glossed over here for speed)
+        cross_mask = jax.random.bernoulli(k_mask, p=self.crossover_rate, shape=target.values.shape)
+        
+        # 2. Select (Fused Select)
+        trial_values = jnp.where(cross_mask, mutant.values, target.values)
+        
+        # 3. Clip (Optional but recommended for DE)
+        min_val, max_val = config.bounds
+        trial_values = jnp.clip(trial_values, min_val, max_val)
+        
+        return target.replace(values=trial_values)
+    
+    def __call__(self, all_keys: chex.Array, target_batch: RealGenome, mutant_batch: RealGenome, config: RealGenomeConfig) -> RealGenome:
+        leaves = jax.tree_util.tree_leaves(target_batch)
+        pop_size = leaves[0].shape[0]
+        
+        keys_reshaped = all_keys.reshape(pop_size, 1, self.num_keys_per_atomic_operation, 2)
+        
+        def _process_one(k_block, t, m):
+            return jax.vmap(lambda k: self._cross_one(k, t, m, config))(k_block)
+
+        nested_genes = jax.vmap(_process_one)(keys_reshaped, target_batch, mutant_batch)
+        
+        new_genes = jax.tree_util.tree_map(
+            lambda x: x.reshape((-1,) + x.shape[2:]), 
+            nested_genes
+        )
+        
+        return new_genes
+
+
+    
+__all__ = ['UniformCrossover' , 'SimulatedBinaryCrossover' , 'BlendCrossover', 'BinomialCrossover']

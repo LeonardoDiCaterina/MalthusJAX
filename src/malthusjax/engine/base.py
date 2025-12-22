@@ -38,7 +38,7 @@ def validate_engine_params(params: 'AbstractEngineParams') -> None:
         raise ValueError(
             f"elitism must satisfy 0 <= elitism < pop_size, "
             f"got elitism={params.elitism}, pop_size={params.pop_size}"
-        )
+        )       
 
 
 @flax.struct.dataclass
