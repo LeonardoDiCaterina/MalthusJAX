@@ -75,6 +75,7 @@ def main():
                 "Framework": res.framework,
                 "Mean_GPS": res.mean_gps,
                 "Mean_Time": res.mean_exec_time,
+                "Std_Time": res.std_exec_time,
                 "Compile_Time": res.compile_time,
                 "Best_Fitness": res.best_fitness_final # SAVED HERE
             }

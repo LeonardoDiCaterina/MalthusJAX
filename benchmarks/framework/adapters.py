@@ -54,7 +54,6 @@ class MalthusAdapter(AbstractBenchmarkAdapter):
         return self.engine.init_state(rng)
     
     def make_step_fn(self):
-        # FIX: Wrap the engine step to handle the 'x' argument from scan
         def step(carry, _):
             return self.engine.step(carry)
         return step
@@ -63,7 +62,6 @@ class MalthusAdapter(AbstractBenchmarkAdapter):
         return str(jax.devices()[0].device_kind)
     
     def extract_best_fitness(self, state):
-        # Malthus (Maximization): The best is the MAX of the final population
         return float(state.best_fitness)
 \
 class EvosaxAdapter(AbstractBenchmarkAdapter):
@@ -77,13 +75,10 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
     def init(self, rng):
         r_init, r_start = jax.random.split(rng)
         
-        # 1. Init Problem State
         p_state = self.problem.init(r_init)
         
-        # 2. Init Strategy State
         num_dims = self.problem.num_dims
         
-        # Use the stored self.pop_size (Guaranteed to exist)
         init_x = jax.random.uniform(
             r_init, 
             (self.pop_size, num_dims), 
@@ -105,8 +100,7 @@ class EvosaxAdapter(AbstractBenchmarkAdapter):
         def step(carry, _=None):
             state, p_state, rng = carry
             rng, rng_step = jax.random.split(rng)
-            
-            x, state = strategy.ask(rng_step, state, params)
+            x, state = strategy.ask(rng_step, state, params)            
             fitness, p_state, _ = problem.eval(rng_step, x, p_state)
             state, _ = strategy.tell(rng_step, x, fitness, state, params)
             
