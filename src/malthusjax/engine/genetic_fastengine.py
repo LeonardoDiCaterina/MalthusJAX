@@ -18,6 +18,8 @@ from ..core.genome.binary_genome import BinaryGenomeConfig, BinaryPopulation
 from ..core.genome.real_genome import RealGenomeConfig, RealPopulation
 from ..core.genome.categorical_genome import CategoricalGenomeConfig, CategoricalPopulation
 
+#TODO: update selection doctring
+
 def traceable(name):
     """Correctly wraps a method in jax.named_call for HLO profiling labels."""
     def decorator(fn):
@@ -96,7 +98,7 @@ class GeneticEngine(AbstractEngine):
     def _selection_phase(self, key_selection: chex.Array, population: Any, operators: OperatorState, params: Any) -> Tuple[chex.Array, chex.Array]:
         """
         Input: Specific key slice for selection.
-        Output: Elites (small copy) and Parents (copy).
+
         """
         # 1. Elitism
         _, elite_idx = jax.lax.top_k(population.fitness, params.elitism)
@@ -121,22 +123,14 @@ class GeneticEngine(AbstractEngine):
     ) -> Any: 
         
         # 1. Slice Indices (Cheap metadata op)
-        num_pairs = rmap.crossover.input_count // 2
-        p1_idx = parent_indices[:num_pairs]
-        p2_idx = parent_indices[num_pairs : num_pairs * 2]
+        num_pairs = rmap.crossover.input_count // 2 # 9//2=4
+        p1_idx = parent_indices[:num_pairs] # 0:4
+        p2_idx = parent_indices[num_pairs : num_pairs * 2] #4:8
 
         # 2. Gather (INSIDE the fusion scope of crossover)
         # XLA sees: Gather -> Crossover. It fuses them.
         p1_pop = population[p1_idx]
         p2_pop = population[p2_idx]
-        
-        # 3. Execute Crossover
-        offspring_pop = operators.crossover(
-            keys_crossover, 
-            p1_pop, 
-            p2_pop, 
-            self.genome_config
-        )
         
         # 2. Execute Crossover
         offspring_pop = operators.crossover(
