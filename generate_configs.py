@@ -29,7 +29,7 @@ seeds = [42] # Master seed (expanded internally)
 generations = 2000
 
 [grid.hyperparams]
-mutation_rate = 0.05
+mutation_rate = 1.0
 crossover_rate = 0.6
 sigma = 0.1
 elite_ratio = 0.1

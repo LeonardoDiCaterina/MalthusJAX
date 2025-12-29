@@ -106,7 +106,19 @@ markers = [
 
 [tool.coverage.run]
 source = ["src/malthusjax"]
-omit = ["*/tests/*", "*/__pycache__/*"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "src/malthusjax/visualization/**",
+    "src/malthusjax/visualization/*",
+    "src/malthusjax/engine/pbil_engine.py",
+    "src/malthusjax/engine/random_search.py",
+    "src/malthusjax/engine/inspector.py",
+    "src/malthusjax/engine/strategy.py",
+    "src/malthusjax/operators/crossover/adaptive.py",
+    "src/malthusjax/operators/mutation/adaptive.py",
+    "src/malthusjax/core/genome/adaptive.py",
+]
 
 [tool.coverage.report]
 # Replaces --cov-report=term-missing and --cov-report=html

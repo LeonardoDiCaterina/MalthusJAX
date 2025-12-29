@@ -119,3 +119,14 @@ plots/ragged_edge/ragged_rastrigin.png
 plots/ragged_edge/ragged_rosenbrock.png
 plots/ragged_edge/ragged_schaffers_f7.png
 plots/ragged_edge/ragged_sphere.png
+results/gecco_final/ellipsoidal_rotated/final_benchmark_20251225_141256.csv
+results/gecco_final/rastrigin/final_benchmark_20251225_150732.csv
+results/gecco_final/rosenbrock/final_benchmark_20251225_132455.csv
+results/gecco_final/schaffers_f7/final_benchmark_20251225_155644.csv
+results/gecco_final/sphere/final_benchmark_20251225_123234.csv
+results/gecco_run/benchmark_20251217_181240.csv
+results/gecco_run/benchmark_20251217_181422.csv
+results/gecco_run/benchmark_20251219_014950.csv
+results/gecco_run/benchmark_20251217_181240.csv
+results/gecco_run/benchmark_20251217_181422.csv
+results/gecco_run/benchmark_20251219_014950.csv
