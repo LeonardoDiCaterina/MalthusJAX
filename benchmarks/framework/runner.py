@@ -2,7 +2,8 @@ import time
 import jax
 import numpy as np
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
+from pathlib import Path
 from .adapters import AbstractBenchmarkAdapter
 
 @dataclass
@@ -20,6 +21,54 @@ class BenchmarkResult:
     best_fitness_final: float 
     
     all_times: List[float] = field(default_factory=list)
+
+def extract_hlo_from_adapter(
+    adapter: AbstractBenchmarkAdapter,
+    num_gens: int,
+    seed: int,
+    framework_name: str,
+    unroll_factor: int = 1,
+    output_path: Optional[str] = None
+) -> str:
+    """
+    Compile the adapter's evolution loop and extract HLO representation.
+    
+    Args:
+        adapter: The benchmark adapter to compile
+        num_gens: Number of generations for the evolution loop
+        seed: Random seed for initialization
+        framework_name: Name of the framework (for logging)
+        unroll_factor: Loop unrolling factor
+        output_path: Optional path to save HLO text file
+        
+    Returns:
+        HLO text representation as a string
+    """
+    master_key = jax.random.PRNGKey(seed)
+    init_carry = adapter.init(master_key)
+    step_fn = adapter.make_step_fn()
+    
+    def scan_loop(carry):
+        return jax.lax.scan(step_fn, carry, None, length=num_gens, unroll=unroll_factor)
+    
+    print(f"[{framework_name}] Compiling (Unroll={unroll_factor}) to extract HLO...", end="", flush=True)
+    t0 = time.perf_counter()
+    jit_scan = jax.jit(scan_loop)
+    compiled_scan = jit_scan.lower(init_carry).compile()
+    t_compile = time.perf_counter() - t0
+    print(f" Done ({t_compile:.4f}s)")
+    
+    # Extract HLO text representation
+    hlo_text = compiled_scan.as_text()
+    
+    # Optionally save to file
+    if output_path:
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, 'w') as f:
+            f.write(hlo_text)
+        print(f"HLO saved to: {output_path}")
+    
+    return hlo_text
 
 def run_adapter_benchmark(
     adapter: AbstractBenchmarkAdapter, 

@@ -9,7 +9,10 @@ class OneFifthGeneticEngineParams(GeneticEngineParams):
     Parameters for the 1/5th Success Rule Genetic Engine.
     """
     target_success_rate: float = 0.2  # 1/5
-    update_factor: float = 0.82       # Rechenberg's constant (approx 1/1.22)
+    # Use doubling/halving like MR15 implementation
+    std_min: float = 0.0
+    std_max: float = jnp.inf
+    std_ratio: float = 0.2
 
 @struct.dataclass
 class OneFifthGeneticEngine(GeneticEngine):
@@ -29,49 +32,28 @@ class OneFifthGeneticEngine(GeneticEngine):
         # 1. Run Standard Step
         # This returns the state with the NEW population
         new_state, metrics = super().step(state)
-        
-        # 2. Calculate Success Rate
-        # We need to compare the NEW fitness vs OLD fitness.
-        # Note: In standard GA, "Success" is tricky because parents might be gone.
-        # MR15 is usually defined for (1+1)-ES or (mu+lambda)-ES.
-        # Interpretation for GA: Fraction of offspring strictly better than the *average* of previous generation?
-        # Or: Fraction of offspring better than the parents they replaced?
-        
-        # Let's use: Fraction of population that improved over the previous generation's best.
-        # (This is a simplified metric for GA).
-        
-        # A Better Metric for GA: 
-        # Did the *Best Fitness* improve?
-        improved = new_state.best_fitness > state.best_fitness
-        
-        # 3. Update Mutation Strength (Global Sigma)
-        # We access the mutation operator inside the state
+        # 2. Calculate beneficial mutation rate (fraction of individuals that improved)
+        # Compare new population fitness against previous population fitness element-wise.
+        prev_fitness = state.population.fitness
+        new_fitness = new_state.population.fitness
+
+        # beneficial_mutation_rate: fraction of individuals with improved fitness
+        beneficial_mutation_rate = jnp.mean(new_fitness < prev_fitness)
+
+        # 3. Update Mutation Strength (Global Sigma) using MR15 rule (double / half)
         current_mutation = new_state.operators.mutation
         current_sigma = current_mutation.mutation_strength
-        
-        # Rule: If improved, increase step (exploration). If not, decrease (exploitation).
-        # (Or vice-versa depending on the landscape stage).
-        # Standard 1/5th Rule:
-        # If P_success > 1/5 -> Sigma = Sigma / update_factor (Increase range)
-        # If P_success < 1/5 -> Sigma = Sigma * update_factor (Decrease range)
-        
-        # Since calculating P_success accurately in a complex GA merge is hard, 
-        # we often just check if we are stagnating.
-        
-        # Let's assume we implement the rule:
-        # If improved -> Grow Sigma
-        # Else -> Shrink Sigma
-        
-        new_sigma = jnp.where(
-            improved,
-            current_sigma / self.engine_params.update_factor,  # Grow
-            current_sigma * self.engine_params.update_factor  # Shrink
-        )
-        
+
+        increase_std = beneficial_mutation_rate > self.engine_params.std_ratio
+        new_sigma = jnp.where(increase_std, 2.0 * current_sigma, 0.5 * current_sigma)
+
+        # Clip to bounds
+        new_sigma = jnp.clip(new_sigma, a_min=self.engine_params.std_min, a_max=self.engine_params.std_max)
+
         # 4. Inject Updated Operator back into State
         new_op = current_mutation.replace(mutation_strength=new_sigma)
         new_ops = new_state.operators.replace(mutation=new_op)
-        
+
         final_state = new_state.replace(operators=new_ops)
-        
+
         return final_state, metrics
