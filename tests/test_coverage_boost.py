@@ -93,17 +93,21 @@ def test_real_crossover_operators():
     p2 = RealGenome(values=jnp.ones(5))
 
     # 1. Test Blend Crossover
+    # _cross_one expects keys with shape (num_keys_per_atomic_operation, 2)
     blx = BlendCrossover(crossover_rate=1.0, alpha=0.5)
-    child_blx = blx._cross_one(key, p1, p2, config)
+    blx_keys = jar.split(key, blx.num_keys_per_atomic_operation)  # Shape: (2, 2)
+    child_blx = blx._cross_one(blx_keys, p1, p2, config)
     assert not jnp.all(child_blx.values == p1.values)
     
     # 2. Test SBX Crossover
     sbx = SimulatedBinaryCrossover(crossover_rate=1.0, eta=20.0)
-    child_sbx = sbx._cross_one(key, p1, p2, config)
+    sbx_keys = jar.split(jar.fold_in(key, 1), sbx.num_keys_per_atomic_operation)
+    child_sbx = sbx._cross_one(sbx_keys, p1, p2, config)
     assert child_sbx.values.shape == (5,)
     assert not jnp.all(child_sbx.values == p1.values)
 
     # 3. Test No Crossover
     blx_none = BlendCrossover(crossover_rate=0.0)
-    child_none = blx_none._cross_one(key, p1, p2, config)
+    blx_none_keys = jar.split(jar.fold_in(key, 2), blx_none.num_keys_per_atomic_operation)
+    child_none = blx_none._cross_one(blx_none_keys, p1, p2, config)
     assert jnp.array_equal(child_none.values, p1.values)

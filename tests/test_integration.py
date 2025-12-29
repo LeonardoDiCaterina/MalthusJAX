@@ -12,6 +12,9 @@ from malthusjax import (
     BinarySumEvaluator, BinarySumConfig
 )
 
+from malthusjax.operators.selection import TournamentSelection
+from malthusjax.operators.mutation import BitFlipMutation, ScrambleMutation
+
 # 2. Import The Library Namespace (For Operators)
 import malthusjax as mjx
 
@@ -32,37 +35,40 @@ class TestBinaryEvolutionPipeline:
         evaluated_pop = evaluator.evaluate_population(population)
         fitness = evaluated_pop.fitness
 
-        # 3. Select (Using Clean Namespace)
-        # mjx.selection.Tournament matches your new __init__.py
-        selector = mjx.selection.Tournament(num_selections=pop_size, tournament_size=3)
+        # 3. Select (TournamentSelection overrides __call__ to take raw fitness)
+        selector = TournamentSelection(num_selections=pop_size, tournament_size=3)
         selected_indices = selector(k2, fitness)
         parents = population[selected_indices]
 
-        # 4. Crossover (Batch-First)
+        # 4. Crossover (Batch-First) - requires pre-split keys
         half = pop_size // 2
-        p1 = parents[:half]
+        p1 = parents[:half]  # Returns Population slice (not raw genes)
         p2 = parents[half:]
         
-        # mjx.crossover.Uniform
-        crossover = mjx.crossover.Uniform(num_offspring=2, crossover_rate=0.5)
+        crossover = mjx.crossover.UniformCrossover(num_offspring=2, crossover_rate=0.5)
+        # Crossover needs keys: (num_pairs * num_offspring * keys_per_op, 2)
+        num_cross_keys = half * crossover.num_offspring * crossover.num_keys_per_atomic_operation
+        cross_keys = jr.split(k3, num_cross_keys)
         
-        offspring_batch = crossover(k3, p1.genes, p2.genes, binary_genome_config)
+        # Pass populations (not .genes) - crossover calls p1.spawn_offspring()
+        offspring_pop = crossover(cross_keys, p1, p2, binary_genome_config)
         
-        # FIX: Reshape explicitly (Batch -> Pop)
-        # (Half, 2, Length) -> (Pop, Length)
-        flat_bits = offspring_batch.bits.reshape(pop_size, binary_genome_config.length)
-        offspring_genome = BinaryGenome(bits=flat_bits)
+        # offspring_pop is a Population; extract bits
+        flat_bits = offspring_pop.genes.bits
         
         assert flat_bits.shape == (pop_size, binary_genome_config.length)
 
-        # 5. Mutation (Batch-First)
-        # mjx.mutation.BitFlip
-        mutator = mjx.mutation.BitFlip(num_offspring=1, mutation_rate=0.1)
+        # 5. Mutation (Batch-First) - requires pre-split keys and population object
+        mutator = BitFlipMutation(num_offspring=1, mutation_rate=0.1)
+        # Mutation needs keys: (pop_size * num_offspring * keys_per_op, 2)
+        num_mut_keys = pop_size * mutator.num_offspring * mutator.num_keys_per_atomic_operation
+        mut_keys = jr.split(k4, num_mut_keys)
         
-        mutated_batch = mutator(k4, offspring_genome, binary_genome_config)
+        # Pass population (not raw genes) - mutation calls population.spawn_offspring()
+        mutated_pop = mutator(mut_keys, offspring_pop, binary_genome_config)
         
-        # FIX: Reshape explicitly (1, Pop, Length) -> (Pop, Length)
-        final_bits = mutated_batch.bits.reshape(pop_size, binary_genome_config.length)
+        # mutated_pop is a Population; extract bits
+        final_bits = mutated_pop.genes.bits
         
         assert final_bits.shape == (pop_size, binary_genome_config.length)
 
@@ -71,35 +77,55 @@ class TestBinaryEvolutionPipeline:
         """Verify JIT compilation of the loop."""
         config = BinaryGenomeConfig(length=10)
         pop_size = 20
+        half = pop_size // 2
         
-        # Bake operators using Clean Namespace
-        selector = mjx.selection.Tournament(num_selections=pop_size, tournament_size=3)
-        crossover = mjx.crossover.Uniform(num_offspring=2, crossover_rate=0.5)
-        mutator = mjx.mutation.BitFlip(num_offspring=1, mutation_rate=0.01)
+        # Bake operators
+        selector = TournamentSelection(num_selections=pop_size, tournament_size=3)
+        crossover = mjx.crossover.UniformCrossover(num_offspring=2, crossover_rate=0.5)
+        mutator = BitFlipMutation(num_offspring=1, mutation_rate=0.01)
+        
+        # Pre-compute key counts for static allocation
+        num_cross_keys = half * crossover.num_offspring * crossover.num_keys_per_atomic_operation
+        num_mut_keys = pop_size * mutator.num_offspring * mutator.num_keys_per_atomic_operation
 
         @jax.jit
         def evolution_step(key, current_bits, fitness):
             k_sel, k_cross, k_mut = jr.split(key, 3)
             
-            # Select
+            # Select (TournamentSelection takes raw fitness)
             indices = selector(k_sel, fitness)
             selected_bits = current_bits[indices]
             
-            # Crossover
-            half = pop_size // 2
-            p1 = BinaryGenome(bits=selected_bits[:half])
-            p2 = BinaryGenome(bits=selected_bits[half:])
+            # Crossover needs Population objects (not raw genomes)
+            cross_keys = jr.split(k_cross, num_cross_keys)
+            p1_genes = BinaryGenome(bits=selected_bits[:half])
+            p2_genes = BinaryGenome(bits=selected_bits[half:])
+            # Create Population wrappers - crossover calls spawn_offspring()
+            p1_pop = BinaryPopulation(
+                genes=p1_genes, 
+                fitness=jnp.zeros(half), 
+                config=config
+            )
+            p2_pop = BinaryPopulation(
+                genes=p2_genes, 
+                fitness=jnp.zeros(half), 
+                config=config
+            )
             
-            off_gen = crossover(k_cross, p1, p2, config)
-            # Flatten: (Half, 2, L) -> (Pop, L)
-            off_bits = off_gen.bits.reshape(pop_size, config.length)
+            off_pop = crossover(cross_keys, p1_pop, p2_pop, config)
+            off_bits = off_pop.genes.bits
             
-            # Mutate
-            off_gen_obj = BinaryGenome(bits=off_bits)
-            mut_gen = mutator(k_mut, off_gen_obj, config)
+            # Mutate needs Population object
+            mut_keys = jr.split(k_mut, num_mut_keys)
+            off_genes = BinaryGenome(bits=off_bits)
+            off_pop_for_mut = BinaryPopulation(
+                genes=off_genes,
+                fitness=jnp.zeros(pop_size),
+                config=config
+            )
+            mut_pop = mutator(mut_keys, off_pop_for_mut, config)
             
-            # Explicit reshape instead of squeeze
-            return mut_gen.bits.reshape(pop_size, config.length)
+            return mut_pop.genes.bits
 
         # Run
         pop = BinaryPopulation.init_random(rng_key, config, pop_size)
@@ -120,14 +146,19 @@ class TestBinaryEvolutionPipeline:
         config = BinaryGenomeConfig(length=10)
         genome = BinaryGenome.random_init(rng_key, config)
         
-        # Clean Namespace Usage
-        op1 = mjx.mutation.BitFlip(num_offspring=1, mutation_rate=0.1)
-        op2 = mjx.mutation.Scramble(num_offspring=1, mutation_rate=1.0)
+        # Operators
+        op1 = BitFlipMutation(num_offspring=1, mutation_rate=0.1)
+        op2 = ScrambleMutation(num_offspring=1, mutation_rate=1.0)
         
-        # Chain
-        mutated1 = op1(rng_key, genome, config)
-        child1 = BinaryGenome(bits=mutated1.bits.reshape(1, -1)[0]) 
+        # Use _mutate_one for single genome testing
+        k1, k2 = jr.split(rng_key)
         
-        mutated2 = op2(rng_key, child1, config)
+        # _mutate_one expects keys with shape (num_keys_per_atomic_operation, 2)
+        keys_1 = jr.split(k1, op1.num_keys_per_atomic_operation)
+        mutated1 = op1._mutate_one(keys_1, genome, config)
         
-        assert mutated2.bits.shape == (1, config.length)
+        # Chain - second mutation
+        keys_2 = jr.split(k2, op2.num_keys_per_atomic_operation)
+        mutated2 = op2._mutate_one(keys_2, mutated1, config)
+        
+        assert mutated2.bits.shape == (config.length,)
