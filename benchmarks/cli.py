@@ -118,6 +118,9 @@ def main():
         base = {"Algorithm": algo, "Task": task, "Dim": dim, "Pop_Size": pop, "Unroll": unroll, "Gens": grid['generations']}
         
         def package(res):
+            # Use absolute value for normalized fitness comparison
+            # MalthusJAX uses maximization (positive), Evosax uses minimization (negative)
+            normalized_fitness = abs(res.best_fitness_final) if res.best_fitness_final is not None else None
             return {
                 **base,
                 "Framework": res.framework,
@@ -125,7 +128,9 @@ def main():
                 "Mean_Time": res.mean_exec_time,
                 "Std_Time": res.std_exec_time,
                 "Compile_Time": res.compile_time,
-                "Best_Fitness": res.best_fitness_final
+                "Best_Fitness": res.best_fitness_final,
+                "Fitness_Std": res.fitness_std,
+                "Normalized_Fitness": normalized_fitness,
             }
 
         results.append(package(res_m))
@@ -135,17 +140,21 @@ def main():
             e_adapter = spec.evosax_factory(pop, dim, master_seed, hypers, e_prob)
             res_e = run_adapter_benchmark(e_adapter, grid['generations'], master_seed, "Evosax", pop, unroll, repeats)
             
-            # Log & Report (dual framework)
+            # Log & Report (dual framework) - use absolute values for comparison
             speedup = res_m.mean_gps / res_e.mean_gps
+            mjx_fit_norm = abs(res_m.best_fitness_final)
+            evosax_fit_norm = abs(res_e.best_fitness_final)
+            fit_diff = abs(mjx_fit_norm - evosax_fit_norm)
+            fit_match = "✓" if fit_diff < 1.0 else "✗"
             print(f"   >>> MalthusJAX Mean GPS: {res_m.mean_gps:.2f}")
             print(f"   >>> Evosax Mean GPS:     {res_e.mean_gps:.2f}")
             print(f"   >>> Speedup: {speedup:.2f}x")
-            print(f"   >>> Final Fit: Malthus={res_m.best_fitness_final:.2e} | Evosax={res_e.best_fitness_final:.2e}")
+            print(f"   >>> Fitness (|val|): MJX={mjx_fit_norm:.2e}±{res_m.fitness_std:.2e} | Evosax={evosax_fit_norm:.2e}±{res_e.fitness_std:.2e} {fit_match}")
             results.append(package(res_e))
         else:
             # Log & Report (Malthus-only)
             print(f"   >>> [Malthus-Only] Mean GPS: {res_m.mean_gps:.2f}")
-            print(f"   >>> Final Fitness: {res_m.best_fitness_final:.2e}")
+            print(f"   >>> Fitness: {abs(res_m.best_fitness_final):.2e}±{res_m.fitness_std:.2e}")
 
     # Save
     df = pd.DataFrame(results)

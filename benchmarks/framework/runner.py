@@ -17,8 +17,9 @@ class BenchmarkResult:
     std_exec_time: float
     mean_gps: float
     
-    # New Field
-    best_fitness_final: float 
+    # Fitness fields
+    best_fitness_final: float
+    fitness_std: float  # Standard deviation of final fitness across repeats
     
     all_times: List[float] = field(default_factory=list)
 
@@ -114,11 +115,13 @@ def run_adapter_benchmark(
         final_fitnesses.append(fit)
 
     exec_times = np.array(exec_times)
+    final_fitnesses = np.array(final_fitnesses)
     mean_time = float(np.mean(exec_times))
     mean_gps = num_gens / mean_time if mean_time > 0 else 0.0
     
     # We report the average final fitness across the 30 runs (robust to outliers)
-    best_final = float(np.average(final_fitnesses))
+    best_final = float(np.mean(final_fitnesses))
+    fitness_std = float(np.std(final_fitnesses))
 
     return BenchmarkResult(
         framework=framework_name,
@@ -130,5 +133,6 @@ def run_adapter_benchmark(
         std_exec_time=float(np.std(exec_times)),
         mean_gps=mean_gps,
         best_fitness_final=best_final,
+        fitness_std=fitness_std,
         all_times=exec_times.tolist()
     )
