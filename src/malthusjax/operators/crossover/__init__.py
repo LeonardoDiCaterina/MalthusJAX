@@ -6,7 +6,7 @@ All crossover operators inherit from BaseCrossover and return (num_offspring, ge
 """
 
 from .binary import UniformCrossover, SinglePointCrossover
-from .real import BlendCrossover, SimulatedBinaryCrossover
+from .real import BlendCrossover, SimulatedBinaryCrossover, BinomialCrossover
 from .linear import LinearCrossover
 
 __all__ = [

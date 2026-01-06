@@ -131,6 +131,11 @@ fail_under = 80  # Optional: Enforce a minimum coverage
 description = "Environment for running benchmarks and analysis"
 dependencies = [
     "malthusjax[dev]",
+    "pandas",
+    "toml",
+    "scipy",
+    "evosax",
+    "matplotlib",
 ]
 
 [tool.hatch.envs.bench.scripts]

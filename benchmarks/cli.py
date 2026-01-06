@@ -20,6 +20,62 @@ except ImportError:
 def load_config(path):
     with open(path, "rb") as f:
         return tomllib.load(f)
+    
+    
+def run_single_benchmark(
+    algo_name,
+    spec,
+    hypers,
+    task,
+    dim,
+    pop_size,
+    seed,
+    unroll,
+    generations,
+    repeats,
+    run_num,
+    total_runs,
+):
+    """Run benchmark for a single algorithm spec (may be Malthus-only or dual)."""
+    jax.clear_caches()
+    m_eval, e_prob = setup_bbob_instances(task, dim, seed)
+    m_adapter = spec.malthus_factory(pop_size, dim, seed, hypers, m_eval)
+
+    res_m = run_adapter_benchmark(m_adapter, generations, seed, "MalthusJAX", pop_size, unroll, repeats)
+    
+    # Only run Evosax if the spec includes it
+    res_e = None
+    if spec.evosax_factory is not None:
+        e_adapter = spec.evosax_factory(pop_size, dim, seed, hypers, e_prob)
+        res_e = run_adapter_benchmark(e_adapter, generations, seed, "Evosax", pop_size, unroll, repeats)
+
+    base = {
+        "Algorithm": algo_name,
+        "Task": task,
+        "Dim": dim,
+        "Pop_Size": pop_size,
+        "Seed": seed,
+        "Unroll": unroll,
+        "Generations": generations,
+    }
+
+    def package(res, framework_name):
+        return {
+            **base,
+            "Framework": framework_name,
+            "Device": getattr(res, "device", "CPU"),
+            "Compile_Time": getattr(res, "compile_time", getattr(res, "compile_time", None)),
+            "Exec_Time": getattr(res, "mean_exec_time", getattr(res, "execution_time", None)),
+            "GPS": getattr(res, "mean_gps", getattr(res, "generations_per_sec", None)),
+            "Best_Fitness": getattr(res, "best_fitness_final", getattr(res, "best_fitness", None)),
+            "Fitness_Std": getattr(res, "std_exec_time", None),
+        }
+
+    results = [package(res_m, "MalthusJAX")]
+    if res_e is not None:
+        results.append(package(res_e, "Evosax"))
+    
+    return results
 
 def main():
     parser = argparse.ArgumentParser(description="MalthusJAX Runner")
@@ -43,29 +99,21 @@ def main():
     print(f"📋 Total Configurations: {len(job_queue)}")
     print(f"📊 Repeats per Config:   {repeats}")
     print(f"⚙️  Hardware:             {jax.devices()[0].device_kind}")
+    print(f"Available Algorithms:  {list(ComparisonRegistry._registry.keys())}")
     print("=" * 60)
 
     results = []
     
     for i, (algo, task, dim, pop, unroll) in enumerate(job_queue, 1):
-        print(f"\n[{i}/{len(job_queue)}] {task} | D={dim} | N={pop} | Unroll={unroll}")
+        print(f"\n[{i}/{len(job_queue)}] {algo} | {task} | D={dim} | N={pop} | Unroll={unroll}")
 
         spec = ComparisonRegistry.get(algo)
         hypers = {**spec.default_hypers, **grid.get('hyperparams', {})}
         
         m_eval, e_prob = setup_bbob_instances(task, dim, master_seed)
         m_adapter = spec.malthus_factory(pop, dim, master_seed, hypers, m_eval)
-        e_adapter = spec.evosax_factory(pop, dim, master_seed, hypers, e_prob)
 
         res_m = run_adapter_benchmark(m_adapter, grid['generations'], master_seed, "MalthusJAX", pop, unroll, repeats)
-        res_e = run_adapter_benchmark(e_adapter, grid['generations'], master_seed, "Evosax", pop, unroll, repeats)
-
-        # Log & Report
-        speedup = res_m.mean_gps / res_e.mean_gps
-        print(f"   >>> MalthusJAX Mean GPS: {res_m.mean_gps:.2f}")
-        print(f"   >>> Evosax Mean GPS:     {res_e.mean_gps:.2f}")
-        print(f"   >>> Speedup: {speedup:.2f}x")
-        print(f"   >>> Final Fit (average): Malthus={res_m.best_fitness_final:.2e} | Evosax={res_e.best_fitness_final:.2e}")
         
         base = {"Algorithm": algo, "Task": task, "Dim": dim, "Pop_Size": pop, "Unroll": unroll, "Gens": grid['generations']}
         
@@ -77,11 +125,27 @@ def main():
                 "Mean_Time": res.mean_exec_time,
                 "Std_Time": res.std_exec_time,
                 "Compile_Time": res.compile_time,
-                "Best_Fitness": res.best_fitness_final # SAVED HERE
+                "Best_Fitness": res.best_fitness_final
             }
 
         results.append(package(res_m))
-        results.append(package(res_e))
+        
+        # Only run Evosax if spec has it
+        if spec.evosax_factory is not None:
+            e_adapter = spec.evosax_factory(pop, dim, master_seed, hypers, e_prob)
+            res_e = run_adapter_benchmark(e_adapter, grid['generations'], master_seed, "Evosax", pop, unroll, repeats)
+            
+            # Log & Report (dual framework)
+            speedup = res_m.mean_gps / res_e.mean_gps
+            print(f"   >>> MalthusJAX Mean GPS: {res_m.mean_gps:.2f}")
+            print(f"   >>> Evosax Mean GPS:     {res_e.mean_gps:.2f}")
+            print(f"   >>> Speedup: {speedup:.2f}x")
+            print(f"   >>> Final Fit: Malthus={res_m.best_fitness_final:.2e} | Evosax={res_e.best_fitness_final:.2e}")
+            results.append(package(res_e))
+        else:
+            # Log & Report (Malthus-only)
+            print(f"   >>> [Malthus-Only] Mean GPS: {res_m.mean_gps:.2f}")
+            print(f"   >>> Final Fitness: {res_m.best_fitness_final:.2e}")
 
     # Save
     df = pd.DataFrame(results)

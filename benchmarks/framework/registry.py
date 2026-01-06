@@ -1,23 +1,27 @@
-from typing import Callable, Dict, Any, NamedTuple
+from typing import Callable, Dict, Any, NamedTuple, Optional
 import jax
 from .adapters import MalthusAdapter, EvosaxAdapter
 
 # --- Malthus Components ---
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.engine.MR15_GA import OneFifthGeneticEngine, OneFifthGeneticEngineParams
-from malthusjax.operators.mutation.real import GaussianMutation
-from malthusjax.operators.crossover.real import UniformCrossover
+from malthusjax.engine.differential_engine import DifferentialEvolutionEngine
+from malthusjax.operators.mutation.real import GaussianMutation, DifferentialMutation
+from malthusjax.operators.crossover.real import UniformCrossover, BinomialCrossover
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+from malthusjax.operators.mutation.ablation_mutation import AblationGaussianMutation
+from malthusjax.operators.crossover.ablation_crossover import AblationUniformCrossover
+from malthusjax.operators.selection.ablation_selection import AblationElitePoolSelection
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 
 # --- Evosax Components ---    
-from evosax.algorithms.population_based import SimpleGA, MR15_GA
+from evosax.algorithms.population_based import SimpleGA, MR15_GA, DifferentialEvolution
 
 class ComparisonSpec(NamedTuple):
     name: str
     malthus_factory: Callable
-    evosax_factory: Callable
-    default_hypers: Dict[str, Any]
+    evosax_factory: Optional[Callable] = None  # Optional for Malthus-only ablations
+    default_hypers: Dict[str, Any] = {}
 
 class ComparisonRegistry:
     _registry: Dict[str, ComparisonSpec] = {}
@@ -173,11 +177,67 @@ def _build_malthus_mr15(pop_size, dims, seed, hypers, problem_evaluator):
     return MalthusAdapter(engine)
 
 
+def _build_malthus_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
+    """Builds MalthusJAX engine with ABLATION operators (zero key allocation)."""
+    genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
+    
+    mutation = AblationGaussianMutation(
+        mutation_rate=hypers.get('mutation_rate', 0.1),
+        mutation_strength=hypers.get('sigma', 0.1),
+        seed=seed  # Use provided seed for determinism
+    )
+    
+    crossover = AblationUniformCrossover(
+        num_offspring=2,
+        crossover_rate=hypers.get('crossover_rate', 0.5),
+        seed=seed
+    )
+    
+    elite_ratio = hypers.get('elite_ratio', 0.5)
+    elite_count = int(pop_size * elite_ratio)
+    
+    selection = AblationElitePoolSelection(
+        num_selections=pop_size,
+        elite_k=elite_count,
+        seed=seed
+    )
+    
+    engine_params = GeneticEngineParams(
+        pop_size=pop_size,
+        num_generations=1,
+        elitism=elite_count
+    )
+    
+    engine = GeneticEngine(
+        evaluator=problem_evaluator,
+        genome_config=genome_config,
+        selection=selection,
+        crossover=crossover,
+        mutation=mutation,
+        engine_params=engine_params
+    )
+    
+    return MalthusAdapter(engine)
+
+
 # Register "Standard_GA"
 ComparisonRegistry.register(ComparisonSpec(
     name="Standard_GA",
     malthus_factory=_build_malthus_ga,
     evosax_factory=_build_evosax_ga,
+    default_hypers={
+        'mutation_rate': 0.05,
+        'crossover_rate': 0.6,
+        'sigma': 0.1,
+        'elite_ratio': 0.1
+    }
+))
+
+# Register "Standard_GA_Ablation" - Zero key allocation overhead (Malthus-only)
+ComparisonRegistry.register(ComparisonSpec(
+    name="Standard_GA_Ablation",
+    malthus_factory=_build_malthus_ga_ablation,
+    evosax_factory=None,  # Malthus-only ablation study
     default_hypers={
         'mutation_rate': 0.05,
         'crossover_rate': 0.6,
@@ -199,5 +259,77 @@ ComparisonRegistry.register(ComparisonSpec(
         'std_min': 0.0,
         'std_max': float('inf'),
         'std_ratio': 0.2,   # 1/5 threshold
+    }
+))
+
+
+# =========================================================
+# DIFFERENTIAL EVOLUTION BUILDERS
+# =========================================================
+
+def _build_malthus_de(pop_size, dims, seed, hypers, problem_evaluator):
+    """Builds MalthusJAX DifferentialEvolutionEngine."""
+    from malthusjax.engine.base import AbstractEngineParams
+    
+    genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
+    
+    # DE uses differential mutation (rand/1 variant)
+    # DifferentialMutation uses 'f_scale' (not 'differential_weight')
+    mutation = DifferentialMutation(
+        f_scale=hypers.get('differential_weight', 0.8),
+    )
+    
+    # DE uses binomial crossover
+    crossover = BinomialCrossover(
+        num_offspring=1,
+        crossover_rate=hypers.get('crossover_rate', 0.9)
+    )
+    
+    engine_params = AbstractEngineParams(
+        pop_size=pop_size,
+        num_generations=1,
+        elitism=0  # DE doesn't use traditional elitism
+    )
+    
+    engine = DifferentialEvolutionEngine(
+        evaluator=problem_evaluator,
+        genome_config=genome_config,
+        mutation=mutation,
+        crossover=crossover,
+        engine_params=engine_params
+    )
+    
+    return MalthusAdapter(engine)
+
+
+def _build_evosax_de(pop_size, dims, seed, hypers, problem_object):
+    """Builds Evosax DifferentialEvolution strategy."""
+    rng = jax.random.PRNGKey(seed)
+    init_solution = problem_object.sample(rng)
+    
+    strategy = DifferentialEvolution(
+        population_size=pop_size,
+        solution=init_solution
+    )
+    
+    # Configure DE params
+    es_params = strategy.default_params.replace(
+        crossover_rate=hypers.get('crossover_rate', 0.9),
+        differential_weight=hypers.get('differential_weight', 0.8),
+        elitism=hypers.get('elitism', True)
+    )
+    
+    return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
+
+
+# Register "Differential_Evolution"
+ComparisonRegistry.register(ComparisonSpec(
+    name="Differential_Evolution",
+    malthus_factory=_build_malthus_de,
+    evosax_factory=_build_evosax_de,
+    default_hypers={
+        'crossover_rate': 0.9,
+        'differential_weight': 0.8,
+        'elitism': True,
     }
 ))

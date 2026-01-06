@@ -3,7 +3,7 @@ name = "GECCO_Smoke_Test_Alignment"
 output_dir = "results/smoke_test"
 
 [grid]
-algorithms = ["Standard_GA"]
+algorithms = ["Standard_GA", "Standard_GA_Ablation"]
 
 # 1. Minimal Task List (Just one easy, one hard)
 tasks = ["sphere", "rosenbrock"]

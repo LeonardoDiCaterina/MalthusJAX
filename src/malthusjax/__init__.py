@@ -17,48 +17,29 @@ from .core.fitness.binary_evaluators import BinarySumEvaluator, BinarySumConfig,
 from .core.fitness.real_evaluators import SphereEvaluator, SphereConfig, GriewankEvaluator, GriewankConfig, BoxEvaluator, BoxConfig
 from .core.fitness.linear_gp_evaluator import LinearGPEvaluator
 
-# --- 2. OPERATORS (Top Level + Namespaces) ---
-# Import operators at top level for direct access: mjx.TournamentSelection()
-from .operators.selection.tournament import TournamentSelection
-from .operators.selection.roulette import RouletteWheelSelection
-from .operators.crossover.binary import UniformCrossover, SinglePointCrossover
-from .operators.crossover.real import BlendCrossover, SimulatedBinaryCrossover
-from .operators.crossover.linear import LinearCrossover
-from .operators.mutation.binary import BitFlipMutation, ScrambleMutation, SwapMutation
-from .operators.mutation.real import GaussianMutation, BallMutation, PolynomialMutation
-from .operators.mutation.categorical import CategoricalFlipMutation, RandomCategoryMutation
-from .operators.mutation.linear import LinearMutation, LinearPointMutation
 
-# Also provide namespaces for organized access: mjx.selection.Tournament()
-class selection:
-    """Namespace for Selection Operators."""
-    from .operators.selection.tournament import TournamentSelection as Tournament
-    from .operators.selection.roulette import RouletteWheelSelection as Roulette
-    from .operators.selection.truncation import Truncation as Truncation
-    from .operators.selection.elite_pool import ElitePoolSelection as ElitePool
+# --- 2. OPERATORS ---
+# Import the submodules entirely. This enables usage like: mjx.selection.TournamentSelection
+from .operators import selection
+from .operators import crossover
+from .operators import mutation
 
-class crossover:
-    """Namespace for Crossover Operators."""
-    from .operators.crossover.binary import UniformCrossover as Uniform
-    from .operators.crossover.binary import SinglePointCrossover as SinglePoint
-    from .operators.crossover.real import BlendCrossover as Blend
-    from .operators.crossover.real import UniformCrossover as realUniform
-    from .operators.crossover.real import SimulatedBinaryCrossover as realSBX
-    from .operators.crossover.real import SimulatedBinaryCrossover as SBX
-    from .operators.crossover.linear import LinearCrossover as Linear
-
-class mutation:
-    """Namespace for Mutation Operators."""
-    from .operators.mutation.binary import BitFlipMutation as BitFlip
-    from .operators.mutation.binary import ScrambleMutation as Scramble
-    from .operators.mutation.binary import SwapMutation as Swap
-    from .operators.mutation.real import GaussianMutation as Gaussian
-    from .operators.mutation.real import BallMutation as Ball
-    from .operators.mutation.real import PolynomialMutation as Polynomial
-    from .operators.mutation.categorical import CategoricalFlipMutation as CategoryFlip
-    from .operators.mutation.categorical import RandomCategoryMutation as RandomCategory
-    from .operators.mutation.linear import LinearMutation as Linear
-    from .operators.mutation.linear import LinearPointMutation as LinearPoint
+# --- 4. EXPORTS ---
+# Explicitly define what `from malthusjax import *` exports
+__all__ = [
+    # Submodules
+    "selection",
+    "crossover",
+    "mutation",
+    # Core Genomes
+    "BaseGenome", "BasePopulation",
+    "BinaryGenome", "BinaryGenomeConfig",
+    "RealGenome", "RealGenomeConfig",
+    "CategoricalGenome", "CategoricalGenomeConfig",
+    "LinearGenome", "LinearGenomeConfig",
+    # Engines
+    "GeneticEngine", "GeneticEngineParams", "GeneticGenerationOutput",
+]
 
 # --- 3. ENGINE (Top Level) ---
 from .engine.base import AbstractEngine, AbstractEvolutionState, AbstractEngineParams
