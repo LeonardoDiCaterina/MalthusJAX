@@ -1,6 +1,11 @@
 import time
 import os
 import argparse
+import os
+try:
+    import tomllib as toml
+except Exception:
+    import toml
 import warnings
 import numpy as np
 import pandas as pd
@@ -14,6 +19,8 @@ try:
     from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
     from evosax.problems import BBOBProblem
     from evosax.algorithms import SimpleGA
+    # MR15 engine (one-fifth rule)
+    from malthusjax.engine.MR15_GA import OneFifthGeneticEngine, OneFifthGeneticEngineParams
 except ImportError as e:
     print("❌ Critical Dependency Missing. Please install malthusjax and evosax.")
     raise e
@@ -35,17 +42,63 @@ def setup_bbob_problem(problem_name, dim, seed):
     es_problem = BBOBProblem(problem_name, num_dims=dim, seed=seed)
     return mjx_evaluator, es_problem
 
-def build_malthusjax(evaluator, pop_size, num_gen, crossover_rate=0.5):
+def build_malthusjax(evaluator, pop_size, num_gen, crossover_rate=0.5, algorithm="Standard_GA"):
     """Builds the MalthusJAX Genetic Engine."""
     genome_config = mjx.RealGenomeConfig(length=evaluator.config.num_dims, bounds=(-5.0, 5.0))
-    params = mjx.AbstractEngineParams(pop_size=pop_size, num_generations=num_gen, elitism=0) # Match notebook
+    # Choose engine params/class based on requested algorithm
+    if algorithm == "MR15_GA":
+        params = OneFifthGeneticEngineParams(pop_size=pop_size, num_generations=num_gen, elitism=0)
+        EngineCls = OneFifthGeneticEngine
+    else:
+        params = mjx.AbstractEngineParams(pop_size=pop_size, num_generations=num_gen, elitism=0) # Match notebook
+        EngineCls = mjx.GeneticEngine
 
-    # Operators
-    selection = mjx.selection.ElitePool(num_selections=pop_size, elite_k=int(pop_size * 0.5))
-    crossover = mjx.crossover.realUniform(num_offspring=2, crossover_rate=crossover_rate)
-    mutation = mjx.mutation.Gaussian(num_offspring=1, mutation_rate=1.0, mutation_strength=1.0, clip=False) # Match notebook params
+    # Helpers to find operator names with multiple possible styles
+    def find_attr(mod, *candidates):
+        for name in candidates:
+            if hasattr(mod, name):
+                return getattr(mod, name)
+        return None
 
-    return mjx.GeneticEngine(
+    # Operators (try multiple possible API names)
+    SelectionCls = find_attr(mjx.selection, "ElitePool", "elite_pool", "elitepool")
+    if SelectionCls is None:
+        raise AttributeError("Could not find ElitePool selection operator in mjx.selection")
+    # If the found attribute is a module, search inside it for a callable
+    import types
+    if not callable(SelectionCls) and isinstance(SelectionCls, types.ModuleType):
+        SelectionInner = find_attr(SelectionCls, "ElitePool", "elite_pool", "ElitePoolSelection")
+        if SelectionInner is None:
+            raise AttributeError("Found selection module but couldn't find callable inside")
+        SelectionCls = SelectionInner
+    selection = SelectionCls(num_selections=pop_size, elite_k=int(pop_size * 0.5))
+
+    # Choose a crossover suited for the genome type (prefer real-valued operators when using RealGenomeConfig)
+    is_real_genome = genome_config.__class__.__name__.lower().startswith("real")
+    if is_real_genome:
+        CrossoverCls = find_attr(mjx.crossover, "SimulatedBinaryCrossover", "BlendCrossover", "BinomialCrossover", "UniformCrossover")
+    else:
+        CrossoverCls = find_attr(mjx.crossover, "UniformCrossover", "SinglePointCrossover")
+    if CrossoverCls is None:
+        raise AttributeError("Could not find a real uniform crossover operator in mjx.crossover")
+    if not callable(CrossoverCls) and isinstance(CrossoverCls, types.ModuleType):
+        CrossoverInner = find_attr(CrossoverCls, "RealUniform", "real_uniform", "realUniform")
+        if CrossoverInner is None:
+            raise AttributeError("Found crossover module but couldn't find callable inside")
+        CrossoverCls = CrossoverInner
+    crossover = CrossoverCls(num_offspring=2, crossover_rate=crossover_rate)
+
+    MutationCls = find_attr(mjx.mutation, "Gaussian", "gaussian", "GaussianMutation")
+    if MutationCls is None:
+        raise AttributeError("Could not find Gaussian mutation operator in mjx.mutation")
+    if not callable(MutationCls) and isinstance(MutationCls, types.ModuleType):
+        MutationInner = find_attr(MutationCls, "Gaussian", "gaussian", "GaussianMutation")
+        if MutationInner is None:
+            raise AttributeError("Found mutation module but couldn't find callable inside")
+        MutationCls = MutationInner
+    mutation = MutationCls(num_offspring=1, mutation_rate=1.0, mutation_strength=1.0, clip=False)
+
+    return EngineCls(
         genome_config=genome_config, evaluator=evaluator, selection=selection,
         crossover=crossover, mutation=mutation, engine_params=params
     )
@@ -65,7 +118,7 @@ def build_evosax(problem, pop_size, crossover_rate=0.0):
 # 2. RUNNERS (Execution & Timing)
 # ==============================================================================
 
-def run_single_experiment(framework, problem_name, pop_size, dim=20, gens=50, seed=42):
+def run_single_experiment(framework, problem_name, pop_size, dim=20, gens=50, seed=42, algorithm="Standard_GA"):
     """
     Executes one standardized run with correct JAX blocking and timing.
     """
@@ -74,7 +127,7 @@ def run_single_experiment(framework, problem_name, pop_size, dim=20, gens=50, se
     
     if framework == "MalthusJAX":
         # Configure Engine (Enable Crossover=0.5 for GA logic)
-        engine = build_malthusjax(mjx_eval, pop_size, gens, crossover_rate=0.5)
+        engine = build_malthusjax(mjx_eval, pop_size, gens, crossover_rate=0.5, algorithm=algorithm)
         
         # JIT Compiled Step Function
         @jax.jit
@@ -281,6 +334,7 @@ class BenchmarkScorecard:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MalthusJAX vs EvoSax Benchmark")
     parser.add_argument("--plot", action="store_true", help="Show performance graphs")
+    parser.add_argument("--config", type=str, help="Path to TOML config file for grid benchmark")
     args = parser.parse_args()
     
     # Check Hardware
@@ -288,9 +342,43 @@ if __name__ == "__main__":
     
     # Run Suite
     scorecard = BenchmarkScorecard(show_plots=args.plot)
-    
-    speed_data = scorecard.measure_speed()
-    acc_data = scorecard.measure_accuracy()
-    scorecard.capture_trace()
-    
-    scorecard.report(speed_data, acc_data)
+    # If a config TOML is provided, run a simple grid defined in the file
+    if args.config:
+        cfg_path = args.config
+        if not os.path.exists(cfg_path):
+            raise FileNotFoundError(f"Config file not found: {cfg_path}")
+
+        with open(cfg_path, "rb") as f:
+            cfg = toml.load(f)
+
+        grid = cfg.get("grid", {})
+        tasks = grid.get("tasks", ["sphere"])[:]
+        dims = grid.get("dimensions", [10])[:]
+        pops = grid.get("pop_sizes", [128])[:]
+        repeats = grid.get("repeats", 1)
+        gens = grid.get("generations", 10)
+        seeds = grid.get("seeds", [42])[:]
+
+        print(f"Running config: {cfg_path}")
+        results = []
+        for task in tasks:
+            for dim in dims:
+                for pop in pops:
+                    for seed in seeds:
+                        for r in range(repeats):
+                            for alg in grid.get("algorithms", ["Standard_GA"]):
+                                print(f"Running {alg} / {task} dim={dim} pop={pop} seed={seed} (repeat {r+1})")
+                                cost, runtime = run_single_experiment("MalthusJAX", task, pop_size=pop, dim=dim, gens=gens, seed=seed, algorithm=alg)
+                                results.append({"algorithm": alg, "task": task, "dim": dim, "pop": pop, "seed": seed, "cost": cost, "time": runtime})
+
+        df = pd.DataFrame(results)
+        out_dir = cfg.get("experiment", {}).get("output_dir", "results/smoke_test")
+        os.makedirs(out_dir, exist_ok=True)
+        out_path = os.path.join(out_dir, "smoke_results.csv")
+        df.to_csv(out_path, index=False)
+        print(f"Saved results to {out_path}")
+    else:
+        speed_data = scorecard.measure_speed()
+        acc_data = scorecard.measure_accuracy()
+        scorecard.capture_trace()
+        scorecard.report(speed_data, acc_data)
