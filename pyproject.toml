@@ -125,3 +125,25 @@ omit = [
 show_missing = true
 skip_covered = true
 fail_under = 80  # Optional: Enforce a minimum coverage
+
+
+[tool.hatch.envs.bench]
+description = "Environment for running benchmarks and analysis"
+dependencies = [
+    "malthusjax[dev]",
+]
+
+[tool.hatch.envs.bench.scripts]
+# Quick smoke benchmark
+smoke = "python benchmarks/run_benchmark.py --config benchmarks/smoke_test.toml"
+# Full benchmark using the gecco config
+full = "python benchmarks/run_benchmark.py --config benchmarks/gecco_benchmark.toml"
+# Configurable benchmark runner
+configurable = "python benchmarks/run_benchmark_configurable.py --config {args}"
+# Engine comparison / experiment runner
+compare = "python benchmarks/run_engine_comparison.py"
+# Generate reports and plots from local results
+analyze = "python my_local_results/generate_report.py"
+plot = "python my_local_results/plot.py"
+# Clean generated local results (be careful: this removes files)
+clean = "bash -lc 'rm -rf my_local_results/* results/*.csv'"

@@ -54,7 +54,7 @@ class GeneticEvolutionState(AbstractEvolutionState):
     # The 'Compiled' Execution Plan
     resource_map: ResourceMap = struct.field(pytree_node=False)
     # The 'Baked' Operators (Input sizes frozen)
-    operators: OperatorState = struct.field(pytree_node=True)
+    operators: OperatorState = struct.field(pytree_node=False)
 
 @struct.dataclass
 class GeneticEngine(AbstractEngine):

@@ -208,6 +208,7 @@ class AbstractEngine(ABC):
             print("-" * 30)
             
         return hlo_text
+    
 
 @functools.lru_cache(maxsize=32)
 def _get_evolution_kernel(params: AbstractEngineParams, compile_jit: bool = True, unroll_num: int = 1):
@@ -216,38 +217,36 @@ def _get_evolution_kernel(params: AbstractEngineParams, compile_jit: bool = True
     Cached by 'params' to ensure we only compile once per configuration.
     """
     
-    # 1. Define the scan body
-    # params is captured via closure
-    def _scan_body(carry, _):
-        engine, state = carry
-        
-        # Execute Step
-        # We cleaned up the signature: engine.step(state)
-        # The engine instance (self) is passed via carry to support polymorphism
-        new_state, history_item = engine.step(state)
-        
-        # Scan requires: (carry, accum)
-        return (engine, new_state), history_item
-
-    # 2. Define the outer loop
+    # 2. Define the outer loop FIRST
     def _evolve_loop(engine: AbstractEngine, initial_state: AbstractEvolutionState):
         
-        init_carry = (engine, initial_state)
+        # Because we are inside _evolve_loop, 'engine' is available in the scope.
+        # We do NOT need to pass it in the carry.
+        def _scan_body_closure(state, _):
+            # 'engine' is a compile-time constant here because 
+            # we use static_argnums=0 on the outer function.
+            new_state, history_item = engine.step(state)
+            
+            # Return ONLY state, no engine in the tuple!
+            return new_state, history_item
+
+        # Carry is just the state. The backpack is light!
+        init_carry = initial_state
         
-        (final_engine, final_state), history = jax.lax.scan(
-            _scan_body,
+        final_state, history = jax.lax.scan(
+            _scan_body_closure,      # <--- Uses the closure
             init_carry,
-            None, # Scan over range(num_generations) implicitly
+            None, 
             length=params.num_generations,
-            unroll= unroll_num
+            unroll=unroll_num
         )
         
         return final_state, history
 
     # 3. JIT Compile
     if compile_jit:
-        # donate_argnums=1: Donate 'initial_state' memory.
-        # We DO NOT donate arg 0 (engine) because it's static/structural.
-        return jax.jit(_evolve_loop, donate_argnums=1)
+        # static_argnums=0 is CRITICAL. 
+        # It tells JAX: "engine is not data, it is the program logic."
+        return jax.jit(_evolve_loop, donate_argnums=1, static_argnums=0)
     else:
         return _evolve_loop

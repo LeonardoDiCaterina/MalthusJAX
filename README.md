@@ -214,3 +214,16 @@ All while maintaining **full JIT compilation compatibility** and **functional pu
 ## License
 
 [MIT License](LICENSE)
+
+## Benchmarks & Shortcuts
+
+- **Run tests with coverage:** `pytest` (coverage is enabled via `pyproject.toml` `addopts`).
+- **Run integration tests:** `pytest -m integration`.
+- **Run slow tests:** `pytest -m slow`.
+- **Quick smoke benchmark:** `python benchmarks/run_benchmark.py --config benchmarks/smoke_test.toml`.
+- **Configurable benchmark runner:** `python benchmarks/run_benchmark_configurable.py --config <your-config>.toml`.
+- **Engine comparison / experiments:** see `benchmarks/run_engine_comparison.py` and `benchmarks/run_benchmark.py` for common entry points.
+
+Notes:
+- The project defines `slow` and `integration` pytest markers in `pyproject.toml`.
+- Benchmark results and plotting helpers can be found under `my_local_results/` and `plots/`.
