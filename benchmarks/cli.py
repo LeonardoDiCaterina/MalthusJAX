@@ -67,7 +67,7 @@ def run_single_benchmark(
             "Exec_Time": getattr(res, "mean_exec_time", getattr(res, "execution_time", None)),
             "GPS": getattr(res, "mean_gps", getattr(res, "generations_per_sec", None)),
             "Best_Fitness": getattr(res, "best_fitness_final", getattr(res, "best_fitness", None)),
-            "Fitness_Std": getattr(res, "std_exec_time", None),
+            "Fitness_Std": getattr(res, "fitness_std", None),
         }
 
     results = [package(res_m, "MalthusJAX")]
