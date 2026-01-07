@@ -17,10 +17,10 @@ repeats = 10  # Fewer repeats for faster tuning
 # Hyperparameter sweep grid
 # Each parameter lists values to try
 [hyperparam_sweep]
-mutation_rate = [0.5, 0.6, 0.7, 0.8, 0.9, 1]  # Per-gene mutation probability
-sigma = [0.1, 0.3, 0.5, 0.8, 1.0]  # Mutation strength
+mutation_rate = [0.8, 0.9, 1.0]  # Per-gene mutation probability
+sigma = [0.5, 0.8, 1.0]  # Mutation strength
 elite_ratio = [0.05, 0.1, 0.2]  # Elite selection ratio
-crossover_rate = [0.5, 0.7]  # Crossover rate
+crossover_rate = [0.5, 0.7, 0.8, 0.9, 1.0]  # Crossover rate
 
 # Total combinations: 5 × 5 × 3 × 2 = 150 hyperparameter configs
 # × 2 tasks × 2 dimensions × 2 pop sizes = 1200 total runs
