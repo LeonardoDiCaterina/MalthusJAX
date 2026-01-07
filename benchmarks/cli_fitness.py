@@ -90,7 +90,7 @@ def main():
         # Run benchmark
         res = run_adapter_benchmark(
             m_adapter, generations, master_seed, "MalthusJAX", pop, 
-            unroll=1, repeats=repeats
+            unroll_factor=1, repeats=repeats
         )
         
         # Extract fitness (use absolute value for BBOB)
