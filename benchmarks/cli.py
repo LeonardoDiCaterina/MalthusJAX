@@ -7,7 +7,6 @@ import pandas as pd
 import jax
 from datetime import datetime
 
-# Import internal modules
 from benchmarks.framework.registry import ComparisonRegistry
 from benchmarks.framework.runner import run_adapter_benchmark
 from benchmarks.framework.adapters import setup_bbob_instances
