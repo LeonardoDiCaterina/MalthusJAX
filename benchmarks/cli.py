@@ -139,12 +139,13 @@ def main():
             e_adapter = spec.evosax_factory(pop, dim, master_seed, hypers, e_prob)
             res_e = run_adapter_benchmark(e_adapter, grid['generations'], master_seed, "Evosax", pop, unroll, repeats)
             
-            # Log & Report (dual framework) - use absolute values for comparison
+            # Log & Report (dual framework) - use relative tolerance for comparison
             speedup = res_m.mean_gps / res_e.mean_gps
             mjx_fit_norm = abs(res_m.best_fitness_final)
             evosax_fit_norm = abs(res_e.best_fitness_final)
-            fit_diff = abs(mjx_fit_norm - evosax_fit_norm)
-            fit_match = "✓" if fit_diff < 1.0 else "✗"
+            # Use relative tolerance (5%) instead of absolute tolerance
+            rel_diff = abs(mjx_fit_norm - evosax_fit_norm) / max(mjx_fit_norm, evosax_fit_norm, 1e-8)
+            fit_match = "✓" if rel_diff < 0.05 else "✗"
             print(f"   >>> MalthusJAX Mean GPS: {res_m.mean_gps:.2f}")
             print(f"   >>> Evosax Mean GPS:     {res_e.mean_gps:.2f}")
             print(f"   >>> Speedup: {speedup:.2f}x")
