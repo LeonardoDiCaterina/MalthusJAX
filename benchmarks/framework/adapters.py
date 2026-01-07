@@ -62,8 +62,10 @@ class MalthusAdapter(AbstractBenchmarkAdapter):
         return str(jax.devices()[0].device_kind)
     
     def extract_best_fitness(self, state):
-        return float(state.best_fitness)
-\
+        # MalthusJAX uses maximize=True for BBOB, which negates the fitness
+        # Return raw (un-negated) fitness for fair comparison with Evosax
+        return -float(state.best_fitness)
+
 class EvosaxAdapter(AbstractBenchmarkAdapter):
     # FIX: We now accept pop_size explicitly in the constructor
     def __init__(self, strategy, params, problem, pop_size):
