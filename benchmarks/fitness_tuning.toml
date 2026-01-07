@@ -17,7 +17,7 @@ repeats = 10  # Fewer repeats for faster tuning
 # Hyperparameter sweep grid
 # Each parameter lists values to try
 [hyperparam_sweep]
-mutation_rate = [0.05, 0.1, 0.2, 0.3, 0.5]  # Per-gene mutation probability
+mutation_rate = [0.5, 0.6, 0.7, 0.8, 0.9, 1]  # Per-gene mutation probability
 sigma = [0.1, 0.3, 0.5, 0.8, 1.0]  # Mutation strength
 elite_ratio = [0.05, 0.1, 0.2]  # Elite selection ratio
 crossover_rate = [0.5, 0.7]  # Crossover rate
