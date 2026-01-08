@@ -22,8 +22,8 @@ install-dev:
 	pip install -e ".[dev,docs,examples]"
 
 test:
-    @echo "--- Running tests with coverage ---"
-    python -m pytest
+	@echo "--- Running tests with coverage ---"
+	python -m pytest
 
 lint:
 	@echo "--- Checking code quality with Ruff ---"
