@@ -232,6 +232,90 @@ This **Full Access architecture** enables researchers to experiment with:
 
 All while maintaining **full JIT compilation compatibility** and **functional purity**.
 
+## Statically Allocated Entropy & Operator Design
+
+MalthusJAX uses a **static entropy allocation** strategy to maximize JIT compilation efficiency. Rather than splitting random keys dynamically within operators (which breaks JIT-ability), all random keys are pre-allocated by a resource manager and passed directly to operators.
+
+### How Operators Declare Key Requirements
+
+Each operator declares exactly how many random keys it needs via the **`num_keys()` contract**:
+
+```python
+@struct.dataclass
+class GaussianMutation(BaseMutation):
+    mutation_rate: float = 0.1
+    mutation_strength: float = 0.1
+    
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        """Each mutation needs 2 keys: one for mask, one for noise."""
+        return 2
+    
+    def num_keys(self, input_shape: Tuple[int, ...]) -> int:
+        """Total keys = Population × Offspring × Keys-per-op"""
+        pop_size = input_shape[0]
+        return pop_size * self.num_offspring * self.num_keys_per_atomic_operation
+```
+
+**Key calculation example:**
+- Population size: 100
+- Offspring per parent: 1
+- Keys per atomic operation: 2
+- **Total keys needed: 100 × 1 × 2 = 200 keys**
+
+The Resource Allocator computes the maximum across all operators and splits a single PRNG key into the required number of independent keys upfront. This enables:
+- ✅ Pure functional operations (no side effects)
+- ✅ Full JIT compilation of the evolution loop
+- ✅ Deterministic key allocation (no dynamic control flow)
+- ✅ Zero overhead for key management
+
+### Ablation Operators: Benchmarking Key Allocation Overhead
+
+To quantify the performance cost of static key allocation, MalthusJAX includes **ablation operator variants** that generate keys internally using `jax.random.fold_in()`:
+
+```python
+@struct.dataclass
+class AblationGaussianMutation(BaseMutation):
+    """Ablation: Generate keys internally instead of using pre-allocated keys."""
+    
+    def num_keys(self, input_shape: Tuple[int, ...]) -> int:
+        """Return 1: minimal overhead, keys generated internally."""
+        return 1
+    
+    def __call__(self, single_key, population, config):
+        # Generate all needed keys internally using fold_in
+        pop_size = population.shape[0]
+        all_keys = jax.random.split(
+            jax.random.fold_in(single_key, pop_size),
+            pop_size * self.num_offspring * self.num_keys_per_atomic_operation
+        )
+        # ... apply mutation with internally-generated keys
+```
+
+**Ablation operators differ from standard operators:**
+- **Standard**: `num_keys() = pop_size × offspring × keys_per_op` → pre-allocated
+- **Ablation**: `num_keys() = 1` → keys generated on-the-fly with `fold_in()`
+
+**Benchmark use case:**
+```bash
+# Compare dispatch overhead of key allocation
+# Run both standard and ablation versions with dispatch timing CLI
+python cli_dispatch.py config.toml --framework malthus
+
+# Ablation results show the "true" mutation cost without allocation overhead
+# Standard results show allocation + mutation cost
+# Difference = static allocation framework overhead
+```
+
+Available ablation operators in `src/malthusjax/operators/`:
+- `mutation/ablation_mutation.py`: `AblationGaussianMutation`, `AblationBallMutation`, `AblationPolynomialMutation`
+- `crossover/ablation_crossover.py`: `AblationUniformCrossover`, `AblationBlendCrossover`, `AblationSimulatedBinaryCrossover`
+- `selection/ablation_selection.py`: `AblationElitePoolSelection`
+
+This enables precise measurement of overhead vs. benefit trade-offs in the resource allocation framework.
+
+
+
 ## Testing
 
 ```bash
