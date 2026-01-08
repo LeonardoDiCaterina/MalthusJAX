@@ -1,0 +1,35 @@
+# Dispatch Timing Configuration for MalthusJAX
+# Analyzes JAX dispatch overhead, compilation times, and per-operator timing
+
+[experiment]
+name = "MalthusJAX_Dispatch_Analysis"
+output_dir = "results/dispatch_timing"
+
+[grid]
+tasks = ["sphere", "rosenbrock"]
+dimensions = [10, 50, 100]
+pop_sizes = [64, 256, 1024]
+seeds = [42]
+
+# Dispatch-specific settings
+[dispatch]
+# Unroll factors to test - measures dispatch amortization
+# Higher unroll = fewer dispatches per step, but longer compile time
+unroll_factors = [1, 2, 4, 8, 16, 32]
+
+# Number of warmup runs before timing (excludes first cold compilation)
+warmup_runs = 5
+
+# Number of timed runs for averaging
+timed_runs = 20
+
+# Number of evolution steps for Perfetto tracing
+trace_steps = 50
+
+# Hyperparameters for the GA (fixed during dispatch analysis)
+[hyperparam]
+mutation_rate = 0.1
+sigma = 0.1
+crossover_rate = 0.9
+elite_ratio = 0.1
+tournament_size = 3
