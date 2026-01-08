@@ -35,6 +35,10 @@ from malthusjax.operators.crossover import BlendCrossover
 from malthusjax.operators.mutation import GaussianMutation
 from malthusjax.operators.selection import TournamentSelection
 
+# Evosax imports
+from evosax.algorithms.population_based import SimpleGA, MR15_GA, DifferentialEvolution
+from evosax.problems import BBOBProblem
+
 
 # =============================================================================
 # Helper Functions
@@ -70,6 +74,34 @@ def get_fitness_fn_from_evaluator(evaluator: BBOBEvaluator):
         return result
     
     return fitness_fn
+
+
+def create_evosax_strategy(strategy_name: str, pop_size: int, dim: int, seed: int = 42):
+    """Create an Evosax strategy instance."""
+    # Create a BBOB problem to get initial solution
+    rng = jr.PRNGKey(seed)
+    problem = BBOBProblem("sphere", num_dims=dim, seed=seed)
+    init_solution = problem.sample(rng)
+    
+    # Map strategy names to classes
+    strategy_map = {
+        "SimpleGA": SimpleGA,
+        "MR15_GA": MR15_GA,
+        "DifferentialEvolution": DifferentialEvolution,
+    }
+    
+    if strategy_name not in strategy_map:
+        raise ValueError(f"Unknown strategy: {strategy_name}. Available: {list(strategy_map.keys())}")
+    
+    strategy_class = strategy_map[strategy_name]
+    strategy = strategy_class(population_size=pop_size, solution=init_solution)
+    return strategy
+
+
+def create_evosax_fitness(task: str, dim: int, seed: int = 42):
+    """Create an Evosax BBOB fitness function."""
+    problem = BBOBProblem(task, num_dims=dim, seed=seed)
+    return problem
 
 
 # =============================================================================
@@ -541,6 +573,202 @@ def analyze_operator_breakdown(
 
 
 # =============================================================================
+# Evosax Analysis Functions  
+# =============================================================================
+
+
+def analyze_unroll_impact_evosax(
+    config: dict,
+    pop_size: int,
+    dim: int,
+    task: str,
+    unroll_factors: list[int],
+    key: jax.Array,
+    strategy_name: str = "SimpleGA",
+) -> list[dict]:
+    """
+    Analyze dispatch overhead at different unroll factors for Evosax.
+
+    Returns timing data for each unroll factor.
+    """
+    results = []
+
+    # Create Evosax strategy and problem
+    key, seed_key = jr.split(key)
+    seed = int(seed_key[0])
+    
+    strategy = create_evosax_strategy(strategy_name, pop_size, dim, seed)
+    problem = create_evosax_fitness(task, dim, seed)
+    
+    # Initialize strategy state
+    key, init_key = jr.split(key)
+    p_state = problem.init(init_key)
+    
+    # Initialize population
+    init_x = jr.uniform(init_key, (pop_size, dim), minval=-5.0, maxval=5.0)
+    init_fit = jnp.full((pop_size,), jnp.inf)
+    
+    # Get default params
+    params = strategy.default_params
+    
+    # Initialize strategy state
+    state = strategy.init(init_key, init_x, init_fit, params)
+
+    for unroll in unroll_factors:
+        print(f"  Testing unroll={unroll} (Evosax {strategy_name})...")
+
+        # Create unrolled evolution step
+        def make_unrolled_step(n_unroll):
+            def unrolled(key, state, p_state):
+                for _ in range(n_unroll):
+                    key, ask_key, eval_key = jr.split(key, 3)
+                    # Ask for new population
+                    x, state = strategy.ask(ask_key, state, params)
+                    # Evaluate fitness
+                    fit, p_state, _ = problem.eval(eval_key, x, p_state)
+                    # Update state
+                    state, _ = strategy.tell(ask_key, x, fit, state, params)
+                return state, p_state
+            return unrolled
+
+        unrolled_step = make_unrolled_step(unroll)
+
+        # Measure timing
+        key, run_key = jr.split(key)
+        timing = measure_dispatch_timing(
+            unrolled_step,
+            run_key,
+            state,
+            p_state,
+            name=f"unroll_{unroll}_evosax",
+            warmup_runs=3,
+            timed_runs=10,
+        )
+
+        results.append(
+            {
+                "unroll_factor": unroll,
+                "cold_compile_ms": timing.cold_compile_ms,
+                "warm_dispatch_ms": timing.warm_dispatch_ms,
+                "execution_ms": timing.execution_ms,
+                "total_cold_ms": timing.total_cold_ms,
+                "total_warm_ms": timing.total_warm_ms,
+                "steps_per_dispatch": unroll,
+                "ms_per_step": timing.total_warm_ms / unroll,
+            }
+        )
+
+    return results
+
+
+def analyze_operator_breakdown_evosax(
+    config: dict,
+    pop_size: int,
+    dim: int,
+    task: str,
+    key: jax.Array,
+    strategy_name: str = "SimpleGA",
+) -> dict:
+    """
+    Measure dispatch timing for Evosax strategy operations.
+    """
+    # Create Evosax strategy and problem
+    key, seed_key = jr.split(key)
+    seed = int(seed_key[0])
+    
+    strategy = create_evosax_strategy(strategy_name, pop_size, dim, seed)
+    problem = create_evosax_fitness(task, dim, seed)
+    
+    # Initialize strategy state
+    key, init_key = jr.split(key)
+    p_state = problem.init(init_key)
+    
+    # Initialize population
+    init_x = jr.uniform(init_key, (pop_size, dim), minval=-5.0, maxval=5.0)
+    init_fit = jnp.full((pop_size,), jnp.inf)
+    
+    # Get default params
+    params = strategy.default_params
+    
+    # Initialize strategy state
+    state = strategy.init(init_key, init_x, init_fit, params)
+
+    results = {}
+
+    # Measure ask (parameter sampling)
+    def ask_fn(key, state):
+        x, state = strategy.ask(key, state, params)
+        return x, state
+
+    key, ask_key = jr.split(key)
+    ask_timing = measure_dispatch_timing(
+        ask_fn, ask_key, state, name="evosax_ask"
+    )
+    results["ask"] = {
+        "cold_ms": ask_timing.total_cold_ms,
+        "warm_ms": ask_timing.total_warm_ms,
+        "compile_ms": ask_timing.cold_compile_ms,
+    }
+
+    # Get a sample population for fitness evaluation
+    key, sample_key = jr.split(key)
+    x, state = strategy.ask(sample_key, state, params)
+
+    # Measure fitness evaluation
+    def fitness_fn(key, x, p_state):
+        fit, p_state, _ = problem.eval(key, x, p_state)
+        return fit, p_state
+
+    key, fit_key = jr.split(key)
+    fit_timing = measure_dispatch_timing(
+        fitness_fn, fit_key, x, p_state, name="evosax_fitness"
+    )
+    results["fitness"] = {
+        "cold_ms": fit_timing.total_cold_ms,
+        "warm_ms": fit_timing.total_warm_ms,
+        "compile_ms": fit_timing.cold_compile_ms,
+    }
+
+    # Measure tell (parameter update)
+    key, eval_key = jr.split(key)
+    fit, p_state, _ = problem.eval(eval_key, x, p_state)
+
+    def tell_fn(key, x, fit, state):
+        state, _ = strategy.tell(key, x, fit, state, params)
+        return state
+
+    key, tell_key = jr.split(key)
+    tell_timing = measure_dispatch_timing(
+        tell_fn, tell_key, x, fit, state, name="evosax_tell"
+    )
+    results["tell"] = {
+        "cold_ms": tell_timing.total_cold_ms,
+        "warm_ms": tell_timing.total_warm_ms,
+        "compile_ms": tell_timing.cold_compile_ms,
+    }
+
+    # Measure full evolution step
+    def evolution_step(key, state, p_state):
+        k1, k2, k3 = jr.split(key, 3)
+        x, state = strategy.ask(k1, state, params)
+        fit, p_state, _ = problem.eval(k2, x, p_state)
+        state, _ = strategy.tell(k3, x, fit, state, params)
+        return state, p_state
+
+    key, evo_key = jr.split(key)
+    evo_timing = measure_dispatch_timing(
+        evolution_step, evo_key, state, p_state, name="evosax_evolution_step"
+    )
+    results["evolution_step"] = {
+        "cold_ms": evo_timing.total_cold_ms,
+        "warm_ms": evo_timing.total_warm_ms,
+        "compile_ms": evo_timing.cold_compile_ms,
+    }
+
+    return results
+
+
+# =============================================================================
 # Report Generation
 # =============================================================================
 
@@ -715,10 +943,19 @@ def run_dispatch_analysis(config: dict, args: argparse.Namespace) -> None:
     unroll_factors = dispatch_config.get("unroll_factors", [1, 2, 4, 8, 16])
 
     hyperparam = config.get("hyperparam", {})
+    
+    # Determine which frameworks to run
+    framework = args.framework.lower()
+    run_malthus = framework in ["malthus", "both"]
+    run_evosax = framework in ["evosax", "both"]
+    evosax_strategy = getattr(args, "evosax_strategy", "SimpleGA")
 
     print("=" * 60)
-    print("MalthusJAX Dispatch Timing Analysis")
+    print("JAX Dispatch Timing Analysis")
     print("=" * 60)
+    print(f"Framework(s): {framework}")
+    if run_evosax:
+        print(f"Evosax Strategy: {evosax_strategy}")
     print(f"Device: {jax.devices()[0]}")
     print(f"Output directory: {output_dir}")
     print(f"Tasks: {tasks}")
@@ -743,84 +980,124 @@ def run_dispatch_analysis(config: dict, args: argparse.Namespace) -> None:
                         "seed": seed,
                         "unroll_factors": unroll_factors,
                         "device": str(jax.devices()[0]),
+                        "framework": framework,
                     }
 
-                    # Run unroll analysis
-                    print("\n[1/3] Analyzing unroll factor impact...")
-                    key, analysis_key = jr.split(key)
-                    unroll_results = analyze_unroll_impact(
-                        hyperparam, pop_size, dim, task, unroll_factors, analysis_key
-                    )
-
-                    # Run operator breakdown
-                    print("\n[2/3] Measuring per-operator timing...")
-                    key, op_key = jr.split(key)
-                    operator_results = analyze_operator_breakdown(
-                        hyperparam, pop_size, dim, task, op_key
-                    )
-
-                    # Generate Perfetto trace if requested
-                    if args.trace:
-                        print("\n[3/3] Generating Perfetto trace...")
-                        trace_dir = output_dir / "traces"
-                        trace_name = f"{task}_d{dim}_p{pop_size}_s{seed}"
-
-                        # Create traced step
-                        genome_config = RealGenomeConfig(
-                            length=dim, bounds=(-5.0, 5.0)
+                    # === MalthusJAX Analysis ===
+                    if run_malthus:
+                        print("\n" + "="*60)
+                        print("MALTHUSJAX ANALYSIS")
+                        print("="*60)
+                        
+                        # Run unroll analysis
+                        print("\n[1/3] Analyzing unroll factor impact (MalthusJAX)...")
+                        key, analysis_key = jr.split(key)
+                        malthus_unroll_results = analyze_unroll_impact(
+                            hyperparam, pop_size, dim, task, unroll_factors, analysis_key
                         )
-                        evaluator = create_bbob_evaluator(task, dim)
-                        fitness_fn = get_fitness_fn_from_evaluator(evaluator)
 
-                        selection_op = TournamentSelection(
-                            num_selections=pop_size, tournament_size=3
+                        # Run operator breakdown
+                        print("\n[2/3] Measuring per-operator timing (MalthusJAX)...")
+                        key, op_key = jr.split(key)
+                        malthus_operator_results = analyze_operator_breakdown(
+                            hyperparam, pop_size, dim, task, op_key
                         )
-                        crossover_op = BlendCrossover(
-                            alpha=0.5, crossover_rate=0.9
+
+                        # Generate Perfetto trace if requested
+                        if args.trace:
+                            print("\n[3/3] Generating Perfetto trace (MalthusJAX)...")
+                            trace_dir = output_dir / "traces"
+                            trace_name = f"{task}_d{dim}_p{pop_size}_s{seed}_malthus"
+
+                            # Create traced step
+                            genome_config = RealGenomeConfig(
+                                length=dim, bounds=(-5.0, 5.0)
+                            )
+                            evaluator = create_bbob_evaluator(task, dim)
+                            fitness_fn = get_fitness_fn_from_evaluator(evaluator)
+
+                            selection_op = TournamentSelection(
+                                num_selections=pop_size, tournament_size=3
+                            )
+                            crossover_op = BlendCrossover(
+                                alpha=0.5, crossover_rate=0.9
+                            )
+                            mutation_op = GaussianMutation(
+                                mutation_rate=0.1, mutation_strength=0.1
+                            )
+                            num_elites = max(1, int(pop_size * 0.1))
+
+                            evolution_step = create_traced_evolution_step(
+                                selection_op,
+                                crossover_op,
+                                mutation_op,
+                                fitness_fn,
+                                genome_config,
+                                pop_size,
+                                num_elites,
+                            )
+                            evolution_step = jax.jit(evolution_step)
+
+                            # Initialize and trace
+                            key, init_key = jr.split(key)
+                            population = RealPopulation.init_random(init_key, genome_config, pop_size).genes.values
+                            fitness = jax.vmap(fitness_fn)(population)
+
+                            trace_path = run_with_perfetto_trace(
+                                evolution_step,
+                                (key, population, fitness),
+                                trace_dir,
+                                trace_name,
+                                num_steps=20,
+                            )
+                            print(f"  Trace saved to: {trace_path}")
+                        else:
+                            print("\n[3/3] Skipping Perfetto trace (use --trace to enable)")
+
+                        # Save MalthusJAX results
+                        run_dir = output_dir / f"{task}_d{dim}_p{pop_size}_s{seed}_malthus"
+                        run_dir.mkdir(parents=True, exist_ok=True)
+
+                        save_results_csv(malthus_unroll_results, malthus_operator_results, run_dir, config_info)
+                        generate_dispatch_report(
+                            malthus_unroll_results,
+                            malthus_operator_results,
+                            run_dir / "dispatch_report.txt",
+                            config_info,
                         )
-                        mutation_op = GaussianMutation(
-                            mutation_rate=0.1, mutation_strength=0.1
+                    
+                    # === Evosax Analysis ===
+                    if run_evosax:
+                        print("\n" + "="*60)
+                        print("EVOSAX ANALYSIS")
+                        print("="*60)
+                        
+                        # Run unroll analysis
+                        print(f"\n[1/2] Analyzing unroll factor impact (Evosax {evosax_strategy})...")
+                        key, analysis_key = jr.split(key)
+                        evosax_unroll_results = analyze_unroll_impact_evosax(
+                            hyperparam, pop_size, dim, task, unroll_factors, analysis_key, evosax_strategy
                         )
-                        num_elites = max(1, int(pop_size * 0.1))
 
-                        evolution_step = create_traced_evolution_step(
-                            selection_op,
-                            crossover_op,
-                            mutation_op,
-                            fitness_fn,
-                            genome_config,
-                            pop_size,
-                            num_elites,
+                        # Run operator breakdown
+                        print(f"\n[2/2] Measuring per-operator timing (Evosax {evosax_strategy})...")
+                        key, op_key = jr.split(key)
+                        evosax_operator_results = analyze_operator_breakdown_evosax(
+                            hyperparam, pop_size, dim, task, op_key, evosax_strategy
                         )
-                        evolution_step = jax.jit(evolution_step)
 
-                        # Initialize and trace
-                        key, init_key = jr.split(key)
-                        population = RealPopulation.init_random(init_key, genome_config, pop_size).genes.values
-                        fitness = jax.vmap(fitness_fn)(population)
+                        # Save Evosax results
+                        run_dir = output_dir / f"{task}_d{dim}_p{pop_size}_s{seed}_evosax_{evosax_strategy}"
+                        run_dir.mkdir(parents=True, exist_ok=True)
 
-                        trace_path = run_with_perfetto_trace(
-                            evolution_step,
-                            (key, population, fitness),
-                            trace_dir,
-                            trace_name,
-                            num_steps=20,
+                        evosax_config_info = {**config_info, "evosax_strategy": evosax_strategy}
+                        save_results_csv(evosax_unroll_results, evosax_operator_results, run_dir, evosax_config_info)
+                        generate_dispatch_report(
+                            evosax_unroll_results,
+                            evosax_operator_results,
+                            run_dir / "dispatch_report.txt",
+                            evosax_config_info,
                         )
-                        print(f"  Trace saved to: {trace_path}")
-                    else:
-                        print("\n[3/3] Skipping Perfetto trace (use --trace to enable)")
-
-                    # Save results
-                    run_dir = output_dir / f"{task}_d{dim}_p{pop_size}_s{seed}"
-                    run_dir.mkdir(parents=True, exist_ok=True)
-
-                    save_results_csv(unroll_results, operator_results, run_dir, config_info)
-                    generate_dispatch_report(
-                        unroll_results,
-                        operator_results,
-                        run_dir / "dispatch_report.txt",
-                        config_info,
-                    )
 
     print("\n" + "=" * 60)
     print("Analysis complete!")
@@ -829,13 +1106,24 @@ def run_dispatch_analysis(config: dict, args: argparse.Namespace) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="JAX Dispatch Timing Analysis for MalthusJAX",
+        description="JAX Dispatch Timing Analysis for Evolutionary Algorithms",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python cli_dispatch.py dispatch_config.toml
-  python cli_dispatch.py dispatch_config.toml --trace
-  python cli_dispatch.py dispatch_config.toml --quick
+  # Run both frameworks
+  python cli_dispatch.py config.toml --framework both
+  
+  # MalthusJAX only
+  python cli_dispatch.py config.toml --framework malthus
+  
+  # Evosax only with specific strategy
+  python cli_dispatch.py config.toml --framework evosax --evosax-strategy SimpleGA
+  
+  # Quick smoke test
+  python cli_dispatch.py config.toml --quick --framework both
+  
+  # With Perfetto traces
+  python cli_dispatch.py config.toml --framework malthus --trace
         """,
     )
 
@@ -845,9 +1133,22 @@ Examples:
         help="Path to TOML configuration file",
     )
     parser.add_argument(
+        "--framework",
+        type=str,
+        choices=["malthus", "evosax", "both"],
+        default="both",
+        help="Framework to analyze: malthus, evosax, or both (default: both)",
+    )
+    parser.add_argument(
+        "--evosax-strategy",
+        type=str,
+        default="SimpleGA",
+        help="Evosax strategy to use (default: SimpleGA). Options: SimpleGA, CMA_ES, OpenES, etc.",
+    )
+    parser.add_argument(
         "--trace",
         action="store_true",
-        help="Generate Perfetto traces for detailed analysis",
+        help="Generate Perfetto traces for detailed analysis (MalthusJAX only)",
     )
     parser.add_argument(
         "--quick",
