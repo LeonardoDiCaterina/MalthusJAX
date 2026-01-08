@@ -51,9 +51,7 @@ class GeneticEvolutionState(AbstractEvolutionState):
     """
     State that carries its own execution plan (ResourceMap) and optimized tools (OperatorState).
     """
-    # The 'Compiled' Execution Plan
     resource_map: ResourceMap = struct.field(pytree_node=False)
-    # The 'Baked' Operators (Input sizes frozen)
     operators: OperatorState = struct.field(pytree_node=False)
 
 @struct.dataclass
@@ -65,7 +63,6 @@ class GeneticEngine(AbstractEngine):
     1. init_state: compiles ResourceMap & Bakes Operators.
     2. step: executes using pre-baked tools from State.
     """
-    # Core Blueprints (Used only during Init)
     genome_config: Any
     evaluator: BaseEvaluator
     selection: BaseSelection
@@ -74,9 +71,9 @@ class GeneticEngine(AbstractEngine):
     
     # Hooks & Config
     #hooks: Tuple[AbstractHook] = struct.field(default_factory=tuple)
+    
     enable_progress_bar: bool = struct.field(pytree_node=False, default=False)
     
-    # Internal Buffer for ask/tell (tuple for hashability)
     _entropy_buffer: Tuple[Any, ...] = struct.field(pytree_node=False, default=())
     
     def __hash__(self) -> int:
@@ -92,12 +89,10 @@ class GeneticEngine(AbstractEngine):
         rmap = state.resource_map
         all_keys = jar.split(state.rng_key, rmap.total_rng_budget)
         
-        # Robust Slicing
         k_sel_slice = all_keys[rmap.get_key_slice('selection')]
         k_cross = all_keys[rmap.get_key_slice('crossover')]
         k_mut   = all_keys[rmap.get_key_slice('mutation')]
         
-        # Next Key: Always 1, explicitly index [0] to get PRNGKey (2,)
         k_next  = all_keys[rmap.get_key_slice('next_key')][0]
         
         return k_sel_slice, k_cross, k_mut, k_next
@@ -108,13 +103,11 @@ class GeneticEngine(AbstractEngine):
         Input: Specific key slice for selection.
 
         """
-        # 1. Elitism
         _, elite_idx = jax.lax.top_k(population.fitness, params.elitism)
         elites_genes = population[elite_idx].genes
 
-        # 2. Selection (Use Baked Operator)
         selected_idx = operators.selection(key_selection, population)
-        parents = population[selected_idx]
+        #parents = population[selected_idx]
         
         return elites_genes, selected_idx 
     
@@ -130,24 +123,19 @@ class GeneticEngine(AbstractEngine):
         rmap: ResourceMap
     ) -> Any: 
         
-        # 1. Slice Indices (Cheap metadata op)
-        num_pairs = rmap.crossover.input_count // 2 # 9//2=4
-        p1_idx = parent_indices[:num_pairs] # 0:4
-        p2_idx = parent_indices[num_pairs : num_pairs * 2] #4:8
+        num_pairs = rmap.crossover.input_count // 2
+        p1_idx = parent_indices[:num_pairs]
+        p2_idx = parent_indices[num_pairs : num_pairs * 2]
 
-        # 2. Gather (INSIDE the fusion scope of crossover)
-        # XLA sees: Gather -> Crossover. It fuses them.
         p1_pop = population[p1_idx]
         p2_pop = population[p2_idx]
         
-        # 2. Execute Crossover
         offspring_pop = operators.crossover(
             keys_crossover, 
             p1_pop, 
             p2_pop, 
             self.genome_config
         )
-        # 3. Execute Mutation
         final_pop = operators.mutation(
             keys_mutation, 
             offspring_pop, 
@@ -182,7 +170,6 @@ class GeneticEngine(AbstractEngine):
     
     @traceable("Phase_3c_Update_HOF")
     def _update_hof(self, evaluated_pop: BasePopulation, old_state: GeneticEvolutionState, k_next: chex.Array) -> GeneticEvolutionState:
-        # Hall of Fame Update
         best_idx = jnp.argmax(evaluated_pop.fitness)
         curr_best_fit = evaluated_pop.fitness[best_idx]
         is_new = curr_best_fit > old_state.best_fitness
@@ -192,7 +179,6 @@ class GeneticEngine(AbstractEngine):
             old_state.best_genome, evaluated_pop[best_idx].genes
         )
         
-        # Preserve operators & rmap in the new state!
         next_state = old_state.replace(
             population=evaluated_pop,
             best_genome=new_best_genome,
@@ -208,14 +194,11 @@ class GeneticEngine(AbstractEngine):
     @traceable("GeneticEngine_Step")
     def step(self, state: GeneticEvolutionState) -> Tuple[GeneticEvolutionState, GeneticGenerationOutput]:
         
-        # 1. KEY ALLOCATION
         k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
 
-        # 2. SELECTION (Read)
-        # Pass state.operators so it uses the optimized version
+
         elites, parent_indices = self._selection_phase(k_sel, state.population, state.operators, self.engine_params)
-        # 3. REPRODUCTION (Compute)
-        # Pass state.operators
+
         mutants = self._reproduction_phase(
                     k_cross, 
                     k_mut, 
@@ -224,13 +207,10 @@ class GeneticEngine(AbstractEngine):
                     state.operators, 
                     state.resource_map
                 )
-        # 4. MERGE (Write)
         next_genes = self._merge(elites, mutants.genes, state)
         
-        # 5. EVALUATE
         new_pop = self._evaluate(next_genes, state)
         
-        # 6. FINALIZE
         final_state = self._update_hof(new_pop, state, k_next)
         
         # 7. HOOKS & METRICS
@@ -252,17 +232,12 @@ class GeneticEngine(AbstractEngine):
             
         return final_state, metrics
 
-    # ==========================================
-    # 3. INITIALIZATION (Compiler)
-    # ==========================================
+
     def init_state(self, rng_key: chex.Array) -> GeneticEvolutionState:
         """
         Compiles the Execution Plan (ResourceMap), Bakes Operators, 
         and Enforces GSPMD Sharding Layout.
         """
-        # ==========================================
-        # 1. COMPILE: Compute static Resource Map
-        # ==========================================
         rmap = compute_resource_map(
             self.selection,
             self.crossover,
@@ -271,17 +246,7 @@ class GeneticEngine(AbstractEngine):
             self.engine_params.pop_size
         )
         
-        # ==========================================
-        # 2. SETUP GSPMD: Create the Sharding Manager
-        # ==========================================
-        # This defines the "Batch-Parallel" layout rule.
-        # Ensure ShardingManager is imported from resource_mapper!
         sharding_mgr = ShardingManager(axis_name='batch')
-        
-        # ==========================================
-        # 3. BAKE: Create Optimized Operators
-        # ==========================================
-        # Freeze input sizes now so step() has zero shape-polymorphism overhead.
         active_sel = self.selection \
             .replace(num_selections=rmap.selection.output_count) \
             .set_input_length(rmap.selection.input_count)
@@ -295,10 +260,7 @@ class GeneticEngine(AbstractEngine):
             mutation=active_mut
         )
         
-        # ==========================================
-        # 4. INITIALIZE POPULATION (Crucial Step!)
-        # ==========================================
-        # Determine appropriate Population Class
+        
         if isinstance(self.genome_config, BinaryGenomeConfig):
             pop_cls = BinaryPopulation
         elif isinstance(self.genome_config, RealGenomeConfig):
@@ -308,30 +270,21 @@ class GeneticEngine(AbstractEngine):
         else:
             raise ValueError(f"Unsupported config: {type(self.genome_config)}")
 
-        # Split key for initialization
         init_pop_key, rng_key = jar.split(rng_key)
 
-        # Generate standard population (initially on default device/host)
-        # THIS DEFINES 'population'
+
         population = pop_cls.init_random(
             init_pop_key, 
             self.genome_config, 
             self.engine_params.pop_size
         )
         
-        # ==========================================
-        # 5. ENFORCE SHARDING (The GSPMD Optimization)
-        # ==========================================
-        # We explicitly move the data to the correct sharded layout immediately.
-        
-        target_dtype = self.genome_config.dtype  # Ensure this is set to jnp.bfloat16
+        target_dtype = self.genome_config.dtype 
     
         def _enforce_layout(leaf):
-            # 1. Cast to Target Precision (if it's a float)
             if hasattr(leaf, 'dtype') and jnp.issubdtype(leaf.dtype, jnp.floating):
                 leaf = leaf.astype(target_dtype)
 
-            # 2. Apply Sharding
             if hasattr(leaf, 'shape') and len(leaf.shape) >= 2 and leaf.shape[0] == self.engine_params.pop_size:
                 return jax.device_put(leaf, sharding_mgr.matrix_sharding)
             elif hasattr(leaf, 'shape') and len(leaf.shape) == 1 and leaf.shape[0] == self.engine_params.pop_size:
@@ -339,28 +292,16 @@ class GeneticEngine(AbstractEngine):
             
             return jax.device_put(leaf, sharding_mgr.replicated_sharding)
 
-        # Apply to Genes (The Heavy Payload)
         sharded_genes = jax.tree_util.tree_map(_enforce_layout, population.genes)        
-        # Apply to Fitness (The Metadata)
         fitness_casted = population.fitness.astype(target_dtype)
         sharded_fitness = jax.device_put(fitness_casted, sharding_mgr.vector_sharding)
         
-        # Reconstruct Population with Sharded Data
         population = population.replace(genes=sharded_genes, fitness=sharded_fitness)
 
-        # ==========================================
-        # 6. INITIAL EVALUATION (Distributed)
-        # ==========================================
-        # Because inputs are explicitly sharded, JAX automatically creates a 
-        # sharded computation graph for the evaluator.
+
         evaluated_pop = self.evaluator.evaluate_population(population)
-        
-        # ==========================================
-        # 7. FINALIZE STATE
-        # ==========================================
         best_idx = jnp.argmax(evaluated_pop.fitness)
         
-        # Ensure the best genome is replicated (available on all devices)
         best_genome = jax.tree_util.tree_map(
             lambda x: jax.device_put(x[best_idx], sharding_mgr.replicated_sharding),
             evaluated_pop.genes
@@ -387,8 +328,8 @@ class GeneticEngine(AbstractEngine):
             Tuple of (engine_with_entropy, population) - the engine carries the entropy buffer.
         """
         entropy = self._allocate_entropy(state)
-        # Use object.__setattr__ to bypass flax immutability for internal buffer
-        engine_with_entropy = self.replace(_entropy_buffer=entropy)
+       
+        engine_with_entropy = self.replace(_entropy_buffer=entropy)  # Use object.__setattr__ to bypass flax immutability for internal buffer
         return engine_with_entropy, state.population        
     
     def tell(self, state: GeneticEvolutionState, population: BasePopulation) -> GeneticEvolutionState:
@@ -397,7 +338,6 @@ class GeneticEngine(AbstractEngine):
         
         k_sel, k_cross, k_mut, k_next = self._entropy_buffer
         
-        # Update with external data
         state = state.replace(population=population)
         
         # HOF Update (Partial)
@@ -414,10 +354,8 @@ class GeneticEngine(AbstractEngine):
             stagnation_counter=jnp.where(is_new, 0, state.stagnation_counter + 1)
         )
         
-        # Pipeline Execution using State Operators
         elites, parent_indices = self._selection_phase(k_sel, state.population, state.operators, self.engine_params)
         
-        # Use state.resource_map and state.operators
         mutants = self._reproduction_phase(
                     k_cross, 
                     k_mut, 
