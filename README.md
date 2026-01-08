@@ -211,19 +211,183 @@ This **Full Access architecture** enables researchers to experiment with:
 
 All while maintaining **full JIT compilation compatibility** and **functional purity**.
 
+## Testing
+
+```bash
+# Run tests with coverage
+pytest
+
+# Run specific test categories
+pytest -m integration   # Integration tests
+pytest -m slow          # Slow/comprehensive tests
+pytest tests/core/      # Test specific module
+```
+
+## Benchmarking
+
+MalthusJAX includes comprehensive benchmarking tools to analyze performance, dispatch overhead, and algorithm behavior.
+
+### Generating Benchmark Configurations
+
+Use the config generator to create GECCO benchmark configurations with warp-aligned population sizes:
+
+```bash
+# Generate benchmark configs for all BBOB tasks
+python generate_configs.py
+
+# This creates configs/run_<task>.toml for:
+# - sphere, rosenbrock, ellipsoidal_rotated, rastrigin, schaffers_f7
+```
+
+The generator creates configurations that test:
+- **Warp boundary stress testing**: Population sizes 32→1025 (tests GPU resource utilization)
+- **Multiple dimensions**: 10, 50, 100
+- **Statistical significance**: 30 repeats with different seeds
+- **Long evolution**: 2000 generations per trial
+
+Generated configs automatically set output directories: `results/gecco_final/{task}/`
+
+### 1. JAX Dispatch Timing Analysis
+
+Analyze JAX dispatch overhead, JIT compilation costs, and per-operator timing:
+
+```bash
+# Quick test (single task, small dimensions)
+python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --quick
+
+# Full comparative analysis (MalthusJAX vs Evosax)
+python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --framework both
+
+# MalthusJAX only
+python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --framework malthus
+
+# Evosax analysis with specific strategy
+python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --framework evosax --evosax-strategy SimpleGA
+
+# Custom configuration
+python benchmarks/cli_dispatch.py your_config.toml --framework both --evosax-strategy DifferentialEvolution
+```
+
+**Outputs:**
+- CSV files with unroll factor analysis (dispatch amortization curves)
+- Per-operator timing breakdown (ask, evaluate, tell)
+- Text reports with optimization recommendations
+- Results saved to `results/dispatch_timing/`
+
+**Key Metrics:**
+- **Cold compile time**: Initial JIT compilation overhead (includes tracing)
+- **Warm dispatch time**: Amortized dispatch cost after first compilation
+- **Unroll factor impact**: How many steps to amortize compilation overhead
+- **Per-operator breakdown**: Individual timing for selection, crossover, mutation, evaluation
+
+### 2. Fitness Benchmark (Quick)
+
+Quick evolutionary algorithm benchmark on BBOB functions:
+
+```bash
+# Quick smoke test (instant execution)
+python benchmarks/cli_fitness.py benchmarks/fitness_tuning_quick.toml --quick
+
+# Full quick benchmark
+python benchmarks/cli_fitness.py benchmarks/fitness_tuning_quick.toml
+```
+
+### 3. Fitness Tuning Benchmark
+
+Comprehensive hyperparameter tuning and fitness landscape analysis:
+
+```bash
+# Full fitness tuning benchmark
+python benchmarks/cli_fitness.py benchmarks/fitness_tuning.toml
+
+# Generate comparison plots
+python benchmarks/cli_fitness.py benchmarks/fitness_tuning.toml --plot
+```
+
+### 4. GECCO Benchmark Suite
+
+Benchmark configuration for academic paper experiments:
+
+```bash
+python benchmarks/cli.py --config benchmarks/gecco_benchmark.toml
+```
+
+### 5. Smoke Test (Minimal Validation)
+
+Quick validation that everything works:
+
+```bash
+# Run minimal smoke test
+python benchmarks/cli.py --config benchmarks/smoke_test.toml
+
+# Quick validation with dispatch analysis
+python benchmarks/cli_dispatch.py benchmarks/smoke_test.toml --quick --framework both
+```
+
+### Configuration File Format
+
+All benchmarks use TOML configuration files. Example structure:
+
+```toml
+[experiment]
+name = "My_Benchmark"
+output_dir = "results/my_benchmark"
+
+[grid]
+tasks = ["sphere", "rosenbrock"]        # BBOB problem names
+dimensions = [10, 50, 100]               # Problem dimensions
+pop_sizes = [64, 256, 1024]              # Population sizes
+seeds = [42, 43, 44]                     # Random seeds
+
+[dispatch]  # For dispatch_timing.toml
+unroll_factors = [1, 2, 4, 8, 16, 32]   # Unroll factors to test
+warmup_runs = 5                          # Warmup iterations
+timed_runs = 20                          # Timed iterations
+
+[hyperparam]
+mutation_rate = 0.1
+sigma = 0.1
+crossover_rate = 0.9
+elite_ratio = 0.1
+tournament_size = 3
+```
+
+### Results Analysis
+
+Benchmark results are saved to `results/dispatch_timing/`, organized as:
+
+```
+results/dispatch_timing/
+├── sphere_d10_p32_s42_malthus/
+│   ├── unroll_analysis.csv          # Dispatch overhead vs unroll factor
+│   ├── operator_breakdown.csv       # Per-operator timing
+│   └── dispatch_report.txt          # Detailed analysis
+├── rosenbrock_d10_p32_s42_evosax_SimpleGA/
+│   ├── unroll_analysis.csv
+│   ├── operator_breakdown.csv
+│   └── dispatch_report.txt
+└── summary.csv                       # Aggregate results
+```
+
+### Makefile Shortcuts
+
+```bash
+# Run all quality checks
+make check-all
+
+# Run only tests
+make test
+
+# Code formatting with Ruff
+make format
+
+# Type checking
+make type-check
+
+# Linting
+make lint
+```
+
 ## License
 
 [MIT License](LICENSE)
-
-## Benchmarks & Shortcuts
-
-- **Run tests with coverage:** `pytest` (coverage is enabled via `pyproject.toml` `addopts`).
-- **Run integration tests:** `pytest -m integration`.
-- **Run slow tests:** `pytest -m slow`.
-- **Quick smoke benchmark:** `python benchmarks/run_benchmark.py --config benchmarks/smoke_test.toml`.
-- **Configurable benchmark runner:** `python benchmarks/run_benchmark_configurable.py --config <your-config>.toml`.
-- **Engine comparison / experiments:** see `benchmarks/run_engine_comparison.py` and `benchmarks/run_benchmark.py` for common entry points.
-
-Notes:
-- The project defines `slow` and `integration` pytest markers in `pyproject.toml`.
-- Benchmark results and plotting helpers can be found under `my_local_results/` and `plots/`.
