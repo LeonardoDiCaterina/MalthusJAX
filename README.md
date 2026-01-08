@@ -104,36 +104,50 @@ This architecture enables **rapid prototyping** of evolutionary strategies witho
 ## Example Usage
 
 ```python
-import malthusjax as mjx
 import jax.random as jar
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
+from malthusjax.operators.mutation.real import GaussianMutation
+from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 
-# Define problem: optimize a 100-bit binary string
-genome_config = mjx.BinaryGenomeConfig(length=100)
-
-# Configure evolutionary parameters
-params = mjx.StandardEngineParams(
-    pop_size=1000,
-    num_generations=50,
-    elitism=5
-)
-
-# Initialize population
+# Setup random key
 key = jar.PRNGKey(42)
-key, k_pop = jar.split(key)
-initial_pop = mjx.BinaryPopulation.init_random(k_pop, genome_config, params.pop_size)
 
-# Assemble engine with desired operators
-engine = mjx.StandardGeneticEngine(
-    evaluator=mjx.BinarySumEvaluator(mjx.BinarySumConfig(maximize=True)),
-    selection=mjx.selection.Tournament(num_selections=params.pop_size, tournament_size=3),
-    crossover=mjx.crossover.Uniform(num_offspring=2, crossover_rate=0.8),
-    mutation=mjx.mutation.BitFlip(num_offspring=1, mutation_rate=0.01)
+# 1. Define genome: real-valued vectors in [-5, 5]
+genome_config = RealGenomeConfig(length=10, bounds=(-5.0, 5.0))
+
+# 2. Setup fitness evaluator (BBOB benchmark function)
+bbob_config = BBOBConfig(fn_name="sphere", num_dims=10, maximize=False)
+evaluator = BBOBEvaluator.create(bbob_config)
+
+# 3. Configure engine parameters
+engine_params = GeneticEngineParams(
+    pop_size=100,
+    elitism=5,
+    num_generations=50
 )
 
-# Initialize and run evolution
-key, k_init = jar.split(key)
-state = engine.init_state(k_init, initial_pop)
-final_state, history, elapsed_time = engine.run(state, params, time_it=True)
+# 4. Create genetic operators
+selection = ElitePoolSelection(num_selections=100, elite_k=10)
+crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)
+mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5)
+
+# 5. Assemble engine
+engine = GeneticEngine(
+    engine_params=engine_params,
+    genome_config=genome_config,
+    evaluator=evaluator,
+    selection=selection,
+    crossover=crossover,
+    mutation=mutation
+)
+
+# 6. Initialize and run evolution
+state = engine.init_state(key)
+final_state, history = engine.run(state)
+print(f"Best fitness: {final_state.best_fitness}")
 ```
 
 ## Implementation Details
@@ -159,7 +173,7 @@ MalthusJAX engines use the **Template Method pattern** with **Full Access signat
 **Example: Diversity-Aware Selection with Full State Access**
 ```python
 from flax import struct
-from malthusjax.engine import GeneticEngine
+from malthusjax.engine.genetic_fastengine import GeneticEngine
 
 @struct.dataclass
 class DiversityAwareEngine(GeneticEngine):
@@ -170,7 +184,7 @@ class DiversityAwareEngine(GeneticEngine):
         population = state.population
         
         # Compute crowding distance using distance matrix
-        dist_matrix = population.distance_matrix(metric="hamming")
+        dist_matrix = population.distance_matrix(metric="euclidean")
         crowding = self._compute_crowding_scores(dist_matrix)
         
         # Combine fitness and diversity into selection criterion
@@ -186,20 +200,27 @@ class DiversityAwareEngine(GeneticEngine):
 
 **Example: Adaptive Mutation Based on Stagnation**
 ```python
+from flax import struct
+from malthusjax.engine.genetic_fastengine import GeneticEngine
+
 @struct.dataclass
 class AdaptiveMutationEngine(GeneticEngine):
     base_mutation_rate: float = struct.field(default=0.01, pytree_node=False)
     
     def _create_offspring(self, key, parents, state, params):
         # Increase mutation rate when evolution stagnates
-        adaptive_rate = self.base_mutation_rate * (1 + 0.2 * state.stagnation_counter)
+        stagnation_factor = 1 + 0.2 * state.stagnation_counter
+        adaptive_rate = self.base_mutation_rate * stagnation_factor
         
         # Create modified mutation operator with adaptive rate
         adaptive_mutation = self.mutation.replace(mutation_rate=adaptive_rate)
         
-        # Use parent implementation with modified operator
-        # (simplified example - actual implementation may vary)
-        return super()._create_offspring(key, parents, state, params)
+        # Apply adaptive mutation to parents
+        offspring_genes = adaptive_mutation(key, parents.genes, params)
+        
+        # Construct offspring population
+        from malthusjax.core.genome.real_genome import RealPopulation
+        return RealPopulation(genes=offspring_genes)
 ```
 
 This **Full Access architecture** enables researchers to experiment with:
