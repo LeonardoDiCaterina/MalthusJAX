@@ -78,7 +78,11 @@ class TestMalthusAdapter:
         mock_engine.step.assert_called_once_with(mock_state)
     
     def test_malthus_adapter_extract_best_fitness(self, mock_engine):
-        """Test MalthusAdapter best fitness extraction."""
+        """Test MalthusAdapter best fitness extraction.
+        
+        Note: MalthusAdapter negates the fitness for BBOB comparison since
+        MalthusJAX uses maximize=True (negated BBOB) internally.
+        """
         adapter = MalthusAdapter(mock_engine)
         
         mock_state = Mock()
@@ -86,7 +90,8 @@ class TestMalthusAdapter:
         
         fitness = adapter.extract_best_fitness(mock_state)
         
-        assert fitness == 42.5
+        # Adapter returns -best_fitness for fair comparison with Evosax (minimization)
+        assert fitness == -42.5
         assert isinstance(fitness, float)
     
     def test_malthus_adapter_get_device_info(self, mock_engine):

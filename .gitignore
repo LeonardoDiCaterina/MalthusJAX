@@ -160,3 +160,8 @@ benchmarks/results/notebook_runs/notebook_benchmark_20260106_181618.csv
 benchmarks/results/notebook_runs/notebook_benchmark_20260106_181712.csv
 benchmarks/results/notebook_runs/notebook_benchmark_20260106_182045.csv
 benchmarks/results/notebook_runs/notebook_benchmark_20260106_182310.csv
+
+# Non-standard GA engine tests (experimental, not required for CI)
+tests/engine/test_genetic_engine_DE.py
+tests/engine/test_genetic_engine_EMA.py
+tests/engine/test_genetic_engine_MR15.py

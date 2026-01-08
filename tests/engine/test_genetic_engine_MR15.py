@@ -210,13 +210,13 @@ class TestLevel3Engine(unittest.TestCase):
         
         # --- PATH B: Ask-Tell ---
         # 1. Ask: Allocate entropy for the next step
-        # This populates self.engine._entropy_buffer
-        _ = self.engine.ask(state_0)
+        # This returns the engine with entropy buffer populated
+        engine_with_entropy, _ = self.engine.ask(state_0)
         
         # 2. Tell: Execute evolutionary logic using the buffered entropy
         # Note: tell() performs HOF update at the START (using input pop) 
         # and returns an UNEVALUATED new population.
-        state_tell = self.engine.tell(state_0, state_0.population)
+        state_tell = engine_with_entropy.tell(state_0, state_0.population)
         
         # --- COMPARISON ---
         

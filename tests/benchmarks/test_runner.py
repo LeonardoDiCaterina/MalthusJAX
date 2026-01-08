@@ -52,6 +52,7 @@ class TestBenchmarkResult:
             std_exec_time=0.15,
             mean_gps=50.0,
             best_fitness_final=10.5,
+            fitness_std=0.0,
         )
         
         assert result.framework == "MalthusJAX"

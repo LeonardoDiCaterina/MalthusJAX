@@ -2,7 +2,7 @@
 Standard Genetic Algorithm Engine.
 Refactored for 'Init-Phase Compilation': Resource mapping happens once at initialization.
 """
-from typing import Any, Tuple, List
+from typing import Any, Tuple
 from flax import struct
 import jax
 import jax.numpy as jnp
@@ -76,8 +76,16 @@ class GeneticEngine(AbstractEngine):
     #hooks: Tuple[AbstractHook] = struct.field(default_factory=tuple)
     enable_progress_bar: bool = struct.field(pytree_node=False, default=False)
     
-    # Internal Buffer for ask/tell
-    _entropy_buffer: List[Any] = struct.field(pytree_node=False, default_factory=list)
+    # Internal Buffer for ask/tell (tuple for hashability)
+    _entropy_buffer: Tuple[Any, ...] = struct.field(pytree_node=False, default=())
+    
+    def __hash__(self) -> int:
+        """Make engine hashable for JIT static_argnums."""
+        return id(self)
+    
+    def __eq__(self, other) -> bool:
+        """Identity-based equality for JIT caching consistency."""
+        return self is other
     
     @traceable("Phase_0_Allocate_Entropy")
     def _allocate_entropy(self, state: GeneticEvolutionState) -> Tuple:
@@ -372,9 +380,16 @@ class GeneticEngine(AbstractEngine):
     # ==========================================
     # ASK / TELL Interface
     # ==========================================
-    def ask(self, state: GeneticEvolutionState) -> BasePopulation:
-        self._entropy_buffer[:] = self._allocate_entropy(state)
-        return state.population        
+    def ask(self, state: GeneticEvolutionState) -> Tuple["GeneticEngine", BasePopulation]:
+        """Allocate entropy for the next step and return population to evaluate.
+        
+        Returns:
+            Tuple of (engine_with_entropy, population) - the engine carries the entropy buffer.
+        """
+        entropy = self._allocate_entropy(state)
+        # Use object.__setattr__ to bypass flax immutability for internal buffer
+        engine_with_entropy = self.replace(_entropy_buffer=entropy)
+        return engine_with_entropy, state.population        
     
     def tell(self, state: GeneticEvolutionState, population: BasePopulation) -> GeneticEvolutionState:
         if not self._entropy_buffer:

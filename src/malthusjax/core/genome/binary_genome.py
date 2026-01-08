@@ -17,8 +17,9 @@ from malthusjax.core.base import BaseGenome, BasePopulation
 @struct.dataclass
 class BinaryGenomeConfig:
     """Configuration for Binary genomes."""
-    length: int        # Number of bits in the binary string
-    p: int = 0.5
+    length: int           # Number of bits in the binary string
+    p: float = 0.5        # Probability of 1 in random initialization
+    dtype: jnp.dtype = struct.field(pytree_node=False, default=jnp.int32)  # Data type of the bits
 
 
 def validate_binary_config(config: BinaryGenomeConfig) -> None:
@@ -40,12 +41,12 @@ class BinaryGenome(BaseGenome):
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: BinaryGenomeConfig) -> "BinaryGenome":
         """Create random binary genome."""
-        bits = jax.random.bernoulli(key, config.p, (config.length,)).astype(jnp.int32)
+        bits = jax.random.bernoulli(key, config.p, (config.length,)).astype(config.dtype)
         return cls(bits=bits)
 
     def autocorrect(self, config: BinaryGenomeConfig) -> "BinaryGenome":
         """Ensure all bits are 0 or 1."""
-        corrected_bits = jnp.clip(self.bits, 0, 1).astype(jnp.int32)
+        corrected_bits = jnp.clip(self.bits, 0, 1).astype(config.dtype)
         return self.replace(bits=corrected_bits)
 
     def distance(self, other: "BinaryGenome", metric: str = "hamming") -> float:

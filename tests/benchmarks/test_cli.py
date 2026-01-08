@@ -104,6 +104,7 @@ class TestRunSingleBenchmark:
             std_exec_time=0.05,
             mean_gps=20.0,
             best_fitness_final=10.0,
+            fitness_std=0.0,
         )
 
     @patch('benchmarks.cli.setup_bbob_instances')
@@ -238,6 +239,7 @@ elite_ratio = 0.1
             std_exec_time=0.05,
             mean_gps=10.0,
             best_fitness_final=5.0,
+            fitness_std=0.0,
             all_times=[],
         )
 
@@ -254,6 +256,7 @@ elite_ratio = 0.1
             std_exec_time=0.08,
             mean_gps=8.3,
             best_fitness_final=5.5,
+            fitness_std=0.0,
             all_times=[],
         )
 
@@ -344,13 +347,13 @@ elite_ratio = 0.1
             return BenchmarkResult(
                 framework="MalthusJAX", device="CPU", pop_size=16, unroll=1,
                 compile_time=0.1, mean_exec_time=0.5, std_exec_time=0.05,
-                mean_gps=10.0, best_fitness_final=5.0, all_times=[]
+                mean_gps=10.0, best_fitness_final=5.0, fitness_std=0.0, all_times=[]
             )
         def make_result_e():
             return BenchmarkResult(
                 framework="Evosax", device="CPU", pop_size=16, unroll=1,
                 compile_time=0.1, mean_exec_time=0.6, std_exec_time=0.08,
-                mean_gps=8.0, best_fitness_final=5.2, all_times=[]
+                mean_gps=8.0, best_fitness_final=5.2, fitness_std=0.0, all_times=[]
             )
         
         # Create config with multiple parameters
@@ -405,12 +408,12 @@ unroll_factors = [1, 2]
             BenchmarkResult(
                 framework="MalthusJAX", device="CPU", pop_size=16, unroll=1,
                 compile_time=0.1, mean_exec_time=0.5, std_exec_time=0.0,
-                mean_gps=10.0, best_fitness_final=0.0, all_times=[]
+                mean_gps=10.0, best_fitness_final=0.0, fitness_std=0.0, all_times=[]
             ),
             BenchmarkResult(
                 framework="Evosax", device="CPU", pop_size=16, unroll=1,
                 compile_time=0.1, mean_exec_time=0.6, std_exec_time=0.0,
-                mean_gps=8.0, best_fitness_final=0.0, all_times=[]
+                mean_gps=8.0, best_fitness_final=0.0, fitness_std=0.0, all_times=[]
             ),
         ]
         
@@ -471,6 +474,7 @@ class TestMemoryManagement:
             std_exec_time=0.05,
             mean_gps=20.0,
             best_fitness_final=10.0,
+            fitness_std=0.0,
             all_times=[],
         )
         
