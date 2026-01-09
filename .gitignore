@@ -165,3 +165,13 @@ benchmarks/results/notebook_runs/notebook_benchmark_20260106_182310.csv
 tests/engine/test_genetic_engine_DE.py
 tests/engine/test_genetic_engine_EMA.py
 tests/engine/test_genetic_engine_MR15.py
+benchmarks/results/engine_dispatch/sphere_d10_p64_s42/comparison_report.txt
+benchmarks/results/engine_dispatch/sphere_d10_p64_s42/config_info.json
+benchmarks/results/engine_dispatch/sphere_d10_p64_s42/engine_step_comparison.csv
+benchmarks/results/engine_dispatch/sphere_d10_p64_s42/engine_unroll_analysis.csv
+benchmarks/results/profiler/sphere_d10_p32_20260109_204504/raw_results.csv
+benchmarks/results/profiler/sphere_d10_p32_20260109_204504/statistics.csv
+benchmarks/results/profiler/sphere_d10_p32_20260109_204537/raw_results.csv
+benchmarks/results/profiler/sphere_d10_p32_20260109_204537/statistics.csv
+benchmarks/results/profiler/sphere_d10_p32_20260109_204537/traces/Standard_GA_Ablation_unroll1/plugins/profile/2026_01_09_20_45_42/Leonardos-MBP.Home.trace.json.gz
+benchmarks/results/profiler/sphere_d10_p32_20260109_204537/traces/Standard_GA_Ablation_unroll1/plugins/profile/2026_01_09_20_45_42/Leonardos-MBP.Home.xplane.pb

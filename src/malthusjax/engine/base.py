@@ -105,6 +105,18 @@ class AbstractEngine(ABC):
     """
     engine_params: AbstractEngineParams = struct.field(pytree_node=False)
     
+    def __hash__(self) -> int:
+        """Make engine hashable for JIT static_argnums.
+        
+        Uses id() since engine contains JAX arrays that aren't hashable.
+        This means each engine instance is treated as unique by JIT caching.
+        """
+        return id(self)
+    
+    def __eq__(self, other) -> bool:
+        """Identity-based equality for JIT caching consistency."""
+        return self is other
+    
     @abstractmethod
     def init_state(self, rng_key: jnp.ndarray) -> AbstractEvolutionState:
         """

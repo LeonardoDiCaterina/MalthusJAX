@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import argparse
-
+import os
 
 def load_results(csv_path):
     """Load fitness tuning results."""
@@ -16,7 +16,7 @@ def load_results(csv_path):
 
 def plot_hyperparameter_effects(df, output_dir="results/fitness_tuning/plots"):
     """Plot how each hyperparameter affects fitness."""
-    import os
+    
     os.makedirs(output_dir, exist_ok=True)
     
     # Identify hyperparameter columns
