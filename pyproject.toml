@@ -8,14 +8,7 @@ version = "0.1.0"
 description = "JAX-based genetic programming framework with tensorized parallelization"
 readme = "README.md"
 license = {file = "LICENSE"}
-authors = [
-    {name = "Leonardo DiCaterina", email = "20240485@novaims.unl.pt"},
-    {name = "Leonardo DiCaterina", email = "leonardo.dicaterina@mail.polimi.it"}
-]
-maintainers = [
-    {name = "Leonardo DiCaterina", email = "20240485@novaims.unl.pt"},
-    {name = "Leonardo DiCaterina", email = "leonardo.dicaterina@mail.polimi.it"},    
-]
+
 keywords = ["genetic-programming", "evolutionary-computation", "jax", "machine-learning"]
 requires-python = ">=3.8"
 classifiers = [
