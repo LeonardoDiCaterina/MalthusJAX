@@ -21,7 +21,7 @@ from .mutation.linear import LinearMutation, LinearPointMutation
 
 # Selection operators
 from .selection.tournament import TournamentSelection
-from .selection.roulette import RouletteWheelSelection
+from .selection.roulette import RouletteSelection
 from .selection.truncation import Truncation
 from .selection.elite_pool import ElitePoolSelection
 
@@ -38,5 +38,5 @@ __all__ = [
     "CategoricalFlipMutation", "RandomCategoryMutation",
     "LinearMutation", "LinearPointMutation",
     # Selection operators
-    "TournamentSelection", "RouletteWheelSelection", "Truncation", "ElitePoolSelection"
+    "TournamentSelection", "RouletteSelection", "Truncation", "ElitePoolSelection"
 ]
