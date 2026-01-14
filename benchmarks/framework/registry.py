@@ -278,13 +278,11 @@ def _build_evosax_ga_optimized(pop_size, dims, seed, hypers, problem_object):
     )
     
     # Configure parameters same as Standard_GA
-    elite_ratio = hypers.get('elite_ratio', 0.5)
-    strategy.elite_ratio = elite_ratio
-    strategy.num_elites = int(elite_ratio * pop_size)
-    
+    strategy.elite_ratio = hypers.get('elite_ratio', 0.5)
     es_params = strategy.default_params.replace(
         crossover_rate=hypers.get('crossover_rate', 0.5)
     )
+    
     return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
 
 
