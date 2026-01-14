@@ -74,7 +74,7 @@ class TournamentSelection(BaseSelection):
     def num_keys(self, input_shape: tuple) -> int:
         return 1
 
-    def __call__(self, keys: chex.Array, fitness: chex.Array) -> chex.Array:
+    def _select(self, keys: chex.Array, fitness: chex.Array, config = None) -> chex.Array:
         pop_size = fitness.shape[0]
         
         # 1. Generate Candidates (No Global Sync)
