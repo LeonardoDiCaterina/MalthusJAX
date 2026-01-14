@@ -129,8 +129,10 @@ class GeneticSpeedEngine(GeneticEngine):
         )
 
         # 4. Merge (Fast Generational Replacement)
-        # We assume parents are replaced by offspring to avoid concat/sort overhead
-        next_population = state.population.replace(genes=mutants.genes)
+        # Truncate mutants to match population size exactly
+        pop_size = state.population.genes.values.shape[0]
+        truncated_genes = mutants.genes.values[:pop_size]
+        next_population = state.population.replace(genes=mutants.genes.replace(values=truncated_genes))
         
         # 5. Evaluate
         evaluated_pop = self.evaluator.evaluate_population(next_population)
