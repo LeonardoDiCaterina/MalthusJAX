@@ -75,11 +75,13 @@ class TournamentSelection(BaseSelection):
         return 1
 
     def _select(self, keys: chex.Array, fitness: chex.Array, config = None) -> chex.Array:
+        # Normalize keys - handle (1, 2) shape vs (2,) shape
+        rng = keys[0] if keys.ndim > 1 else keys
         pop_size = fitness.shape[0]
         
         # 1. Generate Candidates (No Global Sync)
         candidates = jax.random.randint(
-            keys, 
+            rng, 
             shape=(self.num_selections, self.tournament_size), 
             minval=0, 
             maxval=pop_size
@@ -305,7 +307,7 @@ def _build_malthus_speed_demon(pop_size, dims, seed, hypers, problem_object):
     bf16_config = adapter.engine.genome_config.replace(dtype=jnp.bfloat16)
     
     # 2. Tournament
-    tourn_selection = TournamentSelection(num_selections=pop_size, tourn_size=3)
+    tourn_selection = TournamentSelection(num_selections=pop_size, tournament_size=3)
     
     # 3. Speed Engine
     speed_engine = GeneticSpeedEngine(
