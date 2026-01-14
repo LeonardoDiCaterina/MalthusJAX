@@ -118,7 +118,7 @@ class GeneticSpeedEngine(GeneticEngine):
         k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
 
         # 2. Selection
-        _, parent_indices = self._selection_phase(
+        elites, parent_indices = self._selection_phase(
             k_sel, state.population, state.operators, self.engine_params
         )
 
@@ -128,13 +128,11 @@ class GeneticSpeedEngine(GeneticEngine):
             state.operators, state.resource_map
         )
 
-        # 4. Merge (Fast Generational Replacement)
-        # Truncate mutants to match population size exactly
-        pop_size = state.population.genes.values.shape[0]
-        truncated_genes = mutants.genes.values[:pop_size]
-        next_population = state.population.replace(genes=mutants.genes.replace(values=truncated_genes))
+        # 4. Merge (Same as standard engine)
+        next_genes = self._merge(elites, mutants.genes, state)
         
         # 5. Evaluate
+        next_population = state.population.replace(genes=next_genes)
         evaluated_pop = self.evaluator.evaluate_population(next_population)
 
         # 6. Minimal State Update (NO HOF / NO ARGMAX)
