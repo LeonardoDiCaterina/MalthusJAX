@@ -4,7 +4,8 @@ Refactored for the 'Consumer Paradigm': Pure index generation.
 """
 from flax import struct
 import jax
-import jax.numpy as jnp
+import jax.lax
+import jax.random
 import chex
 from malthusjax.operators.base import BaseSelection
 
@@ -15,39 +16,28 @@ C = TypeVar("C")  # Config Type
 @struct.dataclass
 class ElitePoolSelection(BaseSelection):
     """
-    Elite Pool Selection (Evosax Style).
-    1. Identifies the top 'elite_k' individuals.
-    2. Uniformly samples 'num_selections' indices from that pool.
-    
-    Efficient for large populations as it avoids full sorting.
+    Elite Pool Selection (High Performance).
+    Uses jax.lax.top_k for O(N log K) efficiency instead of O(N log N) sorting.
     """
     elite_k: int = struct.field(pytree_node=False, default=10)
 
-    def num_keys(self, input_shape: tuple) -> int:
-        """
-        We need 1 key to perform the random sampling from the elite pool.
-        """
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
         return 1
 
     def _select(self, keys: chex.Array, fitness: chex.Array, config: C = None) -> chex.Array:
         """
-        Selects parents.
-        
-        Args:
-            keys: A single key (shape (1,) or scalar) derived from the ResourceMap.
-            fitness: The population fitness array.
-            
-        Returns:
-            selected_indices: Shape (num_selections,)
+        Selects parents from the top 'elite_k' best individuals.
         """
-        rng = keys[0] if keys.ndim > 1 else keys
+        rng = keys[0]
         
-        # 1. Find indices of the top K best individuals
-        # Note: We assume Higher Fitness = Better
+        # 1. Find indices of the top K best individuals (Efficiency Win)
+        # top_k returns values and indices. We only need indices.
+        # Note: top_k sorts largest to smallest, which is perfect for maximization.
         _, best_k_indices = jax.lax.top_k(fitness, self.elite_k)
         
         # 2. Randomly sample from these elite indices
-        # We sample with replacement so elites can be picked multiple times
+        # We sample with replacement so the best elites can be picked multiple times.
         random_selections = jax.random.randint(
             rng, 
             shape=(self.num_selections,), 
@@ -55,7 +45,7 @@ class ElitePoolSelection(BaseSelection):
             maxval=self.elite_k
         )
         
-        # 3. Map back to original population indices
+        # 3. Gather final parent indices
         selected_indices = best_k_indices[random_selections]
         
         return selected_indices
