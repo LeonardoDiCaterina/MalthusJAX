@@ -160,6 +160,66 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
         
         return genome.replace(values=mutated_values) 
 
+
+@struct.dataclass
+class DifferentialMutation(BaseMutation[Tuple[RealGenome, RealGenome, RealGenome], RealGenomeConfig, RealPopulation]):
+    """
+    DE/rand/1 Differential Mutation.
+    v = r1 + F * (r2 - r3)
+    Uses fixed F scale (f_scale parameter).
+    """
+    f_scale: float = 0.8
+    clip: bool = struct.field(pytree_node=False, default=True)
+
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 0  # No randomness needed - F is fixed
+
+    def _mutate_one(
+        self, 
+        keys: chex.Array, 
+        genome_triplet: Tuple[RealGenome, RealGenome, RealGenome], 
+        config: RealGenomeConfig
+    ) -> RealGenome:
+        
+        r1, r2, r3 = genome_triplet
+        
+        # 1. Capture Dtype
+        dtype = r1.values.dtype
+        F = jnp.array(self.f_scale, dtype=dtype)
+        
+        # 2. Vector Math: v = r1 + F * (r2 - r3)
+        diff = r2.values - r3.values
+        mutant_values = r1.values + (diff * F)
+        
+        if self.clip:
+            min_val, max_val = config.bounds
+            mutant_values = jnp.clip(mutant_values, min_val, max_val)
+        
+        return r1.replace(values=mutant_values)
+    
+    def __call__(self, all_keys: chex.Array, triplets: Tuple[RealPopulation, RealPopulation, RealPopulation], config: RealGenomeConfig) -> RealPopulation:
+        """
+        Vectorized differential mutation on population triplets.
+        """
+        r1_pop, r2_pop, r3_pop = triplets
+        
+        # Capture Dtype
+        dtype = r1_pop.genes.values.dtype
+        F = jnp.array(self.f_scale, dtype=dtype)
+        
+        # Vector Math: v = r1 + F * (r2 - r3)
+        diff = r2_pop.genes.values - r3_pop.genes.values
+        mutant_values = r1_pop.genes.values + (diff * F)
+        
+        if self.clip:
+            min_val, max_val = config.bounds
+            mutant_values = jnp.clip(mutant_values, min_val, max_val)
+        
+        new_genes = r1_pop.genes.replace(values=mutant_values)
+        return r1_pop.replace(genes=new_genes)
+
+
 @struct.dataclass
 class DitherMutation(BaseMutation[Tuple[RealGenome, RealGenome, RealGenome], RealGenomeConfig, RealPopulation]):
     """
