@@ -429,6 +429,27 @@ def _build_evosax_de(pop_size, dims, seed, hypers, problem_object):
     return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
 
 
+
+from malthusjax.operators.selection.roulette import RouletteSelection
+
+def _build_malthus_roulette(pop_size, dims, seed, hypers, problem_object):
+    """MalthusJAX using Roulette (Boltzmann) Selection."""
+    adapter = _build_malthus_ga(pop_size, dims, seed, hypers, problem_object)
+    
+    # Enable Economy Mode logic for offspring count
+    elite_ratio = hypers.get('elite_ratio', 0.5)
+    elite_count = int(pop_size * elite_ratio)
+    num_offspring_needed = pop_size - elite_count
+    
+    # Swap Selection
+    new_selection = RouletteSelection(
+        num_selections=num_offspring_needed, 
+        temperature=1.0
+    )
+    adapter.engine = adapter.engine.replace(selection=new_selection)
+    return adapter
+
+
 # =========================================================
 # REGISTRATIONS
 # =========================================================
@@ -491,4 +512,10 @@ ComparisonRegistry.register(ComparisonSpec(
     name="Malthus_SpeedDemon",
     malthus_factory=_build_malthus_speed_demon,
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
+))
+
+ComparisonRegistry.register(ComparisonSpec(
+    name="Malthus_Roulette",
+    malthus_factory=_build_malthus_roulette,
+    default_hypers={'elite_ratio': 0.1}
 ))
