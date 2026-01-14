@@ -160,4 +160,79 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
         
         return genome.replace(values=mutated_values) 
 
-__all__ = ["GaussianMutation", "BallMutation", "PolynomialMutation"]
+@struct.dataclass
+class DitherMutation(BaseMutation[Tuple[RealGenome, RealGenome, RealGenome], RealGenomeConfig, RealPopulation]):
+    """
+    DE Dither Mutation.
+    v = r1 + F' * (r2 - r3)
+    Type-Vaccinated.
+    """
+    low: float = 0.2
+    high: float = 0.8
+    clip: bool = struct.field(pytree_node=False, default=True)
+
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 1
+
+    def _mutate_one(
+        self, 
+        keys: chex.Array, 
+        genome_triplet: Tuple[RealGenome, RealGenome, RealGenome], 
+        config: RealGenomeConfig
+    ) -> RealGenome:
+        
+        k_scale = keys[0]
+        r1, r2, r3 = genome_triplet
+        
+        # 1. Capture Dtype
+        dtype = r1.values.dtype
+        
+        # 2. Sample Scalar F (Explicit Dtype)
+        F = jax.random.uniform(
+            k_scale, 
+            shape=(), 
+            minval=self.low, 
+            maxval=self.high, 
+            dtype=dtype
+        )
+        
+        # 3. Vector Math
+        diff = r2.values - r3.values
+        mutant_values = r1.values + (diff * F)
+        
+        if self.clip:
+            min_val, max_val = config.bounds
+            mutant_values = jnp.clip(mutant_values, min_val, max_val)
+        
+        return r1.replace(values=mutant_values)
+    
+    def __call__(self, all_keys: chex.Array, triplets: Tuple[RealGenome, RealGenome, RealGenome], config: RealGenomeConfig) -> RealGenome:
+        """
+        Overridden __call__ that works on raw Genomes/Tuples.
+        """
+        leaves = jax.tree_util.tree_leaves(triplets)
+        pop_size = leaves[0].shape[0]
+
+        keys_reshaped = all_keys.reshape(
+            pop_size, 
+            1, 
+            self.num_keys_per_atomic_operation, 
+            2
+        )
+
+        def _process_one(k_block, triplet_slice):
+            return jax.vmap(
+                lambda k: self._mutate_one(k, triplet_slice, config)
+            )(k_block)
+
+        nested_genes = jax.vmap(_process_one)(keys_reshaped, triplets)
+        
+        new_genes = jax.tree_util.tree_map(
+            lambda x: x.reshape((-1,) + x.shape[2:]), 
+            nested_genes
+        )
+        
+        return new_genes    
+    
+__all__ = ["GaussianMutation", "BallMutation", "PolynomialMutation", "DifferentialMutation", "DitherMutation"]
