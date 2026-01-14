@@ -1,5 +1,6 @@
 from typing import Callable, Dict, Any, NamedTuple, Optional
 import jax
+import jax.numpy as jnp
 from .adapters import MalthusAdapter, EvosaxAdapter
 
 # --- Malthus Components ---
@@ -220,6 +221,73 @@ def _build_malthus_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
     return MalthusAdapter(engine)
 
 
+
+# 1. Define the Optimized Strategy (The Patch)
+class OptimizedSimpleGA(SimpleGA):
+    """
+    A patched version of SimpleGA that avoids the `searchsorted` bottleneck.
+    It replaces weighted random sampling with uniform sampling of the top-k elites.
+    """
+    def _ask(self, key, state, params):
+        # --- OPTIMIZATION START ---
+        # 1. Sort population by fitness (Standard GA logic)
+        idx = jnp.argsort(state.fitness)
+        sorted_pop = state.population[idx]
+        
+        # 2. Slice the Elites (Direct memory view, no search needed)
+        # This replaces: p = jnp.arange(...) < elite_count
+        elites = sorted_pop[:self.num_elites]
+        
+        # 3. Uniformly sample parents from the elite pool
+        # This avoids jax.random.choice(p=weights), preventing 'searchsorted'
+        rng_cross, rng_mut, rng_p1, rng_p2 = jax.random.split(key, 4)
+        
+        parents_1 = jax.random.choice(rng_p1, elites, (self.population_size,))
+        parents_2 = jax.random.choice(rng_p2, elites, (self.population_size,))
+        # --- OPTIMIZATION END ---
+
+        # 4. Standard Crossover & Mutation (Same as original)
+        rng_cross_split = jax.random.split(rng_cross, self.population_size)
+        rng_mut_split = jax.random.split(rng_mut, self.population_size)
+
+        # We must use self.crossover_strategy if defined, or the raw functions
+        # For safety, we use the raw functions as defined in Evosax source
+        # (Assuming you have access to crossover/mutation funcs or import them)
+        from evosax.algorithms.population_based.simple_ga import crossover, mutation
+        
+        population = jax.vmap(crossover, in_axes=(0, 0, 0, None))(
+            rng_cross_split, parents_1, parents_2, params.crossover_rate
+        )
+
+        population = jax.vmap(mutation, in_axes=(0, 0, None))(
+            rng_mut_split, population, state.std
+        )
+
+        return population, state
+
+# 2. Define the Factory
+def _build_evosax_ga_optimized(pop_size, dims, seed, hypers, problem_object):
+    """Builds the OPTIMIZED Evosax strategy."""
+    rng = jax.random.PRNGKey(seed)
+    init_solution = problem_object.sample(rng)
+    
+    # Instantiate the PATCHED class
+    strategy = OptimizedSimpleGA(
+        population_size=pop_size,
+        solution=init_solution
+    )
+    
+    # Configure parameters same as Standard_GA
+    elite_ratio = hypers.get('elite_ratio', 0.5)
+    strategy.elite_ratio = elite_ratio
+    strategy.num_elites = int(elite_ratio * pop_size)
+    
+    es_params = strategy.default_params.replace(
+        crossover_rate=hypers.get('crossover_rate', 0.5)
+    )
+    return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
+
+
 # Register "Standard_GA"
 ComparisonRegistry.register(ComparisonSpec(
     name="Standard_GA",
@@ -237,7 +305,7 @@ ComparisonRegistry.register(ComparisonSpec(
 ComparisonRegistry.register(ComparisonSpec(
     name="Standard_GA_Ablation",
     malthus_factory=_build_malthus_ga_ablation,
-    evosax_factory=None,  # Malthus-only ablation study
+    evosax_factory= _build_evosax_ga_optimized,
     default_hypers={
         'mutation_rate': 0.05,
         'crossover_rate': 0.6,
