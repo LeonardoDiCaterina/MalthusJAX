@@ -274,7 +274,7 @@ def _build_malthus_tournament(pop_size, dims, seed, hypers, problem_object):
     """MalthusJAX using Tournament Selection."""
     adapter = _build_malthus_ga(pop_size, dims, seed, hypers, problem_object)
     # Swap Selection
-    new_selection = TournamentSelection(num_selections=pop_size, tourn_size=3)
+    new_selection = TournamentSelection(num_selections=pop_size, tournament_size=3)
     adapter.engine = adapter.engine.replace(selection=new_selection)
     return adapter
 
