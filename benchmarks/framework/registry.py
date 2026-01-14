@@ -143,7 +143,16 @@ class GeneticSpeedEngine(GeneticEngine):
             rng_key=k_next
         )
         
-        return next_state, GeneticGenerationOutput(random_key=k_next)
+        # 7. Compute required KPIs for output
+        best_fitness = jnp.max(evaluated_pop.fitness)
+        mean_fitness = jnp.mean(evaluated_pop.fitness)
+        
+        return next_state, GeneticGenerationOutput(
+            random_key=k_next,
+            best_fitness=best_fitness,
+            mean_fitness=mean_fitness,
+            generation=next_state.generation
+        )
 
 
 # =========================================================
