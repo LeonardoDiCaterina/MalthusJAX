@@ -27,6 +27,8 @@ from malthusjax.operators.mutation.ablation_mutation import AblationGaussianMuta
 from malthusjax.operators.crossover.ablation_crossover import AblationUniformCrossover
 from malthusjax.operators.selection.ablation_selection import AblationElitePoolSelection
 from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.operators.selection.tournament import TournamentSelection
+from malthusjax.operators.selection.roulette import RouletteSelection
 
 # --- Evosax Components ---    
 from evosax.algorithms.population_based import SimpleGA, MR15_GA, DifferentialEvolution
@@ -59,53 +61,6 @@ class ComparisonRegistry:
 
 
 # =========================================================
-# SPEED COMPONENTS (DEFINED INLINE FOR SAFETY)
-# =========================================================
-
-@struct.dataclass
-class TournamentSelection(BaseSelection):
-    """
-    Tournament Selection.
-    Selects the best individual from random subsets. 
-    Removes the sorting bottleneck (O(N) vs O(N log N)).
-    """
-    tournament_size: int = struct.field(pytree_node=False, default=3)
-
-    def num_keys(self, input_shape: tuple) -> int:
-        return 1
-
-    def _select(self, keys: chex.Array, fitness: chex.Array, config = None) -> chex.Array:
-        # Normalize keys - handle (1, 2) shape vs (2,) shape
-        rng = keys[0] if keys.ndim > 1 else keys
-        pop_size = fitness.shape[0]
-        
-        # 1. Generate Candidates (No Global Sync)
-        candidates = jax.random.randint(
-            rng, 
-            shape=(self.num_selections, self.tournament_size), 
-            minval=0, 
-            maxval=pop_size
-        )
-        
-        # 2. Retrieve Fitness
-        candidate_fitness = jnp.take(fitness, candidates, axis=0)
-        
-        # 3. Find Winner (Argmax locally)
-        # Assuming higher fitness is better (Maximization). 
-        # For minimization problems (like Sphere/Rosenbrock where lower is better),
-        # Ensure your fitness function negates the value (e.g. -loss).
-        winner_local_indices = jnp.argmax(candidate_fitness, axis=1)
-        
-        # 4. Gather Winners
-        selected_indices = jnp.take_along_axis(
-            candidates, 
-            winner_local_indices[:, None], 
-            axis=1
-        ).squeeze()
-        
-        return selected_indices
-
-
 @struct.dataclass
 class GeneticSpeedEngine(GeneticEngine):
     """
@@ -450,72 +405,237 @@ def _build_malthus_roulette(pop_size, dims, seed, hypers, problem_object):
     return adapter
 
 
+
+# =========================================================
+# EVOSAX OPTIMIZATIONS (THE PATCH)
+# =========================================================
+
+class OptimizedSimpleGA(SimpleGA):
+    """
+    Patched Evosax SimpleGA that removes the `searchsorted` bottleneck.
+    """
+    def _ask(self, key, state, params):
+        idx = jnp.argsort(state.fitness)
+        sorted_pop = state.population[idx]
+        elites = sorted_pop[:self.num_elites]
+        
+        rng_cross, rng_mut, rng_p1, rng_p2 = jax.random.split(key, 4)
+        parents_1 = jax.random.choice(rng_p1, elites, (self.population_size,))
+        parents_2 = jax.random.choice(rng_p2, elites, (self.population_size,))
+        
+        rng_cross_split = jax.random.split(rng_cross, self.population_size)
+        rng_mut_split = jax.random.split(rng_mut, self.population_size)
+
+        population = jax.vmap(es_crossover, in_axes=(0, 0, 0, None))(
+            rng_cross_split, parents_1, parents_2, params.crossover_rate
+        )
+
+        population = jax.vmap(es_mutation, in_axes=(0, 0, None))(
+            rng_mut_split, population, state.std
+        )
+
+        return population, state
+
+
+# =========================================================
+# FACTORY BUILDERS (RENAMED)
+# =========================================================
+
+# --- 1. The Title Fight Contenders ---
+
+def build_final_mjx_ga(pop_size, dims, seed, hypers, problem_evaluator):
+    """
+    MalthusJAX Champion.
+    - Engine: GeneticSpeedEngine (No HOF)
+    - Alloc: Economy (num_selections = N - K)
+    - Selection: TopK
+    - Precision: FP32
+    """
+    genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
+    
+    mutation = GaussianMutation(
+        mutation_rate=hypers.get('mutation_rate', 0.1),
+        mutation_strength=hypers.get('sigma', 0.1)
+    )
+    crossover = UniformCrossover(
+        num_offspring=2,
+        crossover_rate=hypers.get('crossover_rate', 0.5)
+    )
+    
+    elite_ratio = hypers.get('elite_ratio', 0.5)
+    elite_count = int(pop_size * elite_ratio)
+    
+    # Economy Mode: ON
+    selection = ElitePoolSelection(
+        num_selections=pop_size - elite_count,
+        elite_k=elite_count
+    )
+    
+    engine_params = GeneticEngineParams(
+        pop_size=pop_size,
+        num_generations=1,
+        elitism=elite_count
+    )
+    
+    engine = GeneticSpeedEngine(
+        evaluator=problem_evaluator,
+        genome_config=genome_config,
+        selection=selection,
+        crossover=crossover,
+        mutation=mutation,
+        engine_params=engine_params
+    )
+    return MalthusAdapter(engine)
+
+def build_final_esx(pop_size, dims, seed, hypers, problem_object):
+    """
+    Evosax Patched (Challenger).
+    - OptimizedSimpleGA (No SearchSorted)
+    """
+    rng = jax.random.PRNGKey(seed)
+    init_solution = problem_object.sample(rng)
+    
+    strategy = OptimizedSimpleGA(population_size=pop_size, solution=init_solution)
+    strategy.elite_ratio = hypers.get('elite_ratio', 0.5)
+    es_params = strategy.default_params.replace(
+        crossover_rate=hypers.get('crossover_rate', 0.5)
+    )
+    return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
+
+
+# --- 2. The Architecture Check Contenders ---
+
+def build_final_mjx_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
+    """
+    MalthusJAX Naive/Ablation.
+    - Engine: GeneticSpeedEngine
+    - Alloc: Naive (num_selections = N) [WASTE]
+    - Selection: TopK (Constant)
+    - Operators: Ablation (Naive)
+    """
+    genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
+    mutation = AblationGaussianMutation(
+        mutation_rate=hypers.get('mutation_rate', 0.1),
+        mutation_strength=hypers.get('sigma', 0.1),
+        seed=seed
+    )
+    crossover = AblationUniformCrossover(
+        num_offspring=2,
+        crossover_rate=hypers.get('crossover_rate', 0.5),
+        seed=seed
+    )
+    elite_ratio = hypers.get('elite_ratio', 0.5)
+    elite_count = int(pop_size * elite_ratio)
+    
+    # Naive Mode: Full Population Request
+    selection = AblationElitePoolSelection(
+        num_selections=pop_size,
+        elite_k=elite_count,
+        seed=seed
+    )
+    
+    engine_params = GeneticEngineParams(
+        pop_size=pop_size,
+        num_generations=1,
+        elitism=elite_count
+    )
+    
+    engine = GeneticSpeedEngine(
+        evaluator=problem_evaluator,
+        genome_config=genome_config,
+        selection=selection,
+        crossover=crossover,
+        mutation=mutation,
+        engine_params=engine_params
+    )
+    return MalthusAdapter(engine)
+
+def build_ecosax_stock(pop_size, dims, seed, hypers, problem_object):
+    """
+    Evosax Stock (Baseline).
+    - Standard SimpleGA
+    """
+    rng = jax.random.PRNGKey(seed)
+    init_solution = problem_object.sample(rng)
+    
+    strategy = SimpleGA(population_size=pop_size, solution=init_solution)
+    strategy.elite_ratio = hypers.get('elite_ratio', 0.5)
+    es_params = strategy.default_params.replace(
+        crossover_rate=hypers.get('crossover_rate', 0.5)
+    ) 
+    return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
+
+
+# --- 3. The Hardware Showcase ---
+
+def build_final_mjx_ga_bf16(pop_size, dims, seed, hypers, problem_object):
+    """Malthus BF16 Showcase."""
+    adapter = build_final_mjx_ga(pop_size, dims, seed, hypers, problem_object)
+    new_config = adapter.engine.genome_config.replace(dtype=jnp.bfloat16)
+    adapter.engine = adapter.engine.replace(genome_config=new_config)
+    return adapter
+
+
+# --- 4. Variants ---
+
+def build_final_mjx_ga_tournament(pop_size, dims, seed, hypers, problem_object):
+    """Malthus Tournament."""
+    adapter = build_final_mjx_ga(pop_size, dims, seed, hypers, problem_object)
+    new_selection = TournamentSelection(num_selections=pop_size, tournament_size=3)
+    adapter.engine = adapter.engine.replace(selection=new_selection)
+    return adapter
+
+def build_final_mjx_ga_roulette(pop_size, dims, seed, hypers, problem_object):
+    """Malthus Roulette."""
+    adapter = build_final_mjx_ga(pop_size, dims, seed, hypers, problem_object)
+    elite_ratio = hypers.get('elite_ratio', 0.5)
+    elite_count = int(pop_size * elite_ratio)
+    num_offspring_needed = pop_size - elite_count
+    
+    new_selection = RouletteSelection(
+        num_selections=num_offspring_needed, 
+        temperature=1.0
+    )
+    adapter.engine = adapter.engine.replace(selection=new_selection)
+    return adapter
+
+
 # =========================================================
 # REGISTRATIONS
 # =========================================================
 
-# 1. Standard Comparison
+# 1. THE TITLE FIGHT (Champion vs Patched)
 ComparisonRegistry.register(ComparisonSpec(
     name="Standard_GA",
-    malthus_factory=_build_malthus_ga,
-    evosax_factory=_build_evosax_ga,
+    malthus_factory=build_final_mjx_ga,
+    evosax_factory=build_final_esx,
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
 ))
 
-# 2. Ablation Comparison (Dynamic vs Patched Static)
+# 2. THE ARCHITECTURE CHECK (Naive vs Stock)
 ComparisonRegistry.register(ComparisonSpec(
     name="Standard_GA_Ablation",
-    malthus_factory=_build_malthus_ga_ablation,
-    evosax_factory=_build_evosax_ga_optimized,
+    malthus_factory=build_final_mjx_ga_ablation,
+    evosax_factory=build_ecosax_stock,
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
 ))
 
-# 3. MR15 Comparison
-ComparisonRegistry.register(ComparisonSpec(
-    name="MR15_GA",
-    malthus_factory=_build_malthus_mr15,
-    evosax_factory=_build_evosax_mr15_ga,
-    default_hypers={
-        'mutation_rate': 0.1, 'crossover_rate': 0.5, 'sigma': 1.0, 
-        'elite_ratio': 0.5, 'std_min': 0.0, 'std_max': float('inf'), 'std_ratio': 0.2
-    }
-))
-
-# 4. DE Comparison
-ComparisonRegistry.register(ComparisonSpec(
-    name="Differential_Evolution",
-    malthus_factory=_build_malthus_de,
-    evosax_factory=_build_evosax_de,
-    default_hypers={'crossover_rate': 0.9, 'differential_weight': 0.8, 'elitism': True}
-))
-
-# 5. Speed of Light Variants (Malthus Only)
+# 3. THE HARDWARE SHOWCASE
 ComparisonRegistry.register(ComparisonSpec(
     name="Malthus_BF16",
-    malthus_factory=_build_malthus_bf16,
+    malthus_factory=build_final_mjx_ga_bf16,
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
 ))
 
+# 4. VARIANTS
 ComparisonRegistry.register(ComparisonSpec(
     name="Malthus_Tournament",
-    malthus_factory=_build_malthus_tournament,
-    default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
-))
-
-ComparisonRegistry.register(ComparisonSpec(
-    name="Malthus_NoHOF",
-    malthus_factory=_build_malthus_no_hof,
-    default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
-))
-
-ComparisonRegistry.register(ComparisonSpec(
-    name="Malthus_SpeedDemon",
-    malthus_factory=_build_malthus_speed_demon,
+    malthus_factory=build_final_mjx_ga_tournament,
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
 ))
 
 ComparisonRegistry.register(ComparisonSpec(
     name="Malthus_Roulette",
-    malthus_factory=_build_malthus_roulette,
+    malthus_factory=build_final_mjx_ga_roulette,
     default_hypers={'elite_ratio': 0.1}
 ))
