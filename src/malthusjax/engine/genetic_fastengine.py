@@ -2,12 +2,13 @@
 Standard Genetic Algorithm Engine.
 Refactored for 'Init-Phase Compilation': Resource mapping happens once at initialization.
 """
-from typing import Any, Tuple
+from typing import Any, Tuple, Callable, Optional
 from flax import struct
 import jax
 import jax.numpy as jnp
 import jax.random as jar
 import chex
+import optax
 
 from .base import AbstractEngine, AbstractEvolutionState, AbstractEngineParams, AbstractGenerationOutput
 from .resource_mapper import compute_resource_map, ResourceMap, get_resource_summary, ShardingManager
@@ -29,7 +30,10 @@ def traceable(name):
 @struct.dataclass
 class GeneticEngineParams(AbstractEngineParams):
     """Configuration for Genetic Engine."""
-    pass
+    mutation_strength_schedule: Optional[Callable[[int], float]] = struct.field(
+        pytree_node=False, 
+        default=None
+    )
 
 @struct.dataclass
 class GeneticGenerationOutput(AbstractGenerationOutput):
@@ -97,6 +101,16 @@ class GeneticEngine(AbstractEngine):
         
         return k_sel_slice, k_cross, k_mut, k_next
     
+    @traceable("Phase_0a_Get_Active_Operators")
+    def _get_active_operators(self, operators: OperatorState, generation: int) -> OperatorState:
+        """Returns OperatorState with scheduled mutation strength baked in."""
+        if self.engine_params.mutation_strength_schedule is None:
+            return operators
+        
+        scheduled_strength = self.engine_params.mutation_strength_schedule(generation)
+        updated_mutation = operators.mutation.replace(mutation_strength=scheduled_strength)
+        return operators.replace(mutation=updated_mutation)
+    
     @traceable("Phase_1_Selection_Read")
     def _selection_phase(self, key_selection: chex.Array, population: Any, operators: OperatorState, params: Any) -> Tuple[chex.Array, chex.Array]:
         """
@@ -136,6 +150,7 @@ class GeneticEngine(AbstractEngine):
             p2_pop, 
             self.genome_config
         )
+        
         final_pop = operators.mutation(
             keys_mutation, 
             offspring_pop, 
@@ -195,16 +210,18 @@ class GeneticEngine(AbstractEngine):
     def step(self, state: GeneticEvolutionState) -> Tuple[GeneticEvolutionState, GeneticGenerationOutput]:
         
         k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
+        
+        # Get operators with scheduled mutation strength baked in
+        active_operators = self._get_active_operators(state.operators, state.generation)
 
-
-        elites, parent_indices = self._selection_phase(k_sel, state.population, state.operators, self.engine_params)
+        elites, parent_indices = self._selection_phase(k_sel, state.population, active_operators, self.engine_params)
 
         mutants = self._reproduction_phase(
                     k_cross, 
                     k_mut, 
                     parent_indices, 
                     state.population,
-                    state.operators, 
+                    active_operators, 
                     state.resource_map
                 )
         next_genes = self._merge(elites, mutants.genes, state)
@@ -356,12 +373,15 @@ class GeneticEngine(AbstractEngine):
         
         elites, parent_indices = self._selection_phase(k_sel, state.population, state.operators, self.engine_params)
         
+        # Get operators with scheduled mutation strength baked in
+        active_operators = self._get_active_operators(state.operators, state.generation)
+        
         mutants = self._reproduction_phase(
                     k_cross, 
                     k_mut, 
                     parent_indices, 
                     state.population,
-                    state.operators, 
+                    active_operators, 
                     state.resource_map
                 )
         
