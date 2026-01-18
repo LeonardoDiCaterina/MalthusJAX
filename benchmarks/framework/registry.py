@@ -116,7 +116,7 @@ class GeneticSpeedEngine(GeneticEngine):
 # EVOSAX OPTIMIZATIONS (THE PATCH)
 # =========================================================
 
-class OptimizedSimpleGA(SimpleGA):
+'''class OptimizedSimpleGA(SimpleGA):
     """
     Patched Evosax SimpleGA that removes the `searchsorted` bottleneck.
     """
@@ -144,10 +144,10 @@ class OptimizedSimpleGA(SimpleGA):
             rng_mut_split, population, state.std
         )
 
-        return population, state
+        return population, state'''
     
     
-class OptimizedSimpleGA_2(SimpleGA):
+class OptimizedSimpleGA(SimpleGA):
     """
     Patched Evosax SimpleGA that removes the `searchsorted` bottleneck.
     """
@@ -503,21 +503,6 @@ def build_final_esx(pop_size, dims, seed, hypers, problem_object):
     return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
 
 
-def build_final_esx_2(pop_size, dims, seed, hypers, problem_object):
-    """
-    Evosax Patched (Challenger).
-    - OptimizedSimpleGA (No SearchSorted)
-    """
-    rng = jax.random.PRNGKey(seed)
-    init_solution = problem_object.sample(rng)
-    
-    strategy = OptimizedSimpleGA_2(population_size=pop_size, solution=init_solution)
-    strategy.elite_ratio = hypers.get('elite_ratio', 0.5)
-    es_params = strategy.default_params.replace(
-        crossover_rate=hypers.get('crossover_rate', 0.5)
-    )
-    return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
-
 
 # --- 2. The Architecture Check Contenders ---
 
@@ -625,14 +610,6 @@ ComparisonRegistry.register(ComparisonSpec(
     name="Standard_GA",
     malthus_factory=build_final_mjx_ga,
     evosax_factory=build_final_esx,
-    default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
-))
-
-# 1. THE TITLE FIGHT (Champion vs Patched)
-ComparisonRegistry.register(ComparisonSpec(
-    name="Standard_GA_2",
-    malthus_factory=build_final_mjx_ga,
-    evosax_factory=build_final_esx_2,
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
 ))
 
