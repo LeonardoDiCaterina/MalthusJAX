@@ -160,7 +160,7 @@ class OptimizedSimpleGA_2(SimpleGA):
         elites = sorted_pop[:self.num_elites]
         
         # 3. Uniform Sample (Optimization: Integer sampling vs Weighted choice)
-        rng_cross, rng_mut, rng_parents = jax.random.split(key, 4)
+        rng_cross, rng_mut, rng_parents = jax.random.split(key, 3)
         parents = jax.random.choice(rng_parents, elites, (self.population_size * 2,))
         half_size = self.population_size + (self.population_size % 2)
         parents_1 = parents[:half_size]
@@ -436,37 +436,6 @@ def _build_malthus_roulette(pop_size, dims, seed, hypers, problem_object):
     adapter.engine = adapter.engine.replace(selection=new_selection)
     return adapter
 
-
-
-# =========================================================
-# EVOSAX OPTIMIZATIONS (THE PATCH)
-# =========================================================
-
-class OptimizedSimpleGA(SimpleGA):
-    """
-    Patched Evosax SimpleGA that removes the `searchsorted` bottleneck.
-    """
-    def _ask(self, key, state, params):
-        idx = jnp.argsort(state.fitness)
-        sorted_pop = state.population[idx]
-        elites = sorted_pop[:self.num_elites]
-        
-        rng_cross, rng_mut, rng_p1, rng_p2 = jax.random.split(key, 4)
-        parents_1 = jax.random.choice(rng_p1, elites, (self.population_size,))
-        parents_2 = jax.random.choice(rng_p2, elites, (self.population_size,))
-        
-        rng_cross_split = jax.random.split(rng_cross, self.population_size)
-        rng_mut_split = jax.random.split(rng_mut, self.population_size)
-
-        population = jax.vmap(es_crossover, in_axes=(0, 0, 0, None))(
-            rng_cross_split, parents_1, parents_2, params.crossover_rate
-        )
-
-        population = jax.vmap(es_mutation, in_axes=(0, 0, None))(
-            rng_mut_split, population, state.std
-        )
-
-        return population, state
 
 
 # =========================================================
