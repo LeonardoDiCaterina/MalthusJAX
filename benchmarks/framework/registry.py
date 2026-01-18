@@ -162,9 +162,8 @@ class OptimizedSimpleGA_2(SimpleGA):
         # 3. Uniform Sample (Optimization: Integer sampling vs Weighted choice)
         rng_cross, rng_mut, rng_parents = jax.random.split(key, 3)
         parents = jax.random.choice(rng_parents, elites, (self.population_size * 2,))
-        half_size = self.population_size + (self.population_size % 2)
-        parents_1 = parents[:half_size]
-        parents_2 = parents[half_size:]
+        parents_1 = parents[:self.population_size]
+        parents_2 = parents[self.population_size:]
         
         rng_cross_split = jax.random.split(rng_cross, self.population_size)
         rng_mut_split = jax.random.split(rng_mut, self.population_size)
