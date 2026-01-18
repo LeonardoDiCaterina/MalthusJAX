@@ -145,7 +145,39 @@ class OptimizedSimpleGA(SimpleGA):
         )
 
         return population, state
+    
+    
+class OptimizedSimpleGA_2(SimpleGA):
+    """
+    Patched Evosax SimpleGA that removes the `searchsorted` bottleneck.
+    """
+    def _ask(self, key, state, params):
+        # 1. Sort population (Standard)
+        idx = jnp.argsort(state.fitness)
+        sorted_pop = state.population[idx]
+        
+        # 2. Slice Elites (Optimization: View instead of search)
+        elites = sorted_pop[:self.num_elites]
+        
+        # 3. Uniform Sample (Optimization: Integer sampling vs Weighted choice)
+        rng_cross, rng_mut, rng_parents = jax.random.split(key, 4)
+        parents = jax.random.choice(rng_parents, elites, (self.population_size * 2,))
+        half_size = self.population_size + (self.population_size % 2)
+        parents_1 = parents[:half_size]
+        parents_2 = parents[half_size:]
+        
+        rng_cross_split = jax.random.split(rng_cross, self.population_size)
+        rng_mut_split = jax.random.split(rng_mut, self.population_size)
 
+        population = jax.vmap(es_crossover, in_axes=(0, 0, 0, None))(
+            rng_cross_split, parents_1, parents_2, params.crossover_rate
+        )
+
+        population = jax.vmap(es_mutation, in_axes=(0, 0, None))(
+            rng_mut_split, population, state.std
+        )
+
+        return population, state
 
 # =========================================================
 # FACTORY BUILDERS
@@ -503,6 +535,22 @@ def build_final_esx(pop_size, dims, seed, hypers, problem_object):
     return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
 
 
+def build_final_esx_2(pop_size, dims, seed, hypers, problem_object):
+    """
+    Evosax Patched (Challenger).
+    - OptimizedSimpleGA (No SearchSorted)
+    """
+    rng = jax.random.PRNGKey(seed)
+    init_solution = problem_object.sample(rng)
+    
+    strategy = OptimizedSimpleGA_2(population_size=pop_size, solution=init_solution)
+    strategy.elite_ratio = hypers.get('elite_ratio', 0.5)
+    es_params = strategy.default_params.replace(
+        crossover_rate=hypers.get('crossover_rate', 0.5)
+    )
+    return EvosaxAdapter(strategy, es_params, problem_object, pop_size)
+
+
 # --- 2. The Architecture Check Contenders ---
 
 def build_final_mjx_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
@@ -609,6 +657,14 @@ ComparisonRegistry.register(ComparisonSpec(
     name="Standard_GA",
     malthus_factory=build_final_mjx_ga,
     evosax_factory=build_final_esx,
+    default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
+))
+
+# 1. THE TITLE FIGHT (Champion vs Patched)
+ComparisonRegistry.register(ComparisonSpec(
+    name="Standard_GA_2",
+    malthus_factory=build_final_mjx_ga,
+    evosax_factory=build_final_esx_2,
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
 ))
 
