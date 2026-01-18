@@ -7,9 +7,14 @@ configuration for solution quality (fitness), independent of speed.
 import time
 import os
 import argparse
+from pathlib import Path
 import itertools
 import numpy as np
-import pandas as pd
+try:
+    import pandas as pd
+except Exception as e:
+    pd = None
+    print(f"⚠️  Warning: pandas import failed: {e}. Result saving will use a simple CSV writer.")
 import jax
 from datetime import datetime
 
@@ -48,22 +53,24 @@ def main():
     hyperparam_values = [hyperparam_grid[k] for k in hyperparam_keys]
     hyperparam_combinations = list(itertools.product(*hyperparam_values))
     
-    # Build job queue: (algo, task, dim, pop, hyperparam_combo)
+    # Build job queue: include seeds so we can repeat each config across multiple seeds
     job_queue = list(itertools.product(
         grid['algorithms'],
         grid['tasks'],
         grid['dimensions'],
         grid['pop_sizes'],
+        grid.get('seeds', [42]),
         hyperparam_combinations
     ))
     
     repeats = grid.get('repeats', 10)  # Fewer repeats for tuning
-    master_seed = grid['seeds'][0]
+    seeds_list = grid.get('seeds', [42])
     generations = grid.get('generations', 500)  # More generations for convergence
     
     print(f"🎯 Starting Fitness Tuning: {exp_name}")
     print(f"📋 Total Configurations: {len(job_queue)}")
     print(f"🔧 Hyperparameter combinations: {len(hyperparam_combinations)}")
+    print(f"🔢 Seeds: {seeds_list}")
     print(f"📊 Repeats per Config: {repeats}")
     print(f"⚙️  Hardware: {jax.devices()[0].device_kind}")
     print("=" * 80)
@@ -72,7 +79,7 @@ def main():
     best_fitness = float('inf')
     best_config = None
     
-    for i, (algo, task, dim, pop, hyperparam_tuple) in enumerate(job_queue, 1):
+    for i, (algo, task, dim, pop, seed, hyperparam_tuple) in enumerate(job_queue, 1):
         # Build hyperparameter dict from tuple
         hypers = dict(zip(hyperparam_keys, hyperparam_tuple))
         
@@ -80,62 +87,141 @@ def main():
         print(f"   Hyperparams: {hypers}")
 
         spec = ComparisonRegistry.get(algo)
+        # DEBUG: show which factory will be used to build the adapter
+        print(f"   >>> Using factory: {spec.malthus_factory.__name__}")
         # Merge with algorithm defaults
         full_hypers = {**spec.default_hypers, **hypers}
         
-        # Setup problem
-        m_eval, _ = setup_bbob_instances(task, dim, master_seed)
-        m_adapter = spec.malthus_factory(pop, dim, master_seed, full_hypers, m_eval)
+        # Setup problem (use job-specific seed derived from provided seed)
+        job_seed = seed + i
+        m_eval, es_problem = setup_bbob_instances(task, dim, job_seed)
+        m_adapter = spec.malthus_factory(pop, dim, job_seed, full_hypers, m_eval)
 
-        # Run benchmark
-        res = run_adapter_benchmark(
-            m_adapter, generations, master_seed, "MalthusJAX", pop, 
+        # DEBUG: show that hyperparams were applied to the adapter/engine
+        print(f"   >>> job_seed: {job_seed}")
+        print(f"   >>> full_hypers passed: {full_hypers}")
+        try:
+            print(f"   >>> Engine mutation: {m_adapter.engine.mutation}")
+            print(f"   >>> Engine crossover: {m_adapter.engine.crossover}")
+            print(f"   >>> Engine selection: {m_adapter.engine.selection}")
+        except Exception as e:
+            print(f"   >>> Debug print failed: {e}")
+
+        # Run MalthusJAX benchmark
+        res_m = run_adapter_benchmark(
+            m_adapter, generations, job_seed, "MalthusJAX", pop, 
             unroll_factor=1, repeats=repeats
         )
         
-        # Extract fitness (use absolute value for BBOB)
-        mean_fitness = abs(res.best_fitness_final)
-        fitness_std = res.fitness_std
+        # Extract fitness (use absolute value for BBOB parity)
+        mean_fitness_m = abs(res_m.best_fitness_final)
+        fitness_std_m = res_m.fitness_std
         
-        print(f"   >>> Mean Fitness: {mean_fitness:.4f} ± {fitness_std:.4f}")
-        print(f"   >>> Mean GPS: {res.mean_gps:.2f}")
-        
-        # Track best configuration
-        if mean_fitness < best_fitness:
-            best_fitness = mean_fitness
+        print(f"   >>> MJX Mean Fitness: {mean_fitness_m:.4f} ± {fitness_std_m:.4f}")
+        print(f"   >>> MJX Mean GPS: {res_m.mean_gps:.2f}")
+
+        # Track best configuration (based on MJX results)
+        if mean_fitness_m < best_fitness:
+            best_fitness = mean_fitness_m
             best_config = {
                 'algorithm': algo,
                 'task': task,
                 'dim': dim,
                 'pop_size': pop,
                 'hyperparams': hypers,
-                'fitness': mean_fitness,
-                'fitness_std': fitness_std,
-                'gps': res.mean_gps
+                'fitness': mean_fitness_m,
+                'fitness_std': fitness_std_m,
+                'gps': res_m.mean_gps
             }
             print(f"   🌟 NEW BEST FITNESS: {best_fitness:.4f}")
-        
-        # Store results
-        result_row = {
+
+        # Store MJX results
+        result_row_m = {
+            "Framework": "MalthusJAX",
             "Algorithm": algo,
             "Task": task,
             "Dim": dim,
             "Pop_Size": pop,
+            "Seed": seed,
+            "Job_Seed": job_seed,
             "Generations": generations,
             **{f"hyperparam_{k}": v for k, v in hypers.items()},
-            "Mean_Fitness": mean_fitness,
-            "Fitness_Std": fitness_std,
-            "Mean_GPS": res.mean_gps,
-            "Compile_Time": res.compile_time,
-            "Mean_Exec_Time": res.mean_exec_time,
+            "Mean_Fitness": mean_fitness_m,
+            "Fitness_Std": fitness_std_m,
+            "Mean_GPS": res_m.mean_gps,
+            "Compile_Time": res_m.compile_time,
+            "Mean_Exec_Time": res_m.mean_exec_time,
         }
-        results.append(result_row)
+        results.append(result_row_m)
+
+        # Run Evosax (same job seed for comparability)
+        if spec.evosax_factory is not None:
+            try:
+                e_adapter = spec.evosax_factory(pop, dim, job_seed, full_hypers, es_problem)
+                print(f"   >>> Evosax strategy: {e_adapter.strategy}")
+                print(f"   >>> Evosax params: {e_adapter.params}")
+
+                res_e = run_adapter_benchmark(
+                    e_adapter, generations, job_seed, "Evosax", pop,
+                    unroll_factor=1, repeats=repeats
+                )
+                mean_fitness_e = abs(res_e.best_fitness_final)
+                fitness_std_e = res_e.fitness_std
+
+                print(f"   >>> Evosax Mean Fitness: {mean_fitness_e:.4f} ± {fitness_std_e:.4f}")
+                print(f"   >>> Evosax Mean GPS: {res_e.mean_gps:.2f}")
+
+                result_row_e = {
+                    "Framework": "Evosax",
+                    "Algorithm": algo,
+                    "Task": task,
+                    "Dim": dim,
+                    "Pop_Size": pop,
+                    "Seed": seed,
+                    "Job_Seed": job_seed,
+                    "Generations": generations,
+                    **{f"hyperparam_{k}": v for k, v in hypers.items()},
+                    "Mean_Fitness": mean_fitness_e,
+                    "Fitness_Std": fitness_std_e,
+                    "Mean_GPS": res_e.mean_gps,
+                    "Compile_Time": res_e.compile_time,
+                    "Mean_Exec_Time": res_e.mean_exec_time,
+                }
+                results.append(result_row_e)
+
+                # Update best_config based on Evosax only if better than MJX best
+                if mean_fitness_e < best_fitness:
+                    best_fitness = mean_fitness_e
+                    best_config = {
+                        'algorithm': algo,
+                        'task': task,
+                        'dim': dim,
+                        'pop_size': pop,
+                        'hyperparams': hypers,
+                        'fitness': mean_fitness_e,
+                        'fitness_std': fitness_std_e,
+                        'gps': res_e.mean_gps
+                    }
+                    print(f"   🌟 NEW BEST FITNESS: {best_fitness:.4f} (Evosax)")
+
+            except Exception as e:
+                print(f"   >>> Evosax run failed: {e}")
         
         # Save incrementally (in case of interruption)
-        df = pd.DataFrame(results)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = os.path.join(output_dir, f"fitness_tuning_{timestamp}.csv")
-        df.to_csv(filename, index=False)
+        if pd is not None:
+            df = pd.DataFrame(results)
+            df.to_csv(filename, index=False)
+        else:
+            import csv
+            if results:
+                keys = list(results[0].keys())
+                Path(output_dir).mkdir(parents=True, exist_ok=True)
+                with open(filename, 'w', newline='') as f:
+                    writer = csv.DictWriter(f, keys)
+                    writer.writeheader()
+                    writer.writerows(results)
     
     # Final summary
     print("\n" + "=" * 80)
@@ -152,16 +238,31 @@ def main():
     print(f"   GPS: {best_config['gps']:.2f}")
     
     # Save final results
-    df = pd.DataFrame(results)
-    df_sorted = df.sort_values('Mean_Fitness')
-    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = os.path.join(output_dir, f"fitness_tuning_final_{timestamp}.csv")
-    df_sorted.to_csv(filename, index=False)
-    
-    # Save top 10 configurations
-    top10_file = os.path.join(output_dir, f"top10_configs_{timestamp}.csv")
-    df_sorted.head(10).to_csv(top10_file, index=False)
+    if pd is not None:
+        df = pd.DataFrame(results)
+        df_sorted = df.sort_values('Mean_Fitness')
+        df_sorted.to_csv(filename, index=False)
+        # Save top 10 configurations
+        top10_file = os.path.join(output_dir, f"top10_configs_{timestamp}.csv")
+        df_sorted.head(10).to_csv(top10_file, index=False)
+    else:
+        import csv
+        if results:
+            keys = list(results[0].keys())
+            Path(output_dir).mkdir(parents=True, exist_ok=True)
+            # full results
+            with open(filename, 'w', newline='') as f:
+                writer = csv.DictWriter(f, keys)
+                writer.writeheader()
+                writer.writerows(results)
+            # top10
+            top10_file = os.path.join(output_dir, f"top10_configs_{timestamp}.csv")
+            with open(top10_file, 'w', newline='') as f:
+                writer = csv.DictWriter(f, keys)
+                writer.writeheader()
+                writer.writerows(results[:10])
     
     print(f"\n✅ Results saved:")
     print(f"   Full results: {filename}")

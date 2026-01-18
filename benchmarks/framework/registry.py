@@ -259,10 +259,14 @@ def _build_malthus_bf16(pop_size, dims, seed, hypers, problem_object):
     return adapter
 
 def _build_malthus_tournament(pop_size, dims, seed, hypers, problem_object):
-    """MalthusJAX using Tournament Selection."""
+    """MalthusJAX using Tournament Selection.
+
+    Reads `tournament_size` from `hypers` (default: 3).
+    """
     adapter = _build_malthus_ga(pop_size, dims, seed, hypers, problem_object)
-    # Swap Selection
-    new_selection = TournamentSelection(num_selections=pop_size, tournament_size=3)
+    # Swap Selection (allow tournament_size tuning)
+    tournament_size = int(hypers.get('tournament_size', 3))
+    new_selection = TournamentSelection(num_selections=pop_size, tournament_size=tournament_size)
     adapter.engine = adapter.engine.replace(selection=new_selection)
     return adapter
 
@@ -419,7 +423,10 @@ def _build_evosax_de(pop_size, dims, seed, hypers, problem_object):
 from malthusjax.operators.selection.roulette import RouletteSelection
 
 def _build_malthus_roulette(pop_size, dims, seed, hypers, problem_object):
-    """MalthusJAX using Roulette (Boltzmann) Selection."""
+    """MalthusJAX using Roulette (Boltzmann) Selection.
+
+    Reads `roulette_temperature` from `hypers` (default: 1.0).
+    """
     adapter = _build_malthus_ga(pop_size, dims, seed, hypers, problem_object)
     
     # Enable Economy Mode logic for offspring count
@@ -427,10 +434,11 @@ def _build_malthus_roulette(pop_size, dims, seed, hypers, problem_object):
     elite_count = int(pop_size * elite_ratio)
     num_offspring_needed = pop_size - elite_count
     
-    # Swap Selection
+    # Swap Selection (allow temperature tuning)
+    temperature = float(hypers.get('roulette_temperature', 1.0))
     new_selection = RouletteSelection(
         num_selections=num_offspring_needed, 
-        temperature=1.0
+        temperature=temperature
     )
     adapter.engine = adapter.engine.replace(selection=new_selection)
     return adapter
@@ -580,22 +588,43 @@ def build_final_mjx_ga_bf16(pop_size, dims, seed, hypers, problem_object):
 # --- 4. Variants ---
 
 def build_final_mjx_ga_tournament(pop_size, dims, seed, hypers, problem_object):
-    """Malthus Tournament."""
+    """Malthus Tournament (variant).
+
+    Uses `tournament_size` from `hypers` when provided.
+    Adds a diagnostic print to make debugging easier if unexpected defaults appear.
+    """
     adapter = build_final_mjx_ga(pop_size, dims, seed, hypers, problem_object)
-    new_selection = TournamentSelection(num_selections=pop_size, tournament_size=3)
+    # Ensure we get an integer tournament size and log it for debugging
+    tournament_size_raw = hypers.get('tournament_size', 3)
+    try:
+        tournament_size = int(tournament_size_raw)
+    except Exception:
+        # Fall back to default if conversion fails
+        tournament_size = 3
+    print(f"   [registry] Using tournament_size (raw): {tournament_size_raw} -> (int) {tournament_size}")
+
+    new_selection = TournamentSelection(num_selections=pop_size, tournament_size=tournament_size)
     adapter.engine = adapter.engine.replace(selection=new_selection)
+    # Log the engine selection to help track regressions where the selection defaults unexpectedly
+    try:
+        print(f"   [registry] Adapter engine selection after replace: {adapter.engine.selection}")
+    except Exception:
+        pass
     return adapter
 
 def build_final_mjx_ga_roulette(pop_size, dims, seed, hypers, problem_object):
-    """Malthus Roulette."""
+    """Malthus Roulette (variant).
+
+    Uses `roulette_temperature` from `hypers` when provided.
+    """
     adapter = build_final_mjx_ga(pop_size, dims, seed, hypers, problem_object)
     elite_ratio = hypers.get('elite_ratio', 0.5)
     elite_count = int(pop_size * elite_ratio)
     num_offspring_needed = pop_size - elite_count
-    
+    temperature = float(hypers.get('roulette_temperature', 1.0))
     new_selection = RouletteSelection(
         num_selections=num_offspring_needed, 
-        temperature=1.0
+        temperature=temperature
     )
     adapter.engine = adapter.engine.replace(selection=new_selection)
     return adapter
@@ -632,11 +661,11 @@ ComparisonRegistry.register(ComparisonSpec(
 ComparisonRegistry.register(ComparisonSpec(
     name="Malthus_Tournament",
     malthus_factory=build_final_mjx_ga_tournament,
-    default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
+    default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1, 'tournament_size': 3}
 ))
 
 ComparisonRegistry.register(ComparisonSpec(
     name="Malthus_Roulette",
     malthus_factory=build_final_mjx_ga_roulette,
-    default_hypers={'elite_ratio': 0.1}
+    default_hypers={'elite_ratio': 0.1, 'roulette_temperature': 1.0}
 ))
