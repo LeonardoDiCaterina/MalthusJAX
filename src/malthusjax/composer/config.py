@@ -1,0 +1,21 @@
+from typing import Any, Dict
+
+try:
+    import tomllib as toml  # Python >= 3.11
+except ModuleNotFoundError:
+    import tomli as toml  # pip install tomli for older Pythons
+
+def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
+    """Very small TOML loader that returns the raw pipeline section.
+    (Keep this lightweight—validation and pydantic will come later.)
+    """
+    try:
+        with open(path, "rb") as f:
+            cfg = toml.load(f)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Config file not found: {path}") from e
+    pipelines = cfg.get("pipelines", {})
+    pipeline = pipelines.get(pipeline_name)
+    if pipeline is None:
+        raise KeyError(f"Pipeline '{pipeline_name}' not found in {path}")
+    return pipeline
