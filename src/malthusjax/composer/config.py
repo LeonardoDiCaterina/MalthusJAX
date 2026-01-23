@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 try:
     import tomllib as _toml  # type: ignore
@@ -20,4 +20,4 @@ def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
     pipeline = pipelines.get(pipeline_name)
     if pipeline is None:
         raise KeyError(f"Pipeline '{pipeline_name}' not found in {path}")
-    return pipeline
+    return cast(Dict[str, Any], pipeline)
