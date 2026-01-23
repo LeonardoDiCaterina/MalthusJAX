@@ -1,9 +1,11 @@
 from typing import Any, Dict
 
 try:
-    import tomllib as toml  # Python >= 3.11
+    import tomllib as _toml  # type: ignore
 except ModuleNotFoundError:
-    import tomli as toml  # pip install tomli for older Pythons
+    import tomli as _toml  # type: ignore
+
+toml = _toml  # type: ignore[assignment]
 
 def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
     """Very small TOML loader that returns the raw pipeline section.
