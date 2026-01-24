@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-from malthusjax.benchmarking.results import RunResult, ExperimentResult
+from malthusjax.benchmarking.results import ExperimentResult, RunResult
 
 
 def test_runresult_roundtrip():
@@ -27,8 +26,10 @@ def test_runresult_roundtrip():
 
 
 def test_experiment_combined_history_and_aggregates():
-    r1 = RunResult(seed=0, status="success", metrics={"best_fitness": 1.0}, history=[{"gen": 0, "best": 1}], artifacts={})
-    r2 = RunResult(seed=1, status="success", metrics={"best_fitness": 0.5}, history=[{"gen": 0, "best": 0.5}], artifacts={})
+    r1 = RunResult(seed=0, status="success", metrics={"best_fitness": 1.0},
+                   history=[{"gen": 0, "best": 1}], artifacts={})
+    r2 = RunResult(seed=1, status="success", metrics={"best_fitness": 0.5},
+                   history=[{"gen": 0, "best": 0.5}], artifacts={})
 
     exp = ExperimentResult(name="ex", runs=[r1, r2])
 
