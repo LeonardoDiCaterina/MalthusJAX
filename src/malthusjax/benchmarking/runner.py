@@ -1,0 +1,173 @@
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Protocol, Sequence
+
+# import chex
+import chex
+import jax.random as jr
+
+from .io import write_experiment_artifacts
+from .results import ExperimentResult, RunResult
+
+
+class Engine(Protocol):
+    """Protocol for evolutionary engines used by BenchmarkRunner."""
+
+    def run_once(self, key: chex.Array) -> Dict[str, Any]:
+        """Run one evolutionary experiment.
+        Returns:
+            dict with keys:
+            - 'history': List[Dict[str, Any]] - per-generation stats
+            - 'summary': Dict[str, Any] - final summary metrics
+            - 'timings': Dict[str, float] - optional timing info
+        """
+        ...
+
+
+@dataclass
+class BenchmarkRunner:
+    """Runs benchmarking experiments across multiple seeds."""
+
+    engine: Engine
+    experiment_name: str = "benchmark_experiment"
+    output_dir: Optional[Path] = None
+    write_artifacts: bool = True
+
+    def run(
+        self,
+        seeds: Sequence[int],
+        timeout_seconds: Optional[float] = None,
+    ) -> ExperimentResult:
+        """Run benchmark across multiple seeds.
+        Args:
+            seeds: List of random seeds to run
+            timeout_seconds: Optional timeout per seed (not implemented yet)
+        Returns:
+            ExperimentResult with all runs and aggregated metrics
+        """
+        runs: List[RunResult] = []
+
+        for seed in seeds:
+            key = jr.PRNGKey(seed)
+            run_result = self._run_single_seed(seed, key, timeout_seconds)
+            runs.append(run_result)
+
+        # Create experiment result
+        experiment = ExperimentResult(
+            name=self.experiment_name,
+            runs=runs,
+            metadata={
+                "seeds": list(seeds),
+                "total_runs": len(runs),
+                "successful_runs": len([r for r in runs if r.status == "success"]),
+            }
+        )
+
+        # Write artifacts if requested
+        if self.write_artifacts and self.output_dir:
+            written_paths = write_experiment_artifacts(experiment, self.output_dir)
+            # Update metadata with paths
+            experiment.metadata["artifact_paths"] = {
+                k: str(v) for k, v in written_paths.items()
+            }
+
+        return experiment
+
+    def _run_single_seed(
+        self,
+        seed: int,
+        key: chex.Array,
+        timeout_seconds: Optional[float]
+    ) -> RunResult:
+        """Run a single seed and collect results."""
+        start_time = time.time()
+
+        try:
+            # Call engine
+            engine_result = self.engine.run_once(key)
+
+            # Extract results
+            history = engine_result.get("history", [])
+            summary = engine_result.get("summary", {})
+            timings = engine_result.get("timings")
+
+            # Convert summary to metrics (ensure float values)
+            metrics = {}
+            for k, v in summary.items():
+                try:
+                    metrics[k] = float(v)
+                except (ValueError, TypeError):
+                    # Skip non-numeric metrics or log warning
+                    pass
+
+            duration = time.time() - start_time
+
+            return RunResult(
+                seed=seed,
+                status="success",
+                metrics=metrics,
+                history=history,
+                duration_seconds=duration,
+                timings=timings,
+            )
+
+        except Exception as e:
+            duration = time.time() - start_time
+            return RunResult(
+                seed=seed,
+                status="error",
+                metrics={},
+                history=[],
+                duration_seconds=duration,
+                error=str(e),
+            )
+
+
+# Stub engine for testing
+@dataclass
+class StubEngine:
+    """Deterministic stub engine for testing."""
+
+    generations: int = 3
+    base_fitness: float = 1.0
+    improvement_rate: float = 0.1
+
+    def run_once(self, key: chex.Array) -> Dict[str, Any]:
+        """Generate deterministic fake evolution data."""
+        # Use seed to make results deterministic but varied
+        seed_int = int(key[0]) if hasattr(key, '__getitem__') else 42
+
+        history = []
+        current_fitness = self.base_fitness
+
+        for gen in range(self.generations):
+            # Simulate improvement (deterministic based on seed and gen)
+            improvement = self.improvement_rate * (1 + (seed_int % 10) / 10.0)
+            current_fitness -= improvement * (gen + 1) / self.generations
+
+            history.append({
+                "generation": gen,
+                "best_fitness": current_fitness,
+                "mean_fitness": current_fitness + 0.1,
+                "std_fitness": 0.05,
+            })
+
+        summary = {
+            "best_fitness": current_fitness,
+            "final_generation": self.generations - 1,
+            "total_evaluations": self.generations * 50,  # fake pop size
+        }
+
+        timings = {
+            "initialization": 0.01,
+            "evolution": 0.05 * self.generations,
+        }
+
+        return {
+            "history": history,
+            "summary": summary,
+            "timings": timings,
+        }
