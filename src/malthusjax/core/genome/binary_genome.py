@@ -6,10 +6,11 @@ commonly used in genetic algorithms for binary optimization problems.
 """
 
 from typing import ClassVar, Type
-from flax import struct  # type: ignore
+
+import chex  # type: ignore
 import jax  # type: ignore
 import jax.numpy as jnp  # type: ignore
-import chex  # type: ignore
+from flax import struct  # type: ignore
 
 from malthusjax.core.base import BaseGenome, BasePopulation
 
@@ -26,7 +27,7 @@ def validate_binary_config(config: BinaryGenomeConfig) -> None:
     """Validate binary genome configuration parameters."""
     if config.length <= 0:
         raise ValueError(f"Length must be positive, got {config.length}")
-    
+
 
 @struct.dataclass
 class BinaryGenome(BaseGenome):
@@ -62,7 +63,7 @@ class BinaryGenome(BaseGenome):
     def size(self) -> int:
         """Return number of bits."""
         return self.bits.shape[-1]
-    
+
     @property
     def shape(self) -> tuple:
         """Return shape of genome as (length,)."""
@@ -96,7 +97,7 @@ class BinaryPopulation(BasePopulation[BinaryGenome]):
     genes: BinaryGenome
     fitness: chex.Array
     config: BinaryGenomeConfig = struct.field(pytree_node=False)
-    
+
     GENOME_CLS: ClassVar[Type[BinaryGenome]] = BinaryGenome
 
     @classmethod

@@ -5,14 +5,13 @@ Provides BaseEvaluator for generic fitness evaluation and specialized
 evaluators for different problem types with automatic vectorization.
 """
 
-from typing import TypeVar, Generic, Tuple
-from flax import struct  # type: ignore
-import jax  # type: ignore
-import jax.numpy as jnp  # type: ignore
+from typing import Generic, Tuple, TypeVar
+
 import chex  # type: ignore
+import jax  # type: ignore
+from flax import struct  # type: ignore
 
 from malthusjax.core.base import BaseGenome, BasePopulation
-
 
 # Type variables for generic evaluator components
 G = TypeVar("G", bound="BaseGenome")

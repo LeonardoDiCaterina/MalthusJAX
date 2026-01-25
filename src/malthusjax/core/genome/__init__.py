@@ -6,10 +6,10 @@ for evolutionary algorithms with JAX JIT compilation support.
 """
 
 # NEW architecture components
-from .linear import LinearGenome, LinearGenomeConfig, LinearPopulation
 from .binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
-from .real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from .categorical_genome import CategoricalGenome, CategoricalGenomeConfig, CategoricalPopulation
+from .linear import LinearGenome, LinearGenomeConfig, LinearPopulation
+from .real_genome import RealGenome, RealGenomeConfig, RealPopulation
 
 __all__ = [
     # NEW architecture genomes
@@ -17,11 +17,11 @@ __all__ = [
     "LinearGenomeConfig",
     "LinearPopulation",
     "BinaryGenome",
-    "BinaryGenomeConfig", 
+    "BinaryGenomeConfig",
     "BinaryPopulation",
     "RealGenome",
     "RealGenomeConfig",
-    "RealPopulation", 
+    "RealPopulation",
     "CategoricalGenome",
     "CategoricalGenomeConfig",
     "CategoricalPopulation",

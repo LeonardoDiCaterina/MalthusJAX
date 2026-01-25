@@ -2,16 +2,18 @@
 BBOB Adapter for MalthusJAX.
 Wraps evosax's BBOB suite for use in MalthusJAX engines.
 """
-from typing import Any, Tuple
-from flax import struct
+from typing import Any
+
+import chex
 import flax
 import jax
-import jax.numpy as jnp
-import chex
 from evosax.problems import BBOBProblem
-from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
+from flax import struct
+
 from malthusjax.core.base import BasePopulation
+from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.genome.real_genome import RealGenome
+
 
 @struct.dataclass
 class BBOBConfig(BaseEvaluatorConfig):
@@ -42,12 +44,12 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
             num_dims=config.num_dims,
             seed=config.seed
         )
-        
+
         # 2. Initialize the problem state (contains rotation matrices etc.)
         # We use a fixed key for problem init to ensure reproducibility of the function landscape
         rng = jax.random.PRNGKey(config.seed)
         state = problem.init(rng)
-        
+
         return cls(
             config=config,
             data=None, # Not used, we use specific fields below
@@ -61,18 +63,18 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         Note: MalthusJAX engines typically call evaluate_population, not this.
         """
         # Expand dims to make it a batch of 1 for evosax
-        x = genome.values[None, :] 
-        
+        x = genome.values[None, :]
+
         # We use a dummy key here because we assume noiseless BBOB for standard optimization
-        rng = jax.random.PRNGKey(0) 
+        rng = jax.random.PRNGKey(0)
         fitness, _, _ = self.evosax_problem.eval(rng, x, self.evosax_state)
-        
+
         # BBOB returns minimization cost. If MalthusJAX is set to maximize,
         # we flip the sign.
         # However, BaseEvaluator logic usually handles direction in the Engine.
         # Standard BBOB is minimization.
         result = fitness[0]
-        
+
         if self.config.maximize:
             return -result
         return result
@@ -84,18 +86,18 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         # 1. Extract raw JAX array from MalthusJAX population
         # Shape: (pop_size, num_dims)
         X = population.genes.values
-        
+
         # 2. Call evosax
         # We create a batch of keys for stochastic functions (though standard BBOB is often deterministic)
         rng = jax.random.PRNGKey(0) # In a real loop, you might want to pass this in, but Evaluators are pure
         keys = jax.random.split(rng, X.shape[0])
-        
+
         fitness_scores, _, _ = self.evosax_problem.eval(keys, X, self.evosax_state)
-        
+
         # 3. Handle Optimization Direction (Minimization -> Maximization)
         # MalthusJAX engines generally assume HIGHER fitness is better.
         # BBOB problems return COST (lower is better).
         if self.config.maximize:
             fitness_scores = -fitness_scores
-            
+
         return population.replace(fitness=fitness_scores)

@@ -1,9 +1,10 @@
 from abc import abstractmethod
-from typing import Any, Type, TypeVar, Generic, ClassVar, Union, Iterator
-from flax import struct
+from typing import Any, ClassVar, Generic, Iterator, Type, TypeVar, Union
+
+import chex
 import jax
 import jax.numpy as jnp
-import chex
+from flax import struct
 
 # Ensure G matches the bound
 G = TypeVar("G", bound="BaseGenome")
@@ -16,7 +17,7 @@ class DistanceMetric:
 @struct.dataclass
 class BaseGenome:
     """Abstract base class for a single individual/genome."""
-    
+
     @classmethod
     @abstractmethod
     def random_init(cls: Type[G], key: chex.PRNGKey, config: Any) -> G:
@@ -37,7 +38,7 @@ class BaseGenome:
     @abstractmethod
     def size(self) -> int:
         raise NotImplementedError
-    
+
     @property
     @abstractmethod
     def shape(self) -> tuple:
@@ -53,12 +54,12 @@ class BaseGenome:
 @struct.dataclass
 class BasePopulation(Generic[G]):
     """Abstract population container."""
-    genes: G 
+    genes: G
     fitness: chex.Array
     config: Any = struct.field(pytree_node=False)
-    
+
     # Generic type placeholder, mostly for static analysis
-    GENOME_CLS: ClassVar[Type[G]] = Any 
+    GENOME_CLS: ClassVar[Type[G]] = Any
 
     def spawn_offspring(self, new_genes: G) -> "BasePopulation":
         """
@@ -78,7 +79,7 @@ class BasePopulation(Generic[G]):
             genes=new_genes,
             fitness=empty_fitness
         )
-        
+
     @classmethod
     @abstractmethod
     def init_random(cls, key: chex.PRNGKey, config: Any, size: int) -> "BasePopulation[G]":
@@ -94,7 +95,7 @@ class BasePopulation(Generic[G]):
         """
         # Slice the genes struct
         sliced_genes = jax.tree_util.tree_map(lambda x: x[key], self.genes)
-        
+
         if isinstance(key, int):
             # Return unwrapped Genome
             return sliced_genes
@@ -123,13 +124,13 @@ class BasePopulation(Generic[G]):
         # vmap logic:
         # Outer vmap: splits 'self.genes' (A) into rows -> g1
         # Inner vmap: splits 'self.genes' (B) into cols -> g2
-        # Because BaseGenome is a struct, 'g1' and 'g2' inside the loop 
+        # Because BaseGenome is a struct, 'g1' and 'g2' inside the loop
         # are valid Genome instances representing a single row.
-        
+
         def dist_fn(g1, g2):
             return g1.distance(g2, metric)
-            
+
         return jax.vmap(
-            jax.vmap(dist_fn, in_axes=(None, 0)), 
+            jax.vmap(dist_fn, in_axes=(None, 0)),
             in_axes=(0, None)
         )(self.genes, self.genes)

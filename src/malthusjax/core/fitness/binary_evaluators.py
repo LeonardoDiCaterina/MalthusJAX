@@ -4,14 +4,14 @@ This module provides fitness functions specifically designed for binary genomes,
 including classic problems like BinarySum (OneMax) and Knapsack optimization.
 """
 
-import jax
+from typing import Any
+
 import jax.numpy as jnp
 import jax.random as jr
 from flax import struct
 
-from typing import Any
-
 from malthusjax.core.genome.binary_genome import BinaryGenome
+
 from .base import BaseEvaluator, BaseEvaluatorConfig
 
 
@@ -23,7 +23,7 @@ class BinarySumConfig(BaseEvaluatorConfig):
     This is a classic benchmark problem in evolutionary computation.
     """
     pass
-    
+
 
 @struct.dataclass
 class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
@@ -33,10 +33,10 @@ class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
     This is a simple but important benchmark problem for testing
     evolutionary algorithms on binary representations.
     """
-    
+
     config: BinarySumConfig
     data: Any = struct.field(pytree_node=False, default=None)
-        
+
     def evaluate(self, genome: BinaryGenome) -> float:
         """Evaluate a single binary genome.
         
@@ -54,7 +54,7 @@ class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
             return length - ones_count
 
 
-@struct.dataclass 
+@struct.dataclass
 class KnapsackConfig(BaseEvaluatorConfig):
     """Configuration for Knapsack problem fitness evaluator.
     
@@ -74,10 +74,10 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
     to include the corresponding item in the knapsack.
     Maximizes value while penalizing weight constraint violations.
     """
-    
+
     config: KnapsackConfig
     data: Any = struct.field(pytree_node=False, default=None)
-        
+
     def evaluate(self, genome: BinaryGenome) -> float:
         """Evaluate a single binary genome for knapsack fitness.
         
@@ -89,27 +89,27 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
         """
         if len(genome.bits) != len(self.config.weights):
             raise ValueError(f"Genome length {len(genome.bits)} != number of items {len(self.config.weights)}")
-            
+
         # Calculate total weight and value
         selected_weights = genome.bits * self.config.weights
         selected_values = genome.bits * self.config.values
-        
+
         total_weight = jnp.sum(selected_weights)
         total_value = jnp.sum(selected_values)
-        
+
         # Apply penalty for exceeding capacity
         # Use jnp.where for JIT compatibility instead of if/else
         penalty = (total_weight - self.config.capacity) * self.config.penalty_factor
-        
+
         # If weight > capacity, return value - penalty, else return value
         # We use jnp.where to handle the conditional logic in a trace-safe way
         is_over = total_weight > self.config.capacity
         fitness = jnp.where(is_over, total_value - penalty, total_value)
-        
+
         return fitness
-        
+
     @staticmethod
-    def create_random_problem(key: jnp.ndarray, n_items: int, 
+    def create_random_problem(key: jnp.ndarray, n_items: int,
                             capacity_ratio: float = 0.5) -> 'KnapsackConfig':
         """Create a random knapsack problem instance.
         
@@ -122,15 +122,15 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
             KnapsackConfig for the random problem
         """
         key1, key2, key3 = jr.split(key, 3)
-        
+
         # Random weights and values
         weights = jr.uniform(key1, (n_items,), minval=1.0, maxval=20.0)
         values = jr.uniform(key2, (n_items,), minval=1.0, maxval=50.0)
-        
+
         # Set capacity as fraction of total weight
         total_weight = jnp.sum(weights)
         capacity = capacity_ratio * total_weight
-        
+
         return KnapsackConfig(
             weights=weights,
             values=values,

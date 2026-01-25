@@ -1,21 +1,18 @@
 """
 Tests for core base classes and abstractions.
 """
-import pytest
 import jax
 import jax.numpy as jnp
-import jax.random as jr
-from flax import struct
-import chex
 
-from malthusjax.core.base import BaseGenome, BasePopulation
+from malthusjax.core.base import BaseGenome
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
-from malthusjax.operators.base import BaseMutation, BaseCrossover, BaseSelection
+from malthusjax.operators.base import BaseCrossover, BaseMutation, BaseSelection
+
 
 class TestBaseGenomeAbstractions:
     """Test that base genome abstractions work as expected."""
-    
+
     def test_base_operators_exist(self):
         """Test that base classes have required methods defined."""
         assert hasattr(BaseGenome, 'random_init')
@@ -32,12 +29,12 @@ class TestBaseGenomeAbstractions:
 
 class TestOperatorSignatures:
     """Test that operators follow the defined signatures."""
-    
+
     def test_mutation_signatures(self):
         """Mutation should take (key, genome, config)."""
         assert hasattr(BaseMutation, '__call__')
         # Check annotations if possible, or just structure
-        
+
     def test_crossover_signatures(self):
         """Crossover should take (key, p1, p2, config)."""
         assert hasattr(BaseCrossover, '__call__')
@@ -48,17 +45,17 @@ class TestOperatorSignatures:
 
 class TestArchitectureIntegration:
     """Test that components plug together correctly."""
-    
+
     def test_genome_operator_compatibility(self, rng_key):
         """Test that genomes can be passed to generic operators."""
         config = BinaryGenomeConfig(length=10)
         genome = BinaryGenome.random_init(rng_key, config)
-        
+
         # Verify genome is a valid Pytree
         leaves, treedef = jax.tree_util.tree_flatten(genome)
         assert len(leaves) > 0
         assert isinstance(leaves[0], jax.Array)
-        
+
         # Reconstruct
         genome2 = jax.tree_util.tree_unflatten(treedef, leaves)
         assert jnp.all(genome.bits == genome2.bits)
@@ -67,7 +64,7 @@ class TestArchitectureIntegration:
         """Test basic pipeline components for Real genomes."""
         config = RealGenomeConfig(length=5, bounds=(-1.0, 1.0))
         genome = RealGenome.random_init(rng_key, config)
-        
+
         # Verify structure
         assert genome.values.shape == (5,)
         assert genome.size == 5

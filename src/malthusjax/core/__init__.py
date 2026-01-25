@@ -8,11 +8,9 @@ This module contains the foundational Level 1 components:
 - Modern population management
 """
 
-from . import base
-from . import genome  
-from . import fitness
+from . import base, fitness, genome
 
 # Expose new base classes
 from .base import BaseGenome, BasePopulation, DistanceMetric
 
-__all__ = ["base", "genome", "fitness", "BaseGenome", "BasePopulation", "DistanceMetric"] 
+__all__ = ["base", "genome", "fitness", "BaseGenome", "BasePopulation", "DistanceMetric"]

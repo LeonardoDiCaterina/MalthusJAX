@@ -145,3 +145,7 @@ analyze = "python my_local_results/generate_report.py"
 plot = "python my_local_results/plot.py"
 # Clean generated local results (be careful: this removes files)
 clean = "bash -lc 'rm -rf my_local_results/* results/*.csv'"
+
+
+[project.scripts]
+malthusjax-benchmark = "malthusjax.benchmarking.cli:main"

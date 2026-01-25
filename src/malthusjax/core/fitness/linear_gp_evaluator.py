@@ -6,15 +6,13 @@ is treated as an atomic tree, enabling symbiotic evolution where the best
 sub-components compete and are selected independently.
 """
 
-from typing import Optional, Tuple
-from functools import partial
-from flax import struct  # type: ignore
+import chex  # type: ignore
 import jax  # type: ignore
 import jax.numpy as jnp  # type: ignore
-import chex  # type: ignore
+from flax import struct  # type: ignore
 
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig, RegressionData
-from malthusjax.core.genome.linear import LinearGenome, LinearGenomeConfig, LinearPopulation
+from malthusjax.core.genome.linear import LinearGenome
 
 PROTECTED_DIV_EPS = 1e-6
 
@@ -24,9 +22,9 @@ def op_add(x, y, z): return x + y
 def op_sub(x, y, z): return x - y
 def op_mult(x, y, z): return x * y
 
-# TensorGP Div: Returns 0 if nan/inf, but standard is usually 1.0. 
+# TensorGP Div: Returns 0 if nan/inf, but standard is usually 1.0.
 # TensorGP uses `tf.math.divide_no_nan`.
-def op_div(x, y, z): 
+def op_div(x, y, z):
     return jnp.where(jnp.abs(y) < PROTECTED_DIV_EPS, 0.0, x / y)
 
 def op_abs(x, y, z): return jnp.abs(x)
@@ -35,13 +33,13 @@ def op_neg(x, y, z): return -x
 # TensorGP scales trig inputs by PI: cos(pi * x)
 def op_sin(x, y, z): return jnp.sin(jnp.pi * x)
 def op_cos(x, y, z): return jnp.cos(jnp.pi * x)
-def op_tan(x, y, z): 
+def op_tan(x, y, z):
     # Protected tan
     val = jnp.tan(jnp.pi * x)
     return jnp.where(jnp.isinf(val) | jnp.isnan(val), 0.0, val)
 
 # Protected Log: log(x) if x > 0 else -1
-def op_log(x, y, z): 
+def op_log(x, y, z):
     return jnp.where(x > 0, jnp.log(x), -1.0)
 
 # Protected Sqrt: sqrt(x) if x > 0 else 0
@@ -98,7 +96,7 @@ def op_clip(x, y, z): return jnp.clip(x, y, z)
 # SmoothStep: x^2 * (3 - 2x)
 def op_sstep(x, y, z):
     # TensorGP clamps input to [0,1] domain first usually, but check implementation
-    x_c = jnp.clip(x, 0.0, 1.0) 
+    x_c = jnp.clip(x, 0.0, 1.0)
     return x_c**2 * (3.0 - 2.0 * x_c)
 
 # Perlin SmoothStep: x^3 * (x * (x * 6 - 15) + 10)
@@ -108,7 +106,7 @@ def op_sstepp(x, y, z):
 
 # The registry used by lax.switch (Index matches OpCode)
 TENSORGP_FUNCTIONS = (
-    op_add, op_sub, op_mult, op_div, 
+    op_add, op_sub, op_mult, op_div,
     op_abs, op_neg, op_sin, op_cos, op_tan,
     op_log, op_sqrt, op_pow, op_exp,
     op_sign, op_max, op_min, op_mod, op_frac,
@@ -121,7 +119,7 @@ TENSORGP_FUNCTIONS = (
 # Usage in Evaluator:
 # res = jax.lax.switch(op_code, TENSORGP_FUNCTIONS, args[0], args[1], args[2])# The string names for rendering (Index matches OpCode in TENSORGP_FUNCTIONS)
 TENSORGP_NAMES = [
-    "ADD", "SUB", "MUL", "DIV", 
+    "ADD", "SUB", "MUL", "DIV",
     "ABS", "NEG", "SIN", "COS", "TAN",
     "LOG", "SQRT", "POW", "EXP",
     "SIGN", "MAX", "MIN", "MOD", "FRAC",
@@ -136,7 +134,7 @@ TENSORGP_NAMES = [
 class LinearGPEvaluatorConfig(BaseEvaluatorConfig):
     """Configuration for Linear GP Evaluator."""
     # Data can be static or dynamic, usually static for a run
-    X: chex.Array = struct.field(pytree_node=False) 
+    X: chex.Array = struct.field(pytree_node=False)
     y: chex.Array = struct.field(pytree_node=False)
     num_inputs: int = struct.field(pytree_node=False)
     length: int = struct.field(pytree_node=False)
@@ -151,7 +149,7 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
     for all instructions, enabling sophisticated selection strategies
     that can pick the best sub-components of programs.
     """
-    
+
     def predict_one(self, genome: LinearGenome, x_input: chex.Array) -> chex.Array:
         """
         Execute one genome on one input vector.
@@ -167,30 +165,30 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
         total_mem = self.config.num_inputs + self.config.length
         memory = jnp.zeros(total_mem)
         memory = memory.at[:self.config.num_inputs].set(x_input)
-        
+
         # 2. Execute instructions sequentially
         def step(current_mem, inputs):
             mem, write_idx = current_mem
             op_code, arg_indices = inputs
-            
+
             # Fetch arguments and execute operation
             args_val = jnp.take(mem, arg_indices)
             result = jax.lax.switch(op_code, TENSORGP_FUNCTIONS, args_val[0], args_val[1], args_val[2])
             result = jnp.nan_to_num(result, nan=0.0, posinf=1e6, neginf=-1e6)
-            
+
             # Store result in memory
             new_mem = mem.at[write_idx].set(result)
-            
+
             # Return new memory state and the instruction output
             return (new_mem, write_idx + 1), result
 
         init_state = (memory, self.config.num_inputs)
-        
+
         # Execute all instructions and collect outputs
         (_, _), instruction_outputs = jax.lax.scan(
             step, init_state, (genome.ops, genome.args)
         )
-        
+
         return instruction_outputs
 
     def evaluate(self, genome: LinearGenome) -> chex.Array:
@@ -204,18 +202,18 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
             Array of shape (length,) with fitness of each instruction
         """
         X, y = self.data
-        
+
         # 1. Vectorize Prediction (Data Parallelism)
         all_preds = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, X)
-        
+
         # 2. Calculate MSE for EVERY instruction column
         Y_bcast = y[:, None]
         squared_errors = (all_preds - Y_bcast) ** 2
         mse_per_tree = jnp.mean(squared_errors, axis=0)
-        
+
         # 3. The "Symbiotic" Selection (Best Atomic Tree)
         best_mse = jnp.min(mse_per_tree)
-        
+
         return -best_mse
 
     def get_best_instruction_fitness(self, fitness: chex.Array) -> float:

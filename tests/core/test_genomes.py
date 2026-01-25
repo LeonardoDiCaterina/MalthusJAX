@@ -5,21 +5,19 @@ Tests binary, real, and categorical genomes for correctness,
 JAX compatibility, and tensorization.
 """
 
-import pytest
 import jax
 import jax.numpy as jnp
 import jax.random as jr
+import pytest
 
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.core.genome.categorical_genome import CategoricalGenome, CategoricalGenomeConfig
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 
 from ..conftest import (
-    assert_valid_binary_genome, 
-    assert_valid_real_genome, 
+    assert_valid_binary_genome,
     assert_valid_categorical_genome,
-    assert_jit_compilable,
-    assert_deterministic
+    assert_valid_real_genome,
 )
 
 
@@ -34,14 +32,14 @@ class TestBinaryGenome:
         assert jnp.array_equal(genome.bits, bits)
 
     def test_random_init(self, rng_key, binary_genome_config):
-        """Test random initialization.""" 
+        """Test random initialization."""
         genome = BinaryGenome.random_init(rng_key, binary_genome_config)
         assert_valid_binary_genome(genome, binary_genome_config)
 
     def test_random_init_deterministic(self, rng_key, binary_genome_config):
         """Test that random init is deterministic given same key."""
         genome1 = BinaryGenome.random_init(rng_key, binary_genome_config)
-        genome2 = BinaryGenome.random_init(rng_key, binary_genome_config) 
+        genome2 = BinaryGenome.random_init(rng_key, binary_genome_config)
         assert jnp.array_equal(genome1.bits, genome2.bits)
 
     def test_random_init_different_keys(self, rng_key, binary_genome_config):
@@ -58,7 +56,7 @@ class TestBinaryGenome:
         """Test that random_init can be JIT compiled."""
         # NEW paradigm: JIT compile the class method
         jit_init = jax.jit(BinaryGenome.random_init, static_argnames=['config'])
-        
+
         genome = jit_init(rng_key, binary_genome_config)
         assert_valid_binary_genome(genome, binary_genome_config)
 
@@ -98,7 +96,7 @@ class TestRealGenome:
     def test_random_init_different_keys(self, rng_key, real_genome_config):
         """Test that different keys produce different genomes."""
         key1, key2 = jr.split(rng_key)
-        genome1 = RealGenome.random_init(key1, real_genome_config) 
+        genome1 = RealGenome.random_init(key1, real_genome_config)
         genome2 = RealGenome.random_init(key2, real_genome_config)
         # Very unlikely to be identical
         assert not jnp.allclose(genome1.values, genome2.values, atol=1e-6)
@@ -116,7 +114,7 @@ class TestRealGenome:
         """Test that random_init can be JIT compiled."""
         # NEW paradigm: JIT compile the class method
         jit_init = jax.jit(RealGenome.random_init, static_argnames=['config'])
-        
+
         genome = jit_init(rng_key, real_genome_config)
         assert_valid_real_genome(genome, real_genome_config)
 
@@ -175,7 +173,7 @@ class TestCategoricalGenome:
         """Test that random_init can be JIT compiled."""
         # NEW paradigm: JIT compile the class method
         jit_init = jax.jit(CategoricalGenome.random_init, static_argnames=['config'])
-        
+
         genome = jit_init(rng_key, categorical_genome_config)
         assert_valid_categorical_genome(genome, categorical_genome_config)
 
@@ -215,7 +213,7 @@ class TestGenomeConfigs:
     def test_real_config_invalid_bounds(self):
         """Test that invalid bounds raise an error."""
         from malthusjax.core.genome.real_genome import validate_real_config
-        
+
         invalid_config = RealGenomeConfig(length=5, bounds=(5.0, -5.0))  # min > max
         with pytest.raises(ValueError):
             validate_real_config(invalid_config)
@@ -223,13 +221,13 @@ class TestGenomeConfigs:
     def test_categorical_config_validation(self):
         """Test categorical config validation."""
         from malthusjax.core.genome.categorical_genome import validate_categorical_config
-        
+
         # Valid config should work
         config = CategoricalGenomeConfig(length=5, num_categories=3)
         assert config.length == 5
         assert config.num_categories == 3
         validate_categorical_config(config)  # Should not raise
-        
+
         # Invalid configs should raise errors
         invalid_config = CategoricalGenomeConfig(length=0, num_categories=3)
         with pytest.raises(ValueError):
@@ -249,16 +247,16 @@ class TestGenomePerformance:
     def test_batched_genome_creation(self, rng_key, binary_genome_config):
         """Test JIT-compiled batch creation of genomes."""
         batch_size = 100
-        
+
         @jax.jit
         def create_population(keys):
             # NEW paradigm: vmap the class method
             return jax.vmap(BinaryGenome.random_init, in_axes=(0, None))(
                 keys, binary_genome_config)
-        
+
         keys = jr.split(rng_key, batch_size)
         population = create_population(keys)
-        
+
         # Extract bits for validation
         population_bits = population.bits
         assert population_bits.shape == (batch_size, binary_genome_config.length)

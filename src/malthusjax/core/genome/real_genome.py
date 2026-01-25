@@ -5,11 +5,12 @@ Provides RealGenome and RealPopulation for floating-point vector representations
 commonly used in evolutionary algorithms for function optimization.
 """
 
-from typing import ClassVar, Type, Tuple
-from flax import struct  # type: ignore
+from typing import ClassVar, Tuple, Type
+
+import chex  # type: ignore
 import jax  # type: ignore
 import jax.numpy as jnp  # type: ignore
-import chex  # type: ignore
+from flax import struct  # type: ignore
 
 from malthusjax.core.base import BaseGenome, BasePopulation
 
@@ -29,7 +30,7 @@ def validate_real_config(config: RealGenomeConfig) -> None:
         raise ValueError(f"Length must be positive, got {config.length}")
     if config.bounds[0] >= config.bounds[1]:
         raise ValueError(f"Lower bound must be less than upper bound, got {config.bounds}")
-    
+
 
 @struct.dataclass
 class RealGenome(BaseGenome):
@@ -75,9 +76,9 @@ class RealGenome(BaseGenome):
     def size(self) -> int:
         """Return number of real values."""
         return self.values.shape[-1]
-    
+
     @property
-    def shape(self) -> tuple: 
+    def shape(self) -> tuple:
         """Return shape of the genome values."""
         return self.values.shape
 
@@ -120,7 +121,7 @@ class RealPopulation(BasePopulation[RealGenome]):
     genes: RealGenome
     fitness: chex.Array
     config: RealGenomeConfig = struct.field(pytree_node=False)
-    
+
     GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
 
     @classmethod

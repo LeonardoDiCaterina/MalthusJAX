@@ -6,10 +6,11 @@ representations commonly used in combinatorial optimization like TSP, scheduling
 """
 
 from typing import ClassVar, Type
-from flax import struct  # type: ignore
+
+import chex  # type: ignore
 import jax  # type: ignore
 import jax.numpy as jnp  # type: ignore
-import chex  # type: ignore
+from flax import struct  # type: ignore
 
 from malthusjax.core.base import BaseGenome, BasePopulation
 
@@ -27,7 +28,7 @@ def validate_categorical_config(config: CategoricalGenomeConfig) -> None:
         raise ValueError(f"Length must be positive, got {config.length}")
     if config.num_categories <= 1:
         raise ValueError(f"Number of categories must be greater than 1, got {config.num_categories}")
-    
+
 
 @struct.dataclass
 class CategoricalGenome(BaseGenome):
@@ -69,7 +70,7 @@ class CategoricalGenome(BaseGenome):
     def size(self) -> int:
         """Return number of categorical positions."""
         return self.categories.shape[-1]
-    
+
     @property
     def shape(self) -> tuple:
         """Return shape of genome as (length,)."""
@@ -88,7 +89,7 @@ class CategoricalGenome(BaseGenome):
         """
         if config.num_categories != config.length:
             raise ValueError("Can only convert to permutation when num_categories == length")
-        
+
         # Sort the categories to get a permutation
         sorted_indices = jnp.argsort(self.categories)
         permutation = jnp.arange(config.length)[sorted_indices]
@@ -127,7 +128,7 @@ class CategoricalPopulation(BasePopulation[CategoricalGenome]):
     genes: CategoricalGenome
     fitness: chex.Array
     config: CategoricalGenomeConfig
-    
+
     GENOME_CLS: ClassVar[Type[CategoricalGenome]] = CategoricalGenome
 
     @classmethod
