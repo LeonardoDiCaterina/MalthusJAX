@@ -1,140 +1,82 @@
-"""Fitness evaluators for binary genomes.
+from __future__ import annotations
+from typing import Any, cast
 
-This module provides fitness functions specifically designed for binary genomes,
-including classic problems like BinarySum (OneMax) and Knapsack optimization.
-"""
-
-from typing import Any
-
+import chex
+import jax
 import jax.numpy as jnp
 import jax.random as jr
 from flax import struct
 
 from malthusjax.core.genome.binary_genome import BinaryGenome
-
 from .base import BaseEvaluator, BaseEvaluatorConfig
 
 
 @struct.dataclass
 class BinarySumConfig(BaseEvaluatorConfig):
-    """Configuration for BinarySum (OneMax) fitness evaluator.
-    
-    The OneMax problem is to maximize the number of 1s in a binary string.
-    This is a classic benchmark problem in evolutionary computation.
-    """
+    """Configuration for BinarySum (OneMax) fitness evaluator."""
     pass
 
 
 @struct.dataclass
 class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
-    """BinarySum (OneMax) fitness evaluator.
-    
-    Evaluates binary genomes by counting the number of 1s (or 0s).
-    This is a simple but important benchmark problem for testing
-    evolutionary algorithms on binary representations.
-    """
+    """BinarySum (OneMax) fitness evaluator."""
 
     config: BinarySumConfig
-    data: Any = struct.field(pytree_node=False, default=None)
+    data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
-    def evaluate(self, genome: BinaryGenome) -> float:
-        """Evaluate a single binary genome.
-        
-        Args:
-            genome: BinaryGenome to evaluate
-            
-        Returns:
-            Fitness value (number of ones or zeros)
-        """
-        ones_count = jnp.sum(genome.bits).astype(jnp.float32)
-        if self.config.maximize:
-            return ones_count
-        else:
-            length = jnp.array(len(genome.bits), dtype=jnp.float32)
-            return length - ones_count
+    def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
+        """Evaluate a single binary genome by counting set bits."""
+        ones_count = jnp.sum(genome.bits)
+        zeros_count = genome.size - ones_count
+        return jax.lax.select(self.config.maximize, ones_count, zeros_count)
 
 
 @struct.dataclass
 class KnapsackConfig(BaseEvaluatorConfig):
-    """Configuration for Knapsack problem fitness evaluator.
-    
-    The 0/1 Knapsack problem: given items with weights and values,
-    select a subset that maximizes value while staying within weight capacity.
-    """
-    weights: jnp.ndarray  # Item weights, shape (n_items,)
-    values: jnp.ndarray   # Item values, shape (n_items,)
-    capacity: float       # Maximum weight capacity
+    """Configuration for 0/1 Knapsack problem fitness evaluator."""
+    weights: chex.Array   # Item weights, shape (n_items,)
+    values: chex.Array    # Item values, shape (n_items,)
+    capacity: chex.Numeric # Maximum weight capacity
     penalty_factor: float = 1000.0  # Penalty for exceeding capacity
+
 
 @struct.dataclass
 class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
-    """Knapsack problem fitness evaluator.
-    
-    Evaluates binary genomes where each bit indicates whether
-    to include the corresponding item in the knapsack.
-    Maximizes value while penalizing weight constraint violations.
-    """
+    """Knapsack problem fitness evaluator with linear constraint penalties."""
 
     config: KnapsackConfig
-    data: Any = struct.field(pytree_node=False, default=None)
+    data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
-    def evaluate(self, genome: BinaryGenome) -> float:
-        """Evaluate a single binary genome for knapsack fitness.
-        
-        Args:
-            genome: BinaryGenome representing item selection
-            
-        Returns:
-            Fitness value (total value minus capacity penalty)
-        """
-        if len(genome.bits) != len(self.config.weights):
-            raise ValueError(
-                f"Genome length {len(genome.bits)} != "
-                f"number of items {len(self.config.weights)}"
-            )
+    def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
+        """Evaluate a binary genome representing item selection."""
+        # Calculate total weight and value using vector dot products
+        total_weight = jnp.sum(genome.bits * self.config.weights)
+        total_value = jnp.sum(genome.bits * self.config.values)
 
-        # Calculate total weight and value
-        selected_weights = genome.bits * self.config.weights
-        selected_values = genome.bits * self.config.values
+        # Apply linear penalty for exceeding capacity
+        excess_weight = jnp.maximum(0.0, total_weight - self.config.capacity)
+        penalty = excess_weight * self.config.penalty_factor
 
-        total_weight = jnp.sum(selected_weights)
-        total_value = jnp.sum(selected_values)
-
-        # Apply penalty for exceeding capacity
-        # Use jnp.where for JIT compatibility instead of if/else
-        penalty = (total_weight - self.config.capacity) * self.config.penalty_factor
-
-        # If weight > capacity, return value - penalty, else return value
-        # We use jnp.where to handle the conditional logic in a trace-safe way
-        is_over = total_weight > self.config.capacity
-        fitness = jnp.where(is_over, total_value - penalty, total_value)
-
-        return fitness
+        # Return total value minus penalty
+        # (In maximization, penalized infeasible solutions score lower)
+        return total_value - penalty
 
     @staticmethod
-    def create_random_problem(key: jnp.ndarray, n_items: int,
-                            capacity_ratio: float = 0.5) -> 'KnapsackConfig':
-        """Create a random knapsack problem instance.
-        
-        Args:
-            key: JAX random key
-            n_items: Number of items
-            capacity_ratio: Capacity as fraction of total weight
-            
-        Returns:
-            KnapsackConfig for the random problem
-        """
-        key1, key2, key3 = jr.split(key, 3)
+    def create_random_problem(key: chex.PRNGKey, n_items: int,
+                            capacity_ratio: float = 0.5, maximize: bool = True) -> KnapsackConfig:
+        """Create a random knapsack problem instance."""
+        key1, key2 = jr.split(key, 2)
 
         # Random weights and values
         weights = jr.uniform(key1, (n_items,), minval=1.0, maxval=20.0)
         values = jr.uniform(key2, (n_items,), minval=1.0, maxval=50.0)
 
-        # Set capacity as fraction of total weight
+        # capacity as fraction of total weight
         total_weight = jnp.sum(weights)
         capacity = capacity_ratio * total_weight
 
         return KnapsackConfig(
+            maximize=maximize,
             weights=weights,
             values=values,
             capacity=capacity
