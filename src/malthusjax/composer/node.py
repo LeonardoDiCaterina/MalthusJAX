@@ -12,4 +12,3 @@ class Node:
         """Resolve factory and call it (kept simple and side-effect-free)."""
         factory = registry.get(self.type)
         return factory(key, self.params, inputs)
-

@@ -63,24 +63,19 @@ class BenchmarkRunner:
                 "seeds": list(seeds),
                 "total_runs": len(runs),
                 "successful_runs": len([r for r in runs if r.status == "success"]),
-            }
+            },
         )
 
         # Write artifacts if requested
         if self.write_artifacts and self.output_dir:
             written_paths = write_experiment_artifacts(experiment, self.output_dir)
             # Update metadata with paths
-            experiment.metadata["artifact_paths"] = {
-                k: str(v) for k, v in written_paths.items()
-            }
+            experiment.metadata["artifact_paths"] = {k: str(v) for k, v in written_paths.items()}
 
         return experiment
 
     def _run_single_seed(
-        self,
-        seed: int,
-        key: chex.Array,
-        timeout_seconds: Optional[float]
+        self, seed: int, key: chex.Array, timeout_seconds: Optional[float]
     ) -> RunResult:
         """Run a single seed and collect results."""
         start_time = time.time()
@@ -138,7 +133,7 @@ class StubEngine:
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Generate deterministic fake evolution data."""
         # Use seed to make results deterministic but varied
-        seed_int = int(key[0]) if hasattr(key, '__getitem__') else 42
+        seed_int = int(key[0]) if hasattr(key, "__getitem__") else 42
 
         history = []
         current_fitness = self.base_fitness
@@ -148,12 +143,14 @@ class StubEngine:
             improvement = self.improvement_rate * (1 + (seed_int % 10) / 10.0)
             current_fitness -= improvement * (gen + 1) / self.generations
 
-            history.append({
-                "generation": gen,
-                "best_fitness": current_fitness,
-                "mean_fitness": current_fitness + 0.1,
-                "std_fitness": 0.05,
-            })
+            history.append(
+                {
+                    "generation": gen,
+                    "best_fitness": current_fitness,
+                    "mean_fitness": current_fitness + 0.1,
+                    "std_fitness": 0.05,
+                }
+            )
 
         summary = {
             "best_fitness": current_fitness,

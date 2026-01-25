@@ -62,6 +62,7 @@ def test_stub_engine_deterministic():
 
 def test_runner_handles_engine_errors():
     """Test runner handles engine failures gracefully."""
+
     class FailingEngine:
         def run_once(self, key):
             raise ValueError("Simulated engine failure")
