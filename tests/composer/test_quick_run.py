@@ -42,6 +42,7 @@ def test_quick_run_with_output(tmp_path):
 def test_quick_run_default_output_dir(tmp_path):
     """Test default output directory creation."""
     import os
+
     original_cwd = os.getcwd()
 
     try:
@@ -58,6 +59,7 @@ def test_quick_run_default_output_dir(tmp_path):
         assert expected_dir.exists()
         assert (expected_dir / "summary.json").exists()
         from malthusjax.benchmarking.results import ExperimentResult
+
         assert isinstance(result, ExperimentResult)
 
     finally:

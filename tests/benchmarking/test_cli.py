@@ -11,13 +11,19 @@ def test_cli_with_output_dir(tmp_path):
     """Test CLI writes to specified directory."""
     output_dir = tmp_path / "cli_test"
 
-    result_code = main([
-        "--quiet",
-        "--seeds", "42",
-        "--name", "cli_test_exp",
-        "--output-dir", str(output_dir),
-        "--generations", "1"
-    ])
+    result_code = main(
+        [
+            "--quiet",
+            "--seeds",
+            "42",
+            "--name",
+            "cli_test_exp",
+            "--output-dir",
+            str(output_dir),
+            "--generations",
+            "1",
+        ]
+    )
 
     assert result_code == 0
     assert (output_dir / "summary.json").exists()
