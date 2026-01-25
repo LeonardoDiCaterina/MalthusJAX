@@ -111,7 +111,9 @@ class BoxConfig(BaseEvaluatorConfig):
     target_point: jnp.ndarray  # Target point to reach
     box_bounds: Tuple[jnp.ndarray, jnp.ndarray]  # (lower_bounds, upper_bounds)
     penalty_factor: float = 1000.0  # Penalty for violating constraints
-    objective_type: str = struct.field(pytree_node=False, default="distance")  # Static configuration
+    objective_type: str = struct.field(
+        pytree_node=False, default="distance"
+    )  # Static configuration
 
 
 @struct.dataclass

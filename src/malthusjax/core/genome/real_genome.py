@@ -110,7 +110,7 @@ class RealGenome(BaseGenome):
                 values_str = ", ".join(f"{float(v):.3f}" for v in self.values[:3])
                 values_str += f", ..., {float(self.values[-1]):.3f}"
             return f"<RealGenome([{values_str}], len={self.size})>"
-        except:
+        except Exception:
             # Fallback for traced values or other issues
             return f"<RealGenome(shape={self.values.shape})>"
 
@@ -125,7 +125,9 @@ class RealPopulation(BasePopulation[RealGenome]):
     GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
 
     @classmethod
-    def init_random(cls, key: chex.PRNGKey, config: RealGenomeConfig, size: int) -> "RealPopulation":
+    def init_random(
+        cls, key: chex.PRNGKey, config: RealGenomeConfig, size: int
+    ) -> "RealPopulation":
         """Create random population of real genomes."""
         batched_genes = RealGenome.create_population(key, config, size)
         initial_fitness = jnp.full((size,), -jnp.inf)

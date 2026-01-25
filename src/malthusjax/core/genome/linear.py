@@ -134,15 +134,17 @@ class LinearPopulation(BasePopulation[LinearGenome]):
     GENOME_CLS: ClassVar[Type[LinearGenome]] = LinearGenome
 
     @classmethod
-    def init_random(cls, key: chex.PRNGKey, config: LinearGenomeConfig, size: int) -> "LinearPopulation":
+    def init_random(
+        cls, key: chex.PRNGKey, config: LinearGenomeConfig, size: int
+    ) -> "LinearPopulation":
         """
         Create random population of linear genomes.
-        
+
         Args:
             key: JAX random key
             config: Genome configuration
             size: Population size
-            
+
         Returns:
             New LinearPopulation with random genomes
         """

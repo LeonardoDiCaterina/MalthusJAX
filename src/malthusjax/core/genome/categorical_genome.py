@@ -132,7 +132,9 @@ class CategoricalPopulation(BasePopulation[CategoricalGenome]):
     GENOME_CLS: ClassVar[Type[CategoricalGenome]] = CategoricalGenome
 
     @classmethod
-    def init_random(cls, key: chex.PRNGKey, config: CategoricalGenomeConfig, size: int) -> "CategoricalPopulation":
+    def init_random(
+        cls, key: chex.PRNGKey, config: CategoricalGenomeConfig, size: int
+    ) -> "CategoricalPopulation":
         """Create random population of categorical genomes."""
         batched_genes = CategoricalGenome.create_population(key, config, size)
         initial_fitness = jnp.full((size,), -jnp.inf)

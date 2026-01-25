@@ -79,7 +79,9 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
             return -result
         return result
 
-    def evaluate_population(self, population: BasePopulation[RealGenome]) -> BasePopulation[RealGenome]:
+    def evaluate_population(
+        self, population: BasePopulation[RealGenome]
+    ) -> BasePopulation[RealGenome]:
         """
         Vectorized evaluation using evosax's native batching.
         """
@@ -88,8 +90,10 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         X = population.genes.values
 
         # 2. Call evosax
-        # We create a batch of keys for stochastic functions (though standard BBOB is often deterministic)
-        rng = jax.random.PRNGKey(0) # In a real loop, you might want to pass this in, but Evaluators are pure
+        # We create a batch of keys for stochastic functions
+        # (though standard BBOB is often deterministic)
+        # In a real loop, you might want to pass this in, but Evaluators are pure
+        rng = jax.random.PRNGKey(0)
         keys = jax.random.split(rng, X.shape[0])
 
         fitness_scores, _, _ = self.evosax_problem.eval(keys, X, self.evosax_state)

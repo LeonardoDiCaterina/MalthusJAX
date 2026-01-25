@@ -101,7 +101,9 @@ class BinaryPopulation(BasePopulation[BinaryGenome]):
     GENOME_CLS: ClassVar[Type[BinaryGenome]] = BinaryGenome
 
     @classmethod
-    def init_random(cls, key: chex.PRNGKey, config: BinaryGenomeConfig, size: int) -> "BinaryPopulation":
+    def init_random(
+        cls, key: chex.PRNGKey, config: BinaryGenomeConfig, size: int
+    ) -> "BinaryPopulation":
         """Create random population of binary genomes."""
         batched_genes = BinaryGenome.create_population(key, config, size)
         initial_fitness = jnp.full((size,), -jnp.inf)

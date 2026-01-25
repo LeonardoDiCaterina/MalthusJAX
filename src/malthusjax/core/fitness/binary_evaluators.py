@@ -88,7 +88,10 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
             Fitness value (total value minus capacity penalty)
         """
         if len(genome.bits) != len(self.config.weights):
-            raise ValueError(f"Genome length {len(genome.bits)} != number of items {len(self.config.weights)}")
+            raise ValueError(
+                f"Genome length {len(genome.bits)} != "
+                f"number of items {len(self.config.weights)}"
+            )
 
         # Calculate total weight and value
         selected_weights = genome.bits * self.config.weights

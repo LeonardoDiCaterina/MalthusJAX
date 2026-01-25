@@ -117,7 +117,8 @@ TENSORGP_FUNCTIONS = (
 )
 
 # Usage in Evaluator:
-# res = jax.lax.switch(op_code, TENSORGP_FUNCTIONS, args[0], args[1], args[2])# The string names for rendering (Index matches OpCode in TENSORGP_FUNCTIONS)
+# res = jax.lax.switch(op_code, TENSORGP_FUNCTIONS, args[0], args[1], args[2])
+# The string names for rendering (Index matches OpCode in TENSORGP_FUNCTIONS)
 TENSORGP_NAMES = [
     "ADD", "SUB", "MUL", "DIV",
     "ABS", "NEG", "SIN", "COS", "TAN",
@@ -173,7 +174,9 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
 
             # Fetch arguments and execute operation
             args_val = jnp.take(mem, arg_indices)
-            result = jax.lax.switch(op_code, TENSORGP_FUNCTIONS, args_val[0], args_val[1], args_val[2])
+            result = jax.lax.switch(
+                op_code, TENSORGP_FUNCTIONS, args_val[0], args_val[1], args_val[2]
+            )
             result = jnp.nan_to_num(result, nan=0.0, posinf=1e6, neginf=-1e6)
 
             # Store result in memory
@@ -228,7 +231,9 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
         """
         return jnp.max(fitness)
 
-    def get_program_prediction(self, genome: LinearGenome, X: chex.Array, instruction_idx: int = -1) -> chex.Array:
+    def get_program_prediction(
+        self, genome: LinearGenome, X: chex.Array, instruction_idx: int = -1
+    ) -> chex.Array:
         """
         Get predictions from a specific instruction or the last instruction.
         
