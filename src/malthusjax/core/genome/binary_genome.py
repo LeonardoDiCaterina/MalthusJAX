@@ -82,15 +82,31 @@ class BinaryGenome(BaseGenome):
         """The logical shape of the bit-string."""
         return cast(tuple[int, ...], self.bits.shape)
 
-    def to_int(self) -> chex.Numeric:
+    def to_int(self, msb_first: bool = True) -> chex.Numeric:
         """
         Calculates the decimal integer value of the bit-string.
-        
-        Note: Large bit-strings may exceed standard integer precision. 
+
+        By default, this treats ``bits[0]`` as the most significant bit (MSB),
+        using a descending power sequence. For example, for a 4-bit genome
+        ``bits = [b0, b1, b2, b3]``, the value is::
+
+            value = b0 * 2**3 + b1 * 2**2 + b2 * 2**1 + b3 * 2**0
+
+        If ``msb_first`` is set to ``False``, the legacy behavior is used,
+        where ``bits[0]`` is treated as the least significant bit (LSB),
+        i.e. using an ascending power sequence::
+
+            value = b0 * 2**0 + b1 * 2**1 + ... + b{n-1} * 2**(n-1)
+
+        Note: Large bit-strings may exceed standard integer precision.
         Returns a JAX array (scalar) to remain compatible with JIT.
         """
-        # We use a descending range to treat bits[0] as the most significant bit (MSB)
-        powers = 2 ** jnp.arange(self.size - 1, -1, -1)
+        if msb_first:
+            # Treat bits[0] as the most significant bit (MSB)
+            powers = 2 ** jnp.arange(self.size - 1, -1, -1)
+        else:
+            # Legacy behavior: treat bits[0] as the least significant bit (LSB)
+            powers = 2 ** jnp.arange(self.size)
         return jnp.sum(self.bits * powers)
 
     def count_ones(self) -> chex.Numeric:

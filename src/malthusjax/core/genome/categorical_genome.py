@@ -38,8 +38,8 @@ class CategoricalGenome(BaseGenome):
     def random_init(cls, key: chex.PRNGKey, config: CategoricalGenomeConfig) -> CategoricalGenome:
         """Create random categorical genome using discrete uniform sampling."""
         categories = jax.random.randint(
-            key, (config.length,), 0, config.num_categories, dtype=config.dtype
-        )
+            key, (config.length,), 0, config.num_categories
+        ).astype(config.dtype)
         return cls(categories=categories)
 
     def autocorrect(self, config: CategoricalGenomeConfig) -> CategoricalGenome:

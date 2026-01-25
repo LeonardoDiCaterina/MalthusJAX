@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, List, cast
+from typing import Any, List
 
 import chex
 import jax

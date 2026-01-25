@@ -172,3 +172,26 @@ class BasePopulation(Generic[G]):
         """
         new_genes = jax.vmap(lambda g: g.autocorrect(config))(self.genes)
         return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes))
+
+    def distance_matrix(self, metric: str = DistanceMetric.EUCLIDEAN) -> chex.Array:
+        """
+        Computes pairwise distances between all individuals in the population.
+
+        Args:
+            metric: The distance metric to use. This is forwarded to the
+                underlying genome-level ``distance`` implementation.
+
+        Returns:
+            A (N, N) array where entry (i, j) is the distance between the
+            i-th and j-th individuals in the population.
+        """
+
+        def _pairwise_distance(g1: G, g2: G) -> chex.Array:
+            # Delegate to the genome-level distance implementation.
+            return g1.distance(g2, metric=metric)  # type: ignore[attr-defined]
+
+        # Outer vmap iterates over the first individual, inner vmap over the
+        # second individual, producing an (N, N) distance matrix.
+        return jax.vmap(
+            lambda g1: jax.vmap(lambda g2: _pairwise_distance(g1, g2))(self.genes)
+        )(self.genes)

@@ -29,7 +29,7 @@ class RealGenomeConfig:
     bounds: Tuple[float, float] = struct.field(
         pytree_node=False, default=(-jnp.inf, jnp.inf)
     ) # type: ignore[no-untyped-call]
-    dtype: jnp.dtype[Any] = struct.field(
+    dtype: type[jnp.floating[Any]] | jnp.dtype[jnp.floating[Any]] = struct.field(
         pytree_node=False, default=jnp.float32 # type: ignore[no-untyped-call]
     )
 
@@ -113,7 +113,8 @@ class RealGenome(BaseGenome):
         Utilizes jnp.where to prevent division by zero during JIT compilation.
         """
         norm = self.magnitude()
-        normalized_values = jnp.where(norm > 0, self.values / norm, self.values)
+        norm_safe = jnp.maximum(norm, 1e-8)
+        normalized_values = jnp.where(norm > 0, self.values / norm_safe, self.values)
         return cast(RealGenome, cast(Any, self).replace(values=normalized_values))
 
     def add_noise(self, key: chex.PRNGKey, noise_std: float = 0.1) -> RealGenome:
