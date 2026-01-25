@@ -64,7 +64,20 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
     @staticmethod
     def create_random_problem(key: chex.PRNGKey, n_items: int,
                             capacity_ratio: float = 0.5, maximize: bool = True) -> KnapsackConfig:
-        """Create a random knapsack problem instance."""
+        """Create a random 0/1 knapsack problem instance.
+
+        Args:
+            key: JAX PRNG key used to generate random weights and values.
+            n_items: Number of items in the knapsack problem.
+            capacity_ratio: Fraction of the total weight used to set the knapsack
+                capacity (defaults to 0.5).
+            maximize: Whether the resulting configuration is for a maximization
+                objective (defaults to True).
+
+        Returns:
+            KnapsackConfig: Configuration object containing randomly generated
+            weights, values, capacity, and optimization direction.
+        """
         key1, key2 = jr.split(key, 2)
 
         # Random weights and values
