@@ -14,9 +14,9 @@ def write_summary_json(experiment_result: ExperimentResult, path: Path | str) ->
     path.parent.mkdir(parents=True, exist_ok=True)
 
     # Atomic write: write to temp file, then rename
-    temp_path = path.with_suffix('.json.tmp')
+    temp_path = path.with_suffix(".json.tmp")
     try:
-        with temp_path.open('w') as f:
+        with temp_path.open("w") as f:
             json.dump(experiment_result.to_dict(), f, indent=2)
         temp_path.rename(path)
     except Exception:
@@ -29,7 +29,7 @@ def write_summary_json(experiment_result: ExperimentResult, path: Path | str) ->
 def read_summary_json(path: Path | str) -> ExperimentResult:
     """Read ExperimentResult from summary.json."""
     path = Path(path)
-    with path.open('r') as f:
+    with path.open("r") as f:
         data = json.load(f)
     return ExperimentResult.from_dict(data)
 
@@ -42,9 +42,9 @@ def write_histories_csv(experiment_result: ExperimentResult, path: Path | str) -
     combined = experiment_result.combined_history()
     if not combined:
         # Write empty CSV with just headers
-        with path.open('w', newline='') as f:
+        with path.open("w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(['seed'])
+            writer.writerow(["seed"])
         return
 
     # Get all unique keys across all rows for header
@@ -53,11 +53,11 @@ def write_histories_csv(experiment_result: ExperimentResult, path: Path | str) -
         all_keys.update(row.keys())
 
     # Ensure 'seed' comes first
-    headers = ['seed'] + sorted(k for k in all_keys if k != 'seed')
+    headers = ["seed"] + sorted(k for k in all_keys if k != "seed")
 
-    temp_path = path.with_suffix('.csv.tmp')
+    temp_path = path.with_suffix(".csv.tmp")
     try:
-        with temp_path.open('w', newline='') as f:
+        with temp_path.open("w", newline="") as f:
             dict_writer = csv.DictWriter(f, fieldnames=headers)
             dict_writer.writeheader()
             dict_writer.writerows(combined)

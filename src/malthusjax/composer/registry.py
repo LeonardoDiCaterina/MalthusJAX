@@ -2,8 +2,10 @@ from typing import Any, Callable, Dict, List
 
 NodeFactory = Callable[[Any, Dict[str, Any], Dict[str, Any]], Any]
 
+
 class Registry:
     """Tiny registry for mapping a short name -> factory callable."""
+
     def __init__(self) -> None:
         self._factories: Dict[str, NodeFactory] = {}
 
@@ -20,7 +22,3 @@ class Registry:
 
     def list(self) -> List[str]:
         return list(self._factories.keys())
-
-
-
-

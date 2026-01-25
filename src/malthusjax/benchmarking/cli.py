@@ -10,38 +10,27 @@ from ..composer import Composer
 
 def main(args: Optional[List[str]] = None) -> int:
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Run MalthusJAX benchmarks with sensible defaults"
-    )
+    parser = argparse.ArgumentParser(description="Run MalthusJAX benchmarks with sensible defaults")
     parser.add_argument(
         "--seeds",
         type=int,
         nargs="+",
         default=[1, 2, 3],
-        help="Random seeds to run (default: 1 2 3)"
+        help="Random seeds to run (default: 1 2 3)",
     )
     parser.add_argument(
         "--name",
         type=str,
         default="cli_experiment",
-        help="Experiment name (default: cli_experiment)"
+        help="Experiment name (default: cli_experiment)",
     )
     parser.add_argument(
-        "--output-dir",
-        type=Path,
-        help="Output directory (default: results/{name})"
+        "--output-dir", type=Path, help="Output directory (default: results/{name})"
     )
     parser.add_argument(
-        "--generations",
-        type=int,
-        default=10,
-        help="Number of generations (default: 10)"
+        "--generations", type=int, default=10, help="Number of generations (default: 10)"
     )
-    parser.add_argument(
-        "--quiet",
-        action="store_true",
-        help="Suppress output"
-    )
+    parser.add_argument("--quiet", action="store_true", help="Suppress output")
 
     parsed = parser.parse_args(args)
 
