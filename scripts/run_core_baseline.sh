@@ -11,7 +11,9 @@ echo "Date: $(date)"
 echo ""
 
 # Create output directory
-mkdir -p tmp
+if [ ! -d tmp ]; then
+  mkdir tmp
+fi
 
 OUTPUT_FILE="tmp/core_baseline_$(date +%Y%m%d_%H%M%S).log"
 echo "Logging to: $OUTPUT_FILE"
