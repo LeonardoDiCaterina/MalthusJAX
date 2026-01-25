@@ -36,6 +36,17 @@ def test_parse_spec_type_conversion():
     assert isinstance(params["name"], str)
 
 
+def test_parse_spec_boolean_conversion():
+    """Test boolean parameter conversion."""
+    catalog = OperatorCatalog()
+
+    op_type, params = catalog.parse_spec("bbob:maximize=True,minimize=False")
+    assert op_type == "bbob"
+    assert params == {"maximize": True, "minimize": False}
+    assert isinstance(params["maximize"], bool)
+    assert isinstance(params["minimize"], bool)
+
+
 def test_parse_spec_error_cases():
     """Test error handling in parsing."""
     catalog = OperatorCatalog()
@@ -69,8 +80,7 @@ def test_get_fitness_evaluator():
     catalog = OperatorCatalog()
 
     evaluator = catalog.get("sphere:dim=10")
-    assert isinstance(evaluator,
-                      BBOBEvaluator)
+    assert isinstance(evaluator, BBOBEvaluator)
     assert evaluator.config.num_dims == 10
 
 
@@ -123,3 +133,29 @@ def test_get_help():
 
     help_unknown = catalog.get_help("unknown")
     assert "Unknown operator" in help_unknown
+
+
+def test_bbob_evaluator():
+    """Test the general BBOB evaluator."""
+    catalog = OperatorCatalog()
+
+    # Test basic BBOB creation
+    bbob_eval = catalog.get("bbob:fn_name=sphere,dim=5")
+    assert isinstance(bbob_eval, BBOBEvaluator)
+
+    # Test with different parameters
+    bbob_eval2 = catalog.get("bbob:fn_name=rastrigin,dim=10,maximize=False,seed=123")
+    assert isinstance(bbob_eval2, BBOBEvaluator)
+
+    # Test default parameters
+    bbob_eval3 = catalog.get("bbob")  # Should use defaults
+    assert isinstance(bbob_eval3, BBOBEvaluator)
+
+
+def test_bbob_in_available_operators():
+    """Test that bbob is listed in available operators."""
+    catalog = OperatorCatalog()
+    available = catalog.list_available()
+
+    assert "bbob" in available
+    assert "sphere" in available  # Original specific operators should still exist

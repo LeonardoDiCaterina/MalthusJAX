@@ -7,6 +7,7 @@ except ModuleNotFoundError:
 
 toml = _toml  # type: ignore[assignment]
 
+
 def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
     """Very small TOML loader that returns the raw pipeline section.
     (Keep this lightweight—validation and pydantic will come later.)

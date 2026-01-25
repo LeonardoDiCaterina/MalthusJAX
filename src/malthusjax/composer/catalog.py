@@ -9,9 +9,8 @@ from ..operators.crossover.binary import UniformCrossover
 from ..operators.crossover.real import BlendCrossover
 from ..operators.mutation.binary import BitFlipMutation
 from ..operators.mutation.real import GaussianMutation
+from ..operators.selection.elite_pool import ElitePoolSelection
 from ..operators.selection.roulette import RouletteSelection
-
-# Import major MalthusJAX operators for catalog
 from ..operators.selection.tournament import TournamentSelection
 
 
@@ -23,26 +22,23 @@ class OperatorCatalog:
         catalog.get("tournament:selections=5,size=3")  # With parameters
         catalog.get("gaussian:rate=0.1")  # Single parameter
     """
+
     def __init__(self) -> None:
         """Initialize the operator catalog with default operators."""
-        # Map operator_type -> factory_class or factory_function
         self._factories: Dict[str, Callable] = {
-            # Selection operators
             "tournament": self._create_tournament_selection,
             "roulette": self._create_roulette_selection,
-            # Crossover operators
+            "deterministic_pool": self._create_deterministic_pool_selection,
             "blend": BlendCrossover,
             "uniform": UniformCrossover,
-
-            # Mutation operators
             "gaussian": GaussianMutation,
             "bitflip": BitFlipMutation,
-
-            # Fitness evaluators (need special handling for config)
             "sphere": self._create_sphere_evaluator,
-            "griewank": self._create_griewank_evaluator,
             "rastrigin": self._create_rastrigin_evaluator,
             "knapsack": self._create_knapsack_evaluator,
+            "bbob": self._create_bbob_evaluator,  # General BBOB evaluator
+            "sphere_minimize": self._create_sphere_minimize_evaluator,
+            "sphere_maximize": self._create_sphere_maximize_evaluator,
         }
 
     def parse_spec(self, spec: str) -> Tuple[str, Dict[str, Any]]:
@@ -66,27 +62,29 @@ class OperatorCatalog:
         params = {}
 
         if params_str.strip():
-            # Parse param1=value1,param2=value2
             for param_pair in params_str.split(","):
                 param_pair = param_pair.strip()
                 if "=" not in param_pair:
                     raise ValueError(
-                        "Invalid parameter format: "
-                        f"'{param_pair}'. Expected 'key=value'"
+                        f"Invalid parameter format: '{param_pair}'. Expected 'key=value'"
                     )
 
                 key, value = param_pair.split("=", 1)
                 key = key.strip()
                 value = value.strip()
 
-                # Try to convert to appropriate type
                 params[key] = self._convert_value(value)
 
         return operator_type, params
 
-    def _convert_value(self, value_str: str) -> Union[int, float, str]:
+    def _convert_value(self, value_str: str) -> Union[int, float, str, bool]:
         """Convert string value to appropriate Python type."""
         value_str = value_str.strip()
+
+        if value_str.lower() == "true":
+            return True
+        elif value_str.lower() == "false":
+            return False
 
         try:
             return int(value_str)
@@ -98,7 +96,6 @@ class OperatorCatalog:
         except ValueError:
             pass
 
-        # Keep as string (remove quotes if present)
         if value_str.startswith('"') and value_str.endswith('"'):
             return value_str[1:-1]
         if value_str.startswith("'") and value_str.endswith("'"):
@@ -157,18 +154,8 @@ class OperatorCatalog:
         config = BBOBConfig(
             fn_name="sphere",
             num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=kwargs.get("maximize", False),
-            seed=kwargs.get("seed", 42)
-        )
-        return BBOBEvaluator.create(config)
-
-    def _create_griewank_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
-        """Create BBOBEvaluator configured for griewank function."""
-        config = BBOBConfig(
-            fn_name="griewank",
-            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=kwargs.get("maximize", False),
-            seed=kwargs.get("seed", 42)
+            maximize=True,
+            seed=kwargs.get("seed", 42),
         )
         return BBOBEvaluator.create(config)
 
@@ -177,8 +164,8 @@ class OperatorCatalog:
         config = BBOBConfig(
             fn_name="rastrigin",
             num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=kwargs.get("maximize", False),
-            seed=kwargs.get("seed", 42)
+            maximize=True,
+            seed=kwargs.get("seed", 42),
         )
         return BBOBEvaluator.create(config)
 
@@ -187,19 +174,61 @@ class OperatorCatalog:
         config = KnapsackConfig(**kwargs)
         return KnapsackEvaluator(config)
 
+    def _create_sphere_minimize_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
+        """Create BBOBEvaluator for sphere minimization (raw costs, no flipping)."""
+        config = BBOBConfig(
+            fn_name="sphere",
+            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
+            maximize=False,
+            seed=kwargs.get("seed", 42),
+        )
+        return BBOBEvaluator.create(config)
+
+    def _create_sphere_maximize_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
+        """Create BBOBEvaluator for sphere maximization (flipped to -cost)."""
+        config = BBOBConfig(
+            fn_name="sphere",
+            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
+            maximize=True,
+            seed=kwargs.get("seed", 42),
+        )
+        return BBOBEvaluator.create(config)
+
+    def _create_bbob_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
+        """Create general BBOB evaluator with configurable function name.
+        Usage examples:
+            bbob:fn_name=sphere,dim=10
+            bbob:fn_name=rastrigin,dim=5,maximize=False
+            bbob:fn_name=rosenbrock,dim=20,seed=123
+        """
+        fn_name = kwargs.get("fn_name", "sphere")
+        config = BBOBConfig(
+            fn_name=fn_name,
+            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
+            maximize=kwargs.get("maximize", True),
+            seed=kwargs.get("seed", 42),
+        )
+        return BBOBEvaluator.create(config)
+
     def _create_tournament_selection(self, **kwargs: Any) -> TournamentSelection:
         return TournamentSelection(
             num_selections=kwargs.get("num_selections", 4),
             tournament_size=kwargs.get("tournament_size", 3),
-            **{k: v for k, v in kwargs.items() if k not in ["num_selections", "tournament_size"]}
+            **{k: v for k, v in kwargs.items() if k not in ["num_selections", "tournament_size"]},
         )
 
     def _create_roulette_selection(self, **kwargs: Any) -> RouletteSelection:
         return RouletteSelection(
             num_selections=kwargs.get("num_selections", 4),
-            **{k: v for k, v in kwargs.items() if k not in ["num_selections"]}
+            **{k: v for k, v in kwargs.items() if k not in ["num_selections"]},
+        )
+
+    def _create_deterministic_pool_selection(self, **kwargs: Any) -> ElitePoolSelection:
+        return ElitePoolSelection(
+            num_selections=kwargs.get("num_selections", 4),
+            **{k: v for k, v in kwargs.items() if k not in ["num_selections"]},
+            elite_k=kwargs.get("elite_k", 2),
         )
 
 
-# Global default catalog instance
 DEFAULT_CATALOG = OperatorCatalog()

@@ -37,18 +37,13 @@ class GeneticEngineAdapter:
                     "generation": int(final_state.generation),
                     "best_fitness": float(final_state.best_fitness),
                     "mean_fitness": (
-                        float(metrics.mean_fitness)
-                        if hasattr(metrics, "mean_fitness")
-                        else 0.0
+                        float(metrics.mean_fitness) if hasattr(metrics, "mean_fitness") else 0.0
                     ),
                     "std_fitness": 0.0,  # Could compute if needed
                 }
             )
 
-        total_evals = int(
-            final_state.generation
-            * self.genetic_engine.engine_params.pop_size
-        )
+        total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
         summary = {
             "best_fitness": float(final_state.best_fitness),
             "final_generation": int(final_state.generation),
@@ -67,6 +62,7 @@ class GeneticEngineAdapter:
             "timings": timings,
         }
 
+
 def build_engine(
     fitness_evaluator: Any,
     selection_op: Any,
@@ -78,7 +74,7 @@ def build_engine(
     elitism: int = 2,
     genome_length: int = 10,
     bounds: tuple = (-5.0, 5.0),
-    **kwargs: Any
+    **kwargs: Any,
 ) -> GeneticEngineAdapter:
     """Build a GeneticEngine from catalog operators.
     Args:
@@ -99,14 +95,10 @@ def build_engine(
     genome_config: Union[RealGenomeConfig, BinaryGenomeConfig]
     if genome_type == "real":
         genome_config = RealGenomeConfig(
-            length=genome_length,
-            bounds=bounds,
-            dtype=kwargs.get("dtype", "float32")
+            length=genome_length, bounds=bounds, dtype=kwargs.get("dtype", "float32")
         )
     elif genome_type == "binary":
-        genome_config = BinaryGenomeConfig(
-            length=genome_length
-        )
+        genome_config = BinaryGenomeConfig(length=genome_length)
     else:
         raise ValueError(f"Unsupported genome type: {genome_type}")
 
@@ -114,7 +106,7 @@ def build_engine(
         pop_size=pop_size,
         num_generations=generations,
         elitism=elitism,
-        **{k: v for k, v in kwargs.items() if k in ["mutation_strength_schedule"]}
+        **{k: v for k, v in kwargs.items() if k in ["mutation_strength_schedule"]},
     )
 
     genetic_engine = GeneticEngine(
@@ -124,15 +116,14 @@ def build_engine(
         selection=selection_op,
         crossover=crossover_op,
         mutation=mutation_op,
-        enable_progress_bar=kwargs.get("enable_progress_bar", False)
+        enable_progress_bar=kwargs.get("enable_progress_bar", False),
     )
 
     return GeneticEngineAdapter(genetic_engine, genome_config)
 
 
 def build_engine_from_catalog(
-    catalog_operators: Dict[str, Any],
-    config: Dict[str, Any]
+    catalog_operators: Dict[str, Any], config: Dict[str, Any]
 ) -> GeneticEngineAdapter:
     """Build engine from catalog operator instances and config.
     Args:
@@ -146,5 +137,5 @@ def build_engine_from_catalog(
         selection_op=catalog_operators["selection"],
         crossover_op=catalog_operators["crossover"],
         mutation_op=catalog_operators["mutation"],
-        **config
+        **config,
     )

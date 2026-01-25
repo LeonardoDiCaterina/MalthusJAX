@@ -28,7 +28,7 @@ def test_build_engine_basic():
         genome_type="real",
         pop_size=10,
         generations=5,
-        genome_length=5
+        genome_length=5,
     )
 
     assert isinstance(adapter, GeneticEngineAdapter)
@@ -48,7 +48,7 @@ def test_engine_adapter_run_once():
         genome_type="real",
         pop_size=6,
         generations=3,
-        genome_length=3
+        genome_length=3,
     )
 
     # Run engine
@@ -86,7 +86,7 @@ def test_build_engine_from_catalog():
         "fitness": catalog.get("sphere:dim=4"),
         "selection": catalog.get("tournament:num_selections=8,tournament_size=2"),
         "crossover": catalog.get("blend"),
-        "mutation": catalog.get("gaussian:mutation_rate=0.15")
+        "mutation": catalog.get("gaussian:mutation_rate=0.15"),
     }
 
     config = {
@@ -94,7 +94,7 @@ def test_build_engine_from_catalog():
         "pop_size": 8,
         "generations": 2,
         "genome_length": 4,
-        "bounds": (-10.0, 10.0)
+        "bounds": (-10.0, 10.0),
     }
 
     adapter = build_engine_from_catalog(operators, config)
@@ -119,7 +119,7 @@ def test_engine_adapter_deterministic():
         genome_type="real",
         pop_size=4,
         generations=2,
-        genome_length=2
+        genome_length=2,
     )
 
     key = jr.PRNGKey(999)
