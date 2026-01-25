@@ -1,136 +1,174 @@
+from __future__ import annotations
 from abc import abstractmethod
-from typing import Any, ClassVar, Generic, Iterator, Type, TypeVar, Union
+from typing import Any, ClassVar, Generic, Iterator, Type, TypeVar, Union, cast
 
 import chex
 import jax
 import jax.numpy as jnp
 from flax import struct
 
-# Ensure G matches the bound
+# Covariant TypeVar for the Genome implementation.
+# This ensures that a RealPopulation is recognized as a valid BasePopulation[RealGenome]
 G = TypeVar("G", bound="BaseGenome")
 
+
 class DistanceMetric:
-    HAMMING = "hamming"
-    EUCLIDEAN = "euclidean"
-    MANHATTAN = "manhattan"
+    """Standard metrics supported by most genomes."""
+    HAMMING: str = "hamming"
+    EUCLIDEAN: str = "euclidean"
+    MANHATTAN: str = "manhattan"
+    
 
 @struct.dataclass
 class BaseGenome:
-    """Abstract base class for a single individual/genome."""
+    """
+    Abstract blueprint for a single candidate solution (individual).
+    
+    In the MalthusJAX framework, a Genome is a PyTree container. While this 
+    base class defines logic for a single individual, implementations are 
+    designed to be 'lifted' via jax.vmap. 
+    
+    When 'lifted' into a Population, each field in the Genome (e.g., 'values') 
+    is transformed from a scalar/vector into a batched array where the leading 
+    dimension represents the population size.
+    """
 
     @classmethod
     @abstractmethod
     def random_init(cls: Type[G], key: chex.PRNGKey, config: Any) -> G:
-        """Initialize a single genome."""
+        """
+        Initialize a single genome instance with random values.
+        
+        Args:
+            key: A JAX PRNG key for reproducibility.
+            config: A configuration object specific to the genome implementation.
+            
+        Returns:
+            An instance of the specific Genome subclass.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def distance(self, other: "BaseGenome", metric: str) -> float:
-        """Compute distance to another genome instance."""
+    def distance(self, other: BaseGenome, metric: str) -> chex.Numeric:
+        """
+        Calculate the phenotypic or genotypic distance to another genome.
+        
+        Note: The 'other' argument uses 'BaseGenome' to ensure compatibility 
+        with the Liskov Substitution Principle under strict type checking. 
+        Implementations should cast 'other' to their specific type.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def autocorrect(self, config: Any) -> "BaseGenome":
-        """Fix constraints for a single genome."""
+    def autocorrect(self, config: Any) -> BaseGenome:
+        """
+        Enforce domain-specific constraints on the genome (e.g., clipping bounds).
+        
+        This method is typically called after mutation or crossover to ensure 
+        the genome remains in a valid state.
+        """
         raise NotImplementedError
 
     @property
     @abstractmethod
     def size(self) -> int:
+        """The total number of parameters/elements within the genome."""
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def shape(self) -> tuple:
+    def shape(self) -> tuple[int, ...]:
+        """The logical shape of the genome's primary data payload."""
         raise NotImplementedError
 
     @classmethod
     def create_population(cls: Type[G], key: chex.PRNGKey, config: Any, pop_size: int) -> G:
-        """Factory: Creates a batch of genomes (Struct of Arrays)."""
+        """
+        Factory method to create a batch of genomes using the SoA pattern.
+        
+        Utilizes jax.vmap to transform the 'random_init' logic of a single 
+        genome into a parallelized initialization of an entire population.
+        """
         keys = jax.random.split(key, pop_size)
         return jax.vmap(cls.random_init, in_axes=(0, None))(keys, config)
 
 
 @struct.dataclass
 class BasePopulation(Generic[G]):
-    """Abstract population container."""
+    """
+    A unified container for a collection of candidate solutions.
+    
+    This class implements the Struct-of-Arrays (SoA) pattern. The 'genes' 
+    attribute holds a Genome instance where every leaf array has an added 
+    leading dimension of size N (population size).
+    
+    Attributes:
+        genes: The batched genome data (SoA).
+        fitness: A (N,) array representing the objective value for each individual.
+        config: Static configuration shared by all individuals in the population.
+    """
     genes: G
     fitness: chex.Array
-    config: Any = struct.field(pytree_node=False)
+    config: Any = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
-    # Generic type placeholder, mostly for static analysis
-    GENOME_CLS: ClassVar[Type[G]] = Any
+    # Reference to the Genome class for factory patterns and static analysis.
+    GENOME_CLS: ClassVar[Type[Any]] = cast(Type[Any], Any)
 
-    def spawn_offspring(self, new_genes: G) -> "BasePopulation":
+    def spawn_offspring(self, new_genes: G) -> BasePopulation[G]:
         """
-        Creates a new population instance with new genes, resetting fitness.
+        Creates a new population container using a new batch of genes.
+        
+        Fitness is automatically reset to NaN to signify that the new 
+        individuals have not yet been evaluated.
         """
-        # 1. Infer new population size safely (No assumptions about .values)
         leaves = jax.tree_util.tree_leaves(new_genes)
         if not leaves:
-            raise ValueError("New genes struct is empty.")
+            raise ValueError("Gene structure contains no arrays.")
+        
         n_offspring = leaves[0].shape[0]
-
-        # 2. "Allocate" Space (Zero-Cost Broadcast)
         empty_fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
-
-        # 3. Return new instance
-        return self.replace(
+        
+        return cast(BasePopulation[G], cast(Any, self).replace(
             genes=new_genes,
             fitness=empty_fitness
-        )
-
-    @classmethod
-    @abstractmethod
-    def init_random(cls, key: chex.PRNGKey, config: Any, size: int) -> "BasePopulation[G]":
-        raise NotImplementedError
+        ))
 
     def __len__(self) -> int:
+        """Returns the number of individuals currently in the population."""
         return int(self.fitness.shape[0])
 
-    def __getitem__(self, key: Union[int, slice, chex.Array]) -> Union[G, "BasePopulation[G]"]:
+    def __getitem__(self, key: Union[int, slice, chex.Array]) -> Union[G, BasePopulation[G]]:
         """
-        Slicing returns a smaller Population (wrapped).
-        Indexing returns a single Genome (unwrapped).
+        Provides intuitive slicing and indexing for the population.
+        
+        - If 'key' is an integer: Returns a single, unwrapped Genome (single individual).
+        - If 'key' is a slice/mask: Returns a new Population instance containing 
+          only the selected individuals (sub-population).
         """
-        # Slice the genes struct
         sliced_genes = jax.tree_util.tree_map(lambda x: x[key], self.genes)
-
+        
         if isinstance(key, int):
-            # Return unwrapped Genome
-            return sliced_genes
-        else:
-            # Return wrapped Population with sliced fitness
-            return self.replace(genes=sliced_genes, fitness=self.fitness[key])
+            return cast(G, sliced_genes)
+        
+        return cast(BasePopulation[G], cast(Any, self).replace(
+            genes=sliced_genes, 
+            fitness=self.fitness[key]
+        ))
 
     def __iter__(self) -> Iterator[G]:
         """
-        WARNING: Iteration in Python is slow. Use vmap/scan for logic.
-        This is primarily for debugging or printing.
+        Iterates over the population, yielding individual Genome instances.
+        
+        Note: Iteration is a Python-side operation and is slow. For heavy 
+        computation, prefer jax.vmap or jax.lax.scan over the population.
         """
         for i in range(len(self)):
-            yield self[i]
+            yield cast(G, self[i])
 
-    def autocorrect(self, config: Any) -> "BasePopulation[G]":
-        # vmap automatically handles the struct unboxing/reboxing
+    def autocorrect(self, config: Any) -> BasePopulation[G]:
+        """
+        Applies the genome-level autocorrect logic to every individual 
+        in the population in parallel using jax.vmap.
+        """
         new_genes = jax.vmap(lambda g: g.autocorrect(config))(self.genes)
-        return self.replace(genes=new_genes)
-
-    def distance_matrix(self, metric: str = "hamming") -> chex.Array:
-        """
-        Compute pairwise distance matrix.
-        Returns matrix of shape (N, N).
-        """
-        # vmap logic:
-        # Outer vmap: splits 'self.genes' (A) into rows -> g1
-        # Inner vmap: splits 'self.genes' (B) into cols -> g2
-        # Because BaseGenome is a struct, 'g1' and 'g2' inside the loop
-        # are valid Genome instances representing a single row.
-
-        def dist_fn(g1, g2):
-            return g1.distance(g2, metric)
-
-        return jax.vmap(
-            jax.vmap(dist_fn, in_axes=(None, 0)),
-            in_axes=(0, None)
-        )(self.genes, self.genes)
+        return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes))
