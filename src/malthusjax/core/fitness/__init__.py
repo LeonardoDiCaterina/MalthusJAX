@@ -7,27 +7,46 @@ for efficient batch evaluation using JAX JIT compilation.
 
 # NEW architecture evaluators
 from .base import BaseEvaluator, RegressionData
-from .linear_gp_evaluator import LinearGPEvaluator, LinearGPEvaluatorConfig, TENSORGP_FUNCTIONS, TENSORGP_NAMES
 from .binary_evaluators import (
-    BinarySumEvaluator, BinarySumConfig,
-    KnapsackEvaluator, KnapsackConfig
+    BinarySumConfig,
+    BinarySumEvaluator,
+    KnapsackConfig,
+    KnapsackEvaluator,
+)
+from .linear_gp_evaluator import (
+    TENSORGP_FUNCTIONS,
+    TENSORGP_NAMES,
+    LinearGPEvaluator,
+    LinearGPEvaluatorConfig,
 )
 from .real_evaluators import (
-    SphereEvaluator, SphereConfig,
-    GriewankEvaluator, GriewankConfig, 
-    BoxEvaluator, BoxConfig
+    BoxConfig,
+    BoxEvaluator,
+    GriewankConfig,
+    GriewankEvaluator,
+    SphereConfig,
+    SphereEvaluator,
 )
 
 __all__ = [
     # Base classes
-    "BaseEvaluator", "RegressionData",
+    "BaseEvaluator",
+    "RegressionData",
     # NEW evaluators
-    "LinearGPEvaluator", "LinearGPEvaluatorConfig", "TENSORGP_FUNCTIONS", "TENSORGP_NAMES",
+    "LinearGPEvaluator",
+    "LinearGPEvaluatorConfig",
+    "TENSORGP_FUNCTIONS",
+    "TENSORGP_NAMES",
     # Binary evaluators
-    "BinarySumEvaluator", "BinarySumConfig",
-    "KnapsackEvaluator", "KnapsackConfig", 
+    "BinarySumEvaluator",
+    "BinarySumConfig",
+    "KnapsackEvaluator",
+    "KnapsackConfig",
     # Real evaluators
-    "SphereEvaluator", "SphereConfig",
-    "GriewankEvaluator", "GriewankConfig",
-    "BoxEvaluator", "BoxConfig",
+    "SphereEvaluator",
+    "SphereConfig",
+    "GriewankEvaluator",
+    "GriewankConfig",
+    "BoxEvaluator",
+    "BoxConfig",
 ]

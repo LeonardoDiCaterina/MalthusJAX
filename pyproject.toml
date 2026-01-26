@@ -79,11 +79,35 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
+disallow_untyped_defs = false  # Set to false globally; override per-plugin below
+strict = false  # Default: non-strict; we'll be strict about core only
+
+# Suppress missing stubs for third-party libraries
+ignore_missing_imports = true
+
+# Per-module configurations: strict checking for core, lenient for others
+[[tool.mypy.overrides]]
+module = "malthusjax.core.*"
+strict = true
 disallow_untyped_defs = true
 
+# Suppress JAX library-internal errors
+[[tool.mypy.overrides]]
+module = "jax.*"
+ignore_errors = true
+
+# Suppress evosax stubs
+[[tool.mypy.overrides]]
+module = "evosax.*"
+ignore_missing_imports = true
+
+# Suppress chex stubs
+[[tool.mypy.overrides]]
+module = "chex.*"
+ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
@@ -145,3 +169,7 @@ analyze = "python my_local_results/generate_report.py"
 plot = "python my_local_results/plot.py"
 # Clean generated local results (be careful: this removes files)
 clean = "bash -lc 'rm -rf my_local_results/* results/*.csv'"
+
+
+[project.scripts]
+malthusjax-benchmark = "malthusjax.benchmarking.cli:main"

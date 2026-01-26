@@ -1,78 +1,78 @@
-"""
-Modern fitness evaluator abstractions with JAX-native design.
+from __future__ import annotations
 
-Provides BaseEvaluator for generic fitness evaluation and specialized
-evaluators for different problem types with automatic vectorization.
-"""
+from typing import Any, Generic, Tuple, TypeVar, cast
 
-from typing import TypeVar, Generic, Tuple
-from flax import struct  # type: ignore
-import jax  # type: ignore
-import jax.numpy as jnp  # type: ignore
-import chex  # type: ignore
+import chex
+import jax
+from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
 
-
-# Type variables for generic evaluator components
 G = TypeVar("G", bound="BaseGenome")
 C = TypeVar("C", bound="BaseEvaluatorConfig")  # Config type
-D = TypeVar("D")  # Data type
+D = TypeVar("D")  # Data type (e.g., training data, environment params)
 
 
 @struct.dataclass
 class BaseEvaluatorConfig:
     """
     Base configuration for fitness evaluators.
-    
-    Ensures all evaluators have a consistent interface for optimization direction.
+
+    Attributes:
+        maximize: If True, higher fitness values are better.
+                 Crucial for sorting and selection logic.
     """
-    maximize: bool = struct.field(pytree_node=False)
+
+    maximize: bool = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
 
 @struct.dataclass
 class BaseEvaluator(Generic[G, C, D]):
     """
-    Abstract base class for fitness evaluators.
-    
-    Provides automatic vectorization over populations and clean
-    separation between single-genome evaluation and batch operations.
+    Abstract base class for JAX-native fitness evaluation.
+
+    This architecture separates the logic for evaluating a single individual
+    from the mechanics of batch processing. It relies on JAX's 'vmap'
+    to transform the single-individual 'evaluate' method into a high-performance
+    parallel evaluator for an entire population.
     """
+
     config: C
     data: D
 
-    def evaluate(self, genome: G) -> chex.Array:
+    def evaluate(self, genome: G) -> chex.Numeric:
         """
-        Evaluate a single genome using baked-in data.
-        
+        Calculates the fitness score for a single individual.
+
         Args:
-            genome: Single genome to evaluate
-            
+            genome: A single instance of G (e.g., RealGenome with 1D values).
+
         Returns:
-            Fitness score(s) - can be scalar or array for multi-objective
+            A scalar fitness score or an array for multi-objective problems.
         """
         raise NotImplementedError
 
     def evaluate_population(self, population: BasePopulation[G]) -> BasePopulation[G]:
         """
-        Evaluate entire population with automatic vectorization.
-        
-        The population.genes is a batched genome structure (e.g., RealGenome
-        with values of shape (pop_size, length)). JAX's vmap automatically
-        maps over the first axis of PyTree nodes to extract individual genomes.
-        
+        Evaluates an entire population using automatic vectorization.
+
+        This method leverages the Struct-of-Arrays (SoA) nature of the population.
+        The 'genes' PyTree is unrolled along the leading dimension, and each
+        unrolled genome is passed to the 'evaluate' method in parallel.
+
         Args:
-            population: Population with batched genes
-            
+            population: A population instance containing batched genes.
+
         Returns:
-            Population with updated fitness values of shape (pop_size,)
+            A new population instance with updated 'fitness' values.
         """
-        # vmap over the batched genome structure
-        # JAX automatically handles the PyTree structure of population.genes
-        # mapping over axis 0 to extract individual genomes
+        # We vmap over the genes. In our architecture, population.genes
+        # is a 'lifted' Genome where leaf arrays have a leading dim of pop_size.
         fitness_scores = jax.vmap(self.evaluate)(population.genes)
-        return population.replace(fitness=fitness_scores)
+
+        # Cast population to Any to access .replace, then back to BasePopulation[G]
+        return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
 
 
-# Type alias for regression data
-RegressionData = Tuple[chex.Array, chex.Array]  # (X, y)
+# Type-safe alias for regression data (Features, Targets)
+RegressionData = Tuple[chex.Array, chex.Array]
