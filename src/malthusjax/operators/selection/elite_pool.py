@@ -3,7 +3,7 @@ Selection Operators.
 Refactored for the 'Consumer Paradigm': Pure index generation.
 """
 
-from typing import Any, Optional, TypeVar
+from typing import Any, Optional
 
 import chex
 import jax
@@ -11,9 +11,7 @@ import jax.lax
 import jax.random
 from flax import struct
 
-from malthusjax.operators.base import BaseSelection, P, C
-
-C = TypeVar("C")  # Config Type
+from malthusjax.operators.base import BaseSelection, C, P
 
 _field: Any = struct.field
 
@@ -30,10 +28,10 @@ class ElitePoolSelection(BaseSelection[P, C]):
         return 1
 
     def _select(
-        self, 
-        keys: chex.Array, 
-        fitness: chex.Array, 
-        config: Optional[C] = None, 
+        self,
+        keys: chex.Array,
+        fitness: chex.Array,
+        config: Optional[C] = None,
         **kwargs: Any
     ) -> chex.Array:
         """

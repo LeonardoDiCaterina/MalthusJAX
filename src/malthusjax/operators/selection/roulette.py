@@ -1,10 +1,11 @@
-from typing import Any, Optional, cast
+from typing import Any, Optional
+
 import chex
 import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.operators.base import BaseSelection, P, C
+from malthusjax.operators.base import BaseSelection, C, P
 
 # Internal alias to bypass mypy --strict errors on Flax fields
 _field: Any = struct.field
@@ -13,13 +14,12 @@ _field: Any = struct.field
 class RouletteSelection(BaseSelection[P, C]):
     """
     Selection operator that samples parents proportional to their fitness.
-    
     Patterns:
     - Gumbel-Max: Fast O(1) parallel path for smaller populations.
     - Categorical: Memory-efficient O(N) path for large-scale evolution.
     """
     temperature: float = _field(pytree_node=False, default=1.0)
-    
+
     # NEW: Toggle for memory safety on high populations
     use_gumbel_trick: bool = _field(pytree_node=False, default=True)
 
@@ -28,10 +28,10 @@ class RouletteSelection(BaseSelection[P, C]):
         return 1
 
     def _select(
-        self, 
-        keys: chex.Array, 
-        fitness: chex.Array, 
-        config: Optional[C] = None, 
+        self,
+        keys: chex.Array,
+        fitness: chex.Array,
+        config: Optional[C] = None,
         **kwargs: Any
     ) -> chex.Array:
         """
@@ -45,7 +45,7 @@ class RouletteSelection(BaseSelection[P, C]):
         # 1. Compute Logits with Numerical Stability
         # We use a standard shift to avoid overflow
         logits = fitness / self.temperature
-        
+
         # 2. Logic Branching
         # Gumbel-Max is faster but uses O(num_selections * pop_size) memory
         if self.use_gumbel_trick and self.num_selections == pop_size:
