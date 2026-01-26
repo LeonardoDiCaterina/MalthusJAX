@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any, ClassVar, Type, cast
 
 import chex
@@ -8,30 +9,35 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation, DistanceMetric
 
+
 @struct.dataclass
 class CategoricalGenomeConfig:
     """
     Configuration for categorical genomes.
-    
+
     Attributes:
         length: Number of positions in the sequence.
         num_categories: Number of possible discrete values at each position.
         dtype: Data type for the categories, typically jnp.int32.
     """
+
     length: int
     num_categories: int
     dtype: jnp.dtype[Any] = struct.field(
-        pytree_node=False, default=jnp.int32 # type: ignore[no-untyped-call]
+        pytree_node=False,
+        default=jnp.int32,  # type: ignore[no-untyped-call]
     )
+
 
 @struct.dataclass
 class CategoricalGenome(BaseGenome):
     """
     Categorical genome for discrete choice optimization.
-    
-    Represents solutions as sequences of discrete labels (integers), 
+
+    Represents solutions as sequences of discrete labels (integers),
     ideal for problems like TSP, job scheduling, or resource allocation.
     """
+
     categories: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
 
     @classmethod
@@ -50,12 +56,12 @@ class CategoricalGenome(BaseGenome):
     def distance(self, other: BaseGenome, metric: str = DistanceMetric.HAMMING) -> chex.Numeric:
         """
         Compute distance between categorical genomes.
-        
-        Note: Hamming distance is the standard for categorical data as it 
+
+        Note: Hamming distance is the standard for categorical data as it
         represents the number of mismatched positions.
         """
         other_cat = cast(CategoricalGenome, other)
-        
+
         if metric == DistanceMetric.HAMMING:
             return jnp.sum(self.categories != other_cat.categories)
         elif metric == DistanceMetric.EUCLIDEAN:
@@ -110,12 +116,14 @@ class CategoricalGenome(BaseGenome):
         except Exception:
             return f"<CategoricalGenome(traced, len={self.size})>"
 
+
 @struct.dataclass
 class CategoricalPopulation(BasePopulation[CategoricalGenome]):
     """Population container for CategoricalGenome objects."""
+
     genes: CategoricalGenome
     fitness: chex.Array
-    config: CategoricalGenomeConfig = struct.field(pytree_node=False) # type: ignore[no-untyped-call]
+    config: CategoricalGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
     GENOME_CLS: ClassVar[Type[CategoricalGenome]] = CategoricalGenome
 

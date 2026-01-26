@@ -30,14 +30,23 @@ from .real_evaluators import (
 
 __all__ = [
     # Base classes
-    "BaseEvaluator", "RegressionData",
+    "BaseEvaluator",
+    "RegressionData",
     # NEW evaluators
-    "LinearGPEvaluator", "LinearGPEvaluatorConfig", "TENSORGP_FUNCTIONS", "TENSORGP_NAMES",
+    "LinearGPEvaluator",
+    "LinearGPEvaluatorConfig",
+    "TENSORGP_FUNCTIONS",
+    "TENSORGP_NAMES",
     # Binary evaluators
-    "BinarySumEvaluator", "BinarySumConfig",
-    "KnapsackEvaluator", "KnapsackConfig",
+    "BinarySumEvaluator",
+    "BinarySumConfig",
+    "KnapsackEvaluator",
+    "KnapsackConfig",
     # Real evaluators
-    "SphereEvaluator", "SphereConfig",
-    "GriewankEvaluator", "GriewankConfig",
-    "BoxEvaluator", "BoxConfig",
+    "SphereEvaluator",
+    "SphereConfig",
+    "GriewankEvaluator",
+    "GriewankConfig",
+    "BoxEvaluator",
+    "BoxConfig",
 ]

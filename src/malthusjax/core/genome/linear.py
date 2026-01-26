@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any, ClassVar, List, Optional, Type, cast
 
 import chex
@@ -9,17 +10,19 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation, DistanceMetric
 
+
 @struct.dataclass
 class LinearGenomeConfig:
     """
     Configuration for Linear Genetic Programming (LGP) genomes.
-    
+
     Attributes:
         length (L): Total number of instructions in the program.
         num_inputs (N): Number of external input features available to the program.
         num_ops: Number of distinct operations (opcodes) available in the library.
         max_arity: Maximum number of arguments any single operation can take.
     """
+
     length: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
     num_inputs: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
     num_ops: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
@@ -30,12 +33,13 @@ class LinearGenomeConfig:
 class LinearGenome(BaseGenome):
     """
     Linear Genetic Programming (LGP) genome representation.
-    
-    Represents a program as a sequence of instructions. It maintains a 
-    topological DAG structure: any instruction i can only reference external 
+
+    Represents a program as a sequence of instructions. It maintains a
+    topological DAG structure: any instruction i can only reference external
     inputs (0 to N-1) or the results of previous instructions (N to N+i-1).
     """
-    ops: chex.Array   # Shape (L,) - Integer operation codes
+
+    ops: chex.Array  # Shape (L,) - Integer operation codes
     args: chex.Array  # Shape (L, max_arity) - Integer argument indices
 
     @classmethod
@@ -75,16 +79,18 @@ class LinearGenome(BaseGenome):
         Sums mismatches in both operation codes and argument indices.
         """
         other_lin = cast(LinearGenome, other)
-        
+
         d_ops = jnp.sum(self.ops != other_lin.ops)
         d_args = jnp.sum(self.args != other_lin.args)
-        
+
         if metric == DistanceMetric.HAMMING:
             return d_ops + d_args
         elif metric == DistanceMetric.EUCLIDEAN:
             # Treating indices as spatial coordinates (less common for LGP)
-            return jnp.sqrt(jnp.sum(jnp.square(self.ops - other_lin.ops)) + 
-                            jnp.sum(jnp.square(self.args - other_lin.args)))
+            return jnp.sqrt(
+                jnp.sum(jnp.square(self.ops - other_lin.ops))
+                + jnp.sum(jnp.square(self.args - other_lin.args))
+            )
         else:
             raise ValueError(f"Unsupported metric: {metric}")
 
@@ -129,9 +135,10 @@ class LinearGenome(BaseGenome):
 @struct.dataclass
 class LinearPopulation(BasePopulation[LinearGenome]):
     """Population container for batch-optimized LinearGenomes."""
+
     genes: LinearGenome
     fitness: chex.Array
-    config: LinearGenomeConfig = struct.field(pytree_node=False) # type: ignore[no-untyped-call]
+    config: LinearGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
     GENOME_CLS: ClassVar[Type[LinearGenome]] = LinearGenome
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any
 
 import chex
@@ -8,12 +9,14 @@ import jax.random as jr
 from flax import struct
 
 from malthusjax.core.genome.binary_genome import BinaryGenome
+
 from .base import BaseEvaluator, BaseEvaluatorConfig
 
 
 @struct.dataclass
 class BinarySumConfig(BaseEvaluatorConfig):
     """Configuration for BinarySum (OneMax) fitness evaluator."""
+
     pass
 
 
@@ -34,9 +37,10 @@ class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
 @struct.dataclass
 class KnapsackConfig(BaseEvaluatorConfig):
     """Configuration for 0/1 Knapsack problem fitness evaluator."""
-    weights: chex.Array   # Item weights, shape (n_items,)
-    values: chex.Array    # Item values, shape (n_items,)
-    capacity: chex.Numeric # Maximum weight capacity
+
+    weights: chex.Array  # Item weights, shape (n_items,)
+    values: chex.Array  # Item values, shape (n_items,)
+    capacity: chex.Numeric  # Maximum weight capacity
     penalty_factor: float = 1000.0  # Penalty for exceeding capacity
 
 
@@ -88,9 +92,4 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
         total_weight = jnp.sum(weights)
         capacity = capacity_ratio * total_weight
 
-        return KnapsackConfig(
-            maximize=maximize,
-            weights=weights,
-            values=values,
-            capacity=capacity
-        )
+        return KnapsackConfig(maximize=maximize, weights=weights, values=values, capacity=capacity)

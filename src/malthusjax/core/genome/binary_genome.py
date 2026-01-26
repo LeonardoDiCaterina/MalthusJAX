@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any, ClassVar, Type, cast
 
 import chex
@@ -8,33 +9,38 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
 
+
 @struct.dataclass
 class BinaryGenomeConfig:
     """
     Configuration for combinatorial binary optimization.
-    
+
     Attributes:
         length: Total number of bits (dimensions) in the genome.
         p: Probability of a bit being 1 during random initialization.
         dtype: Numerical type for bits, usually jnp.int32 or jnp.int8.
     """
+
     length: int
     p: float = 0.5
     dtype: jnp.dtype[Any] = struct.field(
-        pytree_node=False, default=jnp.int32 # type: ignore[no-untyped-call]
+        pytree_node=False,
+        default=jnp.int32,  # type: ignore[no-untyped-call]
     )
+
 
 @struct.dataclass
 class BinaryGenome(BaseGenome):
     """
     A discrete, binary bit-string genome representation.
-    
-    Represents candidate solutions as sequences of 0s and 1s. This is the 
-    standard representation for combinatorial problems like the Knapsack 
+
+    Represents candidate solutions as sequences of 0s and 1s. This is the
+    standard representation for combinatorial problems like the Knapsack
     Problem, Feature Selection, and Boolean Satisfiability (SAT).
-    
+
     In a BinaryPopulation, the 'bits' array is promoted to shape (N, length).
     """
+
     bits: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
 
     @classmethod
@@ -47,7 +53,7 @@ class BinaryGenome(BaseGenome):
 
     def autocorrect(self, config: BinaryGenomeConfig) -> BinaryGenome:
         """
-        Ensures bits remain discrete (0 or 1). While binary operators 
+        Ensures bits remain discrete (0 or 1). While binary operators
         usually preserve this, this method provides a safety clip.
         """
         corrected_bits = jnp.clip(self.bits, 0, 1).astype(config.dtype)
@@ -56,13 +62,13 @@ class BinaryGenome(BaseGenome):
     def distance(self, other: BaseGenome, metric: str = "hamming") -> chex.Numeric:
         """
         Calculates distance between bit-strings.
-        
+
         Args:
             other: Another genome (cast to BinaryGenome internally).
             metric: Supports 'hamming' (count of different bits) and 'euclidean'.
         """
         other_bin = cast(BinaryGenome, other)
-        
+
         if metric == "hamming":
             # XOR equivalent logic for JAX arrays
             return jnp.sum(self.bits != other_bin.bits)
@@ -138,9 +144,10 @@ class BinaryPopulation(BasePopulation[BinaryGenome]):
     """
     A specialized container for a population of BinaryGenomes.
     """
+
     genes: BinaryGenome
     fitness: chex.Array
-    config: BinaryGenomeConfig = struct.field(pytree_node=False) # type: ignore[no-untyped-call]
+    config: BinaryGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
     GENOME_CLS: ClassVar[Type[BinaryGenome]] = BinaryGenome
 

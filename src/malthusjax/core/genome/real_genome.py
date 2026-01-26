@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any, ClassVar, Tuple, Type, cast
 
 import chex
@@ -7,24 +8,27 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
-
 from malthusjax.core.base import DistanceMetric as BaseDistances
+
 
 class RealDistanceMetric(BaseDistances):
     """Metrics specific to real-valued vectors."""
+
     # could add COSINE = "cosine" here later
     pass
+
 
 @struct.dataclass
 class RealGenomeConfig:
     """
     Static configuration defining the search space for real-valued genomes.
-    
+
     Attributes:
         length: The dimensionality of the real-valued vector.
         bounds: A tuple (min, max) defining the valid search range for all elements.
         dtype: The numerical precision (e.g., jnp.float32 or jnp.float64).
     """
+
     length: int
     bounds: Tuple[float, float] = struct.field(
         pytree_node=False, default=(-jnp.inf, jnp.inf)
@@ -33,18 +37,20 @@ class RealGenomeConfig:
         pytree_node=False, default=jnp.float32 # type: ignore[no-untyped-call]
     )
 
+
 @struct.dataclass
 class RealGenome(BaseGenome):
     """
     A continuous, real-valued genome representation.
-    
-    This genome is represented as a 1D vector of floating-point numbers. It is 
-    ideal for function optimization, neural network weight evolution, and 
+
+    This genome is represented as a 1D vector of floating-point numbers. It is
+    ideal for function optimization, neural network weight evolution, and
     parameter estimation where the search space is a manifold in R^n.
-    
-    When part of a RealPopulation, the 'values' array becomes 2D (N, length), 
+
+    When part of a RealPopulation, the 'values' array becomes 2D (N, length),
     where N is the population size.
     """
+
     values: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
 
     @classmethod
@@ -60,7 +66,7 @@ class RealGenome(BaseGenome):
 
     def autocorrect(self, config: RealGenomeConfig) -> RealGenome:
         """
-        Clamps the genome values to ensure they remain within the hypercube 
+        Clamps the genome values to ensure they remain within the hypercube
         defined by the configuration bounds.
         """
         min_val, max_val = config.bounds
@@ -70,14 +76,14 @@ class RealGenome(BaseGenome):
     def distance(self, other: BaseGenome, metric: str = "euclidean") -> chex.Numeric:
         """
         Computes the distance between this genome and another in continuous space.
-        
+
         Args:
             other: Another genome (cast to RealGenome internally).
-            metric: The distance type. Supports 'euclidean' (L2), 'manhattan' (L1), 
+            metric: The distance type. Supports 'euclidean' (L2), 'manhattan' (L1),
                    and a thresholded 'hamming' distance.
         """
         other_real = cast(RealGenome, other)
-        
+
         if metric == "euclidean":
             # Standard L2 Norm
             return jnp.sqrt(jnp.sum(jnp.square(self.values - other_real.values)))
@@ -85,7 +91,7 @@ class RealGenome(BaseGenome):
             # Standard L1 Norm
             return jnp.sum(jnp.abs(self.values - other_real.values))
         elif metric == "hamming":
-            # Approximated Hamming: treats values as different if they exceed 
+            # Approximated Hamming: treats values as different if they exceed
             # 1% of the observed value range.
             value_range = jnp.max(self.values) - jnp.min(self.values) + 1e-8
             threshold = 0.01 * value_range
@@ -109,7 +115,7 @@ class RealGenome(BaseGenome):
 
     def normalize(self) -> RealGenome:
         """
-        Scales the genome to unit length (norm=1). 
+        Scales the genome to unit length (norm=1).
         Utilizes jnp.where to prevent division by zero during JIT compilation.
         """
         norm = self.magnitude()
@@ -130,20 +136,19 @@ class RealGenome(BaseGenome):
 class RealPopulation(BasePopulation[RealGenome]):
     """
     A specialized container for a population of RealGenomes.
-    
-    This container ensures that all internal genes are correctly typed and 
+
+    This container ensures that all internal genes are correctly typed and
     that the population-wide config matches the RealGenome requirements.
     """
+
     genes: RealGenome
     fitness: chex.Array
-    config: RealGenomeConfig = struct.field(pytree_node=False) # type: ignore[no-untyped-call]
+    config: RealGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
     GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
 
     @classmethod
-    def init_random(
-        cls, key: chex.PRNGKey, config: RealGenomeConfig, size: int
-    ) -> RealPopulation:
+    def init_random(cls, key: chex.PRNGKey, config: RealGenomeConfig, size: int) -> RealPopulation:
         """
         Orchestrates the parallel creation of 'size' random real genomes.
         """

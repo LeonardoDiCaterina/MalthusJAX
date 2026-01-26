@@ -45,16 +45,23 @@ __all__ = [
     "crossover",
     "mutation",
     # Core Genomes
-    "BaseGenome", "BasePopulation",
-    "BinaryGenome", "BinaryGenomeConfig",
-    "RealGenome", "RealGenomeConfig",
-    "CategoricalGenome", "CategoricalGenomeConfig",
-    "LinearGenome", "LinearGenomeConfig",
+    "BaseGenome",
+    "BasePopulation",
+    "BinaryGenome",
+    "BinaryGenomeConfig",
+    "RealGenome",
+    "RealGenomeConfig",
+    "CategoricalGenome",
+    "CategoricalGenomeConfig",
+    "LinearGenome",
+    "LinearGenomeConfig",
     # Engines
-    "GeneticEngine", "GeneticEngineParams", "GeneticGenerationOutput",
+    "GeneticEngine",
+    "GeneticEngineParams",
+    "GeneticGenerationOutput",
 ]
 
 # --- 3. ENGINE (Top Level) ---
 from .engine.base import AbstractEngine, AbstractEngineParams, AbstractEvolutionState
 from .engine.genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
-#from .engine.diversity_engine import DiversityAwareEngine
+# from .engine.diversity_engine import DiversityAwareEngine

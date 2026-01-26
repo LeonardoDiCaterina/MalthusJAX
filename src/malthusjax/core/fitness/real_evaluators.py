@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any, Tuple
 
 import chex
@@ -14,6 +15,7 @@ from .base import BaseEvaluator, BaseEvaluatorConfig
 @struct.dataclass
 class SphereConfig(BaseEvaluatorConfig):
     """Configuration for Sphere function optimization."""
+
     pass
 
 
@@ -22,7 +24,7 @@ class SphereEvaluator(BaseEvaluator[RealGenome, SphereConfig, Any]):
     """Sphere function fitness evaluator."""
 
     config: SphereConfig
-    data: Any = struct.field(pytree_node=False, default=None) # type: ignore[no-untyped-call]
+    data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate a single real genome on Sphere function."""
@@ -33,6 +35,7 @@ class SphereEvaluator(BaseEvaluator[RealGenome, SphereConfig, Any]):
 @struct.dataclass
 class GriewankConfig(BaseEvaluatorConfig):
     """Configuration for Griewank function optimization."""
+
     pass
 
 
@@ -41,7 +44,7 @@ class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
     """Griewank function fitness evaluator."""
 
     config: GriewankConfig
-    data: Any = struct.field(pytree_node=False, default=None) # type: ignore[no-untyped-call]
+    data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate a single real genome on Griewank function."""
@@ -57,12 +60,11 @@ class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
 @struct.dataclass
 class BoxConfig(BaseEvaluatorConfig):
     """Configuration for Box-constrained optimization."""
+
     target_point: chex.Array
     box_bounds: Tuple[chex.Array, chex.Array]
     penalty_factor: float = 1000.0
-    objective_type: str = struct.field(
-        pytree_node=False, default="distance"
-    ) # type: ignore[no-untyped-call]
+    objective_type: str = struct.field(pytree_node=False, default="distance")  # type: ignore[no-untyped-call]
 
 
 @struct.dataclass
@@ -70,7 +72,7 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
     """Box-constrained optimization fitness evaluator."""
 
     config: BoxConfig
-    data: Any = struct.field(pytree_node=False, default=None) # type: ignore[no-untyped-call]
+    data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate a single real genome on box-constrained problem."""
@@ -94,11 +96,12 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
         return -objective - penalty
 
     @staticmethod
-    def create_random_problem(key: chex.PRNGKey, dimensions: int,
-                            box_size: float = 10.0, maximize: bool = False) -> BoxConfig:
+    def create_random_problem(
+        key: chex.PRNGKey, dimensions: int, box_size: float = 10.0, maximize: bool = False
+    ) -> BoxConfig:
         """Create a random box-constrained optimization problem."""
         key1, key2 = jr.split(key, 2)
-        target = jr.uniform(key1, (dimensions,), minval=-box_size/2, maxval=box_size/2)
+        target = jr.uniform(key1, (dimensions,), minval=-box_size / 2, maxval=box_size / 2)
 
         margin = box_size / 4
         lower = target - margin
@@ -108,5 +111,5 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
             target_point=target,
             box_bounds=(lower, upper),
             objective_type="distance",
-            maximize=maximize
+            maximize=maximize,
         )
