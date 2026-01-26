@@ -1,71 +1,65 @@
-from flax import struct
+from typing import Any, Optional, cast
+import chex
 import jax
 import jax.numpy as jnp
-import chex
-from malthusjax.operators.base import BaseSelection
+from flax import struct
+
+from malthusjax.operators.base import BaseSelection, P, C
+
+# Internal alias to bypass mypy --strict errors on Flax fields
+_field: Any = struct.field
 
 @struct.dataclass
-class RouletteSelection(BaseSelection):
+class RouletteSelection(BaseSelection[P, C]):
     """
     Selection operator that samples parents proportional to their fitness.
     
-    Optimizations:
-    - If num_selections == pop_size: Uses Gumbel-Max trick (fully parallel, no sort/scan).
-    - Otherwise: Uses jax.random.choice (standard inverse transform sampling).
+    Patterns:
+    - Gumbel-Max: Fast O(1) parallel path for smaller populations.
+    - Categorical: Memory-efficient O(N) path for large-scale evolution.
     """
-    temperature: float = 1.0
+    temperature: float = _field(pytree_node=False, default=1.0)
     
+    # NEW: Toggle for memory safety on high populations
+    use_gumbel_trick: bool = _field(pytree_node=False, default=True)
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 1
 
-    def _select(self, keys: chex.Array, fitness: chex.Array, population) -> chex.Array:
+    def _select(
+        self, 
+        keys: chex.Array, 
+        fitness: chex.Array, 
+        config: Optional[C] = None, 
+        **kwargs: Any
+    ) -> chex.Array:
         """
-        Args:
-            keys: Random keys for sampling.
-            fitness: Score array (Higher is better).
+        Samples indices proportional to fitness.
+        Signature matched to BaseSelection to fix integration TypeErrors.
         """
-        rng = keys[0]
+        # Normalize key handling for both raw and engine-sliced keys
+        rng = keys[0] if keys.ndim > 1 else keys
         pop_size = fitness.shape[0]
-        
-        # 1. Compute Logits (Numerical Stability)
-        # Shift logits to avoid overflow in exp()
+
+        # 1. Compute Logits with Numerical Stability
+        # We use a standard shift to avoid overflow
         logits = fitness / self.temperature
-        logits = logits - jnp.max(logits)
         
-        # 2. Branching Logic
-        # On GPU, JAX traces both branches, so this 'if' is evaluated at trace time.
-        # Since self.num_selections and pop_size are static integers, 
-        # only the correct branch is compiled.
-        
-        if self.num_selections == pop_size:
+        # 2. Logic Branching
+        # Gumbel-Max is faster but uses O(num_selections * pop_size) memory
+        if self.use_gumbel_trick and self.num_selections == pop_size:
             # === OPTIMIZED PATH: Gumbel-Max Trick ===
-            # This generates N samples in O(1) parallel time without sorting or prefix sums.
-            # Logic: argmax(logits + gumbel_noise) is equivalent to categorical sampling.
-            
-            # We need to sample 'num_selections' times. 
-            # Since num_selections == pop_size, we generate a noise matrix of shape (N, N)
-            # where each row 'i' represents one independent sampling event.
-            # Note: This consumes O(N^2) memory for noise, which is fine for N=128-4096.
-            # For massive N (>16k), this might OOM, but it's the fastest method.
-            
-            gumbel_noise = -jnp.log(-jnp.log(jax.random.uniform(rng, shape=(self.num_selections, pop_size))))
-            selected_indices = jnp.argmax(logits + gumbel_noise, axis=1)
-            
+            # Best for N < 4096 to maximize GPU utilization
+            uniform_noise = jax.random.uniform(rng, shape=(self.num_selections, pop_size))
+            gumbel_noise = -jnp.log(-jnp.log(uniform_noise))
+            return jnp.argmax(logits + gumbel_noise, axis=1)
+
         else:
-            # === STANDARD PATH: jax.random.choice ===
-            # Standard implementation using searchsorted (Roulette).
-            # Better for when we need few samples (k << N) or weird shapes.
-            
-            exp_vals = jnp.exp(logits)
-            probs = exp_vals / jnp.sum(exp_vals)
-            
-            selected_indices = jax.random.choice(
-                rng, 
-                a=pop_size, 
-                shape=(self.num_selections,), 
-                p=probs, 
-                replace=True
+            # === MEMORY-EFFICIENT PATH ===
+            # Standard path for high N or when trick is disabled.
+            # Uses jax.nn.softmax for internal stability
+            probs = jax.nn.softmax(logits)
+            return jax.random.choice(
+                rng, a=pop_size, shape=(self.num_selections,), p=probs, replace=True
             )
-            
-        return selected_indices

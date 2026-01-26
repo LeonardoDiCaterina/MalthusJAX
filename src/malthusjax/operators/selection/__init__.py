@@ -1,14 +1,15 @@
 """
 Selection Operators Module.
 """
-from .tournament import TournamentSelection
-from .roulette import RouletteSelection
-from .truncation import Truncation
+
 from .elite_pool import ElitePoolSelection
+from .roulette import RouletteSelection
+from .tournament import TournamentSelection
+from .truncation import Truncation
 
 __all__ = [
-	"TournamentSelection",
-	"RouletteSelection",
-	"Truncation",
-	"ElitePoolSelection",
+    "TournamentSelection",
+    "RouletteSelection",
+    "Truncation",
+    "ElitePoolSelection",
 ]
