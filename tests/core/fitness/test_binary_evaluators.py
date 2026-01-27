@@ -40,9 +40,9 @@ def test_knapsack_penalty_logic(binary_genome_config):
     evaluator = KnapsackEvaluator(config=config, data=None)
 
     # Under capacity: [1, 0, 0] -> weight 10, value 5
-    safe_genome = BinaryGenome(bits=jnp.array([1, 0, 0]))
+    safe_genome = BinaryGenome(values=jnp.array([1, 0, 0]))
     # Over capacity: [1, 1, 1] -> weight 30, value 15, penalty (30-15)*100 = 1500
-    heavy_genome = BinaryGenome(bits=jnp.array([1, 1, 1]))
+    heavy_genome = BinaryGenome(values=jnp.array([1, 1, 1]))
 
     safe_fit = evaluator.evaluate(safe_genome)
     heavy_fit = evaluator.evaluate(heavy_genome)
@@ -82,7 +82,7 @@ def test_knapsack_infeasible_penalty(knapsack_evaluator):
     # Setup a genome that takes EVERYTHING (30+10+20 weight > 15 capacity)
     # Using the n_items=10 from the fixture
     bits = jnp.ones(10)
-    genome = BinaryGenome(bits=bits)
+    genome = BinaryGenome(values=bits)
 
     # Calculate fitness
     fitness = knapsack_evaluator.evaluate(genome)

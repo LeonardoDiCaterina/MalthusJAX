@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import pytest
 
 from malthusjax.core.fitness.linear_gp_evaluator import LinearGPEvaluator, LinearGPEvaluatorConfig
-from malthusjax.core.genome.linear import LinearGenome
+from malthusjax.core.genome.linear_genome import LinearGenome
 
 
 def test_linear_gp_execution_logic(linear_genome_config):
