@@ -30,7 +30,7 @@ from .core.genome.categorical_genome import (
     CategoricalGenomeConfig,
     CategoricalPopulation,
 )
-from .core.genome.linear import LinearGenome, LinearGenomeConfig, LinearPopulation
+from .core.genome.linear_genome import LinearGenome, LinearGenomeConfig, LinearPopulation
 from .core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 
 # --- 2. OPERATORS ---

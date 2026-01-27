@@ -10,9 +10,9 @@ def test_binary_genome_init(rng_key, binary_genome_config):
     """Verifies single binary genome initialization and bit constraints."""
     genome = BinaryGenome.random_init(rng_key, binary_genome_config)
     assert isinstance(genome, BinaryGenome)
-    assert genome.bits.shape == (binary_genome_config.length,)
+    assert genome.values.shape == binary_genome_config.shape
     # Verify values are only 0 or 1
-    assert jnp.all((genome.bits == 0) | (genome.bits == 1))
+    assert jnp.all((genome.values == 0) | (genome.values == 1))
 
 
 def test_binary_population_soa(binary_population, binary_genome_config):
@@ -20,7 +20,7 @@ def test_binary_population_soa(binary_population, binary_genome_config):
     # Ensure binary_population is actually a BinaryPopulation
     assert isinstance(binary_population, BinaryPopulation)
     # Batch dimension should match the fixture (size 10, length 10)
-    assert binary_population.genes.bits.shape == (10, binary_genome_config.length)
+    assert binary_population.genes.values.shape == (10,) + binary_genome_config.shape
     assert binary_population.fitness.shape == (10,)
 
 
@@ -41,14 +41,13 @@ def test_binary_to_int_jit(binary_population):
 def test_binary_flip_bit(binary_population):
     """Tests the functional bit-flipping logic."""
     genome = binary_population[0]
-    original_bit = genome.bits[0]
-
+    original_bit = genome.values[0]
     # Flip the first bit
     flipped_genome = genome.flip_bit(0)
-    assert flipped_genome.bits[0] == 1 - original_bit
+    assert flipped_genome.values[0] == 1 - original_bit
 
     # Verify immutability (original shouldn't change)
-    assert genome.bits[0] == original_bit
+    assert genome.values[0] == original_bit
 
 
 def test_binary_distance_metrics(binary_population):
@@ -62,19 +61,19 @@ def test_binary_distance_metrics(binary_population):
     assert hamming_dist >= 0
     assert euclidean_dist >= 0
     # In binary space, Hamming is often larger than or equal to L2 squared
-    assert float(hamming_dist) == pytest.approx(float(jnp.sum(jnp.square(g1.bits - g2.bits))))
+    assert float(hamming_dist) == pytest.approx(float(jnp.sum(jnp.square(g1.values - g2.values))))
 
 
 def test_binary_autocorrect_clipping(binary_population, binary_genome_config):
     """Verifies that non-binary values are corrected to [0, 1]."""
-    # Create manually broken bits with float values that should be clipped
-    broken_bits = jnp.array([[2, -1, 0.5, 1, 0]] * 10)
+    # Create manually broken values with float values that should be clipped
+    broken_values = jnp.array([[2, -1, 0.5, 1, 0]] * 10)
 
     # Update a temp config to match the broken shape (length 5)
-    temp_config = BinaryGenomeConfig(length=5)
+    temp_config = BinaryGenomeConfig(shape=(5,), p=binary_genome_config.p)
 
-    # Reconstruct population with broken bits
-    broken_pop = binary_population.replace(genes=BinaryGenome(bits=broken_bits))
+    # Reconstruct population with broken values
+    broken_pop = binary_population.replace(genes=BinaryGenome(values=broken_values))
 
     corrected_pop = broken_pop.autocorrect(temp_config)
-    assert jnp.all((corrected_pop.genes.bits == 0) | (corrected_pop.genes.bits == 1))
+    assert jnp.all((corrected_pop.genes.values == 0) | (corrected_pop.genes.values == 1))

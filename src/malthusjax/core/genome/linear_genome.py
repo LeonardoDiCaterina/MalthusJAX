@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, List, Optional, Type, cast
+from typing import Any, ClassVar, List, Optional, Tuple, Type, cast
 
 import chex
 import jax
@@ -41,6 +41,11 @@ class LinearGenome(BaseGenome):
 
     ops: chex.Array  # Shape (L,) - Integer operation codes
     args: chex.Array  # Shape (L, max_arity) - Integer argument indices
+
+    @property
+    def values(self) -> Tuple[chex.Array, chex.Array]:
+        """Alias for compatibility with BaseGenome interface."""
+        return (self.ops, self.args)
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: LinearGenomeConfig) -> LinearGenome:

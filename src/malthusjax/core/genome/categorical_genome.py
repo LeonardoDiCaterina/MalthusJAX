@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Type, cast
+from typing import Any, ClassVar, Tuple, Type, cast
 
 import chex
 import jax
@@ -21,8 +21,10 @@ class CategoricalGenomeConfig:
         dtype: Data type for the categories, typically jnp.int32.
     """
 
-    length: int
     num_categories: int
+    shape: Tuple[int, ...] = struct.field(
+        pytree_node=False, default_factory=lambda: ()
+    )  # type: ignore[no-untyped-call]
     dtype: jnp.dtype[Any] = struct.field(
         pytree_node=False,
         default=jnp.int32,  # type: ignore[no-untyped-call]
@@ -38,20 +40,20 @@ class CategoricalGenome(BaseGenome):
     ideal for problems like TSP, job scheduling, or resource allocation.
     """
 
-    categories: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
+    values: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: CategoricalGenomeConfig) -> CategoricalGenome:
         """Create random categorical genome using discrete uniform sampling."""
-        categories = jax.random.randint(
-            key, (config.length,), 0, config.num_categories
+        values = jax.random.randint(
+            key, config.shape, 0, config.num_categories
         ).astype(config.dtype)
-        return cls(categories=categories)
+        return cls(values=values)
 
     def autocorrect(self, config: CategoricalGenomeConfig) -> CategoricalGenome:
         """Ensure all categories are within [0, num_categories-1]."""
-        corrected_categories = jnp.clip(self.categories, 0, config.num_categories - 1)
-        return cast(CategoricalGenome, cast(Any, self).replace(categories=corrected_categories))
+        corrected_values = jnp.clip(self.values, 0, config.num_categories - 1)
+        return cast(CategoricalGenome, cast(Any, self).replace(values=corrected_values))
 
     def distance(self, other: BaseGenome, metric: str = DistanceMetric.HAMMING) -> chex.Numeric:
         """
@@ -63,27 +65,27 @@ class CategoricalGenome(BaseGenome):
         other_cat = cast(CategoricalGenome, other)
 
         if metric == DistanceMetric.HAMMING:
-            return jnp.sum(self.categories != other_cat.categories)
+            return jnp.sum(self.values != other_cat.values)
         elif metric == DistanceMetric.EUCLIDEAN:
-            return jnp.sqrt(jnp.sum(jnp.square(self.categories - other_cat.categories)))
+            return jnp.sqrt(jnp.sum(jnp.square(self.values - other_cat.values)))
         elif metric == DistanceMetric.MANHATTAN:
-            return jnp.sum(jnp.abs(self.categories - other_cat.categories))
+            return jnp.sum(jnp.abs(self.values - other_cat.values))
         else:
             raise ValueError(f"Unsupported metric: {metric}")
 
     @property
     def size(self) -> int:
         """Return number of categorical positions."""
-        return int(self.categories.shape[-1])
+        return int(self.values.shape[-1])
 
     @property
     def shape(self) -> tuple[int, ...]:
         """Return shape of the genome array."""
-        return cast(tuple[int, ...], self.categories.shape)
+        return cast(tuple[int, ...], self.values.shape)
 
     def is_permutation(self) -> chex.Numeric:
         """Check if this genome represents a valid permutation (all unique values)."""
-        unique_vals = jnp.unique(self.categories, size=self.size, fill_value=-1)
+        unique_vals = jnp.unique(self.values, size=self.size, fill_value=-1)
         # Check if number of unique values matches the length
         # Note: We keep this as a JAX boolean/scalar for JIT compatibility
         return jnp.all(unique_vals != -1)
@@ -91,27 +93,26 @@ class CategoricalGenome(BaseGenome):
     def to_permutation(self, config: CategoricalGenomeConfig) -> CategoricalGenome:
         """Convert to a valid permutation via argsort."""
         # This is a standard JAX trick to generate a permutation from any vector
-        permutation = jnp.argsort(self.categories).astype(config.dtype)
-        return cast(CategoricalGenome, cast(Any, self).replace(categories=permutation))
-
+        permutation = jnp.argsort(self.values).astype(config.dtype)
+        return cast(CategoricalGenome, cast(Any, self).replace(values=permutation))
     def swap_positions(self, pos1: int, pos2: int) -> CategoricalGenome:
         """Swap categories at two positions using JAX .at index updates."""
-        val1 = self.categories[pos1]
-        val2 = self.categories[pos2]
-        new_categories = self.categories.at[pos1].set(val2)
-        new_categories = new_categories.at[pos2].set(val1)
-        return cast(CategoricalGenome, cast(Any, self).replace(categories=new_categories))
+        val1 = self.values[pos1]
+        val2 = self.values[pos2]
+        new_values = self.values.at[pos1].set(val2)
+        new_values = new_values.at[pos2].set(val1)
+        return cast(CategoricalGenome, cast(Any, self).replace(values=new_values))
 
     def count_category(self, category: int) -> chex.Numeric:
         """Count occurrences of a specific category."""
-        return jnp.sum(self.categories == category)
+        return jnp.sum(self.values == category)
 
     def __repr__(self) -> str:
         try:
-            sample = self.categories[:8]
+            sample = self.values[:8]
             cats_str = ", ".join(str(int(c)) for c in sample)
             if self.size > 8:
-                cats_str += f", ..., {int(self.categories[-1])}"
+                cats_str += f", ..., {int(self.values[-1])}"
             return f"<CategoricalGenome([{cats_str}], len={self.size})>"
         except Exception:
             return f"<CategoricalGenome(traced, len={self.size})>"
