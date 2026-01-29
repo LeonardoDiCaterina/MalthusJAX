@@ -5,14 +5,11 @@ Crossover operators generate offspring from parent pairs using the new batch-fir
 All crossover operators inherit from BaseCrossover and return (num_offspring, genome_shape).
 """
 
-from .binary import UniformCrossover, SinglePointCrossover
-from .real import BlendCrossover, SimulatedBinaryCrossover, BinomialCrossover
-from .linear import LinearCrossover
+from .binary import SinglePointCrossover, UniformCrossover
+from .real import BinomialCrossover, BlendCrossover, SimulatedBinaryCrossover
 
 __all__ = [
-    "UniformCrossover", 
+    "UniformCrossover",
     "SinglePointCrossover",
     "BlendCrossover",
-    "SimulatedBinaryCrossover",
-    "LinearCrossover",
-]
+    "SimulatedBinaryCrossover",]
