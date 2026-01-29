@@ -1,259 +1,119 @@
-from typing import Generic, Tuple, TypeVar, Any
-import jax
-import jax.numpy as jnp
-import chex
-from flax import struct
-from ..core.base import BasePopulation
+from typing import Any, Generic, Optional, Protocol, Tuple, TypeVar, cast, runtime_checkable
 
-G = TypeVar("G")  # Genome Type
-C = TypeVar("C")  # Config Type
-P = TypeVar("P")  # Population Type
+import chex
+import jax
+from flax import struct
+
+# 1. Strict TypeVars
+G = TypeVar("G")  # Genome Data
+C = TypeVar("C")  # Config Data
+P = TypeVar("P", bound="PopulationProtocol[Any]")
+
+@runtime_checkable
+class PopulationProtocol(Protocol[G]):
+    genes: G
+    fitness: chex.Array
+    def spawn_offspring(self, new_genes: G) -> "PopulationProtocol[G]": ...
+    def replace(self, **kwargs: Any) -> "PopulationProtocol[G]": ...
+    def __len__(self) -> int: ...
+
+_field: Any = struct.field
+
 # ==========================================
-# 1. MUTATION (Reshape-Based Vmap)
+# 1. MUTATION
 # ==========================================
 @struct.dataclass
 class BaseMutation(Generic[G, C, P]):
-    num_offspring: int = struct.field(pytree_node=False, default=1)
-    input_length: int = struct.field(pytree_node=False, default=-1)
-    
-    
+    num_offspring: int = _field(pytree_node=False, default=1)
+    input_length: int = _field(pytree_node=False, default=-1)
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """
-        CONTRACT: How many keys are needed to mutate ONE genome into ONE offspring?
-        Must be overridden by subclasses if > 0.
-        """
         raise NotImplementedError
 
     def num_keys(self, input_shape: Tuple[int, ...]) -> int:
-        """
-        CONTRACT: Calculates total keys needed for the batch.
-        Used by the Resource Allocator.
-        """
-        # input_shape[0] is the population size.
-        # NOTE: We use the local variable directly. In Flax, we cannot write 
-        # self.input_length = input_shape[0] because the instance is frozen.
-        pop_size = input_shape[0]
-        
-        return pop_size * self.num_offspring * self.num_keys_per_atomic_operation
+        return input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation
 
-    def set_input_length(self, length: int) -> "BaseMutation":
-        """
-        Returns a NEW instance with the updated input_length.
-        Flax structs are immutable, so we use .replace().
-        """
-        return self.replace(input_length=length)
+    def set_input_length(self, length: int) -> "BaseMutation[G, C, P]":
+        return cast("BaseMutation[G, C, P]", cast(Any, self).replace(input_length=length))
 
-    # --- Atomic Logic (The "Kernel") ---
-    def _mutate_one(self, key: chex.Array, genome: G, config: C) -> G:
-        """
-        Logic to produce ONE offspring from ONE parent using ONE key block.
-        key shape: (num_keys_per_atomic_operation, 2)
-        """
+    def _mutate_one(self, key: chex.PRNGKey, genome: G, config: C, **kwargs: Any) -> G:
         raise NotImplementedError
 
-    # --- 4. Execution (The Pipeline) ---
-    def __call__(self, all_keys: chex.Array, population: P, config: C) -> P:
-        # 1. Validation
-        leaves = jax.tree_util.tree_leaves(population)
-        if not leaves: raise ValueError("Empty Population")
-        pop_size = leaves[0].shape[0]
+    def __call__(self, all_keys: chex.Array, population: P, config: C, **kwargs: Any) -> P:
+        pop_size = jax.tree_util.tree_leaves(population.genes)[0].shape[0]
+        keys_reshaped = all_keys.reshape(pop_size, self.num_offspring, -1, 2)
 
-        # 2. Reshape Keys (Metadata operation - Free)
-        # Shape: (Pop, Offspring, KeysPerOp, 2)
-        keys_reshaped = all_keys.reshape(
-            pop_size, 
-            self.num_offspring, 
-            self.num_keys_per_atomic_operation, 
-            2
-        )
-        
-        # 3. Unwrap (Type P -> Type G)
-        # We extract the inner data to keep the kernel pure
-        genes: G = population.genes if hasattr(population, 'genes') else population
+        def _process_population(p_keys: chex.PRNGKey, p_genome: G) -> G:
+            def mutatate_fn(o_keys: chex.PRNGKey) -> G:
+                return self._mutate_one(o_keys, p_genome, config, **kwargs)
+            return jax.vmap(mutatate_fn)(p_keys)
 
-        # 4. Transform (Vectorized on GPU)
-        def _process_population(p_keys, p_genome):
-            # Inner vmap: Vectorize over Offspring
-            return jax.vmap(
-                lambda o_keys: self._mutate_one(o_keys, p_genome, config)
-            )(p_keys)
+        nested_genes = jax.vmap(_process_population)(keys_reshaped, population.genes)
+        new_genes = jax.tree_util.tree_map(lambda x: x.reshape((-1,) + x.shape[2:]), nested_genes)
+        return cast(P, population.spawn_offspring(new_genes))
 
-        # Outer vmap: Vectorize over Population
-        nested_genes = jax.vmap(_process_population)(keys_reshaped, genes)
-        
-        # 5. Flatten (Pop, Offspring, ...) -> (Pop * Offspring, ...)
-        new_genes: G = jax.tree_util.tree_map(
-            lambda x: x.reshape((-1,) + x.shape[2:]), 
-            nested_genes
-        )
-
-        # 6. Rewrap (Type G -> Type P)
-        # We reconstruct the Population wrapper.
-        # Note: This assumes P has a constructor that accepts 'genes'.
-        # Since 'replace' would keep old (wrong-sized) fitness fields, we usually
-        # prefer creating a fresh instance to ensure metadata is reset.
-        return population.spawn_offspring(new_genes)
-        
 # ==========================================
-# 2. CROSSOVER (Reshape-Based Vmap)
+# 2. CROSSOVER
 # ==========================================
 @struct.dataclass
 class BaseCrossover(Generic[G, C, P]):
-    """
-    BaseCrossover with strict Resource Management & Type Safety.
-    Operates on PAIRS of parents to produce batches of offspring.
-    """
-    num_offspring: int = struct.field(pytree_node=False, default=1)
-    input_length: int = struct.field(pytree_node=False, default=-1)
+    num_offspring: int = _field(pytree_node=False, default=2) # Renamed to match ResourceMapper
+    input_length: int = _field(pytree_node=False, default=-1)
 
-    # --- 1. Immutability Helper ---
-    def set_input_length(self, length: int) -> "BaseCrossover[G, C, P]":
-        """
-        Returns a NEW instance with the updated input_length (number of PAIRS).
-        """
-        return self.replace(input_length=length)
-
-    # --- 2. Resource Contract ---
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """
-        CONTRACT: How many keys are needed to cross TWO parents into ONE offspring?
-        Defaults to 1 (usually just for mask generation). Override if > 1.
-        """
-        return 1
-
-    def num_keys(self, input_shape: Tuple[int, ...] = None) -> int:
-        """
-        CONTRACT: Calculates total keys needed for the batch.
-        input_shape[0] should be the number of PAIRS.
-        """
-        if input_shape is not None:
-            num_pairs = input_shape[0]
-        elif self.input_length != -1:
-            num_pairs = self.input_length
-        else:
-            raise ValueError("Input length (num_pairs) unknown. Call set_input_length() or pass shape.")
-
-        return num_pairs * self.num_offspring * self.num_keys_per_atomic_operation
-
-    # --- 3. Atomic Logic (The "Kernel") ---
-    def _cross_one(self, key_block: chex.Array, p1: G, p2: G, config: C) -> G:
-        """
-        Logic to produce ONE offspring from TWO parents using ONE key block.
-        key_block shape: (num_keys_per_atomic_operation, 2)
-        """
         raise NotImplementedError
 
-    # --- 4. Execution (The Pipeline) ---
-    def __call__(self, all_keys: chex.Array, p1_batch: P, p2_batch: P, config: C) -> P:
-        """
-        Args:
-            all_keys: Flat key array.
-            p1_batch: First parent population (N pairs).
-            p2_batch: Second parent population (N pairs).
-        Returns:
-            New Population of size N * num_offspring.
-        """
-        # 1. Validation & Shape Inference
-        leaves = jax.tree_util.tree_leaves(p1_batch)
-        if not leaves: raise ValueError("Empty Parent 1 Batch")
-        num_pairs = leaves[0].shape[0]
-        
-        # 2. Reshape Keys (Metadata operation - Free)
-        # Shape: (NumPairs, Offspring, KeysPerOp, 2)
-        keys_reshaped = all_keys.reshape(
-            num_pairs, 
-            self.num_offspring, 
-            self.num_keys_per_atomic_operation, 
-            2
-        )
-        
-        # 3. Unwrap (Type P -> Type G)
-        # Extract genes to keep the kernel pure.
-        genes1: G = p1_batch.genes if hasattr(p1_batch, 'genes') else p1_batch
-        genes2: G = p2_batch.genes if hasattr(p2_batch, 'genes') else p2_batch
+    def num_keys(self, input_shape: Tuple[int, ...]) -> int:
+        num_pairs = input_shape[0]
+        return num_pairs * self.num_keys_per_atomic_operation
 
-        # 4. Transform (Vectorized on GPU)
-        def _process_pairs(k_block_pairs, parent1, parent2):
-            # Inner vmap: Vectorize over Offspring
-            # k_block_pairs shape: (Offspring, KeysPerOp, 2)
-            return jax.vmap(
-                lambda o_keys: self._cross_one(o_keys, parent1, parent2, config)
-            )(k_block_pairs)
+    def set_input_length(self, length: int) -> "BaseCrossover[G, C, P]":
+        return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(input_length=length))
 
-        # Outer vmap: Vectorize over Pairs
-        # Maps over (Keys, P1, P2) -> Returns (NumPairs, Offspring, GenomeShape)
-        nested_genes = jax.vmap(_process_pairs)(keys_reshaped, genes1, genes2)
-        
-        # 5. Flatten (NumPairs, Offspring, ...) -> (NumPairs * Offspring, ...)
-        new_genes: G = jax.tree_util.tree_map(
-            lambda x: x.reshape((-1,) + x.shape[2:]), 
-            nested_genes
-        )
+    def _cross_one(
+        self, key: chex.PRNGKey, p1: G, p2: G, config: C, **kwargs: Any
+        ) -> Tuple[G, ...]:
+        raise NotImplementedError
 
-        # 6. Rewrap (Type G -> Type P)
-        # We use p1_batch as the template for the new population to preserve config.
-        # This relies on p1_batch.spawn_offspring implementation.
-        return p1_batch.spawn_offspring(new_genes)
-    
+    def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, **kwargs: Any) -> P:
+        num_pairs = jax.tree_util.tree_leaves(p1_pop.genes)[0].shape[0]
+        keys_reshaped = all_keys.reshape(num_pairs, self.num_keys_per_atomic_operation, 2)
+
+        def _process_pairs(k: chex.PRNGKey, g1: G, g2: G) -> Tuple[G, ...]:
+            return self._cross_one(k, g1, g2, config, **kwargs)
+
+        nested_offspring = jax.vmap(_process_pairs)(keys_reshaped, p1_pop.genes, p2_pop.genes)
+        def reshape_fn(x: chex.Array) -> chex.Array:
+            return x.reshape((-1,) + x.shape[2:])
+        new_genes = jax.tree_util.tree_map(reshape_fn, nested_offspring)
+        return cast(P, p1_pop.spawn_offspring(new_genes))
+
 # ==========================================
-# 3. SELECTION (Consumer)
+# 3. SELECTION
 # ==========================================
 @struct.dataclass
 class BaseSelection(Generic[P, C]):
-    """
-    BaseSelection using the Template Method Pattern.
-    
-    The Engine calls: __call__(keys, population, config)
-    Subclasses implement: _select(keys, fitness, config)
-    """
-    num_selections: int = struct.field(pytree_node=False)
-    input_length: int = struct.field(pytree_node=False, default=-1)
+    num_selections: int = _field(pytree_node=False)
+    input_length: int = _field(pytree_node=False, default=-1)
 
-    # --- 1. Immutability Helper ---
     def set_input_length(self, length: int) -> "BaseSelection[P, C]":
-        return self.replace(input_length=length)
+        return cast("BaseSelection[P, C]", cast(Any, self).replace(input_length=length))
 
-    # --- 2. Resource Contract ---
     @property
-    def keys_per_selection(self) -> int:
-        return 1
-
-    def num_keys(self, input_shape: Tuple[int, ...] = None) -> int:
-        return self.num_selections * self.keys_per_selection
-
-    # --- 3. The Template Method (PUBLIC INTERFACE) ---
-    def __call__(self, keys: chex.Array, population: P, config: C = None) -> chex.Array:
-        """
-        Standardizes the input from the Engine.
-        1. Unwraps 'fitness' from the Population.
-        2. Normalizes 'keys' shape (handling single-key vs batch-key nuances).
-        3. Delegates math to _select().
-        """
-        # A. Unwrap Fitness
-        fitness = population.fitness
-        
-        # B. Normalize Keys
-        # The engine often passes a slice (1, 2) even if we need just one key (2,)
-        # We assume if the logic needs a single key, we give it the first one.
-        # Subclasses that need the whole batch should handle dimensions accordingly,
-        # but for safety, we pass the raw 'keys' and let _select handle it 
-        # OR we normalize here.
-        # Simplest approach: Pass raw keys, let logic decide.
-        
-        return self._select(keys, fitness, config)
-
-    # --- 4. The Abstract Logic (SUBCLASS INTERFACE) ---
-    def _select(self, keys: chex.Array, fitness: chex.Array, config: C) -> chex.Array:
-        """
-        Implementation of the selection logic.
-        Args:
-            keys: The random keys allocated for selection.
-            fitness: The raw fitness array (N,).
-            config: Context configuration.
-        Returns:
-            Selected indices (num_selections,).
-        """
+    def num_keys_per_atomic_operation(self) -> int:
         raise NotImplementedError
-    
+
+    def num_keys(self, input_shape: Tuple[int, ...]) -> int:
+        return self.num_keys_per_atomic_operation
+
+    def _select(
+        self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
+        ) -> chex.Array:
+        raise NotImplementedError
+
+    def __call__(
+        self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any
+        ) -> chex.Array:
+        return self._select(keys, population.fitness, config, **kwargs)

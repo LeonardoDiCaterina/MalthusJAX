@@ -19,7 +19,7 @@ from malthusjax.core.genome.categorical_genome import (
     CategoricalGenomeConfig,
     CategoricalPopulation,
 )
-from malthusjax.core.genome.linear import LinearGenomeConfig, LinearPopulation
+from malthusjax.core.genome.linear_genome import LinearGenomeConfig, LinearPopulation
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 
 
@@ -121,43 +121,43 @@ def rng_key() -> jax.Array:
 @pytest.fixture
 def binary_genome_config() -> BinaryGenomeConfig:
     """Standard binary genome configuration."""
-    return BinaryGenomeConfig(length=10)
+    return BinaryGenomeConfig(shape=(10,), p=0.5)
 
 
 @pytest.fixture
 def small_binary_genome_config() -> BinaryGenomeConfig:
     """Small binary genome for quick tests."""
-    return BinaryGenomeConfig(length=5)
+    return BinaryGenomeConfig(shape=(5,), p=0.5)
 
 
 @pytest.fixture
 def large_binary_genome_config() -> BinaryGenomeConfig:
     """Large binary genome for performance tests."""
-    return BinaryGenomeConfig(length=100)
+    return BinaryGenomeConfig(shape=(100,), p=0.5)
 
 
 @pytest.fixture
 def real_genome_config() -> RealGenomeConfig:
     """Standard real genome configuration."""
-    return RealGenomeConfig(length=5, bounds=(-5.0, 5.0))
+    return RealGenomeConfig(shape=(10,), bounds=(-10.0, 10.0))
 
 
 @pytest.fixture
 def constrained_real_genome_config() -> RealGenomeConfig:
     """Real genome with tight bounds."""
-    return RealGenomeConfig(length=3, bounds=(-1.0, 1.0))
+    return RealGenomeConfig(shape=(3,), bounds=(-1.0, 1.0))
 
 
 @pytest.fixture
 def categorical_genome_config() -> CategoricalGenomeConfig:
     """Standard categorical genome configuration."""
-    return CategoricalGenomeConfig(length=8, num_categories=4)
+    return CategoricalGenomeConfig(shape=(10,), num_categories=5)
 
 
 @pytest.fixture
 def small_categorical_genome_config() -> CategoricalGenomeConfig:
     """Small categorical genome for quick tests."""
-    return CategoricalGenomeConfig(length=3, num_categories=3)
+    return CategoricalGenomeConfig(shape=(5,), num_categories=3)
 
 
 @pytest.fixture

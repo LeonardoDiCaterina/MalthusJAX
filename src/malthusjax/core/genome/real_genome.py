@@ -24,12 +24,15 @@ class RealGenomeConfig:
     Static configuration defining the search space for real-valued genomes.
 
     Attributes:
-        length: The dimensionality of the real-valued vector.
+        shape: The shape tuple (length,) of the real-valued vector. For backward
+               compatibility a `length` keyword is accepted and mapped to `shape`.
         bounds: A tuple (min, max) defining the valid search range for all elements.
         dtype: The numerical precision (e.g., jnp.float32 or jnp.float64).
     """
 
-    length: int
+    shape: Tuple[int, ...] = struct.field(
+        pytree_node=False, default_factory=lambda: ()
+    )  # type: ignore[no-untyped-call]
     bounds: Tuple[float, float] = struct.field(
         pytree_node=False, default=(-jnp.inf, jnp.inf)
     ) # type: ignore[no-untyped-call]
@@ -51,7 +54,7 @@ class RealGenome(BaseGenome):
     where N is the population size.
     """
 
-    values: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
+    values: chex.Array
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: RealGenomeConfig) -> RealGenome:
@@ -60,7 +63,7 @@ class RealGenome(BaseGenome):
         """
         min_val, max_val = config.bounds
         values = jax.random.uniform(
-            key, (config.length,), minval=min_val, maxval=max_val, dtype=config.dtype
+            key, config.shape, minval=min_val, maxval=max_val, dtype=config.dtype
         )
         return cls(values=values)
 
@@ -147,6 +150,8 @@ class RealPopulation(BasePopulation[RealGenome]):
 
     GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
 
+
+    #TODO: implement a more broad verison where size is actually shape for multidimensional genomes
     @classmethod
     def init_random(cls, key: chex.PRNGKey, config: RealGenomeConfig, size: int) -> RealPopulation:
         """

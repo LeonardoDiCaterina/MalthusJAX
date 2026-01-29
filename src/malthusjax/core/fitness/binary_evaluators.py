@@ -28,8 +28,8 @@ class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
     data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
-        """Evaluate a single binary genome by counting set bits."""
-        ones_count = jnp.sum(genome.bits)
+        """Evaluate a single binary genome by counting set values."""
+        ones_count = jnp.sum(genome.values)
         zeros_count = genome.size - ones_count
         return jax.lax.select(self.config.maximize, ones_count, zeros_count)
 
@@ -54,8 +54,8 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
         """Evaluate a binary genome representing item selection."""
         # Calculate total weight and value using vector dot products
-        total_weight = jnp.sum(genome.bits * self.config.weights)
-        total_value = jnp.sum(genome.bits * self.config.values)
+        total_weight = jnp.sum(genome.values * self.config.weights)
+        total_value = jnp.sum(genome.values * self.config.values)
 
         # Apply linear penalty for exceeding capacity
         excess_weight = jnp.maximum(0.0, total_weight - self.config.capacity)

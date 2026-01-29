@@ -8,7 +8,7 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig, RegressionData
-from malthusjax.core.genome.linear import LinearGenome
+from malthusjax.core.genome.linear_genome import LinearGenome
 
 PROTECTED_DIV_EPS: float = 1e-6
 

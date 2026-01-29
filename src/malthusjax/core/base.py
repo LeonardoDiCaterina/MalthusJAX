@@ -113,9 +113,12 @@ class BasePopulation(Generic[G]):
     genes: G
     fitness: chex.Array
     config: Any = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-
-    # Reference to the Genome class for factory patterns and static analysis.
     GENOME_CLS: ClassVar[Type[Any]] = cast(Type[Any], Any)
+
+    @property
+    def values(self) -> Any:
+        """Proxies to the genome's values (batched)."""
+        return self.genes.values
 
     def spawn_offspring(self, new_genes: G) -> BasePopulation[G]:
         """

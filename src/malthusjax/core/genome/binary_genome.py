@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Type, cast
+from typing import Any, ClassVar, Tuple, Type, cast
 
 import chex
 import jax
@@ -21,7 +21,9 @@ class BinaryGenomeConfig:
         dtype: Numerical type for bits, usually jnp.int32 or jnp.int8.
     """
 
-    length: int
+    shape: Tuple[int, ...] = struct.field(
+        pytree_node=False, default_factory=lambda: ()
+    )  # type: ignore[no-untyped-call]
     p: float = 0.5
     dtype: jnp.dtype[Any] = struct.field(
         pytree_node=False,
@@ -41,23 +43,23 @@ class BinaryGenome(BaseGenome):
     In a BinaryPopulation, the 'bits' array is promoted to shape (N, length).
     """
 
-    bits: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
+    values: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: BinaryGenomeConfig) -> BinaryGenome:
         """
         Samples a bit-string from a Bernoulli distribution.
         """
-        bits = jax.random.bernoulli(key, config.p, (config.length,)).astype(config.dtype)
-        return cls(bits=bits)
+        values = jax.random.bernoulli(key, config.p, config.shape).astype(config.dtype)
+        return cls(values=values)
 
     def autocorrect(self, config: BinaryGenomeConfig) -> BinaryGenome:
         """
         Ensures bits remain discrete (0 or 1). While binary operators
         usually preserve this, this method provides a safety clip.
         """
-        corrected_bits = jnp.clip(self.bits, 0, 1).astype(config.dtype)
-        return cast(BinaryGenome, cast(Any, self).replace(bits=corrected_bits))
+        corrected_values = jnp.clip(self.values, 0, 1).astype(config.dtype)
+        return cast(BinaryGenome, cast(Any, self).replace(values=corrected_values))
 
     def distance(self, other: BaseGenome, metric: str = "hamming") -> chex.Numeric:
         """
@@ -71,35 +73,35 @@ class BinaryGenome(BaseGenome):
 
         if metric == "hamming":
             # XOR equivalent logic for JAX arrays
-            return jnp.sum(self.bits != other_bin.bits)
+            return jnp.sum(self.values != other_bin.values)
         elif metric == "euclidean":
             # Distance in the embedding space
-            return jnp.sqrt(jnp.sum(jnp.square(self.bits - other_bin.bits)))
+            return jnp.sqrt(jnp.sum(jnp.square(self.values - other_bin.values)))
         else:
             raise ValueError(f"Unsupported metric: {metric}")
 
     @property
     def size(self) -> int:
         """The number of bits in the genome."""
-        return int(self.bits.shape[-1])
+        return int(self.values.shape[-1])
 
     @property
     def shape(self) -> tuple[int, ...]:
         """The logical shape of the bit-string."""
-        return cast(tuple[int, ...], self.bits.shape)
+        return cast(tuple[int, ...], self.values.shape)
 
     def to_int(self, msb_first: bool = True) -> chex.Numeric:
         """
         Calculates the decimal integer value of the bit-string.
 
-        By default, this treats ``bits[0]`` as the most significant bit (MSB),
+        By default, this treats ``values[0]`` as the most significant bit (MSB),
         using a descending power sequence. For example, for a 4-bit genome
-        ``bits = [b0, b1, b2, b3]``, the value is::
+        ``values = [b0, b1, b2, b3]``, the value is::
 
             value = b0 * 2**3 + b1 * 2**2 + b2 * 2**1 + b3 * 2**0
 
         If ``msb_first`` is set to ``False``, the legacy behavior is used,
-        where ``bits[0]`` is treated as the least significant bit (LSB),
+        where ``values[0]`` is treated as the least significant bit (LSB),
         i.e. using an ascending power sequence::
 
             value = b0 * 2**0 + b1 * 2**1 + ... + b{n-1} * 2**(n-1)
@@ -108,29 +110,28 @@ class BinaryGenome(BaseGenome):
         Returns a JAX array (scalar) to remain compatible with JIT.
         """
         if msb_first:
-            # Treat bits[0] as the most significant bit (MSB)
+            # Treat values[0] as the most significant bit (MSB)
             powers = 2 ** jnp.arange(self.size - 1, -1, -1)
         else:
-            # Legacy behavior: treat bits[0] as the least significant bit (LSB)
+            # Legacy behavior: treat values[0] as the least significant bit (LSB)
             powers = 2 ** jnp.arange(self.size)
-        return jnp.sum(self.bits * powers)
+        return jnp.sum(self.values * powers)
 
     def count_ones(self) -> chex.Numeric:
         """Computes the 'Hamming Weight' (number of set bits) of the genome."""
-        return jnp.sum(self.bits)
-
+        return jnp.sum(self.values)
     def flip_bit(self, index: int) -> BinaryGenome:
         """
         Returns a new genome with the bit at 'index' toggled.
         Compatible with JAX's functional 'at' syntax.
         """
-        new_bits = self.bits.at[index].set(1 - self.bits[index])
-        return cast(BinaryGenome, cast(Any, self).replace(bits=new_bits))
+        new_values = self.values.at[index].set(1 - self.values[index])
+        return cast(BinaryGenome, cast(Any, self).replace(values=new_values))
 
     def __repr__(self) -> str:
         try:
             # We slice to avoid huge strings in debug logs
-            sample = self.bits[:10]
+            sample = self.values[:10]
             bits_str = "".join(str(int(b)) for b in sample)
             if self.size > 10:
                 bits_str += "..."

@@ -1,77 +1,100 @@
-import jax
 import jax.numpy as jnp
-import pytest
 
 from malthusjax.core.base import DistanceMetric
-from malthusjax.core.genome.categorical_genome import CategoricalGenome, CategoricalPopulation
+from malthusjax.core.genome.categorical_genome import (
+    CategoricalGenome,
+    CategoricalGenomeConfig,
+    CategoricalPopulation,
+)
 
 
-def test_categorical_genome_init(rng_key, categorical_genome_config):
-    """Verifies single categorical genome initialization and category bounds."""
-    genome = CategoricalGenome.random_init(rng_key, categorical_genome_config)
+def test_categorical_genome_init(rng_key):
+    """Verifies single categorical genome initialization and category constraints."""
+    config = CategoricalGenomeConfig(shape=(10,), num_categories=5)
+    genome = CategoricalGenome.random_init(rng_key, config)
+
     assert isinstance(genome, CategoricalGenome)
-    assert genome.categories.shape == (categorical_genome_config.length,)
-    # Verify values are within [0, num_categories - 1]
-    assert jnp.all(genome.categories >= 0)
-    assert jnp.all(genome.categories < categorical_genome_config.num_categories)
+    # Verify shape matches config
+    assert genome.values.shape == config.shape
+    # Verify all values are within [0, num_categories - 1]
+    assert jnp.all(genome.values >= 0)
+    assert jnp.all(genome.values < config.num_categories)
 
 
-def test_categorical_population_soa(categorical_population, categorical_genome_config):
-    """Verifies the SoA batching for categorical choice genomes."""
-    assert isinstance(categorical_population, CategoricalPopulation)
-    # Batch dimension (10, 8) based on conftest fixtures
-    assert categorical_population.genes.categories.shape == (10, categorical_genome_config.length)
-    assert categorical_population.fitness.shape == (10,)
+def test_categorical_population_soa(rng_key):
+    """Verifies the SoA batching for categorical labels."""
+    pop_size = 12
+    config = CategoricalGenomeConfig(shape=(8,), num_categories=10)
+    population = CategoricalPopulation.init_random(rng_key, config, size=pop_size)
+
+    assert isinstance(population, CategoricalPopulation)
+    # Leading dimension must be the population size
+    assert population.genes.values.shape == (pop_size, 8)
+    assert population.fitness.shape == (pop_size,)
 
 
-def test_categorical_distance_hamming(categorical_population):
-    """Tests Hamming distance (mismatch count) for categorical labels."""
-    g1 = categorical_population[0]
-    g2 = categorical_population[1]
+def test_categorical_swap_positions(rng_key):
+    """Tests the functional position-swapping logic."""
+    config = CategoricalGenomeConfig(shape=(5,), num_categories=10)
+    genome = CategoricalGenome.random_init(rng_key, config)
 
-    # Standard categorical distance is the number of differing elements
-    dist = g1.distance(g2, metric=DistanceMetric.HAMMING)
+    pos1, pos2 = 0, 3
+    val1, val2 = genome.values[pos1], genome.values[pos2]
 
-    manual_dist = jnp.sum(g1.categories != g2.categories)
-    assert float(dist) == pytest.approx(float(manual_dist))
+    # Swap values at pos1 and pos2
+    swapped_genome = genome.swap_positions(pos1, pos2)
 
-
-def test_permutation_logic_jit(rng_key, categorical_genome_config):
-    """Verifies that permutation checks and conversions are JIT-stable."""
-    # Create a guaranteed permutation [0, 1, 2, ...]
-    length = categorical_genome_config.length
-    perm_values = jnp.arange(length)
-    genome = CategoricalGenome(categories=perm_values)
-
-    @jax.jit
-    def check_perm(g):
-        return g.is_permutation(), g.to_permutation(categorical_genome_config)
-
-    is_p, new_p = check_perm(genome)
-    assert is_p
-    assert jnp.all(new_p.categories == perm_values)
+    assert swapped_genome.values[pos1] == val2
+    assert swapped_genome.values[pos2] == val1
+    # Original genome must remain unchanged (immutability)
+    assert genome.values[pos1] == val1
 
 
-def test_categorical_swap_positions(categorical_population):
-    """Tests the functional swapping logic used in combinatorial search."""
-    genome = categorical_population[0]
-    val_at_0 = genome.categories[0]
-    val_at_1 = genome.categories[1]
+def test_categorical_permutation_logic(rng_key):
+    """Verifies permutation check and conversion logic."""
+    # Create a non-permutation (duplicate values)
+    config = CategoricalGenomeConfig(shape=(4,), num_categories=4)
+    values = jnp.array([0, 1, 1, 2])
+    genome = CategoricalGenome(values=values)
 
-    # Swap first two positions
-    swapped = genome.swap_positions(0, 1)
-    assert swapped.categories[0] == val_at_1
-    assert swapped.categories[1] == val_at_0
+    # Should not be a valid permutation
+    assert not bool(genome.is_permutation())
 
-    # Ensure original remains unchanged (immutability)
-    assert genome.categories[0] == val_at_0
+    # Convert to valid permutation via argsort
+    perm_genome = genome.to_permutation(config)
+    assert bool(perm_genome.is_permutation())
+
+    # A permutation of length 4 must contain unique values 0, 1, 2, 3
+    assert jnp.all(jnp.sort(perm_genome.values) == jnp.arange(4))
 
 
-def test_categorical_autocorrect_wrapping(categorical_population, categorical_genome_config):
-    """Verifies that out-of-range labels are clipped back to valid categories."""
-    # Inject values beyond num_categories
-    broken_cats = jnp.full_like(categorical_population.genes.categories, 99)
-    broken_pop = categorical_population.replace(genes=CategoricalGenome(categories=broken_cats))
+def test_categorical_distance_metrics(rng_key):
+    """Tests Hamming vs Euclidean distance for discrete categories."""
+    config = CategoricalGenomeConfig(shape=(5,), num_categories=10)
+    g1 = CategoricalGenome.random_init(rng_key, config)
+    # Create g2 as a copy of g1 with one different value
+    g2_values = g1.values.at[0].set((g1.values[0] + 1) % config.num_categories)
+    g2 = CategoricalGenome(values=g2_values)
 
-    corrected_pop = broken_pop.autocorrect(categorical_genome_config)
-    assert jnp.all(corrected_pop.genes.categories == categorical_genome_config.num_categories - 1)
+    hamming_dist = g1.distance(g2, metric=DistanceMetric.HAMMING)
+    euclidean_dist = g1.distance(g2, metric=DistanceMetric.EUCLIDEAN)
+
+    # Hamming distance should be exactly 1 for a single mismatch
+    assert int(hamming_dist) == 1
+    assert euclidean_dist > 0
+
+
+def test_categorical_autocorrect_clipping():
+    """Verifies that out-of-range categories are corrected."""
+    num_categories = 5
+    config = CategoricalGenomeConfig(shape=(4,), num_categories=num_categories)
+
+    # Categories: -1 (low), 2 (ok), 5 (high), 4 (ok)
+    broken_values = jnp.array([-1, 2, 5, 4])
+    genome = CategoricalGenome(values=broken_values)
+
+    corrected_genome = genome.autocorrect(config)
+
+    # Values should be clipped to [0, 4]
+    expected = jnp.array([0, 2, 4, 4])
+    assert jnp.all(corrected_genome.values == expected)
