@@ -24,7 +24,8 @@ class RealGenomeConfig:
     Static configuration defining the search space for real-valued genomes.
 
     Attributes:
-        length: The dimensionality of the real-valued vector.
+        shape: The shape tuple (length,) of the real-valued vector. For backward
+               compatibility a `length` keyword is accepted and mapped to `shape`.
         bounds: A tuple (min, max) defining the valid search range for all elements.
         dtype: The numerical precision (e.g., jnp.float32 or jnp.float64).
     """
