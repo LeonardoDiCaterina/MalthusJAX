@@ -83,6 +83,14 @@ class CategoricalGenome(BaseGenome):
         """Return shape of the genome array."""
         return cast(tuple[int, ...], self.values.shape)
 
+    @classmethod
+    def from_tensor(cls, arr: chex.Array, config: Any = None) -> "CategoricalGenome":
+        """Construct a batched CategoricalGenome from a raw array.
+
+        Implementation is intentionally trivial and JIT-safe.
+        """
+        return cls(values=arr)
+
     def is_permutation(self) -> chex.Numeric:
         """Check if this genome represents a valid permutation (all unique values)."""
         unique_vals = jnp.unique(self.values, size=self.size, fill_value=-1)

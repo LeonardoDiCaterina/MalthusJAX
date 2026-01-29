@@ -84,6 +84,17 @@ class BaseGenome:
         raise NotImplementedError
 
     @classmethod
+    @abstractmethod
+    def from_tensor(cls: Type[G], arr: chex.Array, config: Any = None) -> G:
+        """Construct a batched Genome instance from a raw array.
+
+        `arr` is expected to be a batched array with leading dim equal to the
+        number of individuals (or offspring). This method must be JIT-
+        friendly and avoid Python-side checks on traced arrays.
+        """
+        raise NotImplementedError
+
+    @classmethod
     def create_population(cls: Type[G], key: chex.PRNGKey, config: Any, pop_size: int) -> G:
         """
         Factory method to create a batch of genomes using the SoA pattern.

@@ -110,6 +110,17 @@ class LinearGenome(BaseGenome):
         # Combining instruction count and arity
         return cast(tuple[int, ...], self.ops.shape + self.args.shape[1:])
 
+    @classmethod
+    def from_tensor(cls, arr: tuple[chex.Array, chex.Array], config: Any = None) -> "LinearGenome":
+        """Construct a LinearGenome from a tuple `(ops, args)`.
+
+        For LGP genomes we expect the raw tensor representation to be a pair
+        of arrays: `(ops, args)`. This is JIT-safe and avoids Python-side
+        validation during tracing.
+        """
+        ops, args = arr
+        return cls(ops=ops, args=args)
+
     def render(self, config: LinearGenomeConfig, op_names: Optional[List[str]] = None) -> str:
         """Generates a human-readable assembly-like display of the program."""
         ops_cpu = np.array(self.ops)

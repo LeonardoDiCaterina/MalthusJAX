@@ -90,6 +90,15 @@ class BinaryGenome(BaseGenome):
         """The logical shape of the bit-string."""
         return cast(tuple[int, ...], self.values.shape)
 
+    @classmethod
+    def from_tensor(cls, arr: chex.Array, config: Any = None) -> "BinaryGenome":
+        """Construct a batched BinaryGenome from a raw array.
+
+        Keeps implementation minimal and JIT-safe: simply wraps the provided
+        array in the `BinaryGenome` dataclass.
+        """
+        return cls(values=arr)
+
     def to_int(self, msb_first: bool = True) -> chex.Numeric:
         """
         Calculates the decimal integer value of the bit-string.

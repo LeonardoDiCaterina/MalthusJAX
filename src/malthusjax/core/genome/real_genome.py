@@ -134,6 +134,16 @@ class RealGenome(BaseGenome):
         noisy_values = self.values + noise
         return cast(RealGenome, cast(Any, self).replace(values=noisy_values))
 
+    @classmethod
+    def from_tensor(cls, arr: chex.Array, config: Any = None) -> "RealGenome":
+        """Construct a batched RealGenome from a raw array.
+
+        This is intentionally a trivial factory: it wraps the provided array in
+        the `RealGenome` dataclass. Keep the implementation pure and avoid
+        Python-side validation so it remains JIT-traceable.
+        """
+        return cls(values=arr)
+
 
 @struct.dataclass
 class RealPopulation(BasePopulation[RealGenome]):
