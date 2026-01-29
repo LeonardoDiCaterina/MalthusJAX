@@ -1,10 +1,9 @@
 """
 Mutation Operators Module.
 """
+
 from .binary import BitFlipMutation, ScrambleMutation, SwapMutation
-from .real import GaussianMutation, BallMutation, PolynomialMutation
-from .categorical import CategoricalFlipMutation, RandomCategoryMutation
-from .linear import LinearMutation, LinearPointMutation
+from .real import BallMutation, GaussianMutation, PolynomialMutation
 
 __all__ = [
     "BitFlipMutation",
@@ -13,8 +12,4 @@ __all__ = [
     "GaussianMutation",
     "BallMutation",
     "PolynomialMutation",
-    "CategoricalFlipMutation",
-    "RandomCategoryMutation",
-    "LinearMutation",
-    "LinearPointMutation",
 ]

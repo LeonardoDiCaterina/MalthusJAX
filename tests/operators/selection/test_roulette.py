@@ -9,9 +9,13 @@ from malthusjax.operators.selection.roulette import RouletteSelection
 def setup_roulette_data():
     key = jr.PRNGKey(123)
     fitness = jnp.array([0.1, 0.1, 0.1, 0.1, 0.1, 50.0, 0.1, 0.1])
+
     class MockPop:
-        def __init__(self, f): self.fitness = f
+        def __init__(self, f):
+            self.fitness = f
+
     return MockPop(fitness), key
+
 
 class TestRouletteSelection:
     def test_temperature_scaling(self, setup_roulette_data):

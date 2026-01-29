@@ -20,6 +20,7 @@ def setup_tournament_pop():
     pop = pop.replace(fitness=fitness)
     return pop, key
 
+
 class TestTournamentSelection:
     """Rigorous tests for TournamentSelection operator."""
 
@@ -59,7 +60,7 @@ class TestTournamentSelection:
         """
         pop, key = setup_tournament_pop
         num_trials = 500
-        best_idx = 3 # The Alpha in our fixture
+        best_idx = 3  # The Alpha in our fixture
 
         # Case A: Low Pressure (Tournament Size = 1, should be Random Selection)
         sel_low = TournamentSelection(num_selections=num_trials, tournament_size=1)

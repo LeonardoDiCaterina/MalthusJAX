@@ -10,6 +10,7 @@ from malthusjax.operators.base import BaseSelection, C, P
 # Internal alias to bypass mypy --strict errors on Flax fields
 _field: Any = struct.field
 
+
 @struct.dataclass
 class RouletteSelection(BaseSelection[P, C]):
     """
@@ -18,6 +19,7 @@ class RouletteSelection(BaseSelection[P, C]):
     - Gumbel-Max: Fast O(1) parallel path for smaller populations.
     - Categorical: Memory-efficient O(N) path for large-scale evolution.
     """
+
     temperature: float = _field(pytree_node=False, default=1.0)
 
     # NEW: Toggle for memory safety on high populations
@@ -28,11 +30,7 @@ class RouletteSelection(BaseSelection[P, C]):
         return 1
 
     def _select(
-        self,
-        keys: chex.Array,
-        fitness: chex.Array,
-        config: Optional[C] = None,
-        **kwargs: Any
+        self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
         """
         Samples indices proportional to fitness.

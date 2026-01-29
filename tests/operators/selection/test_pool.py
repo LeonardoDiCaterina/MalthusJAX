@@ -13,9 +13,10 @@ def setup_elite_pop():
     config = RealGenomeConfig(shape=(5,), bounds=(-10.0, 10.0), dtype=jnp.float32)
     # Create 10 individuals with linear fitness 0-9
     pop = RealPopulation.init_random(key, config, 10)
-    fitness = jnp.arange(10.0) # Indices 8 and 9 are the best
+    fitness = jnp.arange(10.0)  # Indices 8 and 9 are the best
     pop = pop.replace(fitness=fitness)
     return pop, key
+
 
 class TestElitePoolSelection:
     def test_parameter_k_boundary(self, setup_elite_pop):

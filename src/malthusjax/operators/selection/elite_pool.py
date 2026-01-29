@@ -15,12 +15,14 @@ from malthusjax.operators.base import BaseSelection, C, P
 
 _field: Any = struct.field
 
+
 @struct.dataclass
 class ElitePoolSelection(BaseSelection[P, C]):
     """
     Elite Pool Selection (High Performance).
     Uses jax.lax.top_k for O(N log K) efficiency.
     """
+
     elite_k: int = _field(pytree_node=False, default=10)
 
     @property
@@ -28,11 +30,7 @@ class ElitePoolSelection(BaseSelection[P, C]):
         return 1
 
     def _select(
-        self,
-        keys: chex.Array,
-        fitness: chex.Array,
-        config: Optional[C] = None,
-        **kwargs: Any
+        self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
         """
         Selects parents from the top 'elite_k' best individuals.
