@@ -55,6 +55,8 @@ class RealGenome(BaseGenome):
     """
 
     values: chex.Array
+    # Enable indexing & iteration by default for convenience
+    subscriptable: bool = struct.field(pytree_node=False, default=True) # type: ignore[assignment]
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: RealGenomeConfig) -> RealGenome:

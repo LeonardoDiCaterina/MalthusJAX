@@ -62,6 +62,8 @@ class BinaryGenome(BaseGenome):
     """
 
     values: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
+    # Enable Pythonic indexing/iteration by default for convenience
+    subscriptable: bool = struct.field(pytree_node=False, default=True) # type: ignore[assignment]
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: BinaryGenomeConfig) -> BinaryGenome:
