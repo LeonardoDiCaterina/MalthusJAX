@@ -132,8 +132,11 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
-        if hasattr(new_genes, "values"):
-            new_genes = new_genes.values
+        # If `new_genes` is a raw array (no `.values`), wrap it back into the
+        # population's genome class so downstream code has a consistent
+        # `Population.genes` object with `.values` attribute.
+        if not hasattr(new_genes, "values"):
+            new_genes = population.GENOME_CLS.from_tensor(new_genes, population.config)
         return cast(P, population.spawn_offspring(cast(G, new_genes)))
 
 
