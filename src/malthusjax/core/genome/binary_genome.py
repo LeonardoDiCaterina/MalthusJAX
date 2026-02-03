@@ -16,19 +16,37 @@ class BinaryGenomeConfig:
     Configuration for combinatorial binary optimization.
 
     Attributes:
-        length: Total number of bits (dimensions) in the genome.
+        shape: Tuple[int, ...]
+            The logical shape of the bit-string. For a single-dimensional
+            bit-string use `(length,)`. Defaults to `(1,)` (single bit) rather
+            than an empty tuple to avoid creating a scalar genome by mistake.
+        length: Optional[int]
+            Backwards-compatibility alias for a one-dimensional `shape`.
+            If provided, it is interpreted as `shape=(length,)`.
         p: Probability of a bit being 1 during random initialization.
         dtype: Numerical type for bits, usually jnp.int32 or jnp.int8.
     """
 
+    # Prefer an explicit 1-D shape default to avoid accidental scalar genomes.
     shape: Tuple[int, ...] = struct.field(
-        pytree_node=False, default_factory=lambda: ()
+        pytree_node=False, default_factory=lambda: (1,)
     )  # type: ignore[no-untyped-call]
+
+    # Backwards-compatibility: accept a legacy `length` keyword
+    length: int | None = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+
     p: float = 0.5
     dtype: jnp.dtype[Any] = struct.field(
         pytree_node=False,
         default=jnp.int32,  # type: ignore[no-untyped-call]
     )
+
+    @property
+    def resolved_shape(self) -> Tuple[int, ...]:
+        """Return the effective shape, honoring legacy `length` if present."""
+        if self.length is not None:
+            return (self.length,)
+        return self.shape
 
 
 @struct.dataclass
@@ -49,8 +67,9 @@ class BinaryGenome(BaseGenome):
     def random_init(cls, key: chex.PRNGKey, config: BinaryGenomeConfig) -> BinaryGenome:
         """
         Samples a bit-string from a Bernoulli distribution.
+        Uses `config.resolved_shape` which honors a legacy `length` alias if set.
         """
-        values = jax.random.bernoulli(key, config.p, config.shape).astype(config.dtype)
+        values = jax.random.bernoulli(key, config.p, config.resolved_shape).astype(config.dtype)
         return cls(values=values)
 
     def autocorrect(self, config: BinaryGenomeConfig) -> BinaryGenome:

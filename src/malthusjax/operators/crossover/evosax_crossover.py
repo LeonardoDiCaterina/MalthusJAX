@@ -1,4 +1,4 @@
-from typing import Any, Tuple
+from typing import Any
 
 import chex
 from evosax.algorithms.population_based.simple_ga import crossover as evosax_crossover
@@ -25,14 +25,14 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
     def num_keys_per_atomic_operation(self) -> int:
         return 1
 
-    def _recombine_one(
+    def _recombine_one(  # type: ignore [override]
         self,
         p1: RealGenome,
         p2: RealGenome,
         noise_data: Any,
         config: RealGenomeConfig,
         **kwargs: Any,
-    ) -> Tuple[RealGenome, ...]:
+    ) -> None:
         msg = "EvosaxUniformCrossoverWrapper does not use _recombine_one"
         raise NotImplementedError(msg)
 

@@ -12,4 +12,6 @@ __all__ = [
     "UniformCrossover",
     "SinglePointCrossover",
     "BlendCrossover",
-    "SimulatedBinaryCrossover",]
+    "BinomialCrossover",
+    "SimulatedBinaryCrossover",
+]
