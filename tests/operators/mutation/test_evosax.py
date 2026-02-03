@@ -104,12 +104,10 @@ class TestEvosaxAblationIntegrity:
         # run wrapper
         res = mut(all_keys, pop, config)
 
-        # extract the single PRNG key the wrapper uses
-        single_key = all_keys.reshape((-1, all_keys.shape[-1]))[0]
 
         # expected: same key applied to each genome
         expected_values = jax.vmap(
-            lambda g: evosax_func(single_key, g, jnp.array(strength, dtype=config.dtype))
-        )(pop.genes.values)
+            lambda k, g: evosax_func(k, g, strength)
+        )(all_keys, pop.genes.values)
 
         np.testing.assert_allclose(res.genes.values, expected_values, atol=1e-5)
