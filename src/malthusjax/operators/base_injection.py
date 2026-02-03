@@ -50,8 +50,8 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """Requirement for ResourceMapper budgeting."""
-        raise 0
+        """Injection mode uses 1 key total, split internally."""
+        return 0
 
     def num_keys(self, input_shape: Tuple[int, ...]) -> int:
         """Calculates total key budget for the population and offspring."""
@@ -163,16 +163,12 @@ class BaseCrossover_injection(Generic[G, C, P]):
 
     num_offspring: int = _field(pytree_node=False, default=2)
     input_length: int = _field(pytree_node=False, default=-1)
-
-    # ==========================================
-    # RESOURCE MAPPER INTERFACE
-    # ==========================================
-
+    
     @property
     @abstractmethod
     def num_keys_per_atomic_operation(self) -> int:
         """Budget requirement for ResourceMapper."""
-        raise 0
+        return 0
 
     def num_keys(self, input_shape: Tuple[int, ...]) -> int:
         """
@@ -189,9 +185,6 @@ class BaseCrossover_injection(Generic[G, C, P]):
         """Locks the number of pairs for static key budgeting."""
         return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(input_length=length))
 
-    # ==========================================
-    # THE THREE TIERS
-    # ==========================================
 
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
@@ -205,7 +198,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
     @abstractmethod
     def _recombine_one(
         self, p1: G, p2: G, noise_data: Any, config: C, **kwargs: Any
-    ) -> Tuple[G, ...]:
+    ) -> G:
         """
         Tier 1 — Recombination Kernel (Pure).
         Deterministic logic: p1, p2 + noise_data -> offspring_tuple.
@@ -249,8 +242,9 @@ class BaseCrossover_injection(Generic[G, C, P]):
 
             return jax.vmap(_per_offspring, in_axes=0)(noise_block)
 
-        nested_offspring = jax.vmap(_per_pair_block, in_axes=(0, 0, 0))
-        (noise, p1_pop.genes, p2_pop.genes)
+        nested_offspring = jax.vmap(_per_pair_block, in_axes=(0, 0, 0))(
+            noise, p1_pop.genes, p2_pop.genes
+        )
 
         # Reorder axes from (input_length, num_offspring, ...) to
         # (num_offspring, input_length, ...) and then flatten. The `transpose`

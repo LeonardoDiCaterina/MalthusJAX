@@ -15,10 +15,6 @@ P = TypeVar("P", bound=BasePopulation[Any])
 
 _field: Any = struct.field
 
-
-# ==========================================
-# 1. MUTATION
-# ==========================================
 @struct.dataclass
 class BaseMutation(Generic[G, C, P]):
     """
@@ -99,9 +95,7 @@ class BaseMutation(Generic[G, C, P]):
         return cast(P, population.spawn_offspring(cast(G, new_genes)))
 
 
-# ==========================================
-# 2. CROSSOVER
-# ==========================================
+
 @struct.dataclass
 class BaseCrossover(Generic[G, C, P]):
     """
@@ -111,10 +105,6 @@ class BaseCrossover(Generic[G, C, P]):
 
     num_offspring: int = _field(pytree_node=False, default=2)
     input_length: int = _field(pytree_node=False, default=-1)
-
-    # ==========================================
-    # RESOURCE MAPPER INTERFACE
-    # ==========================================
 
     @property
     @abstractmethod
@@ -137,10 +127,6 @@ class BaseCrossover(Generic[G, C, P]):
         """Locks the number of pairs for static key budgeting."""
         return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(input_length=length))
 
-    # ==========================================
-    # THE THREE TIERS
-    # ==========================================
-
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
         """
@@ -152,35 +138,54 @@ class BaseCrossover(Generic[G, C, P]):
     @abstractmethod
     def _recombine_one(
         self, p1: G, p2: G, noise_data: Any, config: C, **kwargs: Any
-    ) -> Tuple[G, ...]:
+    ) -> G:
         """
         Tier 1 — Recombination Kernel (Pure).
-        Deterministic logic: p1, p2 + noise_data -> offspring_tuple.
+        Deterministic logic: p1, p2 + noise_data -> single offspring genome.
+        
+        Note: Returns a single genome G, not a tuple. The base class handles
+        offspring repetition via num_offspring parameter.
         """
         raise NotImplementedError
 
     def _cross_fused(self, keys: chex.Array, p1: G, p2: G, config: C, **kwargs: Any) -> G:
         """
         Fused RNG + Recombination pass for a single offspring.
-
-        The BaseCrossover now drives the `num_offspring` repetition. This helper
-        consumes the atomic keys for a single offspring and returns a single genome.
-        Operators that previously returned a tuple of offspring should be adapted
-        to return a single offspring; the repetition is handled at the base level.
         """
         noise = self._generate_noise(keys, config)
-        out = self._recombine_one(p1, p2, noise, config, **kwargs)
+        return self._recombine_one(p1, p2, noise, config, **kwargs)
 
-        # Backward compatibility: if operator returned a tuple, pick the first element
-        # and return it. We prefer operators to return a single genome when possible.
-        if isinstance(out, tuple):
-            return out[0]
-        return out
+    def cross_single_pair(
+        self, key: chex.Array, p1: G, p2: G, config: C, **kwargs: Any
+    ) -> G:
+        """
+        Crossover for a single pair of genomes.
+        
+        Args:
+            key: Single PRNG key (shape (2,))
+            p1, p2: Individual genomes
+            config: Genome configuration
+            
+        Returns:
+            Batched genome with shape (num_offspring, ...)
+        """
+        # Split key for all offspring
+        keys = jax.random.split(key, self.num_offspring * self.num_keys_per_atomic_operation)
+        keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation, 2)
+        
+        # vmap over offspring dimension
+        offspring_values = jax.vmap(
+            lambda k: self._cross_fused(k, p1, p2, config, **kwargs).values
+        )(keys_reshaped)
+        
+        return cast(G, p1.replace(values=offspring_values))
 
     def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, **kwargs: Any) -> P:
         """
-        Tier 3 — Fused Bulk Crossover.
-        Correctly flattens and concatenates multiple offspring into a single population.
+        Tier 3 — Fused Bulk Crossover (Population-level).
+        Handles population-level crossover with pre-allocated keys.
+        
+        For single-pair crossover, use `cross_single_pair()` instead.
         """
         # 1. Reshape keys based on static input_length and num_offspring
         # shape: (input_length, num_offspring, atomic_keys, 2)
@@ -194,31 +199,19 @@ class BaseCrossover(Generic[G, C, P]):
         # The inner vmap calls _cross_fused for each offspring using its dedicated keys slice.
         nested_offspring = jax.vmap(
             lambda k_block, g1, g2: jax.vmap(
-                lambda k, g1_inner, g2_inner: self._cross_fused(
-                    k, g1_inner, g2_inner, config, **kwargs
-                ),
-                in_axes=(0, None, None),
-            )(k_block, g1, g2),
+                lambda k: self._cross_fused(k, g1, g2, config, **kwargs),
+                in_axes=0,
+            )(k_block),
             in_axes=(0, 0, 0),
         )(keys_reshaped, p1_pop.genes, p2_pop.genes)
 
-        # 3. Collapse & Flatten
-        # nested_offspring shape currently: (input_length, num_offspring, ...)
-        # We need to reorder to (num_offspring, input_length, ...)
-        # then flatten to (num_offspring * input_length, ...)
-        def merge_and_flatten_block(x: chex.Array) -> chex.Array:
-            # x: (input_length, num_offspring, ...)
-            transposed = jnp.transpose(x, (1, 0) + tuple(range(2, x.ndim)))
-            return transposed.reshape((-1,) + transposed.shape[2:])
+        # 3. Flatten (shape: (input_length, num_offspring, ...) -> (input_length * num_offspring, ...))
+        def flatten_fn(x: chex.Array) -> chex.Array:
+            return x.reshape((-1,) + x.shape[2:])
 
-        new_genes = jax.tree_util.tree_map(merge_and_flatten_block, nested_offspring)
-
+        new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
         return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
 
-
-# ==========================================
-# 3. SELECTION
-# ==========================================
 @struct.dataclass
 class BaseSelection(Generic[P, C]):
     num_selections: int = _field(pytree_node=False)
@@ -228,23 +221,34 @@ class BaseSelection(Generic[P, C]):
         return cast("BaseSelection[P, C]", cast(Any, self).replace(input_length=length))
 
     @property
+    @abstractmethod
     def num_keys_per_atomic_operation(self) -> int:
+        """Number of PRNG keys required per atomic selection operation."""
         raise NotImplementedError
 
     def num_keys(self, input_shape: Tuple[int, ...]) -> int:
         return self.num_keys_per_atomic_operation
 
+    @abstractmethod
     def _select(
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
+        """Select indices from the population based on fitness values.
+        
+        Args:
+            keys: PRNG key(s) for randomization
+            fitness: Array of fitness values, shape (pop_size,)
+            config: Optional configuration object
+            **kwargs: Additional operator-specific arguments
+            
+        Returns:
+            Array of selected indices, shape (num_selections,)
+        """
         raise NotImplementedError
 
     def __call__(
         self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
         # Accept either a Population object (with `.fitness`) or a raw fitness array
-        if hasattr(population, "fitness"):
-            fitness = population.fitness
-        else:
-            fitness = population
+        fitness = getattr(population, "fitness", population)
         return self._select(keys, fitness, config, **kwargs)
