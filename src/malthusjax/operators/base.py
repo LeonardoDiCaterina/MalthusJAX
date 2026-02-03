@@ -103,7 +103,7 @@ class BaseCrossover(Generic[G, C, P]):
     Implements Fused Mode E: RNG and Recombination logic are fused into a single kernel
     """
 
-    num_offspring: int = _field(pytree_node=False, default=2)
+    num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
 
     @property
@@ -205,9 +205,10 @@ class BaseCrossover(Generic[G, C, P]):
             in_axes=(0, 0, 0),
         )(keys_reshaped, p1_pop.genes, p2_pop.genes)
 
-        # 3. Flatten (shape: (input_length, num_offspring, ...) -> (input_length * num_offspring, ...))
+        # 3. Reorder & Flatten to offspring-major ordering: (input_length, num_offspring, ...) -> (num_offspring, input_length, ...) -> (-1, ...)
         def flatten_fn(x: chex.Array) -> chex.Array:
-            return x.reshape((-1,) + x.shape[2:])
+            transposed = jnp.transpose(x, (1, 0) + tuple(range(2, x.ndim)))
+            return transposed.reshape((-1,) + transposed.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
         return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))

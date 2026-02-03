@@ -53,6 +53,7 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulatio
         Uses the pre-generated mask to select values from parents.
         """
         mask = noise_data
+        # Convention: mask=True selects from p2, False selects from p1
         offspring_values = jnp.where(mask, p2.values, p1.values)
         return cast(RealGenome, cast(Any, p1).replace(values=offspring_values))
 

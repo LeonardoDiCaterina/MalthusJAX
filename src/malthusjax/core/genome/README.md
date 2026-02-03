@@ -92,6 +92,10 @@ Table: `RealGenomeConfig` fields
 | `bounds` | Tuple[float,float] | `(-inf, inf)` | (min, max) bounds applied by `autocorrect` |
 | `dtype` | `jnp.dtype` | `jnp.float32` | Numeric dtype used by random initialization |
 
+Note: `BinaryGenomeConfig` also supports a legacy `length` keyword that is treated as
+`shape=(length,)`. `BinaryGenomeConfig.shape` defaults to `(1,)` to avoid accidental
+scalar genomes when a shape is omitted.
+
 Example — initialize and mutate a population using `vmap`:
 
 ```py

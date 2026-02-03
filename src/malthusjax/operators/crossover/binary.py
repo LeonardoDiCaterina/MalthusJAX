@@ -42,7 +42,8 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPop
     ) -> BinaryGenome:
         """Tier 1: Bitwise selection using genome genes."""
         mask = noise_data
-        offspring_genes = jnp.where(mask, p1.values, p2.values)
+        # Convention: mask=True selects from p2, False selects from p1
+        offspring_genes = jnp.where(mask, p2.values, p1.values)
         return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
 
 
@@ -76,7 +77,8 @@ class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, Binar
     ) -> BinaryGenome:
         """Tier 1: Segment-wise selection."""
         mask = noise_data
-        offspring_genes = jnp.where(mask, p1.values, p2.values)
+        # Convention: mask=True selects from p2, False selects from p1
+        offspring_genes = jnp.where(mask, p2.values, p1.values)
         return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
 
 

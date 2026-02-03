@@ -161,7 +161,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
       memory usage.
     """
 
-    num_offspring: int = _field(pytree_node=False, default=2)
+    num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
     
     @property
