@@ -55,6 +55,8 @@ class RealGenome(BaseGenome):
     """
 
     values: chex.Array
+    # Enable indexing & iteration by default for convenience
+    subscriptable: bool = struct.field(pytree_node=False, default=True) # type: ignore[assignment]
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: RealGenomeConfig) -> RealGenome:
@@ -133,6 +135,16 @@ class RealGenome(BaseGenome):
         noise = jax.random.normal(key, self.values.shape) * noise_std
         noisy_values = self.values + noise
         return cast(RealGenome, cast(Any, self).replace(values=noisy_values))
+
+    @classmethod
+    def from_tensor(cls, arr: chex.Array, config: Any = None) -> "RealGenome":
+        """Construct a batched RealGenome from a raw array.
+
+        This is intentionally a trivial factory: it wraps the provided array in
+        the `RealGenome` dataclass. Keep the implementation pure and avoid
+        Python-side validation so it remains JIT-traceable.
+        """
+        return cls(values=arr)
 
 
 @struct.dataclass

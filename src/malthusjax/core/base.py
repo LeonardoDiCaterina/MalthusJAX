@@ -33,7 +33,41 @@ class BaseGenome:
     When 'lifted' into a Population, each field in the Genome (e.g., 'values')
     is transformed from a scalar/vector into a batched array where the leading
     dimension represents the population size.
+
+    The `subscriptable` flag enables Pythonic indexing and iteration over
+    the genome's primary `values` payload. It is intentionally opt-in to
+    preserve pytrees and tracing semantics when needed.
     """
+
+    def __len__(self) -> int:
+        """Return number of elements in the primary values array."""
+        try:
+            return int(self.values.shape[0])
+        except Exception as e:
+            raise TypeError("len() is not supported for this genome (missing 'values').") from e
+
+    def __getitem__(self, key: Union[int, slice, chex.Array]):
+        """Index into the genome's primary values payload if enabled.
+
+        Subclasses enable this behavior by declaring a `subscriptable` field
+        if they want Pythonic indexing/iteration semantics.
+        """
+        if not getattr(self, "subscriptable", False):
+            raise TypeError(
+                f"{self.__class__.__name__} object is not subscriptable; set subscriptable=True to enable indexing."
+            )
+        try:
+            return self.values[key]
+        except AttributeError as e:
+            raise TypeError("Genome does not expose 'values' for indexing.") from e
+
+    def __iter__(self) -> Iterator[Any]:
+        """Iterate over the genome's primary values payload if enabled."""
+        if not getattr(self, "subscriptable", False):
+            raise TypeError(
+                f"{self.__class__.__name__} object is not iterable; set subscriptable=True to enable iteration."
+            )
+        return iter(self.values)
 
     @classmethod
     @abstractmethod
@@ -81,6 +115,17 @@ class BaseGenome:
     @abstractmethod
     def shape(self) -> tuple[int, ...]:
         """The logical shape of the genome's primary data payload."""
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def from_tensor(cls: Type[G], arr: chex.Array, config: Any = None) -> G:
+        """Construct a batched Genome instance from a raw array.
+
+        `arr` is expected to be a batched array with leading dim equal to the
+        number of individuals (or offspring). This method must be JIT-
+        friendly and avoid Python-side checks on traced arrays.
+        """
         raise NotImplementedError
 
     @classmethod

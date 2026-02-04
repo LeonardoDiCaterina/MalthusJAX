@@ -60,7 +60,58 @@ Reason: `jax.lax.select` composes into the single XLA graph, keeping JIT compila
 
 ---
 
-## 4) Specialized Evaluator Implementations
+## 4) Tensor Interface (Batched JAX-friendly API) 🔧
+
+### Purpose
+- Provide a lightweight, JIT-friendly pathway for *batch* evaluation that works with raw arrays (tensors) rather than `Genome` objects.
+- Useful for high-performance adapters (e.g., BBOB), third-party libraries, or custom evaluators that are already written in a batched form.
+
+### Recommended signature
+- **Simple form:** `def f(genes: chex.Array) -> chex.Array`
+  - Input `genes`: shape `(N, *genome_shape)` (batch-first)
+  - Output: shape `(N,)` of fitness values (dtype: float)
+- **Optional extended form:** `def f(genes: chex.Array) -> Tuple[chex.Array, Any]` to return `(fitness, aux)` where `aux` is any PyTree (state, info, etc.).
+
+### Integration patterns
+- **If you implement per-individual `evaluate(self, genome)`**: provide a batched wrapper with `get_tensor_fitness_function()`:
+
+```py
+def get_tensor_fitness_function(self):
+    def f(genes: chex.Array) -> chex.Array:
+        # genes: (N, *genome_shape)
+        def per_ind(g):
+            g_obj = self.GENOME_CLS.from_tensor(g, self.config)
+            return self.evaluate(g_obj)
+        return jax.vmap(per_ind)(genes)
+    return jax.jit(f)
+```
+
+- **If you can write a pure tensor implementation** (preferred when adapting third-party code): implement `get_tensor_fitness_function()` directly and ensure it is JIT-safe (avoid Python control flow on traced values).
+
+### Return contract & shapes
+- The primary return should be a 1D array of shape `(N,)` containing fitness scores.
+- If other outputs are required, return a tuple `(fitness, aux)` where `aux` is a PyTree; document the contents of `aux` clearly in your evaluator.
+
+### JIT & tracing tips ✅
+- Mark static configuration or large constant data as `pytree_node=False` in your config to avoid embedding them into traced graphs.
+- Use `jax.lax.select` for maximize/minimize branching rather than Python `if` statements.
+- If your tensor function depends on static arguments (e.g., `config`), prefer closing over them or use `jax.jit(..., static_argnames=[...])`.
+
+### Example: Efficient adapter for a third-party batch API
+```py
+# Suppose `third_party_eval(keys, X)` returns (fitness, info)
+def get_tensor_fitness_function(self):
+    def f(genes: chex.Array) -> chex.Array:
+        fitness, _ = third_party_eval(self._internal_key, genes)
+        return fitness
+    return jax.jit(f)
+```
+
+> 💡 **Tip:** Keep the tensor-level API minimal and well-documented—the engine and selection layers expect a simple `(N,)` fitness result so that downstream code (sorting, selection) remains trivial.
+
+---
+
+## 5) Specialized Evaluator Implementations
 
 The repository includes several evaluator categories with canonical implementations:
 

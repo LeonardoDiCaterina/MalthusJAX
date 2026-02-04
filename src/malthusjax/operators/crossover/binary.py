@@ -3,79 +3,83 @@ Binary Crossover Operators.
 Optimized for batch-first paradigm.
 """
 
-from typing import TypeVar
+from typing import Any, cast
+
+import chex
 import jax
 import jax.numpy as jnp
-import jax.random as jar
 from flax import struct
-import chex
-from malthusjax.operators.base import BaseCrossover
+
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
+from malthusjax.operators.base import BaseCrossover
+
 
 @struct.dataclass
 class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
-    Uniform Crossover.
-    Produces offspring where each bit comes from parent1 or parent2
-    based on crossover probability (coin flip per bit).
+    Uniform Crossover (Fused 3-Tier Paradigm).
+    Each bit is independently sourced from Parent 1 or Parent 2.
     """
+
     crossover_rate: float = 0.5
-    
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
+        """Requires 1 key for the Bernoulli mixing mask."""
         return 1
 
-    def _cross_one(self, keys: chex.Array, p1: BinaryGenome, p2: BinaryGenome, config: BinaryGenomeConfig) -> BinaryGenome:
-        """
-        Atomic uniform crossover.
-        keys shape: (1, 2)
-        """
-        rng = keys[0]
-        
-        # 1. Generate Mask (1 = Take from P1, 0 = Take from P2)
-        # Using bernoulli: True(1) with probability p
-        mask = jar.bernoulli(rng, p=self.crossover_rate, shape=p1.bits.shape)
-        
-        # 2. Select Bits
-        # If mask is True, take p1, else take p2
-        offspring_bits = jnp.where(mask, p1.bits, p2.bits)
-        
-        # 3. Safe Return
-        return p1.replace(bits=offspring_bits)
+    def _generate_noise(self, keys: chex.PRNGKey, config: BinaryGenomeConfig) -> chex.Array:
+        """Tier 2: Generate per-bit mixing mask."""
+        return jax.random.bernoulli(keys[0], p=self.crossover_rate, shape=config.shape)
+
+    def _recombine_one(
+        self,
+        p1: BinaryGenome,
+        p2: BinaryGenome,
+        noise_data: chex.Array,
+        config: BinaryGenomeConfig,
+        **_kwargs: Any,
+    ) -> BinaryGenome:
+        """Tier 1: Bitwise selection using genome genes."""
+        mask = noise_data
+        # Convention: mask=True selects from p2, False selects from p1
+        offspring_genes = jnp.where(mask, p2.values, p1.values)
+        return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
 
 
 @struct.dataclass
 class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
-    Single-Point Crossover.
+    Single-Point Crossover (Fused 3-Tier Paradigm).
     Swaps segments at a random crossover point.
     """
-    
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
+        """Requires 1 key to determine the crossover point."""
         return 1
-    
-    def _cross_one(self, keys: chex.Array, p1: BinaryGenome, p2: BinaryGenome, config: BinaryGenomeConfig) -> BinaryGenome:
-        """
-        Atomic single-point crossover.
-        keys shape: (1, 2)
-        """
-        rng = keys[0]
-        length = p1.bits.shape[0]
-        
-        # 1. Pick Crossover Point (1 to length-1)
-        # We avoid 0 and length to ensure actual crossover happens
-        crossover_point = jar.randint(rng, shape=(), minval=1, maxval=length)
-        
-        # 2. Create Mask
-        # [0, 1, 2, ...] < point
+
+    def _generate_noise(self, keys: chex.PRNGKey, config: BinaryGenomeConfig) -> chex.Array:
+        """Tier 2: Generate segment mask based on random point."""
+        length = config.shape[0]
+        # Avoid 0 and length to ensure meaningful recombination
+        crossover_point = jax.random.randint(keys[0], shape=(), minval=1, maxval=length)
         indices = jnp.arange(length)
-        mask = indices < crossover_point
-        
-        # 3. Select Bits
-        # First part from p1, second part from p2
-        offspring_bits = jnp.where(mask, p1.bits, p2.bits)
-        
-        return p1.replace(bits=offspring_bits)
+        return jnp.where(indices < crossover_point, True, False)
+
+    def _recombine_one(
+        self,
+        p1: BinaryGenome,
+        p2: BinaryGenome,
+        noise_data: chex.Array,
+        config: BinaryGenomeConfig,
+        **_kwargs: Any,
+    ) -> BinaryGenome:
+        """Tier 1: Segment-wise selection."""
+        mask = noise_data
+        # Convention: mask=True selects from p2, False selects from p1
+        offspring_genes = jnp.where(mask, p2.values, p1.values)
+        return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
+
 
 __all__ = ["UniformCrossover", "SinglePointCrossover"]

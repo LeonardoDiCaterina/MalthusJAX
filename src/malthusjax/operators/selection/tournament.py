@@ -18,7 +18,7 @@ class TournamentSelection(BaseSelection[P, C]):
 
     def _select(
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
-        ) -> chex.Array:
+    ) -> chex.Array:
         # Normalize keys - handles both (2,) and (1, 2) shapes
         rng = keys[0] if keys.ndim > 1 else keys
         pop_size = fitness.shape[0]
@@ -35,6 +35,4 @@ class TournamentSelection(BaseSelection[P, C]):
         winner_local_indices = jnp.argmax(candidate_fitness, axis=1)
 
         # 4. Map back to global population indices
-        return jnp.take_along_axis(
-            candidates, winner_local_indices[:, None], axis=1
-        ).reshape(-1)
+        return jnp.take_along_axis(candidates, winner_local_indices[:, None], axis=1).reshape(-1)

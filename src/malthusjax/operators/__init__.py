@@ -6,36 +6,34 @@ All operators follow the NEW @struct.dataclass paradigm with factory methods.
 """
 
 # Base operator abstractions
-from .base import BaseMutation, BaseCrossover, BaseSelection
+from .base import BaseCrossover, BaseMutation, BaseSelection
+from .base_injection import BaseMutation_injection, BaseCrossover_injection
 
-# Crossover operators  
-from .crossover.binary import UniformCrossover, SinglePointCrossover
-from .crossover.real import BlendCrossover, SimulatedBinaryCrossover, SimulatedBinaryCrossover,  UniformCrossover as realUniform
-from .crossover.linear import LinearCrossover
+# Crossover operators
+from .crossover.binary import SinglePointCrossover, UniformCrossover
+from .crossover.real import BlendCrossover, SimulatedBinaryCrossover
+from .crossover.real import UniformCrossover as realUniform
 
 # Mutation operators
 from .mutation.binary import BitFlipMutation, ScrambleMutation, SwapMutation
-from .mutation.real import GaussianMutation, BallMutation, PolynomialMutation
-from .mutation.categorical import CategoricalFlipMutation, RandomCategoryMutation
-from .mutation.linear import LinearMutation, LinearPointMutation
+from .mutation.real import BallMutation, GaussianMutation, PolynomialMutation
+from .selection.elite_pool import ElitePoolSelection
+from .selection.roulette import RouletteSelection
 
 # Selection operators
 from .selection.tournament import TournamentSelection
-from .selection.roulette import RouletteSelection
-from .selection.elite_pool import ElitePoolSelection
 
 __all__ = [
     # Base abstractions
     "BaseMutation", "BaseCrossover", "BaseSelection",
+    "BaseMutation_injection", "BaseCrossover_injection",
     # Crossover operators
-    "UniformCrossover", "SinglePointCrossover", 
+    "UniformCrossover", "SinglePointCrossover",
     "BlendCrossover", "SimulatedBinaryCrossover",
-    "LinearCrossover", "realUniform",
+    "realUniform",
     # Mutation operators
     "BitFlipMutation", "ScrambleMutation", "SwapMutation",
-    "GaussianMutation", "BallMutation", "PolynomialMutation", 
-    "CategoricalFlipMutation", "RandomCategoryMutation",
-    "LinearMutation", "LinearPointMutation",
+    "GaussianMutation", "BallMutation", "PolynomialMutation",
     # Selection operators
     "TournamentSelection", "RouletteSelection", "ElitePoolSelection"
 ]

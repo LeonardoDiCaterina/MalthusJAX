@@ -15,7 +15,6 @@ from .core.fitness.binary_evaluators import (
     KnapsackConfig,
     KnapsackEvaluator,
 )
-from .core.fitness.linear_gp_evaluator import LinearGPEvaluator
 from .core.fitness.real_evaluators import (
     BoxConfig,
     BoxEvaluator,
@@ -30,7 +29,6 @@ from .core.genome.categorical_genome import (
     CategoricalGenomeConfig,
     CategoricalPopulation,
 )
-from .core.genome.linear_genome import LinearGenome, LinearGenomeConfig, LinearPopulation
 from .core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 
 # --- 2. OPERATORS ---
@@ -51,10 +49,6 @@ __all__ = [
     "BinaryGenomeConfig",
     "RealGenome",
     "RealGenomeConfig",
-    "CategoricalGenome",
-    "CategoricalGenomeConfig",
-    "LinearGenome",
-    "LinearGenomeConfig",
     # Engines
     "GeneticEngine",
     "GeneticEngineParams",

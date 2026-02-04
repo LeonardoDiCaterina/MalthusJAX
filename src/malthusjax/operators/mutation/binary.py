@@ -1,132 +1,130 @@
 """
 Binary mutation operators using the new paradigm.
 
-This module provides mutation operators for BinaryGenome using the new 
+This module provides mutation operators for BinaryGenome using the new
 @struct.dataclass factory pattern for JIT compilation and vectorization.
 """
 
-from typing import TypeVar
+from typing import Any, Tuple, cast
+
+import chex
 import jax
 import jax.numpy as jnp
 import jax.random
 from flax import struct
-import chex
-from malthusjax.operators.base import BaseMutation
+
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
+from malthusjax.operators.base import BaseMutation
+
 
 @struct.dataclass
 class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
-    Bit flip mutation.
-    Flips each bit with probability mutation_rate.
-    Requires 1 key (broadcasted/used for the Bernoulli mask).
+    Bit flip mutation (3-Tier Paradigm).
     """
+
     mutation_rate: float = 0.1
-    
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 1
 
-    def _mutate_one(self, keys: chex.Array, genome: BinaryGenome, config: BinaryGenomeConfig) -> BinaryGenome:
-        """
-        Atomic bit flip logic.
-        keys shape: (1, 2)
-        """
-        rng = keys[0]
+    def _generate_noise(self, keys: chex.Array, config: BinaryGenomeConfig) -> chex.Array:
+        """Tier 2: Generate the flip mask."""
+        return jax.random.bernoulli(keys[0], p=self.mutation_rate, shape=config.shape)
 
-        # 1. Generate boolean mask
-        mask = jax.random.bernoulli(rng, p=self.mutation_rate, shape=genome.bits.shape)
-
-        # 2. XOR Logic (Flipping)
-        # Handle both boolean and integer storage of bits
-        if jnp.issubdtype(genome.bits.dtype, jnp.bool_):
-            mutated = jnp.logical_xor(genome.bits, mask)
+    def _mutate_one(
+        self,
+        genome: BinaryGenome,
+        noise_data: chex.Array,
+        config: BinaryGenomeConfig,
+        **_kwargs: Any,
+    ) -> BinaryGenome:
+        """Tier 1: Bitwise XOR logic (Standardized .values)."""
+        mask = noise_data
+        if jnp.issubdtype(genome.values.dtype, jnp.bool_):
+            mutated = jnp.logical_xor(genome.values, mask)
         else:
-            # Convert to bool for XOR, then cast back
-            mutated_bool = jnp.logical_xor(genome.bits.astype(bool), mask)
-            mutated = mutated_bool.astype(genome.bits.dtype)
-
-        return genome.replace(bits=mutated)
+            mutated_bool = jnp.logical_xor(genome.values.astype(bool), mask)
+            mutated = mutated_bool.astype(genome.values.dtype)
+        return cast(BinaryGenome, cast(Any, genome).replace(values=mutated))
 
 
 @struct.dataclass
 class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
-    Scramble Mutation.
-    Scrambles the entire genome with probability `mutation_rate`.
-    Requires 2 keys: [0] for decision, [1] for permutation.
+    Scramble Mutation (3-Tier Paradigm).
     """
+
     mutation_rate: float = 0.1
-    
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 2
-    
-    def _mutate_one(self, keys: chex.Array, genome: BinaryGenome, config: BinaryGenomeConfig) -> BinaryGenome:
-        # 1. Direct Unpack
-        k_do = keys[0]
-        k_perm = keys[1]
-        
-        # 2. Define the Scramble Operation
-        def scramble_fn(g_bits):
-            indices = jax.random.permutation(k_perm, jnp.arange(g_bits.shape[-1]))
-            return g_bits[indices]
-        
-        # 3. Apply Condition
-        # We use lax.cond because permutation is expensive; strict evaluation (where) is wasteful here.
-        should_scramble = jax.random.bernoulli(k_do, p=self.mutation_rate)
-        
-        mutated_bits = jax.lax.cond(
-            should_scramble,
-            scramble_fn,        # True branch
-            lambda x: x,        # False branch (Identity)
-            genome.bits         # Operand
+
+    def _generate_noise(
+        self, keys: chex.Array, config: BinaryGenomeConfig
+    ) -> Tuple[chex.Array, chex.Array]:
+        """Tier 2: Decision mask and permutation indices."""
+        should_mutate = jax.random.bernoulli(keys[0], p=self.mutation_rate)
+        indices = jax.random.permutation(keys[1], jnp.arange(config.shape[-1]))
+        return should_mutate, indices
+
+    def _mutate_one(
+        self,
+        genome: BinaryGenome,
+        noise_data: Tuple[chex.Array, chex.Array],
+        config: BinaryGenomeConfig,
+        **_kwargs: Any,
+    ) -> BinaryGenome:
+        """Tier 1: Apply permutation conditionally."""
+        should_mutate, indices = noise_data
+        scrambled = genome.values[indices]
+        # Use select for a pure, branchless arithmetic path in XLA
+        new_values = jax.lax.select(
+            jnp.broadcast_to(should_mutate, scrambled.shape), scrambled, genome.values
         )
-        
-        return genome.replace(bits=mutated_bits)
+        return cast(BinaryGenome, cast(Any, genome).replace(values=new_values))
 
 
 @struct.dataclass
 class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
-    Swap Mutation.
-    Swaps TWO random bits in the genome.
-    Requires 3 keys: [0] for decision, [1] Pos A, [2] Pos B.
+    Swap Mutation (3-Tier Paradigm).
     """
+
     mutation_rate: float = 0.1
-    
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 3
-    
-    def _mutate_one(self, keys: chex.Array, genome: "BinaryGenome", config: "BinaryGenomeConfig") -> "BinaryGenome":
-        # 1. Direct Unpack
-        k_do = keys[0]
-        k_pos1 = keys[1]
-        k_pos2 = keys[2]
-        
-        # 2. Define Swap Operation
-        def swap_fn(g_bits):
-            size = g_bits.shape[-1]
-            idx1 = jax.random.randint(k_pos1, (), 0, size)
-            idx2 = jax.random.randint(k_pos2, (), 0, size)
-            
-            val1 = g_bits[idx1]
-            val2 = g_bits[idx2]
-            
-            # Use .at[].set() for functional updates
-            return g_bits.at[idx1].set(val2).at[idx2].set(val1)
-        
-        # 3. Apply Condition
-        should_swap = jax.random.bernoulli(k_do, p=self.mutation_rate)
-        
-        mutated_bits = jax.lax.cond(
-            should_swap,
-            swap_fn,
-            lambda x: x,
-            genome.bits
-        )
-        
-        return genome.replace(bits=mutated_bits)
+
+    def _generate_noise(
+        self, keys: chex.Array, config: BinaryGenomeConfig
+    ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+        """Tier 2: Decision mask and swap positions."""
+        should_mutate = jax.random.bernoulli(keys[0], p=self.mutation_rate)
+        idx1 = jax.random.randint(keys[1], (), 0, config.shape[-1])
+        idx2 = jax.random.randint(keys[2], (), 0, config.shape[-1])
+        return should_mutate, idx1, idx2
+
+    def _mutate_one(
+        self,
+        genome: BinaryGenome,
+        noise_data: Tuple[chex.Array, chex.Array, chex.Array],
+        config: BinaryGenomeConfig,
+        **_kwargs: Any,
+    ) -> BinaryGenome:
+        """Tier 1: Functional swap."""
+        should_mutate, idx1, idx2 = noise_data
+
+        # Calculate swapped values
+        v1, v2 = genome.values[idx1], genome.values[idx2]
+        swapped = genome.values.at[idx1].set(v2).at[idx2].set(v1)
+
+        # Apply logic
+        new_values = jax.lax.select(should_mutate, swapped, genome.values)
+        return cast(BinaryGenome, cast(Any, genome).replace(values=new_values))
+
 
 __all__ = ["BitFlipMutation", "ScrambleMutation", "SwapMutation"]
