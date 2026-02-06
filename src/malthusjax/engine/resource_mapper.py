@@ -1,58 +1,57 @@
 """
 Resource Mapper - Static RNG Budget Allocator & Data Flow Calculator.
+
+Step 3 of Optimization Roadmap: 
+Pre-calculates exact RNG requirements and operator output shapes
+to enable static allocation and precise "cascade" data flow.
 """
 from enum import Enum
-from typing import Any, NamedTuple, Tuple
-
-import chex
-import jax
-import jax.numpy as jnp
-import numpy as _np
+from typing import NamedTuple, Any, Tuple
 from flax import struct
-from jax.sharding import Mesh, NamedSharding
-from jax.sharding import PartitionSpec as P
+import jax
+import chex
+from jax.sharding import Mesh, NamedSharding, PartitionSpec as P
+import jax.numpy as jnp
 
-from malthusjax.operators.base import BaseCrossover, BaseMutation, BaseSelection
+from malthusjax.operators.base import BaseMutation, BaseCrossover, BaseSelection
 
 
 class KeyDerivationStrategy(Enum):
-    """Strategy for deriving RNG keys for the total budget.
+    """
+    Strategy for deriving random keys from a master key.
     
-    SPLIT: Uses jax.random.split() - generates independent streams.
-           Good for multi-device setups where independent randomness is critical.
+    SPLIT: Uses jax.random.split repeatedly - produces uncorrelated keys
+           but requires sequential splits (not fully parallelizable)
     
-    FOLD: Uses jax.random.fold_in() - generates deterministic sequences.
-          Good for reproducibility and when correlations between keys are acceptable.
+    FOLD: Uses jax.random.fold_in with indices - produces deterministic 
+          keys that can be generated in parallel from the same master key
     """
     SPLIT = "split"
-    FOLD = "fold"
-
+    FOLD = "fold_in"
 
 class ShardingManager:
     """
     Manages the GSPMD layout for the population.
     Works for 1 Device (Layout Optimization) and N Devices (Parallelism).
     """
-    def __init__(self, axis_name: str = 'batch') -> None:
-
+    def __init__(self, axis_name='batch'):
+        
         self.axis_name = axis_name
         self.devices = jax.devices()
         self.mesh = Mesh(self.devices, (self.axis_name,))
-        self.matrix_spec = P(self.axis_name, None)  # type: ignore[no-untyped-call]
+        self.matrix_spec = P(self.axis_name, None)
         self.matrix_sharding = NamedSharding(self.mesh, self.matrix_spec)
-        self.vector_spec = P(self.axis_name)  # type: ignore[no-untyped-call]
+        self.vector_spec = P(self.axis_name)
         self.vector_sharding = NamedSharding(self.mesh, self.vector_spec)
-        self.replicated_spec = P()  # type: ignore[no-untyped-call]
-        self.replicated_sharding = NamedSharding(self.mesh, self.replicated_spec)
+        self.replicated_spec = P()
+        self.replicated_sharding = NamedSharding(self.mesh, self.replicated_spec)        
         self.mesh = Mesh(self.devices, (self.axis_name,))
-        self.pop_spec = P(self.axis_name, None)  # type: ignore[no-untyped-call]
-        self.replicated_spec = P()  # type: ignore[no-untyped-call]
+        self.pop_spec = P(self.axis_name, None)  
+        self.replicated_spec = P() 
         self.pop_sharding = NamedSharding(self.mesh, self.pop_spec)
         self.replicated_sharding = NamedSharding(self.mesh, self.replicated_spec)
 
-    def alloc_population(self,
-                         shape: Tuple[int, ...],
-                         dtype: _np.dtype[Any] = jnp.float32) -> chex.Array:
+    def alloc_population(self, shape, dtype=jnp.float32):
         """
         Allocates a zero-filled population tensor with enforced sharding.
         
@@ -61,7 +60,7 @@ class ShardingManager:
         """
         return jax.device_put(jnp.zeros(shape, dtype=dtype), self.pop_sharding)
 
-    def split_key_sharded(self, key: chex.PRNGKey, num: int) -> chex.Array:
+    def split_key_sharded(self, key, num):
         """
         Splits RNG keys such that each device gets its own independent stream.
         This is crucial for Multi-GPU stochasticity.
@@ -69,9 +68,9 @@ class ShardingManager:
         Enforce that the keys are sharded across the batch dimension
         """
         keys = jax.random.split(key, num)
-
+        
         return jax.device_put(keys, self.pop_sharding)
-
+    
 
 class OperatorAllocation(NamedTuple):
     """
@@ -90,103 +89,88 @@ class ResourceMap:
     """
     Master plan for RNG distribution and Data Flow in one generation.
     """
-    total_rng_budget: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
+    total_rng_budget: int = struct.field(pytree_node=False)
+    
+    selection: OperatorAllocation = struct.field(pytree_node=False)
+    crossover: OperatorAllocation = struct.field(pytree_node=False)
+    mutation:  OperatorAllocation = struct.field(pytree_node=False)
+    next_key:  OperatorAllocation = struct.field(pytree_node=False)
+    
+    pop_size: int = struct.field(pytree_node=False)
+    genome_shape: Tuple[int, ...] = struct.field(pytree_node=False)
+    key_derivation: KeyDerivationStrategy = struct.field(
+        pytree_node=False,
+        default=KeyDerivationStrategy.SPLIT
+    )
 
-    selection: OperatorAllocation = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-    crossover: OperatorAllocation = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-    mutation:  OperatorAllocation = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-    next_key:  OperatorAllocation = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-
-    pop_size: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-    genome_shape: Tuple[int, ...] = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-    # Store indices as a plain Python tuple so ResourceMap remains simple metadata
-    arange_total_keys: Tuple[int, ...] = struct.field(pytree_node=False, default_factory=tuple)  # type: ignore[no-untyped-call]
-    key_derivation: KeyDerivationStrategy = struct.field(pytree_node=False, default=KeyDerivationStrategy.SPLIT)  # type: ignore[no-untyped-call]
     def get_key_slice(self, op_name: str) -> slice:
         """Returns the slice to extract this operator's keys from the master buffer."""
         alloc = getattr(self, op_name)
         return slice(alloc.start_idx, alloc.end_idx)
-
+    
     def get_output_count(self, op_name: str) -> int:
         """Returns the number of items produced by this operator."""
-        return int(getattr(self, op_name).output_count)
-
-    def fold_key(self, key: chex.PRNGKey) -> chex.Array:
-        """Folds the master key into individual keys for the total RNG budget.
-        Converts the stored Python index tuple into a JAX array at runtime to
-        avoid keeping JAX arrays in dataclass metadata fields (which breaks
-        Flax/struct equality semantics used during compilation).
-        # might consider to device_put the result with sharding?
+        return getattr(self, op_name).output_count
+    
+    def get_keys(self, master_key: chex.Array) -> chex.Array:
         """
-        idxs = jnp.asarray(self.arange_total_keys)
-        def _fold_in(idx: chex.Array) -> chex.PRNGKey:
-            # Accept a JAX array scalar and feed it directly to fold_in
-            return jax.random.fold_in(key, idx)
-        return jax.vmap(_fold_in)(idxs)
-
-    def split_key(self, key: chex.PRNGKey) -> chex.Array:
-        """Splits a single key into the total RNG budget."""
-        return jax.random.split(key, self.total_rng_budget)
-
-    def get_keys(self, key: chex.PRNGKey) -> chex.Array:
-        """Derives keys using the configured strategy (split or fold).
+        Generate all RNG keys for one generation using the configured strategy.
         
         Args:
-            key: Master RNG key to derive from.
+            master_key: The master random key for this generation
             
         Returns:
-            Array of keys with shape (total_rng_budget,) derived according to strategy.
+            Array of shape (total_rng_budget,) containing all keys
         """
         if self.key_derivation == KeyDerivationStrategy.SPLIT:
-            return self.split_key(key)
+            # Sequential splitting
+            return jax.random.split(master_key, self.total_rng_budget)
         elif self.key_derivation == KeyDerivationStrategy.FOLD:
-            return self.fold_key(key)
+            # Parallel fold_in
+            indices = jnp.arange(self.total_rng_budget)
+            return jax.vmap(lambda i: jax.random.fold_in(master_key, i))(indices)
         else:
             raise ValueError(f"Unknown key derivation strategy: {self.key_derivation}")
 
 
 def compute_resource_map(
-    selection: BaseSelection[Any, Any],
-    crossover: BaseCrossover[Any, Any, Any],
-    mutation: BaseMutation[Any, Any, Any],
+    selection: BaseSelection,
+    crossover: BaseCrossover,
+    mutation: BaseMutation,
     genome_config: Any,
     pop_size: int,
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT
 ) -> ResourceMap:
     """
     Compiles the RNG requirements and Data Flow for the entire evolution loop.
+    
     Calculates the 'Cascade Effect':
     Selection(N) -> Parents(P) -> Crossover(P/2) -> Offspring(O) -> Mutation(O) -> Mutants(M)
     """
     current_key_idx = 0
-
+    
     # Determine genome shape (for metadata)
-    if hasattr(genome_config, 'shape'):
-        genome_shape = genome_config.shape
-    elif hasattr(genome_config, 'length'):
+    # Prefer `resolved_shape` if available (handles legacy `length` alias)
+    if hasattr(genome_config, 'resolved_shape'):
+        genome_shape = genome_config.resolved_shape
+    elif getattr(genome_config, 'length', None) is not None:
         genome_shape = (genome_config.length,)
-    elif hasattr(genome_config, 'size'):
+    elif getattr(genome_config, 'size', None) is not None:
         genome_shape = (genome_config.size,)
+    elif getattr(genome_config, 'shape', None) is not None:
+        genome_shape = genome_config.shape
     else:
         genome_shape = ()
 
     offspring_per_pair = getattr(crossover, 'num_offspring', 2)
     pairs_needed = (pop_size + offspring_per_pair - 1) // offspring_per_pair
     parents_needed = pairs_needed * 2
-
+    
     sel_input_count = pop_size
     sel_output_count = parents_needed
-
-    # Defensive validation: ensure operators are the expected types
-    if not hasattr(selection, "replace") or not callable(getattr(selection, "replace")):
-        raise TypeError(
-            "selection operator does not implement required 'replace' method. "
-            f"Got type {type(selection)}. Ensure you pass an operator instance from OperatorCatalog.get(spec) "
-            "or a proper BaseSelection implementation instead of a pandas object or raw dict."
-        )
     temp_sel = selection.replace(num_selections=sel_output_count).set_input_length(sel_input_count)
     sel_keys_needed = temp_sel.num_keys(input_shape=(sel_input_count,))
-
+    
     selection_alloc = OperatorAllocation(
         num_keys=sel_keys_needed,
         start_idx=current_key_idx,
@@ -200,15 +184,15 @@ def compute_resource_map(
     # crossover
     cross_input_count = sel_output_count # e.g. 18 (if pop_size=17)
     num_pairs = cross_input_count // 2   # e.g. 9
-
+    
     crossover = crossover.set_input_length(num_pairs)
-
+    
     # Output: Pairs * num_offspring (per pair)
     # This might be slightly larger than pop_size (e.g. 18), we will allow that
     cross_output_count = num_pairs * crossover.num_offspring
-
+    
     cross_keys_needed = crossover.num_keys(input_shape=(num_pairs,))
-
+    
     crossover_alloc = OperatorAllocation(
         num_keys=cross_keys_needed,
         start_idx=current_key_idx,
@@ -224,6 +208,7 @@ def compute_resource_map(
     mutation = mutation.set_input_length(mut_input_count)
     mut_output_count = mut_input_count * mutation.num_offspring
     mut_keys_needed = mutation.num_keys(input_shape=(mut_input_count,))
+    
     mutation_alloc = OperatorAllocation(
         num_keys=mut_keys_needed,
         start_idx=current_key_idx,
@@ -244,17 +229,16 @@ def compute_resource_map(
         operator_type='next_key'
     )
     current_key_idx += 1
-    arange_total_keys = tuple(range(int(current_key_idx)))
+
     return ResourceMap(
         total_rng_budget=current_key_idx,
-        key_derivation=key_derivation,
         selection=selection_alloc,
         crossover=crossover_alloc,
         mutation=mutation_alloc,
         next_key=next_key_alloc,
         pop_size=pop_size,
         genome_shape=genome_shape,
-        arange_total_keys=arange_total_keys
+        key_derivation=key_derivation
     )
 
 def get_resource_summary(rmap: ResourceMap) -> str:
@@ -262,9 +246,9 @@ def get_resource_summary(rmap: ResourceMap) -> str:
     s = rmap.selection
     c = rmap.crossover
     m = rmap.mutation
-
+    
     lines = [
-        "Pipeline Resource & Flow Summary:",
+        f"Pipeline Resource & Flow Summary:",
         f"  Total RNG Budget: {rmap.total_rng_budget} keys",
         "",
         "  [1. SELECTION]",

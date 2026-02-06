@@ -56,11 +56,11 @@ class MockCrossoverCustomKeys(BaseCrossover):
 
 @struct.dataclass
 class MockSelectionCustomKeys(BaseSelection):
-    """Mock selection with custom keys_per_selection."""
+    """Mock selection with custom num_keys_per_atomic_operation."""
     num_selections: int = struct.field(pytree_node=False, default=10)
     
     @property
-    def keys_per_selection(self) -> int:
+    def num_keys_per_atomic_operation(self) -> int:
         # Custom: needs 2 keys per selection
         return 2
     
@@ -87,7 +87,10 @@ class MockCrossoverDefault(BaseCrossover):
     """Mock crossover using default num_keys."""
     num_offspring: int = struct.field(pytree_node=False, default=2)
     
-    # Uses default num_keys_per_atomic_operation = 1 from BaseCrossover
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        # Default behavior: 1 key per atomic crossover
+        return 1
     
     def _cross_one(self, key_block, p1, p2, config):
         return p1
@@ -98,7 +101,10 @@ class MockSelectionDefault(BaseSelection):
     """Mock selection using default num_keys."""
     num_selections: int = struct.field(pytree_node=False, default=10)
     
-    # Uses default keys_per_selection = 1 from BaseSelection
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        # Default behavior: 1 key per atomic selection
+        return 1
     
     def _select(self, keys, fitness, config):
         return jnp.arange(self.num_selections)
