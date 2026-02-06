@@ -59,7 +59,7 @@ def test_engine_elitism_zero_runs():
     new_state, metrics = engine.step(state)
 
     # Verify population size is preserved
-    assert new_state.population.genes.bits.shape[0] == 17
+    assert new_state.population.genes.values.shape[0] == 17
     # Verify generation incremented
     assert new_state.generation == 1
     # Verify no NaN values in population (bits are int, but check anyway)
