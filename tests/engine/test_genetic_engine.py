@@ -20,12 +20,12 @@ class TestLevel3Engine(unittest.TestCase):
         
         # 1. Configuration
         self.pop_size = 100
-        self.genome_length = 10
+        self.genome_shape = (10,)
         self.bounds = (-5.0, 5.0)
         self.generations = 10
         
         self.genome_config = RealGenomeConfig(
-            length=self.genome_length, 
+            shape=self.genome_shape, 
             bounds=self.bounds
         )
         
@@ -39,7 +39,7 @@ class TestLevel3Engine(unittest.TestCase):
         # FIX: Use factory method to ensure 'data=None' and internal state are set correctly
         bbob_config = BBOBConfig(
             fn_name="sphere", 
-            num_dims=self.genome_length, 
+            num_dims=self.genome_shape[0], 
             maximize=False
         )
         self.evaluator = BBOBEvaluator.create(bbob_config)
@@ -109,7 +109,7 @@ class TestLevel3Engine(unittest.TestCase):
         print(f"  Step Time (compile+run): {duration:.4f}s")
         
         self.assertEqual(final_state.generation, 1)
-        self.assertEqual(final_state.population.genes.values.shape, (self.pop_size, self.genome_length))
+        self.assertEqual(final_state.population.genes.values.shape, (self.pop_size,) + self.genome_shape)
         
         # Check that we actually did something (fitness changed or valid)
         self.assertFalse(jnp.isnan(final_state.best_fitness))

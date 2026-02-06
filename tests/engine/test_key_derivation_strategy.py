@@ -43,7 +43,7 @@ class TestResourceMapGetKeys:
     @pytest.fixture
     def resource_map_split(self):
         """Create a ResourceMap with SPLIT strategy."""
-        config = BinaryGenomeConfig(length=8, dtype=jnp.float32)
+        config = BinaryGenomeConfig(shape=(8,), dtype=jnp.float32)
         selection = TournamentSelection(num_selections=10, tournament_size=2)
         crossover = SinglePointCrossover(num_offspring=2)
         mutation = BitFlipMutation(num_offspring=1, mutation_rate=0.1)
@@ -55,7 +55,7 @@ class TestResourceMapGetKeys:
     @pytest.fixture
     def resource_map_fold(self):
         """Create a ResourceMap with FOLD strategy."""
-        config = BinaryGenomeConfig(length=8, dtype=jnp.float32)
+        config = BinaryGenomeConfig(shape=(8,), dtype=jnp.float32)
         selection = TournamentSelection(num_selections=10, tournament_size=2)
         crossover = SinglePointCrossover(num_offspring=2)
         mutation = BitFlipMutation(num_offspring=1, mutation_rate=0.1)
@@ -156,7 +156,7 @@ class TestGeneticEngineWithStrategies:
     @pytest.fixture
     def genetic_engine_split(self, engine_params_split):
         """Create genetic engine with SPLIT strategy."""
-        config = BinaryGenomeConfig(length=8, dtype=jnp.float32)
+        config = BinaryGenomeConfig(shape=(8,), dtype=jnp.float32)
         evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=True))
         selection = TournamentSelection(num_selections=10, tournament_size=2)
         crossover = SinglePointCrossover(num_offspring=2)
@@ -174,7 +174,7 @@ class TestGeneticEngineWithStrategies:
     @pytest.fixture
     def genetic_engine_fold(self, engine_params_fold):
         """Create genetic engine with FOLD strategy."""
-        config = BinaryGenomeConfig(length=8, dtype=jnp.float32)
+        config = BinaryGenomeConfig(shape=(8,), dtype=jnp.float32)
         evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=True))
         selection = TournamentSelection(num_selections=10, tournament_size=2)
         crossover = SinglePointCrossover(num_offspring=2)
@@ -276,7 +276,7 @@ class TestResourceMapWithDefaultStrategy:
 
     def test_default_strategy_is_split(self):
         """ResourceMap should default to SPLIT strategy."""
-        config = BinaryGenomeConfig(length=8, dtype=jnp.float32)
+        config = BinaryGenomeConfig(shape=(8,), dtype=jnp.float32)
         selection = TournamentSelection(num_selections=10, tournament_size=2)
         crossover = SinglePointCrossover(num_offspring=2)
         mutation = BitFlipMutation(num_offspring=1, mutation_rate=0.1)
@@ -286,7 +286,7 @@ class TestResourceMapWithDefaultStrategy:
 
     def test_explicit_strategy_override_default(self):
         """Explicitly setting strategy should override default."""
-        config = BinaryGenomeConfig(length=8, dtype=jnp.float32)
+        config = BinaryGenomeConfig(shape=(8,), dtype=jnp.float32)
         selection = TournamentSelection(num_selections=10, tournament_size=2)
         crossover = SinglePointCrossover(num_offspring=2)
         mutation = BitFlipMutation(num_offspring=1, mutation_rate=0.1)
@@ -302,7 +302,7 @@ class TestKeyDerivationIntegration:
 
     def test_reproducibility_with_split_strategy(self):
         """Same seed with SPLIT strategy should give same results."""
-        config = BinaryGenomeConfig(length=16, dtype=jnp.float32)
+        config = BinaryGenomeConfig(shape=(16,), dtype=jnp.float32)
         evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=True))
         selection = TournamentSelection(num_selections=10, tournament_size=2)
         crossover = SinglePointCrossover(num_offspring=2)
@@ -338,7 +338,7 @@ class TestKeyDerivationIntegration:
 
     def test_reproducibility_with_fold_strategy(self):
         """Same seed with FOLD strategy should give same results."""
-        config = BinaryGenomeConfig(length=16, dtype=jnp.float32)
+        config = BinaryGenomeConfig(shape=(16,), dtype=jnp.float32)
         evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=True))
         selection = TournamentSelection(num_selections=10, tournament_size=2)
         crossover = SinglePointCrossover(num_offspring=2)

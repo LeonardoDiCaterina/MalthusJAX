@@ -87,7 +87,7 @@ class Composer:
                     genome_type=genome_type,
                     pop_size=pop_size,
                     generations=generations,
-                    genome_length=genome_length,
+                    genome_shape=genome_length,
                     bounds=bounds,
                     elitism=elitism,
                     **kwargs,

@@ -113,7 +113,7 @@ def test_compute_resource_map_basic():
     selection = MockSelectionDefault(num_selections=100)
     crossover = MockCrossoverDefault(num_offspring=2)
     mutation = MockMutationDefault(mutation_rate=0.1, num_offspring=1)
-    genome_config = BinaryGenomeConfig(length=20)
+    genome_config = BinaryGenomeConfig(shape=(20,))
     pop_size = 100
     
     resource_map = compute_resource_map(
@@ -142,7 +142,7 @@ def test_compute_resource_map_cascade_flow():
     selection = MockSelectionDefault(num_selections=100)
     crossover = MockCrossoverDefault(num_offspring=offspring_per_pair)
     mutation = MockMutationDefault(mutation_rate=0.1, num_offspring=1)
-    genome_config = BinaryGenomeConfig(length=10)
+    genome_config = BinaryGenomeConfig(shape=(10,))
     
     resource_map = compute_resource_map(
         selection, crossover, mutation, genome_config, pop_size
@@ -166,21 +166,21 @@ def test_compute_resource_map_different_genome_types():
     mutation = MockMutationDefault(num_offspring=1)
     
     # Binary genome
-    binary_config = BinaryGenomeConfig(length=50)
+    binary_config = BinaryGenomeConfig(shape=(50,))
     rmap_binary = compute_resource_map(
         selection, crossover, mutation, binary_config, 100
     )
     assert rmap_binary.genome_shape == (50,)
     
     # Real genome
-    real_config = RealGenomeConfig(length=20, bounds=(-10.0, 10.0))
+    real_config = RealGenomeConfig(shape=(20,), bounds=(-10.0, 10.0))
     rmap_real = compute_resource_map(
         selection, crossover, mutation, real_config, 100
     )
     assert rmap_real.genome_shape == (20,)
     
     # Categorical genome
-    cat_config = CategoricalGenomeConfig(length=5, num_categories=15)
+    cat_config = CategoricalGenomeConfig(shape=(5,), num_categories=15)
     rmap_cat = compute_resource_map(
         selection, crossover, mutation, cat_config, 100
     )
@@ -192,7 +192,7 @@ def test_compute_resource_map_large_population():
     selection = MockSelectionCustomKeys(num_selections=1000)
     crossover = MockCrossoverCustomKeys(num_offspring=2)
     mutation = MockMutationCustomKeys(mutation_rate=0.05, num_offspring=5)
-    genome_config = RealGenomeConfig(length=100, bounds=(-1.0, 1.0))
+    genome_config = RealGenomeConfig(shape=(100,), bounds=(-1.0, 1.0))
     pop_size = 1000
     
     resource_map = compute_resource_map(
@@ -214,7 +214,7 @@ def test_resource_map_get_key_slice():
     selection = MockSelectionDefault(num_selections=10)
     crossover = MockCrossoverDefault(num_offspring=2)
     mutation = MockMutationDefault(mutation_rate=0.1, num_offspring=1)
-    genome_config = BinaryGenomeConfig(length=10)
+    genome_config = BinaryGenomeConfig(shape=(10,))
     
     resource_map = compute_resource_map(
         selection, crossover, mutation, genome_config, 100
@@ -238,7 +238,7 @@ def test_resource_map_key_slicing_workflow():
     selection = MockSelectionDefault(num_selections=10)
     crossover = MockCrossoverDefault(num_offspring=2)
     mutation = MockMutationDefault(mutation_rate=0.1, num_offspring=1)
-    genome_config = BinaryGenomeConfig(length=10)
+    genome_config = BinaryGenomeConfig(shape=(10,))
     
     resource_map = compute_resource_map(
         selection, crossover, mutation, genome_config, 100
@@ -271,7 +271,7 @@ def test_get_resource_summary():
     selection = MockSelectionDefault(num_selections=50)
     crossover = MockCrossoverDefault(num_offspring=2)
     mutation = MockMutationDefault(mutation_rate=0.1, num_offspring=1)
-    genome_config = RealGenomeConfig(length=25, bounds=(-1.0, 1.0))
+    genome_config = RealGenomeConfig(shape=(25,), bounds=(-1.0, 1.0))
     
     resource_map = compute_resource_map(
         selection, crossover, mutation, genome_config, 50
@@ -296,7 +296,7 @@ def test_genetic_engine_resource_map_in_state():
     from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticEvolutionState
     from malthusjax.core.fitness.binary_evaluators import BinarySumEvaluator, BinarySumConfig
     
-    genome_config = BinaryGenomeConfig(length=20)
+    genome_config = BinaryGenomeConfig(shape=(20,))
     evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=True))
     engine_params = GeneticEngineParams(pop_size=100)
     
@@ -329,7 +329,7 @@ def test_genetic_engine_resource_map_consistency():
     from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
     from malthusjax.core.fitness.binary_evaluators import BinarySumEvaluator, BinarySumConfig
     
-    genome_config = BinaryGenomeConfig(length=15)
+    genome_config = BinaryGenomeConfig(shape=(15,))
     evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=True))
     engine_params = GeneticEngineParams(pop_size=50)
     
@@ -365,7 +365,7 @@ def test_acceptance_key_slices_non_overlapping():
     selection = MockSelectionDefault(num_selections=10)
     crossover = MockCrossoverDefault(num_offspring=2)
     mutation = MockMutationDefault(mutation_rate=0.1, num_offspring=1)
-    genome_config = BinaryGenomeConfig(length=10)
+    genome_config = BinaryGenomeConfig(shape=(10,))
     
     resource_map = compute_resource_map(
         selection, crossover, mutation, genome_config, 100
@@ -391,7 +391,7 @@ def test_acceptance_resource_map_enables_static_allocation():
     selection = MockSelectionDefault(num_selections=20)
     crossover = MockCrossoverDefault(num_offspring=2)
     mutation = MockMutationDefault(num_offspring=1)
-    genome_config = BinaryGenomeConfig(length=30)
+    genome_config = BinaryGenomeConfig(shape=(30,))
     
     resource_map = compute_resource_map(
         selection, crossover, mutation, genome_config, 50
@@ -421,7 +421,7 @@ def test_acceptance_output_count_matches_cascade():
     selection = MockSelectionDefault(num_selections=100)
     crossover = MockCrossoverDefault(num_offspring=crossover_offspring)
     mutation = MockMutationDefault(num_offspring=mutation_offspring)
-    genome_config = BinaryGenomeConfig(length=10)
+    genome_config = BinaryGenomeConfig(shape=(10,))
     
     resource_map = compute_resource_map(
         selection, crossover, mutation, genome_config, pop_size
