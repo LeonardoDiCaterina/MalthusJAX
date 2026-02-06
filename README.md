@@ -269,52 +269,126 @@ The Resource Allocator computes the maximum across all operators and splits a si
 - ✅ Deterministic key allocation (no dynamic control flow)
 - ✅ Zero overhead for key management
 
-### Ablation Operators: Benchmarking Key Allocation Overhead
+### RNG Derivation Strategies: User Control Over Key Generation
 
-To quantify the performance cost of static key allocation, MalthusJAX includes **ablation operator variants** that generate keys internally using `jax.random.fold_in()`:
+MalthusJAX provides **two RNG derivation strategies** for generating the static key budget. You can choose which strategy best fits your use case:
 
+| Strategy | Method | Best For | Characteristics |
+|----------|--------|----------|------------------|
+| **SPLIT** (default) | `jax.random.split()` | Multi-device, distributed optimization | Independent key streams, reduced correlation, optimal for GPU farms |
+| **FOLD** | `jax.random.fold_in()` | Reproducibility-focused, single-device | Deterministic counter-advancing sequences, seed-stable behavior |
+
+**Example: Choosing a Strategy**
 ```python
-@struct.dataclass
-class AblationGaussianMutation(BaseMutation):
-    """Ablation: Generate keys internally instead of using pre-allocated keys."""
-    
-    def num_keys(self, input_shape: Tuple[int, ...]) -> int:
-        """Return 1: minimal overhead, keys generated internally."""
-        return 1
-    
-    def __call__(self, single_key, population, config):
-        # Generate all needed keys internally using fold_in
-        pop_size = population.shape[0]
-        all_keys = jax.random.split(
-            jax.random.fold_in(single_key, pop_size),
-            pop_size * self.num_offspring * self.num_keys_per_atomic_operation
-        )
-        # ... apply mutation with internally-generated keys
+from malthusjax.engine.resource_mapper import KeyDerivationStrategy
+from malthusjax.engine.genetic_fastengine import GeneticEngineParams
+
+# Use FOLD for strict reproducibility
+engine_params = GeneticEngineParams(
+    pop_size=100,
+    num_generations=50,
+    key_derivation=KeyDerivationStrategy.FOLD  # Deterministic sequences
+)
+
+# Or use SPLIT (default) for multi-device setups
+engine_params = GeneticEngineParams(
+    pop_size=100,
+    num_generations=50,
+    key_derivation=KeyDerivationStrategy.SPLIT  # Independent streams
+)
 ```
 
-**Ablation operators differ from standard operators:**
-- **Standard**: `num_keys() = pop_size × offspring × keys_per_op` → pre-allocated
-- **Ablation**: `num_keys() = 1` → keys generated on-the-fly with `fold_in()`
+Both strategies produce **statistically equivalent results**; the choice affects RNG stream topology and reproducibility semantics. For detailed information, see [Engine Architecture Documentation](src/malthusjax/engine/README.md#key-derivation-strategies).
+
+### Ablation Operators: Benchmarking Key Allocation Overhead
+
+To quantify the performance impact of static key allocation vs. dynamic splitting, MalthusJAX includes **ablation study decorators** (`@ablation_single_key_mutation`, `@ablation_single_key_crossover`) that reduce any operator to single-key allocation:
+
+```python
+from malthusjax.operators.base_ablation import ablation_single_key_mutation
+from malthusjax.operators.mutation.real import GaussianMutation
+
+# Wrap standard operator with ablation decorator
+@ablation_single_key_mutation
+class GaussianMutation_ablation(GaussianMutation):
+    pass
+
+# Use ablation operator for benchmarking
+standard_op = GaussianMutation(num_offspring=1, mutation_rate=0.1)
+ablation_op = GaussianMutation_ablation(num_offspring=1, mutation_rate=0.1)
+
+# Both implement identical arithmetic, but differ in RNG topology:
+# - standard_op.num_keys(100) → 200 (pre-allocated)
+# - ablation_op.num_keys(100) → 1 (dynamic fold_in internally)
+```
+
+**Ablation decorator behavior:**
+- **Standard operator**: `num_keys() = pop_size × offspring × keys_per_op` → static allocation via ResourceMap
+- **Ablation operator**: `num_keys() = 1` → keys generated internally using `jax.random.fold_in()` on-the-fly
 
 **Benchmark use case:**
 ```bash
-# Compare dispatch overhead of key allocation
-# Run both standard and ablation versions with dispatch timing CLI
-python cli_dispatch.py config.toml --framework malthus
+# Compare ResourceMap pre-allocation vs. dynamic key generation
+python benchmarks/cli_dispatch.py config.toml --framework malthus
 
-# Ablation results show the "true" mutation cost without allocation overhead
-# Standard results show allocation + mutation cost
-# Difference = static allocation framework overhead
+# Standard results: Dispatch + Allocation + Operator overhead
+# Ablation results: Dispatch + Dynamic-splitting + Operator overhead
+# Difference = static allocation framework efficiency gain (or loss!)
 ```
 
-Available ablation operators in `src/malthusjax/operators/`:
-- `mutation/ablation_mutation.py`: `AblationGaussianMutation`, `AblationBallMutation`, `AblationPolynomialMutation`
-- `crossover/ablation_crossover.py`: `AblationUniformCrossover`, `AblationBlendCrossover`, `AblationSimulatedBinaryCrossover`
-- `selection/ablation_selection.py`: `AblationElitePoolSelection`
+**Available ablation decorators** in [src/malthusjax/operators/base_ablation.py](src/malthusjax/operators/base_ablation.py):
+- `@ablation_single_key_mutation` — Convert any `BaseMutation` to single-key allocation
+- `@ablation_single_key_crossover` — Convert any `BaseCrossover` to single-key allocation
 
-This enables precise measurement of overhead vs. benefit trade-offs in the resource allocation framework.
+For detailed ablation study methodology, see:
+- [Mutation Operator Ablation Study Mode](src/malthusjax/operators/mutation/README.md#ablation-study-mode-)
+- [Crossover Operator Ablation Study Mode](src/malthusjax/operators/crossover/README.md#ablation-study-mode-)
+- [Engine Resource Mapping & Key Derivation](src/malthusjax/engine/README.md#resource-mapping--cascade-data-flow)
 
+This enables **precise measurement of framework overhead vs. implementation benefit trade-offs**.
 
+---
+
+## 📚 Comprehensive Documentation
+
+MalthusJAX provides detailed technical documentation for each layer:
+
+### Level 3: Evolution Engines
+- **[Engine Architecture & Execution Model](src/malthusjax/engine/README.md)** (417 lines)
+  - 6-phase evolution step execution with named calls for HLO profiling
+  - ResourceMap contract and static RNG budgeting
+  - KeyDerivationStrategy (SPLIT vs FOLD) detailed explanation
+  - Operator baking, scheduled mutation, ask/tell interface
+  - GSPMD sharding for single/multi-device optimization
+  - Extension points and custom engine development patterns
+
+### Level 2: Genetic Operators
+- **[Selection Operators](src/malthusjax/operators/selection/README.md)** — Parent selection strategies
+  - Atomic logic separation and vectorized slicing patterns
+  - Mode A vs Mode D (bulk injection) trade-offs
+  - Developer checklist for implementing custom selection
+
+- **[Mutation Operators](src/malthusjax/operators/mutation/README.md)** (Tier 1/2/3 architecture)
+  - Three-tier design: arithmetic kernel → noise generation → vectorized wrapper
+  - BaseMutation (per-individual) vs BaseMutation_injection (bulk) modes
+  - ResourceMap integration and KeyDerivationStrategy impact
+  - Ablation study decorators for performance benchmarking
+
+- **[Crossover Operators](src/malthusjax/operators/crossover/README.md)** (Tier 1/2/3 architecture)
+  - Recombination kernels and mask conventions
+  - Mode A (per-pair sampling) vs Mode D (bulk injection)
+  - Offspring-major flattening for consistency across modes
+  - Ablation study methodology and benchmarking patterns
+
+### Level 1: Core Components
+- **Genomes**: Immutable genome representations with automatic vectorization
+- **Fitness Evaluators**: Batch evaluation with VMAP, population-level metrics
+
+### Benchmarking & Evaluation
+- **[Dispatch Timing Analysis](benchmarks/)** — JAX dispatch overhead and operator profiling
+- **[Fitness Landscape Analysis](benchmarks/)** — Hyperparameter tuning on BBOB functions
+
+---
 
 ## Testing
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Union
+from typing import Any, Dict, Tuple, Union
 
 import chex
 
@@ -72,7 +72,7 @@ def build_engine(
     pop_size: int = 50,
     generations: int = 100,
     elitism: int = 2,
-    genome_length: int = 10,
+    genome_shape: Tuple[int, ...] = (10,),
     bounds: tuple = (-5.0, 5.0),
     **kwargs: Any,
 ) -> GeneticEngineAdapter:
@@ -86,22 +86,56 @@ def build_engine(
         pop_size: Population size
         generations: Number of generations
         elitism: Number of elite individuals
-        genome_length: Length of genome
+        genome_shape: Shape of real genomes
         bounds: Bounds for real genomes (min, max)
         **kwargs: Additional engine parameters
     Returns:
         GeneticEngineAdapter wrapping configured GeneticEngine
     """
     genome_config: Union[RealGenomeConfig, BinaryGenomeConfig]
+    # Backwards-compatibility: accept `genome_length` (scalar) as an alias
+    # for the single-dimension `genome_shape` argument used elsewhere in the API.
+    if "genome_length" in kwargs:
+        genome_shape = (int(kwargs.pop("genome_length")),)
+
     if genome_type == "real":
         genome_config = RealGenomeConfig(
-            length=genome_length, bounds=bounds, dtype=kwargs.get("dtype", "float32")
+            shape=genome_shape, bounds=bounds, dtype=kwargs.get("dtype", "float32")
         )
     elif genome_type == "binary":
-        genome_config = BinaryGenomeConfig(length=genome_length)
+        genome_config = BinaryGenomeConfig(shape=genome_shape)
     else:
         raise ValueError(f"Unsupported genome type: {genome_type}")
 
+    # Coerce operator spec strings into actual operator instances if needed
+    try:
+        from .catalog import OperatorCatalog
+    except Exception:
+        # Avoid circular imports breaking; if it fails, user must pass operator instances
+        OperatorCatalog = None
+
+    if isinstance(selection_op, str):
+        if OperatorCatalog is None:
+            raise TypeError("selection_op provided as string but OperatorCatalog is unavailable")
+        selection_op = OperatorCatalog().get(selection_op)
+
+    if isinstance(crossover_op, str):
+        if OperatorCatalog is None:
+            raise TypeError("crossover_op provided as string but OperatorCatalog is unavailable")
+        crossover_op = OperatorCatalog().get(crossover_op)
+
+    if isinstance(mutation_op, str):
+        if OperatorCatalog is None:
+            raise TypeError("mutation_op provided as string but OperatorCatalog is unavailable")
+        mutation_op = OperatorCatalog().get(mutation_op)
+
+    # Defensive validation: ensure operators implement required methods
+    for name, op in ("selection", selection_op), ("crossover", crossover_op), ("mutation", mutation_op):
+        if not hasattr(op, "replace") or not callable(getattr(op, "replace")):
+            raise TypeError(
+                f"Operator '{name}' does not implement required 'replace' method. Got type {type(op)}."
+                " Pass an operator instance from OperatorCatalog.get(spec) or a proper operator implementation."
+            )
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
         num_generations=generations,

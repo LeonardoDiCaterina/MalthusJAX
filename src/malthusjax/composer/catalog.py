@@ -5,10 +5,35 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 from malthusjax.core.fitness.binary_evaluators import KnapsackConfig, KnapsackEvaluator
 
-from ..operators.crossover.binary import UniformCrossover
-from ..operators.crossover.real import BlendCrossover
-from ..operators.mutation.binary import BitFlipMutation
-from ..operators.mutation.real import GaussianMutation
+# Real crossover operators
+from ..operators.crossover.real import (
+    BlendCrossover,
+    SimulatedBinaryCrossover,
+    BinomialCrossover,
+    UniformCrossover as RealUniformCrossover,
+)
+
+# Binary crossover operators
+from ..operators.crossover.binary import (
+    UniformCrossover as BinaryUniformCrossover,
+    SinglePointCrossover,
+)
+
+# Real mutation operators
+from ..operators.mutation.real import (
+    GaussianMutation,
+    BallMutation,
+    PolynomialMutation,
+)
+
+# Binary mutation operators
+from ..operators.mutation.binary import (
+    BitFlipMutation,
+    ScrambleMutation,
+    SwapMutation,
+)
+
+# Selection operators
 from ..operators.selection.elite_pool import ElitePoolSelection
 from ..operators.selection.roulette import RouletteSelection
 from ..operators.selection.tournament import TournamentSelection
@@ -16,23 +41,74 @@ from ..operators.selection.tournament import TournamentSelection
 
 class OperatorCatalog:
     """Catalog for creating operators from string specifications.
+    
     Supports format: "operator_type:param1=value1,param2=value2"
+    
+    Available Selection Operators:
+        - tournament: Tournament selection
+        - roulette: Roulette wheel selection
+        - elite_pool: Elite pool selection (deterministic)
+    
+    Available Real-Valued Crossover Operators:
+        - blend: Blend crossover (BLX)
+        - simulated_binary: Simulated Binary Crossover (SBX)
+        - binomial: Binomial crossover
+        - uniform_real: Uniform crossover for real genomes
+    
+    Available Binary Crossover Operators:
+        - uniform_binary: Uniform crossover for binary genomes
+        - single_point: Single-point crossover
+    
+    Available Real-Valued Mutation Operators:
+        - gaussian: Gaussian (normal) mutation
+        - ball: Ball mutation
+        - polynomial: Polynomial mutation
+    
+    Available Binary Mutation Operators:
+        - bitflip: Bit-flip mutation
+        - scramble: Scramble mutation
+        - swap: Swap mutation
+    
+    Available Fitness Evaluators:
+        - sphere: Sphere optimization (maximization)
+        - rastrigin: Rastrigin optimization (maximization)
+        - knapsack: Knapsack problem
+        - bbob: General BBOB function family
+        - sphere_minimize: Sphere minimization
+        - sphere_maximize: Sphere maximization
+    
     Examples:
         catalog.get("tournament")  # Default parameters
-        catalog.get("tournament:selections=5,size=3")  # With parameters
-        catalog.get("gaussian:rate=0.1")  # Single parameter
+        catalog.get("tournament:num_selections=50,tournament_size=3")
+        catalog.get("gaussian:mutation_rate=0.1")
+        catalog.get("blend:alpha=0.5")
+        catalog.get("sphere:dim=10")
     """
 
     def __init__(self) -> None:
         """Initialize the operator catalog with default operators."""
         self._factories: Dict[str, Callable] = {
+            # Selection operators
             "tournament": self._create_tournament_selection,
             "roulette": self._create_roulette_selection,
-            "deterministic_pool": self._create_deterministic_pool_selection,
+            "elite_pool": self._create_elite_pool_selection,
+            # Real-valued crossover operators
             "blend": BlendCrossover,
-            "uniform": UniformCrossover,
+            "simulated_binary": SimulatedBinaryCrossover,
+            "binomial": BinomialCrossover,
+            "uniform_real": RealUniformCrossover,
+            # Binary crossover operators
+            "uniform_binary": BinaryUniformCrossover,
+            "single_point": SinglePointCrossover,
+            # Real-valued mutation operators
             "gaussian": GaussianMutation,
+            "ball": BallMutation,
+            "polynomial": PolynomialMutation,
+            # Binary mutation operators
             "bitflip": BitFlipMutation,
+            "scramble": ScrambleMutation,
+            "swap": SwapMutation,
+            # Fitness evaluators
             "sphere": self._create_sphere_evaluator,
             "rastrigin": self._create_rastrigin_evaluator,
             "knapsack": self._create_knapsack_evaluator,
@@ -223,11 +299,11 @@ class OperatorCatalog:
             **{k: v for k, v in kwargs.items() if k not in ["num_selections"]},
         )
 
-    def _create_deterministic_pool_selection(self, **kwargs: Any) -> ElitePoolSelection:
+    def _create_elite_pool_selection(self, **kwargs: Any) -> ElitePoolSelection:
         return ElitePoolSelection(
             num_selections=kwargs.get("num_selections", 4),
-            **{k: v for k, v in kwargs.items() if k not in ["num_selections"]},
             elite_k=kwargs.get("elite_k", 2),
+            **{k: v for k, v in kwargs.items() if k not in ["num_selections", "elite_k"]},
         )
 
 

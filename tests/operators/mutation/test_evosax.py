@@ -52,7 +52,10 @@ class TestEvosaxAblationIntegrity:
 
         res: RealPopulation = mut(all_keys, pop, config)
 
-        diff = res.genes - pop.genes.values
+        # Extract raw arrays whether genes are wrapped in a RealGenome or stored as an array
+        res_values = res.genes.values
+        pop_values = pop.genes.values
+        diff = (res_values - pop_values).astype(jnp.float32)
 
         assert jnp.abs(jnp.mean(diff)) < 0.1
         assert jnp.abs(jnp.std(diff) - 1.0) < 0.1
@@ -88,7 +91,11 @@ class TestEvosaxAblationIntegrity:
 
         res_evo: RealPopulation = mut_evo(keys_evo, pop, config)
         res_inj: RealPopulation = mut_inj(keys_inj, pop, config)
-        divergence = jnp.linalg.norm(res_evo.genes.values - res_inj.genes)
+
+        evo_vals = res_evo.genes.values if hasattr(res_evo.genes, "values") else res_evo.genes
+        inj_vals = res_inj.genes.values if hasattr(res_inj.genes, "values") else res_inj.genes
+
+        divergence = jnp.linalg.norm(evo_vals - inj_vals)
         assert divergence > 0, "Topologies Threefry(Ki, 0) and Threefry(K, i) must diverge."
 
     def test_evosax_wrapper_identity(self, ablation_context):

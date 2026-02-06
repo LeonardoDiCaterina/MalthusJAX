@@ -72,14 +72,17 @@ class TestRealInjectionCrossover(unittest.TestCase):
         # Rate=0 => preserve p2 (target)
         op = BinomialCrossover_injection(num_offspring=1, crossover_rate=0.0).set_input_length(self.pop_size)
         k = jar.PRNGKey(123)
-        out = op(k, self.parents_1, self.parents_2, self.config)
-        assert jnp.allclose(out.genes.values, self.parents_2.genes.values.repeat(1, axis=0))
+        keys = jar.split(k, op.num_keys(input_shape=(self.pop_size,)))
+        # swap parents to match operator's (target, mutant) parameter order
+        out = op(keys, self.parents_2, self.parents_1, self.config)
+        self.assertTrue(jnp.allclose(out.genes.values, self.parents_2.genes.values))
 
         # Rate=1 => preserve p1 (mutant)
         op = BinomialCrossover_injection(num_offspring=1, crossover_rate=1.0).set_input_length(self.pop_size)
         k = jar.PRNGKey(456)
-        out = op(k, self.parents_1, self.parents_2, self.config)
-        assert jnp.allclose(out.genes.values, self.parents_1.genes.values.repeat(1, axis=0))
+        keys = jar.split(k, op.num_keys(input_shape=(self.pop_size,)))
+        out = op(keys, self.parents_2, self.parents_1, self.config)
+        self.assertTrue(jnp.allclose(out.genes.values, self.parents_1.genes.values))
 
 if __name__ == '__main__':
     unittest.main()
