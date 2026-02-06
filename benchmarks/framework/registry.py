@@ -15,17 +15,12 @@ from malthusjax.engine.genetic_fastengine import (
     GeneticGenerationOutput,
     traceable
 )
-from malthusjax.engine.MR15_GA import OneFifthGeneticEngine, OneFifthGeneticEngineParams
-from malthusjax.engine.differential_engine import DifferentialEvolutionEngine
-from malthusjax.operators.mutation.real import GaussianMutation, DifferentialMutation
+from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.crossover.real import UniformCrossover, BinomialCrossover
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.base import BaseSelection
 
 # --- Malthus Ablation Components ---
-from malthusjax.operators.mutation.ablation_mutation import AblationGaussianMutation
-from malthusjax.operators.crossover.ablation_crossover import AblationUniformCrossover
-from malthusjax.operators.selection.ablation_selection import AblationElitePoolSelection
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.operators.selection.tournament import TournamentSelection
 from malthusjax.operators.selection.roulette import RouletteSelection
@@ -313,7 +308,7 @@ def _build_malthus_speed_demon(pop_size, dims, seed, hypers, problem_object):
 
 # --- 3. Ablation Builders ---
 
-def _build_malthus_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
+'''def _build_malthus_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
     """MalthusJAX with disabled Static Resource Allocation."""
     genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
     mutation = AblationGaussianMutation(
@@ -346,7 +341,7 @@ def _build_malthus_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
         mutation=mutation,
         engine_params=engine_params
     )
-    return MalthusAdapter(engine)
+    return MalthusAdapter(engine)'''
 
 
 # --- 4. Special Algorithm Builders ---
@@ -374,7 +369,7 @@ def _build_malthus_mr15(pop_size, dims, seed, hypers, problem_evaluator):
         num_selections=pop_size,
         elite_k=elite_count
     )
-    engine_params = OneFifthGeneticEngineParams(
+'''    engine_params = OneFifthGeneticEngineParams(
         pop_size=pop_size,
         num_generations=1,
         elitism=elite_count,
@@ -390,9 +385,9 @@ def _build_malthus_mr15(pop_size, dims, seed, hypers, problem_evaluator):
         mutation=mutation,
         engine_params=engine_params
     )
-    return MalthusAdapter(engine)
+    return MalthusAdapter(engine)'''
 
-def _build_malthus_de(pop_size, dims, seed, hypers, problem_evaluator):
+'''def _build_malthus_de(pop_size, dims, seed, hypers, problem_evaluator):
     from malthusjax.engine.base import AbstractEngineParams
     genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
     mutation = DifferentialMutation(f_scale=hypers.get('differential_weight', 0.8))
@@ -405,7 +400,7 @@ def _build_malthus_de(pop_size, dims, seed, hypers, problem_evaluator):
         crossover=crossover,
         engine_params=engine_params
     )
-    return MalthusAdapter(engine)
+    return MalthusAdapter(engine)'''
 
 def _build_evosax_de(pop_size, dims, seed, hypers, problem_object):
     rng = jax.random.PRNGKey(seed)
@@ -514,7 +509,7 @@ def build_final_esx(pop_size, dims, seed, hypers, problem_object):
 
 # --- 2. The Architecture Check Contenders ---
 
-def build_final_mjx_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
+'''def build_final_mjx_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator):
     """
     MalthusJAX Naive/Ablation.
     - Engine: GeneticSpeedEngine
@@ -557,7 +552,7 @@ def build_final_mjx_ga_ablation(pop_size, dims, seed, hypers, problem_evaluator)
         mutation=mutation,
         engine_params=engine_params
     )
-    return MalthusAdapter(engine)
+    return MalthusAdapter(engine)'''
 
 def build_ecosax_stock(pop_size, dims, seed, hypers, problem_object):
     """
@@ -642,13 +637,13 @@ ComparisonRegistry.register(ComparisonSpec(
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
 ))
 
-# 2. THE ARCHITECTURE CHECK (Naive vs Stock)
+'''# 2. THE ARCHITECTURE CHECK (Naive vs Stock)
 ComparisonRegistry.register(ComparisonSpec(
     name="Standard_GA_Ablation",
     malthus_factory=build_final_mjx_ga_ablation,
     evosax_factory=build_ecosax_stock,
     default_hypers={'mutation_rate': 0.05, 'crossover_rate': 0.6, 'sigma': 0.1, 'elite_ratio': 0.1}
-))
+))'''
 
 # 3. THE HARDWARE SHOWCASE
 ComparisonRegistry.register(ComparisonSpec(
