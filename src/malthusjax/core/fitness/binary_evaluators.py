@@ -66,8 +66,9 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
         return total_value - penalty
 
     @staticmethod
-    def create_random_problem(key: chex.PRNGKey, n_items: int,
-                            capacity_ratio: float = 0.5, maximize: bool = True) -> KnapsackConfig:
+    def create_random_problem(
+        key: chex.PRNGKey, n_items: int, capacity_ratio: float = 0.5, maximize: bool = True
+    ) -> KnapsackConfig:
         """Create a random 0/1 knapsack problem instance.
 
         Args:

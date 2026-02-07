@@ -10,6 +10,8 @@ from flax import struct
 from malthusjax.core.base import BaseGenome, BasePopulation
 from malthusjax.core.base import DistanceMetric as BaseDistances
 
+_field: Any = struct.field
+
 
 class RealDistanceMetric(BaseDistances):
     """Metrics specific to real-valued vectors."""
@@ -30,14 +32,10 @@ class RealGenomeConfig:
         dtype: The numerical precision (e.g., jnp.float32 or jnp.float64).
     """
 
-    shape: Tuple[int, ...] = struct.field(
-        pytree_node=False, default_factory=lambda: ()
-    )  # type: ignore[no-untyped-call]
-    bounds: Tuple[float, float] = struct.field(
-        pytree_node=False, default=(-jnp.inf, jnp.inf)
-    ) # type: ignore[no-untyped-call]
-    dtype: type[jnp.floating[Any]] | jnp.dtype[jnp.floating[Any]] = struct.field(
-        pytree_node=False, default=jnp.float32 # type: ignore[no-untyped-call]
+    shape: Tuple[int, ...] = _field(pytree_node=False, default_factory=lambda: ())
+    bounds: Tuple[float, float] = _field(pytree_node=False, default=(-jnp.inf, jnp.inf))
+    dtype: type[jnp.floating[Any]] | jnp.dtype[jnp.floating[Any]] = _field(
+        pytree_node=False, default=jnp.float32
     )
 
 
@@ -56,7 +54,7 @@ class RealGenome(BaseGenome):
 
     values: chex.Array
     # Enable indexing & iteration by default for convenience
-    subscriptable: bool = struct.field(pytree_node=False, default=True) # type: ignore[assignment]
+    subscriptable: bool = _field(pytree_node=False, default=True)
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: RealGenomeConfig) -> RealGenome:
@@ -162,8 +160,7 @@ class RealPopulation(BasePopulation[RealGenome]):
 
     GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
 
-
-    #TODO: implement a more broad verison where size is actually shape for multidimensional genomes
+    # TODO: implement a more broad verison where size is actually shape for multidimensional genomes
     @classmethod
     def init_random(cls, key: chex.PRNGKey, config: RealGenomeConfig, size: int) -> RealPopulation:
         """

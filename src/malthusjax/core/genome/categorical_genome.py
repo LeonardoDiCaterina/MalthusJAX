@@ -22,9 +22,7 @@ class CategoricalGenomeConfig:
     """
 
     num_categories: int
-    shape: Tuple[int, ...] = struct.field(
-        pytree_node=False, default_factory=lambda: ()
-    )  # type: ignore[no-untyped-call]
+    shape: Tuple[int, ...] = struct.field(pytree_node=False, default_factory=lambda: ())  # type: ignore[no-untyped-call]
     dtype: jnp.dtype[Any] = struct.field(
         pytree_node=False,
         default=jnp.int32,  # type: ignore[no-untyped-call]
@@ -45,9 +43,9 @@ class CategoricalGenome(BaseGenome):
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: CategoricalGenomeConfig) -> CategoricalGenome:
         """Create random categorical genome using discrete uniform sampling."""
-        values = jax.random.randint(
-            key, config.shape, 0, config.num_categories
-        ).astype(config.dtype)
+        values = jax.random.randint(key, config.shape, 0, config.num_categories).astype(
+            config.dtype
+        )
         return cls(values=values)
 
     def autocorrect(self, config: CategoricalGenomeConfig) -> CategoricalGenome:
@@ -103,6 +101,7 @@ class CategoricalGenome(BaseGenome):
         # This is a standard JAX trick to generate a permutation from any vector
         permutation = jnp.argsort(self.values).astype(config.dtype)
         return cast(CategoricalGenome, cast(Any, self).replace(values=permutation))
+
     def swap_positions(self, pos1: int, pos2: int) -> CategoricalGenome:
         """Swap categories at two positions using JAX .at index updates."""
         val1 = self.values[pos1]

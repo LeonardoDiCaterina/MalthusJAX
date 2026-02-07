@@ -1,8 +1,6 @@
-import jax
 import jax.numpy as jnp
 from jax import random
 
-import chex
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 
@@ -49,7 +47,11 @@ def test_bbob_maximize_flag_flips_sign():
 
     # Construct a small deterministic population
     X = jnp.array([[0.1, 0.2], [0.4, -0.5]])
-    pop = RealPopulation(genes=RealGenome(values=X), fitness=jnp.zeros((2,)), config=RealGenomeConfig(shape=(2,)))
+    pop = RealPopulation(
+        genes=RealGenome(values=X),
+        fitness=jnp.zeros((2,)),
+        config=RealGenomeConfig(shape=(2,)),
+    )
 
     pop_min = eval_min.evaluate_population(pop)
     pop_max = eval_max.evaluate_population(pop)

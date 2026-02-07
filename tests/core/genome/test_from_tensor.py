@@ -1,6 +1,5 @@
 import jax
 import jax.numpy as jnp
-import jax.random as jr
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 

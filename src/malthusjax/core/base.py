@@ -12,6 +12,8 @@ from flax import struct
 # This ensures that a RealPopulation is recognized as a valid BasePopulation[RealGenome]
 G = TypeVar("G", bound="BaseGenome")
 
+_field: Any = struct.field
+
 
 class DistanceMetric:
     """Standard metrics supported by most genomes."""
@@ -42,32 +44,36 @@ class BaseGenome:
     def __len__(self) -> int:
         """Return number of elements in the primary values array."""
         try:
-            return int(self.values.shape[0])
+            return int(cast(Any, self).values.shape[0])
         except Exception as e:
             raise TypeError("len() is not supported for this genome (missing 'values').") from e
 
-    def __getitem__(self, key: Union[int, slice, chex.Array]):
+    def __getitem__(self, key: Union[int, slice, chex.Array]) -> Any:
         """Index into the genome's primary values payload if enabled.
 
         Subclasses enable this behavior by declaring a `subscriptable` field
         if they want Pythonic indexing/iteration semantics.
         """
         if not getattr(self, "subscriptable", False):
-            raise TypeError(
-                f"{self.__class__.__name__} object is not subscriptable; set subscriptable=True to enable indexing."
+            msg = (
+                f"{self.__class__.__name__} object is not subscriptable; "
+                "set subscriptable=True to enable indexing."
             )
+            raise TypeError(msg)
         try:
-            return self.values[key]
+            return cast(Any, self).values[key]
         except AttributeError as e:
             raise TypeError("Genome does not expose 'values' for indexing.") from e
 
     def __iter__(self) -> Iterator[Any]:
         """Iterate over the genome's primary values payload if enabled."""
         if not getattr(self, "subscriptable", False):
-            raise TypeError(
-                f"{self.__class__.__name__} object is not iterable; set subscriptable=True to enable iteration."
+            msg = (
+                f"{self.__class__.__name__} object is not iterable; "
+                "set subscriptable=True to enable iteration."
             )
-        return iter(self.values)
+            raise TypeError(msg)
+        return iter(cast(Any, self).values)
 
     @classmethod
     @abstractmethod
@@ -157,13 +163,13 @@ class BasePopulation(Generic[G]):
 
     genes: G
     fitness: chex.Array
-    config: Any = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
+    config: Any = _field(pytree_node=False)
     GENOME_CLS: ClassVar[Type[Any]] = cast(Type[Any], Any)
 
     @property
     def values(self) -> Any:
         """Proxies to the genome's values (batched)."""
-        return self.genes.values
+        return cast(Any, self.genes).values
 
     def spawn_offspring(self, new_genes: G) -> BasePopulation[G]:
         """
@@ -220,7 +226,11 @@ class BasePopulation(Generic[G]):
         Applies the genome-level autocorrect logic to every individual
         in the population in parallel using jax.vmap.
         """
-        new_genes = jax.vmap(lambda g: g.autocorrect(config))(self.genes)
+
+        def _autocorrect_genome(g: G) -> G:
+            return cast(G, g.autocorrect(config))
+
+        new_genes = jax.vmap(_autocorrect_genome)(self.genes)
         return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes))
 
     def distance_matrix(self, metric: str = DistanceMetric.EUCLIDEAN) -> chex.Array:
@@ -240,8 +250,12 @@ class BasePopulation(Generic[G]):
             # Delegate to the genome-level distance implementation.
             return g1.distance(g2, metric=metric)
 
+        def _vmap_second(g1: G) -> chex.Array:
+            def _distance_wrapper(g2: G) -> chex.Array:
+                return _pairwise_distance(g1, g2)
+
+            return jax.vmap(_distance_wrapper)(self.genes)
+
         # Outer vmap iterates over the first individual, inner vmap over the
         # second individual, producing an (N, N) distance matrix.
-        return jax.vmap(
-            lambda g1: jax.vmap(lambda g2: _pairwise_distance(g1, g2))(self.genes)
-        )(self.genes)
+        return jax.vmap(_vmap_second)(self.genes)

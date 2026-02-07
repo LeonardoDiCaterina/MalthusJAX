@@ -9,6 +9,8 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
 
+_field: Any = struct.field
+
 
 @struct.dataclass
 class BinaryGenomeConfig:
@@ -28,17 +30,15 @@ class BinaryGenomeConfig:
     """
 
     # Prefer an explicit 1-D shape default to avoid accidental scalar genomes.
-    shape: Tuple[int, ...] = struct.field(
-        pytree_node=False, default_factory=lambda: (1,)
-    )  # type: ignore[no-untyped-call]
+    shape: Tuple[int, ...] = _field(pytree_node=False, default_factory=lambda: (1,))
 
     # Backwards-compatibility: accept a legacy `length` keyword
-    length: int | None = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    length: int | None = _field(pytree_node=False, default=None)
 
     p: float = 0.5
-    dtype: jnp.dtype[Any] = struct.field(
+    dtype: jnp.dtype[Any] = _field(
         pytree_node=False,
-        default=jnp.int32,  # type: ignore[no-untyped-call]
+        default=jnp.int32,
     )
 
     @property
@@ -63,7 +63,7 @@ class BinaryGenome(BaseGenome):
 
     values: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
     # Enable Pythonic indexing/iteration by default for convenience
-    subscriptable: bool = struct.field(pytree_node=False, default=True) # type: ignore[assignment]
+    subscriptable: bool = _field(pytree_node=False, default=True)
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: BinaryGenomeConfig) -> BinaryGenome:
@@ -150,6 +150,7 @@ class BinaryGenome(BaseGenome):
     def count_ones(self) -> chex.Numeric:
         """Computes the 'Hamming Weight' (number of set bits) of the genome."""
         return jnp.sum(self.values)
+
     def flip_bit(self, index: int) -> BinaryGenome:
         """
         Returns a new genome with the bit at 'index' toggled.

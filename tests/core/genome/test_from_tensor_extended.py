@@ -1,10 +1,9 @@
 import jax
 import jax.numpy as jnp
-import jax.random as jr
 
-from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
-from malthusjax.core.genome.categorical_genome import CategoricalGenome, CategoricalGenomeConfig
-from malthusjax.core.genome.linear_genome import LinearGenome, LinearGenomeConfig
+from malthusjax.core.genome.binary_genome import BinaryGenome
+from malthusjax.core.genome.categorical_genome import CategoricalGenome
+from malthusjax.core.genome.linear_genome import LinearGenome
 
 
 def test_binary_from_tensor_basic():

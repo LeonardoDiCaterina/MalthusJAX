@@ -84,10 +84,7 @@ def test_linear_distance_metrics(rng_key):
 def test_linear_render():
     """Ensures the assembly-like rendering does not crash."""
     config = LinearGenomeConfig(length=3, num_inputs=2, num_ops=2, max_arity=1)
-    genome = LinearGenome(
-        ops=jnp.array([0, 1, 0]),
-        args=jnp.array([[0], [2], [1]])
-    )
+    genome = LinearGenome(ops=jnp.array([0, 1, 0]), args=jnp.array([[0], [2], [1]]))
 
     # Test rendering with default op names
     output = genome.render(config)
