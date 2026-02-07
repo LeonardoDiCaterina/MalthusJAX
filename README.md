@@ -1,37 +1,202 @@
-# MalthusJAX
+# MalthusJAX: A JAX-Native Evolutionary Computation Framework
 
-**A JAX-Based Framework for Evolutionary Computation**
+[![JAX](https://img.shields.io/badge/JAX-0.4+-blue.svg)](https://github.com/google/jax)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](http://mypy-lang.org/)
+[![Coverage](https://img.shields.io/badge/coverage-80%25+-brightgreen.svg)](https://github.com/pytest-dev/pytest-cov)
 
-MalthusJAX is an evolutionary computation framework built on JAX, designed with a modular 3-level architecture that emphasizes composability, type safety, and JIT compilation compatibility. The framework provides a principled approach to evolutionary algorithm design through strict separation of concerns and functional programming patterns.
+MalthusJAX is a composable, type-safe evolutionary algorithm framework built on JAX and XLA for high-performance population-based optimization and evolutionary computation research. The framework uses a strict 3-level hierarchical architecture with static resource budgeting, functional purity, and explicit compilation boundaries to enable JIT-friendly code without sacrificing algorithm clarity or extensibility.
 
-## Design Philosophy
+## Core Design Principles
 
-MalthusJAX follows three core principles:
+**Immutability & PyTree Compatibility**: All state uses Flax `struct.dataclass` (immutable) to enable safe JIT compilation and transparent tracing. Configuration classes are marked `pytree_node=False` to avoid tracing static metadata.
 
-1. **Compositional Architecture**: Components at each level are independently developed and compose cleanly through well-defined interfaces
-2. **Functional Purity**: All operations are pure functions operating on immutable data structures, enabling reliable JIT compilation
-3. **Type Safety**: Generic type parameters ensure compile-time verification of component compatibility
+**Static Resource Budgeting**: PRNG key allocation is computed once at initialization via `ResourceMap`, eliminating dynamic key splitting inside traced loops. All operators declare their RNG requirements upfront (`num_keys_per_atomic_operation`), enabling pre-allocated key buffers and deterministic allocation. This removes host-device synchronization as a bottleneck.
 
-## Architecture Overview
+**Three-Tier Operator Architecture**: All genetic operators decompose into three layers—*atomic arithmetic* (Tier 1: pure per-genome logic), *noise generation* (Tier 2: RNG consumption), and *population-level vectorization* (Tier 3: nested vmap + output flattening). This separation enables XLA kernel fusion (Tier 1+2 merged into monolithic kernels) without sacrificing testability or reproducibility.
 
-### Level 1: Core Components
-- **Genome Representations**: Immutable genome types (`BinaryGenome`, `RealGenome`, `CategoricalGenome`, `LinearGenome`) implemented as Flax `struct.dataclass` for JAX compatibility
-- **Population Containers**: Type-safe population wrappers (`BasePopulation[G]`) providing vectorized operations
-- **Fitness Evaluators**: Generic evaluators (`BaseEvaluator[G, C, D]`) with automatic vectorization via `jax.vmap()`
+**Struct-of-Arrays (SoA) Design**: Genomes are immutable PyTrees where a single genome has shape `(d,)` and a batched population has shape `(N, d)`. This design makes JAX transformations (`vmap`, `jit`) transparent and enables efficient memory layouts on accelerators.
+
+**Type-Safe Generics**: Generic type parameters (`BasePopulation[G]`, `BaseEvaluator[G, C, D]`) enforce compile-time compatibility between genome types, evaluators, and operators, reducing runtime type errors in heterogeneous algorithms.
+
+## Architecture: Three-Level Hierarchy
+
+MalthusJAX decomposes evolutionary computation into three independent levels, each with strict input/output contracts:
+
+### Level 1: Core Primitives (Genomes, Populations, Fitness)
+
+**Genomes**: Immutable, JAX-friendly representations for candidate solutions.
+
+- `RealGenome` / `RealPopulation[RealGenome]` — continuous real-valued vectors with configurable bounds and dtype
+- `BinaryGenome` / `BinaryPopulation[BinaryGenome]` — bit strings with Hamming distance and efficient bit operations
+- `CategoricalGenome` — discrete choice vectors for multi-choice problems
+- `LinearGenome` — variable-length linear programs for genetic programming
+
+**Key Properties**:
+- **Struct-of-Arrays (SoA)**: Single genome has shape `(d,)`, population batches to `(N, d)` via immutable `BasePopulation[G]` container
+- **Distance Metrics**: Polymorphic `distance(other: BaseGenome, metric: str) -> Numeric` enables diversity computation and analysis
+- **PyTree Compatible**: All genomes are Flax PyTrees; populations are batched PyTrees with leading dimension `N`
+
+**Populations**: Generic containers `BasePopulation[G]` provide:
+
+- Immutable slicing and indexing operations
+- Vectorized distance matrix computation for diversity analysis
+- Configuration-based initialization via `init_random(key, config, size)`
+
+**Fitness Evaluators**: Pure, batched evaluation functions with three interface levels:
+
+1. **Per-Individual**: `evaluate(genome: G) -> Numeric` — scalar fitness for one genome
+2. **Batched Population**: `evaluate_population(pop: BasePopulation[G]) -> BasePopulation[G]` — automatic `jax.vmap` batching
+3. **Tensor Interface**: `get_tensor_fitness_function() -> (genes: Array[N, d]) -> Array[N]` — for external/third-party evaluators (BBOB, custom batch APIs)
+
+**Evaluator Config Requirements**:
+- All configs mandate `maximize: bool` for unambiguous fitness semantics (eliminate sign-flip errors)
+- Mark static data with `pytree_node=False` to prevent tracing large arrays
+- Tensor functions receive batched arrays in batch-first order `(N, ...)`
+
+**Concrete Examples**:
+- **Analytical**: `SphereEvaluator`, `GriewankEvaluator` — classic continuous test functions
+- **Combinatorial**: `KnapsackEvaluator` — discrete optimization with constraint penalties
+- **Adapters**: `BBOBEvaluator` — high-performance wrapper for evosax BBOB problems
+- **Specialized**: `LinearGPEvaluator` — genetic programming with symbiotic instruction selection
+
+---
 
 ### Level 2: Genetic Operators
-- **Selection Operators**: Parent selection strategies (`TournamentSelection`, `RouletteWheelSelection`)
-- **Crossover Operators**: Recombination operators with batch-first output (`UniformCrossover`, `SimulatedBinaryCrossover`)
-- **Mutation Operators**: Variation operators supporting multiple offspring (`BitFlipMutation`, `GaussianMutation`)
 
-All operators follow a unified factory pattern using `@struct.dataclass` with `__call__` methods, enabling direct JIT compilation.
+All operators follow a unified **three-tier decomposition** and factory pattern with the `@struct.dataclass` callable interface:
+
+```python
+# Factory pattern: instantiate operator with hyperparameters, then call as a pure function
+operator = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5)
+mutated_pop = operator(key, population, config)  # Direct callable interface
+jitted_op = jax.jit(operator)  # JIT the entire operator
+```
+
+**Tier 1: Arithmetic Kernel** — Pure, deterministic operation on a single individual.
+- `_mutate_one(genome, noise_data, config) -> genome`
+- `_recombine_one(p1, p2, noise_data, config) -> genome`
+- `_select(keys, fitness, config) -> indices`
+- No Python control flow; use `jnp.where`, `jax.lax.select` for branching
+
+**Tier 2: Noise Generation** — RNG consumption with deterministic entropy production.
+- `_generate_noise(keys: Array[K, 2], config) -> noise_data` where `K = num_keys_per_atomic_operation`
+- Returns shaped arrays matching `config.shape` (or tuples for multi-component operations)
+- Explicit dtype handling: `dtype=config.dtype` to prevent implicit promotion
+
+**Tier 3: Population-Level Vectorization** — Nested `jax.vmap` orchestration.
+- `BaseMutation.__call__`, `BaseCrossover.__call__`, `BaseSelection.__call__` handle key reshaping, nested vmap, output flattening
+- Inherited by all subclasses; developers implement only Tiers 1 and 2
+- Automatically handles offspring flattening to **offspring-major** order
+
+**XLA Kernel Fusion**: Each operator's `_fused()` method combines Tier 2 (RNG) + Tier 1 (arithmetic) into a single expression tree. XLA compiles this as a monolithic kernel, minimizing per-invocation device overhead.
+
+**Key Derivation**: Each operator declares RNG needs via `num_keys_per_atomic_operation`:
+- Selection: depends on algorithm (0 for elite, ≥1 for tournament/roulette)
+- Crossover: typically 1 (uniform mask) or 2+ (blend parameters)
+- Mutation: typically 2 (mask + noise)
+
+**Output Convention**: Nested vmap produces intermediate shape `(num_parents_or_pairs, num_offspring, *shape)`. Final transpose + reshape flattens to `(num_offspring * num_parents_or_pairs, *shape)`, placing all offspring 0 first, then offspring 1, etc. This **offspring-major** order is enforced by `spawn_offspring()` for consistency across all operators.
+
+**Available Operators**:
+
+| Category | Operators | Notes |
+|----------|-----------|-------|
+| **Selection** | Tournament, Roulette Wheel, Elite Pool | Per-individual & bulk injection modes |
+| **Real Crossover** | Uniform, Blend (BLX-α), Simulated Binary (SBX), Binomial | All support configurable offspring count |
+| **Binary Crossover** | Uniform, Single-Point | Efficient bit-wise operations |
+| **Real Mutation** | Gaussian, Ball, Polynomial | Adaptive & scheduled variants available |
+| **Binary Mutation** | Bit-Flip, Scramble, Swap | Complement/toggle operations |
+
+---
 
 ### Level 3: Evolution Engines
-- **Abstract Engine Interface**: `AbstractEngine` defines the evolutionary loop contract
-- **Genetic Engine Implementation**: `GeneticEngine` provides a standard genetic algorithm with pluggable components
-- **Template Method Pattern**: Engines expose overridable methods (`_select_parents`, `_select_elites`, `_create_offspring`) for custom evolutionary strategies
-- **State Management**: Immutable `AbstractEvolutionState` enables JIT compilation via `jax.lax.scan`
-- **Extensibility**: Subclass engines to incorporate custom selection strategies (e.g., diversity preservation, novelty search)
+
+**Abstraction**: `AbstractEngine` defines the evolutionary loop contract.
+- `init_state(key) -> state` — one-time initialization with compilation setup
+- `step(state) -> (new_state, output)` — single generation execution
+- `run(state, num_gens=...) -> (final_state, history)` — wrapper using `jax.lax.scan` for loop fusion
+
+**Concrete Implementation**: `GeneticEngine` — standard genetic algorithm with resource budgeting and flexible composition.
+
+**Initialization Phase (`init_state`)**: 
+
+1. **Compute ResourceMap**: Queries each operator for RNG requirements via `num_keys()`. Computes total budget: `sum(operator.num_keys(pop_size))`. Produces per-operator slices for deterministic key allocation.
+2. **Freeze Operators**: Calls `set_input_length()` on selection, crossover, mutation to lock population size. This enables XLA to compile a single kernel per operator per generation (no recompilation).
+3. **Initialize Population**: Creates initial genomes via `init_random()`. Evaluates fitness via `BaseEvaluator.evaluate_population()` with `jax.vmap`.
+4. **Create State**: Bundles population, best genome, generation counter, RNG key, ResourceMap, frozen operator state into immutable `GeneticEvolutionState`.
+
+Result: All compilation happens once. `step()` reuses kernels across all generations with zero compilation overhead.
+
+**Evolution Step (`step`)** — Six phases (methods decorated with `@traceable` for HLO profiling):
+
+1. **`_allocate_entropy()`** — Slice pre-derived RNG keys for each operator via `ResourceMap.get_keys()`. Key derivation strategy (SPLIT vs FOLD) controlled by `GeneticEngineParams.key_derivation`.
+2. **`_selection_phase()`** — Extract elites (top `elitism` individuals). Select parents via selection operator. Returns parent indices.
+3. **`_reproduction_phase()`** — Gather parents into subpopulations. Apply crossover to produce offspring. Apply mutation to offspring. Frozen operator sizes ensure stable key buffers.
+4. **`_merge()`** — Combine elites + top mutants to fill population of size `pop_size`. Trivial population assembly with no fitness re-evaluation.
+5. **`_evaluate()`** — Compute fitness on merged population via `BaseEvaluator.evaluate_population()`.
+6. **`_update_hof()`** — Track best genome and increment stagnation counter. Reset stagnation when new best found.
+
+**Resource Allocation Mechanics**:
+- Total keys per generation: `sum(operator.num_keys(pop_size))` across all operators
+- Keys pre-derived once per generation via `ResourceMap.get_keys()` using strategy (SPLIT or FOLD)
+- Each operator receives a fixed-size key slice (no dynamic allocation inside traced regions)
+- Eliminates host-device synchronization from RNG management
+
+**RNG Derivation Strategies** (controlled by `GeneticEngineParams.key_derivation`):
+
+| Strategy | Method | Trade-off |
+|----------|--------|-----------|
+| **SPLIT** | Sequential `jax.random.split()` | Uncorrelated key streams; bottleneck in parallelization |
+| **FOLD** | Parallel `jax.random.fold_in()` | Deterministic counter-advancing; better for multi-device |
+
+Both produce statistically equivalent results; choice affects RNG topology and reproducibility semantics.
+
+**Extensibility**: Use template method pattern to override selection/reproduction/evaluation logic with **full access to evolution state**.
+
+All component methods receive `(key, state, params)` and have access to:
+- `state.population` — current individuals and fitness
+- `state.generation` — current generation number
+- `state.stagnation_counter` — generations without improvement
+- `state.best_fitness`, `state.best_genome` — evolution progress
+
+Override methods:
+- **`_select_parents(key, state, params)`** → returns `BasePopulation` of selected parents
+- **`_select_elites(key, state, params)`** → returns elite genes (ArrayTree, not Population)
+- **`_create_offspring(key, parents, state, params)`** → returns offspring genes for crossover + mutation
+
+**Adaptive Algorithms Example**: Stagnation-aware mutation rate:
+```python
+@struct.dataclass
+class AdaptiveEngine(GeneticEngine):
+    base_mutation_rate: float = struct.field(default=0.01, pytree_node=False)
+    
+    def _create_offspring(self, key, parents, state, params):
+        # Increase mutation when stagnating
+        adaptive_rate = self.base_mutation_rate * (1 + 0.2 * state.stagnation_counter)
+        adaptive_mutation = self.mutation.replace(mutation_rate=adaptive_rate)
+        return adaptive_mutation(key, parents.genes, params)
+```
+
+**Mutation Strength Scheduling**: Optional time-dependent schedule applied each generation:
+```python
+def schedule(generation: int, num_generations: int) -> float:
+    return 0.5 * (1.0 - generation / num_generations)  # linear decay
+
+engine_params = GeneticEngineParams(..., mutation_strength_schedule=schedule)
+```
+
+**Ask/Tell Interface**: For decoupled evaluation (external simulators, distributed evaluation):
+```python
+engine_with_entropy, population = engine.ask(state)  # Get population to evaluate
+new_population = external_evaluator(population)      # Evaluate outside JAX
+next_state = engine.tell(state, new_population)      # Complete evolution step
+```
+
+**GSPMD Sharding**: `ShardingManager` provides multi-device placement specs:
+- Population matrices: `NamedSharding(mesh, P('batch', None))` — batch-sharded
+- Fitness vectors: `NamedSharding(mesh, P('batch'))` — batch-sharded
+- Scalars: `NamedSharding(mesh, P())` — replicated across devices
 
 ## Installation
 
@@ -44,62 +209,21 @@ cd MalthusJAX
 make install-dev
 ```
 
-## Extensible Architecture
+## Extensibility: Full-Access Component Architecture
 
-Unlike rigid GA libraries that hide internal state, MalthusJAX uses a **"Full Access" component design** that gives you complete control over the evolutionary process. Every internal method in `GeneticEngine` receives the full evolution state, enabling you to:
+MalthusJAX engines use the **Template Method pattern** with **full state visibility**, enabling sophisticated adaptive algorithms without breaking JIT compilation. Every overridable method receives the complete evolution state, allowing context-dependent operator behavior.
 
-- **Adaptive Algorithms**: Modify operator behavior based on convergence metrics (e.g., increase mutation rate when `state.stagnation_counter` is high)
-- **Multi-Objective Selection**: Access `state.population` directly to compute auxiliary metrics (diversity, novelty, age) and combine them with fitness
-- **Stateful Evolution**: Track custom metrics across generations (e.g., lineage, speciation, niching) by subclassing `AbstractEvolutionState`
-- **Context-Aware Operators**: Make operator decisions based on `state.generation`, `state.best_fitness`, or population statistics
+**Why Full Access Matters**: 
+- Adaptive algorithms (mutation rate scheduling based on convergence)
+- Quality-diversity objectives (access to population diversity metrics)
+- Multi-objective optimization (compute auxiliary fitness from full state)
+- Custom evolution strategies (age-layered populations, niching, migration)
 
-### Full Access Method Signature
-
-All component methods follow a unified, strongly-typed signature. Below are the primary methods you are expected to override and their exact signatures used throughout the codebase:
-
-```python
-from typing import Tuple
-import jax
-import jax.numpy as jnp
-
-# Parent selection: returns a `BasePopulation` (selected parents)
-def _select_parents(
-    self,
-    key: jax.Array,                      # PRNG key (jax.random.PRNGKey)
-    state: AbstractEvolutionState,      # Full evolution state (population, metrics)
-    params: GeneticEngineParams         # Engine configuration (pop_size, elitism, ...)
-) -> BasePopulation:
-    """Select parents for reproduction.
-
-    Full access to `state` enables computing auxiliary metrics (distance matrices,
-    novelty, age) and implementing adaptive behaviour based on `state.generation`
-    or `state.stagnation_counter`.
-    """
-    ...
-
-# Elite selection: returns genes (ArrayTree) representing elite individuals
-def _select_elites(
-    self,
-    key: jax.Array,
-    state: AbstractEvolutionState,
-    params: GeneticEngineParams
-) -> jax.Array:
-    """Return elite genes (not a population object)."""
-    ...
-
-# Offspring creation: returns genes (ArrayTree) for offspring after crossover/mutation
-def _create_offspring(
-    self,
-    key: jax.Array,
-    parents: BasePopulation,
-    state: AbstractEvolutionState,
-    params: GeneticEngineParams
-) -> jax.Array:
-    """Create offspring from parents; supports adaptive operators using `state`."""
-    ...
-```
-
-This architecture enables **rapid prototyping** of evolutionary strategies without rewriting the main JIT-compiled evolution loop. Override just the methods you need—the framework handles state management, JIT compilation, and performance optimization.
+All while maintaining:
+- Full JIT compilation of the evolution loop
+- Static RNG allocation (no dynamic key splits)
+- Deterministic reproducibility
+- Type safety via generics
 
 ## Example Usage
 
@@ -152,283 +276,192 @@ print(f"Best fitness: {final_state.best_fitness}")
 
 ## Implementation Details
 
-The 3-level architecture enforces separation of concerns:
+### Level 1: Genomes & Fitness
 
-**Level 1 (Core)**: Genome types implement immutable data structures using Flax `struct.dataclass`. Population containers provide vectorized operations via JAX transformations. Fitness evaluators define pure functions with automatic batching through `jax.vmap()`.
+**Genomes** implement immutable PyTree structures via Flax `struct.dataclass`:
+- All fields are read-only; mutation uses `.replace(field=new_value)` pattern
+- Distance computation is polymorphic: `distance(other: BaseGenome, metric: str) -> Numeric`
+- Single-individual math (e.g., `add_noise`) are pure functions suitable for `jax.vmap`
 
-**Level 2 (Operators)**: All operators are stateless callables implementing standard interfaces (`BaseMutation`, `BaseCrossover`, `BaseSelection`). The batch-first convention ensures outputs have shape `(num_offspring, ...genome_shape)`, enabling efficient vectorization.
+**Populations** batch genomes into SoA structure:
+- `BasePopulation[G].genes` is a batched genome PyTree with leading dimension `(N, ...)`
+- Indexing and slicing return sub-populations with correct type preservation
+- `init_random(key, config, size)` creates initial populations with JIT-compatible initialization
 
-**Level 3 (Engines)**: The `AbstractEngine` interface defines `init_state()`, `step()`, and `run()` methods. Evolution loops use `jax.lax.scan` for efficient iteration with compile-time loop fusion. State objects are immutable PyTrees containing population, generation counter, and algorithm-specific data.
+**Fitness Evaluators** use composition to avoid code duplication:
+- Per-individual `evaluate(genome)` implements the core logic
+- `evaluate_population(pop)` uses `jax.vmap(self.evaluate)` for batched evaluation
+- Tensor interface `get_tensor_fitness_function()` bridges to external libraries (BBOB, JAX-free code)
+- Return type `chex.Numeric` (not Python float) ensures JAX tracer compatibility
 
-### Engine Extensibility: Full Access Component Methods
-
-MalthusJAX engines use the **Template Method pattern** with **Full Access signatures**, giving every component method complete visibility into the evolution state. This enables sophisticated adaptive algorithms without breaking JIT compilation.
-
-**Key Overridable Methods** (all receive `key`, `state`, `params`):
-- **`_select_parents(key, state, params)`**: Customize parent selection with access to population, generation, stagnation
-- **`_select_elites(key, state, params)`**: Control elite preservation with context-aware logic
-- **`_create_offspring(key, parents, state, params)`**: Implement adaptive variation (e.g., mutation rate scheduling)
-- **`_merge_and_evaluate(key, elites, offspring, state, params)`**: Custom population assembly and fitness evaluation
-
-**Example: Diversity-Aware Selection with Full State Access**
+**Evaluator Config Pattern**:
 ```python
-from flax import struct
-from malthusjax.engine.genetic_fastengine import GeneticEngine
+@struct.dataclass(frozen=True)
+class CustomEvaluatorConfig(BaseEvaluatorConfig):
+    maximize: bool = struct.field(pytree_node=False)  # Explicit direction
+    custom_param: float = struct.field(pytree_node=False)  # Config only, not traced
+```
 
-@struct.dataclass
-class DiversityAwareEngine(GeneticEngine):
-    diversity_weight: float = struct.field(default=0.3, pytree_node=False)
+### Level 2: Operators (Three-Tier Architecture)
+
+**Why Three Tiers Exist**:
+1. Tier 1 (arithmetic) is pure and testable in isolation
+2. Tier 2 (noise) allows deterministic replay of randomness by freezing the seed
+3. Tier 3 (vmap) orchestrates batching without touching algorithm logic
+
+**Tier 1: Arithmetic Kernel** — Implement only this tier; Tiers 2/3 are inherited:
+
+```python
+def _mutate_one(self, genome: RealGenome, noise_data: chex.Array, config: RealGenomeConfig) -> RealGenome:
+    """Pure function: genome + noise -> mutated genome."""
+    mutated = genome.values + noise_data
+    if self.clip:
+        mutated = jnp.clip(mutated, config.bounds[0], config.bounds[1])
+    return genome.replace(values=mutated)
+```
+
+**Tier 2: Noise Generation** — Declare RNG requirements and produce entropy:
+
+```python
+@property
+def num_keys_per_atomic_operation(self) -> int:
+    """Each mutation needs: 1 key for mask, 1 key for noise = 2 total."""
+    return 2
+
+def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> chex.Array:
+    """Consume exactly 2 keys, produce noise shaped to config.shape."""
+    k_mask, k_noise = keys[0], keys[1]
+    mask = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=config.shape)
+    noise = jax.random.normal(k_noise, shape=config.shape, dtype=config.dtype)
+    return noise * self.mutation_strength * mask.astype(config.dtype)
+```
+
+**Tier 3: Vectorization** — Automatically handled by `BaseMutation.__call__`:
+1. Reshape keys: `(num_keys,) -> (pop_size, num_offspring, keys_per_op, 2)`
+2. Outer vmap: iterate over pop_size parents
+3. Inner vmap: iterate over num_offspring per parent
+4. Apply `_mutate_fused()` (Tier 1 + 2 combined for XLA fusion)
+5. Flatten: `(pop_size, num_offspring, ...) -> (num_offspring * pop_size, ...)`
+
+**Output Convention**: Offspring-major order is critical for downstream processing:
+```
+Input:  4 parents, 2 offspring each  -> shape (4, 2, d)
+Output: 8 offspring, ordered as     [offs0_par0, offs0_par1, offs0_par2, offs0_par3,
+                                     offs1_par0, offs1_par1, offs1_par2, offs1_par3]
+                                    -> shape (8, d)
+```
+
+**Static Key Budgeting**: The ResourceMap pre-computes exact RNG needs:
+- Calls `operator.num_keys(input_shape)` once at initialization
+- Slices pre-allocated key buffer: no dynamic splits inside evolution loop
+- Enables single JIT compilation with guaranteed buffer sizes
+
+### Level 3: Engines (Execution & Composition)
+
+**Initialization (`init_state`)** is where compilation setup happens:
+```python
+# Pseudo-code showing key phases
+def init_state(self, key):
+    # 1. ResourceMap computes total RNG budget
+    rmap = compute_resource_map(self.selection, self.crossover, self.mutation, pop_size)
     
+    # 2. Freeze operator sizes (enables XLA single-kernel compilation)
+    frozen_sel = self.selection.set_input_length(pop_size)
+    frozen_cross = self.crossover.set_input_length(num_pairs)
+    frozen_mut = self.mutation.set_input_length(pop_size)
+    
+    # 3. Initialize population & evaluate
+    pop = initialize_population(key, self.genome_config, pop_size)
+    pop = self.evaluator.evaluate_population(pop)
+    
+    # 4. Create state (all immutable)
+    return GeneticEvolutionState(
+        population=pop,
+        rng_key=key,
+        resource_map=rmap,
+        operators=OperatorState(frozen_sel, frozen_cross, frozen_mut),
+        ...
+    )
+```
+
+**Evolution Loop (`step`)** never recompiles:
+```python
+def step(self, state):
+    # All operators already frozen; keys pre-allocated
+    # Inner loop never touches JIT boundaries
+    key = state.rng_key
+    
+    # Phase 1: allocate entropy (deterministic slicing)
+    all_keys = state.resource_map.get_keys(key)
+    
+    # Phase 2-6: standard genetic algorithm phases
+    # All use frozen operators with pre-allocated buffers
+    ...
+    
+    return new_state, metrics
+```
+
+**Extensibility via Template Methods**: Override only what you need:
+
+```python
+@struct.dataclass
+class CustomEngine(GeneticEngine):
     def _select_parents(self, key, state, params):
-        # Full access to state enables computing auxiliary metrics
-        population = state.population
+        # Full access to state enables context-dependent logic
+        # Example: diversity-aware selection
+        pop = state.population
+        dist_matrix = pop.distance_matrix(metric="euclidean")
+        diversity_bonus = compute_diversity_bonus(dist_matrix)
+        combined_fitness = pop.fitness + 0.3 * diversity_bonus
         
-        # Compute crowding distance using distance matrix
-        dist_matrix = population.distance_matrix(metric="euclidean")
-        crowding = self._compute_crowding_scores(dist_matrix)
-        
-        # Combine fitness and diversity into selection criterion
-        diversity_fitness = (
-            (1 - self.diversity_weight) * population.fitness + 
-            self.diversity_weight * crowding
-        )
-        
-        # Use standard selection operator with diversity-aware fitness
-        indices = self.selection(key, diversity_fitness).flatten()
-        return population[indices]
+        indices = self.selection(key, combined_fitness, params)
+        return pop[indices]
 ```
 
-**Example: Adaptive Mutation Based on Stagnation**
-```python
-from flax import struct
-from malthusjax.engine.genetic_fastengine import GeneticEngine
+### Static Metadata & JIT Compatibility
 
-@struct.dataclass
-class AdaptiveMutationEngine(GeneticEngine):
-    base_mutation_rate: float = struct.field(default=0.01, pytree_node=False)
-    
-    def _create_offspring(self, key, parents, state, params):
-        # Increase mutation rate when evolution stagnates
-        stagnation_factor = 1 + 0.2 * state.stagnation_counter
-        adaptive_rate = self.base_mutation_rate * stagnation_factor
-        
-        # Create modified mutation operator with adaptive rate
-        adaptive_mutation = self.mutation.replace(mutation_rate=adaptive_rate)
-        
-        # Apply adaptive mutation to parents
-        offspring_genes = adaptive_mutation(key, parents.genes, params)
-        
-        # Construct offspring population
-        from malthusjax.core.genome.real_genome import RealPopulation
-        return RealPopulation(genes=offspring_genes)
-```
-
-This **Full Access architecture** enables researchers to experiment with:
-- **Quality-Diversity algorithms** (MAP-Elites, Novelty Search)
-- **Multi-objective optimization** (NSGA-II, SPEA2)
-- **Adaptive parameter control** (self-adaptive mutation, learning rate schedules)
-- **Age-layered population models** (ALPS)
-- **Island models** with migration strategies
-
-All while maintaining **full JIT compilation compatibility** and **functional purity**.
-
-## Statically Allocated Entropy & Operator Design
-
-MalthusJAX uses a **static entropy allocation** strategy to maximize JIT compilation efficiency. Rather than splitting random keys dynamically within operators (which breaks JIT-ability), all random keys are pre-allocated by a resource manager and passed directly to operators.
-
-### How Operators Declare Key Requirements
-
-Each operator declares exactly how many random keys it needs via the **`num_keys()` contract**:
-
+**Mark Static Fields**:
 ```python
 @struct.dataclass
-class GaussianMutation(BaseMutation):
-    mutation_rate: float = 0.1
-    mutation_strength: float = 0.1
-    
-    @property
-    def num_keys_per_atomic_operation(self) -> int:
-        """Each mutation needs 2 keys: one for mask, one for noise."""
-        return 2
-    
-    def num_keys(self, input_shape: Tuple[int, ...]) -> int:
-        """Total keys = Population × Offspring × Keys-per-op"""
-        pop_size = input_shape[0]
-        return pop_size * self.num_offspring * self.num_keys_per_atomic_operation
+class MyOperator(BaseMutation):
+    num_offspring: int = struct.field(pytree_node=False)  # Static
+    mutation_rate: float = struct.field(pytree_node=False)  # Static
+    dynamic_param: chex.Array = struct.field(pytree_node=True)  # Traced
 ```
 
-**Key calculation example:**
-- Population size: 100
-- Offspring per parent: 1
-- Keys per atomic operation: 2
-- **Total keys needed: 100 × 1 × 2 = 200 keys**
-
-The Resource Allocator computes the maximum across all operators and splits a single PRNG key into the required number of independent keys upfront. This enables:
-- ✅ Pure functional operations (no side effects)
-- ✅ Full JIT compilation of the evolution loop
-- ✅ Deterministic key allocation (no dynamic control flow)
-- ✅ Zero overhead for key management
-
-### RNG Derivation Strategies: User Control Over Key Generation
-
-MalthusJAX provides **two RNG derivation strategies** for generating the static key budget. You can choose which strategy best fits your use case:
-
-| Strategy | Method | Best For | Characteristics |
-|----------|--------|----------|------------------|
-| **SPLIT** (default) | `jax.random.split()` | Multi-device, distributed optimization | Independent key streams, reduced correlation, optimal for GPU farms |
-| **FOLD** | `jax.random.fold_in()` | Reproducibility-focused, single-device | Deterministic counter-advancing sequences, seed-stable behavior |
-
-**Example: Choosing a Strategy**
-```python
-from malthusjax.engine.resource_mapper import KeyDerivationStrategy
-from malthusjax.engine.genetic_fastengine import GeneticEngineParams
-
-# Use FOLD for strict reproducibility
-engine_params = GeneticEngineParams(
-    pop_size=100,
-    num_generations=50,
-    key_derivation=KeyDerivationStrategy.FOLD  # Deterministic sequences
-)
-
-# Or use SPLIT (default) for multi-device setups
-engine_params = GeneticEngineParams(
-    pop_size=100,
-    num_generations=50,
-    key_derivation=KeyDerivationStrategy.SPLIT  # Independent streams
-)
-```
-
-Both strategies produce **statistically equivalent results**; the choice affects RNG stream topology and reproducibility semantics. For detailed information, see [Engine Architecture Documentation](src/malthusjax/engine/README.md#key-derivation-strategies).
-
-### Ablation Operators: Benchmarking Key Allocation Overhead
-
-To quantify the performance impact of static key allocation vs. dynamic splitting, MalthusJAX includes **ablation study decorators** (`@ablation_single_key_mutation`, `@ablation_single_key_crossover`) that reduce any operator to single-key allocation:
-
-```python
-from malthusjax.operators.base_ablation import ablation_single_key_mutation
-from malthusjax.operators.mutation.real import GaussianMutation
-
-# Wrap standard operator with ablation decorator
-@ablation_single_key_mutation
-class GaussianMutation_ablation(GaussianMutation):
-    pass
-
-# Use ablation operator for benchmarking
-standard_op = GaussianMutation(num_offspring=1, mutation_rate=0.1)
-ablation_op = GaussianMutation_ablation(num_offspring=1, mutation_rate=0.1)
-
-# Both implement identical arithmetic, but differ in RNG topology:
-# - standard_op.num_keys(100) → 200 (pre-allocated)
-# - ablation_op.num_keys(100) → 1 (dynamic fold_in internally)
-```
-
-**Ablation decorator behavior:**
-- **Standard operator**: `num_keys() = pop_size × offspring × keys_per_op` → static allocation via ResourceMap
-- **Ablation operator**: `num_keys() = 1` → keys generated internally using `jax.random.fold_in()` on-the-fly
-
-**Benchmark use case:**
-```bash
-# Compare ResourceMap pre-allocation vs. dynamic key generation
-python benchmarks/cli_dispatch.py config.toml --framework malthus
-
-# Standard results: Dispatch + Allocation + Operator overhead
-# Ablation results: Dispatch + Dynamic-splitting + Operator overhead
-# Difference = static allocation framework efficiency gain (or loss!)
-```
-
-**Available ablation decorators** in [src/malthusjax/operators/base_ablation.py](src/malthusjax/operators/base_ablation.py):
-- `@ablation_single_key_mutation` — Convert any `BaseMutation` to single-key allocation
-- `@ablation_single_key_crossover` — Convert any `BaseCrossover` to single-key allocation
-
-For detailed ablation study methodology, see:
-- [Mutation Operator Ablation Study Mode](src/malthusjax/operators/mutation/README.md#ablation-study-mode-)
-- [Crossover Operator Ablation Study Mode](src/malthusjax/operators/crossover/README.md#ablation-study-mode-)
-- [Engine Resource Mapping & Key Derivation](src/malthusjax/engine/README.md#resource-mapping--cascade-data-flow)
-
-This enables **precise measurement of framework overhead vs. implementation benefit trade-offs**.
+**Why This Matters**:
+- Static fields are never traced; JAX receives concrete values at compile-time
+- Enables operator-specific optimizations (buffer pre-allocation, loop unrolling)
+- Zero overhead for configuration parameters
+- One JIT compilation per operator per population size
 
 ---
 
-## 📚 Comprehensive Documentation
+## 📚 Layer-Specific Technical Documentation
 
-MalthusJAX provides detailed technical documentation for each layer:
+Each layer provides detailed technical specifications for developers implementing or extending components:
 
-### Level 3: Evolution Engines
-- **[Engine Architecture & Execution Model](src/malthusjax/engine/README.md)** (417 lines)
-  - 6-phase evolution step execution with named calls for HLO profiling
-  - ResourceMap contract and static RNG budgeting
-  - KeyDerivationStrategy (SPLIT vs FOLD) detailed explanation
-  - Operator baking, scheduled mutation, ask/tell interface
-  - GSPMD sharding for single/multi-device optimization
-  - Extension points and custom engine development patterns
+### Level 1: Genomes & Fitness
+- [Genome Architecture](src/malthusjax/core/genome/README.md) — Struct-of-Arrays design, extension patterns, distance metrics
+- [Fitness Evaluators](src/malthusjax/core/fitness/README.md) — Per-individual & batch evaluation, tensor interfaces, config patterns
 
-### Level 2: Genetic Operators
-- **[Selection Operators](src/malthusjax/operators/selection/README.md)** — Parent selection strategies
-  - Atomic logic separation and vectorized slicing patterns
-  - Mode A vs Mode D (bulk injection) trade-offs
-  - Developer checklist for implementing custom selection
+### Level 2: Operators  
+- [Selection Operators](src/malthusjax/operators/selection/README.md) — Static RNG budgeting, index generation, GSPMD sharding
+- [Mutation Operators](src/malthusjax/operators/mutation/README.md) — Three-tier architecture (Tier 1/2/3), XLA fusion, offspring-major flattening
+- [Crossover Operators](src/malthusjax/operators/crossover/README.md) — Recombination kernels, mask conventions, nested vmap orchestration
 
-- **[Mutation Operators](src/malthusjax/operators/mutation/README.md)** (Tier 1/2/3 architecture)
-  - Three-tier design: arithmetic kernel → noise generation → vectorized wrapper
-  - BaseMutation (per-individual) vs BaseMutation_injection (bulk) modes
-  - ResourceMap integration and KeyDerivationStrategy impact
-  - Ablation study decorators for performance benchmarking
-
-- **[Crossover Operators](src/malthusjax/operators/crossover/README.md)** (Tier 1/2/3 architecture)
-  - Recombination kernels and mask conventions
-  - Mode A (per-pair sampling) vs Mode D (bulk injection)
-  - Offspring-major flattening for consistency across modes
-  - Ablation study methodology and benchmarking patterns
-
-### Level 1: Core Components
-- **Genomes**: Immutable genome representations with automatic vectorization
-- **Fitness Evaluators**: Batch evaluation with VMAP, population-level metrics
-
-### Benchmarking & Evaluation
-- **[Dispatch Timing Analysis](benchmarks/)** — JAX dispatch overhead and operator profiling
-- **[Fitness Landscape Analysis](benchmarks/)** — Hyperparameter tuning on BBOB functions
+### Level 3: Engines
+- [Engine Architecture](src/malthusjax/engine/README.md) — Execution model, ResourceMap contract, key derivation strategies (SPLIT vs FOLD), init-phase compilation
 
 ---
 
-## Testing
+## 🔬 Benchmarking & Performance Analysis
 
-```bash
-# Run tests with coverage
-pytest
-
-# Run specific test categories
-pytest -m integration   # Integration tests
-pytest -m slow          # Slow/comprehensive tests
-pytest tests/core/      # Test specific module
-```
-
-## Benchmarking
-
-MalthusJAX includes comprehensive benchmarking tools to analyze performance, dispatch overhead, and algorithm behavior.
-
-### Generating Benchmark Configurations
-
-Use the config generator to create GECCO benchmark configurations with warp-aligned population sizes:
-
-```bash
-# Generate benchmark configs for all BBOB tasks
-python generate_configs.py
-
-# This creates configs/run_<task>.toml for:
-# - sphere, rosenbrock, ellipsoidal_rotated, rastrigin, schaffers_f7
-```
-
-The generator creates configurations that test:
-- **Warp boundary stress testing**: Population sizes 32→1025 (tests GPU resource utilization)
-- **Multiple dimensions**: 10, 50, 100
-- **Statistical significance**: 30 repeats with different seeds
-- **Long evolution**: 2000 generations per trial
-
-Generated configs automatically set output directories: `results/gecco_final/{task}/`
+MalthusJAX includes comprehensive benchmarking tools for dispatch overhead, parameter tuning, and algorithm comparison.
 
 ### 1. JAX Dispatch Timing Analysis
 
-Analyze JAX dispatch overhead, JIT compilation costs, and per-operator timing:
+Analyze JIT compilation costs and per-operator timing:
 
 ```bash
 # Quick test (single task, small dimensions)
@@ -436,137 +469,88 @@ python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --quick
 
 # Full comparative analysis (MalthusJAX vs Evosax)
 python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --framework both
-
-# MalthusJAX only
-python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --framework malthus
-
-# Evosax analysis with specific strategy
-python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --framework evosax --evosax-strategy SimpleGA
-
-# Custom configuration
-python benchmarks/cli_dispatch.py your_config.toml --framework both --evosax-strategy DifferentialEvolution
 ```
 
-**Outputs:**
-- CSV files with unroll factor analysis (dispatch amortization curves)
-- Per-operator timing breakdown (ask, evaluate, tell)
-- Text reports with optimization recommendations
-- Results saved to `results/dispatch_timing/`
-
-**Key Metrics:**
-- **Cold compile time**: Initial JIT compilation overhead (includes tracing)
-- **Warm dispatch time**: Amortized dispatch cost after first compilation
-- **Unroll factor impact**: How many steps to amortize compilation overhead
+**Key Metrics**:
+- **Cold compile time**: Initial JIT compilation (includes tracing + XLA compilation)
+- **Warm dispatch time**: Amortized per-step cost after first compilation
+- **Unroll factor impact**: How many steps needed to amortize compilation overhead
 - **Per-operator breakdown**: Individual timing for selection, crossover, mutation, evaluation
 
-### 2. Fitness Benchmark (Quick)
+**Output**: CSV files, operator timing breakdown, optimization recommendations saved to `results/dispatch_timing/`
 
-Quick evolutionary algorithm benchmark on BBOB functions:
+### 2. Fitness Landscape Benchmark
+
+Evolutionary algorithm performance on BBOB test functions:
 
 ```bash
-# Quick smoke test (instant execution)
+# Quick smoke test
 python benchmarks/cli_fitness.py benchmarks/fitness_tuning_quick.toml --quick
 
-# Full quick benchmark
-python benchmarks/cli_fitness.py benchmarks/fitness_tuning_quick.toml
-```
-
-### 3. Fitness Tuning Benchmark
-
-Comprehensive hyperparameter tuning and fitness landscape analysis:
-
-```bash
-# Full fitness tuning benchmark
-python benchmarks/cli_fitness.py benchmarks/fitness_tuning.toml
-
-# Generate comparison plots
+# Full tuning benchmark with hyperparameter sweeps
 python benchmarks/cli_fitness.py benchmarks/fitness_tuning.toml --plot
 ```
 
-### 4. GECCO Benchmark Suite
+### 3. Configuration Generation
 
-Benchmark configuration for academic paper experiments:
-
-```bash
-python benchmarks/cli.py --config benchmarks/gecco_benchmark.toml
-```
-
-### 5. Smoke Test (Minimal Validation)
-
-Quick validation that everything works:
+Generate benchmark configs with warp-aligned population sizes for GPU stress testing:
 
 ```bash
-# Run minimal smoke test
-python benchmarks/cli.py --config benchmarks/smoke_test.toml
+# Generate GECCO benchmark configs for all BBOB tasks
+python generate_configs.py
 
-# Quick validation with dispatch analysis
-python benchmarks/cli_dispatch.py benchmarks/smoke_test.toml --quick --framework both
-```
-
-### Configuration File Format
-
-All benchmarks use TOML configuration files. Example structure:
-
-```toml
-[experiment]
-name = "My_Benchmark"
-output_dir = "results/my_benchmark"
-
-[grid]
-tasks = ["sphere", "rosenbrock"]        # BBOB problem names
-dimensions = [10, 50, 100]               # Problem dimensions
-pop_sizes = [64, 256, 1024]              # Population sizes
-seeds = [42, 43, 44]                     # Random seeds
-
-[dispatch]  # For dispatch_timing.toml
-unroll_factors = [1, 2, 4, 8, 16, 32]   # Unroll factors to test
-warmup_runs = 5                          # Warmup iterations
-timed_runs = 20                          # Timed iterations
-
-[hyperparam]
-mutation_rate = 0.1
-sigma = 0.1
-crossover_rate = 0.9
-elite_ratio = 0.1
-tournament_size = 3
-```
-
-### Results Analysis
-
-Benchmark results are saved to `results/dispatch_timing/`, organized as:
-
-```
-results/dispatch_timing/
-├── sphere_d10_p32_s42_malthus/
-│   ├── unroll_analysis.csv          # Dispatch overhead vs unroll factor
-│   ├── operator_breakdown.csv       # Per-operator timing
-│   └── dispatch_report.txt          # Detailed analysis
-├── rosenbrock_d10_p32_s42_evosax_SimpleGA/
-│   ├── unroll_analysis.csv
-│   ├── operator_breakdown.csv
-│   └── dispatch_report.txt
-└── summary.csv                       # Aggregate results
+# Creates configs for: sphere, rosenbrock, ellipsoidal, rastrigin, schaffers_f7
+# with dimensions [10, 50, 100] and population sizes [32→1025]
 ```
 
 ### Makefile Shortcuts
 
 ```bash
-# Run all quality checks
-make check-all
-
-# Run only tests
-make test
-
-# Code formatting with Ruff
-make format
-
-# Type checking
-make type-check
-
-# Linting
-make lint
+make install-dev    # Install with dev dependencies
+make check-all      # Run all quality checks (lint, format, type-check, test)
+make test           # Run pytest with coverage (minimum 80%)
+make lint           # Ruff linting
+make format         # Ruff code formatting
+make type-check     # mypy with strict settings
 ```
 
+---
+
+## Development & Contributing
+
+**Quality Standards**:
+- **Test Coverage**: Minimum 80% coverage enforced via pytest-cov
+- **Type Safety**: Full mypy strict mode compliance (no `Any` escapes without justification)
+- **Code Style**: Ruff for linting and formatting (replaces black, flake8, isort)
+- **Pre-commit**: All checks must pass before merge (`make check-all`)
+
+**Testing Strategy**:
+- Test structure mirrors `src/` in `tests/`
+- Shared fixtures in `conftest.py` (random keys, sample genomes)
+- Mark slow tests with `@pytest.mark.slow`
+- JAX random keys from `jr.PRNGKey(42)` fixture for determinism
+
+**Implementation Checklist** (operators, evaluators, engines):
+- [ ] Implement as `@struct.dataclass` with `pytree_node=False` for static fields
+- [ ] Declare RNG requirements via `num_keys_per_atomic_operation`
+- [ ] Use `jax.lax.select` for branching (not Python `if` in traced regions)
+- [ ] Return `chex.Numeric` (not Python float) from traced functions
+- [ ] Add unit tests with shape/dtype validation
+- [ ] Document config fields with type annotations and descriptions
+
+---
+
+## 🚧 In-Progress Components
+
+These features are currently under development:
+
+- **Benchmarking Suite**: Comprehensive performance profiling tools (execution model analysis, dispatch vs compute overhead quantification)
+- **Composer Framework**: Meta-algorithm orchestration for multi-population and island-model evolution
+- **Visualization Tools**: HLO graph profiling, evolution trace analysis, population diversity visualization
+
+See [docs/](docs/) for design documents and progress tracking.
+
+---
 ## License
 
 [MIT License](LICENSE)
