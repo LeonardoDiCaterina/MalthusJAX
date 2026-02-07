@@ -1,18 +1,18 @@
-# Selection Operators — Architecture & Implementation 🎯
+# Selection Operators — Architecture & Implementation
 
-This document explains how selection operators are implemented in MalthusJAX, and how they interact with the static ResourceMapper, sharding, and PRNG topologies. It targets developers extending or optimizing selection stages in the engine.
-
----
-
-## 🔍 High-level Summary
-
-- Selection is the **entry point of the Cascade**: it consumes the population size `N` and produces an index buffer `P` (parent indices) which becomes the input to Crossover and then Mutation.
-- The system uses **static RNG budgeting** via `ResourceMap` to ensure zero or minimal allocation during the main loop and predictable shapes for compilation.
-- Selection implements a clear separation between **atomic logic** (a pure `_select_one`) and **vectorized slicing** (`BaseSelection.__call__`) that produces a batched `jnp.ndarray` of indices.
+This document explains how selection operators are implemented in MalthusJAX, and how they interact with the static ResourceMapper and sharding. It targets developers extending or optimizing selection stages in the engine.
 
 ---
 
-## 1) Static RNG Budgeting & Resource Mapping 🧮
+## High-level Summary
+
+- Selection consumes a population and fitness values, producing an index array of selected individuals.
+- The system uses **static RNG budgeting** via `ResourceMap` to ensure deterministic key allocation and predictable shapes for JIT compilation.
+- Selection implements a clear separation between **atomic logic** (a pure `_select()` method) and **population-level slicing** (`BaseSelection.__call__`) that produces a batched `jnp.ndarray` of indices.
+
+---
+
+## 1) Static RNG Budgeting & Resource Mapping
 
 - The `ResourceMapper` queries each operator to compute the exact number of keys required:
   - `sel_keys_needed = num_selections * num_keys_per_atomic_operation` (adjusted for input shapes and `num_selections`).
@@ -34,37 +34,33 @@ Why static budgeting matters:
 
 ---
 
-## 2) The Cascade Effect — Selection → Crossover → Mutation 🔁
+## 2) Integration with Engine Operations
 
-- Selection determines how many parent indices are needed (`sel_output_count`) based on `num_selections` and `input_shape`.
-- These indices are used to gather parent genomes for crossover. The number of parents determines the number of parent pairs, which in turn determines crossover output and subsequent mutation input sizes.
-- The ResourceMapper computes the complete cascade so each operator knows how many keys and buffer shapes will be used downstream.
+- Selection produces index arrays via `num_selections`, which the engine uses to gather parent genomes.
+- These indices feed downstream to crossover and mutation operators.
+- The ResourceMapper computes total key budgets for all operators so shapes are determined at initialization time.
 
 ---
 
-## 3) Operator Interface & Functional Logic 🧩
+## 3) Operator Interface & Functional Logic
 
-- **Atomic Logic (`_select_one`)**
-  - A pure function that consumes PRNG key slices and the population fitness array and returns a single integer index.
-  - Example signature:
+- **Atomic Logic (`_select()` method)**
+  - A pure function that consumes PRNG keys and a fitness array and returns selected indices.
+  - Signature: `_select(keys: chex.Array, fitness: chex.Array, config: Optional[C]) -> indices: chex.Array`
+  - Returns indices matching `num_selections`, dtype int32/int64.
 
-```py
-def _select_one(keys: chex.Array, fitness: chex.Array, config: C) -> jnp.int32:
-    # pure JAX code, no side-effects
-```
-
-- **Vectorized Slicing (BaseSelection.__call__)**
-  - `BaseSelection.__call__(keys, population, config)` reshapes the master key slice into per-selection blocks and vmaps `_select_one` across those blocks.
-  - Returns a batched `jnp.ndarray` of parent indices with dtype `jnp.int32` or `jnp.int64` depending on platform and expected indexing range.
-  - The selection layer intentionally returns indices (not a sliced population) to keep the operator lightweight; gathering can be done once by the Engine using a single `jax.vmap` or `jax.lax.dynamic_slice` to minimize copies.
+- **Population-Level Selection (BaseSelection.__call__)**
+  - `BaseSelection.__call__(keys, population, config)` accepts either a Population object (extracts `.fitness`) or a fitness array directly.
+  - Calls the abstract `_select()` method and returns an integer index array.
+  - The operator returns indices (not reordered genomes) to keep operations lightweight and enable efficient downstream gathering.
 
 Benefits of returning indices:
-- Delays memory movement until the engine-level gather, enabling better fusion with downstream ops.
-- Keeps the selection operator focused and testable.
+- Decouples selection logic from memory movement.
+- Allows the engine to perform a single gather operation, minimizing copies and improving fusion.
 
 ---
 
-## 4) Hardware-Specific Optimization & Sharding 🖥️
+## 4) Hardware-Specific Optimization & Sharding
 
 - `ShardingManager` defines named sharding specs (`pop_sharding`, `vector_sharding`) and can be used to `device_put` selection's index buffer so that it is already sharded across devices.
 - Fitness arrays should be sharded consistently with population layout so selection index computation remains local to devices where possible, minimizing cross-device moves.
@@ -74,62 +70,52 @@ Example: place selection indices on `pop_sharding` so subsequent gather operatio
 
 ---
 
-## 5) Promotion-Free Indices & Type Hygiene 🔢
+## 5) Index Type Requirements
 
-- Selection indices MUST be integer dtypes. Use `jnp.int32` or `jnp.int64` explicitly when creating indices to prevent accidental upcasting during downstream arithmetic or indexing operations.
-- Avoid any FP ops on indices; cast to integers immediately after sampling (e.g., sampling uniform integers via `jax.random.randint(..., dtype=jnp.int32)`).
-
----
-
-## 6) Ablation Context — Mode A vs Mode D for Selection 🧪
-
-- **Mode A (Standard)**: For each selection event, use per-event keys (e.g., via `split`) and call atomic selection logic. This is straightforward and bitwise reproducible under the same key slicing.
-
-- **Mode D (Bulk / Injection)**: Generate a single bulk index tensor (e.g., `jr.randint(master_key, shape=(S,), minval=0, maxval=N, dtype=jnp.int32)` or by bulk-shuffling indices) in one call. This creates a single HLO that produces all parent indices in one pass.
-
-Trade-offs:
-- Mode A gives exact per-sample reproducibility but incurs many small RNG operations that prevent HLO fusion.
-- Mode D reduces the "hashing tax" and enables the XLA compiler to fuse the index-generation code, improving throughput, especially in multi-device settings.
-
-Ablation tests should measure: index generation throughput, host-device transfers, and the divergence (bitwise and statistical) between Mode A and Mode D.
+- Selection indices MUST be integer dtypes (int32 or int64). Create indices explicitly using `jax.random.randint(..., dtype=jnp.int32)` or similar functions.
+- Avoid floating-point operations on indices; cast to integers immediately after any sampling.
 
 ---
 
-## 7) Zero-Allocation Loop & Data Flow Integrity ✅
+## 6) Key Features
 
-- The engine calls `compute_resource_map(...)` once to get `ResourceMap` containing exact start/end key indices and required shapes.
-- For selection, the engine slices `all_keys[sel_slice]` and hands that slice to the selection operator.
-- `BaseSelection.__call__` returns an indices array which the engine uses to perform a single batched gather (e.g., `jax.vmap(lambda idx: population.genes[idx])`) or an efficient `jax.lax.gather` using the sharded indices.
-- Because all shapes and key budgets are precomputed, the inner loop can operate with zero dynamic allocation—keys and index buffers are pre-allocated and reused across generations.
-
----
-
-## 8) Technical Summary (For Records) 📝
-
-- **Input/Output Contract**: Selection accepts `pop_size` implicitly (via `population`) and outputs `sel_output_count` indices computed from `num_selections`.
-- **Key Budgeting**: `sel_keys_needed` computed via `selection.num_keys((pop_size,))` where `num_keys` uses `num_keys_per_atomic_operation`.
-- **Decoupled Slicing**: Selection returns indices (not new populations) to minimize early memory movement.
-- **PRNG Topology**: Supports both Case A (split-per-selection) and Case D (bulk RNG for indices), with expected bitwise divergence but comparable statistical properties.
+- **Deterministic vs Stochastic**: Selection operators can be deterministic (best, truncation) by setting `num_keys_per_atomic_operation = 0`, or stochastic (tournament, rank-based) requiring PRNG keys.
+- **Static Key Budgeting**: The `set_input_length()` method freezes the population size for static key allocation; `num_keys()` returns the total keys needed.
+- **RNG Flexibility**: The engine pre-allocates and slices keys from a master buffer, ensuring no dynamic allocation during the evolution loop.
 
 ---
 
-## 9) Developer Checklist — Implementing a Selection Operator ✅
+## 7) Engine Integration
 
-- [ ] Define `num_keys_per_atomic_operation` precisely.
-- [ ] Implement `_select_one(keys_slice: chex.Array, fitness: chex.Array, config: C) -> jnp.Int` as a pure function.
-- [ ] Ensure `__call__` reshapes `all_keys` into `(num_selections, num_keys_per_atomic_operation, 2)` and vmaps `_select_one` over these blocks.
-- [ ] Return an integer `jnp.ndarray` of indices and document expected shape and dtype.
-- [ ] Add ablation tests comparing Mode A and Mode D for throughput and correctness.
-- [ ] Ensure tight sharding placement via `ShardingManager` when running on multiple devices.
+- The engine calls `compute_resource_map()` once at initialization to determine total RNG budget and shape requirements.
+- For selection, the engine slices keys from the master buffer and passes them to the selection operator.
+- The selection operator returns indices, which the engine uses for gathering parent genomes via a single batched operation.
+- All key allocations and buffer shapes are fixed at initialization, enabling zero dynamic allocation in the inner evolution loop.
 
 ---
 
-## References (key files)
+## 8) Technical Summary
 
-- `malthusjax.operators.base.BaseSelection` — interface & `__call__`
-- `malthusjax.engine.resource_mapper` — `compute_resource_map` and `ResourceMap`
-- `malthusjax.engine.resource_mapper.ShardingManager` — sharding utilities
+- **Input/Output Contract**: Selection accepts fitness values (either from a Population object or directly) and outputs integer indices of shape `(num_selections,)`.
+- **Key Budgeting**: Total keys needed = `num_keys_per_atomic_operation`, computed by `selection.num_keys(input_shape)`.
+- **Decoupled Slicing**: Selection returns indices (not reordered genomes) to minimize memory overhead.
+- **Type Safety**: Indices are explicitly int32/int64 to prevent accidental promotion during downstream indexing.
 
 ---
 
-If you'd like, I can add a minimal example selection implementation (e.g., TournamentSelection) in `src/malthusjax/operators/selection/` and wire an ablation test that compares Mode A vs Mode D. Would you like that? ✨
+## 9) Developer Checklist — Implementing a Selection Operator
+
+- [ ] Define `num_keys_per_atomic_operation` (0 for deterministic, ≥1 for stochastic).
+- [ ] Implement `_select(keys: chex.Array, fitness: chex.Array, config: Optional[C]) -> indices` as a pure function.
+- [ ] Return an integer `jnp.ndarray` of indices with shape `(num_selections,)` and dtype int32/int64.
+- [ ] Document the selection logic and any required config attributes.
+- [ ] Add unit tests for correctness and shape contracts.
+- [ ] Verify `num_keys()` returns the correct total key budget.
+
+---
+
+## References
+
+- `malthusjax.operators.base.BaseSelection` — Abstract base class and `__call__` interface
+- `malthusjax.engine.resource_mapper.ResourceMap` — Key budgeting and allocation
+- `malthusjax.engine.resource_mapper.ShardingManager` — Multi-device sharding utilities

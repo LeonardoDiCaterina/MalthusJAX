@@ -1,4 +1,4 @@
-# malthusjax.core.fitness — Technical Specification & Architecture ✅
+# malthusjax.core.fitness — Technical Specification & Architecture
 
 This document describes how MalthusJAX handles candidate evaluation in a JAX-native way. It targets developers who will implement new evaluators, adapt external benchmarks, or integrate domain-specific data into fitness pipelines.
 
@@ -60,7 +60,7 @@ Reason: `jax.lax.select` composes into the single XLA graph, keeping JIT compila
 
 ---
 
-## 4) Tensor Interface (Batched JAX-friendly API) 🔧
+## 4) Tensor Interface (Batched JAX-friendly API)
 
 ### Purpose
 - Provide a lightweight, JIT-friendly pathway for *batch* evaluation that works with raw arrays (tensors) rather than `Genome` objects.
@@ -92,7 +92,7 @@ def get_tensor_fitness_function(self):
 - The primary return should be a 1D array of shape `(N,)` containing fitness scores.
 - If other outputs are required, return a tuple `(fitness, aux)` where `aux` is a PyTree; document the contents of `aux` clearly in your evaluator.
 
-### JIT & tracing tips ✅
+### JIT & tracing tips
 - Mark static configuration or large constant data as `pytree_node=False` in your config to avoid embedding them into traced graphs.
 - Use `jax.lax.select` for maximize/minimize branching rather than Python `if` statements.
 - If your tensor function depends on static arguments (e.g., `config`), prefer closing over them or use `jax.jit(..., static_argnames=[...])`.
@@ -107,7 +107,7 @@ def get_tensor_fitness_function(self):
     return jax.jit(f)
 ```
 
-> 💡 **Tip:** Keep the tensor-level API minimal and well-documented—the engine and selection layers expect a simple `(N,)` fitness result so that downstream code (sorting, selection) remains trivial.
+> **Tip:** Keep the tensor-level API minimal and well-documented—the engine and selection layers expect a simple `(N,)` fitness result so that downstream code (sorting, selection) remains trivial.
 
 ---
 
@@ -145,7 +145,7 @@ The repository includes several evaluator categories with canonical implementati
 
 ---
 
-## 6) Implementation Best Practices — Developer's Checklist ✅
+## 6) Implementation Best Practices — Developer's Checklist
 
 When adding a new evaluator, follow this checklist to ensure compatibility with MalthusJAX engines and JAX tracing:
 

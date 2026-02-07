@@ -1,17 +1,17 @@
-# malthusjax.core.genome — Technical Overview ✅
+# malthusjax.core.genome — Technical Overview
 
 This document describes the design, extension patterns, and JAX integration for the `malthusjax.core.genome` package. It's intended for developers who will implement, extend, or use genome types and population containers in MalthusJAX.
 
 ---
 
-## 📐 Overview
+## Overview
 
 - **Purpose**: Provide immutable, JAX-compatible genome primitives and population containers that are easy to JIT/VMap and to extend for algorithm-specific behaviors.
 - **Key classes**: `BaseGenome`, `BasePopulation` (generic `BasePopulation[G]`), distance metric utilities (`DistanceMetric`, `RealDistanceMetric`), and concrete implementations such as `RealGenome`, `RealGenomeConfig`, and `RealPopulation`.
 
 ---
 
-## 🧩 The SoA Paradigm (Struct-of-Arrays)
+## The Struct-of-Arrays (SoA) Paradigm
 
 **Concept**: The codebase follows a Struct-of-Arrays (SoA) architecture: a `BaseGenome` represents the logic and structure for a *single* individual, while a `BasePopulation` holds a "lifted" (batched) version where every leaf in the PyTree has a leading population dimension `N`.
 
@@ -26,7 +26,7 @@ Why this matters:
 
 ---
 
-## 🔁 Extension Pattern
+## Extension Pattern
 
 How to extend a genome or population safely and in a type-safe way:
 
@@ -40,7 +40,7 @@ Best practices:
 
 ---
 
-## ⚡ JAX Integration (vmap / jit / immutability)
+## JAX Integration (vmap / jit / immutability)
 
 - Genomes are implemented as **immutable PyTrees** (via `flax.struct.dataclass`). This is important for JIT compilation and predictable behavior under tracing.
 - Use `jax.vmap` to apply per-individual pure functions over populations where each leaf has shape `(N, ...)`.
@@ -72,7 +72,7 @@ Notes:
 
 ---
 
-## 📏 Standard vs. Extended Metrics
+## Standard vs. Extended Metrics
 
 - `DistanceMetric` (in `core/base.py`) defines standard metrics and the canonical `distance(self, other: BaseGenome, ...)` signature used across genome types (e.g. Hamming, Euclidean).
 - Domain-specific metric classes (e.g. `RealDistanceMetric`) can extend `DistanceMetric` to add more specialized metrics (cosine, normalized Lp, etc.).
@@ -82,7 +82,7 @@ Notes:
 
 ---
 
-## 🧪 Usage Example
+## Usage Example
 
 Table: `RealGenomeConfig` fields
 
@@ -129,7 +129,7 @@ new_pop = cast(RealPopulation, cast(Any, pop).replace(genes=new_genes))
 
 ---
 
-## 🧭 Generics: Why `BasePopulation[G]` matters
+## Generics: Why `BasePopulation[G]` matters
 
 - `BasePopulation` is generic in the genome type (`G`). This preserves the concrete genome type across APIs and keeps static typing precise for engines and operators.
 - Example: `BasePopulation[RealGenome]` signals to type-checkers and implementers that `.genes` is a `RealGenome` PyTree and that static helpers (like `GENOME_CLS`) match that type.
@@ -137,7 +137,7 @@ new_pop = cast(RealPopulation, cast(Any, pop).replace(genes=new_genes))
 
 ---
 
-## 🔧 Implementation Checklist / Best Practices
+## Implementation Checklist & Best Practices
 
 - Preserve the `distance(self, other: BaseGenome, ...)` signature in all genome subclasses.
 - Use `cast(ConcreteGenome, other)` inside `distance` for specific computations.

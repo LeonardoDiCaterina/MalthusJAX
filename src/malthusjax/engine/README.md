@@ -8,14 +8,14 @@ This document describes the design, execution model, and extension patterns for 
 
 ### Core Idea
 
-The engine layer orchestrates the complete evolutionary loop: selection → reproduction (crossover + mutation) → evaluation → hall of fame (HOF) update. MalthusJAX provides an **abstract engine interface** (`AbstractEngine`) and a high-performance implementation (`GeneticEngine`) optimized for JAX/XLA and modern accelerators.
+The engine layer orchestrates the complete evolutionary loop: selection → reproduction (crossover + mutation) → evaluation → best-genome tracking. MalthusJAX provides an abstract engine interface (`AbstractEngine`) and a concrete implementation (`GeneticEngine`) optimized for JAX/XLA.
 
 Key principles:
 
-- **Separation of Concerns**: Genome/fitness (Level 1) and operators (Level 2) are composed into engines (Level 3) without modification.
-- **Resource Budgeting**: RNG (PRNG) requirements are computed once at initialization via `ResourceMap`, enabling static allocation and precise "cascade" data flow.
-- **Init-Phase Compilation**: Operators are "baked" with static input sizes at `init_state()`, allowing XLA to compile efficient kernels once and reuse them.
-- **Immutability & Tracing**: All engine state is immutable (`@struct.dataclass`) and traced by JAX for reproducibility and safe parallelization.
+- **Composition**: Genomes/fitness (Level 1) and operators (Level 2) are composed into engines (Level 3) without modification.
+- **Resource Budgeting**: RNG requirements are precomputed at initialization via `ResourceMap`, enabling static allocation of key budgets across operators.
+- **Init-Phase Compilation**: Operators are frozen with static input sizes at `init_state()`, allowing XLA to compile kernels once and reuse them across generations.
+- **Immutability**: All engine state uses `@struct.dataclass` for traceability and safe JAX operations.
 
 ---
 
@@ -47,151 +47,124 @@ These are **building blocks** for the engine and must follow strict, JAX-native 
 
 ### Initialization Phase: `init_state(rng_key)`
 
-1. **Compute ResourceMap** (`compute_resource_map`):
-   - Calculates exact PRNG budget needed: selection + crossover + mutation + next-key.
-   - Infers population flow: `Selection(N) → Parents(P) → Crossover(P/2) → Offspring(O) → Mutation(O) → Mutants(M)`.
-   - Validates that operators are properly configured (input/output shapes).
+1. **Compute ResourceMap**:
+   - Calls `compute_resource_map()` to calculate exact RNG budget for selection, crossover, mutation, and next-generation key.
+   - Validates operator input/output counts.
 
-2. **Bake Operators** (`OperatorState`):
-   - Freezes operator input sizes in-place (e.g., `selection.set_input_length(pop_size)`).
-   - This ensures XLA compiles the same kernel for every generation, avoiding recompilation overhead.
+2. **Freeze Operators**:
+   - Calls `set_input_length()` on selection, crossover, and mutation operators.
+   - This locks operator parameters (e.g., population size for selection) so XLA compiles a single kernel per operator.
 
 3. **Initialize Population**:
-   - Call `PopulationClass.init_random(key, config, pop_size)` to create random genomes.
-   - Evaluate initial population using the fitness evaluator.
+   - Uses genome class's `init_random()` to create initial population.
+   - Evaluates initial fitness with the provided `BaseEvaluator`.
 
-4. **Enforce GSPMD Sharding** (optional):
-   - Use `ShardingManager` to place population arrays on the correct devices/memory hierarchy.
-   - For single-device setups, this optimizes layout; for multi-device, it ensures proper parallelism.
+4. **Create GeneticEvolutionState**:
+   - Bundles population, best genome, generation counter, RNG key, `ResourceMap`, and frozen `OperatorState`.
+   - This state carries the complete plan for all subsequent steps.
 
-5. **Return GeneticEvolutionState**:
-   - Bundles population, best genome, generation counter, RNG state, resource map, and baked operators.
-   - This state is the **complete execution plan** for all subsequent steps.
-
-**Key advantage**: All static setup happens once, enabling maximal XLA optimization and avoiding recompilation loops.
+**Result**: Static setup happens once. `step()` reuses compiled kernels across all generations.
 
 ---
 
 ### Evolution Step: `step(state)`
 
-Each generation executes in six phases (traced as named calls for HLO profiling):
+Each generation executes these phases (methods decorated with `@traceable` for HLO profiling):
 
 ```
-Phase_0_Allocate_Entropy
-  ↓
-Phase_0a_Get_Active_Operators  (apply scheduled mutation strength, if any)
-  ↓
-Phase_1_Selection_Read          (select parents + extract elites)
-  ↓
-Phase_2_Reproduction_Fused      (crossover + mutation in one phase)
-  ↓
-Phase_3a_Merge                  (combine elites + mutants → next population)
-  ↓
-Phase_3b_Evaluate               (fitness evaluation)
-  ↓
-Phase_3c_Update_HOF             (update best genome / stagnation counter)
+1. _allocate_entropy()      — Derive RNG keys for selection/crossover/mutation
+2. _get_active_operators()  — Apply mutation schedule if configured
+3. _selection_phase()       — Elite extraction + parent selection
+4. _reproduction_phase()    — Crossover + mutation on selected parents
+5. _merge()                 — Combine elites + top mutants to fill pop_size
+6. _evaluate()              — Compute fitness on merged population
+7. _update_hof()            — Track best genome and stagnation counter
 ```
 
-#### Phase_0_Allocate_Entropy
+#### _allocate_entropy()
+
+Slices pre-derived RNG keys for each operator stage via `ResourceMap.get_keys()`.
+
 ```python
-all_keys = rmap.get_keys(state.rng_key)  # Split or fold master key
-k_sel_slice   = all_keys[rmap.get_key_slice('selection')]
-k_cross       = all_keys[rmap.get_key_slice('crossover')]
-k_mut         = all_keys[rmap.get_key_slice('mutation')]
-k_next        = all_keys[rmap.get_key_slice('next_key')][0]
+all_keys = rmap.get_keys(state.rng_key)
+k_sel_slice = all_keys[rmap.get_key_slice('selection')]
+k_cross = all_keys[rmap.get_key_slice('crossover')]
+k_mut = all_keys[rmap.get_key_slice('mutation')]
+k_next = all_keys[rmap.get_key_slice('next_key')][0]
 ```
 
-**RNG Derivation Strategies**:
-- **SPLIT** (default): `jax.random.split(key, n)` → Independent key streams (ideal for multi-device).
-- **FOLD**: `jax.random.fold_in(key, index)` → Deterministic sequences (ideal for reproducibility).
+**Key derivation** is controlled by `GeneticEngineParams.key_derivation`:
+- `SPLIT`: Sequential `jax.random.split()` — uncorrelated but single-threaded.
+- `FOLD`: Parallel `jax.random.fold_in()` — deterministic but more parallelizable.
 
-User choice via `GeneticEngineParams.key_derivation: KeyDerivationStrategy`.
+#### _selection_phase()
 
-#### Phase_1_Selection_Read
+Extracts elites (top `elitism` individuals) and selects parents via the configured selection operator.
+
 ```python
 _, elite_idx = jax.lax.top_k(population.fitness, params.elitism)
 elites_genes = population[elite_idx].genes
-
-selected_idx = operators.selection(k_sel_slice, population)  # returns indices
+selected_idx = operators.selection(key_selection, population)
 ```
 
-- Elite preservation: keeps the top `elitism` individuals.
-- Selection: applies tournament, roulette, or other selection strategy.
+#### _reproduction_phase()
 
-#### Phase_2_Reproduction_Fused
+Crosses selected parents and mutates offspring. Operator input sizes were frozen at `init_state()` via `set_input_length()`.
+
 ```python
 p1_pop = population[parent_indices[:num_pairs]]
 p2_pop = population[parent_indices[num_pairs:]]
-
 offspring_pop = operators.crossover(k_cross, p1_pop, p2_pop, config)
 final_pop = operators.mutation(k_mut, offspring_pop, config)
 ```
 
-- **Crossover**: Combines pairs of parents → `num_pairs * num_offspring` individuals.
-- **Mutation**: Mutates offspring → `num_pairs * num_offspring * num_offspring_per_mutation` final mutants.
-- **ResourceMap ensures shapes match**: Debug assertions validate that operators produce expected output counts.
+#### _merge()
 
-#### Phase_3a_Merge
+Combines elites and top mutants to create next population of size `pop_size`.
+
 ```python
-next_genes = concatenate([elites_genes, mutants_genes[:remaining_slots]])
+num_elites = elites_genes.shape[0]
+num_mutants = pop_size - num_elites
+next_genes = concatenate([elites_genes, mutants_genes[:num_mutants]])
 ```
 
-- Combines elites and truncated mutants to match original population size.
+#### _evaluate()
 
-#### Phase_3b_Evaluate
-```python
-evaluated_pop = evaluator.evaluate_population(new_population)
-```
+Computes fitness on merged population using `BaseEvaluator.evaluate_population()`.
 
-- Batch fitness evaluation using `jax.vmap` internally.
+#### _update_hof()
 
-#### Phase_3c_Update_HOF
-```python
-best_idx = jnp.argmax(evaluated_pop.fitness)
-curr_best_fit = evaluated_pop.fitness[best_idx]
-is_new = curr_best_fit > old_state.best_fitness
-
-# Update stagnation counter (for termination logic)
-next_state = state.replace(
-    population=evaluated_pop,
-    best_fitness=jnp.where(is_new, curr_best_fit, old_state.best_fitness),
-    stagnation_counter=jnp.where(is_new, 0, old_state.stagnation_counter + 1),
-    generation=old_state.generation + 1,
-    rng_key=k_next
-)
-```
+Tracks best genome and increments stagnation counter. Stagnation resets when a new best is found.
 
 ---
 
-## 4) Resource Mapping & Cascade Data Flow
+## 4) Resource Mapping
 
 ### The ResourceMap Contract
 
-`ResourceMap` is a metadata-only (non-JAX-traced) structure that precomputes:
+`ResourceMap` precomputes:
 
-1. **Total RNG Budget**: Sum of keys needed across all operators.
-2. **Per-Operator Allocations**: Start/end indices for key slices.
-3. **Data Flow**: Input/output counts at each stage.
+1. **Total RNG Budget**: Sum of keys needed across all operator stages.
+2. **Per-Operator Slices**: Start/end indices for key allocation.
+3. **Data Counts**: Input/output population sizes at each stage.
 
-**Example** (pop_size=10):
+Example (pop_size=100, elitism=5, uniform 2-offspring crossover):
 
 ```
-Selection:     input=10  →  output=10 (parents)         [1 key]
-Crossover:     input=10  →  output=10 (offspring)       [2 keys]
-Mutation:      input=10  →  output=10 (mutants)         [2 keys]
-Next-key:      output=1                                 [1 key]
-────────────────────────────────────────────────────────
-Total Budget: 6 keys
+Selection:     input=100  →  output=100 (parent indices)        [keys allocated]
+Crossover:     input=100  →  output=200 (2 offspring × pairs)   [keys allocated]
+Mutation:      input=200  →  output=200 (mutants)               [keys allocated]
+Next-key:                 →  output=1 (for next generation)     [1 key]
 ```
 
 ### Key Derivation Strategies
 
-`KeyDerivationStrategy` enum allows users to choose:
+`KeyDerivationStrategy` enum controls RNG key generation in `ResourceMap.get_keys()`:
 
-| Strategy | Method | Use Case |
-|----------|--------|----------|
-| **SPLIT** | `jax.random.split(key, n)` | Multi-device, independent streams, less correlated noise |
-| **FOLD** | `jax.random.fold_in(key, index)` | Reproducibility emphasis, deterministic sequences |
+| Strategy | Method | Trade-off |
+|----------|--------|-----------|
+| **SPLIT** | Sequential `jax.random.split()` | Uncorrelated keys; sequential bottleneck |
+| **FOLD** | Parallel `jax.random.fold_in()` | Deterministic; better for parallelism |
 
 **Usage**:
 
@@ -200,54 +173,38 @@ engine_params = GeneticEngineParams(
     pop_size=100,
     num_generations=50,
     elitism=5,
-    key_derivation=KeyDerivationStrategy.FOLD  # Choose strategy
+    key_derivation=KeyDerivationStrategy.FOLD
 )
-```
-
-**Implementation** (`ResourceMap.get_keys()`):
-
-```python
-def get_keys(self, key: chex.PRNGKey) -> chex.Array:
-    """Derives keys using the configured strategy."""
-    if self.key_derivation == KeyDerivationStrategy.SPLIT:
-        return self.split_key(key)
-    elif self.key_derivation == KeyDerivationStrategy.FOLD:
-        return self.fold_key(key)
-    else:
-        raise ValueError(f"Unknown key derivation strategy: {self.key_derivation}")
 ```
 
 ---
 
-## 5) Operator Baking & Static Input Lengths
+## 5) Operator Freezing with set_input_length()
 
-### Why Baking Matters
+Operators have a static input size (e.g., population size for selection, number of parent pairs for crossover) that is known at initialization. The `set_input_length()` method freezes this size:
 
-Operators have a **static input length** (e.g., population size, number of pairs) that is known at initialization. By calling `.set_input_length(n)` once during `init_state()`, we:
-
-1. **Enable operator-specific optimizations**: Selection can pre-allocate tournament arenas; crossover can pre-size buffers.
-2. **Ensure XLA stability**: The kernel is compiled once and reused, avoiding recompilation per generation.
-3. **Simplify the step loop**: No need to pass input length to every operator call.
+1. **Enables operator-specific optimizations**: Selection can pre-allocate tournament pools; crossover can pre-size buffers.
+2. **Stabilizes XLA compilation**: One kernel per operator, reused every generation.
+3. **Simplifies the step loop**: No need to pass input length to every operator call.
 
 **Example**:
 
 ```python
 # In init_state()
 active_sel = self.selection \
-    .replace(num_selections=rmap.selection.output_count) \
     .set_input_length(rmap.selection.input_count)
     # ^ frozen at initialization; reused every generation
 
 # In step()
-selected_idx = active_sel(k_sel_slice, population)
-# ^ uses pre-baked input_length, no recompilation
+selected_idx = active_sel(key_selection, population)
+# ^ uses pre-frozen input_length, no recompilation
 ```
 
 ---
 
-## 6) Scheduled Mutation Strength
+## 6) Mutation Strength Scheduling
 
-Engines can optionally apply a **time-dependent mutation schedule** to adapt exploration over generations.
+Engines can optionally apply a time-dependent mutation strength schedule to vary exploration over generations.
 
 **Configuration**:
 
@@ -262,20 +219,13 @@ engine_params = GeneticEngineParams(
 )
 ```
 
-**Implementation** (in `_get_active_operators()`):
-
-```python
-if self.engine_params.mutation_strength_schedule is not None:
-    scheduled_strength = self.engine_params.mutation_strength_schedule(state.generation)
-    updated_mutation = operators.mutation.replace(mutation_strength=scheduled_strength)
-    return operators.replace(mutation=updated_mutation)
-```
+The schedule function is called each generation in `_get_active_operators()` and applied to the mutation operator before reproduction.
 
 ---
 
 ## 7) Ask/Tell Interface
 
-For decoupled evaluation workflows (e.g., external simulators, distributed evaluation), the engine provides an **ask/tell** pattern:
+For decoupled evaluation workflows (e.g., external simulators, distributed evaluation), the engine provides an ask/tell interface:
 
 ```python
 # Ask: get the next population to evaluate
@@ -290,13 +240,17 @@ next_state = engine.tell(state, new_population)
 
 **Implementation**:
 - `ask()` allocates entropy and returns the population to evaluate externally.
-- `tell()` completes the evolutionary step using the returned, pre-evaluated population.
+- `tell()` completes the evolutionary step using the pre-evaluated population.
 
 ---
 
-## 8) Sharding & Multi-Device Layout
+## 8) Sharding and Device Placement
 
-`ShardingManager` enforces GSPMD sharding layouts for optimal data placement:
+`ShardingManager` provides GSPMD (General and Simplified Parallelization) sharding layouts for population arrays:
+
+**For single-device**: Optimizes memory layout and L-cache alignment.
+
+**For multi-device**: Ensures proper data distribution across shards:
 
 ```python
 sharding_mgr = ShardingManager(axis_name='batch')
@@ -311,26 +265,22 @@ vector_sharding = NamedSharding(mesh, P('batch'))
 replicated_sharding = NamedSharding(mesh, P())
 ```
 
-**For single-device**: Optimizes memory layout and L-cache alignment.
-**For multi-device**: Ensures proper data distribution across shards.
-
 ---
 
-## 9) Extension Points for Custom Engines
+## 9) Custom Engine Implementations
 
 Developers can extend `AbstractEngine` to implement:
 
-1. **Custom selection logic**: Override `_selection_phase()`.
-2. **Alternative reproduction strategies**: Replace `_reproduction_phase()` with, e.g., asexual reproduction or island models.
-3. **Custom metrics**: Extend `AbstractGenerationOutput` to track domain-specific KPIs.
-4. **Custom state management**: Subclass `AbstractEvolutionState` to track additional metadata (e.g., diversity, lineage).
+1. **Custom phases**: Override selection, reproduction, or evaluation logic.
+2. **Custom metrics**: Extend `AbstractGenerationOutput` to track domain-specific KPIs.
+3. **Custom state**: Subclass `AbstractEvolutionState` to track additional metadata (e.g., diversity, lineage).
 
 **Example**:
 
 ```python
 @struct.dataclass
 class IslandEvolutionState(AbstractEvolutionState[...]):
-    """State for island model."""
+    """State for island-model GA."""
     islands: Tuple[BasePopulation[...], ...] = struct.field()
     migration_history: chex.Array = struct.field()
 
@@ -342,33 +292,33 @@ class IslandEngine(AbstractEngine[...]):
 
 ---
 
-## 10) Best Practices & Performance Tips
+## 10) Best Practices
 
 ### General
 
-- **Use immutable state**: Always rely on `state.replace(...)` to update engine state.
-- **Avoid Python control flow in JIT**: Keep loops and conditions at the Python level, outside the `step()` method.
-- **Profile with JAX debugging**: Use `jax.named_call` markers (already in `GeneticEngine`) and JAX's profiler for HLO inspection.
+- **Use immutable state**: Always use `state.replace(...)` to update state.
+- **Avoid Python control flow in JIT**: Keep loops and conditionals at Python level, outside traced regions.
+- **Profile with JAX tools**: Use `jax.named_call` (already in `GeneticEngine`) and JAX's profiler for HLO inspection.
 
 ### Resource Management
 
-- **Compute ResourceMap early**: Call `compute_resource_map()` once in `init_state()` and store in `GeneticEvolutionState`.
-- **Monitor RNG budget**: Ensure operators respect their allocated key slices; debug assertions validate this.
-- **Choose key derivation wisely**:
+- **Precompute ResourceMap**: Called once in `init_state()`; reused in `step()`.
+- **Validate RNG budget**: Operators should respect their allocated key slices.
+- **Choose key derivation carefully**:
   - Use `SPLIT` for multi-device to ensure independent streams per device.
-  - Use `FOLD` when reproducibility and seeding are paramount.
+  - Use `FOLD` when reproducibility is critical.
 
 ### Sharding
 
-- **For single-device**: Let `ShardingManager` optimize memory layout; the overhead is negligible.
-- **For multi-device**: Ensure the batch axis (`axis_name='batch'`) aligns with your device mesh dimensions.
-- **Replicate scalars**: Non-batched values (best_fitness, generation) should use `replicated_sharding`.
+- **Single-device**: Let `ShardingManager` optimize memory layout; overhead is minimal.
+- **Multi-device**: Ensure batch axis aligns with device mesh dimensions.
+- **Replicate scalars**: Non-batched values (best_fitness, generation) should use replicated sharding.
 
 ### Mutation Scheduling
 
 - **Define schedules as pure functions**: `schedule(generation: int) -> float`.
-- **Test schedule output**: Ensure the returned values are valid and in expected ranges.
-- **Combine with elitism**: Scheduled mutation works best with elitism to preserve good solutions.
+- **Test schedule output**: Ensure returned values are valid and in expected ranges.
+- **Combine with elitism**: Scheduled mutation works best with elite preservation.
 
 ---
 
@@ -392,11 +342,11 @@ src/malthusjax/engine/
 | `AbstractEngine` | Interface for evolution algorithms | ABC | N/A |
 | `GeneticEngine` | Standard GA implementation | `@struct.dataclass` | ✅ |
 | `GeneticEngineParams` | Configuration (pop_size, elitism, schedule, etc.) | `@struct.dataclass` | ✅ |
-| `GeneticEvolutionState` | Complete state bundle (population, HOF, RNG, ResourceMap) | `@struct.dataclass` | ✅ |
-| `ResourceMap` | Precomputed RNG budget & data flow | `@struct.dataclass` (no pytree) | ✅ |
+| `GeneticEvolutionState` | State bundle (population, best genome, RNG, ResourceMap) | `@struct.dataclass` | ✅ |
+| `ResourceMap` | RNG budget and per-operator allocation details | `@struct.dataclass` (no pytree) | ✅ |
 | `KeyDerivationStrategy` | SPLIT vs FOLD RNG derivation | Enum | N/A |
-| `ShardingManager` | GSPMD sharding layout manager | Python class | ✅ (stateless) |
-| `OperatorState` | Baked operators with frozen input sizes | `@struct.dataclass` | ✅ |
+| `ShardingManager` | GSPMD sharding layout management | Python class | ✅ (stateless) |
+| `OperatorState` | Frozen operators with static input sizes | `@struct.dataclass` | ✅ |
 
 ---
 
