@@ -7,6 +7,7 @@ Tests focus on:
 - Basic statistical properties hold
 - Optimization direction (maximize vs minimize)
 """
+
 import unittest
 
 import jax.numpy as jnp
@@ -39,9 +40,7 @@ class TestEngineExecutionQuality(unittest.TestCase):
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
 
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=self.generations
+            pop_size=self.pop_size, elitism=2, num_generations=self.generations
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -53,8 +52,10 @@ class TestEngineExecutionQuality(unittest.TestCase):
             evaluator=evaluator,
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
-            mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5, clip=True),
-            enable_progress_bar=False
+            mutation=GaussianMutation(
+                num_offspring=1, mutation_rate=0.1, mutation_strength=0.5, clip=True
+            ),
+            enable_progress_bar=False,
         )
 
     def test_engine_executes_without_error(self):
@@ -121,8 +122,9 @@ class TestEngineExecutionQuality(unittest.TestCase):
         mean = jnp.mean(fitness)
 
         # Best should be <= mean
-        self.assertLessEqual(float(best), float(mean) + 1e-5,
-            "Best fitness should be <= mean fitness")
+        self.assertLessEqual(
+            float(best), float(mean) + 1e-5, "Best fitness should be <= mean fitness"
+        )
 
     def test_generation_count_correct(self):
         """Test that the correct number of generations ran."""
@@ -140,11 +142,7 @@ class TestEngineOddPopulationSizes(unittest.TestCase):
         for pop_size in [3, 5, 7, 11, 17]:
             with self.subTest(pop_size=pop_size):
                 genome_config = RealGenomeConfig(shape=(3,), bounds=(-5.0, 5.0))
-                engine_params = GeneticEngineParams(
-                    pop_size=pop_size,
-                    elitism=1,
-                    num_generations=5
-                )
+                engine_params = GeneticEngineParams(pop_size=pop_size, elitism=1, num_generations=5)
 
                 bbob_config = BBOBConfig(fn_name="sphere", num_dims=3, maximize=False)
                 evaluator = BBOBEvaluator.create(bbob_config)
@@ -155,8 +153,10 @@ class TestEngineOddPopulationSizes(unittest.TestCase):
                     evaluator=evaluator,
                     selection=ElitePoolSelection(num_selections=pop_size, elite_k=1),
                     crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
-                    mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5, clip=True),
-                    enable_progress_bar=False
+                    mutation=GaussianMutation(
+                        num_offspring=1, mutation_rate=0.1, mutation_strength=0.5, clip=True
+                    ),
+                    enable_progress_bar=False,
                 )
 
                 state = engine.init_state(jar.PRNGKey(42))
@@ -170,13 +170,10 @@ class TestEngineDeterminism(unittest.TestCase):
 
     def test_deterministic_with_same_seed(self):
         """Test deterministic execution with same seed."""
+
         def run_with_seed(seed):
             genome_config = RealGenomeConfig(shape=(3,), bounds=(-5.0, 5.0))
-            engine_params = GeneticEngineParams(
-                pop_size=20,
-                elitism=1,
-                num_generations=5
-            )
+            engine_params = GeneticEngineParams(pop_size=20, elitism=1, num_generations=5)
 
             bbob_config = BBOBConfig(fn_name="sphere", num_dims=3, maximize=False)
             evaluator = BBOBEvaluator.create(bbob_config)
@@ -187,8 +184,10 @@ class TestEngineDeterminism(unittest.TestCase):
                 evaluator=evaluator,
                 selection=ElitePoolSelection(num_selections=20, elite_k=2),
                 crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
-                mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5, clip=True),
-                enable_progress_bar=False
+                mutation=GaussianMutation(
+                    num_offspring=1, mutation_rate=0.1, mutation_strength=0.5, clip=True
+                ),
+                enable_progress_bar=False,
             )
 
             key = jar.PRNGKey(seed)
@@ -204,12 +203,12 @@ class TestEngineDeterminism(unittest.TestCase):
 
 class TestOptimizationDirectionRealGenome(unittest.TestCase):
     """Test that engine correctly maximizes or minimizes with real genome.
-    
+
     IMPORTANT: The engine internally ALWAYS maximizes fitness. The evaluator
     handles the optimization direction by transforming fitness values:
     - maximize=True: returns raw objective value
     - maximize=False: returns negated objective value (for sphere)
-    
+
     Therefore, best_fitness should ALWAYS be monotonically non-decreasing
     regardless of the optimization direction. The test verifies both:
     1. Internal fitness monotonicity (should never decrease)
@@ -219,11 +218,7 @@ class TestOptimizationDirectionRealGenome(unittest.TestCase):
     def test_minimization_sphere_improves_toward_zero(self):
         """Test that sphere minimization (maximize=False) drives raw objective toward 0."""
         genome_config = RealGenomeConfig(shape=(3,), bounds=(-5.0, 5.0))
-        engine_params = GeneticEngineParams(
-            pop_size=50,
-            elitism=2,
-            num_generations=20
-        )
+        engine_params = GeneticEngineParams(pop_size=50, elitism=2, num_generations=20)
 
         # Use sphere function with minimize (maximize=False)
         # Evaluator returns -sphere_value, so best_fitness will be negative and increasing toward 0
@@ -236,48 +231,49 @@ class TestOptimizationDirectionRealGenome(unittest.TestCase):
             evaluator=evaluator,
             selection=ElitePoolSelection(num_selections=50, elite_k=5),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
-            mutation=GaussianMutation(num_offspring=1, mutation_rate=0.2, mutation_strength=0.5, clip=True),
-            enable_progress_bar=False
+            mutation=GaussianMutation(
+                num_offspring=1, mutation_rate=0.2, mutation_strength=0.5, clip=True
+            ),
+            enable_progress_bar=False,
         )
 
         key = jar.PRNGKey(42)
         state = engine.init_state(key)
-        
+
         # Track best fitness across generations
         best_history = [float(state.best_fitness)]
-        
+
         for _ in range(20):
             state, output = engine.step(state)
             best_history.append(float(output.best_fitness))
-        
+
         # Engine always maximizes internally, so best_fitness should be non-decreasing
         # (even for minimization problems - the evaluator negates the value)
         for i in range(1, len(best_history)):
             self.assertGreaterEqual(
                 best_history[i],
-                best_history[i-1] - 1e-5,
-                f"Internal fitness decreased at generation {i}: {best_history[i-1]:.6f} -> {best_history[i]:.6f}"
+                best_history[i - 1] - 1e-5,
+                (
+                    f"Internal fitness decreased at generation {i}: "
+                    f"{best_history[i - 1]:.6f} -> {best_history[i]:.6f}"
+                ),
             )
-        
+
         # For sphere with maximize=False: fitness = -sphere_value
         # Raw sphere value = -fitness, should decrease (improve) toward 0
         initial_raw_sphere = -best_history[0]
         final_raw_sphere = -best_history[-1]
-        
+
         self.assertLess(
             final_raw_sphere,
             initial_raw_sphere + 1e-5,
-            f"Raw sphere value should decrease: {initial_raw_sphere:.6f} -> {final_raw_sphere:.6f}"
+            f"Raw sphere value should decrease: {initial_raw_sphere:.6f} -> {final_raw_sphere:.6f}",
         )
 
     def test_maximization_monotonic_improvement(self):
         """Test that best fitness increases monotonically when maximizing (maximize=True)."""
         genome_config = RealGenomeConfig(shape=(3,), bounds=(-5.0, 5.0))
-        engine_params = GeneticEngineParams(
-            pop_size=50,
-            elitism=2,
-            num_generations=20
-        )
+        engine_params = GeneticEngineParams(pop_size=50, elitism=2, num_generations=20)
 
         # Use sphere function with maximize (maximize=True)
         # Evaluator returns sphere_value directly
@@ -290,43 +286,51 @@ class TestOptimizationDirectionRealGenome(unittest.TestCase):
             evaluator=evaluator,
             selection=ElitePoolSelection(num_selections=50, elite_k=5),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
-            mutation=GaussianMutation(num_offspring=1, mutation_rate=0.2, mutation_strength=0.5, clip=True),
-            enable_progress_bar=False
+            mutation=GaussianMutation(
+                num_offspring=1, mutation_rate=0.2, mutation_strength=0.5, clip=True
+            ),
+            enable_progress_bar=False,
         )
 
         key = jar.PRNGKey(42)
         state = engine.init_state(key)
-        
+
         # Track best fitness across generations
         best_history = [float(state.best_fitness)]
-        
+
         for _ in range(20):
             state, output = engine.step(state)
             best_history.append(float(output.best_fitness))
-        
+
         # For maximization: best fitness should increase or stay same (not decrease)
         self.assertGreaterEqual(
-            best_history[-1], 
+            best_history[-1],
             best_history[0] - 1e-5,
-            f"Maximization failed: fitness decreased from {best_history[0]:.6f} to {best_history[-1]:.6f}"
+            (
+                f"Maximization failed: fitness decreased from {best_history[0]:.6f} "
+                f"to {best_history[-1]:.6f}"
+            ),
         )
-        
+
         # Check monotonicity: each step should not decrease best fitness
         for i in range(1, len(best_history)):
             self.assertGreaterEqual(
                 best_history[i],
-                best_history[i-1] - 1e-5,
-                f"Maximization: fitness decreased at generation {i}: {best_history[i-1]:.6f} -> {best_history[i]:.6f}"
+                best_history[i - 1] - 1e-5,
+                (
+                    f"Maximization: fitness decreased at generation {i}: "
+                    f"{best_history[i - 1]:.6f} -> {best_history[i]:.6f}"
+                ),
             )
 
 
 class TestOptimizationDirectionBinaryGenome(unittest.TestCase):
     """Test that engine correctly maximizes or minimizes with binary genome.
-    
+
     IMPORTANT: BinarySumEvaluator behavior:
     - maximize=True: returns ones_count (count of 1s)
     - maximize=False: returns zeros_count (count of 0s)
-    
+
     Both are non-negative values that the engine maximizes. The "minimize ones"
     problem becomes "maximize zeros".
     """
@@ -334,11 +338,7 @@ class TestOptimizationDirectionBinaryGenome(unittest.TestCase):
     def test_minimization_ones_maximizes_zeros(self):
         """Test that binary minimization (maximize=False) maximizes zero count."""
         genome_config = BinaryGenomeConfig(shape=(20,), p=0.5, dtype=jnp.int32)
-        engine_params = GeneticEngineParams(
-            pop_size=50,
-            elitism=2,
-            num_generations=20
-        )
+        engine_params = GeneticEngineParams(pop_size=50, elitism=2, num_generations=20)
 
         # Use binary sum with minimize (maximize=False)
         # Evaluator returns zeros_count, so more zeros = higher fitness
@@ -352,46 +352,45 @@ class TestOptimizationDirectionBinaryGenome(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=50, elite_k=5),
             crossover=BinaryUniformCrossover(num_offspring=2, crossover_rate=0.5),
             mutation=BitFlipMutation(num_offspring=1, mutation_rate=0.1),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         key = jar.PRNGKey(42)
         state = engine.init_state(key)
-        
+
         # Track best fitness across generations (zeros_count)
         best_history = [float(state.best_fitness)]
-        
+
         for _ in range(20):
             state, output = engine.step(state)
             best_history.append(float(output.best_fitness))
-        
+
         # Engine always maximizes, so best_fitness (zeros_count) should be non-decreasing
         for i in range(1, len(best_history)):
             self.assertGreaterEqual(
                 best_history[i],
-                best_history[i-1] - 1e-5,
-                f"Zeros count decreased at generation {i}: {best_history[i-1]:.0f} -> {best_history[i]:.0f}"
+                best_history[i - 1] - 1e-5,
+                (
+                    f"Zeros count decreased at generation {i}: "
+                    f"{best_history[i - 1]:.0f} -> {best_history[i]:.0f}"
+                ),
             )
-        
+
         # The ones_count (raw objective to minimize) should decrease
         genome_length = 20
         initial_ones = genome_length - best_history[0]
         final_ones = genome_length - best_history[-1]
-        
+
         self.assertLessEqual(
             final_ones,
             initial_ones + 1e-5,
-            f"Ones count should decrease (minimize): {initial_ones:.0f} -> {final_ones:.0f}"
+            f"Ones count should decrease (minimize): {initial_ones:.0f} -> {final_ones:.0f}",
         )
 
     def test_maximization_monotonic_improvement(self):
         """Test that best fitness increases monotonically when maximizing (maximize=True)."""
         genome_config = BinaryGenomeConfig(shape=(20,), p=0.5, dtype=jnp.int32)
-        engine_params = GeneticEngineParams(
-            pop_size=50,
-            elitism=2,
-            num_generations=20
-        )
+        engine_params = GeneticEngineParams(pop_size=50, elitism=2, num_generations=20)
 
         # Use binary sum with maximize (maximize=True)
         # Higher sum = better fitness
@@ -405,34 +404,40 @@ class TestOptimizationDirectionBinaryGenome(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=50, elite_k=5),
             crossover=BinaryUniformCrossover(num_offspring=2, crossover_rate=0.5),
             mutation=BitFlipMutation(num_offspring=1, mutation_rate=0.1),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         key = jar.PRNGKey(42)
         state = engine.init_state(key)
-        
+
         # Track best fitness across generations
         best_history = [float(state.best_fitness)]
-        
+
         for _ in range(20):
             state, output = engine.step(state)
             best_history.append(float(output.best_fitness))
-        
+
         # For maximization: best fitness should increase or stay same (not decrease)
         self.assertGreaterEqual(
-            best_history[-1], 
+            best_history[-1],
             best_history[0] - 1e-5,
-            f"Maximization failed: fitness decreased from {best_history[0]:.6f} to {best_history[-1]:.6f}"
+            (
+                f"Maximization failed: fitness decreased from {best_history[0]:.6f} "
+                f"to {best_history[-1]:.6f}"
+            ),
         )
-        
+
         # Check monotonicity: each step should not decrease best fitness
         for i in range(1, len(best_history)):
             self.assertGreaterEqual(
                 best_history[i],
-                best_history[i-1] - 1e-5,
-                f"Maximization: fitness decreased at generation {i}: {best_history[i-1]:.6f} -> {best_history[i]:.6f}"
+                best_history[i - 1] - 1e-5,
+                (
+                    f"Maximization: fitness decreased at generation {i}: "
+                    f"{best_history[i - 1]:.6f} -> {best_history[i]:.6f}"
+                ),
             )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

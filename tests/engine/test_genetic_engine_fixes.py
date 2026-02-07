@@ -3,6 +3,7 @@ Tests for PR1 Engine fixes:
 - Dataclass defaults validation
 - Elitism==0 edge case handling
 """
+
 import jax.numpy as jnp
 import jax.random as jar
 
@@ -33,8 +34,8 @@ def test_engine_dataclass_defaults_valid():
     )
 
     # Dataclass defaults were wrong before — ensure fields are operator instances
-    assert hasattr(engine, 'crossover')
-    assert hasattr(engine, 'mutation')
+    assert hasattr(engine, "crossover")
+    assert hasattr(engine, "mutation")
     # Provided instances should be present
     assert isinstance(engine.crossover, SinglePointCrossover)
     assert isinstance(engine.mutation, BitFlipMutation)

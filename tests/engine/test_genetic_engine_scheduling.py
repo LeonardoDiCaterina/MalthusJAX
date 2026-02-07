@@ -4,6 +4,7 @@ Tests for mutation strength scheduling in GeneticEngine.
 Tests focus on scheduling callbacks, parameter updates, and their effect
 on mutation operators across generations.
 """
+
 import unittest
 
 import jax.numpy as jnp
@@ -29,9 +30,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -46,7 +45,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         # No schedule set (default None)
@@ -60,6 +59,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
 
     def test_engine_with_linear_decay_schedule(self):
         """Test engine with linear decay mutation schedule."""
+
         # Linear decay: starts at 1.0, decays to 0.1
         def linear_schedule(generation):
             start_strength = 1.0
@@ -68,9 +68,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             progress = min(generation / total_gens, 1.0)
             return start_strength + (end_strength - start_strength) * progress
 
-        engine_params = self.engine_params.replace(
-            mutation_strength_schedule=linear_schedule
-        )
+        engine_params = self.engine_params.replace(mutation_strength_schedule=linear_schedule)
 
         engine = GeneticEngine(
             engine_params=engine_params,
@@ -79,7 +77,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -99,9 +97,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             strengths_applied.append(strength)
             return strength
 
-        engine_params = self.engine_params.replace(
-            mutation_strength_schedule=recording_schedule
-        )
+        engine_params = self.engine_params.replace(mutation_strength_schedule=recording_schedule)
 
         engine = GeneticEngine(
             engine_params=engine_params,
@@ -110,7 +106,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -124,13 +120,15 @@ class TestMutationStrengthScheduling(unittest.TestCase):
 
         # Strengths should be different
         unique_strengths = set(strengths_applied)
-        self.assertGreater(len(unique_strengths), 1,
-            "Schedule should produce different strengths over generations")
+        self.assertGreater(
+            len(unique_strengths), 1, "Schedule should produce different strengths over generations"
+        )
 
     def test_exponential_decay_schedule(self):
         """Test engine with exponential decay schedule."""
+
         def exponential_schedule(generation, initial=1.0, decay_rate=0.9):
-            return initial * (decay_rate ** generation)
+            return initial * (decay_rate**generation)
 
         engine_params = self.engine_params.replace(
             mutation_strength_schedule=lambda g: exponential_schedule(g, 1.0, 0.95)
@@ -143,7 +141,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -155,12 +153,11 @@ class TestMutationStrengthScheduling(unittest.TestCase):
 
     def test_constant_schedule_maintains_strength(self):
         """Test that constant schedule maintains same strength."""
+
         def constant_schedule(generation):
             return 0.5
 
-        engine_params = self.engine_params.replace(
-            mutation_strength_schedule=constant_schedule
-        )
+        engine_params = self.engine_params.replace(mutation_strength_schedule=constant_schedule)
 
         engine = GeneticEngine(
             engine_params=engine_params,
@@ -169,11 +166,11 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.7),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
-        initial_ops = state.operators
+        _initial_ops = state.operators
 
         # Run step
         state, _ = engine.step(state)
@@ -183,14 +180,13 @@ class TestMutationStrengthScheduling(unittest.TestCase):
 
     def test_schedule_with_boundaries(self):
         """Test that schedule respects strength boundaries (0.0 to 1.0+)."""
+
         def bounded_schedule(generation):
             raw = 1.0 - generation * 0.2
             # Don't explicitly bound - let caller decide
             return raw
 
-        engine_params = self.engine_params.replace(
-            mutation_strength_schedule=bounded_schedule
-        )
+        engine_params = self.engine_params.replace(mutation_strength_schedule=bounded_schedule)
 
         engine = GeneticEngine(
             engine_params=engine_params,
@@ -199,7 +195,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -212,12 +208,11 @@ class TestMutationStrengthScheduling(unittest.TestCase):
 
     def test_get_active_operators_applies_schedule(self):
         """Test that _get_active_operators applies scheduled strength."""
+
         def test_schedule(generation):
             return 0.3 + generation * 0.1
 
-        engine_params = self.engine_params.replace(
-            mutation_strength_schedule=test_schedule
-        )
+        engine_params = self.engine_params.replace(mutation_strength_schedule=test_schedule)
 
         engine = GeneticEngine(
             engine_params=engine_params,
@@ -226,11 +221,11 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
-        original_strength = state.operators.mutation.mutation_strength
+        _original_strength = state.operators.mutation.mutation_strength
 
         # Get active operators for generation 2
         active_ops = engine._get_active_operators(state.operators, 2)
@@ -241,9 +236,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
 
     def test_none_schedule_returns_unchanged_operators(self):
         """Test that None schedule returns operators unchanged."""
-        engine_params = self.engine_params.replace(
-            mutation_strength_schedule=None
-        )
+        engine_params = self.engine_params.replace(mutation_strength_schedule=None)
 
         engine = GeneticEngine(
             engine_params=engine_params,
@@ -252,7 +245,7 @@ class TestMutationStrengthScheduling(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -275,9 +268,7 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -285,12 +276,11 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
 
     def test_scheduling_does_not_break_evolution(self):
         """Test that scheduling doesn't interfere with evolution."""
+
         def schedule(g):
             return max(0.1, 1.0 - g * 0.05)
 
-        engine_params = self.engine_params.replace(
-            mutation_strength_schedule=schedule
-        )
+        engine_params = self.engine_params.replace(mutation_strength_schedule=schedule)
 
         engine = GeneticEngine(
             engine_params=engine_params,
@@ -299,7 +289,7 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -310,12 +300,14 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
             state, _ = engine.step(state)
 
         # Generation should increment
-        self.assertEqual(state.generation, initial_generation + 5,
-            "Generation should increment by 5 after 5 steps")
+        self.assertEqual(
+            state.generation,
+            initial_generation + 5,
+            "Generation should increment by 5 after 5 steps",
+        )
 
         # Best fitness should be valid
-        self.assertTrue(jnp.isfinite(state.best_fitness),
-            "Best fitness should be finite")
+        self.assertTrue(jnp.isfinite(state.best_fitness), "Best fitness should be finite")
 
     def test_adaptive_schedule_influences_search(self):
         """Test that different schedules can lead to different results."""
@@ -326,8 +318,7 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
             lambda g: max(0.1, 1.0 - g * 0.1),  # Rapid decay
         ]:
             engine_params = self.engine_params.replace(
-                mutation_strength_schedule=schedule_fn,
-                num_generations=5
+                mutation_strength_schedule=schedule_fn, num_generations=5
             )
 
             engine = GeneticEngine(
@@ -336,8 +327,10 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
                 evaluator=self.evaluator,
                 selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
                 crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
-                mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-                enable_progress_bar=False
+                mutation=GaussianMutation(
+                    num_offspring=1, mutation_rate=0.1, mutation_strength=0.5
+                ),
+                enable_progress_bar=False,
             )
 
             state = engine.init_state(self.key)
@@ -351,5 +344,5 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
         self.assertEqual(len(results), 2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

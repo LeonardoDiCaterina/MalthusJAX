@@ -5,6 +5,7 @@ Tests focus on:
 - Extreme but valid parameters
 - Engine stability with edge conditions
 """
+
 import unittest
 
 import jax.random as jar
@@ -24,9 +25,7 @@ class TestEdgeCasePopulationSizes(unittest.TestCase):
         """Helper to test a population size."""
         genome_config = RealGenomeConfig(shape=(3,), bounds=(-5.0, 5.0))
         engine_params = GeneticEngineParams(
-            pop_size=pop_size,
-            elitism=max(1, pop_size // 10),
-            num_generations=3
+            pop_size=pop_size, elitism=max(1, pop_size // 10), num_generations=3
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=3, maximize=False)
@@ -39,7 +38,7 @@ class TestEdgeCasePopulationSizes(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=pop_size, elite_k=max(1, pop_size // 10)),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(jar.PRNGKey(42))
@@ -66,11 +65,7 @@ class TestEdgeCaseGenerations(unittest.TestCase):
     def _test_generations(self, num_gens):
         """Helper to test generation count."""
         genome_config = RealGenomeConfig(shape=(2,), bounds=(-5.0, 5.0))
-        engine_params = GeneticEngineParams(
-            pop_size=20,
-            elitism=1,
-            num_generations=num_gens
-        )
+        engine_params = GeneticEngineParams(pop_size=20, elitism=1, num_generations=num_gens)
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=2, maximize=False)
         evaluator = BBOBEvaluator.create(bbob_config)
@@ -82,7 +77,7 @@ class TestEdgeCaseGenerations(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=20, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(jar.PRNGKey(42))
@@ -105,11 +100,7 @@ class TestEdgeCaseGenomeDimensions(unittest.TestCase):
     def _test_dimension(self, dim):
         """Helper to test dimension."""
         genome_config = RealGenomeConfig(shape=(dim,), bounds=(-5.0, 5.0))
-        engine_params = GeneticEngineParams(
-            pop_size=15,
-            elitism=1,
-            num_generations=3
-        )
+        engine_params = GeneticEngineParams(pop_size=15, elitism=1, num_generations=3)
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=dim, maximize=False)
         evaluator = BBOBEvaluator.create(bbob_config)
@@ -121,7 +112,7 @@ class TestEdgeCaseGenomeDimensions(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=15, elite_k=1),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(jar.PRNGKey(42))
@@ -144,11 +135,7 @@ class TestEdgeCaseMutationRates(unittest.TestCase):
     def _test_mutation_rate(self, mutation_rate):
         """Helper to test mutation rate."""
         genome_config = RealGenomeConfig(shape=(3,), bounds=(-5.0, 5.0))
-        engine_params = GeneticEngineParams(
-            pop_size=15,
-            elitism=1,
-            num_generations=5
-        )
+        engine_params = GeneticEngineParams(pop_size=15, elitism=1, num_generations=5)
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=3, maximize=False)
         evaluator = BBOBEvaluator.create(bbob_config)
@@ -159,8 +146,10 @@ class TestEdgeCaseMutationRates(unittest.TestCase):
             evaluator=evaluator,
             selection=ElitePoolSelection(num_selections=15, elite_k=1),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
-            mutation=GaussianMutation(num_offspring=1, mutation_rate=mutation_rate, mutation_strength=0.5),
-            enable_progress_bar=False
+            mutation=GaussianMutation(
+                num_offspring=1, mutation_rate=mutation_rate, mutation_strength=0.5
+            ),
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(jar.PRNGKey(42))
@@ -178,5 +167,5 @@ class TestEdgeCaseMutationRates(unittest.TestCase):
         self._test_mutation_rate(0.9)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

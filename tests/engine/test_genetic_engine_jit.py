@@ -7,6 +7,7 @@ Tests focus on:
 - Entropy buffer lifecycle management
 - Performance characteristics
 """
+
 import time
 import unittest
 from functools import partial
@@ -34,9 +35,7 @@ class TestJITCompilation(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -49,7 +48,7 @@ class TestJITCompilation(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
     def test_jit_step_compiles_without_error(self):
@@ -76,21 +75,15 @@ class TestJITCompilation(unittest.TestCase):
         jit_state, jit_metrics = jit_step(state)
 
         # Results should match
-        self.assertTrue(jnp.allclose(
-            eager_state.population.fitness,
-            jit_state.population.fitness
-        ))
-        self.assertTrue(jnp.allclose(
-            eager_metrics.best_fitness,
-            jit_metrics.best_fitness
-        ))
+        self.assertTrue(jnp.allclose(eager_state.population.fitness, jit_state.population.fitness))
+        self.assertTrue(jnp.allclose(eager_metrics.best_fitness, jit_metrics.best_fitness))
 
     def test_jit_with_static_engine(self):
         """Test JIT compilation with static_argnums for engine."""
         state = self.engine.init_state(self.key)
 
         # Create JIT with engine as static arg
-        @partial(jax.jit, static_argnames=['engine'])
+        @partial(jax.jit, static_argnames=["engine"])
         def run_step(engine, state):
             return engine.step(state)
 
@@ -134,9 +127,7 @@ class TestEntropyBufferLifecycle(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -149,7 +140,7 @@ class TestEntropyBufferLifecycle(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -163,7 +154,7 @@ class TestEntropyBufferLifecycle(unittest.TestCase):
 
         # After tell, the original engine should still be entropy-free
         evaluated = self.engine.evaluator.evaluate_population(pop)
-        new_state = engine_with_entropy.tell(self.state, evaluated)
+        _ = engine_with_entropy.tell(self.state, evaluated)
 
         # Original engine entropy buffer should still be empty
         self.assertEqual(len(self.engine._entropy_buffer), 0)
@@ -180,8 +171,7 @@ class TestEntropyBufferLifecycle(unittest.TestCase):
 
         # Buffers should be different (different state -> different entropy)
         self.assertFalse(
-            jnp.array_equal(buffer1[0], buffer2[0]),
-            "Buffer should change with different state"
+            jnp.array_equal(buffer1[0], buffer2[0]), "Buffer should change with different state"
         )
 
     def test_entropy_keys_never_repeated(self):
@@ -218,9 +208,7 @@ class TestNamedCallTracing(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=5
+            pop_size=self.pop_size, elitism=2, num_generations=5
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -233,7 +221,7 @@ class TestNamedCallTracing(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -275,11 +263,7 @@ class TestPerformanceCharacteristics(unittest.TestCase):
 
         for pop_size in [10, 20, 30]:
             genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
-            engine_params = GeneticEngineParams(
-                pop_size=pop_size,
-                elitism=1,
-                num_generations=3
-            )
+            engine_params = GeneticEngineParams(pop_size=pop_size, elitism=1, num_generations=3)
 
             engine = GeneticEngine(
                 engine_params=engine_params,
@@ -287,8 +271,10 @@ class TestPerformanceCharacteristics(unittest.TestCase):
                 evaluator=self.evaluator,
                 selection=ElitePoolSelection(num_selections=pop_size, elite_k=1),
                 crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
-                mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-                enable_progress_bar=False
+                mutation=GaussianMutation(
+                    num_offspring=1, mutation_rate=0.1, mutation_strength=0.5
+                ),
+                enable_progress_bar=False,
             )
 
             state = engine.init_state(self.key)
@@ -303,17 +289,14 @@ class TestPerformanceCharacteristics(unittest.TestCase):
         # Time should increase with population size, but not exponentially
         # (rough check: should be within 3x for 3x population increase)
         if times[0] > 0.01:  # Only check if significant time
-            self.assertLess(times[2], times[0] * 5,
-                "Execution time scaled too poorly with population size")
+            self.assertLess(
+                times[2], times[0] * 5, "Execution time scaled too poorly with population size"
+            )
 
     def test_jit_first_call_slower_than_subsequent(self):
         """Test that JIT compilation adds overhead on first call."""
         genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
-        engine_params = GeneticEngineParams(
-            pop_size=20,
-            elitism=1,
-            num_generations=5
-        )
+        engine_params = GeneticEngineParams(pop_size=20, elitism=1, num_generations=5)
 
         engine = GeneticEngine(
             engine_params=engine_params,
@@ -322,7 +305,7 @@ class TestPerformanceCharacteristics(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=20, elite_k=1),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -354,9 +337,7 @@ class TestStateTransitionValidity(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -369,7 +350,7 @@ class TestStateTransitionValidity(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -387,13 +368,15 @@ class TestStateTransitionValidity(unittest.TestCase):
 
         # Generation should always increase
         for i in range(1, len(generation_history)):
-            self.assertEqual(generation_history[i], generation_history[i-1] + 1,
-                "Generation should increment by 1 each step")
+            self.assertEqual(
+                generation_history[i],
+                generation_history[i - 1] + 1,
+                "Generation should increment by 1 each step",
+            )
 
         # Best fitness should be tracked (no NaN or Inf)
         for fitness in best_history:
-            self.assertTrue(jnp.isfinite(fitness),
-                f"Best fitness should be finite, got {fitness}")
+            self.assertTrue(jnp.isfinite(fitness), f"Best fitness should be finite, got {fitness}")
 
     def test_population_always_has_size(self):
         """Test that population maintains size throughout evolution."""
@@ -429,5 +412,5 @@ class TestStateTransitionValidity(unittest.TestCase):
             old_key = state.rng_key
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

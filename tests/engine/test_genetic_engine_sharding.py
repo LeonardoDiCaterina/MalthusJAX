@@ -7,6 +7,7 @@ Tests focus on:
 - Data type casting and preservation
 - Memory layout optimization
 """
+
 import unittest
 
 import jax
@@ -39,11 +40,7 @@ class TestResourceMapComputation(unittest.TestCase):
     def test_resource_map_is_computed(self):
         """Test that resource map is computed without error."""
         rmap = compute_resource_map(
-            self.selection,
-            self.crossover,
-            self.mutation,
-            self.genome_config,
-            self.pop_size
+            self.selection, self.crossover, self.mutation, self.genome_config, self.pop_size
         )
 
         self.assertIsNotNone(rmap)
@@ -52,11 +49,7 @@ class TestResourceMapComputation(unittest.TestCase):
     def test_resource_map_tracks_all_components(self):
         """Test that resource map includes selection, crossover, mutation."""
         rmap = compute_resource_map(
-            self.selection,
-            self.crossover,
-            self.mutation,
-            self.genome_config,
-            self.pop_size
+            self.selection, self.crossover, self.mutation, self.genome_config, self.pop_size
         )
 
         self.assertIsNotNone(rmap.selection)
@@ -66,11 +59,7 @@ class TestResourceMapComputation(unittest.TestCase):
     def test_selection_resource_has_correct_output_count(self):
         """Test that selection resource matches num_selections."""
         rmap = compute_resource_map(
-            self.selection,
-            self.crossover,
-            self.mutation,
-            self.genome_config,
-            self.pop_size
+            self.selection, self.crossover, self.mutation, self.genome_config, self.pop_size
         )
 
         # Selection outputs should match population size
@@ -82,11 +71,7 @@ class TestResourceMapComputation(unittest.TestCase):
         crossover = SimulatedBinaryCrossover(num_offspring=num_offspring, eta=15.0)
 
         rmap = compute_resource_map(
-            self.selection,
-            crossover,
-            self.mutation,
-            self.genome_config,
-            self.pop_size
+            self.selection, crossover, self.mutation, self.genome_config, self.pop_size
         )
 
         # Each pair produces num_offspring
@@ -98,14 +83,12 @@ class TestResourceMapComputation(unittest.TestCase):
     def test_mutation_produces_expected_offspring(self):
         """Test that mutation resource matches num_offspring."""
         num_offspring = 1
-        mutation = GaussianMutation(num_offspring=num_offspring, mutation_rate=0.1, mutation_strength=0.5)
+        mutation = GaussianMutation(
+            num_offspring=num_offspring, mutation_rate=0.1, mutation_strength=0.5
+        )
 
         rmap = compute_resource_map(
-            self.selection,
-            self.crossover,
-            mutation,
-            self.genome_config,
-            self.pop_size
+            self.selection, self.crossover, mutation, self.genome_config, self.pop_size
         )
 
         # Each input produces num_offspring
@@ -118,11 +101,7 @@ class TestResourceMapComputation(unittest.TestCase):
         for pop_size in [10, 30, 50, 100]:
             with self.subTest(pop_size=pop_size):
                 rmap = compute_resource_map(
-                    self.selection,
-                    self.crossover,
-                    self.mutation,
-                    self.genome_config,
-                    pop_size
+                    self.selection, self.crossover, self.mutation, self.genome_config, pop_size
                 )
 
                 self.assertGreater(rmap.total_rng_budget, 0)
@@ -140,11 +119,7 @@ class TestResourceMapComputation(unittest.TestCase):
         for config in configs:
             crossover = SimulatedBinaryCrossover(num_offspring=config["num_offspring"], eta=15.0)
             rmap = compute_resource_map(
-                self.selection,
-                crossover,
-                self.mutation,
-                self.genome_config,
-                self.pop_size
+                self.selection, crossover, self.mutation, self.genome_config, self.pop_size
             )
             rmaps.append(rmap)
             output_counts.append(rmap.crossover.output_count)
@@ -170,9 +145,7 @@ class TestShardingEnforcement(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=5
+            pop_size=self.pop_size, elitism=2, num_generations=5
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -185,7 +158,7 @@ class TestShardingEnforcement(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
     def test_init_state_enforces_sharding_layout(self):
@@ -230,11 +203,7 @@ class TestDtypeCasting(unittest.TestCase):
         """Test that default dtype is consistent."""
         genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
 
-        engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=5
-        )
+        engine_params = GeneticEngineParams(pop_size=self.pop_size, elitism=2, num_generations=5)
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
         evaluator = BBOBEvaluator.create(bbob_config)
@@ -246,7 +215,7 @@ class TestDtypeCasting(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -259,11 +228,7 @@ class TestDtypeCasting(unittest.TestCase):
         """Test that fitness dtype is consistent."""
         genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
 
-        engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=5
-        )
+        engine_params = GeneticEngineParams(pop_size=self.pop_size, elitism=2, num_generations=5)
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
         evaluator = BBOBEvaluator.create(bbob_config)
@@ -275,7 +240,7 @@ class TestDtypeCasting(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -291,11 +256,7 @@ class TestDtypeCasting(unittest.TestCase):
         """Test that best_fitness dtype is scalar floating."""
         genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
 
-        engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=5
-        )
+        engine_params = GeneticEngineParams(pop_size=self.pop_size, elitism=2, num_generations=5)
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
         evaluator = BBOBEvaluator.create(bbob_config)
@@ -307,7 +268,7 @@ class TestDtypeCasting(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         state = engine.init_state(self.key)
@@ -328,9 +289,7 @@ class TestResourceConsistency(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -343,7 +302,7 @@ class TestResourceConsistency(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
     def test_resource_map_remains_constant_across_generations(self):
@@ -357,7 +316,9 @@ class TestResourceConsistency(unittest.TestCase):
 
         # Resource map should be identical
         self.assertEqual(initial_rmap.total_rng_budget, state.resource_map.total_rng_budget)
-        self.assertEqual(initial_rmap.selection.output_count, state.resource_map.selection.output_count)
+        self.assertEqual(
+            initial_rmap.selection.output_count, state.resource_map.selection.output_count
+        )
 
     def test_operator_state_remains_consistent(self):
         """Test that operator state remains valid across generations."""
@@ -377,5 +338,5 @@ class TestResourceConsistency(unittest.TestCase):
         self.assertIsNotNone(state.operators.mutation)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

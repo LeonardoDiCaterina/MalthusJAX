@@ -4,6 +4,7 @@ Tests for Ask/Tell (async) interface of GeneticEngine.
 Tests focus on the async evolution pattern where ask() allocates entropy
 and tell() consumes it, allowing external evaluation between phases.
 """
+
 import unittest
 
 import jax
@@ -30,9 +31,7 @@ class TestAskTellInterface(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -45,7 +44,7 @@ class TestAskTellInterface(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -203,9 +202,7 @@ class TestAskTellVsSyncEvolution(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=(-5.0, 5.0))
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=5
+            pop_size=self.pop_size, elitism=2, num_generations=5
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -218,7 +215,7 @@ class TestAskTellVsSyncEvolution(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=2),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
     def test_ask_tell_produces_same_progression_with_same_seed(self):
@@ -248,5 +245,5 @@ class TestAskTellVsSyncEvolution(unittest.TestCase):
         self.assertEqual(len(best_async), 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

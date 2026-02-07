@@ -1,6 +1,12 @@
-from .base import AbstractEngine, AbstractEvolutionState, AbstractEngineParams, AbstractGenerationOutput
+from .base import (
+    AbstractEngine,
+    AbstractEngineParams,
+    AbstractEvolutionState,
+    AbstractGenerationOutput,
+)
 from .genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
-#from .diversity_engine import DiversityAwareEngine
+
+# from .diversity_engine import DiversityAwareEngine
 
 __all__ = [
     "AbstractEngine",
@@ -10,5 +16,5 @@ __all__ = [
     "GeneticEngine",
     "GeneticEngineParams",
     "GeneticGenerationOutput",
-    #"DiversityAwareEngine",
+    # "DiversityAwareEngine",
 ]

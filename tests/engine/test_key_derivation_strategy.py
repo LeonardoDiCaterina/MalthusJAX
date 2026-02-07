@@ -1,14 +1,13 @@
 """Unit tests for KeyDerivationStrategy and ResourceMap.get_keys()"""
-import jax.random as jar
-import jax.numpy as jnp
 
-from malthusjax.engine.resource_mapper import (
-    KeyDerivationStrategy, compute_resource_map
-)
-from malthusjax.operators.selection.tournament import TournamentSelection
+import jax.numpy as jnp
+import jax.random as jar
+
+from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
+from malthusjax.engine.resource_mapper import KeyDerivationStrategy, compute_resource_map
 from malthusjax.operators.crossover.binary import SinglePointCrossover
 from malthusjax.operators.mutation.binary import BitFlipMutation
-from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
+from malthusjax.operators.selection.tournament import TournamentSelection
 
 
 def make_rmap(strategy: KeyDerivationStrategy):
@@ -16,7 +15,9 @@ def make_rmap(strategy: KeyDerivationStrategy):
     selection = TournamentSelection(num_selections=8, tournament_size=3)
     crossover = SinglePointCrossover(num_offspring=2)
     mutation = BitFlipMutation(num_offspring=1, mutation_rate=0.1)
-    return compute_resource_map(selection, crossover, mutation, genome_config, pop_size=8, key_derivation=strategy)
+    return compute_resource_map(
+        selection, crossover, mutation, genome_config, pop_size=8, key_derivation=strategy
+    )
 
 
 def test_enum_has_members():

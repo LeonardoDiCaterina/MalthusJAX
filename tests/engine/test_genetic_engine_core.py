@@ -3,6 +3,7 @@ Tests for test_genetic_engine.py focusing on core functionality.
 
 Keep the passing tests and remove problematic ones that make unrealistic expectations.
 """
+
 import unittest
 
 import jax.numpy as jnp
@@ -33,37 +34,22 @@ class TestGeneticEngineCore(unittest.TestCase):
         self.bounds = (-5.0, 5.0)
         self.generations = 10
 
-        self.genome_config = RealGenomeConfig(
-            shape=self.genome_shape,
-            bounds=self.bounds
-        )
+        self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
 
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=self.generations
+            pop_size=self.pop_size, elitism=2, num_generations=self.generations
         )
 
-        bbob_config = BBOBConfig(
-            fn_name="sphere",
-            num_dims=self.genome_shape[0],
-            maximize=False
-        )
+        bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
         self.evaluator = BBOBEvaluator.create(bbob_config)
 
-        self.selection = ElitePoolSelection(
-            num_selections=self.pop_size,
-            elite_k=10
-        )
-        self.crossover = SimulatedBinaryCrossover(
-            num_offspring=2,
-            eta=15.0
-        )
+        self.selection = ElitePoolSelection(num_selections=self.pop_size, elite_k=10)
+        self.crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)
         self.mutation = GaussianMutation(
             num_offspring=1,
             mutation_rate=0.1,
             mutation_strength=0.5,
-            clip=True  # Enable clipping to ensure bounds are respected
+            clip=True,  # Enable clipping to ensure bounds are respected
         )
 
         # 3. Engine
@@ -74,7 +60,7 @@ class TestGeneticEngineCore(unittest.TestCase):
             selection=self.selection,
             crossover=self.crossover,
             mutation=self.mutation,
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
     def test_01_init_state_creates_valid_state(self):
@@ -99,7 +85,9 @@ class TestGeneticEngineCore(unittest.TestCase):
         final_state, metrics = self.engine.step(state)
 
         self.assertEqual(final_state.generation, 1)
-        self.assertEqual(final_state.population.genes.values.shape, (self.pop_size,) + self.genome_shape)
+        self.assertEqual(
+            final_state.population.genes.values.shape, (self.pop_size,) + self.genome_shape
+        )
         self.assertFalse(jnp.isnan(final_state.best_fitness))
 
     def test_03_full_run_completes(self):
@@ -146,8 +134,9 @@ class TestGeneticEngineCore(unittest.TestCase):
 
             # Check bounds
             within_bounds = jnp.all(genes >= self.bounds[0]) and jnp.all(genes <= self.bounds[1])
-            self.assertTrue(within_bounds,
-                f"Genes violated bounds [{self.bounds[0]}, {self.bounds[1]}]")
+            self.assertTrue(
+                within_bounds, f"Genes violated bounds [{self.bounds[0]}, {self.bounds[1]}]"
+            )
 
     def test_07_reproducibility_with_seed(self):
         """Test that evolution is reproducible with same seed."""
@@ -163,8 +152,7 @@ class TestGeneticEngineCore(unittest.TestCase):
 
         # Results should be bitwise identical
         genes_equal = jnp.allclose(
-            final_state1.population.genes.values,
-            final_state2.population.genes.values
+            final_state1.population.genes.values, final_state2.population.genes.values
         )
         self.assertTrue(genes_equal, "Evolution not reproducible with same seed")
 
@@ -181,5 +169,5 @@ class TestGeneticEngineCore(unittest.TestCase):
         self.assertFalse(jnp.any(jnp.isnan(fitness)), "Fitness contains NaN")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

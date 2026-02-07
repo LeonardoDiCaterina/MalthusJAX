@@ -4,6 +4,7 @@ Comprehensive phase-level tests for GeneticEngine.
 Tests focus on individual phases (entropy allocation, selection, reproduction,
 merge, evaluation, HOF update) and their interactions.
 """
+
 import unittest
 
 import jax
@@ -33,9 +34,7 @@ class TestEntropyAllocation(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -48,7 +47,7 @@ class TestEntropyAllocation(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=5),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -98,9 +97,7 @@ class TestSelectionPhase(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=3,
-            num_generations=10
+            pop_size=self.pop_size, elitism=3, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -113,7 +110,7 @@ class TestSelectionPhase(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=5),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -122,10 +119,7 @@ class TestSelectionPhase(unittest.TestCase):
         """Test that selection returns elite genes and parent indices."""
         key_sel = jar.fold_in(self.state.rng_key, 0)
         elites, parent_indices = self.engine._selection_phase(
-            key_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            key_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         # Elites should have shape (elitism, ...genome_shape)
@@ -139,10 +133,7 @@ class TestSelectionPhase(unittest.TestCase):
         """Test that selected indices are within population bounds."""
         key_sel = jar.fold_in(self.state.rng_key, 0)
         elites, parent_indices = self.engine._selection_phase(
-            key_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            key_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         # All indices should be in valid range [0, pop_size)
@@ -153,16 +144,12 @@ class TestSelectionPhase(unittest.TestCase):
         """Test that elite genes correspond to best fitness individuals."""
         key_sel = jar.fold_in(self.state.rng_key, 0)
         elites, _ = self.engine._selection_phase(
-            key_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            key_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         # Get top-k fitness values
         top_k_fitness, top_k_indices = jax.lax.top_k(
-            self.state.population.fitness,
-            self.engine_params.elitism
+            self.state.population.fitness, self.engine_params.elitism
         )
 
         # Elite genes should match top-k individuals
@@ -186,9 +173,7 @@ class TestReproductionPhase(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -201,7 +186,7 @@ class TestReproductionPhase(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -213,10 +198,7 @@ class TestReproductionPhase(unittest.TestCase):
 
         # Get parents
         _, parent_indices = self.engine._selection_phase(
-            k_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            k_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         # Reproduce
@@ -226,7 +208,7 @@ class TestReproductionPhase(unittest.TestCase):
             parent_indices,
             self.state.population,
             self.state.operators,
-            self.state.resource_map
+            self.state.resource_map,
         )
 
         # Population size should match
@@ -238,10 +220,7 @@ class TestReproductionPhase(unittest.TestCase):
         k_sel, k_cross, k_mut, k_next = self.engine._allocate_entropy(self.state)
 
         _, parent_indices = self.engine._selection_phase(
-            k_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            k_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         final_pop = self.engine._reproduction_phase(
@@ -250,7 +229,7 @@ class TestReproductionPhase(unittest.TestCase):
             parent_indices,
             self.state.population,
             self.state.operators,
-            self.state.resource_map
+            self.state.resource_map,
         )
 
         genes = final_pop.genes.values
@@ -263,10 +242,7 @@ class TestReproductionPhase(unittest.TestCase):
         k_sel, k_cross, k_mut, k_next = self.engine._allocate_entropy(self.state)
 
         _, parent_indices = self.engine._selection_phase(
-            k_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            k_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         offspring_pop = self.engine._reproduction_phase(
@@ -275,7 +251,7 @@ class TestReproductionPhase(unittest.TestCase):
             parent_indices,
             self.state.population,
             self.state.operators,
-            self.state.resource_map
+            self.state.resource_map,
         )
 
         # With very high probability, offspring should differ from parents
@@ -290,8 +266,9 @@ class TestReproductionPhase(unittest.TestCase):
                 identical_count += 1
 
         # Expect very few identical offspring with mutation enabled
-        self.assertLess(identical_count, len(offspring_genes) * 0.5,
-            "Too many offspring identical to parents")
+        self.assertLess(
+            identical_count, len(offspring_genes) * 0.5, "Too many offspring identical to parents"
+        )
 
 
 class TestMergePhase(unittest.TestCase):
@@ -306,9 +283,7 @@ class TestMergePhase(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=4,
-            num_generations=10
+            pop_size=self.pop_size, elitism=4, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -321,7 +296,7 @@ class TestMergePhase(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=4),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -331,10 +306,7 @@ class TestMergePhase(unittest.TestCase):
         k_sel, k_cross, k_mut, k_next = self.engine._allocate_entropy(self.state)
 
         elites, parent_indices = self.engine._selection_phase(
-            k_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            k_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         mutants = self.engine._reproduction_phase(
@@ -343,7 +315,7 @@ class TestMergePhase(unittest.TestCase):
             parent_indices,
             self.state.population,
             self.state.operators,
-            self.state.resource_map
+            self.state.resource_map,
         )
 
         merged_genes = self.engine._merge(elites, mutants.genes, self.state)
@@ -357,10 +329,7 @@ class TestMergePhase(unittest.TestCase):
         k_sel, k_cross, k_mut, k_next = self.engine._allocate_entropy(self.state)
 
         elites, parent_indices = self.engine._selection_phase(
-            k_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            k_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         mutants = self.engine._reproduction_phase(
@@ -369,7 +338,7 @@ class TestMergePhase(unittest.TestCase):
             parent_indices,
             self.state.population,
             self.state.operators,
-            self.state.resource_map
+            self.state.resource_map,
         )
 
         merged_genes = self.engine._merge(elites, mutants.genes, self.state)
@@ -379,8 +348,7 @@ class TestMergePhase(unittest.TestCase):
         elite_leaves = jax.tree_util.tree_leaves(elites)
 
         for merged_leaf, elite_leaf in zip(merged_leaves, elite_leaves):
-            self.assertTrue(jnp.allclose(merged_leaf[:self.engine_params.elitism],
-                                         elite_leaf))
+            self.assertTrue(jnp.allclose(merged_leaf[: self.engine_params.elitism], elite_leaf))
 
 
 class TestEvaluationPhase(unittest.TestCase):
@@ -395,9 +363,7 @@ class TestEvaluationPhase(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -410,7 +376,7 @@ class TestEvaluationPhase(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -421,10 +387,7 @@ class TestEvaluationPhase(unittest.TestCase):
         k_sel, k_cross, k_mut, k_next = self.engine._allocate_entropy(self.state)
 
         elites, parent_indices = self.engine._selection_phase(
-            k_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            k_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         mutants = self.engine._reproduction_phase(
@@ -433,7 +396,7 @@ class TestEvaluationPhase(unittest.TestCase):
             parent_indices,
             self.state.population,
             self.state.operators,
-            self.state.resource_map
+            self.state.resource_map,
         )
 
         new_genes = self.engine._merge(elites, mutants.genes, self.state)
@@ -450,10 +413,7 @@ class TestEvaluationPhase(unittest.TestCase):
         k_sel, k_cross, k_mut, k_next = self.engine._allocate_entropy(self.state)
 
         elites, parent_indices = self.engine._selection_phase(
-            k_sel,
-            self.state.population,
-            self.state.operators,
-            self.engine_params
+            k_sel, self.state.population, self.state.operators, self.engine_params
         )
 
         mutants = self.engine._reproduction_phase(
@@ -462,7 +422,7 @@ class TestEvaluationPhase(unittest.TestCase):
             parent_indices,
             self.state.population,
             self.state.operators,
-            self.state.resource_map
+            self.state.resource_map,
         )
 
         new_genes = self.engine._merge(elites, mutants.genes, self.state)
@@ -485,9 +445,7 @@ class TestHOFUpdatePhase(unittest.TestCase):
 
         self.genome_config = RealGenomeConfig(shape=self.genome_shape, bounds=self.bounds)
         self.engine_params = GeneticEngineParams(
-            pop_size=self.pop_size,
-            elitism=2,
-            num_generations=10
+            pop_size=self.pop_size, elitism=2, num_generations=10
         )
 
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=self.genome_shape[0], maximize=False)
@@ -500,7 +458,7 @@ class TestHOFUpdatePhase(unittest.TestCase):
             selection=ElitePoolSelection(num_selections=self.pop_size, elite_k=3),
             crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
             mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5),
-            enable_progress_bar=False
+            enable_progress_bar=False,
         )
 
         self.state = self.engine.init_state(self.key)
@@ -534,11 +492,7 @@ class TestHOFUpdatePhase(unittest.TestCase):
         old_gen = self.state.generation
 
         k_next = jar.fold_in(self.state.rng_key, 100)
-        updated_state = self.engine._update_hof(
-            self.state.population,
-            self.state,
-            k_next
-        )
+        updated_state = self.engine._update_hof(self.state.population, self.state, k_next)
 
         self.assertEqual(updated_state.generation, old_gen + 1)
 
@@ -574,5 +528,5 @@ class TestHOFUpdatePhase(unittest.TestCase):
         self.assertEqual(int(updated_state.stagnation_counter), 4)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
