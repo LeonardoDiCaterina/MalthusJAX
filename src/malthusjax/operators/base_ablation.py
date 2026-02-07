@@ -1,9 +1,8 @@
-"""
-Ablation study decorators for testing key budgeting performance impact.
+"""Ablation decorators: Single-key mode for benchmarking key splitting overhead.
 
-These decorators convert existing operators to use single-key allocation
-instead of the ResourceMapper budgeting system, allowing performance comparison
-between pre-allocated keys vs. on-demand key splitting.
+Converts operators to consume a single PRNG key and split internally,
+allowing performance comparison vs ResourceMapper pre-allocation strategy.
+Useful for measuring dynamic key splitting cost in evolutionary loops.
 """
 
 from typing import Any, Tuple, TypeVar, cast
@@ -20,15 +19,11 @@ TCrossover = TypeVar("TCrossover", bound=BaseCrossover[Any, Any, Any])
 
 
 def ablation_single_key_mutation(cls: TMutation) -> TMutation:
-    """
-    Decorator to convert mutation operators to single-key ablation mode.
+    """Convert mutation operator to single-key ablation mode for benchmarking.
 
-    Replaces:
-    - num_keys() to return 1 (bypass ResourceMapper budgeting)
-    - __call__() to split single key internally on-demand
-
-    This tests whether key pre-allocation provides performance benefits
-    vs. dynamic splitting overhead.
+    Replaces num_keys() to return 1 and __call__() to split internally.
+    This benchmarks the cost of dynamic key splitting vs ResourceMapper
+    pre-allocation during JIT compilation and execution.
 
     Usage:
         @ablation_single_key_mutation
@@ -49,16 +44,23 @@ def ablation_single_key_mutation(cls: TMutation) -> TMutation:
         config: Any,
         **kwargs: Any,
     ) -> Any:
-        """
-        Override: Split single key internally, preserving original logic.
+        """Override: Split single key internally, preserving original logic.
 
-        This implements the same vectorization strategy but with on-demand
-        key splitting instead of pre-allocated keys from ResourceMapper.
-        """
-        # Extract single key from input array, handling potential batch dimensions
-        single_key = jnp.asarray(all_keys).reshape(-1)[:2]  # Ensure shape (2,)
+        Transforms input key shape (2,) to output shape matching original
+        __call__ expectation (input_length, num_offspring, atomic_keys, 2).
+        Allows direct comparison of single-key splitting overhead vs
+        pre-allocated key performance during vmap execution.
 
-        # Calculate total keys needed using original budgeting logic
+        Args:
+            all_keys: Single PRNG key, shape (..., 2).
+            population: Mutation input population.
+            config: Genome configuration.
+
+        Returns:
+            Population with mutated genes (same shape as original __call__).
+        """
+        single_key = jnp.asarray(all_keys).reshape(-1)[:2]
+
         keys_shape = (
             self.input_length,
             self.num_offspring,
@@ -67,11 +69,9 @@ def ablation_single_key_mutation(cls: TMutation) -> TMutation:
         )
         total_needed = self.input_length * self.num_offspring * self.num_keys_per_atomic_operation
 
-        # Split and reshape keys for original vectorization pattern
         split_keys = cast(Any, jax.random.split)(single_key, num=int(total_needed))
         keys_reshaped = split_keys.reshape(keys_shape)
 
-        # Use original __call__ with dynamically split keys
         return cast(Any, original_call)(self, keys_reshaped, population, config, **kwargs)
 
     # Patch the class methods safely (cast to Any to avoid mypy method-assign complaints)
@@ -82,14 +82,11 @@ def ablation_single_key_mutation(cls: TMutation) -> TMutation:
 
 
 def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
-    """
-    Decorator to convert crossover operators to single-key ablation mode.
+    """Convert crossover operator to single-key ablation mode for benchmarking.
 
-    Replaces:
-    - num_keys() to return 1 (bypass ResourceMapper budgeting)
-    - __call__() to split single key internally on-demand
-
-    This tests crossover key budgeting performance vs. dynamic allocation.
+    Replaces num_keys() to return 1 and __call__() to split internally.
+    Benchmarks dynamic key splitting cost for crossover vs ResourceMapper
+    pre-allocation strategy.
 
     Usage:
         @ablation_single_key_crossover
@@ -111,16 +108,22 @@ def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
         config: Any,
         **kwargs: Any,
     ) -> Any:
-        """
-        Override: Split single key internally for crossover operations.
+        """Override: Split single key internally for crossover operations.
 
-        Maintains the same nested vmap structure but uses dynamic key
-        splitting instead of ResourceMapper pre-allocation.
-        """
-        # Extract single key from input array, handling potential batch dimensions
-        single_key = jnp.asarray(all_keys).reshape(-1)[:2]  # Ensure shape (2,)
+        Transforms input key shape (2,) to output shape matching original
+        __call__ expectation (input_length, num_offspring, atomic_keys, 2).
+        Maintains nested vmap structure but with dynamic key splitting.
 
-        # Calculate total keys needed using original budgeting logic
+        Args:
+            all_keys: Single PRNG key, shape (..., 2).
+            p1_pop, p2_pop: Parent populations.
+            config: Genome configuration.
+
+        Returns:
+            Population of recombined offspring (same shape as original __call__).
+        """
+        single_key = jnp.asarray(all_keys).reshape(-1)[:2]
+
         keys_shape = (
             self.input_length,
             self.num_offspring,
@@ -129,11 +132,9 @@ def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
         )
         total_needed = self.input_length * self.num_offspring * self.num_keys_per_atomic_operation
 
-        # Split and reshape keys for original vectorization pattern
         split_keys = cast(Any, jax.random.split)(single_key, num=int(total_needed))
         keys_reshaped = split_keys.reshape(keys_shape)
 
-        # Use original __call__ with dynamically split keys
         return cast(Any, original_call)(self, keys_reshaped, p1_pop, p2_pop, config, **kwargs)
 
     # Patch the class methods safely (cast to Any to avoid mypy method-assign complaints)

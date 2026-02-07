@@ -22,9 +22,13 @@ from malthusjax.operators.base_injection import BaseMutation_injection
 @struct.dataclass
 class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
     """
-    Gaussian (Normal) Mutation following the 3-Tier Paradigm.
-    Optimized: Uses FMA (Fused Multiply-Add)
-    via masked arithmetic
+    Gaussian (Normal) Mutation (3-Tier Paradigm).
+    Tier 2: Bernoulli mask + Gaussian noise scaled by mutation_strength.
+    Tier 1: Masked addition (genome + noise*strength*mask) via FMA.
+    Shape contract: (d,) genome + (d,) noise → (d,) mutated genome.
+    Key budget: 2 pre-allocated subkeys (Bernoulli mask, Gaussian noise).
+    Optimization: Fused multiply-add avoids intermediate arrays; masked
+    arithmetic (multiplication by 0.0/1.0) beats jnp.where for XLA latency.
     """
 
     mutation_rate: float = 0.1
@@ -39,21 +43,16 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
     def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> chex.Array:
         """
         Tier 2 — Noise Generation.
-        Handles all RNG and masking logic to produce the 'delta' payload.
+        Generates mask (Bernoulli) and noise (Gaussian scaled by strength).
+        Returns: (d,) array = noise * strength * mask for Tier 1 arithmetic.
         """
         k_mask, k_noise = keys[0], keys[1]
         dtype = config.dtype
 
-        # 1. Generate Bernoulli Mask (0.0 or 1.0)
         mask_bool = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=config.shape)
         mask_val = mask_bool.astype(dtype)
-
-        # 2. Generate Gaussian Noise scaled by strength
         raw_noise = jax.random.normal(k_noise, shape=config.shape, dtype=dtype)
         strength = jnp.array(self.mutation_strength, dtype=dtype)
-
-        # 3. Combine into a single delta for Tier 1
-        # This is the 'noise_data' passed to the arithmetic kernel.
         return raw_noise * strength * mask_val
 
     def _mutate_one(
@@ -61,17 +60,12 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
     ) -> RealGenome:
         """
         Tier 1 — Arithmetic Kernel.
-        Pure, promotion-free arithmetic focusing on FMA optimization.
+        Fused addition: genome + (noise * strength * mask). Clip if enabled.
         """
-        # Fused addition: genome + (noise * strength * mask)
-        # noise_data already contains (noise * strength * mask) from Tier 2.
         mutated_values = genome.values + noise_data
-
-        # Optional clipping based on static config
         if self.clip:
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
-
         return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
 
 
@@ -80,12 +74,11 @@ class GaussianMutation_injection(
     BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]
 ):
     """
-    Injection-mode Gaussian Mutation.
-
-    Consumes a single PRNG key and splits it internally to produce a flattened
-    noise array of shape `(input_length * num_offspring, ...)`. The base
-    injection wrapper will reshape this into `(input_length, num_offspring, ...)`
-    for the vmapped mutation kernel.
+    Injection-mode Gaussian Mutation (single-key variant).
+    Splits single key to (n*K) subkeys, reshaped (n, K, -1) for vmap.
+    Vmap generates all (n*num_offspring) noise arrays in parallel.
+    Shape contract: (d,) noise per (pair, offspring) → (n, d) flattened output.
+    Trade-off: Full noise materialization vs no re-splitting (reproducibility).
     """
 
     mutation_rate: float = 0.1
@@ -139,8 +132,12 @@ class GaussianMutation_injection(
 class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
     """
     Ball Mutation (3-Tier Paradigm).
-    Samples a point uniformly within an n-dimensional ball of given radius.
-    Optimized: Tier 2 generates the vector; Tier 1 applies it.
+    Tier 2: Muller's Method—Gaussian direction normalized, scaled by u^(1/d).
+    Tier 1: Masked addition (genome + ball_delta * mask).
+    Shape contract: (d,) genome + (d,) ball_delta → (d,) mutated genome.
+    Key budget: 3 pre-allocated subkeys (mask, direction, magnitude scaling).
+    Muller's Method ensures uniform spatial distribution within ball volume
+    via power-law radial scaling u^(1/d) to counter dimension bias.
     """
 
     radius: float = 0.1
@@ -154,35 +151,21 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
 
     def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> chex.Array:
         """
-        Tier 2 — Noise Generation.
-        Implements the 'Muller's Method' for uniform ball sampling.
+        Tier 2 — Noise Generation (Muller's Method).
+        Returns: (d,) array = unit_direction * radius * u^(1/d) * mask.
         """
         k_mask, k_vector, k_mag = keys[0], keys[1], keys[2]
         dtype = config.dtype
         shape = config.shape
 
-        # 1. Bernoulli Mask (0.0 or 1.0)
         mask_val = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=shape).astype(dtype)
-
-        # 2. Muller's Method:
-        # a) Sample from a standard Normal distribution
         raw_vector = jax.random.normal(k_vector, shape=shape, dtype=dtype)
-
-        # b) Calculate the norm
         norm = jnp.sqrt(jnp.sum(jnp.square(raw_vector))) + 1e-8
-
-        # c) Sample uniform 'u' for radial scaling (ensures uniform density inside the volume)
         u = jax.random.uniform(k_mag, shape=(), minval=0.0, maxval=1.0, dtype=dtype)
-
-        # d) Combine: (direction) * (volume-scaled magnitude)
-        # We use jnp.power(u, 1/N) to ensure uniform spatial distribution
         dimension = jnp.array(jnp.prod(jnp.array(shape)), dtype=dtype)
         r = self.radius * jnp.power(u, 1.0 / dimension)
-
         unit_vector = raw_vector / norm
         ball_delta = unit_vector * r
-
-        # 3. Apply mask as a multiplier
         return ball_delta * mask_val
 
     def _mutate_one(
@@ -201,7 +184,11 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
 @struct.dataclass
 class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]):
     """
-    Injection-mode Ball Mutation.
+    Injection-mode Ball Mutation (single-key variant).
+    Splits single key to (n*3) subkeys, reshaped (n, 3, -1) for vmap.
+    Vmap generates all (n*num_offspring) ball deltas in parallel.
+    Shape contract: (d,) ball_delta per (pair, offspring) → (n, d) flattened.
+    Trade-off: Full vector/magnitude materialization vs reproducibility.
     """
 
     radius: float = 0.1
@@ -254,7 +241,12 @@ class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig
 class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
     """
     Polynomial Mutation (3-Tier Paradigm).
-    Optimized: Tier 2 handles the complex power-logic; Tier 1 performs FMA.
+    Tier 2: Masks delta via jnp.where(u≤0.5, (2u)^(1/(η+1))-1, 1-(2(1-u))^(1/(η+1))).
+    Tier 1: Scaled addition (genome + delta * bound_range * mask).
+    Shape contract: (d,) genome + (d,) delta → (d,) mutated genome.
+    Key budget: 2 pre-allocated subkeys (mask, uniform u for polynomial spread).
+    Delta branching ensures symmetric distribution around parent for both u<0.5
+    and u≥0.5 regions, producing offspring concentrated near parent (small η).
     """
 
     mutation_rate: float = 0.1
@@ -268,36 +260,27 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
 
     def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> chex.Array:
         """
-        Tier 2 — Noise Generation.
-        Implements the standard polynomial mutation logic to produce a delta payload.
+        Tier 2 — Noise Generation (Polynomial mutation).
+        Returns: (d,) array = delta_q * bound_range * mask (scaled by [min,max]).
         """
         k_mask, k_val = keys[0], keys[1]
         dtype = config.dtype
-
-        # 1. Vaccinate Constants
         eta = jnp.array(self.eta, dtype=dtype)
         one = jnp.array(1.0, dtype=dtype)
         half = jnp.array(0.5, dtype=dtype)
         two = jnp.array(2.0, dtype=dtype)
         exponent = one / (eta + one)
-
-        # 2. Sample Mask & U
-        mask_val = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=config.shape).astype(
-            dtype
-        )
+        mask_val = jax.random.bernoulli(
+            k_mask, p=self.mutation_rate, shape=config.shape
+        ).astype(dtype)
         u = jax.random.uniform(k_val, shape=config.shape, dtype=dtype)
-
-        # 3. Calculate Delta_Q
         delta_q = jnp.where(
             u <= half,
             jnp.power(two * u, exponent) - one,
             one - jnp.power(two * (one - u), exponent),
         )
-
-        # 4. Scale by Bounds
         min_val, max_val = config.bounds
         bound_range = jnp.array(max_val - min_val, dtype=dtype)
-
         return delta_q * bound_range * mask_val
 
     def _mutate_one(
@@ -318,7 +301,11 @@ class PolynomialMutation_injection(
     BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]
 ):
     """
-    Injection-mode Polynomial Mutation.
+    Injection-mode Polynomial Mutation (single-key variant).
+    Splits single key to (n*2) subkeys, reshaped (n, 2, -1) for vmap.
+    Vmap generates all (n*num_offspring) delta_q arrays in parallel.
+    Shape contract: (d,) delta per (pair, offspring) → (n, d) flattened.
+    Trade-off: Full delta materialization vs reproducibility (no re-splitting).
     """
 
     mutation_rate: float = 0.1

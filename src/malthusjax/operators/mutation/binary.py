@@ -20,7 +20,11 @@ from malthusjax.operators.base import BaseMutation
 @struct.dataclass
 class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
-    Bit flip mutation (3-Tier Paradigm).
+    Bit Flip Mutation (3-Tier Paradigm).
+    Tier 2: Bernoulli flip mask (N,) where N is bit-string length.
+    Tier 1: Bitwise XOR with dtype-conditional logic (bool vs numeric).
+    Shape contract: (N,) genome + (N,) flip_mask → (N,) mutated bit-string.
+    Key budget: 1 pre-allocated subkey (Bernoulli mask generation).
     """
 
     mutation_rate: float = 0.1
@@ -40,7 +44,7 @@ class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopul
         config: BinaryGenomeConfig,
         **_kwargs: Any,
     ) -> BinaryGenome:
-        """Tier 1: Bitwise XOR logic (Standardized .values)."""
+        """Tier 1: Bitwise XOR. Handles bool and numeric (uint8, int32) dtypes."""
         mask = noise_data
         if jnp.issubdtype(genome.values.dtype, jnp.bool_):
             mutated = jnp.logical_xor(genome.values, mask)
@@ -54,6 +58,11 @@ class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopul
 class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
     Scramble Mutation (3-Tier Paradigm).
+    Tier 2: Bernoulli decision + permutation indices (N,) reordering.
+    Tier 1: Apply permutation conditionally via jax.lax.select (branchless XLA).
+    Shape contract: (N,) genome → (N,) permuted_or_original_genome.
+    Key budget: 2 pre-allocated subkeys (decision mask, permutation generation).
+    Jax.lax.select ensures XLA traces without control flow (scalars broadcast).
     """
 
     mutation_rate: float = 0.1
@@ -77,10 +86,9 @@ class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopu
         config: BinaryGenomeConfig,
         **_kwargs: Any,
     ) -> BinaryGenome:
-        """Tier 1: Apply permutation conditionally."""
+        """Tier 1: Branchless conditional permutation via jax.lax.select."""
         should_mutate, indices = noise_data
         scrambled = genome.values[indices]
-        # Use select for a pure, branchless arithmetic path in XLA
         new_values = jax.lax.select(
             jnp.broadcast_to(should_mutate, scrambled.shape), scrambled, genome.values
         )
@@ -91,6 +99,11 @@ class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopu
 class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
     Swap Mutation (3-Tier Paradigm).
+    Tier 2: Bernoulli decision + two random bit positions (idx1, idx2).
+    Tier 1: Conditional swap via jax.array.at[].set() chaining (immutable arrays).
+    Shape contract: (N,) genome → (N,) swapped_or_original_genome.
+    Key budget: 3 pre-allocated subkeys (decision, idx1 randint, idx2 randint).
+    Functional swap via .at[] preserves JAX immutability for JIT compilation.
     """
 
     mutation_rate: float = 0.1
@@ -115,14 +128,10 @@ class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulati
         config: BinaryGenomeConfig,
         **_kwargs: Any,
     ) -> BinaryGenome:
-        """Tier 1: Functional swap."""
+        """Tier 1: Immutable functional swap via .at[] chaining."""
         should_mutate, idx1, idx2 = noise_data
-
-        # Calculate swapped values
         v1, v2 = genome.values[idx1], genome.values[idx2]
         swapped = genome.values.at[idx1].set(v2).at[idx2].set(v1)
-
-        # Apply logic
         new_values = jax.lax.select(should_mutate, swapped, genome.values)
         return cast(BinaryGenome, cast(Any, genome).replace(values=new_values))
 

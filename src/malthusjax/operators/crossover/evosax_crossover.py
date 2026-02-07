@@ -11,11 +11,14 @@ from malthusjax.operators.base import BaseCrossover, _field
 @struct.dataclass
 class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
     """
-    Simple Evosax-style uniform crossover wrapper that consumes a single PRNG
-    key and internally splits it to generate per-(pair, offspring) masks.
+    Evosax Compatibility Wrapper — Single-Key Mode.
+    Consumes single key, splits internally in _cross_fused to generate per-pair masks.
+    Alternative to standard pre-allocated key budgeting; enables direct evosax integration.
+    Design trade-off: Dynamic key splitting vs. static shape stability.
 
-    This class intentionally exposes `num_keys(...) -> 1` so the operator
-    allocation remains minimal and the single key is split internally.
+    Use for: Benchmarking evosax compatibility; ablation studies; comparative evolution.
+    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)
+    Key budget: 1 key (split dynamically, not pre-allocated)
     """
 
     num_offspring: int = _field(pytree_node=False, default=1)
@@ -45,15 +48,17 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         **kwargs: Any,
     ) -> RealGenome:
         """
-        Atomic fused pass for a single offspring. Extracts a single PRNG
-        key from `keys`, calls `evosax_crossover` on the two parental value
-        arrays, and wraps the returned child array into a `RealGenome` via
-        `from_tensor`.
+        Atomic Crossover Kernel (Single-Key Wrapper Pattern).
+        Extracts first PRNG key from `keys` (shape (..., atomic_keys=1, 2));
+        calls evosax.crossover on value arrays; wraps result into RealGenome.
+        Decouples XLA boundary from evosax kernel (operates on pure arrays).
+
+        Returns: Offspring RealGenome with (d,) values
         """
-        # keys is expected to be shaped (atomic_keys, 2) where atomic_keys == 1
+        # Reshape to extract single key: keys is (..., 1, 2) → flatten to (2,)
         prng_key = keys.reshape((-1, keys.shape[-1]))[0]
 
-        # evosax_crossover expects (key, parent1_values, parent2_values, crossover_rate)
+        # evosax.crossover: (key, p1_values, p2_values, rate) → (d,) offspring
         child_vals = evosax_crossover(prng_key, p1.values, p2.values, self.crossover_rate)
 
         return RealGenome.from_tensor(child_vals, config)

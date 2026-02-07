@@ -18,18 +18,22 @@ from malthusjax.operators.base import BaseCrossover
 class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
     Uniform Crossover (Fused 3-Tier Paradigm).
-    Each bit is independently sourced from Parent 1 or Parent 2.
+    Per-bit independent selection from parents via Bernoulli mask. XLA fuses mask generation
+    (Tier 2) with selection kernel (Tier 1) into single compiled operation.
+
+    Shape contract: Parent (N,) × Parent (N,) → Offspring (N,)
+    Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.
     """
 
     crossover_rate: float = 0.5
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """Requires 1 key for the Bernoulli mixing mask."""
+        """Bernoulli mask generation requires 1 PRNG subkey."""
         return 1
 
     def _generate_noise(self, keys: chex.PRNGKey, config: BinaryGenomeConfig) -> chex.Array:
-        """Tier 2: Generate per-bit mixing mask."""
+        """Tier 2 — Bernoulli Mask. Returns (N,) boolean array for per-bit selection."""
         return jax.random.bernoulli(keys[0], p=self.crossover_rate, shape=config.shape)
 
     def _recombine_one(
@@ -40,9 +44,13 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPop
         config: BinaryGenomeConfig,
         **_kwargs: Any,
     ) -> BinaryGenome:
-        """Tier 1: Bitwise selection using genome genes."""
+        """
+        Tier 1 — XLA-Fused Recombination Kernel.
+        Per-bit selection (True=p2, False=p1) fused with mask generation for single kernel launch.
+
+        Returns: Offspring BinaryGenome with (N,) bits
+        """
         mask = noise_data
-        # Convention: mask=True selects from p2, False selects from p1
         offspring_genes = jnp.where(mask, p2.values, p1.values)
         return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
 
@@ -51,18 +59,25 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPop
 class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
     """
     Single-Point Crossover (Fused 3-Tier Paradigm).
-    Swaps segments at a random crossover point.
+    Selects a random crossover point [1, N-1); swaps segments. Avoids boundary points (0, N)
+    to ensure meaningful recombination (both parents contribute genes).
+
+    Shape contract: Parent (N,) × Parent (N,) → Offspring (N,)
+    Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.
     """
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """Requires 1 key to determine the crossover point."""
+        """Randint sampling for crossover point requires 1 PRNG subkey."""
         return 1
 
     def _generate_noise(self, keys: chex.PRNGKey, config: BinaryGenomeConfig) -> chex.Array:
-        """Tier 2: Generate segment mask based on random point."""
+        """
+        Tier 2 — Segment Mask.
+        Generates (N,) boolean mask based on random crossover point [1, N-1).
+        True indicates second segment (from parent 2).
+        """
         length = config.shape[0]
-        # Avoid 0 and length to ensure meaningful recombination
         crossover_point = jax.random.randint(keys[0], shape=(), minval=1, maxval=length)
         indices = jnp.arange(length)
         return jnp.where(indices < crossover_point, True, False)
@@ -75,9 +90,13 @@ class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, Binar
         config: BinaryGenomeConfig,
         **_kwargs: Any,
     ) -> BinaryGenome:
-        """Tier 1: Segment-wise selection."""
+        """
+        Tier 1 — XLA-Fused Segment Crossover Kernel.
+        Segment-wise selection (True=p2, False=p1) fused with mask generation.
+
+        Returns: Offspring BinaryGenome with (N,) bits
+        """
         mask = noise_data
-        # Convention: mask=True selects from p2, False selects from p1
         offspring_genes = jnp.where(mask, p2.values, p1.values)
         return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
 

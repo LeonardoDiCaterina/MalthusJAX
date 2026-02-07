@@ -18,7 +18,14 @@ __all__ = ["EvosaxGaussianWrapper", "InjectionGaussianMutation"]
 @struct.dataclass
 class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
     """
-    Ablation Baseline: Lean Evosax Wrapper.
+    Evosax Gaussian Mutation Wrapper (Integration Adapter).
+    Single-key injection-mode integration of evosax.mutation Gaussian operator.
+    Key strategy: Accepts single PRNG key, splits per individual (pop_size subkeys),
+    applies evosax mutation to each genome independently via jax.vmap.
+    Default num_keys_per_atomic_operation=1 (reported budget for static framework).
+    Trade-off: Dynamic key splitting (memory efficient) vs static XLA shape stability.
+    Purpose: Benchmarking evosax compatibility, ablation baseline for framework
+    comparison, demonstrating alternative single-key injection interface pattern.
     """
 
     mutation_strength: float = 0.1

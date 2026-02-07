@@ -20,7 +20,11 @@ from malthusjax.operators.base_injection import BaseCrossover_injection as BaseC
 class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
     """
     Uniform Crossover (Fused 3-Tier Paradigm).
-    Mixes genes from both parents based on a per-gene probability.
+    Per-gene independent selection from parents via Bernoulli mask. XLA fuses mask generation
+    (Tier 2) with selection kernel (Tier 1) into single compiled operation.
+
+    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)
+    Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.
     """
 
     # This operator produces a single offspring per pair (static contract)
@@ -29,15 +33,17 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulatio
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """Requires 1 key to generate the Bernoulli mixing mask."""
+        """Bernoulli mask generation requires 1 PRNG subkey."""
         return 1
 
     def _generate_noise(self, keys: chex.PRNGKey, config: RealGenomeConfig) -> chex.Array:
         """
-        Tier 2 — Mask Generation.
-        Generates a boolean mask matching the genome shape.
+        Tier 2 — Bernoulli Mask (Binary noise).
+        Generates (d,) boolean array via Bernoulli(p=crossover_rate). Pre-allocated key
+        ensures deterministic, reproducible masking per pair (key determinism).
+
+        Returns: (d,) boolean array
         """
-        # keys[0] is the subkey allocated by the ResourceMapper.
         return jax.random.bernoulli(keys[0], p=self.crossover_rate, shape=config.shape)
 
     def _recombine_one(
@@ -49,11 +55,13 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulatio
         **kwargs: Any,
     ) -> RealGenome:
         """
-        Tier 1 — Recombination Kernel (Pure).
-        Uses the pre-generated mask to select values from parents.
+        Tier 1 — XLA-Fused Recombination Kernel.
+        Pure arithmetic: select parent values using per-gene mask (True=p2, False=p1).
+        XLA fuses this selection with Tier 2 mask generation for single kernel launch.
+
+        Returns: Offspring RealGenome with (d,) values
         """
         mask = noise_data
-        # Convention: mask=True selects from p2, False selects from p1
         offspring_values = jnp.where(mask, p2.values, p1.values)
         return cast(RealGenome, cast(Any, p1).replace(values=offspring_values))
 
@@ -64,8 +72,11 @@ class UniformCrossover_injection(
 ):
     """
     Injection-mode Uniform Crossover.
-    Produces pre-generated masks per (pair, offspring) flattened into a single
-    axis. The base injection wrapper will reshape to `(input_length, num_offspring, ...)`.
+    Single key splits into (n_pairs * n_offspring) subkeys; jax.vmap(per_row) generates all masks
+    in parallel, returning (n_pairs * n_offspring, d) flattened array for base wrapper to unfold.
+    Trade-off: Full noise materialization enables reproducibility without key re-splitting.
+
+    Shape contract: Parent (d,) → Noise (d,), vmapped to (K, d) then flattened to (K*d,)
     """
 
     num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
@@ -73,9 +84,11 @@ class UniformCrossover_injection(
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
+        """Single key for Bernoulli mask generation (split internally)."""
         return 1
 
     def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig) -> chex.Array:
+        """Generate all (pair, offspring) masks upfront. Shape: (n_pairs * n_offspring, d)."""
         if self.input_length <= 0 or self.num_offspring <= 0:
             raise ValueError(
                 "Set `input_length` and `num_offspring` before calling _generate_noise."
@@ -86,7 +99,7 @@ class UniformCrossover_injection(
         def per_row(k: chex.PRNGKey) -> chex.Array:
             return jax.random.bernoulli(k, p=self.crossover_rate, shape=config.shape)
 
-        return jax.vmap(per_row)(subkeys)
+        return jax.vmap(per_row)(subkeys)  # (n, d) boolean masks
 
     def _recombine_one(
         self,
@@ -96,10 +109,7 @@ class UniformCrossover_injection(
         config: RealGenomeConfig,
         **kwargs: Any,
     ) -> RealGenome:
-        """
-        Tier 1 — Recombination Kernel (Pure).
-        Implemented for injection: same logic as the fused `UniformCrossover`.
-        """
+        """XLA-fused recombination: select using per-gene pre-generated mask."""
         mask = noise_data
         offspring_values = jnp.where(mask, p2.values, p1.values)
         return cast(RealGenome, cast(Any, p1).replace(values=offspring_values))
@@ -108,8 +118,14 @@ class UniformCrossover_injection(
 @struct.dataclass
 class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
     """
-    Blend Crossover (BLX-alpha) - Fused 3-Tier Paradigm.
-    Creates an expanded box around parents and samples uniformly within it.
+    Blend Crossover (BLX-alpha) — Fused 3-Tier Paradigm.
+    Expands [min(p1,p2), max(p1,p2)] by ±alpha×|p1-p2|; samples uniformly within.
+    Tier 2: (decision: scalar bool, samples: (d,) uniform); Tier 1: fuses expansion,
+    sampling, clipping, and selection into single XLA kernel.
+
+    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)
+    Noise shape: (scalar bool, (d,) uniform)
+    Key budget: 2 subkeys (decision + sampling)
     """
 
     num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
@@ -118,7 +134,7 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """Requires 2 keys: one for the crossover decision and one for uniform sampling."""
+        """Requires 2 PRNG subkeys: decision (Bernoulli) and sampling (Uniform)."""
         return 2
 
     def _generate_noise(
@@ -127,18 +143,13 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]
         config: RealGenomeConfig,
     ) -> Tuple[chex.Array, chex.Array]:
         """
-        Tier 2 — Stochastic Payload.
-        Generates the raw data needed for the blend arithmetic.
+        Tier 2 — Stochastic Payload (Heterogeneous).
+        Returns tuple: (should_cross: scalar bool, random_samples: (d,) uniform[0,1]).
+        Pre-allocated keys ensure deterministic noise per pair.
         """
         k_do, k_val = keys[0], keys[1]
-        dtype = config.dtype
-
-        # 1. Decision mask (Boolean)
         should_cross = jax.random.bernoulli(k_do, p=self.crossover_rate)
-
-        # 2. Uniform random samples (Matching genome shape)
-        random_samples = jax.random.uniform(k_val, shape=config.shape, dtype=dtype)
-
+        random_samples = jax.random.uniform(k_val, shape=config.shape, dtype=config.dtype)
         return should_cross, random_samples
 
     def _recombine_one(
@@ -150,31 +161,26 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]
         **kwargs: Any,
     ) -> RealGenome:
         """
-        Tier 1 — Blend Kernel (Pure).
-        Pure arithmetic using pre-generated stochastic values.
+        Tier 1 — XLA-Fused Blend Kernel.
+        Interval expansion: [cmin, cmax] = [min(p1,p2) - α·diff, max(p1,p2) + α·diff];
+        sampling: cmin + u·(cmax-cmin); boundary clipping; conditional selection (should_cross).
+        XLA fuses all arithmetic into single kernel.
+
+        Returns: Offspring RealGenome with (d,) clipped values
         """
         should_cross, random_vals = noise_data
         dtype = p1.values.dtype
 
-        # 1. Calculate BLX Interval Logic
         diff = jnp.abs(p1.values - p2.values)
         alpha_val = jnp.array(self.alpha, dtype=dtype)
-
         cmin = jnp.minimum(p1.values, p2.values) - (alpha_val * diff)
         cmax = jnp.maximum(p1.values, p2.values) + (alpha_val * diff)
 
-        # 2. Apply Blend
         offspring_values = cmin + random_vals * (cmax - cmin)
-
-        # 3. Clip to Config Bounds
         min_b, max_b = config.bounds
         offspring_values = jnp.clip(offspring_values, min_b, max_b)
-
-        # 4. Fused Selection
-        # XLA fuses this with the arithmetic above.
         final_values = jnp.where(should_cross, offspring_values, p1.values)
 
-        # 5. Return as offspring
         return cast(RealGenome, cast(Any, p1).replace(values=final_values))
 
 
@@ -184,7 +190,12 @@ class BlendCrossover_injection(
 ):
     """
     Injection-mode Blend Crossover.
-    Returns tuple (should_cross, random_samples) flattened over (pair- offspring).
+    Single key splits to (n_pairs * n_offspring * 2) subkeys, reshaped (n, 2, -1).
+    jax.vmap(per_row, in_axes=0) generates all masks and samples, returning tuple of
+    (decision: (n,), samples: (n, d)) arrays for base wrapper to apply per (pair, offspring).
+
+    Shape contract: Noise = (tuple of (n,) scalars, (n, d) uniform)
+    Trade-off: Full materialization enables exact reproducibility.
     """
 
     num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
@@ -193,6 +204,7 @@ class BlendCrossover_injection(
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
+        """2 keys per (pair, offspring) — split into (n*2) total, reshaped for vmap."""
         return 2
 
     def _generate_noise(
@@ -200,6 +212,7 @@ class BlendCrossover_injection(
         key: chex.PRNGKey,
         config: RealGenomeConfig,
     ) -> Tuple[chex.Array, chex.Array]:
+        """Generate all (pair, offspring) decisions and samples in parallel. Returns tuple."""
         if self.input_length <= 0 or self.num_offspring <= 0:
             raise ValueError(
                 "Set `input_length` and `num_offspring` before calling _generate_noise."
@@ -213,8 +226,8 @@ class BlendCrossover_injection(
             random_samples = jax.random.uniform(k_val, shape=config.shape, dtype=config.dtype)
             return should_cross, random_samples
 
+        # vmap returns tuple of vmapped arrays: (n, ), (n, d)
         should_crosss, random_samples = jax.vmap(per_row, in_axes=0)(subkeys)
-        # jax.vmap of a tuple returns a tuple of arrays
         return should_crosss, random_samples
 
     def _recombine_one(
@@ -225,10 +238,7 @@ class BlendCrossover_injection(
         config: RealGenomeConfig,
         **kwargs: Any,
     ) -> RealGenome:
-        """
-        Tier 1 — Blend Kernel (Pure).
-        Implemented for injection counterparts to reuse fused logic.
-        """
+        """XLA-fused blend kernel matching fused variant logic."""
         should_cross, random_vals = noise_data
         dtype = p1.values.dtype
 
@@ -248,18 +258,23 @@ class BlendCrossover_injection(
 @struct.dataclass
 class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
     """
-    Simulated Binary Crossover (SBX) - Fused 3-Tier Paradigm.
-    Simulates single-point crossover with a distribution-defined spread factor.
+    Simulated Binary Crossover (SBX) — Fused 3-Tier Paradigm.
+    Generates two symmetric candidate children (c1, c2) via spread factor β(u, η);
+    selects one per gene and applies boundary clipping. Per-offspring keys enable
+    distinct swap masks → different children when base class repeats kernel num_offspring times.
+
+    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,) (single per kernel call)
+    Noise shape: (scalar bool, (d,) uniform, (d,) bool)
+    Key budget: 3 subkeys (decision + spread + swap)
     """
 
-    # SBX produces two children per pair as standard
     num_offspring: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
     crossover_rate: float = 0.9
     eta: float = 20.0
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """Requires 3 keys: decision to cross, spread factor (u), and child selection."""
+        """Requires 3 PRNG subkeys: decision (Bernoulli), spread (Uniform), swap (Bernoulli)."""
         return 3
 
     def _generate_noise(
@@ -268,25 +283,15 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealP
         config: RealGenomeConfig,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         """
-        Tier 2 — Stochastic Payload.
-        Generates the raw spread variables and decision masks.
-
-        Note: Keys are now allocated per-offspring; the swap mask will differ per
-        offspring call making it possible to obtain distinct children when the
-        base class repeats this kernel across `num_offspring`.
+        Tier 2 — Stochastic Payload (Heterogeneous).
+        Returns: (should_cross: scalar bool, u: (d,) uniform, swap_mask: (d,) bool).
+        Per-offspring key allocation ensures swap_mask varies across kernel calls,
+        enabling distinct children even with identical parents.
         """
         k_do, k_beta, k_swap = keys[0], keys[1], keys[2]
-        dtype = config.dtype
-
-        # 1. Crossover decision (scalar bool — affects whether we cross at all)
         should_cross = jax.random.bernoulli(k_do, p=self.crossover_rate)
-
-        # 2. Uniform 'u' for spread factor (beta) calculation
-        u = jax.random.uniform(k_beta, shape=config.shape, dtype=dtype)
-
-        # 3. Swap mask to pick between child 1 and child 2 (will vary per-offspring)
+        u = jax.random.uniform(k_beta, shape=config.shape, dtype=config.dtype)
         swap_mask = jax.random.bernoulli(k_swap, p=0.5, shape=config.shape)
-
         return should_cross, u, swap_mask
 
     def _recombine_one(
@@ -298,29 +303,25 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealP
         **kwargs: Any,
     ) -> RealGenome:
         """
-        Tier 1 — SBX Kernel (Pure) that returns a single offspring.
+        Tier 1 — XLA-Fused SBX Kernel (Pure, returns single offspring).
+        Per-offspring keys in base class ensure swap_mask differs across num_offspring calls,
+        yielding distinct children from identical parents. XLA fuses spread factor calculation,
+        child generation, selection, clipping, and conditional application.
 
-        When the base class runs this kernel `num_offspring` times with different
-        per-offspring keys, you will obtain multiple children per pair.
+        Returns: Offspring RealGenome with (d,) clipped values
         """
         should_cross, u, swap_mask = noise_data
         dtype = p1.values.dtype
 
-        # 1. Calculate Beta (Spread Factor)
         exponent = jnp.array(1.0 / (self.eta + 1.0), dtype=dtype)
         beta = jnp.where(u <= 0.5, (2.0 * u) ** exponent, (1.0 / (2.0 * (1.0 - u))) ** exponent)
 
-        # 2. Generate Symmetric Candidate Children
         c1 = 0.5 * ((1.0 + beta) * p1.values + (1.0 - beta) * p2.values)
         c2 = 0.5 * ((1.0 - beta) * p1.values + (1.0 + beta) * p2.values)
-
-        # 3. Select Child & Apply Constraints
         child_vals = jnp.where(swap_mask, c2, c1)
 
         min_b, max_b = config.bounds
         child_vals = jnp.clip(child_vals, min_b, max_b)
-
-        # 4. Conditional Recombination
         final_values = jnp.where(should_cross, child_vals, p1.values)
 
         return cast(RealGenome, cast(Any, p1).replace(values=final_values))
@@ -332,7 +333,12 @@ class SimulatedBinaryCrossover_injection(
 ):
     """
     Injection-mode Simulated Binary Crossover (SBX).
-    Returns triple (should_cross, u, swap_mask) flattened over (pair- offspring).
+    Single key splits to (n_pairs * n_offspring * 3) subkeys, reshaped (n, 3, -1).
+    jax.vmap(per_row, in_axes=0) generates decisions, spreads, and swaps in parallel,
+    returning tuple of ((n,) bools, (n, d) uniform, (n, d) bools) for per-pair-offspring.
+
+    Shape contract: Noise = (tuple of (n,) scalars, (n, d) uniform, (n, d) bools)
+    Trade-off: Full materialization enables exact reproducibility and distinctness.
     """
 
     num_offspring: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
@@ -341,6 +347,7 @@ class SimulatedBinaryCrossover_injection(
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
+        """3 keys per (pair, offspring) — split into (n*3) total, reshaped for vmap."""
         return 3
 
     def _generate_noise(
@@ -348,6 +355,7 @@ class SimulatedBinaryCrossover_injection(
         key: chex.PRNGKey,
         config: RealGenomeConfig,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+        """Generate all (pair, offspring) decisions, spreads, and swaps in parallel."""
         if self.input_length <= 0 or self.num_offspring <= 0:
             raise ValueError(
                 "Set `input_length` and `num_offspring` before calling _generate_noise."
@@ -363,6 +371,7 @@ class SimulatedBinaryCrossover_injection(
             swap_mask = jax.random.bernoulli(k_swap, p=0.5, shape=config.shape)
             return should_cross, u, swap_mask
 
+        # vmap returns tuple of vmapped arrays: (n, ), (n, d), (n, d)
         should_crosss, u_arr, swap_mask_arr = jax.vmap(per_row, in_axes=0)(subkeys)
         return should_crosss, u_arr, swap_mask_arr
 
@@ -374,9 +383,7 @@ class SimulatedBinaryCrossover_injection(
         config: RealGenomeConfig,
         **kwargs: Any,
     ) -> RealGenome:
-        """
-        Tier 1 — SBX Kernel (Pure) for injection variant. Returns a single offspring.
-        """
+        """XLA-fused SBX kernel matching fused variant logic."""
         should_cross, u, swap_mask = noise_data
         dtype = p1.values.dtype
 
@@ -397,25 +404,24 @@ class SimulatedBinaryCrossover_injection(
 @struct.dataclass
 class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
     """
-    DE Binomial Crossover - Fused 3-Tier Paradigm.
-    Constructs a trial vector by selecting genes from a mutant and a target.
+    DE Binomial Crossover — Fused 3-Tier Paradigm.
+    Per-gene selection between mutant (p1) and target (p2) via Bernoulli mask, followed by
+    boundary clipping. Typical use in differential evolution context (mutant ↔ candidate).
+
+    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)
+    Key budget: 1 subkey (Bernoulli mask generation)
     """
 
-    # Produces a single trial vector per (target, mutant) pair
     num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
     crossover_rate: float = 0.9
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        """Requires 1 key for the Bernoulli crossover mask."""
+        """Bernoulli mask requires 1 PRNG subkey."""
         return 1
 
     def _generate_noise(self, keys: chex.PRNGKey, config: RealGenomeConfig) -> chex.Array:
-        """
-        Tier 2 — Mask Generation.
-        Generates the boolean mask used to select between target and mutant.
-        """
-        # keys[0] matches the ResourceMapper allocation for this pair.
+        """Tier 2 — Bernoulli Mask. Returns (d,) boolean array for per-gene selection."""
         return jax.random.bernoulli(keys[0], p=self.crossover_rate, shape=config.shape)
 
     def _recombine_one(
@@ -427,21 +433,16 @@ class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulati
         **kwargs: Any,
     ) -> RealGenome:
         """
-        Tier 1 — Recombination Kernel (Pure).
-        Fused selection and boundary clipping.
+        Tier 1 — XLA-Fused Binomial Kernel.
+        Per-gene selection (True=mutant p1, False=target p2) fused with boundary clipping
+        into single XLA kernel.
+
+        Returns: Offspring RealGenome with (d,) clipped values
         """
         cross_mask = noise_data
-
-        # 1. Select (Fused Selection)
-        # True -> Take Mutant, False -> Take Target
         trial_values = jnp.where(cross_mask, p1.values, p2.values)
-
-        # 2. Boundary Constraints
-        # Vaccination: config.bounds is already typed from the Config class.
         min_val, max_val = config.bounds
         trial_values = jnp.clip(trial_values, min_val, max_val)
-
-        # 3. Return as single offspring
         return cast(RealGenome, cast(Any, p1).replace(values=trial_values))
 
 
@@ -451,7 +452,12 @@ class BinomialCrossover_injection(
 ):
     """
     Injection-mode Binomial Crossover.
-    Produces per-(pair, offspring) masks for DE binomial selection.
+    Single key splits into (n_pairs * n_offspring) subkeys; jax.vmap(per_row) generates all
+    masks in parallel, returning (n_pairs * n_offspring, d) flattened array for base wrapper
+    to apply per (pair, offspring).
+
+    Shape contract: Noise (K, d) flattened for (pair, offspring) application
+    Trade-off: Full materialization enables reproducibility without key re-splitting.
     """
 
     num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
@@ -459,9 +465,11 @@ class BinomialCrossover_injection(
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
+        """Single key for Bernoulli mask generation (split internally)."""
         return 1
 
     def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig) -> chex.Array:
+        """Generate all (pair, offspring) masks upfront. Shape: (n_pairs * n_offspring, d)."""
         if self.input_length <= 0 or self.num_offspring <= 0:
             raise ValueError(
                 "Set `input_length` and `num_offspring` before calling _generate_noise."
@@ -472,7 +480,7 @@ class BinomialCrossover_injection(
         def per_row(k: chex.PRNGKey) -> chex.Array:
             return jax.random.bernoulli(k, p=self.crossover_rate, shape=config.shape)
 
-        return jax.vmap(per_row)(subkeys)
+        return jax.vmap(per_row)(subkeys)  # (n, d) boolean masks
 
     def _recombine_one(
         self,
@@ -482,9 +490,7 @@ class BinomialCrossover_injection(
         config: RealGenomeConfig,
         **kwargs: Any,
     ) -> RealGenome:
-        """
-        Tier 1 — Binomial Kernel (Pure) for injection variant.
-        """
+        """XLA-fused binomial kernel: per-gene selection fused with clipping."""
         cross_mask = noise_data
         trial_values = jnp.where(cross_mask, p2.values, p1.values)
         min_val, max_val = config.bounds

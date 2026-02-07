@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast
+from typing import Any, Optional
 
 import chex
 import jax
@@ -7,10 +7,24 @@ from flax import struct
 
 from malthusjax.operators.base import BaseSelection, C, P
 
+_field: Any = struct.field
+
 
 @struct.dataclass
 class TournamentSelection(BaseSelection[P, C]):
-    tournament_size: int = cast(Any, struct.field)(pytree_node=False, default=3)
+    """
+    Tournament Selection (Balanced Exploitation & Exploration).
+    Strategy: Sample tournament_size random individuals, select winner (highest fitness).
+    Shape contract: fitness (pop_size,) → selected_indices (num_selections,).
+    Key budget: 1 pre-allocated subkey (randint for candidate generation).
+    Tournament dynamics: Larger tournament_size → stronger selection pressure (less diversity).
+    Performance: O(num_selections * tournament_size) for all selections.
+    Trade-off: Tournament selection offers middle ground between Elite (high exploitation)
+    and Roulette (fitness-weighted). Recommended: tournament_size ∈ [2, 7] for balance.
+    Use when: Need controlled selection pressure with maintained diversity.
+    """
+
+    tournament_size: int = _field(pytree_node=False, default=3)
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
@@ -19,20 +33,15 @@ class TournamentSelection(BaseSelection[P, C]):
     def _select(
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
-        # Normalize keys - handles both (2,) and (1, 2) shapes
+        """
+        Selects num_selections parents via competitive tournaments.
+        Returns: (num_selections,) indices into [0, pop_size).
+        """
         rng = keys[0] if keys.ndim > 1 else keys
         pop_size = fitness.shape[0]
-
-        # 1. Generate Tournament Candidates
         candidates = jax.random.randint(
             rng, shape=(self.num_selections, self.tournament_size), minval=0, maxval=pop_size
         )
-
-        # 2. Retrieve Fitness of Candidates
         candidate_fitness = jnp.take(fitness, candidates, axis=0)
-
-        # 3. Find Winner of each Tournament
         winner_local_indices = jnp.argmax(candidate_fitness, axis=1)
-
-        # 4. Map back to global population indices
         return jnp.take_along_axis(candidates, winner_local_indices[:, None], axis=1).reshape(-1)
