@@ -23,13 +23,12 @@ _field: Any = struct.field  # Helper for typed contexts
 
 class KeyDerivationStrategy(Enum):
     """
-    Strategy for deriving random keys from a master key.
-
-    SPLIT: Uses jax.random.split repeatedly - produces uncorrelated keys
-           but requires sequential splits (not fully parallelizable)
-
-    FOLD: Uses jax.random.fold_in with indices - produces deterministic
-          keys that can be generated in parallel from the same master key
+    Strategy for deriving RNG keys from master key (resource_map.get_keys).
+    SPLIT: Sequential jax.random.split → uncorrelated keys, single-threaded, lower memory.
+    FOLD: Parallel jax.random.fold_in with indices → deterministic keys, parallelizable,
+          scales better to large key budgets (suitable for multi-device).
+    Trade-off: SPLIT guaranteed uncorrelated (statistical gold standard) but blocks on
+    split sequencing. FOLD parallelizable but fold_in determinism replaces randomness.
     """
 
     SPLIT = "split"
@@ -38,8 +37,12 @@ class KeyDerivationStrategy(Enum):
 
 class ShardingManager:
     """
-    Manages the GSPMD layout for the population.
-    Works for 1 Device (Layout Optimization) and N Devices (Parallelism).
+    GSPMD (General and Simplified Parallelization) layout for population sharding.
+    Optimizes memory layout for both single-device (layout optimization) and
+    multi-device (parallelism) execution.
+    Axes: matrix (pop_size, features) sharded on pop_size for data parallelism.
+    vector (pop_size,) sharded on pop_size (fitness array).
+    replicated: Metadata (best_genome, scalars) replicated across devices.
     """
 
     def __init__(self, axis_name: str = "batch") -> None:
@@ -123,13 +126,10 @@ class ResourceMap:
 
     def get_keys(self, master_key: chex.Array) -> chex.Array:
         """
-        Generate all RNG keys for one generation using the configured strategy.
-
-        Args:
-            master_key: The master random key for this generation
-
-        Returns:
-            Array of shape (total_rng_budget,) containing all keys
+        Generate all RNG keys for one generation (branches on key_derivation strategy).
+        Returns: Array (total_rng_budget,) stacked from sequential split or parallel fold_in.
+        SPLIT path: jax.random.split(master_key, total_rng_budget) — sequential.
+        FOLD path: vmap(fold_in(master_key, i)) for i in 0..total_rng_budget-1 — parallel.
         """
         if self.key_derivation == KeyDerivationStrategy.SPLIT:
             # Sequential splitting
@@ -155,10 +155,13 @@ def compute_resource_map(
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
 ) -> ResourceMap:
     """
-    Compiles the RNG requirements and Data Flow for the entire evolution loop.
-
-    Calculates the 'Cascade Effect':
-    Selection(N) -> Parents(P) -> Crossover(P/2) -> Offspring(O) -> Mutation(O) -> Mutants(M)
+    Compile static RNG budget and cascade data flow.
+    Cascade: pop_size →[Selection]→ parents_needed →[Crossover]→ offspring →
+    [Mutation]→ mutants → [Merge]→ next pop_size.
+    Ceiling logic: pairs_needed = (pop_size + num_offspring - 1) // num_offspring
+    ensures enough pairs to cover pop_size even with rounding (e.g., pop=17,
+    offspring=2 → pairs=9 → 18 offspring, slice 1 in merge).
+    Returns: ResourceMap with allocation details for all 4 operator stages.
     """
     current_key_idx = 0
 

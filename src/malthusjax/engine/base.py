@@ -49,10 +49,14 @@ def validate_engine_params(params: "AbstractEngineParams") -> None:
 @struct.dataclass
 class AbstractEngineParams:
     """
-    Base immutable configuration for evolution engines.
-
-    All fields are marked as pytree_node=False to ensure they remain
-    static during JIT compilation.
+    Base immutable configuration for evolution engines (pytree_node=False).
+    All fields remain static during JIT compilation; mutations use .replace().
+    - pop_size: Population size (must be > 0).
+    - elitism: Number of elite individuals preserved each generation (0 ≤ elitism < pop_size).
+    - num_generations: Number of evolution steps (must be > 0).
+    - unroll_num: JAX scan unroll factor for latency/memory trade-off.
+      Auto-tuned to 10% of num_generations (clamped [1, num_generations]).
+      Smaller = more memory, higher latency; larger = less memory, more memory usage.
     """
 
     pop_size: int = _field(pytree_node=False, default=100)
@@ -70,10 +74,14 @@ class AbstractEngineParams:
 @struct.dataclass
 class AbstractEvolutionState(Generic[G, P]):
     """
-    Mutable state container that evolves across generations.
-
-    Concrete implementations (like GeneticEvolutionState) will extend this
-    to add 'resource_map' and 'operators'.
+    Mutable state container for evolution across generations (carries data through scan).
+    Concrete implementations (GeneticEvolutionState) extend this with resource_map, operators.
+    - population (P): Current population (shape: (pop_size, ...genome_shape)).
+    - best_genome (G): Best individual found so far (shape: (...genome_shape)).
+    - generation (int): Current generation counter (increments each step).
+    - best_fitness (Array): Scalar fitness of best_genome.
+    - stagnation_counter (int): Generations since improvement (resets on new best).
+    - rng_key (Array): Master PRNG key for next generation (shape: (2,)).
     """
 
     # --- CRITICAL: Population and Best Individual ---
@@ -90,8 +98,13 @@ class AbstractEvolutionState(Generic[G, P]):
 @struct.dataclass
 class AbstractGenerationOutput:
     """
-    Base KPI payload returned at every evolution step.
+    KPI payload returned at every evolution step (collected by JAX scan).
     Foundation for universal dashboard generation.
+    - best_fitness: Scalar best fitness this generation.
+    - mean_fitness: Scalar population mean fitness this generation.
+    - generation: Current generation counter.
+    History: scan returns tuple of (final_state, jax.lax.scan output), where output
+    stacks all KPI instances into (num_generations,) shaped arrays per field.
     """
 
     best_fitness: chex.Array
@@ -128,10 +141,12 @@ class AbstractEngine(Generic[G, P], ABC):
     @abstractmethod
     def init_state(self, rng_key: jnp.ndarray) -> AbstractEvolutionState[G, P]:
         """
-        Initialize the evolution state (Compile Plan & Bake Operators).
-        Note: We removed 'params' from arg list because self.engine_params exists.
+        Initialize evolution state (Init-Phase Compilation).
+        Responsibilities: Compile ResourceMap, bake operators with static input sizes,
+        enforce sharding layout, initialize population, evaluate, identify best.
+        One-time cost; results cached in returned state for all step() calls.
+        Returns: Initial state ready for run() or step() iteration.
         """
-        # Input validation should happen here or in constructor
         validate_engine_params(self.engine_params)
         raise NotImplementedError
 
@@ -140,13 +155,11 @@ class AbstractEngine(Generic[G, P], ABC):
         self, state: AbstractEvolutionState[G, P]
     ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput]:
         """
-        Execute one generation step.
-
-        Args:
-            state: Current state (containing rng_key, operators, population).
-
-        Returns:
-            (new_state, history_item)
+        Execute one generation (called per scan iteration).
+        Generic engines implement: Entropy allocation → Selection → Reproduction →
+        Merge → Evaluate → HOF update.
+        Args: state (contains population, rng_key, resource_map, operators).
+        Returns: (new_state with updated population/best/generation, KPI metrics).
         """
         raise NotImplementedError
 
@@ -158,7 +171,11 @@ class AbstractEngine(Generic[G, P], ABC):
         verbose: bool = False,
     ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput, Optional[float]]:
         """
-        Run complete evolution using JAX scan pattern.
+        Execute complete evolution via JAX scan (num_generations iterations).
+        Retrieves cached/compiled evolution kernel, executes scan, returns final state + history.
+        History: JAX scan output stacks all GenerationOutput KPIs across generations.
+        Args: initial_state (from init_state), compile flag, timing/verbose options.
+        Returns: (final_state, history_kpis, elapsed_time_or_none).
         """
         if verbose:
             print(
@@ -241,31 +258,27 @@ def _get_evolution_kernel(
     params: AbstractEngineParams, compile_jit: bool = True, unroll_num: int = 1
 ) -> Any:
     """
-    Factory that builds and compiles the evolution loop.
-    Cached by 'params' to ensure we only compile once per configuration.
+    Factory: Builds and caches evolution kernel (jax.lax.scan loop).
+    Caching: lru_cache by params ensures one compilation per config.
+    Closure pattern: _evolve_loop captures engine as compile-time constant (static_argnums=0).
+    This avoids passing engine in scan carry ("light carry"), reducing memory.
+    donate_argnums=1 donates initial_state arrays (JIT donation optimization).
+    unroll_num: Scan unroll factor (latency vs memory trade-off).
     """
 
-    # 2. Define the outer loop FIRST
     def _evolve_loop(
         engine: AbstractEngine[G, P], initial_state: AbstractEvolutionState[G, P]
     ) -> Tuple[AbstractEvolutionState[G, P], Any]:
-        # Because we are inside _evolve_loop, 'engine' is available in the scope.
-        # We do NOT need to pass it in the carry.
         def _scan_body_closure(
             state: AbstractEvolutionState[G, P], __: Any
         ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput]:
-            # 'engine' is a compile-time constant here because
-            # we use static_argnums=0 on the outer function.
             new_state, history_item = engine.step(state)
-
-            # Return ONLY state, no engine in the tuple!
             return new_state, history_item
 
-        # Carry is just the state. The backpack is light!
         init_carry = initial_state
 
         final_state, history = jax.lax.scan(
-            _scan_body_closure,  # <--- Uses the closure
+            _scan_body_closure,
             init_carry,
             None,
             length=params.num_generations,
@@ -274,10 +287,7 @@ def _get_evolution_kernel(
 
         return final_state, history
 
-    # 3. JIT Compile
     if compile_jit:
-        # static_argnums=0 is CRITICAL.
-        # It tells JAX: "engine is not data, it is the program logic."
         return jax.jit(_evolve_loop, donate_argnums=1, static_argnums=0)
     else:
         return _evolve_loop

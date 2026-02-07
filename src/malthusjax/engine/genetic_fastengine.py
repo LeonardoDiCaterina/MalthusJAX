@@ -50,7 +50,15 @@ def traceable(name: str) -> Callable[[T], T]:
 
 @struct.dataclass
 class GeneticEngineParams(AbstractEngineParams):
-    """Configuration for Genetic Engine."""
+    """
+    Configuration for Genetic Engine (extends base params).
+    - key_derivation: KeyDerivationStrategy for RNG generation.
+      SPLIT: Sequential jax.random.split (uncorrelated, single-threaded).
+      FOLD: Parallel jax.random.fold_in (deterministic, parallelizable).
+    - mutation_strength_schedule: Optional callable(generation: int) → strength: float.
+      If provided, mutation strength varies by generation (e.g., cooling schedule).
+      Called in _get_active_operators per step with current generation.
+    """
 
     key_derivation: KeyDerivationStrategy = _field(
         pytree_node=False, default=KeyDerivationStrategy.SPLIT
@@ -92,11 +100,12 @@ class GeneticEvolutionState(AbstractEvolutionState[BaseGenome, BasePopulation[An
 @struct.dataclass
 class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     """
-    The High-Performance Genetic Engine.
-
-    Architecture: Init-Phase Compilation
-    1. init_state: compiles ResourceMap & Bakes Operators.
-    2. step: executes using pre-baked tools from State.
+    High-Performance Genetic Algorithm Engine (Init-Phase Compilation).
+    Architecture: init_state() compiles ResourceMap, bakes operators with static input sizes,
+    returns state carrying pre-baked tools. step() executes using cached resource plan.
+    5-Phase per generation: (0) Entropy allocation → (1) Selection → (2) Reproduction →
+    (3) Merge/Elite preservation → (4) Evaluate + HOF update.
+    Ask/Tell interface: Alternative injection-style control flow (ask entropy, tell evaluated pop).
     """
 
     genome_config: Any = _field(pytree_node=False)
@@ -123,6 +132,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     def _allocate_entropy(
         self, state: GeneticEvolutionState
     ) -> Tuple[chex.Array, chex.Array, chex.Array, chex.Array]:
+        """
+        Allocate RNG keys for this generation (Phase 0).
+        Slices pre-derived master key array into operator-specific subkeys.
+        Returns: (k_selection, k_crossover, k_mutation, k_next_generation).
+        Shapes: Each is (num_keys,) for that operator per resource_map allocation.
+        """
         rmap = state.resource_map
         all_keys = rmap.get_keys(state.rng_key)
 
@@ -156,8 +171,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         params: AbstractEngineParams,
     ) -> Tuple[Any, chex.Array]:
         """
-        Input: Specific key slice for selection.
-
+        Select parents via elite preservation + selection operator (Phase 1).
+        Elite handling: If elitism > 0, top_k extracts elite_idx, returns genes (0 leading rows).
+        If elitism == 0, empty genes tree preserves structure for JAX tree_map.
+        Selection output: selected_idx indices into population (shape: (num_selections,)).
+        Returns: (elites_genes tree, selected_indices for mating).
         """
         # Handle zero-elitism safely: top_k with k=0 is invalid
         if params.elitism > 0:
@@ -182,6 +200,13 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         operators: OperatorState,
         rmap: ResourceMap,
     ) -> BasePopulation[Any]:
+        """
+        Crossover + Mutation (Phase 2): Cascade: parents → offspring → mutants.
+        Parent slicing: Split selected indices into (p1_idx, p2_idx) = first/second halves.
+        Each pair (p1[i], p2[i]) produces num_offspring children via crossover.
+        Offspring count may exceed pop_size (handled in merge phase).
+        Returns: Mutated population (shape: (num_offspring * num_pairs, ...genome_shape)).
+        """
         num_pairs = rmap.crossover.input_count // 2
         p1_idx = parent_indices[:num_pairs]
         p2_idx = parent_indices[num_pairs : num_pairs * 2]
@@ -232,7 +257,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         mutant_genes: Any,
         old_state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]],
     ) -> Any:
-        """Constructs the new population using the old_state shell."""
+        """
+        Merge elite preservation + mutation results (Phase 3a).
+        Strategy: Preserve top elites, fill remainder with mutant offspring.
+        Slicing: num_elites from elites_genes + (pop_size - num_elites) from mutants.
+        Returns: Concatenated genes tree ready for evaluation.
+        """
         target_size = len(old_state.population)
 
         leaves = jax.tree_util.tree_leaves(elites_genes)
@@ -331,8 +361,13 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
     def init_state(self, rng_key: chex.Array) -> GeneticEvolutionState:
         """
-        Compiles the Execution Plan (ResourceMap), Bakes Operators,
-        and Enforces GSPMD Sharding Layout.
+        Initialize evolution state (Init-Phase Compilation).
+        Steps: (1) Compute ResourceMap (RNG budget + data flow cascade).
+        (2) Bake operators: set_input_length freezes static sizes for XLA.
+        (3) Enforce GSPMD sharding layout (per-device or replicated).
+        (4) Initialize and evaluate population.
+        (5) Return state carrying resource_map + operators for all steps().
+        One-time cost; results cached in state.resource_map throughout run.
         """
         params = cast(GeneticEngineParams, self.engine_params)
         rmap = compute_resource_map(
@@ -424,10 +459,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     # ASK / TELL Interface
     # ==========================================
     def ask(self, state: GeneticEvolutionState) -> Tuple["GeneticEngine", BasePopulation[Any]]:
-        """Allocate entropy for the next step and return population to evaluate.
-
-        Returns:
-            Tuple of (engine_with_entropy, population) - the engine carries the entropy buffer.
+        """
+        Ask for next evaluation batch (injection-style interface).
+        Allocates entropy for this generation, returns (engine_with_entropy, population).
+        Call pattern: engine, pop = ask(state); evaluated_pop = evaluate(pop);
+        new_state = tell(state, evaluated_pop).
+        Alternative to step() for external fitness evaluators.
         """
         entropy = self._allocate_entropy(state)
 
