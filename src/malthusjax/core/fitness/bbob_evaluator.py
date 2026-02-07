@@ -15,7 +15,13 @@ from malthusjax.core.genome.real_genome import RealGenome
 
 @struct.dataclass
 class BBOBConfig(BaseEvaluatorConfig):
-    """Configuration for BBOB benchmark tasks."""
+    """Configuration for BBOB black-box optimization benchmarks.
+
+    Attributes:
+        fn_name: BBOB function identifier (e.g., 'sphere', 'rastrigin').
+        num_dims: Problem dimensionality.
+        seed: Random seed for problem initialization (rotation matrices, shifts).
+    """
 
     fn_name: str = struct.field(pytree_node=False, default="sphere")  # type: ignore[no-untyped-call]
     num_dims: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
@@ -24,11 +30,12 @@ class BBOBConfig(BaseEvaluatorConfig):
 
 @struct.dataclass
 class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
-    """
-    Wraps evosax BBOB problems for MalthusJAX.
+    """BBOB benchmark wrapper for MalthusJAX RealGenome optimization.
 
-    This evaluator leverages evosax's native batch processing, providing
-    an optimized interface for standard black-box optimization benchmarks.
+    Wraps evosax BBOBProblem for standard black-box test functions. Problem
+    and state are stored as non-PyTree fields (pytree_node=False for problem,
+    True for state) since problem.eval mutates internal state during
+    evaluation and must be threaded through the computation.
     """
 
     # Evosax problem and state are stored directly.
@@ -48,42 +55,50 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         return cls(config=config, data=None, evosax_problem=problem, evosax_state=state)
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        """
-        Single genome evaluation.
+        """Single genome evaluation via evosax wrapper.
 
-        Note: While MalthusJAX engines prioritize evaluate_population,
-        this remains for compatibility and single-step debugging.
+        Args:
+            genome: RealGenome with values shape (d,).
+
+        Returns:
+            Scalar fitness (JAX array). Sign flips according to config.maximize.
+
+        Note:
+            Uses deterministic key (key=0) since BBOB evaluation is deterministic
+            and evosax API requires key argument. Key does not affect output.
         """
-        # Evosax expects (batch, dims)
         x = genome.values[None, :]
         rng = jax.random.PRNGKey(0)
 
-        # evosax.eval returns (fitness, state, info)
         fitness, _, _ = self.evosax_problem.eval(rng, x, self.evosax_state)
         result = fitness[0]
 
-        # standard BBOB is minimization; we flip if the engine expects maximization
         return jax.lax.select(self.config.maximize, -result, result)
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
     ) -> BasePopulation[RealGenome]:
+        """Vectorized batch evaluation using evosax native batching.
+
+        Extracts (N, d) values array and evaluates all individuals in parallel
+        via evosax.problem.eval. More efficient than vmapping evaluate() due
+        to evosax's internal optimizations.
+
+        Args:
+            population: Population with genes.values shape (N, d).
+
+        Returns:
+            Population with fitness shape (N,). Sign flipped per maximize flag.
         """
-        Vectorized evaluation using evosax's native high-performance batching.
-        """
-        # Extract the batched values: (pop_size, num_dims)
         X = population.genes.values
 
-        # Standard BBOB is deterministic, but we split keys to satisfy the API
         rng = jax.random.PRNGKey(0)
         keys = jax.random.split(rng, X.shape[0])
 
         fitness_scores, _, _ = self.evosax_problem.eval(keys, X, self.evosax_state)
 
-        # Handle optimization direction
         final_fitness = jax.lax.select(self.config.maximize, -fitness_scores, fitness_scores)
 
-        # Cast for MyPy strictness on dynamically added .replace
         return cast(
             BasePopulation[RealGenome], cast(Any, population).replace(fitness=final_fitness)
         )

@@ -14,19 +14,13 @@ _field: Any = struct.field
 
 @struct.dataclass
 class BinaryGenomeConfig:
-    """
-    Configuration for combinatorial binary optimization.
+    """Configuration for binary string genomes.
 
     Attributes:
-        shape: Tuple[int, ...]
-            The logical shape of the bit-string. For a single-dimensional
-            bit-string use `(length,)`. Defaults to `(1,)` (single bit) rather
-            than an empty tuple to avoid creating a scalar genome by mistake.
-        length: Optional[int]
-            Backwards-compatibility alias for a one-dimensional `shape`.
-            If provided, it is interpreted as `shape=(length,)`.
-        p: Probability of a bit being 1 during random initialization.
-        dtype: Numerical type for bits, usually jnp.int32 or jnp.int8.
+        shape: Logical shape of bit-string; defaults to (1,) to ensure non-scalar.
+        length: Legacy alias for shape=(length,); overrides shape if set.
+        p: Bernoulli probability parameter for bit initialization p(b=1).
+        dtype: JAX dtype for bit values; typically jnp.int32 or jnp.int8.
     """
 
     # Prefer an explicit 1-D shape default to avoid accidental scalar genomes.
@@ -67,28 +61,37 @@ class BinaryGenome(BaseGenome):
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: BinaryGenomeConfig) -> BinaryGenome:
-        """
-        Samples a bit-string from a Bernoulli distribution.
-        Uses `config.resolved_shape` which honors a legacy `length` alias if set.
+        """Initialize bit-string via Bernoulli sampling at scale config.p.
+
+        Args:
+            key: PRNGKey for reproducibility.
+            config: BinaryGenomeConfig with shape and p parameters.
+
+        Returns:
+            BinaryGenome with values shape matching config.resolved_shape,
+            dtype matching config.dtype, sampled from Bernoulli(p).
         """
         values = jax.random.bernoulli(key, config.p, config.resolved_shape).astype(config.dtype)
         return cls(values=values)
 
     def autocorrect(self, config: BinaryGenomeConfig) -> BinaryGenome:
-        """
-        Ensures bits remain discrete (0 or 1). While binary operators
-        usually preserve this, this method provides a safety clip.
+        """Enforce bit domain [0, 1] via clipping and dtype conversion.
+
+        Called post-mutation/crossover to guarantee discrete binary values
+        in case floating-point operations introduced out-of-bounds values.
         """
         corrected_values = jnp.clip(self.values, 0, 1).astype(config.dtype)
         return cast(BinaryGenome, cast(Any, self).replace(values=corrected_values))
 
     def distance(self, other: BaseGenome, metric: str = "hamming") -> chex.Numeric:
-        """
-        Calculates distance between bit-strings.
+        """Compute distance between binary genomes.
 
         Args:
-            other: Another genome (cast to BinaryGenome internally).
-            metric: Supports 'hamming' (count of different bits) and 'euclidean'.
+            other: Another genome; cast to BinaryGenome internally.
+            metric: 'hamming' (sum of XOR) or 'euclidean' (L2 norm).
+
+        Returns:
+            Scalar distance value (JAX array, JIT-compatible).
         """
         other_bin = cast(BinaryGenome, other)
 
@@ -121,23 +124,16 @@ class BinaryGenome(BaseGenome):
         return cls(values=arr)
 
     def to_int(self, msb_first: bool = True) -> chex.Numeric:
-        """
-        Calculates the decimal integer value of the bit-string.
+        """Convert bit-string to integer via positional weighting.
 
-        By default, this treats ``values[0]`` as the most significant bit (MSB),
-        using a descending power sequence. For example, for a 4-bit genome
-        ``values = [b0, b1, b2, b3]``, the value is::
+        Args:
+            msb_first: If True (default), treat values[0] as most significant bit (MSB).
+                If False, treat values[0] as least significant bit (LSB).
 
-            value = b0 * 2**3 + b1 * 2**2 + b2 * 2**1 + b3 * 2**0
-
-        If ``msb_first`` is set to ``False``, the legacy behavior is used,
-        where ``values[0]`` is treated as the least significant bit (LSB),
-        i.e. using an ascending power sequence::
-
-            value = b0 * 2**0 + b1 * 2**1 + ... + b{n-1} * 2**(n-1)
-
-        Note: Large bit-strings may exceed standard integer precision.
-        Returns a JAX array (scalar) to remain compatible with JIT.
+        Returns:
+            Scalar JAX array (integer type) representing the bit-string value.
+            Note: May exceed standard int precision for long strings; use
+            JAX arrays to maintain XLA compatibility.
         """
         if msb_first:
             # Treat values[0] as the most significant bit (MSB)
@@ -148,14 +144,11 @@ class BinaryGenome(BaseGenome):
         return jnp.sum(self.values * powers)
 
     def count_ones(self) -> chex.Numeric:
-        """Computes the 'Hamming Weight' (number of set bits) of the genome."""
+        """Sum of bits; Hamming weight. Scalar JAX array."""
         return jnp.sum(self.values)
 
     def flip_bit(self, index: int) -> BinaryGenome:
-        """
-        Returns a new genome with the bit at 'index' toggled.
-        Compatible with JAX's functional 'at' syntax.
-        """
+        """Toggle bit at index via JAX .at[index].set() functional update."""
         new_values = self.values.at[index].set(1 - self.values[index])
         return cast(BinaryGenome, cast(Any, self).replace(values=new_values))
 

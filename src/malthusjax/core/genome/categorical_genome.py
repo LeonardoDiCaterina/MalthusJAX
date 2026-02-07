@@ -12,13 +12,12 @@ from malthusjax.core.base import BaseGenome, BasePopulation, DistanceMetric
 
 @struct.dataclass
 class CategoricalGenomeConfig:
-    """
-    Configuration for categorical genomes.
+    """Configuration for discrete categorical genomes.
 
     Attributes:
-        length: Number of positions in the sequence.
-        num_categories: Number of possible discrete values at each position.
-        dtype: Data type for the categories, typically jnp.int32.
+        num_categories: Cardinality of the discrete alphabet.
+        shape: Logical shape of the categorical sequence.
+        dtype: JAX dtype for category indices; typically jnp.int32.
     """
 
     num_categories: int
@@ -31,11 +30,10 @@ class CategoricalGenomeConfig:
 
 @struct.dataclass
 class CategoricalGenome(BaseGenome):
-    """
-    Categorical genome for discrete choice optimization.
+    """Categorical sequence genome for discrete optimization.
 
-    Represents solutions as sequences of discrete labels (integers),
-    ideal for problems like TSP, job scheduling, or resource allocation.
+    Values are integer indices in [0, num_categories). Suitable for
+    permutation-based and combinatorial problems.
     """
 
     values: chex.Array  # Shape: (length,) for individuals, (N, length) for populations
@@ -54,11 +52,14 @@ class CategoricalGenome(BaseGenome):
         return cast(CategoricalGenome, cast(Any, self).replace(values=corrected_values))
 
     def distance(self, other: BaseGenome, metric: str = DistanceMetric.HAMMING) -> chex.Numeric:
-        """
-        Compute distance between categorical genomes.
+        """Compute distance between categorical genomes.
 
-        Note: Hamming distance is the standard for categorical data as it
-        represents the number of mismatched positions.
+        Args:
+            other: Another genome; cast to CategoricalGenome internally.
+            metric: 'hamming' (mismatch count), 'euclidean' (L2), or 'manhattan' (L1).
+
+        Returns:
+            Scalar distance value (JAX array, JIT-compatible).
         """
         other_cat = cast(CategoricalGenome, other)
 
@@ -90,20 +91,23 @@ class CategoricalGenome(BaseGenome):
         return cls(values=arr)
 
     def is_permutation(self) -> chex.Numeric:
-        """Check if this genome represents a valid permutation (all unique values)."""
+        """Check if all categorical values are unique (valid permutation).
+
+        Uses jnp.unique(size=self.size, fill_value=-1) to pad uniques to
+        expected length, then verifies absence of sentinel (-1). Returns
+        JAX scalar boolean (JIT-safe; avoids Python control flow).
+        """
         unique_vals = jnp.unique(self.values, size=self.size, fill_value=-1)
-        # Check if number of unique values matches the length
-        # Note: We keep this as a JAX boolean/scalar for JIT compatibility
         return jnp.all(unique_vals != -1)
 
     def to_permutation(self, config: CategoricalGenomeConfig) -> CategoricalGenome:
-        """Convert to a valid permutation via argsort."""
+        """Generate permutation via argsort; deterministic and JIT-safe."""
         # This is a standard JAX trick to generate a permutation from any vector
         permutation = jnp.argsort(self.values).astype(config.dtype)
         return cast(CategoricalGenome, cast(Any, self).replace(values=permutation))
 
     def swap_positions(self, pos1: int, pos2: int) -> CategoricalGenome:
-        """Swap categories at two positions using JAX .at index updates."""
+        """Exchange values at two indices via functional .at updates."""
         val1 = self.values[pos1]
         val2 = self.values[pos2]
         new_values = self.values.at[pos1].set(val2)
@@ -111,7 +115,7 @@ class CategoricalGenome(BaseGenome):
         return cast(CategoricalGenome, cast(Any, self).replace(values=new_values))
 
     def count_category(self, category: int) -> chex.Numeric:
-        """Count occurrences of a specific category."""
+        """Return count of a specific category value. Scalar JAX array."""
         return jnp.sum(self.values == category)
 
     def __repr__(self) -> str:

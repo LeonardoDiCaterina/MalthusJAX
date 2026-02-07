@@ -14,40 +14,60 @@ from .base import BaseEvaluator, BaseEvaluatorConfig
 
 @struct.dataclass
 class SphereConfig(BaseEvaluatorConfig):
-    """Configuration for Sphere function optimization."""
+    """Configuration for Sphere function optimization (f(x) = sum(x^2))."""
 
     pass
 
 
 @struct.dataclass
 class SphereEvaluator(BaseEvaluator[RealGenome, SphereConfig, Any]):
-    """Sphere function fitness evaluator."""
+    """Sphere function (sum of squares) fitness evaluator.
+
+    Minimization is standard; config.maximize controls sign convention.
+    """
 
     config: SphereConfig
     data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        """Evaluate a single real genome on Sphere function."""
+        """Evaluate sphere function on real genome.
+
+        Args:
+            genome: RealGenome with values shape (d,).
+
+        Returns:
+            Scalar fitness. Negative if maximize=False (minimization convention).
+        """
         sphere_value = jnp.sum(jnp.square(genome.values))
         return jax.lax.select(self.config.maximize, sphere_value, -sphere_value)
 
 
 @struct.dataclass
 class GriewankConfig(BaseEvaluatorConfig):
-    """Configuration for Griewank function optimization."""
+    """Configuration for Griewank function optimization (multimodal benchmark)."""
 
     pass
 
 
 @struct.dataclass
 class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
-    """Griewank function fitness evaluator."""
+    """Griewank function fitness evaluator (multimodal, many local optima).
+
+    Combines quadratic and cosine terms for high-dimensional complexity.
+    """
 
     config: GriewankConfig
     data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        """Evaluate a single real genome on Griewank function."""
+        """Evaluate Griewank function on real genome.
+
+        Args:
+            genome: RealGenome with values shape (d,).
+
+        Returns:
+            Scalar fitness. Negative if maximize=False (minimization convention).
+        """
         x = genome.values
         quad_term = jnp.sum(jnp.square(x)) / 4000.0
         indices = jnp.arange(1, x.shape[0] + 1, dtype=jnp.float32)
@@ -59,7 +79,14 @@ class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
 
 @struct.dataclass
 class BoxConfig(BaseEvaluatorConfig):
-    """Configuration for Box-constrained optimization."""
+    """Configuration for box-constrained optimization.
+
+    Attributes:
+        target_point: Target location in solution space, shape (d,).
+        box_bounds: Tuple (lower, upper) constraint bounds, each shape (d,).
+        penalty_factor: Linear constraint violation penalty coefficient.
+        objective_type: 'distance' (L2) or 'sphere' (sum of squares).
+    """
 
     target_point: chex.Array
     box_bounds: Tuple[chex.Array, chex.Array]
@@ -69,13 +96,30 @@ class BoxConfig(BaseEvaluatorConfig):
 
 @struct.dataclass
 class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
-    """Box-constrained optimization fitness evaluator."""
+    """Box-constrained optimization with linear penalty for infeasibility.
+
+    Evaluates objective (distance or sphere) and adds linear penalty for
+    constraint violations. Penalty uses jax.lax.select and jnp.maximum for
+    XLA compatibility (no Python control flow during tracing).
+    """
 
     config: BoxConfig
     data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        """Evaluate a single real genome on box-constrained problem."""
+        """Evaluate box-constrained problem on real genome.
+
+        Args:
+            genome: RealGenome with values shape (d,).
+
+        Returns:
+            Scalar fitness: negative objective minus penalty. Returns -objective
+            to convert minimization to the XLA-safe evaluation convention.
+
+        Note:
+            Objective type selection via string (if/elif) traces both branches
+            in JAX; for high cardinality, use enum-based dispatch instead.
+        """
         x = genome.values
         lower, upper = self.config.box_bounds
 
@@ -87,7 +131,7 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
         else:
             raise ValueError(f"Unknown objective type: {self.config.objective_type}")
 
-        # Constraint violations
+        # Constraint violations: sum of excess magnitudes (XLA-safe)
         lower_violations = jnp.maximum(0, lower - x)
         upper_violations = jnp.maximum(0, x - upper)
         total_violation = jnp.sum(lower_violations) + jnp.sum(upper_violations)
@@ -99,7 +143,17 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
     def create_random_problem(
         key: chex.PRNGKey, dimensions: int, box_size: float = 10.0, maximize: bool = False
     ) -> BoxConfig:
-        """Create a random box-constrained optimization problem."""
+        """Factory: create random box-constrained optimization instance (static config).
+
+        Args:
+            key: JAX PRNG key for random target and bounds.
+            dimensions: Problem dimensionality.
+            box_size: Size of bounding box around target.
+            maximize: Optimization direction (default False = minimization).
+
+        Returns:
+            BoxConfig with random target and symmetric box constraints.
+        """
         key1, key2 = jr.split(key, 2)
         target = jr.uniform(key1, (dimensions,), minval=-box_size / 2, maxval=box_size / 2)
 

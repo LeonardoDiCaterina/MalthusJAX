@@ -15,12 +15,12 @@ D = TypeVar("D")  # Data type (e.g., training data, environment params)
 
 @struct.dataclass
 class BaseEvaluatorConfig:
-    """
-    Base configuration for fitness evaluators.
+    """Base configuration for fitness evaluation.
 
     Attributes:
-        maximize: If True, higher fitness values are better.
-                 Crucial for sorting and selection logic.
+        maximize: Optimization direction. If True, higher fitness is better;
+            otherwise, lower is better. Controls jax.lax.select branching in
+            single and batch evaluators.
     """
 
     maximize: bool = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
@@ -28,49 +28,51 @@ class BaseEvaluatorConfig:
 
 @struct.dataclass
 class BaseEvaluator(Generic[G, C, D]):
-    """
-    Abstract base class for JAX-native fitness evaluation.
+    """JAX-native fitness evaluation interface with vmap composition.
 
-    This architecture separates the logic for evaluating a single individual
-    from the mechanics of batch processing. It relies on JAX's 'vmap'
-    to transform the single-individual 'evaluate' method into a high-performance
-    parallel evaluator for an entire population.
+    Defines single-genome evaluate(genome) -> scalar, which vmaps into
+    evaluate_population(population) -> population for Struct-of-Arrays (SoA)
+    batching. Config (C) and data (D) are static (pytree_node=False) to
+    remain constant across vmap lifting; only genomes are batched.
+
+    Type Parameters:
+        G: Genome type (e.g., RealGenome, BinaryGenome).
+        C: Config type; typically pytree_node=False (static across vmap).
+        D: Data type (e.g., training data, problem parameters); static.
     """
 
     config: C
     data: D
 
     def evaluate(self, genome: G) -> chex.Numeric:
-        """
-        Calculates the fitness score for a single individual.
+        """Compute fitness for a single genome.
 
         Args:
-            genome: A single instance of G (e.g., RealGenome with 1D values).
+            genome: Individual genome instance with unbatched values shape.
 
         Returns:
-            A scalar fitness score or an array for multi-objective problems.
+            Scalar fitness value (JAX array, JIT-compatible).
+
+        Note:
+            Expected input shape: genome.values shape (d,) or scalar.
+            Expected output shape: scalar (or (k,) for multi-objective).
         """
         raise NotImplementedError
 
     def evaluate_population(self, population: BasePopulation[G]) -> BasePopulation[G]:
-        """
-        Evaluates an entire population using automatic vectorization.
+        """Vectorized population evaluation via jax.vmap.
 
-        This method leverages the Struct-of-Arrays (SoA) nature of the population.
-        The 'genes' PyTree is unrolled along the leading dimension, and each
-        unrolled genome is passed to the 'evaluate' method in parallel.
+        Applies evaluate() to each individual by vmapping over the SoA-lifted
+        genes PyTree. Config and data remain static (in_axes=None); only
+        individual genomes vary (in_axes matched to genes structure).
 
         Args:
-            population: A population instance containing batched genes.
+            population: Population with batched genes (leading shape (N,)).
 
         Returns:
-            A new population instance with updated 'fitness' values.
+            New population with fitness values updated. Fitness shape: (N,).
         """
-        # We vmap over the genes. In our architecture, population.genes
-        # is a 'lifted' Genome where leaf arrays have a leading dim of pop_size.
         fitness_scores = jax.vmap(self.evaluate)(population.genes)
-
-        # Cast population to Any to access .replace, then back to BasePopulation[G]
         return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
 
 

@@ -13,14 +13,16 @@ from malthusjax.core.base import BaseGenome, BasePopulation, DistanceMetric
 
 @struct.dataclass
 class LinearGenomeConfig:
-    """
-    Configuration for Linear Genetic Programming (LGP) genomes.
+    """Configuration for Linear Genetic Programming (LGP) genomes.
+
+    Defines program structure: L instructions, N external inputs, num_ops
+    distinct opcodes, max_arity arguments per operation.
 
     Attributes:
-        length (L): Total number of instructions in the program.
-        num_inputs (N): Number of external input features available to the program.
-        num_ops: Number of distinct operations (opcodes) available in the library.
-        max_arity: Maximum number of arguments any single operation can take.
+        length: Total instruction count (L).
+        num_inputs: Number of external inputs (N).
+        num_ops: Size of opcode alphabet.
+        max_arity: Maximum operation arity.
     """
 
     length: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
@@ -31,12 +33,12 @@ class LinearGenomeConfig:
 
 @struct.dataclass
 class LinearGenome(BaseGenome):
-    """
-    Linear Genetic Programming (LGP) genome representation.
+    """Linear Genetic Programming genome with topological DAG constraint.
 
-    Represents a program as a sequence of instructions. It maintains a
-    topological DAG structure: any instruction i can only reference external
-    inputs (0 to N-1) or the results of previous instructions (N to N+i-1).
+    Encodes a program as a sequence of (op, args) pairs. Maintains DAG
+    validity: instruction i references only external inputs (indices 0:N)
+    or prior instructions (indices N:N+i). This prevents cycles and enables
+    single-pass evaluation without control-flow analysis during tracing.
     """
 
     ops: chex.Array  # Shape (L,) - Integer operation codes
@@ -49,17 +51,28 @@ class LinearGenome(BaseGenome):
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: LinearGenomeConfig) -> LinearGenome:
-        """Creates a random linear genome ensuring strict topological validity."""
+        """Initialize LGP genome with topological DAG validity.
+
+        Samples opcodes uniformly and argument indices subject to DAG
+        constraint: instruction i references indices in [0, N+i). Vmaps
+        argument sampling over per-instruction limits to enforce validity
+        without Python-side control flow (XLA-compatible).
+
+        Args:
+            key: PRNGKey for reproducibility.
+            config: LinearGenomeConfig defining program structure.
+
+        Returns:
+            LinearGenome with ops shape (L,) and args shape (L, max_arity),
+            guaranteeing topological validity.
+        """
         k_ops, k_args = jax.random.split(key)
 
-        # 1. Randomize operation codes
         ops = jax.random.randint(k_ops, (config.length,), 0, config.num_ops)
 
-        # 2. Topological arguments: row i can only see inputs + previous rows
         row_limits = jnp.arange(config.num_inputs, config.num_inputs + config.length)
 
         def gen_row(rk: chex.PRNGKey, climit: chex.Numeric) -> chex.Array:
-            # Annotated helper to satisfy [no-untyped-def]
             return jax.random.randint(rk, (config.max_arity,), 0, climit)
 
         row_keys = jax.random.split(k_args, config.length)
@@ -68,7 +81,12 @@ class LinearGenome(BaseGenome):
         return cls(ops=ops, args=args)
 
     def autocorrect(self, config: LinearGenomeConfig) -> LinearGenome:
-        """Enforces DAG validity by clipping references to valid ranges."""
+        """Restore topological DAG validity via per-instruction index clipping.
+
+        Clips opcodes to [0, num_ops) and argument indices to per-instruction
+        limits [0, N+i). Ensures correctness post-mutation without conditional
+        branching (XLA-safe).
+        """
         valid_ops = jnp.clip(self.ops, 0, config.num_ops - 1)
 
         # Re-calculate legal index limits for each row
@@ -112,17 +130,29 @@ class LinearGenome(BaseGenome):
 
     @classmethod
     def from_tensor(cls, arr: tuple[chex.Array, chex.Array], config: Any = None) -> "LinearGenome":
-        """Construct a LinearGenome from a tuple `(ops, args)`.
+        """Construct LinearGenome from (ops, args) tensor pair.
 
-        For LGP genomes we expect the raw tensor representation to be a pair
-        of arrays: `(ops, args)`. This is JIT-safe and avoids Python-side
-        validation during tracing.
+        Args:
+            arr: Tuple (ops, args) where ops shape (L,) or (N, L) and
+                args shape (L, max_arity) or (N, L, max_arity).
+            config: Unused; included for BaseGenome interface compatibility.
+
+        Returns:
+            LinearGenome instance wrapping the provided arrays.
         """
         ops, args = arr
         return cls(ops=ops, args=args)
 
     def render(self, config: LinearGenomeConfig, op_names: Optional[List[str]] = None) -> str:
-        """Generates a human-readable assembly-like display of the program."""
+        """Format LGP program as human-readable assembly-like text.
+
+        Args:
+            config: LinearGenomeConfig for variable naming and interpretation.
+            op_names: Optional list of opcode names for display; defaults to OP_N.
+
+        Returns:
+            Multi-line string with numbered instructions and symbolic references.
+        """
         ops_cpu = np.array(self.ops)
         args_cpu = np.array(self.args)
         lines = [f"{'Row':<4} | {'Expression':<30} | {'Raw'}"]
@@ -145,6 +175,7 @@ class LinearGenome(BaseGenome):
         return "\n".join(lines)
 
     def __repr__(self) -> str:
+        """Compact representation: instruction count and arity."""
         return f"<LinearGenome(L={self.size}, max_arity={self.args.shape[-1]})>"
 
 

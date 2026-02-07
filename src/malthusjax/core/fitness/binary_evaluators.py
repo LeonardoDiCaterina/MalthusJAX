@@ -22,7 +22,10 @@ class BinarySumConfig(BaseEvaluatorConfig):
 
 @struct.dataclass
 class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
-    """BinarySum (OneMax) fitness evaluator."""
+    """OneMax fitness evaluator: count set bits (binary sum).
+
+    Returns count of 1s for maximize=True, count of 0s for maximize=False.
+    """
 
     config: BinarySumConfig
     data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
@@ -36,7 +39,14 @@ class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
 
 @struct.dataclass
 class KnapsackConfig(BaseEvaluatorConfig):
-    """Configuration for 0/1 Knapsack problem fitness evaluator."""
+    """Configuration for 0/1 Knapsack problem fitness evaluation.
+
+    Attributes:
+        weights: Item weights, shape (n_items,).
+        values: Item values, shape (n_items,).
+        capacity: Maximum weight capacity (scalar).
+        penalty_factor: Linear constraint penalty coefficient (default 1000.0).
+    """
 
     weights: chex.Array  # Item weights, shape (n_items,)
     values: chex.Array  # Item values, shape (n_items,)
@@ -46,50 +56,53 @@ class KnapsackConfig(BaseEvaluatorConfig):
 
 @struct.dataclass
 class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
-    """Knapsack problem fitness evaluator with linear constraint penalties."""
+    """Knapsack problem fitness evaluator with linear constraint penalties.
+
+    Computes total value minus linear penalty for weight constraint violation.
+    Penalty = excess_weight * penalty_factor (jax.lax.select, XLA-safe).
+    """
 
     config: KnapsackConfig
     data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
-        """Evaluate a binary genome representing item selection."""
-        # Calculate total weight and value using vector dot products
+        """Evaluate a binary genome representing item selection.
+
+        Args:
+            genome: BinaryGenome with values shape (n_items,).
+
+        Returns:
+            Total value minus penalty for capacity violation (scalar).
+        """
         total_weight = jnp.sum(genome.values * self.config.weights)
         total_value = jnp.sum(genome.values * self.config.values)
 
-        # Apply linear penalty for exceeding capacity
+        # Penalize infeasibility via JAX arithmetic (no Python control flow)
         excess_weight = jnp.maximum(0.0, total_weight - self.config.capacity)
         penalty = excess_weight * self.config.penalty_factor
 
-        # Return total value minus penalty
-        # (In maximization, penalized infeasible solutions score lower)
         return total_value - penalty
 
     @staticmethod
     def create_random_problem(
         key: chex.PRNGKey, n_items: int, capacity_ratio: float = 0.5, maximize: bool = True
     ) -> KnapsackConfig:
-        """Create a random 0/1 knapsack problem instance.
+        """Factory: create random 0/1 knapsack instance (static configuration).
 
         Args:
-            key: JAX PRNG key used to generate random weights and values.
-            n_items: Number of items in the knapsack problem.
-            capacity_ratio: Fraction of the total weight used to set the knapsack
-                capacity (defaults to 0.5).
-            maximize: Whether the resulting configuration is for a maximization
-                objective (defaults to True).
+            key: JAX PRNG key for random weights and values.
+            n_items: Number of items.
+            capacity_ratio: Fraction of total weight for capacity (default 0.5).
+            maximize: Optimization direction (default True).
 
         Returns:
-            KnapsackConfig: Configuration object containing randomly generated
-            weights, values, capacity, and optimization direction.
+            KnapsackConfig with randomly sampled weights, values, and capacity.
         """
         key1, key2 = jr.split(key, 2)
 
-        # Random weights and values
         weights = jr.uniform(key1, (n_items,), minval=1.0, maxval=20.0)
         values = jr.uniform(key2, (n_items,), minval=1.0, maxval=50.0)
 
-        # capacity as fraction of total weight
         total_weight = jnp.sum(weights)
         capacity = capacity_ratio * total_weight
 

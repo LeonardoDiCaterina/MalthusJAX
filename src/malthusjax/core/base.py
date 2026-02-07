@@ -25,20 +25,12 @@ class DistanceMetric:
 
 @struct.dataclass
 class BaseGenome:
-    """
-    Abstract blueprint for a single candidate solution (individual).
+    """Immutable genome representation optimized for JAX PyTree lifting.
 
-    In the MalthusJAX framework, a Genome is a PyTree container. While this
-    base class defines logic for a single individual, implementations are
-    designed to be 'lifted' via jax.vmap.
-
-    When 'lifted' into a Population, each field in the Genome (e.g., 'values')
-    is transformed from a scalar/vector into a batched array where the leading
-    dimension represents the population size.
-
-    The `subscriptable` flag enables Pythonic indexing and iteration over
-    the genome's primary `values` payload. It is intentionally opt-in to
-    preserve pytrees and tracing semantics when needed.
+    Single-genome methods compose with jax.vmap to implement population-level
+    operations via the Struct-of-Arrays (SoA) pattern: each leaf array gains
+    a leading batch dimension (N,). The `subscriptable` flag enables optional
+    Pythonic indexing/iteration, trading PyTree traceability for convenience.
     """
 
     def __len__(self) -> int:
@@ -136,11 +128,11 @@ class BaseGenome:
 
     @classmethod
     def create_population(cls: Type[G], key: chex.PRNGKey, config: Any, pop_size: int) -> G:
-        """
-        Factory method to create a batch of genomes using the SoA pattern.
+        """Vectorized population initialization via jax.vmap.
 
-        Utilizes jax.vmap to transform the 'random_init' logic of a single
-        genome into a parallelized initialization of an entire population.
+        Transforms single-genome random_init(key, config) into batched
+        initialization by vmapping over split random keys (in_axes=(0, None)).
+        Returns SoA-lifted genome where each array leaf has shape (pop_size, ...).
         """
         keys = jax.random.split(key, pop_size)
         return jax.vmap(cls.random_init, in_axes=(0, None))(keys, config)
@@ -172,11 +164,11 @@ class BasePopulation(Generic[G]):
         return cast(Any, self.genes).values
 
     def spawn_offspring(self, new_genes: G) -> BasePopulation[G]:
-        """
-        Creates a new population container using a new batch of genes.
+        """Create offspring population with evaluation-pending fitness state.
 
-        Fitness is automatically reset to NaN to signify that the new
-        individuals have not yet been evaluated.
+        Resets fitness to NaN to signal pending evaluation, allowing engines
+        to detect unevaluated individuals via jnp.isnan() without conditional
+        branching (XLA-compatible).
         """
         leaves = jax.tree_util.tree_leaves(new_genes)
         if not leaves:
@@ -234,16 +226,16 @@ class BasePopulation(Generic[G]):
         return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes))
 
     def distance_matrix(self, metric: str = DistanceMetric.EUCLIDEAN) -> chex.Array:
-        """
-        Computes pairwise distances between all individuals in the population.
+        """Compute pairwise distances between all population members.
+
+        Nested vmap: outer fixes individual i, inner iterates over all j,
+        generating (N, N) distance matrix without Python loops (JIT-safe).
 
         Args:
-            metric: The distance metric to use. This is forwarded to the
-                underlying genome-level ``distance`` implementation.
+            metric: Distance metric forwarded to genome-level distance().
 
         Returns:
-            A (N, N) array where entry (i, j) is the distance between the
-            i-th and j-th individuals in the population.
+            (N, N) array where (i, j) = distance(genome[i], genome[j]).
         """
 
         def _pairwise_distance(g1: G, g2: G) -> chex.Array:
