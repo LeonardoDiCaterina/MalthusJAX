@@ -15,6 +15,7 @@ P = TypeVar("P", bound=BasePopulation[Any])
 
 _field: Any = struct.field
 
+
 @struct.dataclass
 class BaseMutation(Generic[G, C, P]):
     """
@@ -83,9 +84,13 @@ class BaseMutation(Generic[G, C, P]):
         def _mutate_single(keys_block: chex.Array, genome: G) -> G:
             return self._mutate_fused(keys_block, genome, config, **kwargs)
 
-        nested_offspring = jax.vmap(
-            lambda k, g: jax.vmap(_mutate_single, in_axes=(0, None))(k, g), in_axes=(0, 0)
-        )(keys_reshaped, population.genes)
+        def _process_population(k_block: chex.Array, g: G) -> G:
+            # Inner vmap over offspring axis
+            return jax.vmap(_mutate_single, in_axes=(0, None))(k_block, g)
+
+        # Outer vmap over population
+        vmap_process = jax.vmap(_process_population, in_axes=(0, 0))
+        nested_offspring = vmap_process(keys_reshaped, population.genes)
 
         # 3. Flatten and Return
         def flatten_fn(x: chex.Array) -> chex.Array:
@@ -93,7 +98,6 @@ class BaseMutation(Generic[G, C, P]):
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
         return cast(P, population.spawn_offspring(cast(G, new_genes)))
-
 
 
 @struct.dataclass
@@ -136,13 +140,11 @@ class BaseCrossover(Generic[G, C, P]):
         raise NotImplementedError
 
     @abstractmethod
-    def _recombine_one(
-        self, p1: G, p2: G, noise_data: Any, config: C, **kwargs: Any
-    ) -> G:
+    def _recombine_one(self, p1: G, p2: G, noise_data: Any, config: C, **kwargs: Any) -> G:
         """
         Tier 1 — Recombination Kernel (Pure).
         Deterministic logic: p1, p2 + noise_data -> single offspring genome.
-        
+
         Note: Returns a single genome G, not a tuple. The base class handles
         offspring repetition via num_offspring parameter.
         """
@@ -155,36 +157,38 @@ class BaseCrossover(Generic[G, C, P]):
         noise = self._generate_noise(keys, config)
         return self._recombine_one(p1, p2, noise, config, **kwargs)
 
-    def cross_single_pair(
-        self, key: chex.Array, p1: G, p2: G, config: C, **kwargs: Any
-    ) -> G:
+    def cross_single_pair(self, key: chex.Array, p1: G, p2: G, config: C, **kwargs: Any) -> G:
         """
         Crossover for a single pair of genomes.
-        
+
         Args:
             key: Single PRNG key (shape (2,))
             p1, p2: Individual genomes
             config: Genome configuration
-            
+
         Returns:
             Batched genome with shape (num_offspring, ...)
         """
         # Split key for all offspring
         keys = jax.random.split(key, self.num_offspring * self.num_keys_per_atomic_operation)
         keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation, 2)
-        
-        # vmap over offspring dimension
-        offspring_values = jax.vmap(
-            lambda k: self._cross_fused(k, p1, p2, config, **kwargs).values
-        )(keys_reshaped)
-        
-        return cast(G, p1.replace(values=offspring_values))
+
+        # vmap over offspring dimension (typed helper to satisfy mypy)
+        def _cross_one_return_values(k: chex.Array) -> chex.Array:
+            # _cross_fused returns a Genome object which may have a `.values` attribute
+            # cast to Any for attribute access in typed contexts
+            return cast(Any, self._cross_fused(k, p1, p2, config, **kwargs)).values
+
+        offspring_values = jax.vmap(_cross_one_return_values)(keys_reshaped)
+
+        # Use cast to Any to call .replace which is a protocol provided by Flax dataclasses
+        return cast(G, cast(Any, p1).replace(values=offspring_values))
 
     def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, **kwargs: Any) -> P:
         """
         Tier 3 — Fused Bulk Crossover (Population-level).
         Handles population-level crossover with pre-allocated keys.
-        
+
         For single-pair crossover, use `cross_single_pair()` instead.
         """
         # 1. Reshape keys based on static input_length and num_offspring
@@ -197,21 +201,26 @@ class BaseCrossover(Generic[G, C, P]):
         #    outer: iterate over parent pairs (input_length)
         #    inner: iterate over offspring per pair (num_offspring)
         # The inner vmap calls _cross_fused for each offspring using its dedicated keys slice.
-        nested_offspring = jax.vmap(
-            lambda k_block, g1, g2: jax.vmap(
-                lambda k: self._cross_fused(k, g1, g2, config, **kwargs),
-                in_axes=0,
-            )(k_block),
-            in_axes=(0, 0, 0),
-        )(keys_reshaped, p1_pop.genes, p2_pop.genes)
+        def _process_pairs(k_block: chex.Array, parent1: G, parent2: G) -> Any:
+            # Inner vmap: vectorize over offspring
+            def _inner_cross(k: chex.Array) -> G:
+                return self._cross_fused(k, parent1, parent2, config, **kwargs)
 
-        # 3. Reorder & Flatten to offspring-major ordering: (input_length, num_offspring, ...) -> (num_offspring, input_length, ...) -> (-1, ...)
+            return jax.vmap(_inner_cross, in_axes=0)(k_block)
+
+        # Outer vmap: vectorize over pairs
+        vmap_pairs = jax.vmap(_process_pairs, in_axes=(0, 0, 0))
+        nested_offspring = vmap_pairs(keys_reshaped, p1_pop.genes, p2_pop.genes)
+
+        # 3. Reorder & Flatten to offspring-major ordering:
+        #    (input_length, num_offspring, ...) -> (num_offspring, input_length, ...) -> (-1, ...)
         def flatten_fn(x: chex.Array) -> chex.Array:
             transposed = jnp.transpose(x, (1, 0) + tuple(range(2, x.ndim)))
             return transposed.reshape((-1,) + transposed.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
         return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
+
 
 @struct.dataclass
 class BaseSelection(Generic[P, C]):
@@ -235,13 +244,13 @@ class BaseSelection(Generic[P, C]):
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
         """Select indices from the population based on fitness values.
-        
+
         Args:
             keys: PRNG key(s) for randomization
             fitness: Array of fitness values, shape (pop_size,)
             config: Optional configuration object
             **kwargs: Additional operator-specific arguments
-            
+
         Returns:
             Array of selected indices, shape (num_selections,)
         """

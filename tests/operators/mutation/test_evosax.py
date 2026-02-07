@@ -1,15 +1,15 @@
+import jax
 import jax.numpy as jnp
 import jax.random as jr
+import numpy as np
 import pytest
+from evosax.algorithms.population_based.simple_ga import mutation as evosax_func
 
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.evosax_mutation import (
     EvosaxGaussianWrapper,
     InjectionGaussianMutation,
 )
-from evosax.algorithms.population_based.simple_ga import mutation as evosax_func
-import jax
-import numpy as np
 
 
 @pytest.fixture
@@ -71,7 +71,8 @@ class TestEvosaxAblationIntegrity:
 
         res = mut(all_keys, pop, config)
         if hasattr(res.genes, "values"):
-            # Evosax may either preserve bfloat16 or upcast to float32 depending on implementation; accept both.
+            # Evosax may preserve bfloat16 or upcast to float32.
+            # Accept both possible dtypes here.
             assert res.genes.values.dtype in (jnp.bfloat16, jnp.float32)
         else:
             assert res.genes.dtype == jnp.bfloat16
@@ -111,10 +112,9 @@ class TestEvosaxAblationIntegrity:
         # run wrapper
         res = mut(all_keys, pop, config)
 
-
         # expected: same key applied to each genome
-        expected_values = jax.vmap(
-            lambda k, g: evosax_func(k, g, strength)
-        )(all_keys, pop.genes.values)
+        expected_values = jax.vmap(lambda k, g: evosax_func(k, g, strength))(
+            all_keys, pop.genes.values
+        )
 
         np.testing.assert_allclose(res.genes.values, expected_values, atol=1e-5)

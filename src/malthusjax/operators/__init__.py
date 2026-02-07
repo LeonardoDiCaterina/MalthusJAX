@@ -7,7 +7,7 @@ All operators follow the NEW @struct.dataclass paradigm with factory methods.
 
 # Base operator abstractions
 from .base import BaseCrossover, BaseMutation, BaseSelection
-from .base_injection import BaseMutation_injection, BaseCrossover_injection
+from .base_injection import BaseCrossover_injection, BaseMutation_injection
 
 # Crossover operators
 from .crossover.binary import SinglePointCrossover, UniformCrossover
@@ -25,15 +25,26 @@ from .selection.tournament import TournamentSelection
 
 __all__ = [
     # Base abstractions
-    "BaseMutation", "BaseCrossover", "BaseSelection",
-    "BaseMutation_injection", "BaseCrossover_injection",
+    "BaseMutation",
+    "BaseCrossover",
+    "BaseSelection",
+    "BaseMutation_injection",
+    "BaseCrossover_injection",
     # Crossover operators
-    "UniformCrossover", "SinglePointCrossover",
-    "BlendCrossover", "SimulatedBinaryCrossover",
+    "UniformCrossover",
+    "SinglePointCrossover",
+    "BlendCrossover",
+    "SimulatedBinaryCrossover",
     "realUniform",
     # Mutation operators
-    "BitFlipMutation", "ScrambleMutation", "SwapMutation",
-    "GaussianMutation", "BallMutation", "PolynomialMutation",
+    "BitFlipMutation",
+    "ScrambleMutation",
+    "SwapMutation",
+    "GaussianMutation",
+    "BallMutation",
+    "PolynomialMutation",
     # Selection operators
-    "TournamentSelection", "RouletteSelection", "ElitePoolSelection"
+    "TournamentSelection",
+    "RouletteSelection",
+    "ElitePoolSelection",
 ]

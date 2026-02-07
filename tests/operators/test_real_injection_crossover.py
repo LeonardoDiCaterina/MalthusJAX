@@ -6,10 +6,10 @@ import jax.random as jar
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.operators.crossover.real import (
-    UniformCrossover_injection,
+    BinomialCrossover_injection,
     BlendCrossover_injection,
     SimulatedBinaryCrossover_injection,
-    BinomialCrossover_injection,
+    UniformCrossover_injection,
 )
 
 
@@ -31,7 +31,8 @@ class TestRealInjectionCrossover(unittest.TestCase):
         print(f"\nTesting {operator_cls.__name__} (injection)...")
 
         # 1. Instantiate and set input_length
-        crossover = operator_cls(num_offspring=num_offspring, **kwargs).set_input_length(self.pop_size)
+        crossover = operator_cls(num_offspring=num_offspring, **kwargs)
+        crossover = crossover.set_input_length(self.pop_size)
 
         # 2. Resource Allocation
         n_keys = crossover.num_keys(input_shape=(self.pop_size,))
@@ -70,7 +71,8 @@ class TestRealInjectionCrossover(unittest.TestCase):
 
     def test_binomial_injection_rate_edges(self):
         # Rate=0 => preserve p2 (target)
-        op = BinomialCrossover_injection(num_offspring=1, crossover_rate=0.0).set_input_length(self.pop_size)
+        op = BinomialCrossover_injection(num_offspring=1, crossover_rate=0.0)
+        op = op.set_input_length(self.pop_size)
         k = jar.PRNGKey(123)
         keys = jar.split(k, op.num_keys(input_shape=(self.pop_size,)))
         # swap parents to match operator's (target, mutant) parameter order
@@ -78,11 +80,13 @@ class TestRealInjectionCrossover(unittest.TestCase):
         self.assertTrue(jnp.allclose(out.genes.values, self.parents_2.genes.values))
 
         # Rate=1 => preserve p1 (mutant)
-        op = BinomialCrossover_injection(num_offspring=1, crossover_rate=1.0).set_input_length(self.pop_size)
+        op = BinomialCrossover_injection(num_offspring=1, crossover_rate=1.0)
+        op = op.set_input_length(self.pop_size)
         k = jar.PRNGKey(456)
         keys = jar.split(k, op.num_keys(input_shape=(self.pop_size,)))
         out = op(keys, self.parents_2, self.parents_1, self.config)
         self.assertTrue(jnp.allclose(out.genes.values, self.parents_1.genes.values))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import chex
 import jax
@@ -64,7 +64,11 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
         return 1
 
     def __call__(
-        self, all_keys: chex.Array, population: RealPopulation, config: RealGenomeConfig, **kwargs: Any
+        self,
+        all_keys: chex.Array,
+        population: RealPopulation,
+        config: RealGenomeConfig,
+        **kwargs: Any,
     ) -> RealPopulation:
         """
         Injection-style call: accepts a single PRNG key and applies Evosax mutation
@@ -81,13 +85,19 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
             subkeys = jax.random.split(key, n)
 
             # Vectorized Evosax mutation over all individuals
-            mutated_vals = jax.vmap(
-                lambda k, sol: evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
-            )(subkeys, population.genes.values)
+            def _call_evosax(k: Any, sol: Any) -> Any:
+                # evosax library is untyped; keep this helper deliberately untyped
+                return evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
+
+            mutated_vals: jnp.ndarray = jax.vmap(_call_evosax)(subkeys, population.genes.values)
 
             new_genes = RealGenome(values=mutated_vals)
-            return population.replace(genes=new_genes, fitness=jnp.full((n,), jnp.nan))
+            # population.replace is dynamically provided; use casts to satisfy mypy
+            replaced = cast(Any, population).replace(
+                genes=new_genes, fitness=jnp.full((n,), jnp.nan)
+            )
+            new_pop = cast(RealPopulation, replaced)
+            return new_pop
 
         # Otherwise, use default fused behavior from BaseMutation
         return super().__call__(all_keys, population, config, **kwargs)
-

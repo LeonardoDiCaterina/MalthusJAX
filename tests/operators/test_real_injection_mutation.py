@@ -6,8 +6,8 @@ import jax.random as jar
 
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.real import (
-    GaussianMutation_injection,
     BallMutation_injection,
+    GaussianMutation_injection,
     PolynomialMutation_injection,
 )
 
@@ -56,5 +56,5 @@ class TestRealInjectionMutation(unittest.TestCase):
         self._test_operator(PolynomialMutation_injection, mutation_rate=1.0, eta=20.0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

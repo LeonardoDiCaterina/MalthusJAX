@@ -18,13 +18,13 @@ import pytest
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation import (
+    BallMutation,
+    BallMutation_injection,
     BitFlipMutation,
+    GaussianMutation,
+    GaussianMutation_injection,
     ScrambleMutation,
     SwapMutation,
-    GaussianMutation,
-    BallMutation,
-    GaussianMutation_injection,
-    BallMutation_injection,
 )
 
 
@@ -123,7 +123,7 @@ class TestGenerateNoiseFused:
 
         delta = op._generate_noise(keys, real_config)
         # magnitude should be <= radius
-        mag = jnp.sqrt(jnp.sum(delta ** 2))
+        mag = jnp.sqrt(jnp.sum(delta**2))
         assert float(mag) <= 0.5 + 1e-6
 
 
@@ -136,7 +136,7 @@ class TestGenerateNoiseInjection:
         key = jr.PRNGKey(11)
 
         noise = op._generate_noise(key, real_config)
-        expected = (8 * op.num_offspring, ) + real_config.shape
+        expected = (8 * op.num_offspring,) + real_config.shape
         assert noise.shape == expected
 
     def test_ball_injection_shape(self, real_config):
@@ -145,7 +145,7 @@ class TestGenerateNoiseInjection:
         key = jr.PRNGKey(12)
 
         noise = op._generate_noise(key, real_config)
-        expected = (5 * op.num_offspring, ) + real_config.shape
+        expected = (5 * op.num_offspring,) + real_config.shape
         assert noise.shape == expected
 
     def test_injection_requires_input_length(self, real_config):
@@ -216,7 +216,12 @@ class TestFusedAndPopulation:
     def test_mutation_population_output_size_and_fitness_reset(self, real_population, real_config):
         pop = real_population
         pop_size = len(pop)
-        op = GaussianMutation(num_offspring=2, mutation_rate=0.5, input_length=pop_size).set_input_length(pop_size)
+        op = GaussianMutation(
+            num_offspring=2,
+            mutation_rate=0.5,
+            input_length=pop_size,
+        )
+        op = op.set_input_length(pop_size)
 
         key = jr.PRNGKey(999)
         keys = jr.split(key, op.num_keys(pop.genes.values.shape))
@@ -242,7 +247,12 @@ class TestFusedAndPopulation:
     def test_jit_stability(self, real_population, real_config):
         pop = real_population
         pop_size = len(pop)
-        op = GaussianMutation(num_offspring=1, mutation_rate=0.5, input_length=pop_size).set_input_length(pop_size)
+        op = GaussianMutation(
+            num_offspring=1,
+            mutation_rate=0.5,
+            input_length=pop_size,
+        )
+        op = op.set_input_length(pop_size)
 
         key = jr.PRNGKey(1313)
         keys = jr.split(key, op.num_keys((pop_size,)))
@@ -260,7 +270,6 @@ class TestStatisticalBehavior:
     """Tests that mutation rate and statistical properties behave as expected."""
 
     def test_gaussian_mutation_rate_respected(self, real_config):
-        p1 = RealGenome(values=jnp.zeros(real_config.shape, dtype=real_config.dtype))
         op = GaussianMutation(num_offspring=1, mutation_rate=0.3, mutation_strength=0.1)
 
         counts = []
@@ -279,7 +288,7 @@ class TestStatisticalBehavior:
         keys = jr.split(key, op.num_keys_per_atomic_operation)
 
         delta = op._generate_noise(keys, real_config)
-        mag = jnp.sqrt(jnp.sum(delta ** 2))
+        mag = jnp.sqrt(jnp.sum(delta**2))
         # Magnitude respects radius
         assert float(mag) <= 0.7 + 1e-6
 

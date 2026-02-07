@@ -1,12 +1,14 @@
 import jax.numpy as jnp
 
+from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
+from malthusjax.operators.crossover.binary import UniformCrossover as BinaryUniformCrossover
 from malthusjax.operators.crossover.real import (
     UniformCrossover as RealUniformCrossover,
+)
+from malthusjax.operators.crossover.real import (
     UniformCrossover_injection as RealUniformCrossover_injection,
 )
-from malthusjax.operators.crossover.binary import UniformCrossover as BinaryUniformCrossover
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
-from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
 
 
 def test_default_num_offspring_is_one():
@@ -80,7 +82,9 @@ def test_offspring_major_flattening():
     transposed = jnp.transpose(nested, (1, 0, 2))
     flattened = transposed.reshape((-1, gene_dim))
 
-    # expected concatenation order: offspring 0 across all pairs, then offspring 1 across all pairs, ...
+    # expected concatenation order:
+    #   - offspring 0 across all pairs
+    #   - offspring 1 across all pairs
     expected = jnp.concatenate([nested[:, o, :] for o in range(num_offspring)], axis=0)
 
     assert jnp.array_equal(flattened, expected)

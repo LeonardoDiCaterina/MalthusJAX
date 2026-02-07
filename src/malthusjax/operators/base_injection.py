@@ -113,17 +113,25 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
             return x.reshape((self.input_length, self.num_offspring) + x.shape[1:])
 
         noise = jax.tree_util.tree_map(reshape_noise, noise)
+
         # For each (input index) we have a block of per-offspring noise.
         # We need to call the atomic `_mutate_one(genome, noise, config)` for
         # each noise vector. Use an inner vmap that calls `_mutate_one` with
         # the correct argument order (genome first, then noise) so the
         # implementation remains consistent with the abstract contract.
-        nested_offspring = jax.vmap(
-            lambda noise_block, genome: jax.vmap(
-                lambda n: self._mutate_one(genome, n, config), in_axes=0
-            )(noise_block),
-            in_axes=(0, 0),
-        )(noise, population.genes)
+        def _mutate_one_inner(n: chex.Array, g: G) -> G:
+            return self._mutate_one(g, n, config)
+
+        def _process_noise_block(noise_block: chex.Array, g: G) -> G:
+            # Inner vmap over offspring axis; define a typed inner helper to avoid
+            # passing an untyped lambda to jax.vmap
+            def _inner(n: chex.Array) -> G:
+                return _mutate_one_inner(n, g)
+
+            return jax.vmap(_inner, in_axes=0)(noise_block)
+
+        # Outer vmap over input indices
+        nested_offspring = jax.vmap(_process_noise_block, in_axes=(0, 0))(noise, population.genes)
 
         # Merge the first two axes (input_length * num_offspring) into a single
         # batch axis. `reshape` is commonly a metadata-only transform in XLA
@@ -166,7 +174,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
 
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
-    
+
     @property
     @abstractmethod
     def num_keys_per_atomic_operation(self) -> int:
@@ -188,7 +196,6 @@ class BaseCrossover_injection(Generic[G, C, P]):
         """Locks the number of pairs for static key budgeting."""
         return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(input_length=length))
 
-
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
         """
@@ -199,9 +206,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
         raise NotImplementedError
 
     @abstractmethod
-    def _recombine_one(
-        self, p1: G, p2: G, noise_data: Any, config: C, **kwargs: Any
-    ) -> G:
+    def _recombine_one(self, p1: G, p2: G, noise_data: Any, config: C, **kwargs: Any) -> G:
         """
         Tier 1 — Recombination Kernel (Pure).
         Deterministic logic: p1, p2 + noise_data -> offspring_tuple.
@@ -235,14 +240,17 @@ class BaseCrossover_injection(Generic[G, C, P]):
         # Invoke `_recombine_one(p1, p2, noise, config)` for each per-pair
         # per-offspring noise item. The inner vmap iterates over the offspring
         # axis of the noise block and calls the pure recombination kernel.
-        def _per_pair_block(noise_block, p1, p2):
-            def _per_offspring(n):
+        def _per_pair_block(noise_block: chex.Array, p1: G, p2: G) -> Any:
+            def _per_offspring(n: chex.Array) -> G:
                 out = self._recombine_one(p1, p2, n, config, **kwargs)
                 # Backward compatibility: if operator returned a tuple, pick the first
                 # element (most operators return a single offspring as a scalar
                 # genome). This keeps the downstream shapes consistent.
-                return out[0] if isinstance(out, tuple) else out
+                if isinstance(out, tuple):
+                    return cast(G, out[0])
+                return out
 
+            # vmap over offspring axis
             return jax.vmap(_per_offspring, in_axes=0)(noise_block)
 
         nested_offspring = jax.vmap(_per_pair_block, in_axes=(0, 0, 0))(

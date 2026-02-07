@@ -3,9 +3,13 @@ Mutation Operators Module.
 """
 
 from .binary import BitFlipMutation, ScrambleMutation, SwapMutation
-from .real import ( BallMutation, BallMutation_injection, GaussianMutation, GaussianMutation_injection, PolynomialMutation, PolynomialMutation_injection, BallMutation_injection,
+from .real import (
+    BallMutation,
+    BallMutation_injection,
+    GaussianMutation,
     GaussianMutation_injection,
-    PolynomialMutation_injection
+    PolynomialMutation,
+    PolynomialMutation_injection,
 )
 
 __all__ = [
@@ -19,5 +23,4 @@ __all__ = [
     "GaussianMutation_injection",
     "PolynomialMutation",
     "PolynomialMutation_injection",
-    
 ]

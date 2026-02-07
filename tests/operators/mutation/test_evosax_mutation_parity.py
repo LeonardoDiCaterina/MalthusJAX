@@ -1,9 +1,9 @@
 import jax
 import jax.numpy as jnp
 import jax.random as jar
-
 from evosax.algorithms.population_based.simple_ga import mutation as evosax_mutation
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+
+from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper
 
 
@@ -27,7 +27,11 @@ def test_mutation_matches_evosax_direct():
 
     # Directly apply evosax mutation per genome using matching per-sample keys
     flat = keys.reshape((-1, keys.shape[-1]))
+
     # Each genome uses its corresponding subkey
-    expected = jax.vmap(lambda k, g: evosax_mutation(k, g, jnp.array(wrapper.mutation_strength, dtype=cfg.dtype)))(flat, parents.genes.values)
+    def _evosax_call(k, g):
+        return evosax_mutation(k, g, jnp.array(wrapper.mutation_strength, dtype=cfg.dtype))
+
+    expected = jax.vmap(_evosax_call)(flat, parents.genes.values)
 
     assert jnp.allclose(offspring_wrapper.genes.values, expected)
