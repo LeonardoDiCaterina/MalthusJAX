@@ -669,3 +669,98 @@ class TestInjectionFusedEquivalence:
             from_p1 = vals == p1_pop.genes.values
             from_p2 = vals == p2_pop.genes.values
             assert jnp.all(from_p1 | from_p2)
+
+
+class TestCrossoverEdgeCases:
+    """Edge case testing for extreme genome sizes and parameter boundaries."""
+
+    def test_uniform_crossover_single_gene(self, wide_config):
+        """Edge case: genome with single gene should still work correctly."""
+        config = RealGenomeConfig(shape=(1,), bounds=(-5.0, 5.0))
+        p1 = RealGenome(values=jnp.array([0.0]))
+        p2 = RealGenome(values=jnp.array([4.0]))
+
+        op = UniformCrossover(num_offspring=5, crossover_rate=0.5)
+        key = jr.PRNGKey(5555)
+        offspring = op.cross_single_pair(key, p1, p2, config)
+
+        # All offspring should have shape (5, 1)
+        assert offspring.values.shape == (5, 1)
+        # Values must be from parent set
+        for val in offspring.values:
+            assert jnp.isclose(val[0], 0.0) or jnp.isclose(val[0], 4.0)
+
+    def test_blend_crossover_large_genome(self):
+        """Edge case: Blend crossover should handle large genomes efficiently."""
+        config = RealGenomeConfig(shape=(1000,), bounds=(-10.0, 10.0))
+        key = jr.PRNGKey(6666)
+        k1, k2 = jr.split(key)
+
+        p1 = RealGenome.random_init(k1, config)
+        p2 = RealGenome.random_init(k2, config)
+
+        op = BlendCrossover(num_offspring=2, crossover_rate=1.0, alpha=0.5)
+        offspring = op.cross_single_pair(key, p1, p2, config)
+
+        assert offspring.values.shape == (2, 1000)
+        # All values should be within bounds
+        assert jnp.all(offspring.values >= -10.0)
+        assert jnp.all(offspring.values <= 10.0)
+
+    def test_sbx_crossover_no_mutation_case(self, parent_pair):
+        """Edge case: SBX with very low eta should approach Blend behavior."""
+        p1, p2, real_config = parent_pair
+        op = SimulatedBinaryCrossover(num_offspring=5, crossover_rate=1.0, eta=100.0)
+
+        key = jr.PRNGKey(7777)
+        offspring = op.cross_single_pair(key, p1, p2, real_config)
+
+        # High eta → offspring should be close to parent average
+        parent_midpoint = (p1.values + p2.values) / 2.0
+        for i in range(5):
+            avg_distance = float(jnp.mean(jnp.abs(offspring.values[i] - parent_midpoint)))
+            # High eta (100.0) should keep offspring reasonably close to midpoint
+            # but due to stochastic nature, allow tolerance of ~3.0
+            assert avg_distance < 3.0, f"High eta should keep offspring near parents, got avg_dist={avg_distance}"
+
+    def test_crossover_rate_zero_boundary(self, real_config):
+        """Edge case: rate=0.0 should always select from p1."""
+        p1 = RealGenome(values=jnp.zeros(real_config.shape))
+        p2 = RealGenome(values=jnp.ones(real_config.shape) * 5.0)
+
+        for op_class, name in [
+            (UniformCrossover, "Uniform"),
+            (BlendCrossover, "Blend"),
+        ]:
+            op = op_class(crossover_rate=0.0)
+            key = jr.PRNGKey(8888)
+            offspring = op.cross_single_pair(key, p1, p2, real_config)
+
+            # Should equal p1
+            for i in range(offspring.values.shape[0]):
+                assert jnp.allclose(offspring.values[i], p1.values), (
+                    f"{name} with rate=0 should preserve p1"
+                )
+
+    def test_crossover_offspring_diversity(self):
+        """Test that crossover actually generates diverse offspring."""
+        config = RealGenomeConfig(shape=(20,), bounds=(-1.0, 1.0))
+        p1 = RealGenome(values=jnp.full((20,), -0.8))
+        p2 = RealGenome(values=jnp.full((20,), 0.8))
+
+        op = UniformCrossover(num_offspring=100, crossover_rate=0.5)
+        key = jr.PRNGKey(9999)
+        offspring_batch = op.cross_single_pair(key, p1, p2, config)
+
+        # Calculate pairwise distances between offspring
+        variances = []
+        for gene_idx in range(20):
+            gene_values = offspring_batch.values[:, gene_idx]
+            variance = float(jnp.var(gene_values))
+            variances.append(variance)
+
+        mean_variance = np.mean(variances)
+        # Should have non-zero variance across 100 different offspring
+        assert mean_variance > 0.01, (
+            f"Crossover should generate diverse offspring, got mean_var={mean_variance}"
+        )

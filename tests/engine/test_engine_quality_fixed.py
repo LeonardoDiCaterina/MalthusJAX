@@ -439,5 +439,171 @@ class TestOptimizationDirectionBinaryGenome(unittest.TestCase):
             )
 
 
+class TestConvergenceValidation(unittest.TestCase):
+    """Test convergence properties of genetic algorithm.
+
+    Validates that the evolutionary algorithm actually improves solutions
+    over generations, not just runs without crashing.
+    """
+
+    def test_convergence_monotonicity_real_genome(self):
+        """Verify fitness improves or stays same across generations (monotonic)."""
+        genome_config = RealGenomeConfig(shape=(5,), bounds=(-5.0, 5.0))
+        engine_params = GeneticEngineParams(pop_size=50, elitism=2, num_generations=15)
+
+        sphere_config = SphereConfig(maximize=False)
+        evaluator = SphereEvaluator(config=sphere_config, data=None)
+
+        engine = GeneticEngine(
+            engine_params=engine_params,
+            genome_config=genome_config,
+            evaluator=evaluator,
+            selection=ElitePoolSelection(num_selections=50, elite_k=5),
+            crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
+            mutation=GaussianMutation(
+                num_offspring=1, mutation_rate=0.2, mutation_strength=0.5, clip=True
+            ),
+            enable_progress_bar=False,
+        )
+
+        key = jar.PRNGKey(42)
+        state = engine.init_state(key)
+
+        # Collect best fitness history across generations
+        best_history = [float(state.best_fitness)]
+
+        for _ in range(15):
+            state, output = engine.step(state)
+            best_history.append(float(output.best_fitness))
+
+        # Verify monotonic improvement (non-decreasing)
+        # Engine maximizes internally, so best_fitness should be non-decreasing
+        for i in range(1, len(best_history)):
+            self.assertGreaterEqual(
+                best_history[i],
+                best_history[i - 1] - 1e-6,
+                (
+                    f"Fitness decreased (monotonicity broken) at gen {i}: "
+                    f"{best_history[i - 1]:.8f} -> {best_history[i]:.8f}"
+                ),
+            )
+
+        # Verify actual convergence: initial to final should improve
+        # For sphere minimize (maximize=False), -sphere decreases toward 0
+        # So best_history starts negative and increases toward 0
+        initial_fitness = best_history[0]
+        final_fitness = best_history[-1]
+
+        # At least 5% improvement from initial
+        improvement_threshold = initial_fitness + abs(initial_fitness) * 0.05
+        self.assertGreater(
+            final_fitness,
+            improvement_threshold,
+            (
+                f"Insufficient convergence: {initial_fitness:.8f} -> {final_fitness:.8f} "
+                f"(need {improvement_threshold:.8f})"
+            ),
+        )
+
+    def test_convergence_monotonicity_binary_genome(self):
+        """Verify fitness improves or stays same with binary genome."""
+        genome_config = BinaryGenomeConfig(shape=(20,), p=0.5, dtype=jnp.int32)
+        engine_params = GeneticEngineParams(pop_size=40, elitism=2, num_generations=15)
+
+        binary_config = BinarySumConfig(maximize=True)
+        evaluator = BinarySumEvaluator(config=binary_config)
+
+        engine = GeneticEngine(
+            engine_params=engine_params,
+            genome_config=genome_config,
+            evaluator=evaluator,
+            selection=ElitePoolSelection(num_selections=40, elite_k=4),
+            crossover=BinaryUniformCrossover(num_offspring=2, crossover_rate=0.5),
+            mutation=BitFlipMutation(num_offspring=1, mutation_rate=0.1),
+            enable_progress_bar=False,
+        )
+
+        key = jar.PRNGKey(123)
+        state = engine.init_state(key)
+
+        # Collect best fitness history
+        best_history = [float(state.best_fitness)]
+
+        for _ in range(15):
+            state, output = engine.step(state)
+            best_history.append(float(output.best_fitness))
+
+        # Verify monotonicity
+        for i in range(1, len(best_history)):
+            self.assertGreaterEqual(
+                best_history[i],
+                best_history[i - 1] - 1e-6,
+                f"Fitness decreased at gen {i}: {best_history[i - 1]:.0f} -> {best_history[i]:.0f}",
+            )
+
+        # Verify convergence: should reach good fitness (high ones_count)
+        final_fitness = best_history[-1]
+        # For binary sum maximize, should get at least 12/20 ones (60%)
+        self.assertGreater(
+            final_fitness,
+            12.0,
+            f"Failed to converge to good solution: only {final_fitness:.0f}/20 ones",
+        )
+
+    def test_population_diversity_maintenance(self):
+        """Verify that reproduction maintains genetic diversity.
+
+        Tests that offspring generation doesn't collapse to identical solutions
+        before the algorithm has time to converge.
+        """
+        genome_config = RealGenomeConfig(shape=(10,), bounds=(-5.0, 5.0))
+        engine_params = GeneticEngineParams(pop_size=60, elitism=3, num_generations=8)
+
+        sphere_config = SphereConfig(maximize=False)
+        evaluator = SphereEvaluator(config=sphere_config, data=None)
+
+        engine = GeneticEngine(
+            engine_params=engine_params,
+            genome_config=genome_config,
+            evaluator=evaluator,
+            selection=ElitePoolSelection(num_selections=60, elite_k=6),
+            crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
+            mutation=GaussianMutation(
+                num_offspring=1, mutation_rate=0.15, mutation_strength=0.5, clip=True
+            ),
+            enable_progress_bar=False,
+        )
+
+        key = jar.PRNGKey(456)
+        state = engine.init_state(key)
+
+        # Track variance of population fitness across generations
+        variance_history = [float(jnp.var(state.population.fitness))]
+
+        for _ in range(8):
+            state, output = engine.step(state)
+            variance_history.append(float(jnp.var(state.population.fitness)))
+
+        # Diversity should not completely collapse early in evolution
+        # Check that at least some generations maintain moderate diversity
+        # (variance doesn't drop to near-zero before convergence)
+        mid_variance = variance_history[len(variance_history) // 2]
+        final_variance = variance_history[-1]
+
+        # Middle should have reasonable diversity
+        self.assertGreater(
+            mid_variance,
+            0.01,
+            f"Diversity collapsed too early: mid-run variance = {mid_variance:.6f}",
+        )
+
+        # Final variance can be small (converged), but shouldn't be zero
+        self.assertGreater(
+            final_variance,
+            1e-8,
+            "Population completely collapsed to single fitness value",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

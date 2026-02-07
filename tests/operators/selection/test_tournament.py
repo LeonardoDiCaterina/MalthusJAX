@@ -103,3 +103,61 @@ class TestTournamentSelection:
 
         assert res_raw.shape == (2,)
         assert res_sliced.shape == (2,)
+
+    def test_guaranteed_best_selection(self, setup_tournament_pop):
+        """Edge case: Larger tournament sizes significantly increase best selection."""
+        pop, key = setup_tournament_pop
+        best_idx = 3  # Fixture: index 3 has fitness=100.0
+
+        # Small tournament (T=2) vs Large tournament (T=8)
+        sel_small = TournamentSelection(num_selections=100, tournament_size=2)
+        sel_large = TournamentSelection(num_selections=100, tournament_size=8)
+
+        indices_small = sel_small._select(key, pop.fitness)
+        indices_large = sel_large._select(key, pop.fitness)
+
+        small_best_frac = float(jnp.sum(indices_small == best_idx)) / 100
+        large_best_frac = float(jnp.sum(indices_large == best_idx)) / 100
+
+        # Larger tournament should select best much more frequently
+        assert large_best_frac > small_best_frac * 1.5, (
+            f"Larger tournament should select best more: T=2 got {small_best_frac:.1%}, "
+            f"T=8 got {large_best_frac:.1%}"
+        )
+
+    def test_selection_pressure_proportionality(self, setup_tournament_pop):
+        """Proportional pressure: higher T should increase best pick rate."""
+        pop, key = setup_tournament_pop
+        best_idx = 3
+        num_trials = 200
+
+        # Test three tournament sizes
+        sizes = [1, 3, 5]
+        pick_rates = []
+
+        for t_size in sizes:
+            sel = TournamentSelection(num_selections=num_trials, tournament_size=t_size)
+            indices = sel._select(key, pop.fitness)
+            pick_rate = float(jnp.sum(indices == best_idx)) / num_trials
+            pick_rates.append(pick_rate)
+
+        # Verify monotonic increase: P(T=1) < P(T=3) < P(T=5)
+        assert pick_rates[0] < pick_rates[1] < pick_rates[2], (
+            f"Pick rates should increase with T: got {pick_rates}"
+        )
+
+    def test_selection_wrapping_edge_case(self):
+        """Edge case: num_selections > pop_size should handle wrapping."""
+        key = jr.PRNGKey(99)
+        config = RealGenomeConfig(shape=(3,), bounds=(-1.0, 1.0))
+        pop_size = 5
+        pop = RealPopulation.init_random(key, config, pop_size)
+        pop = pop.replace(fitness=jnp.arange(float(pop_size)))
+
+        # Request more selections than population
+        sel = TournamentSelection(num_selections=12, tournament_size=2)
+        indices = sel._select(key, pop.fitness)
+
+        assert indices.shape == (12,)
+        assert jnp.all(indices >= 0)
+        assert jnp.all(indices < pop_size)

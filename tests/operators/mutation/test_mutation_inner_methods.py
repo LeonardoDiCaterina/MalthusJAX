@@ -295,3 +295,65 @@ class TestStatisticalBehavior:
         # Also check mask behavior: since mutation_rate=0.5 some rows may be zeros
         zeros_fraction = float(jnp.mean(jnp.all(delta == 0.0, axis=tuple(range(1, delta.ndim)))))
         assert 0.0 <= zeros_fraction <= 1.0
+
+
+class TestBitFlipCorrelationPatterns:
+    """Tests for bit flip correlation and flipping frequency."""
+
+    def test_bitflip_respects_mutation_rate(self, binary_config):
+        """Empirical validation: mutation_rate should flip ~rate% of bits."""
+        op = BitFlipMutation(mutation_rate=0.3)
+        key = jr.PRNGKey(777)
+
+        # Generate many flips and check empirical correlation
+        flipped_fractions = []
+        for i in range(50):
+            keys = jr.split(jr.fold_in(key, i), op.num_keys_per_atomic_operation)
+            mask = op._generate_noise(keys, binary_config)
+            frac = float(jnp.mean(mask))
+            flipped_fractions.append(frac)
+
+        empirical_rate = np.mean(flipped_fractions)
+        assert abs(empirical_rate - 0.3) < 0.08, (
+            f"Expected ~30% flips, got {empirical_rate:.2%}"
+        )
+
+    '''def test_scramble_preserves_element_set(self, binary_config):
+        """Scramble mutation should permute but not lose elements."""
+        op = ScrambleMutation(mutation_rate=1.0)
+        key = jr.PRNGKey(888)
+
+        # Create fixed population
+        pop_vals = jnp.array([[0, 1, 0, 1], [1, 1, 0, 0]], dtype=jnp.int32)
+        gen_1 = BinaryGenome.from_tensor(pop_vals[0])
+        gen_2 = BinaryGenome.from_tensor(pop_vals[1])
+        pop = BinaryPopulation(genes=pop_vals, fitness=jnp.zeros(2), config=binary_config)
+
+        keys = jr.split(key, op.num_keys((2,)))
+        offspring = op(keys, pop, binary_config)
+
+        # Each offspring should have same bits as parent (permuted)
+        for i in range(2):
+            parent_bits = jnp.sort(pop.values[i])
+            offspring_bits = jnp.sort(offspring.values[i])
+            assert jnp.array_equal(parent_bits, offspring_bits), (
+                f"Scramble should preserve bit set, got parent={parent_bits}, "
+                f"offspring={offspring_bits}"
+            )'''
+
+    '''def test_swap_mutation_frequency(self, binary_config):
+        """Swap mutation with high rate should perform frequent swaps."""
+        op = SwapMutation(mutation_rate=1.0, num_offspring=1)
+        key = jr.PRNGKey(999)
+
+        pop_vals = jnp.ones((5, binary_config.shape[-1]), dtype=jnp.int32)
+        genes = BinaryGenome(values=pop_vals)
+        pop = BinaryPopulation(genes=genes, fitness=jnp.zeros(5), config=binary_config)
+
+        keys = jr.split(key, op.num_keys((5,)))
+        offspring = op(keys, pop, binary_config)
+
+        # With mutation_rate=1.0, all offspring should differ from parents
+        assert not jnp.any(jnp.all(offspring.values == pop.values, axis=1)), (
+            "SwapMutation with rate=1.0 should modify all individuals"
+        )'''

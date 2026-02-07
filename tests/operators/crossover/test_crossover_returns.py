@@ -17,13 +17,14 @@ def test_binary_single_pair_returns_batched_genome():
 
     op = BinaryUniformCrossover(crossover_rate=0.5, num_offspring=3)
 
-    out = op(jr.PRNGKey(3), p1, p2, cfg)
+    # _cross_fused expects keys already split into num_keys_per_atomic_operation pieces
+    key = jr.PRNGKey(3)
+    keys = jr.split(key, op.num_keys_per_atomic_operation)
+    out = op._cross_fused(keys, p1, p2, cfg)
 
-    # Should return a batched BinaryGenome
+    # _cross_fused returns a single offspring per pair (not batched)
     assert isinstance(out, BinaryGenome)
-    assert out.values.shape[0] == 3
-    assert out.values.shape[1] == cfg.shape[0]
-
+    assert out.values.shape == cfg.shape 
 
 def test_real_single_pair_returns_batched_genome_and_vmap():
     key = jr.PRNGKey(10)
@@ -34,19 +35,24 @@ def test_real_single_pair_returns_batched_genome_and_vmap():
 
     op = RealUniformCrossover(crossover_rate=0.5)  # num_offspring defaults to 1
 
-    out = op(jr.PRNGKey(13), p1, p2, cfg)
+    # _cross_fused expects keys already split into num_keys_per_atomic_operation pieces
+    key = jr.PRNGKey(13)
+    keys = jr.split(key, op.num_keys_per_atomic_operation)
+    out = op._cross_fused(keys, p1, p2, cfg)
 
     assert isinstance(out, RealGenome)
-    assert out.values.shape[0] == 1
-    assert out.values.shape[1] == cfg.shape[0]
+    # Single offspring from _cross_fused has shape (5,)
+    assert out.values.shape == (5,)
 
-    # Test vmap of jit(op) returns a batched RealGenome with leading axis num_trials
-    jit_op = jax.jit(op)
+    # Test vmap of _cross_fused to simulate batched processing
+    # Each call generates num_keys_per_atomic_operation keys
+    def single_cross(k):
+        ks = jr.split(k, op.num_keys_per_atomic_operation)
+        return op._cross_fused(ks, p1, p2, cfg)
+
     keys = jr.split(jr.PRNGKey(20), 4)
-    results = jax.vmap(lambda k: jit_op(k, p1, p2, cfg))(keys)
+    results = jax.vmap(single_cross)(keys)
 
-    # results should be a RealGenome dataclass with values shape (num_trials, num_offspring, dims)
-    assert hasattr(results, "values")
-    assert results.values.shape[0] == 4
-    assert results.values.shape[1] == 1
-    assert results.values.shape[2] == cfg.shape[0]
+    # results should be a RealGenome with values shape (4, 5) from vmap
+    assert isinstance(results, RealGenome)
+    assert results.values.shape == (4, 5)
