@@ -98,6 +98,18 @@ def test_linear_jit_stability(rng_key):
     genome = LinearGenome.random_init(rng_key, config)
 
     @jax.jit
+    def jit_autocorrect(g, cfg):
+        return g.autocorrect(cfg)
+
+    # Test JIT compilation doesn't crash
+    corrected = jit_autocorrect(genome, config)
+    assert corrected.ops.shape == genome.ops.shape
+    assert corrected.args.shape == genome.args.shape
+
+    # Verify JIT vs non-JIT equivalence
+    non_jit_corrected = genome.autocorrect(config)
+    assert jnp.array_equal(corrected.ops, non_jit_corrected.ops)
+    assert jnp.array_equal(corrected.args, non_jit_corrected.args)
     def structural_step(g):
         # Trigger autocorrect and distance inside JIT
         g_corr = g.autocorrect(config)
