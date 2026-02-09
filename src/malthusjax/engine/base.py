@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Generic, List, Optional, Tuple, TypeVar, cast
+from typing import Any, Generic, List, Optional, Tuple, TypeVar, cast, Union
 
 import chex
 import jax
@@ -139,9 +139,15 @@ class AbstractEngine(Generic[G, P], ABC):
         return self is other
 
     @abstractmethod
-    def init_state(self, rng_key: jnp.ndarray) -> AbstractEvolutionState[G, P]:
+    def init_state(self, rng_key: Union[int, jnp.ndarray]) -> AbstractEvolutionState[G, P]:
         """
         Initialize evolution state (Init-Phase Compilation).
+
+        Accepts either an integer seed or a pre-constructed PRNG key. If a seed is
+        provided the concrete engine implementation is expected to create a typed
+        PRNG key (e.g., using ``malthusjax.core.random.create_key``) based on its
+        configuration.
+
         Responsibilities: Compile ResourceMap, bake operators with static input sizes,
         enforce sharding layout, initialize population, evaluate, identify best.
         One-time cost; results cached in returned state for all step() calls.

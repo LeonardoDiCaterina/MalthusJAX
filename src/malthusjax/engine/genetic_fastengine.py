@@ -5,7 +5,7 @@ Refactored for 'Init-Phase Compilation': Resource mapping happens once at initia
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Tuple, Type, TypeVar, cast
+from typing import Any, Callable, Optional, Tuple, Type, TypeVar, cast, Union
 
 import chex
 import jax
@@ -31,6 +31,8 @@ from .resource_mapper import (
     ShardingManager,
     compute_resource_map,
 )
+
+from malthusjax.core.random import PRNGImpl, create_key, validate_key
 
 # TODO: update selection doctring
 
@@ -63,6 +65,7 @@ class GeneticEngineParams(AbstractEngineParams):
     key_derivation: KeyDerivationStrategy = _field(
         pytree_node=False, default=KeyDerivationStrategy.SPLIT
     )
+    prng_impl: PRNGImpl = _field(pytree_node=False, default=PRNGImpl.THREEFRY)
     mutation_strength_schedule: Optional[Callable[[int], float]] = _field(
         pytree_node=False, default=None
     )
@@ -359,9 +362,15 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         return final_state, metrics
 
-    def init_state(self, rng_key: chex.Array) -> GeneticEvolutionState:
+    def init_state(self, rng_key: Union[int, chex.Array]) -> GeneticEvolutionState:
         """
         Initialize evolution state (Init-Phase Compilation).
+
+        Accepts either an integer seed (convenience) or a pre-constructed PRNG key.
+        If an integer seed is provided, a typed key is created using the engine's
+        configured `prng_impl`. If a legacy `PRNGKey` is provided, a
+        ``DeprecationWarning`` is emitted.
+
         Steps: (1) Compute ResourceMap (RNG budget + data flow cascade).
         (2) Bake operators: set_input_length freezes static sizes for XLA.
         (3) Enforce GSPMD sharding layout (per-device or replicated).
@@ -370,6 +379,14 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         One-time cost; results cached in state.resource_map throughout run.
         """
         params = cast(GeneticEngineParams, self.engine_params)
+
+        # Accept an integer seed and create a typed key using the configured PRNG impl,
+        # otherwise validate provided key and warn for legacy PRNGKey.
+        if isinstance(rng_key, int):
+            rng_key = create_key(rng_key, impl=params.prng_impl)
+        else:
+            validate_key(rng_key, context="GeneticEngine.init_state()")
+
         rmap = compute_resource_map(
             self.selection,
             self.crossover,

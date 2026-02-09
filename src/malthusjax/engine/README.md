@@ -175,7 +175,8 @@ engine_params = GeneticEngineParams(
     elitism=5,
     key_derivation=KeyDerivationStrategy.FOLD
 )
-```
+
+**PRNG Implementation Control**: If you want explicit control over the PRNG backend (for example, favoring Philox on GPUs), create your master key using `malthusjax.core.random.create_key(seed, impl=PRNGImpl.PHILOX)` and pass it to `engine.init_state()`. The engine also accepts an integer seed directly (it will create a key using `engine.engine_params.prng_impl`). Passing a legacy `jax.random.PRNGKey` will still work but emits a `DeprecationWarning`.```
 
 ---
 
