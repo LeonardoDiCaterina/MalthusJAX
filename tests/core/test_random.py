@@ -17,13 +17,9 @@ def test_create_key_default_impl():
     assert jnp.allclose(jnp.asarray(k1), jnp.asarray(k2))
 
 
-@pytest.mark.parametrize("impl", list(PRNGImpl))
-def test_create_key_each_impl(impl):
-    try:
-        k = create_key(0, impl=impl)
-    except ValueError:
-        pytest.skip(f"{impl} not supported by this JAX build")
-
+def test_create_key_each_impl(prng_impl):
+    # prng_impl fixture will skip unsupported implementations
+    k = create_key(0, impl=prng_impl)
     assert isinstance(k, jax.Array)
 
 

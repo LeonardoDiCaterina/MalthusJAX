@@ -25,12 +25,11 @@ def make_rmap(strategy: KeyDerivationStrategy):
     )
 
 
-@pytest.mark.parametrize("impl", list(PRNGImpl))
-def test_get_keys_shapes_and_different(impl):
+def test_get_keys_shapes_and_different(prng_impl):
     try:
-        master = create_key(0, impl=impl)
+        master = create_key(0, impl=prng_impl)
     except ValueError:
-        pytest.skip(f"impl {impl} not supported by this JAX build")
+        pytest.skip(f"impl {prng_impl} not supported by this JAX build")
 
     rmap_split = make_rmap(KeyDerivationStrategy.SPLIT)
     rmap_fold = make_rmap(KeyDerivationStrategy.FOLD)
@@ -48,12 +47,11 @@ def test_get_keys_shapes_and_different(impl):
     assert jax.numpy.allclose(keys_fold_1, keys_fold_2)
 
 
-@pytest.mark.parametrize("impl", list(PRNGImpl))
-def test_key_slices_are_distinct(impl):
+def test_key_slices_are_distinct(prng_impl):
     try:
-        master = create_key(1, impl=impl)
+        master = create_key(1, impl=prng_impl)
     except ValueError:
-        pytest.skip(f"impl {impl} not supported by this JAX build")
+        pytest.skip(f"impl {prng_impl} not supported by this JAX build")
 
     rmap = make_rmap(KeyDerivationStrategy.SPLIT)
     all_keys = rmap.get_keys(master)
@@ -71,14 +69,12 @@ def test_key_slices_are_distinct(impl):
             assert i not in indices
             indices.add(i)
 
-
 @pytest.mark.parametrize("strategy", [KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD])
-@pytest.mark.parametrize("impl", list(PRNGImpl))
-def test_all_impls_x_strategies(impl, strategy):
+def test_all_impls_x_strategies(prng_impl, strategy):
     try:
-        master = create_key(7, impl=impl)
+        master = create_key(7, impl=prng_impl)
     except ValueError:
-        pytest.skip(f"impl {impl} not supported by this JAX build")
+        pytest.skip(f"impl {prng_impl} not supported by this JAX build")
 
     rmap = make_rmap(strategy)
     keys = rmap.get_keys(master)

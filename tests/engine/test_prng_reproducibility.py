@@ -34,18 +34,15 @@ def make_engine(prng_impl=PRNGImpl.THREEFRY, key_derivation=None):
     return engine
 
 
-@pytest.mark.parametrize("impl", list(PRNGImpl))
-def test_same_seed_same_impl_identical_run(impl):
-    try:
-        key = create_key(1234, impl=impl)
-    except ValueError:
-        pytest.skip("impl not supported by this JAX build")
+def test_same_seed_same_impl_identical_run(prng_impl):
+    # prng_impl fixture skips unsupported implementations automatically
+    key = create_key(1234, impl=prng_impl)
 
     engine = make_engine()
     s1 = engine.init_state(key)
     final1, _, _ = engine.run(s1, compile=False)
 
-    key2 = create_key(1234, impl=impl)
+    key2 = create_key(1234, impl=prng_impl)
     s2 = engine.init_state(key2)
     final2, _, _ = engine.run(s2, compile=False)
 
@@ -69,17 +66,13 @@ def test_same_seed_different_impl_different_run(impl_pair):
     assert not jax.numpy.allclose(f1.population.genes.values, f2.population.genes.values)
 
 
-def test_reproducibility_across_key_derivation():
-    impl = PRNGImpl.THREEFRY
+def test_reproducibility_across_key_derivation(prng_impl):
+    # Verify determinism for both SPLIT and FOLD using the same PRNG impl
     try:
-        k = create_key(999, impl=impl)
+        k = create_key(999, impl=prng_impl)
     except ValueError:
         pytest.skip("impl not supported")
 
-    engine_split = make_engine(key_derivation=jax.random.split)  # note: we pass enum earlier normally
-    # Use enum types properly: KeyDerivationStrategy is set via params.replace in make_engine above
-
-    # Instead, directly create two engines with different KeyDerivationStrategy
     from malthusjax.engine.resource_mapper import KeyDerivationStrategy
 
     e_split = make_engine()
@@ -97,10 +90,9 @@ def test_reproducibility_across_key_derivation():
     # The split and fold results may differ but are reproducible individually
 
 
-def test_jit_does_not_break_reproducibility():
-    impl = PRNGImpl.THREEFRY
+def test_jit_does_not_break_reproducibility(prng_impl):
     try:
-        k = create_key(2023, impl=impl)
+        k = create_key(2023, impl=prng_impl)
     except ValueError:
         pytest.skip("impl not supported")
 

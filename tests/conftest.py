@@ -11,6 +11,8 @@ import jax.random as jr
 import pytest
 
 from malthusjax.core.fitness.binary_evaluators import KnapsackConfig, KnapsackEvaluator
+from malthusjax.core.random import PRNGImpl, create_key
+from malthusjax.engine.resource_mapper import KeyDerivationStrategy
 
 # Import genome types and configurations
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
@@ -224,3 +226,69 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: marks tests as slow (deselect with -m 'not slow')")
     config.addinivalue_line("markers", "jit: marks tests that specifically test JIT compilation")
     config.addinivalue_line("markers", "integration: marks integration tests")
+
+
+# ------------------------
+# PRNG / Key Fixtures
+# ------------------------
+@pytest.fixture(params=list(PRNGImpl))
+def prng_impl(request) -> PRNGImpl:
+    """Parametrized PRNG implementation fixture.
+
+    Skips implementations that are not available in the current JAX build.
+    Use in tests as `prng_impl` to automatically iterate over supported impls.
+    """
+    impl: PRNGImpl = request.param
+    try:
+        # sanity-check: attempt to construct a key with this impl
+        create_key(0, impl=impl)
+    except ValueError:
+        pytest.skip(f"PRNGImpl {impl} not supported by this JAX build")
+    return impl
+
+
+@pytest.fixture(params=[KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD])
+def key_derivation(request) -> KeyDerivationStrategy:
+    """Parametrized key derivation strategy fixture."""
+    return request.param
+
+
+@pytest.fixture
+def master_prng_key(prng_impl: PRNGImpl) -> jax.Array:
+    """Create a deterministic master key for the requested PRNG impl."""
+    return create_key(1234, impl=prng_impl)
+
+
+@pytest.fixture
+def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy):
+    """Construct a small GeneticEngine configured with the requested PRNG/key-derivation.
+
+    Useful for PRNG-focused tests that need a baked operator set in `state.operators`.
+    """
+    from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
+    from malthusjax.core.genome.real_genome import RealGenomeConfig
+    from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+    from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+    from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
+    from malthusjax.operators.mutation.real import GaussianMutation
+
+    params = GeneticEngineParams(
+        pop_size=32,
+        elitism=1,
+        num_generations=1,
+        key_derivation=key_derivation,
+        prng_impl=prng_impl,
+    )
+
+    genome_config = RealGenomeConfig(shape=(5,), bounds=(-5.0, 5.0))
+    bbob = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=5, maximize=False))
+
+    engine = GeneticEngine(
+        engine_params=params,
+        genome_config=genome_config,
+        evaluator=bbob,
+        selection=ElitePoolSelection(num_selections=32, elite_k=2),
+        crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
+        mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1),
+    )
+    return engine

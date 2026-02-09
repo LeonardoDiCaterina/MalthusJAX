@@ -30,10 +30,9 @@ def small_engine():
     return engine
 
 
-@pytest.mark.parametrize("impl", list(PRNGImpl))
-def test_allocate_entropy_preserves_impl(impl, small_engine):
+def test_allocate_entropy_preserves_impl(prng_impl, small_engine):
     try:
-        key = create_key(1, impl=impl)
+        key = create_key(1, impl=prng_impl)
     except ValueError:
         pytest.skip("impl not supported by this JAX build")
 
@@ -44,14 +43,13 @@ def test_allocate_entropy_preserves_impl(impl, small_engine):
     for k in [k_sel[0], k_cross[0], k_mut[0], k_next]:
         assert is_new_style_key(k)
 
-
 def test_selection_deterministic_given_key(small_engine):
     key = create_key(99)
     state = small_engine.init_state(key)
     k_sel, k_cross, k_mut, k_next = small_engine._allocate_entropy(state)
 
     pop = state.population
-    sel = small_engine.selection
+    sel = state.operators.selection  # Use baked operator (typed_keys set by engine)
 
     out1 = sel(k_sel, pop)
     out2 = sel(k_sel, pop)
