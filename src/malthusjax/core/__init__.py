@@ -9,8 +9,18 @@ This module contains the foundational Level 1 components:
 """
 
 from . import base, fitness, genome
+from .random import PRNGImpl, create_key
 
 # Expose new base classes
 from .base import BaseGenome, BasePopulation, DistanceMetric
 
-__all__ = ["base", "genome", "fitness", "BaseGenome", "BasePopulation", "DistanceMetric"]
+__all__ = [
+    "base",
+    "genome",
+    "fitness",
+    "BaseGenome",
+    "BasePopulation",
+    "DistanceMetric",
+    "PRNGImpl",
+    "create_key",
+]
