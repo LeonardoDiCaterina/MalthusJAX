@@ -32,7 +32,7 @@ from .resource_mapper import (
     compute_resource_map,
 )
 
-from malthusjax.core.random import PRNGImpl, create_key, validate_key
+from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, validate_key
 
 # TODO: update selection doctring
 
@@ -387,6 +387,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         else:
             validate_key(rng_key, context="GeneticEngine.init_state()")
 
+        # Determine key format once — propagated to all operators as static flag.
+        typed = is_new_style_key(rng_key)
+
         rmap = compute_resource_map(
             self.selection,
             self.crossover,
@@ -401,10 +404,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             cast(Any, self.selection)
             .replace(num_selections=rmap.selection.output_count)
             .set_input_length(rmap.selection.input_count)
+            .set_typed_keys(typed)
         )
 
-        active_cross = self.crossover.set_input_length(rmap.crossover.input_count // 2)
-        active_mut = self.mutation.set_input_length(rmap.mutation.input_count)
+        active_cross = self.crossover.set_input_length(rmap.crossover.input_count // 2).set_typed_keys(typed)
+        active_mut = self.mutation.set_input_length(rmap.mutation.input_count).set_typed_keys(typed)
 
         op_state = OperatorState(selection=active_sel, crossover=active_cross, mutation=active_mut)
 

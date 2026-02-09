@@ -237,7 +237,9 @@ from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 
 # Setup random key
-key = jar.PRNGKey(42)
+from malthusjax.core import create_key, PRNGImpl
+# Prefer explicit PRNG implementation control; PHILOX is GPU-optimized
+key = create_key(42, impl=PRNGImpl.PHILOX)
 
 # 1. Define genome: real-valued vectors in [-5, 5]
 genome_config = RealGenomeConfig(length=10, bounds=(-5.0, 5.0))
