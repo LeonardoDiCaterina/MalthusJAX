@@ -37,7 +37,13 @@ class TournamentSelection(BaseSelection[P, C]):
         Selects num_selections parents via competitive tournaments.
         Returns: (num_selections,) indices into [0, pop_size).
         """
-        rng = keys[0] if keys.ndim > 1 else keys
+        # Key extraction driven by PRNG impl (typed_keys set at engine init).
+        # typed_keys=True: single typed key is scalar (ndim=0), batch is 1D.
+        # typed_keys=False (legacy): single key is (2,) ndim=1, batch is (N,2) ndim=2.
+        if self.typed_keys:
+            rng = keys if keys.ndim == 0 else keys[0]
+        else:
+            rng = keys if keys.ndim <= 1 else keys[0]
         pop_size = fitness.shape[0]
         candidates = jax.random.randint(
             rng, shape=(self.num_selections, self.tournament_size), minval=0, maxval=pop_size

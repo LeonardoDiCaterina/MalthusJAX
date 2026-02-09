@@ -42,7 +42,13 @@ class RouletteSelection(BaseSelection[P, C]):
         Uses Gumbel-Max trick when num_selections==pop_size (efficient parallel path);
         falls back to softmax+jax.random.choice for other configurations.
         """
-        rng = keys[0] if keys.ndim > 1 else keys
+        # Key extraction driven by PRNG impl (typed_keys set at engine init).
+        # typed_keys=True: single typed key is scalar (ndim=0), batch is 1D.
+        # typed_keys=False (legacy): single key is (2,) ndim=1, batch is (N,2) ndim=2.
+        if self.typed_keys:
+            rng = keys if keys.ndim == 0 else keys[0]
+        else:
+            rng = keys if keys.ndim <= 1 else keys[0]
         pop_size = fitness.shape[0]
         logits = fitness / self.temperature
 

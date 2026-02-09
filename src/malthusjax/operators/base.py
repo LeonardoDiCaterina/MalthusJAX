@@ -7,6 +7,7 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BasePopulation
+from malthusjax.core.random import is_new_style_key
 
 # 1. Strict TypeVars
 G = TypeVar("G")  # Genome Data
@@ -36,6 +37,7 @@ class BaseMutation(Generic[G, C, P]):
 
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
+    typed_keys: bool = _field(pytree_node=False, default=False)
 
     @property
     @abstractmethod
@@ -47,13 +49,17 @@ class BaseMutation(Generic[G, C, P]):
         """Total keys needed: input_length * num_offspring * atomic_keys.
 
         Returns shape for ResourceMapper pre-allocation:
-        (input_length, num_offspring, num_keys_per_atomic_operation, 2).
+        (input_length, num_offspring, num_keys_per_atomic_operation, [2]).
         """
         return input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation
 
     def set_input_length(self, length: int) -> "BaseMutation[G, C, P]":
         """Lock population size for static key budgeting."""
         return cast("BaseMutation[G, C, P]", cast(Any, self).replace(input_length=length))
+
+    def set_typed_keys(self, typed: bool) -> "BaseMutation[G, C, P]":
+        """Set key format based on PRNG impl. True = new-style typed keys, False = legacy uint32[2]."""
+        return cast("BaseMutation[G, C, P]", cast(Any, self).replace(typed_keys=typed))
 
     @abstractmethod
     def _mutate_one(self, genome: G, noise_data: Any, config: C, **kwargs: Any) -> G:
@@ -91,9 +97,17 @@ class BaseMutation(Generic[G, C, P]):
         Returns:
             New population with genes shape (N*K, d, ...) where K=num_offspring.
         """
-        keys_reshaped = all_keys.reshape(
-            self.input_length, self.num_offspring, self.num_keys_per_atomic_operation, 2
-        )
+        # Key reshape is determined by PRNG implementation (set at engine init).
+        # typed_keys=True (new-style): keys are 1D array of typed scalars → 3D reshape.
+        # typed_keys=False (legacy): keys are (N,2) uint32 arrays → 4D reshape.
+        if self.typed_keys:
+            keys_reshaped = all_keys.reshape(
+                self.input_length, self.num_offspring, self.num_keys_per_atomic_operation
+            )
+        else:
+            keys_reshaped = all_keys.reshape(
+                self.input_length, self.num_offspring, self.num_keys_per_atomic_operation, 2
+            )
 
         def _mutate_single(keys_block: chex.Array, genome: G) -> G:
             return self._mutate_fused(keys_block, genome, config, **kwargs)
@@ -132,6 +146,7 @@ class BaseCrossover(Generic[G, C, P]):
 
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
+    typed_keys: bool = _field(pytree_node=False, default=False)
 
     @property
     @abstractmethod
@@ -143,7 +158,7 @@ class BaseCrossover(Generic[G, C, P]):
         """Total keys needed: num_pairs * num_offspring * atomic_keys.
 
         Returns shape for ResourceMapper:
-        (input_length, num_offspring, num_keys_per_atomic_operation, 2).
+        (input_length, num_offspring, num_keys_per_atomic_operation, [2]).
         """
         num_pairs = input_shape[0]
         return num_pairs * self.num_offspring * self.num_keys_per_atomic_operation
@@ -151,6 +166,10 @@ class BaseCrossover(Generic[G, C, P]):
     def set_input_length(self, length: int) -> "BaseCrossover[G, C, P]":
         """Lock pair count for static key budgeting."""
         return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(input_length=length))
+
+    def set_typed_keys(self, typed: bool) -> "BaseCrossover[G, C, P]":
+        """Set key format based on PRNG impl. True = new-style typed keys, False = legacy uint32[2]."""
+        return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(typed_keys=typed))
 
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
@@ -189,7 +208,12 @@ class BaseCrossover(Generic[G, C, P]):
             Batched offspring genome, shape (num_offspring, ...).
         """
         keys = jax.random.split(key, self.num_offspring * self.num_keys_per_atomic_operation)
-        keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation, 2)
+        # Determine key format: use operator flag if set, otherwise auto-detect from key.
+        typed = self.typed_keys or is_new_style_key(key)
+        if typed:
+            keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation)
+        else:
+            keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation, 2)
 
         def _cross_one_return_values(k: chex.Array) -> chex.Array:
             return cast(Any, self._cross_fused(k, p1, p2, config, **kwargs)).values
@@ -213,9 +237,15 @@ class BaseCrossover(Generic[G, C, P]):
             Offspring population with genes shape (N*K, d, ...) where K=num_offspring.
             Axis ordering: offspring-major (transpose reorders from pair-major).
         """
-        keys_reshaped = all_keys.reshape(
-            self.input_length, self.num_offspring, self.num_keys_per_atomic_operation, 2
-        )
+        # Key reshape is determined by PRNG implementation (set at engine init).
+        if self.typed_keys:
+            keys_reshaped = all_keys.reshape(
+                self.input_length, self.num_offspring, self.num_keys_per_atomic_operation
+            )
+        else:
+            keys_reshaped = all_keys.reshape(
+                self.input_length, self.num_offspring, self.num_keys_per_atomic_operation, 2
+            )
 
         def _process_pairs(k_block: chex.Array, parent1: G, parent2: G) -> Any:
             def _inner_cross(k: chex.Array) -> G:
@@ -249,10 +279,15 @@ class BaseSelection(Generic[P, C]):
 
     num_selections: int = _field(pytree_node=False)
     input_length: int = _field(pytree_node=False, default=-1)
+    typed_keys: bool = _field(pytree_node=False, default=False)
 
     def set_input_length(self, length: int) -> "BaseSelection[P, C]":
         """Lock population size for static budgeting."""
         return cast("BaseSelection[P, C]", cast(Any, self).replace(input_length=length))
+
+    def set_typed_keys(self, typed: bool) -> "BaseSelection[P, C]":
+        """Set key format based on PRNG impl. True = new-style typed keys, False = legacy uint32[2]."""
+        return cast("BaseSelection[P, C]", cast(Any, self).replace(typed_keys=typed))
 
     @property
     @abstractmethod
