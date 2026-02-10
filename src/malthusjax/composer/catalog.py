@@ -1,74 +1,88 @@
+"""Operator catalog — string-spec → operator instance resolution.
+
+The catalog is a thin wrapper around the global :mod:`_registry`.  Operator
+sub-packages register themselves at import time (see each package's
+``__init__.py``).  ``OperatorCatalog`` triggers those imports on first
+construction and then delegates ``get()`` to the registry.
+
+Public API (fully backward-compatible)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ``catalog.get("tournament:num_selections=50,tournament_size=3")``
+* ``catalog.parse_spec("gaussian:mutation_rate=0.1")``
+* ``catalog.register("custom", factory)``
+* ``catalog.list_available()``
+* ``catalog.get_help("tournament")``
+
+Examples::
+
+    catalog = OperatorCatalog()
+    catalog.get("tournament")                       # default params
+    catalog.get("tournament:num_selections=50")      # override defaults
+    catalog.get("gaussian:mutation_rate=0.1")
+    catalog.get("blend:alpha=0.5")
+    catalog.get("sphere:dim=10")
+    catalog.get("bbob:fn_name=rastrigin,dim=5")
+"""
+
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-from malthusjax.core.fitness.binary_evaluators import KnapsackConfig, KnapsackEvaluator
+from ._registry import get_registry, register as _registry_register
 
-# Real crossover operators
-from ..operators.crossover.real import (
-    BlendCrossover,
-    SimulatedBinaryCrossover,
-    BinomialCrossover,
-    UniformCrossover as RealUniformCrossover,
-)
 
-# Binary crossover operators
-from ..operators.crossover.binary import (
-    UniformCrossover as BinaryUniformCrossover,
-    SinglePointCrossover,
-)
+def _ensure_registered() -> None:
+    """Force-import every operator sub-package so that their
+    ``_register_*()`` calls run and populate the global registry.
 
-# Real mutation operators
-from ..operators.mutation.real import (
-    GaussianMutation,
-    BallMutation,
-    PolynomialMutation,
-)
-
-# Binary mutation operators
-from ..operators.mutation.binary import (
-    BitFlipMutation,
-    ScrambleMutation,
-    SwapMutation,
-)
-
-# Selection operators
-from ..operators.selection.elite_pool import ElitePoolSelection
-from ..operators.selection.roulette import RouletteSelection
-from ..operators.selection.tournament import TournamentSelection
+    Idempotent — repeated calls are cheap (Python caches imports).
+    """
+    import malthusjax.operators.selection  # noqa: F401
+    import malthusjax.operators.crossover  # noqa: F401
+    import malthusjax.operators.mutation  # noqa: F401
+    import malthusjax.core.fitness  # noqa: F401
 
 
 class OperatorCatalog:
     """Catalog for creating operators from string specifications.
-    
-    Supports format: "operator_type:param1=value1,param2=value2"
-    
+
+    Supports format: ``"operator_type:param1=value1,param2=value2"``
+
     Available Selection Operators:
         - tournament: Tournament selection
         - roulette: Roulette wheel selection
         - elite_pool: Elite pool selection (deterministic)
-    
+
     Available Real-Valued Crossover Operators:
         - blend: Blend crossover (BLX)
+        - blend_injection: Blend crossover (injection variant)
         - simulated_binary: Simulated Binary Crossover (SBX)
+        - simulated_binary_injection: SBX (injection variant)
         - binomial: Binomial crossover
+        - binomial_injection: Binomial crossover (injection variant)
         - uniform_real: Uniform crossover for real genomes
-    
+        - uniform_real_injection: Uniform crossover (injection variant)
+        - evosax_uniform_crossover: Evosax uniform crossover wrapper
+
     Available Binary Crossover Operators:
         - uniform_binary: Uniform crossover for binary genomes
         - single_point: Single-point crossover
-    
+
     Available Real-Valued Mutation Operators:
         - gaussian: Gaussian (normal) mutation
+        - gaussian_injection: Gaussian mutation (injection variant)
         - ball: Ball mutation
+        - ball_injection: Ball mutation (injection variant)
         - polynomial: Polynomial mutation
-    
+        - polynomial_injection: Polynomial mutation (injection variant)
+        - evosax_gaussian: Evosax Gaussian mutation wrapper
+
     Available Binary Mutation Operators:
         - bitflip: Bit-flip mutation
         - scramble: Scramble mutation
         - swap: Swap mutation
-    
+
     Available Fitness Evaluators:
         - sphere: Sphere optimization (maximization)
         - rastrigin: Rastrigin optimization (maximization)
@@ -76,13 +90,16 @@ class OperatorCatalog:
         - bbob: General BBOB function family
         - sphere_minimize: Sphere minimization
         - sphere_maximize: Sphere maximization
-    
+        - griewank: Griewank function
+        - binary_sum: Binary sum (OneMax)
+
     Available Evosax Strategies (use via Composer backend="evosax"):
         - evosax_simplega: Simple Genetic Algorithm
         - evosax_mr15: MR15 Genetic Algorithm
         - evosax_de: Differential Evolution
-    
-    Examples:
+
+    Examples::
+
         catalog.get("tournament")  # Default parameters
         catalog.get("tournament:num_selections=50,tournament_size=3")
         catalog.get("gaussian:mutation_rate=0.1")
@@ -91,60 +108,42 @@ class OperatorCatalog:
     """
 
     def __init__(self) -> None:
-        """Initialize the operator catalog with default operators."""
-        self._factories: Dict[str, Callable] = {
-            # Selection operators
-            "tournament": self._create_tournament_selection,
-            "roulette": self._create_roulette_selection,
-            "elite_pool": self._create_elite_pool_selection,
-            # Real-valued crossover operators
-            "blend": BlendCrossover,
-            "simulated_binary": SimulatedBinaryCrossover,
-            "binomial": BinomialCrossover,
-            "uniform_real": RealUniformCrossover,
-            # Binary crossover operators
-            "uniform_binary": BinaryUniformCrossover,
-            "single_point": SinglePointCrossover,
-            # Real-valued mutation operators
-            "gaussian": GaussianMutation,
-            "ball": BallMutation,
-            "polynomial": PolynomialMutation,
-            # Binary mutation operators
-            "bitflip": BitFlipMutation,
-            "scramble": ScrambleMutation,
-            "swap": SwapMutation,
-            # Evosax strategies (used via Composer backend="evosax")
-            "evosax_simplega": self._create_evosax_strategy_simplega,
-            "evosax_mr15": self._create_evosax_strategy_mr15,
-            "evosax_de": self._create_evosax_strategy_de,
-            # Fitness evaluators
-            "sphere": self._create_sphere_evaluator,
-            "rastrigin": self._create_rastrigin_evaluator,
-            "knapsack": self._create_knapsack_evaluator,
-            "bbob": self._create_bbob_evaluator,  # General BBOB evaluator
-            "sphere_minimize": self._create_sphere_minimize_evaluator,
-            "sphere_maximize": self._create_sphere_maximize_evaluator,
+        _ensure_registered()
+        self._registry = get_registry()
+
+        # Evosax strategy name helpers (return plain strings, not operators)
+        self._evosax_strategies: Dict[str, str] = {
+            "evosax_simplega": "SimpleGA",
+            "evosax_mr15": "MR15_GA",
+            "evosax_de": "DifferentialEvolution",
         }
+
+    # ------------------------------------------------------------------
+    # Spec parsing
+    # ------------------------------------------------------------------
 
     def parse_spec(self, spec: str) -> Tuple[str, Dict[str, Any]]:
         """Parse operator specification string.
+
         Args:
-            spec: String like "operator_type:param1=value1,param2=value2"
+            spec: String like ``"operator_type:param1=value1,param2=value2"``
+
         Returns:
-            Tuple of (operator_type, params_dict)
+            Tuple of ``(operator_type, params_dict)``.
+
         Raises:
-            ValueError: If spec format is invalid
+            ValueError: If *spec* format is invalid.
         """
         spec = spec.strip()
         if not spec:
             raise ValueError("Empty operator specification")
 
         if ":" not in spec:
-            return spec, {}  # Just operator name, no params
+            return spec, {}
 
         operator_type, params_str = spec.split(":", 1)
         operator_type = operator_type.strip()
-        params = {}
+        params: Dict[str, Any] = {}
 
         if params_str.strip():
             for param_pair in params_str.split(","):
@@ -153,22 +152,19 @@ class OperatorCatalog:
                     raise ValueError(
                         f"Invalid parameter format: '{param_pair}'. Expected 'key=value'"
                     )
-
                 key, value = param_pair.split("=", 1)
-                key = key.strip()
-                value = value.strip()
-
-                params[key] = self._convert_value(value)
+                params[key.strip()] = self._convert_value(value.strip())
 
         return operator_type, params
 
-    def _convert_value(self, value_str: str) -> Union[int, float, str, bool]:
+    @staticmethod
+    def _convert_value(value_str: str) -> Union[int, float, str, bool]:
         """Convert string value to appropriate Python type."""
         value_str = value_str.strip()
 
         if value_str.lower() == "true":
             return True
-        elif value_str.lower() == "false":
+        if value_str.lower() == "false":
             return False
 
         try:
@@ -181,150 +177,86 @@ class OperatorCatalog:
         except ValueError:
             pass
 
-        if value_str.startswith('"') and value_str.endswith('"'):
-            return value_str[1:-1]
-        if value_str.startswith("'") and value_str.endswith("'"):
+        # Strip quotes
+        if (value_str.startswith('"') and value_str.endswith('"')) or (
+            value_str.startswith("'") and value_str.endswith("'")
+        ):
             return value_str[1:-1]
 
         return value_str
 
+    # ------------------------------------------------------------------
+    # Instance creation
+    # ------------------------------------------------------------------
+
     def get(self, spec: str) -> Any:
         """Get configured operator instance from specification string.
+
         Args:
-            spec: Operator specification like "tournament:selections=5,size=3"
+            spec: e.g. ``"tournament:num_selections=5,tournament_size=3"``
+
         Returns:
-            Configured operator instance
+            Configured operator instance.
+
         Raises:
-            KeyError: If operator type is not registered
-            ValueError: If spec format is invalid or parameters are invalid
+            KeyError: If operator type is not registered.
+            ValueError: If parameters are invalid for the operator.
         """
-        operator_type, params = self.parse_spec(spec)
+        operator_type, user_params = self.parse_spec(spec)
 
-        if operator_type not in self._factories:
-            available = sorted(self._factories.keys())
-            raise KeyError(f"Unknown operator type: '{operator_type}'. Available: {available}")
+        # Evosax strategy helpers (return plain name strings)
+        if operator_type in self._evosax_strategies:
+            return self._evosax_strategies[operator_type]
 
-        factory = self._factories[operator_type]
+        if operator_type not in self._registry:
+            available = sorted(
+                list(self._registry.keys()) + list(self._evosax_strategies.keys())
+            )
+            raise KeyError(
+                f"Unknown operator type: '{operator_type}'. Available: {available}"
+            )
+
+        factory, defaults = self._registry[operator_type]
+        merged = {**defaults, **user_params}
 
         try:
-            return factory(**params)
+            return factory(**merged)
         except TypeError as e:
-            raise ValueError(f"Invalid parameters for '{operator_type}': {e}")
+            raise ValueError(f"Invalid parameters for '{operator_type}': {e}") from e
+
+    # ------------------------------------------------------------------
+    # Introspection & extension
+    # ------------------------------------------------------------------
 
     def register(self, operator_type: str, factory: Callable, override: bool = False) -> None:
-        """Register a new operator type.
+        """Register a new operator type at runtime.
+
         Args:
-            operator_type: String name for the operator
-            factory: Callable that creates operator instances
-            override: Whether to override existing registrations
+            operator_type: String name for the operator.
+            factory: Callable that creates operator instances from ``**kwargs``.
+            override: Whether to override existing registrations.
         """
-        if not override and operator_type in self._factories:
+        if not override and (
+            operator_type in self._registry or operator_type in self._evosax_strategies
+        ):
             raise KeyError(f"Operator type '{operator_type}' already registered")
 
-        self._factories[operator_type] = factory
+        # Also push into global registry so subsequent OperatorCatalog()
+        # instances see the new entry.
+        _registry_register(operator_type, factory, override=True)
+        self._registry[operator_type] = (factory, {})
 
     def list_available(self) -> List[str]:
-        """Return list of available operator types."""
-        return sorted(self._factories.keys())
+        """Return sorted list of all registered operator keys."""
+        return sorted(
+            list(self._registry.keys()) + list(self._evosax_strategies.keys())
+        )
 
     def get_help(self, operator_type: str) -> str:
         """Get help string for operator type."""
-        if operator_type not in self._factories:
+        if operator_type not in self._registry and operator_type not in self._evosax_strategies:
             return f"Unknown operator: {operator_type}"
-
         return f"{operator_type}:param1=value1,param2=value2,..."
-
-    def _create_sphere_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
-        """Create BBOBEvaluator configured for sphere function."""
-        config = BBOBConfig(
-            fn_name="sphere",
-            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=True,
-            seed=kwargs.get("seed", 42),
-        )
-        return BBOBEvaluator.create(config)
-
-    def _create_rastrigin_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
-        """Create BBOBEvaluator configured for rastrigin function."""
-        config = BBOBConfig(
-            fn_name="rastrigin",
-            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=True,
-            seed=kwargs.get("seed", 42),
-        )
-        return BBOBEvaluator.create(config)
-
-    def _create_knapsack_evaluator(self, **kwargs: Any) -> KnapsackEvaluator:
-        """Create KnapsackEvaluator with KnapsackConfig."""
-        config = KnapsackConfig(**kwargs)
-        return KnapsackEvaluator(config)
-
-    def _create_sphere_minimize_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
-        """Create BBOBEvaluator for sphere minimization (raw costs, no flipping)."""
-        config = BBOBConfig(
-            fn_name="sphere",
-            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=False,
-            seed=kwargs.get("seed", 42),
-        )
-        return BBOBEvaluator.create(config)
-
-    def _create_sphere_maximize_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
-        """Create BBOBEvaluator for sphere maximization (flipped to -cost)."""
-        config = BBOBConfig(
-            fn_name="sphere",
-            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=True,
-            seed=kwargs.get("seed", 42),
-        )
-        return BBOBEvaluator.create(config)
-
-    def _create_bbob_evaluator(self, **kwargs: Any) -> BBOBEvaluator:
-        """Create general BBOB evaluator with configurable function name.
-        Usage examples:
-            bbob:fn_name=sphere,dim=10
-            bbob:fn_name=rastrigin,dim=5,maximize=False
-            bbob:fn_name=rosenbrock,dim=20,seed=123
-        """
-        fn_name = kwargs.get("fn_name", "sphere")
-        config = BBOBConfig(
-            fn_name=fn_name,
-            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=kwargs.get("maximize", True),
-            seed=kwargs.get("seed", 42),
-        )
-        return BBOBEvaluator.create(config)
-
-    def _create_tournament_selection(self, **kwargs: Any) -> TournamentSelection:
-        return TournamentSelection(
-            num_selections=kwargs.get("num_selections", 4),
-            tournament_size=kwargs.get("tournament_size", 3),
-            **{k: v for k, v in kwargs.items() if k not in ["num_selections", "tournament_size"]},
-        )
-
-    def _create_roulette_selection(self, **kwargs: Any) -> RouletteSelection:
-        return RouletteSelection(
-            num_selections=kwargs.get("num_selections", 4),
-            **{k: v for k, v in kwargs.items() if k not in ["num_selections"]},
-        )
-
-    def _create_elite_pool_selection(self, **kwargs: Any) -> ElitePoolSelection:
-        return ElitePoolSelection(
-            num_selections=kwargs.get("num_selections", 4),
-            elite_k=kwargs.get("elite_k", 2),
-            **{k: v for k, v in kwargs.items() if k not in ["num_selections", "elite_k"]},
-        )
-
-    # -- Evosax strategy name accessors (return the string name) -----------
-
-    def _create_evosax_strategy_simplega(self, **kwargs: Any) -> str:
-        return "SimpleGA"
-
-    def _create_evosax_strategy_mr15(self, **kwargs: Any) -> str:
-        return "MR15_GA"
-
-    def _create_evosax_strategy_de(self, **kwargs: Any) -> str:
-        return "DifferentialEvolution"
 
 
 DEFAULT_CATALOG = OperatorCatalog()
