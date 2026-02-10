@@ -158,6 +158,36 @@ class BasePopulation(Generic[G]):
     config: Any = _field(pytree_node=False)
     GENOME_CLS: ClassVar[Type[Any]] = cast(Type[Any], Any)
 
+    @classmethod
+    def from_array(
+        cls, arr: chex.Array, config: Any, axis: int = 0
+    ) -> BasePopulation[G]:
+        """Construct a population from a raw JAX array.
+
+        Interprets ``axis`` as the population (batch) dimension. The array
+        is rearranged so that the population dimension becomes the leading
+        axis, then each slice along that axis is treated as one genome.
+
+        For example, given ``arr.shape == (x, y, z)`` and ``axis=1``, the
+        resulting population has ``y`` individuals each with genome shape
+        ``(x, z)``.
+
+        Args:
+            arr: Raw array containing all individuals' data.
+            config: Genome-level configuration (forwarded to
+                ``GENOME_CLS.from_tensor``).
+            axis: Which dimension of *arr* corresponds to the population.
+                Defaults to ``0`` (leading dimension).
+
+        Returns:
+            A new population with fitness initialized to ``-inf``.
+        """
+        arr_batched = jnp.moveaxis(arr, axis, 0)
+        pop_size = arr_batched.shape[0]
+        genes = cls.GENOME_CLS.from_tensor(arr_batched, config)
+        fitness = jnp.full((pop_size,), -jnp.inf)
+        return cls(genes=genes, fitness=fitness, config=config)
+
     @property
     def values(self) -> Any:
         """Proxies to the genome's values (batched)."""
