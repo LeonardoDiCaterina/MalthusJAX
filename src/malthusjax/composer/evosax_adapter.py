@@ -237,6 +237,10 @@ def build_evosax_engine(
     EvosaxEngineAdapter
         Ready to call ``.run_once(key)``.
     """
+    # ---- handle common aliases -----------------------------------------
+    if "num_generations" in kwargs:
+        generations = int(kwargs.pop("num_generations"))
+
     # ---- resolve fitness spec if provided --------------------------------
     if fitness_spec is not None:
         from .catalog import OperatorCatalog
