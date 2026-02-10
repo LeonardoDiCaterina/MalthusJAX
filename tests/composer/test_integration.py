@@ -20,7 +20,7 @@ class TestComposerIntegration:
                 output_dir=tmp_dir,
                 # Real operators via string specs
                 fitness="sphere:dim=5",
-                selection="deterministic_pool:num_selections=15",
+                selection="elite_pool:num_selections=15",
                 crossover="blend:alpha=0.5",
                 mutation="gaussian:mutation_rate=0.1",
                 # Engine config
