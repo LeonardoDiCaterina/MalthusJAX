@@ -10,11 +10,16 @@ from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 
 
 class GeneticEngineAdapter:
-    """Adapter to make GeneticEngine compatible with BenchmarkRunner.Engine protocol."""
+    """Adapter to make GeneticEngine compatible with BenchmarkRunner.Engine protocol.
 
-    def __init__(self, genetic_engine: GeneticEngine, genome_config: Any):
+    Accepts an optional `initial_population` (array-like) to override the
+    engine-initialised population for reproducible cross-engine comparisons.
+    """
+
+    def __init__(self, genetic_engine: GeneticEngine, genome_config: Any, initial_population: Any = None):
         self.genetic_engine = genetic_engine
         self.genome_config = genome_config
+        self.initial_population = initial_population
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
@@ -25,6 +30,28 @@ class GeneticEngineAdapter:
             - 'timings': Dict[str, float] - timing info
         """
         state = self.genetic_engine.init_state(key)
+
+        # If an explicit initial population is provided, construct an evaluated
+        # population object and replace the state's population with it.
+        if self.initial_population is not None:
+            from ..core.genome.real_genome import RealPopulation
+            import jax.numpy as jnp
+
+            arr = jnp.asarray(self.initial_population)
+            pop = RealPopulation.from_array(arr, self.genome_config, axis=0)
+            evaluated_pop = self.genetic_engine.evaluator.evaluate_population(pop)
+
+            fitness = evaluated_pop.fitness
+            best_idx = int(jnp.argmax(fitness))
+            best_fitness = fitness[best_idx]
+            best_genome = evaluated_pop.genes[best_idx]
+
+            state = state.replace(
+                population=evaluated_pop,
+                best_genome=best_genome,
+                best_fitness=best_fitness,
+                stagnation_counter=0,
+            )
 
         history = []
         final_state = state
@@ -153,7 +180,9 @@ def build_engine(
         enable_progress_bar=kwargs.get("enable_progress_bar", False),
     )
 
-    return GeneticEngineAdapter(genetic_engine, genome_config)
+    initial_population = kwargs.get("initial_population", None)
+
+    return GeneticEngineAdapter(genetic_engine, genome_config, initial_population=initial_population)
 
 
 def build_engine_from_catalog(

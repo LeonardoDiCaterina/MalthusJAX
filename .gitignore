@@ -217,3 +217,5 @@ tmp/top10_configs_20260118_182840.csv
 tmp/top10_configs_20260118_184853.csv
 docs/FIX_PLAN_LEVELS.md
 docs/PR1_ENGINE_FIX.md
+results/cli_experiment/histories_combined.csv
+results/cli_experiment/summary.json

@@ -77,6 +77,11 @@ class OperatorCatalog:
         - sphere_minimize: Sphere minimization
         - sphere_maximize: Sphere maximization
     
+    Available Evosax Strategies (use via Composer backend="evosax"):
+        - evosax_simplega: Simple Genetic Algorithm
+        - evosax_mr15: MR15 Genetic Algorithm
+        - evosax_de: Differential Evolution
+    
     Examples:
         catalog.get("tournament")  # Default parameters
         catalog.get("tournament:num_selections=50,tournament_size=3")
@@ -108,6 +113,10 @@ class OperatorCatalog:
             "bitflip": BitFlipMutation,
             "scramble": ScrambleMutation,
             "swap": SwapMutation,
+            # Evosax strategies (used via Composer backend="evosax")
+            "evosax_simplega": self._create_evosax_strategy_simplega,
+            "evosax_mr15": self._create_evosax_strategy_mr15,
+            "evosax_de": self._create_evosax_strategy_de,
             # Fitness evaluators
             "sphere": self._create_sphere_evaluator,
             "rastrigin": self._create_rastrigin_evaluator,
@@ -305,6 +314,17 @@ class OperatorCatalog:
             elite_k=kwargs.get("elite_k", 2),
             **{k: v for k, v in kwargs.items() if k not in ["num_selections", "elite_k"]},
         )
+
+    # -- Evosax strategy name accessors (return the string name) -----------
+
+    def _create_evosax_strategy_simplega(self, **kwargs: Any) -> str:
+        return "SimpleGA"
+
+    def _create_evosax_strategy_mr15(self, **kwargs: Any) -> str:
+        return "MR15_GA"
+
+    def _create_evosax_strategy_de(self, **kwargs: Any) -> str:
+        return "DifferentialEvolution"
 
 
 DEFAULT_CATALOG = OperatorCatalog()
