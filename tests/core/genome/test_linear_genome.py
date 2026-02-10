@@ -110,6 +110,7 @@ def test_linear_jit_stability(rng_key):
     non_jit_corrected = genome.autocorrect(config)
     assert jnp.array_equal(corrected.ops, non_jit_corrected.ops)
     assert jnp.array_equal(corrected.args, non_jit_corrected.args)
+
     def structural_step(g):
         # Trigger autocorrect and distance inside JIT
         g_corr = g.autocorrect(config)

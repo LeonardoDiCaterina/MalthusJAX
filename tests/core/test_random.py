@@ -1,8 +1,8 @@
 """Unit tests for malthusjax.core.random"""
 
 import jax
-import jax.random as jr
 import jax.numpy as jnp
+import jax.random as jr
 import pytest
 
 from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, validate_key

@@ -22,17 +22,12 @@ from malthusjax.core.genome.real_genome import (
 )
 
 
-# ---------------------------------------------------------------------------
-# RealPopulation
-# ---------------------------------------------------------------------------
-
-
 class TestRealPopulationFromArray:
     """from_array on RealPopulation."""
 
     def test_axis0_default(self):
         """axis=0 (default): leading dim is population."""
-        arr = jnp.arange(20.0).reshape((4, 5))  # 4 individuals, genome len 5
+        arr = jnp.arange(20.0).reshape((4, 5))
         cfg = RealGenomeConfig(shape=(5,), bounds=(-10.0, 10.0))
         pop = RealPopulation.from_array(arr, cfg)
 
@@ -44,14 +39,12 @@ class TestRealPopulationFromArray:
 
     def test_axis1(self):
         """axis=1: pop dim is in the middle → each genome has shape (x, z)."""
-        # shape (3, 6, 4) with axis=1 → 6 individuals, genome shape (3, 4)
         arr = jax.random.uniform(jax.random.PRNGKey(0), (3, 6, 4))
         cfg = RealGenomeConfig(shape=(3, 4), bounds=(-5.0, 5.0))
         pop = RealPopulation.from_array(arr, cfg, axis=1)
 
         assert len(pop) == 6
         assert pop.genes.values.shape == (6, 3, 4)
-        # Verify content: moveaxis(arr, 1, 0)[i] == arr[:, i, :]
         expected = jnp.moveaxis(arr, 1, 0)
         assert jnp.allclose(pop.genes.values, expected)
 
@@ -74,7 +67,7 @@ class TestRealPopulationFromArray:
         assert pop.genes.values.shape == (10, 7)
 
     @pytest.mark.skipif(
-        not jax.config.jax_enable_x64,  # type: ignore[attr-defined]
+        not jax.config.jax_enable_x64,
         reason="float64 not enabled (JAX_ENABLE_X64=1 required)",
     )
     def test_preserves_dtype_f64(self):
@@ -90,12 +83,6 @@ class TestRealPopulationFromArray:
         cfg = RealGenomeConfig(shape=(4,), dtype=jnp.float32)
         pop = RealPopulation.from_array(arr, cfg)
         assert pop.genes.values.dtype == jnp.float32
-
-
-# ---------------------------------------------------------------------------
-# BinaryPopulation
-# ---------------------------------------------------------------------------
-
 
 class TestBinaryPopulationFromArray:
     """from_array on BinaryPopulation."""
@@ -118,11 +105,6 @@ class TestBinaryPopulationFromArray:
         assert pop.genes.values.shape == (5, 4, 2)
 
 
-# ---------------------------------------------------------------------------
-# CategoricalPopulation
-# ---------------------------------------------------------------------------
-
-
 class TestCategoricalPopulationFromArray:
     """from_array on CategoricalPopulation."""
 
@@ -143,11 +125,6 @@ class TestCategoricalPopulationFromArray:
         assert pop.genes.values.shape == (12, 3, 7)
 
 
-# ---------------------------------------------------------------------------
-# Cross-cutting concerns
-# ---------------------------------------------------------------------------
-
-
 class TestFromArrayEdgeCases:
     """Edge cases and integration tests."""
 
@@ -164,8 +141,7 @@ class TestFromArrayEdgeCases:
         cfg = RealGenomeConfig(shape=(6,), bounds=(-1.0, 1.0))
         original = RealPopulation.init_random(key, cfg, 8)
 
-        # Extract raw values, rebuild via from_array
-        raw = original.genes.values  # (8, 6)
+        raw = original.genes.values
         rebuilt = RealPopulation.from_array(raw, cfg, axis=0)
 
         assert jnp.allclose(rebuilt.genes.values, original.genes.values)

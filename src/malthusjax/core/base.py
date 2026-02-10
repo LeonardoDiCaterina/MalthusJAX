@@ -159,9 +159,7 @@ class BasePopulation(Generic[G]):
     GENOME_CLS: ClassVar[Type[Any]] = cast(Type[Any], Any)
 
     @classmethod
-    def from_array(
-        cls, arr: chex.Array, config: Any, axis: int = 0
-    ) -> BasePopulation[G]:
+    def from_array(cls, arr: chex.Array, config: Any, axis: int = 0) -> BasePopulation[G]:
         """Construct a population from a raw JAX array.
 
         Interprets ``axis`` as the population (batch) dimension. The array
@@ -269,7 +267,7 @@ class BasePopulation(Generic[G]):
         """
 
         def _pairwise_distance(g1: G, g2: G) -> chex.Array:
-            # Delegate to the genome-level distance implementation.
+            """Delegate to the genome-level distance implementation."""
             return g1.distance(g2, metric=metric)
 
         def _vmap_second(g1: G) -> chex.Array:

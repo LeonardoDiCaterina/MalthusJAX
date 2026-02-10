@@ -14,9 +14,7 @@ def test_categorical_genome_init(rng_key):
     genome = CategoricalGenome.random_init(rng_key, config)
 
     assert isinstance(genome, CategoricalGenome)
-    # Verify shape matches config
     assert genome.values.shape == config.shape
-    # Verify all values are within [0, num_categories - 1]
     assert jnp.all(genome.values >= 0)
     assert jnp.all(genome.values < config.num_categories)
 
@@ -28,7 +26,6 @@ def test_categorical_population_soa(rng_key):
     population = CategoricalPopulation.init_random(rng_key, config, size=pop_size)
 
     assert isinstance(population, CategoricalPopulation)
-    # Leading dimension must be the population size
     assert population.genes.values.shape == (pop_size, 8)
     assert population.fitness.shape == (pop_size,)
 
@@ -41,30 +38,23 @@ def test_categorical_swap_positions(rng_key):
     pos1, pos2 = 0, 3
     val1, val2 = genome.values[pos1], genome.values[pos2]
 
-    # Swap values at pos1 and pos2
     swapped_genome = genome.swap_positions(pos1, pos2)
 
     assert swapped_genome.values[pos1] == val2
     assert swapped_genome.values[pos2] == val1
-    # Original genome must remain unchanged (immutability)
     assert genome.values[pos1] == val1
 
 
 def test_categorical_permutation_logic(rng_key):
     """Verifies permutation check and conversion logic."""
-    # Create a non-permutation (duplicate values)
     config = CategoricalGenomeConfig(shape=(4,), num_categories=4)
     values = jnp.array([0, 1, 1, 2])
     genome = CategoricalGenome(values=values)
 
-    # Should not be a valid permutation
     assert not bool(genome.is_permutation())
 
-    # Convert to valid permutation via argsort
     perm_genome = genome.to_permutation(config)
     assert bool(perm_genome.is_permutation())
-
-    # A permutation of length 4 must contain unique values 0, 1, 2, 3
     assert jnp.all(jnp.sort(perm_genome.values) == jnp.arange(4))
 
 
@@ -72,14 +62,12 @@ def test_categorical_distance_metrics(rng_key):
     """Tests Hamming vs Euclidean distance for discrete categories."""
     config = CategoricalGenomeConfig(shape=(5,), num_categories=10)
     g1 = CategoricalGenome.random_init(rng_key, config)
-    # Create g2 as a copy of g1 with one different value
     g2_values = g1.values.at[0].set((g1.values[0] + 1) % config.num_categories)
     g2 = CategoricalGenome(values=g2_values)
 
     hamming_dist = g1.distance(g2, metric=DistanceMetric.HAMMING)
     euclidean_dist = g1.distance(g2, metric=DistanceMetric.EUCLIDEAN)
 
-    # Hamming distance should be exactly 1 for a single mismatch
     assert int(hamming_dist) == 1
     assert euclidean_dist > 0
 
@@ -89,12 +77,10 @@ def test_categorical_autocorrect_clipping():
     num_categories = 5
     config = CategoricalGenomeConfig(shape=(4,), num_categories=num_categories)
 
-    # Categories: -1 (low), 2 (ok), 5 (high), 4 (ok)
     broken_values = jnp.array([-1, 2, 5, 4])
     genome = CategoricalGenome(values=broken_values)
 
     corrected_genome = genome.autocorrect(config)
 
-    # Values should be clipped to [0, 4]
     expected = jnp.array([0, 2, 4, 4])
     assert jnp.all(corrected_genome.values == expected)

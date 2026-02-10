@@ -1,5 +1,5 @@
-import jax.random as jr
 import jax.numpy as jnp
+import jax.random as jr
 import pytest
 
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
@@ -13,10 +13,8 @@ def test_binary_genome_index_iter_len():
 
     assert len(g) == 8
     assert int(g[0]) == int(g.values[0])
-    # Compare iteration results
     assert [int(x) for x in g] == [int(x) for x in g.values]
 
-    # Population indexing
     pop = BinaryPopulation.init_random(jr.PRNGKey(1), cfg, size=4)
     first = pop[0]
     assert isinstance(first, BinaryGenome)
@@ -29,7 +27,6 @@ def test_real_genome_index_iter_len():
     g = RealGenome.random_init(key, cfg)
 
     assert len(g) == 5
-    # float comparison
     assert jnp.isclose(g[0], g.values[0])
     assert [float(x) for x in g] == [float(x) for x in g.values]
 
@@ -49,6 +46,5 @@ def test_disable_subscriptable_raises():
         _ = g_disabled[0]
 
     with pytest.raises(TypeError):
-        # iteration should raise
         for _ in g_disabled:
             pass

@@ -2,7 +2,6 @@ import chex
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-import pytest
 
 from malthusjax.core.fitness.real_evaluators import (
     BoxConfig,
@@ -19,20 +18,16 @@ def test_sphere_evaluator_mathematical_correctness(real_population):
     config = SphereConfig(maximize=False)
     evaluator = SphereEvaluator(config=config, data=None)
 
-    # Test known cases
     from malthusjax.core.genome.real_genome import RealGenome
-    
-    # Origin should give 0
+
     origin_genome = RealGenome(values=jnp.zeros(3))
     origin_fitness = evaluator.evaluate(origin_genome)
     chex.assert_trees_all_close(origin_fitness, 0.0, rtol=1e-6, atol=1e-7)
-    
-    # Unit vector should give -1 (negative because maximize=False)
+
     unit_genome = RealGenome(values=jnp.array([1.0, 0.0, 0.0]))
     unit_fitness = evaluator.evaluate(unit_genome)
     chex.assert_trees_all_close(unit_fitness, -1.0, rtol=1e-6, atol=1e-7)
-    
-    # Verify formula: f(x) = -sum(x_i^2) when maximize=False
+
     test_genome = real_population[0]
     expected_value = -jnp.sum(jnp.square(test_genome.values))
     actual_value = evaluator.evaluate(test_genome)
@@ -42,14 +37,13 @@ def test_sphere_evaluator_mathematical_correctness(real_population):
 def test_sphere_optimization_direction_precision(real_genome):
     """Tests maximize/minimize flag with precise numerical validation."""
     sphere_value = jnp.sum(jnp.square(real_genome.values))
-    
+
     eval_min = SphereEvaluator(config=SphereConfig(maximize=False), data=None)
     eval_max = SphereEvaluator(config=SphereConfig(maximize=True), data=None)
 
     min_result = eval_min.evaluate(real_genome)
     max_result = eval_max.evaluate(real_genome)
-    
-    # Should be exact negations
+
     chex.assert_trees_all_close(min_result, -sphere_value, rtol=1e-6, atol=1e-7)
     chex.assert_trees_all_close(max_result, sphere_value, rtol=1e-6, atol=1e-7)
     chex.assert_trees_all_close(min_result, -max_result, rtol=1e-6, atol=1e-7)
@@ -70,26 +64,20 @@ def test_sphere_vmap_population_consistency(real_population):
     # Population evaluation via vmap
     pop_with_fitness = evaluator.evaluate_population(real_population)
 
-    chex.assert_trees_all_close(
-        manual_fitness, 
-        pop_with_fitness.fitness, 
-        rtol=1e-6, atol=1e-7
-    )
+    chex.assert_trees_all_close(manual_fitness, pop_with_fitness.fitness, rtol=1e-6, atol=1e-7)
 
 
 def test_sphere_nan_inf_handling():
     """Tests behavior with NaN/Inf inputs."""
     config = SphereConfig(maximize=False)
     evaluator = SphereEvaluator(config=config, data=None)
-    
+
     from malthusjax.core.genome.real_genome import RealGenome
-    
-    # NaN input should produce NaN output
+
     nan_genome = RealGenome(values=jnp.array([1.0, jnp.nan, 2.0]))
     nan_result = evaluator.evaluate(nan_genome)
     assert jnp.isnan(nan_result)
-    
-    # Inf input should produce -Inf output (maximize=False)
+
     inf_genome = RealGenome(values=jnp.array([jnp.inf, 0.0]))
     inf_result = evaluator.evaluate(inf_genome)
     assert jnp.isneginf(inf_result)
@@ -101,15 +89,13 @@ def test_griewank_evaluator_range_validation(real_population):
     evaluator = GriewankEvaluator(config=config, data=None)
 
     pop_with_fitness = evaluator.evaluate_population(real_population)
-    
-    # Griewank minimum is 0 at origin, typically positive elsewhere
-    # With maximize=False, we negate, so should be ≤ 0
+
     assert jnp.all(pop_with_fitness.fitness <= 0.0)
     assert not jnp.any(jnp.isnan(pop_with_fitness.fitness))
     assert not jnp.any(jnp.isinf(pop_with_fitness.fitness))
-    
-    # Test origin gives global optimum
+
     from malthusjax.core.genome.real_genome import RealGenome
+
     origin = RealGenome(values=jnp.zeros(5))
     origin_fitness = evaluator.evaluate(origin)
     chex.assert_trees_all_close(origin_fitness, 0.0, rtol=1e-5, atol=1e-6)
@@ -126,12 +112,8 @@ def test_griewank_jit_stability(real_population):
 
     non_jit_result = evaluator.evaluate_population(real_population)
     jit_result = jit_eval_population(real_population)
-    
-    chex.assert_trees_all_close(
-        non_jit_result.fitness, 
-        jit_result.fitness, 
-        rtol=1e-6, atol=1e-7
-    )
+
+    chex.assert_trees_all_close(non_jit_result.fitness, jit_result.fitness, rtol=1e-6, atol=1e-7)
 
 
 def test_box_constraint_penalty_magnitude(rng_key):
@@ -141,52 +123,42 @@ def test_box_constraint_penalty_magnitude(rng_key):
     penalty_factor = 100.0
 
     config = BoxConfig(
-        target_point=target, 
-        box_bounds=bounds, 
-        penalty_factor=penalty_factor, 
-        maximize=False
+        target_point=target, box_bounds=bounds, penalty_factor=penalty_factor, maximize=False
     )
     evaluator = BoxEvaluator(config=config, data=None)
 
     from malthusjax.core.genome.real_genome import RealGenome
 
-    # Test boundary cases
-    # Inside bounds: distance to target only
-    inner_genome = RealGenome(values=jnp.array([0.5, 0.0]))  # dist = 0.5
+    inner_genome = RealGenome(values=jnp.array([0.5, 0.0]))
     inner_fitness = evaluator.evaluate(inner_genome)
-    expected_inner = -0.5  # negative because maximize=False
+    expected_inner = -0.5 
     chex.assert_trees_all_close(inner_fitness, expected_inner, rtol=1e-6, atol=1e-7)
-    
-    # On boundary: should not get penalty
+
     boundary_genome = RealGenome(values=jnp.array([1.0, 1.0]))  # dist = sqrt(2)
     boundary_fitness = evaluator.evaluate(boundary_genome)
     expected_boundary = -jnp.sqrt(2.0)
     chex.assert_trees_all_close(boundary_fitness, expected_boundary, rtol=1e-6, atol=1e-7)
-    
-    # Outside bounds: distance + penalty
+
     outer_genome = RealGenome(values=jnp.array([2.0, 0.0]))  # 1 unit outside
     outer_fitness = evaluator.evaluate(outer_genome)
-    # Distance to target = 2.0, penalty = 1.0 * 100 = 100, total = -(2 + 100) = -102
     expected_outer = -(2.0 + 100.0)
     chex.assert_trees_all_close(outer_fitness, expected_outer, rtol=1e-6, atol=1e-7)
 
 
 def test_box_evaluator_edge_cases():
     """Tests Box evaluator with edge case configurations."""
-    # Zero penalty factor
     config_no_penalty = BoxConfig(
         target_point=jnp.array([0.0]),
         box_bounds=(jnp.array([-1.0]), jnp.array([1.0])),
         penalty_factor=0.0,
-        maximize=False  # Note: BoxEvaluator returns -objective - penalty
-    )
+        maximize=False,
+        )
     evaluator_no_penalty = BoxEvaluator(config=config_no_penalty, data=None)
-    
+
     from malthusjax.core.genome.real_genome import RealGenome
-    # Outside bounds but no penalty  
+
     outside_genome = RealGenome(values=jnp.array([2.0]))
     fitness = evaluator_no_penalty.evaluate(outside_genome)
-    # Distance to target = 2.0, penalty = 0, result = -2.0 - 0 = -2.0
     chex.assert_trees_all_close(fitness, -2.0, rtol=1e-6, atol=1e-7)
 
 
@@ -194,19 +166,20 @@ def test_evaluator_population_size_scaling():
     """Tests evaluator behavior across different population sizes."""
     config = SphereConfig(maximize=False)
     evaluator = SphereEvaluator(config=config, data=None)
-    
+
     from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
+
     genome_config = RealGenomeConfig(shape=(3,), bounds=(-2.0, 2.0))
-    
+
     for pop_size in [1, 5, 50]:
         key = jr.PRNGKey(42 + pop_size)
         population = RealPopulation.init_random(key, genome_config, size=pop_size)
-        
+
         result_pop = evaluator.evaluate_population(population)
         chex.assert_shape(result_pop.fitness, (pop_size,))
         assert not jnp.any(jnp.isnan(result_pop.fitness))
-        
+
         # Verify PyTree structure preserved
-        assert hasattr(result_pop, 'genes')
-        assert hasattr(result_pop, 'fitness')
+        assert hasattr(result_pop, "genes")
+        assert hasattr(result_pop, "fitness")
         chex.assert_shape(result_pop.genes.values, (pop_size, 3))

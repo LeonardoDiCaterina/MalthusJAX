@@ -4,11 +4,12 @@ PRNG key factory and helpers for MalthusJAX.
 Centralizes creation of typed JAX PRNG keys and helper utilities for
 legacy/compat detection and warnings.
 """
+
 from __future__ import annotations
 
-from enum import Enum
-from typing import Optional, Union
 import warnings
+from enum import Enum
+from typing import Optional, cast
 
 import jax
 import jax.numpy as jnp
@@ -49,7 +50,7 @@ def create_key(seed: int, impl: Optional[PRNGImpl] = None) -> jax.Array:
     key_ctor = getattr(jax.random, "key", None)
     if callable(key_ctor):
         try:
-            return key_ctor(seed, impl=impl.value)
+            return cast(jax.Array, key_ctor(seed, impl=impl.value))
         except TypeError:
             # Older jax.random.key may not accept impl argument
             warnings.warn(
@@ -69,7 +70,8 @@ def _is_legacy_prngkey(key: jax.Array) -> bool:
     """Heuristic to detect legacy PRNGKey (uint32[2]) used by older JAX.
 
     Legacy keys produced by ``jax.random.PRNGKey`` are uint32 arrays of length 2.
-    New-style typed keys typically have dtype != uint32 or length != 2 (e.g., Philox uses a larger key).
+    New-style typed keys typically have dtype != uint32 or length != 2
+    (e.g., Philox uses a larger key).
     """
     try:
         arr = jnp.asarray(key)
@@ -91,8 +93,11 @@ def validate_key(key: jax.Array, context: str = "") -> None:
     """
     if _is_legacy_prngkey(key):
         warnings.warn(
-            f"Legacy PRNGKey detected{(' in ' + context) if context else ''}. "
-            "For explicit PRNG backend control use malthusjax.core.random.create_key() or jax.random.key()",
+            (
+                f"Legacy PRNGKey detected{' in ' + context if context else ''}. "
+                "For explicit PRNG backend control use "
+                "malthusjax.core.random.create_key() or jax.random.key()"
+            ),
             DeprecationWarning,
             stacklevel=3,
         )
