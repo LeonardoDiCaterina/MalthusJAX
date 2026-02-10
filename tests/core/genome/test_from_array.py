@@ -84,6 +84,7 @@ class TestRealPopulationFromArray:
         pop = RealPopulation.from_array(arr, cfg)
         assert pop.genes.values.dtype == jnp.float32
 
+
 class TestBinaryPopulationFromArray:
     """from_array on BinaryPopulation."""
 

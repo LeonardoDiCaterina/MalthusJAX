@@ -49,7 +49,6 @@ def test_gaussian_mutation_masked_arithmetic():
 
 def test_gaussian_mutation_noise_distribution():
     """Verifies that Gaussian noise has correct mean≈0 and std≈mutation_strength."""
-    import numpy as np
 
     config = RealGenomeConfig(shape=(50,), bounds=(-10.0, 10.0))
     sigma = 0.3
@@ -70,9 +69,7 @@ def test_gaussian_mutation_noise_distribution():
     # Mean should be very close to 0
     assert abs(empirical_mean) < 0.05, f"Mean={empirical_mean}, expected ≈0"
     # Std should be close to sigma (allow 15% tolerance for sampling variance)
-    assert 0.85 * sigma < empirical_std < 1.15 * sigma, (
-        f"Std={empirical_std}, expected ≈{sigma}"
-    )
+    assert 0.85 * sigma < empirical_std < 1.15 * sigma, f"Std={empirical_std}, expected ≈{sigma}"
 
 
 def test_gaussian_mutation_strength_calibration():
@@ -86,7 +83,9 @@ def test_gaussian_mutation_strength_calibration():
     deltas_by_sigma = []
 
     for sigma in sigmas:
-        mutation = GaussianMutation(mutation_rate=1.0, mutation_strength=sigma).set_input_length(len(population))
+        mutation = GaussianMutation(mutation_rate=1.0, mutation_strength=sigma).set_input_length(
+            len(population)
+        )
         key = jax.random.PRNGKey(42)
         keys = jax.random.split(key, mutation.num_keys((1,)))
         print(f"Testing sigma={sigma} with {len(keys)} keys")

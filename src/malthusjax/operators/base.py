@@ -58,7 +58,11 @@ class BaseMutation(Generic[G, C, P]):
         return cast("BaseMutation[G, C, P]", cast(Any, self).replace(input_length=length))
 
     def set_typed_keys(self, typed: bool) -> "BaseMutation[G, C, P]":
-        """Set key format based on PRNG impl. True = new-style typed keys, False = legacy uint32[2]."""
+        """
+        Set key format based on PRNG impl.
+        True = new-style typed keys,
+        False = legacy uint32[2].
+        """
         return cast("BaseMutation[G, C, P]", cast(Any, self).replace(typed_keys=typed))
 
     @abstractmethod
@@ -168,7 +172,11 @@ class BaseCrossover(Generic[G, C, P]):
         return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(input_length=length))
 
     def set_typed_keys(self, typed: bool) -> "BaseCrossover[G, C, P]":
-        """Set key format based on PRNG impl. True = new-style typed keys, False = legacy uint32[2]."""
+        """
+        Set key format based on PRNG impl.
+        True = new-style typed keys,
+        False = legacy uint32[2].
+        """
         return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(typed_keys=typed))
 
     @abstractmethod
@@ -286,7 +294,11 @@ class BaseSelection(Generic[P, C]):
         return cast("BaseSelection[P, C]", cast(Any, self).replace(input_length=length))
 
     def set_typed_keys(self, typed: bool) -> "BaseSelection[P, C]":
-        """Set key format based on PRNG impl. True = new-style typed keys, False = legacy uint32[2]."""
+        """
+        Set key format based on PRNG impl.
+        True = new-style typed keys,
+        False = legacy uint32[2].
+        """
         return cast("BaseSelection[P, C]", cast(Any, self).replace(typed_keys=typed))
 
     @property

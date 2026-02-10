@@ -131,7 +131,7 @@ def test_box_constraint_penalty_magnitude(rng_key):
 
     inner_genome = RealGenome(values=jnp.array([0.5, 0.0]))
     inner_fitness = evaluator.evaluate(inner_genome)
-    expected_inner = -0.5 
+    expected_inner = -0.5
     chex.assert_trees_all_close(inner_fitness, expected_inner, rtol=1e-6, atol=1e-7)
 
     boundary_genome = RealGenome(values=jnp.array([1.0, 1.0]))  # dist = sqrt(2)
@@ -152,7 +152,7 @@ def test_box_evaluator_edge_cases():
         box_bounds=(jnp.array([-1.0]), jnp.array([1.0])),
         penalty_factor=0.0,
         maximize=False,
-        )
+    )
     evaluator_no_penalty = BoxEvaluator(config=config_no_penalty, data=None)
 
     from malthusjax.core.genome.real_genome import RealGenome

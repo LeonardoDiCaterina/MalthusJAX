@@ -721,9 +721,7 @@ class TestCrossoverEdgeCases:
             avg_distance = float(jnp.mean(jnp.abs(offspring.values[i] - parent_midpoint)))
             # High eta (100.0) should keep offspring reasonably close to midpoint
             # but due to stochastic nature, allow tolerance of ~3.0
-            assert avg_distance < 3.0, f"High eta should keep offspring near parents, got avg_dist={avg_distance}"
-
-    def test_crossover_rate_zero_boundary(self, real_config):
+            assert avg_distance < 3.0, f"High eta: avg_dist={avg_distance}"
         """Edge case: rate=0.0 should always select from p1."""
         p1 = RealGenome(values=jnp.zeros(real_config.shape))
         p2 = RealGenome(values=jnp.ones(real_config.shape) * 5.0)

@@ -22,7 +22,7 @@ def test_binary_sum_mathematical_correctness(binary_population):
         ([1, 1, 1, 1], 4),
         ([1, 0, 1, 0], 2),
         ([1], 1),
-        ([], 0), 
+        ([], 0),
     ]
 
     for bits, expected_count in test_cases:
@@ -172,7 +172,7 @@ def test_knapsack_zero_weight_items():
 
     selection = BinaryGenome(values=jnp.array([1, 1, 0]))
     fitness = evaluator.evaluate(selection)
-    expected_fitness = 5.0 + 10.0 
+    expected_fitness = 5.0 + 10.0
     chex.assert_trees_all_close(fitness, expected_fitness, rtol=1e-6, atol=1e-7)
 
     weights_zv = jnp.array([1.0, 1.0])

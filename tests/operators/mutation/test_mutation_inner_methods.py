@@ -314,9 +314,7 @@ class TestBitFlipCorrelationPatterns:
             flipped_fractions.append(frac)
 
         empirical_rate = np.mean(flipped_fractions)
-        assert abs(empirical_rate - 0.3) < 0.08, (
-            f"Expected ~30% flips, got {empirical_rate:.2%}"
-        )
+        assert abs(empirical_rate - 0.3) < 0.08, f"Expected ~30% flips, got {empirical_rate:.2%}"
 
     '''def test_scramble_preserves_element_set(self, binary_config):
         """Scramble mutation should permute but not lose elements."""

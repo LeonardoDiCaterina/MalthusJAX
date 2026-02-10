@@ -1,6 +1,6 @@
 import jax
-import jax.random as jr
 import jax.numpy as jnp
+import jax.random as jr
 
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
@@ -24,7 +24,8 @@ def test_binary_single_pair_returns_batched_genome():
 
     # _cross_fused returns a single offspring per pair (not batched)
     assert isinstance(out, BinaryGenome)
-    assert out.values.shape == cfg.shape 
+    assert out.values.shape == cfg.shape
+
 
 def test_real_single_pair_returns_batched_genome_and_vmap():
     key = jr.PRNGKey(10)

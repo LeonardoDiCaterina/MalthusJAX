@@ -270,9 +270,9 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
         half = jnp.array(0.5, dtype=dtype)
         two = jnp.array(2.0, dtype=dtype)
         exponent = one / (eta + one)
-        mask_val = jax.random.bernoulli(
-            k_mask, p=self.mutation_rate, shape=config.shape
-        ).astype(dtype)
+        mask_val = jax.random.bernoulli(k_mask, p=self.mutation_rate, shape=config.shape).astype(
+            dtype
+        )
         u = jax.random.uniform(k_val, shape=config.shape, dtype=dtype)
         delta_q = jnp.where(
             u <= half,
