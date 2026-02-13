@@ -219,3 +219,11 @@ docs/FIX_PLAN_LEVELS.md
 docs/PR1_ENGINE_FIX.md
 results/cli_experiment/histories_combined.csv
 results/cli_experiment/summary.json
+examples/_DEMO_COMPOSER/results/demo_evosax/histories_combined.csv
+examples/_DEMO_COMPOSER/results/demo_evosax/summary.json
+examples/_DEMO_COMPOSER/results/demo_malthusjax/histories_combined.csv
+examples/_DEMO_COMPOSER/results/demo_malthusjax/summary.json
+examples/_DEMO_COMPOSER/results/prng_philox/histories_combined.csv
+examples/_DEMO_COMPOSER/results/prng_philox/summary.json
+examples/_DEMO_COMPOSER/results/prng_threefry/histories_combined.csv
+examples/_DEMO_COMPOSER/results/prng_threefry/summary.json

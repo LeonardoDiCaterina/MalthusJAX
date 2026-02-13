@@ -299,10 +299,24 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         curr_best_fit = evaluated_pop.fitness[best_idx]
         is_new = curr_best_fit > old_state.best_fitness
 
-        new_best_genome = jax.tree_util.tree_map(
-            lambda old, new: jnp.where(is_new, new, old),
-            old_state.best_genome,
-            evaluated_pop[best_idx].genes,
+        # Extract best genome by indexing genes directly (best_idx is a JAX array, not Python int)
+        best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], evaluated_pop.genes)
+
+        # Ensure both branches return the same pytree structure.
+        # If old_state.best_genome has a different structure (e.g., a raw array),
+        # broadcast it into the structure of best_candidate so branches match.
+        if jax.tree_util.tree_structure(old_state.best_genome) != jax.tree_util.tree_structure(
+            best_candidate
+        ):
+            old_struct = jax.tree_util.tree_map(lambda _: old_state.best_genome, best_candidate)
+        else:
+            old_struct = old_state.best_genome
+
+        new_best_genome = jax.lax.cond(
+            is_new,
+            lambda _: best_candidate,
+            lambda _: old_struct,
+            operand=None,
         )
 
         next_state = cast(
@@ -505,10 +519,19 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         best_idx = jnp.argmax(population.fitness)
         curr_best_fit = population.fitness[best_idx]
         is_new = curr_best_fit > state.best_fitness
-        new_best_genome = jax.tree_util.tree_map(
-            lambda old, new: jnp.where(is_new, new, old),
-            state.best_genome,
-            population[best_idx].genes,
+        # Extract best candidate using tree_map in case best_idx is a JAX array
+        best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], population.genes)
+        # Ensure both branches return the same pytree structure.
+        if jax.tree_util.tree_structure(state.best_genome) != jax.tree_util.tree_structure(best_candidate):
+            state_struct = jax.tree_util.tree_map(lambda _: state.best_genome, best_candidate)
+        else:
+            state_struct = state.best_genome
+
+        new_best_genome = jax.lax.cond(
+            is_new,
+            lambda _: best_candidate,
+            lambda _: state_struct,
+            operand=None,
         )
         state = cast(
             GeneticEvolutionState,
