@@ -29,6 +29,39 @@ class PRNGImpl(str, Enum):
 
 DEFAULT_IMPL = PRNGImpl.THREEFRY
 
+# Mapping of short user-facing names to enum values
+_PRNG_ALIASES: dict[str, PRNGImpl] = {
+    "threefry": PRNGImpl.THREEFRY,
+    "threefry2x32": PRNGImpl.THREEFRY,
+    "philox": PRNGImpl.PHILOX,
+    "philox4x32_10": PRNGImpl.PHILOX,
+    "rbg": PRNGImpl.RBG,
+    "unsafe_rbg": PRNGImpl.UNSAFE_RBG,
+}
+
+
+def resolve_prng_impl(name: str | PRNGImpl | None) -> PRNGImpl:
+    """Resolve a user-facing PRNG name to a :class:`PRNGImpl` enum value.
+
+    Accepts short names (``"threefry"``, ``"philox"``), full JAX backend
+    strings (``"threefry2x32"``), ``PRNGImpl`` members, or ``None``
+    (falls back to :data:`DEFAULT_IMPL`).
+
+    Raises:
+        ValueError: If *name* is not recognised.
+    """
+    if name is None:
+        return DEFAULT_IMPL
+    if isinstance(name, PRNGImpl):
+        return name
+    key = name.lower().strip()
+    if key in _PRNG_ALIASES:
+        return _PRNG_ALIASES[key]
+    raise ValueError(
+        f"Unknown PRNG implementation {name!r}. "
+        f"Choose from: {sorted(_PRNG_ALIASES.keys())}"
+    )
+
 
 def create_key(seed: int, impl: Optional[PRNGImpl] = None) -> jax.Array:
     """Create a PRNG key using the requested implementation.
