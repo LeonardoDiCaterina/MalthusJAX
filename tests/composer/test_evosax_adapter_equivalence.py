@@ -9,14 +9,12 @@ will catch it.
 import jax.numpy as jnp
 import jax.random as jr
 import pytest
-
 from evosax.problems import BBOBProblem
 
 from malthusjax.composer.evosax_adapter import (
     EVOSAX_STRATEGIES,
     build_evosax_engine,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helper: vanilla evosax run (no adapter)
@@ -46,9 +44,7 @@ def _run_evosax_raw(
     k_init, k_run = jr.split(key)
     p_state = problem.init(k_init)
 
-    init_x = jr.uniform(
-        k_init, (pop_size, num_dims), minval=bounds[0], maxval=bounds[1]
-    )
+    init_x = jr.uniform(k_init, (pop_size, num_dims), minval=bounds[0], maxval=bounds[1])
     init_fit = jnp.full((pop_size,), jnp.inf)
     state = strategy.init(k_init, init_x, init_fit, params)
 
@@ -106,25 +102,18 @@ class TestEvosaxAdapterMatchesRaw:
         raw = _run_evosax_raw(key=key, **common_params)
 
         # --- Adapter run ---
-        adapter = build_evosax_engine(
-            maximize=False, **common_params
-        )
+        adapter = build_evosax_engine(maximize=False, **common_params)
         adapted = adapter.run_once(key)
 
         # Per-generation best_fitness must match exactly
-        for gen_idx, (raw_h, adp_h) in enumerate(
-            zip(raw["history"], adapted["history"])
-        ):
+        for gen_idx, (raw_h, adp_h) in enumerate(zip(raw["history"], adapted["history"])):
             assert raw_h["generation"] == adp_h["generation"], f"gen {gen_idx}"
-            assert jnp.isclose(
-                raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6
-            ), (
-                f"gen {gen_idx}: raw={raw_h['best_fitness']}, "
-                f"adapted={adp_h['best_fitness']}"
+            assert jnp.isclose(raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6), (
+                f"gen {gen_idx}: raw={raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
             )
-            assert jnp.isclose(
-                raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6
-            ), f"gen {gen_idx}: mean mismatch"
+            assert jnp.isclose(raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6), (
+                f"gen {gen_idx}: mean mismatch"
+            )
 
         # Final summary
         assert jnp.isclose(
@@ -139,24 +128,17 @@ class TestEvosaxAdapterMatchesRaw:
 
         raw = _run_evosax_raw(key=key, **common_params)
 
-        adapter = build_evosax_engine(
-            maximize=True, **common_params
-        )
+        adapter = build_evosax_engine(maximize=True, **common_params)
         adapted = adapter.run_once(key)
 
-        for gen_idx, (raw_h, adp_h) in enumerate(
-            zip(raw["history"], adapted["history"])
-        ):
+        for gen_idx, (raw_h, adp_h) in enumerate(zip(raw["history"], adapted["history"])):
             # Adapter negates when maximize=True
-            assert jnp.isclose(
-                -raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6
-            ), (
-                f"gen {gen_idx}: -raw={-raw_h['best_fitness']}, "
-                f"adapted={adp_h['best_fitness']}"
+            assert jnp.isclose(-raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6), (
+                f"gen {gen_idx}: -raw={-raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
             )
-            assert jnp.isclose(
-                -raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6
-            ), f"gen {gen_idx}: mean mismatch"
+            assert jnp.isclose(-raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6), (
+                f"gen {gen_idx}: mean mismatch"
+            )
 
         assert jnp.isclose(
             -raw["best_fitness"],
@@ -175,9 +157,7 @@ class TestEvosaxAdapterMatchesRaw:
         )
 
         # --- Raw run with the same initial population injected ---
-        raw = _run_evosax_raw_with_init_pop(
-            key=key, initial_population=init_pop, **common_params
-        )
+        raw = _run_evosax_raw_with_init_pop(key=key, initial_population=init_pop, **common_params)
 
         # --- Adapter run ---
         adapter = build_evosax_engine(
@@ -187,14 +167,9 @@ class TestEvosaxAdapterMatchesRaw:
         )
         adapted = adapter.run_once(key)
 
-        for gen_idx, (raw_h, adp_h) in enumerate(
-            zip(raw["history"], adapted["history"])
-        ):
-            assert jnp.isclose(
-                raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6
-            ), (
-                f"gen {gen_idx}: raw={raw_h['best_fitness']}, "
-                f"adapted={adp_h['best_fitness']}"
+        for gen_idx, (raw_h, adp_h) in enumerate(zip(raw["history"], adapted["history"])):
+            assert jnp.isclose(raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6), (
+                f"gen {gen_idx}: raw={raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
             )
 
     @pytest.mark.parametrize("strategy_name", ["SimpleGA", "DifferentialEvolution"])
@@ -215,12 +190,8 @@ class TestEvosaxAdapterMatchesRaw:
         adapter = build_evosax_engine(maximize=False, **params)
         adapted = adapter.run_once(key)
 
-        for gen_idx, (raw_h, adp_h) in enumerate(
-            zip(raw["history"], adapted["history"])
-        ):
-            assert jnp.isclose(
-                raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6
-            ), (
+        for gen_idx, (raw_h, adp_h) in enumerate(zip(raw["history"], adapted["history"])):
+            assert jnp.isclose(raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6), (
                 f"[{strategy_name}] gen {gen_idx}: "
                 f"raw={raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
             )

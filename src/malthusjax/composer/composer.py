@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+import jax.random as jr
 
 from ..benchmarking import BenchmarkRunner, ExperimentResult, StubEngine
+from ..benchmarking.results import ComparisonResult
 from .catalog import OperatorCatalog
+from .config import load_experiment_config
 from .engine_factory import build_engine_from_catalog
 from .evosax_adapter import build_evosax_engine
 
@@ -35,9 +39,10 @@ class Composer:
         pop_size: int = 50,
         generations: int = 100,
         genome_length: int = 10,
-        bounds: tuple = (-5.0, 5.0),
+        bounds: Tuple[float, float] = (-5.0, 5.0),
         elitism: int = 2,
         maximize: bool = False,
+        prng_impl: Optional[str] = None,
         **kwargs: Any,
     ) -> ExperimentResult:
         """Quick-run an experiment with sensible defaults.
@@ -69,6 +74,9 @@ class Composer:
             bounds: Bounds for real genomes (default: (-5.0, 5.0))
             elitism: Elite count (malthusjax only, default: 2)
             maximize: Report fitness in maximisation convention (default: False)
+            prng_impl: JAX PRNG backend — ``"threefry"`` (default),
+                ``"philox"`` (GPU-friendly), ``"rbg"``, or ``"unsafe_rbg"``.
+                Controls how random keys are created and split.
             **kwargs: Additional config passed to engine/runner
 
         Returns:
@@ -111,6 +119,7 @@ class Composer:
                     num_dims=genome_length,
                     bounds=bounds,
                     maximize=maximize,
+                    prng_impl=prng_impl,
                     **kwargs,
                 )
             elif self._has_real_operators(fitness, selection, crossover, mutation):
@@ -125,6 +134,7 @@ class Composer:
                     genome_shape=genome_length,
                     bounds=bounds,
                     elitism=elitism,
+                    prng_impl=prng_impl,
                     **kwargs,
                 )
             else:
@@ -135,9 +145,187 @@ class Composer:
             experiment_name=experiment_name,
             output_dir=output_dir,
             write_artifacts=True,
+            prng_impl=prng_impl,
         )
 
         return runner.run(seeds)
+
+    # -- compare ----------------------------------------------------------
+
+    def compare(
+        self,
+        pipelines: Dict[str, Dict[str, Any]],
+        seeds: Sequence[int] = (42, 43, 44),
+        shared_initial_population: bool = True,
+        pop_seed: int = 123,
+        **shared_kwargs: Any,
+    ) -> ComparisonResult:
+        """Run multiple pipelines and return aligned results.
+
+        Parameters
+        ----------
+        pipelines
+            ``{name: kwargs_dict}`` — each dict contains **overrides**
+            for :meth:`quick_run`.  Shared parameters should go into
+            *shared_kwargs*.
+        seeds
+            Random seeds passed to every pipeline.
+        shared_initial_population
+            If ``True`` (default), generate a shared initial population
+            so every pipeline starts from the same point.
+        pop_seed
+            Seed for generating the shared initial population.
+        **shared_kwargs
+            Parameters common to every pipeline (``fitness``,
+            ``pop_size``, ``generations``, ``genome_length``, ``bounds``,
+            ``prng_impl``, etc.).  Pipeline-level keys take precedence.
+
+        Returns
+        -------
+        ComparisonResult
+            Contains all :class:`ExperimentResult` objects keyed by
+            pipeline name, plus helper methods for summarisation and
+            plotting.
+
+        Examples
+        --------
+        ::
+
+            cmp = composer.compare(
+                pipelines={
+                    "Blend+Gaussian": dict(
+                        crossover="blend:alpha=0.5",
+                        mutation="gaussian:mutation_rate=0.1",
+                    ),
+                    "SBX+Polynomial": dict(
+                        crossover="simulated_binary:eta=2",
+                        mutation="polynomial:mutation_rate=0.1",
+                    ),
+                    "Evosax SimpleGA": dict(
+                        backend="evosax",
+                        evosax_strategy="SimpleGA",
+                    ),
+                },
+                fitness="sphere:dim=10",
+                pop_size=50,
+                generations=100,
+                seeds=(42, 43),
+            )
+            cmp.plot_convergence()
+        """
+        # Build shared initial population if requested
+        init_pop = None
+        if shared_initial_population:
+            pop_size = int(shared_kwargs.get("pop_size", 50))
+            genome_length = int(shared_kwargs.get("genome_length", 10))
+            bounds = shared_kwargs.get("bounds", (-5.0, 5.0))
+            init_pop = jr.uniform(
+                jr.PRNGKey(pop_seed),
+                (pop_size, genome_length),
+                minval=float(bounds[0]),
+                maxval=float(bounds[1]),
+            )
+
+        results: Dict[str, ExperimentResult] = {}
+        negate_map: Dict[str, bool] = {}
+        for name, pipeline_kwargs in pipelines.items():
+            # Merge: shared_kwargs ← pipeline_kwargs (pipeline wins)
+            merged = {**shared_kwargs, **pipeline_kwargs}
+            merged["seeds"] = seeds
+            merged.setdefault("experiment_name", name)
+
+            # Inject shared initial population
+            if init_pop is not None and "initial_population" not in merged:
+                merged["initial_population"] = init_pop
+
+            results[name] = self.quick_run(**merged)
+
+            # MalthusJAX uses a maximisation convention internally
+            # (fitness is negated so higher = better).  Flag these
+            # pipelines so ComparisonResult can normalise to the
+            # standard "lower is better" convention for display.
+            backend = merged.get("backend", "malthusjax")
+            negate_map[name] = backend != "evosax"
+
+        return ComparisonResult(
+            pipelines=results,
+            shared_config=dict(shared_kwargs),
+            initial_population=init_pop,
+            negate_map=negate_map,
+        )
+
+    # -- from_toml --------------------------------------------------------
+
+    @classmethod
+    def from_toml(
+        cls,
+        path: str | Path,
+        pipelines: Optional[List[str]] = None,
+        shared_initial_population: bool = True,
+        pop_seed: int = 123,
+    ) -> ComparisonResult:
+        """Load a TOML experiment file and run all pipelines.
+
+        Parameters
+        ----------
+        path
+            Path to a Composer-style TOML file.
+        pipelines
+            Optional list of pipeline names to run.  If ``None``, all
+            pipelines defined in the file are executed.
+        shared_initial_population
+            Generate a shared initial population for fair comparison.
+        pop_seed
+            Seed for the shared initial population.
+
+        Returns
+        -------
+        ComparisonResult
+
+        Examples
+        --------
+        ::
+
+            # experiment.toml
+            # [experiment.shared]
+            # fitness = "sphere:dim=10"
+            # pop_size = 50
+            # ...
+            # [pipelines.blend_ga]
+            # crossover = "blend:alpha=0.5"
+            # [pipelines.sbx_ga]
+            # crossover = "simulated_binary:eta=2.0"
+
+            result = Composer.from_toml("experiment.toml")
+            result.plot_convergence()
+        """
+        experiment_meta, resolved = load_experiment_config(str(path), pipelines=pipelines)
+        shared = experiment_meta.get("shared", {})
+
+        # Extract seeds from shared config (they go to compare, not each pipeline)
+        seeds = tuple(shared.pop("seeds", (42, 43, 44)))
+
+        # Separate pipeline overrides from shared defaults
+        pipeline_overrides: Dict[str, Dict[str, Any]] = {}
+        for name, merged_cfg in resolved.items():
+            # Remove shared keys from each pipeline to get just the overrides
+            overrides = {
+                k: v
+                for k, v in merged_cfg.items()
+                if (k not in shared) or (merged_cfg[k] != shared.get(k))
+            }
+            pipeline_overrides[name] = overrides
+
+        composer = cls.create_default()
+        return composer.compare(
+            pipelines=pipeline_overrides,
+            seeds=seeds,
+            shared_initial_population=shared_initial_population,
+            pop_seed=pop_seed,
+            **shared,
+        )
+
+    # -- Private helpers --------------------------------------------------
 
     def _has_real_operators(
         self,
@@ -179,8 +367,9 @@ class Composer:
         pop_size: int,
         generations: int,
         num_dims: int,
-        bounds: tuple,
+        bounds: Tuple[float, float],
         maximize: bool,
+        prng_impl: Optional[str] = None,
         **kwargs: Any,
     ) -> Any:
         """Build EvosaxEngineAdapter from strategy name and config."""
@@ -194,6 +383,8 @@ class Composer:
             maximize=maximize,
             seed=kwargs.get("seed", 42),
             strategy_params=kwargs.get("strategy_params"),
+            initial_population=kwargs.get("initial_population"),
+            prng_impl=prng_impl,
         )
 
     def _build_stub_engine(self, generations: int, **kwargs: Any) -> StubEngine:

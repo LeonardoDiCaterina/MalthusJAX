@@ -13,6 +13,37 @@ from __future__ import annotations
 import pytest
 
 from malthusjax.composer.catalog import OperatorCatalog
+from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator
+from malthusjax.operators.crossover import (
+    BinaryUniformCrossover,
+    BinomialCrossover,
+    BinomialCrossover_injection,
+    BlendCrossover,
+    BlendCrossover_injection,
+    EvosaxUniformCrossoverWrapper,
+    RealUniformCrossover,
+    RealUniformCrossover_injection,
+    SimulatedBinaryCrossover,
+    SimulatedBinaryCrossover_injection,
+    SinglePointCrossover,
+)
+from malthusjax.operators.mutation import (
+    BallMutation,
+    BallMutation_injection,
+    BitFlipMutation,
+    EvosaxGaussianWrapper,
+    GaussianMutation,
+    GaussianMutation_injection,
+    PolynomialMutation,
+    PolynomialMutation_injection,
+    ScrambleMutation,
+    SwapMutation,
+)
+from malthusjax.operators.selection import (
+    ElitePoolSelection,
+    RouletteSelection,
+    TournamentSelection,
+)
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -68,11 +99,7 @@ EXPECTED_FITNESS = {
 EXPECTED_EVOSAX = {"evosax_simplega", "evosax_mr15", "evosax_de"}
 
 ALL_EXPECTED = (
-    EXPECTED_SELECTION
-    | EXPECTED_CROSSOVER
-    | EXPECTED_MUTATION
-    | EXPECTED_FITNESS
-    | EXPECTED_EVOSAX
+    EXPECTED_SELECTION | EXPECTED_CROSSOVER | EXPECTED_MUTATION | EXPECTED_FITNESS | EXPECTED_EVOSAX
 )
 
 
@@ -104,11 +131,7 @@ def test_expected_count(catalog: OperatorCatalog) -> None:
 # 2. Round-trip: each selection key → correct class
 # ---------------------------------------------------------------------------
 
-from malthusjax.operators.selection import (
-    ElitePoolSelection,
-    RouletteSelection,
-    TournamentSelection,
-)
+# imports moved to module top
 
 
 @pytest.mark.parametrize(
@@ -128,19 +151,7 @@ def test_selection_roundtrip(catalog: OperatorCatalog, key: str, cls: type) -> N
 # 3. Round-trip: each crossover key → correct class
 # ---------------------------------------------------------------------------
 
-from malthusjax.operators.crossover import (
-    BinaryUniformCrossover,
-    BinomialCrossover,
-    BinomialCrossover_injection,
-    BlendCrossover,
-    BlendCrossover_injection,
-    EvosaxUniformCrossoverWrapper,
-    RealUniformCrossover,
-    RealUniformCrossover_injection,
-    SimulatedBinaryCrossover,
-    SimulatedBinaryCrossover_injection,
-    SinglePointCrossover,
-)
+# imports moved to module top
 
 
 @pytest.mark.parametrize(
@@ -168,18 +179,7 @@ def test_crossover_roundtrip(catalog: OperatorCatalog, key: str, cls: type) -> N
 # 4. Round-trip: each mutation key → correct class
 # ---------------------------------------------------------------------------
 
-from malthusjax.operators.mutation import (
-    BallMutation,
-    BallMutation_injection,
-    BitFlipMutation,
-    EvosaxGaussianWrapper,
-    GaussianMutation,
-    GaussianMutation_injection,
-    PolynomialMutation,
-    PolynomialMutation_injection,
-    ScrambleMutation,
-    SwapMutation,
-)
+# imports moved to module top
 
 
 @pytest.mark.parametrize(
@@ -206,7 +206,7 @@ def test_mutation_roundtrip(catalog: OperatorCatalog, key: str, cls: type) -> No
 # 5. Round-trip: each fitness key → correct evaluator
 # ---------------------------------------------------------------------------
 
-from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator
+# imports moved to module top
 
 
 @pytest.mark.parametrize(
@@ -221,9 +221,7 @@ from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator
         ("bbob:fn_name=rastrigin,dim=5", BBOBEvaluator),
     ],
 )
-def test_fitness_bbob_roundtrip(
-    catalog: OperatorCatalog, spec: str, expected_cls: type
-) -> None:
+def test_fitness_bbob_roundtrip(catalog: OperatorCatalog, spec: str, expected_cls: type) -> None:
     evaluator = catalog.get(spec)
     assert isinstance(evaluator, expected_cls)
 
@@ -277,9 +275,7 @@ def test_fitness_knapsack(catalog: OperatorCatalog) -> None:
         ("evosax_de", "DifferentialEvolution"),
     ],
 )
-def test_evosax_strategy_strings(
-    catalog: OperatorCatalog, key: str, expected_name: str
-) -> None:
+def test_evosax_strategy_strings(catalog: OperatorCatalog, key: str, expected_name: str) -> None:
     result = catalog.get(key)
     assert result == expected_name
     assert isinstance(result, str)

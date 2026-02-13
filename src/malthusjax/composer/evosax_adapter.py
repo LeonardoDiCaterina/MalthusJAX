@@ -20,13 +20,11 @@ import time
 from typing import Any, Dict, Optional, Tuple
 
 import chex
-import jax
 import jax.numpy as jnp
 import jax.random as jr
-
 from evosax.algorithms.population_based import (
-    DifferentialEvolution,
     MR15_GA,
+    DifferentialEvolution,
     SimpleGA,
 )
 from evosax.problems import BBOBProblem
@@ -71,6 +69,7 @@ class EvosaxEngineAdapter:
         bounds: Tuple[float, float] = (-5.0, 5.0),
         maximize: bool = False,
         initial_population: Any = None,
+        prng_impl: Optional[str] = None,
     ) -> None:
         self.strategy = strategy
         self.params = params
@@ -81,6 +80,7 @@ class EvosaxEngineAdapter:
         self.bounds = bounds
         self.maximize = maximize
         self.initial_population = initial_population
+        self.prng_impl = prng_impl
 
     # -- BenchmarkRunner.Engine protocol ------------------------------------
 
@@ -136,9 +136,7 @@ class EvosaxEngineAdapter:
             # ask  →  tell
             x, state = self.strategy.ask(rng_step, state, self.params)
             fitness, p_state, _ = self.problem.eval(rng_step, x, p_state)
-            state, _metrics = self.strategy.tell(
-                rng_step, x, fitness, state, self.params
-            )
+            state, _metrics = self.strategy.tell(rng_step, x, fitness, state, self.params)
 
             # evosax minimises; flip sign when Composer expects maximisation
             best_f = float(state.best_fitness)
@@ -201,6 +199,7 @@ def build_evosax_engine(
     seed: int = 42,
     strategy_params: Optional[Dict[str, Any]] = None,
     initial_population: Any = None,
+    prng_impl: Optional[str] = None,
     **kwargs: Any,
 ) -> EvosaxEngineAdapter:
     """Build an :class:`EvosaxEngineAdapter` from high-level specs.
@@ -257,10 +256,7 @@ def build_evosax_engine(
 
     # ---- strategy --------------------------------------------------------
     if strategy_name not in EVOSAX_STRATEGIES:
-        raise KeyError(
-            f"Unknown evosax strategy '{strategy_name}'. "
-            f"Available: {list_strategies()}"
-        )
+        raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
 
     rng = jr.PRNGKey(seed)
     problem = BBOBProblem(problem_name, num_dims=num_dims, seed=seed)
@@ -283,4 +279,5 @@ def build_evosax_engine(
         bounds=bounds,
         maximize=maximize,
         initial_population=initial_population,
+        prng_impl=prng_impl,
     )

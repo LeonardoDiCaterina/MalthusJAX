@@ -2,12 +2,12 @@
 an externally provided initial population.
 """
 
-import jax.random as jr
 import jax.numpy as jnp
+import jax.random as jr
 
-from malthusjax.composer.evosax_adapter import build_evosax_engine
 from malthusjax.composer.catalog import OperatorCatalog
 from malthusjax.composer.engine_factory import build_engine_from_catalog
+from malthusjax.composer.evosax_adapter import build_evosax_engine
 
 
 def test_adapters_accept_same_initial_population():
@@ -32,7 +32,7 @@ def test_adapters_accept_same_initial_population():
     # Build a Malthus adapter using the catalog evaluator; supply initial_population
     cat = OperatorCatalog()
     fitness = cat.get(f"sphere:dim={dim}")
-    selection = cat.get(f"tournament:num_selections={pop_size//2},tournament_size=3")
+    selection = cat.get(f"tournament:num_selections={pop_size // 2},tournament_size=3")
 
     m_adapter = build_engine_from_catalog(
         {

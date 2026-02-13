@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import chex
 
 from ..core.genome.binary_genome import BinaryGenomeConfig
 from ..core.genome.real_genome import RealGenomeConfig
+from ..core.random import resolve_prng_impl
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 
 
@@ -16,10 +17,17 @@ class GeneticEngineAdapter:
     engine-initialised population for reproducible cross-engine comparisons.
     """
 
-    def __init__(self, genetic_engine: GeneticEngine, genome_config: Any, initial_population: Any = None):
+    def __init__(
+        self,
+        genetic_engine: GeneticEngine,
+        genome_config: Any,
+        initial_population: Any = None,
+        prng_impl: Optional[str] = None,
+    ):
         self.genetic_engine = genetic_engine
         self.genome_config = genome_config
         self.initial_population = initial_population
+        self.prng_impl = prng_impl
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
@@ -34,8 +42,9 @@ class GeneticEngineAdapter:
         # If an explicit initial population is provided, construct an evaluated
         # population object and replace the state's population with it.
         if self.initial_population is not None:
-            from ..core.genome.real_genome import RealPopulation
             import jax.numpy as jnp
+
+            from ..core.genome.real_genome import RealPopulation
 
             arr = jnp.asarray(self.initial_population)
             pop = RealPopulation.from_array(arr, self.genome_config, axis=0)
@@ -46,7 +55,7 @@ class GeneticEngineAdapter:
             best_fitness = fitness[best_idx]
             best_genome = evaluated_pop.genes[best_idx]
 
-            state = state.replace(
+            state = cast(Any, state).replace(
                 population=evaluated_pop,
                 best_genome=best_genome,
                 best_fitness=best_fitness,
@@ -100,7 +109,7 @@ def build_engine(
     generations: int = 100,
     elitism: int = 2,
     genome_shape: Tuple[int, ...] = (10,),
-    bounds: tuple = (-5.0, 5.0),
+    bounds: Tuple[float, float] = (-5.0, 5.0),
     **kwargs: Any,
 ) -> GeneticEngineAdapter:
     """Build a GeneticEngine from catalog operators.
@@ -135,8 +144,11 @@ def build_engine(
         raise ValueError(f"Unsupported genome type: {genome_type}")
 
     # Coerce operator spec strings into actual operator instances if needed
+    OperatorCatalog: Any = None
     try:
-        from .catalog import OperatorCatalog
+        from .catalog import OperatorCatalog as _OperatorCatalog
+
+        OperatorCatalog = _OperatorCatalog
     except Exception:
         # Avoid circular imports breaking; if it fails, user must pass operator instances
         OperatorCatalog = None
@@ -157,16 +169,28 @@ def build_engine(
         mutation_op = OperatorCatalog().get(mutation_op)
 
     # Defensive validation: ensure operators implement required methods
-    for name, op in ("selection", selection_op), ("crossover", crossover_op), ("mutation", mutation_op):
+    for name, op in [
+        ("selection", selection_op),
+        ("crossover", crossover_op),
+        ("mutation", mutation_op),
+    ]:
         if not hasattr(op, "replace") or not callable(getattr(op, "replace")):
             raise TypeError(
-                f"Operator '{name}' does not implement required 'replace' method. Got type {type(op)}."
-                " Pass an operator instance from OperatorCatalog.get(spec) or a proper operator implementation."
+                f"Operator '{name}' lacks required 'replace' method (type {type(op)}). "
+                "Provide operator instance from OperatorCatalog.get(spec)"
+                " or a proper implementation."
             )
+    # Resolve PRNG implementation if provided
+    prng_impl_str = kwargs.pop("prng_impl", None)
+    prng_extra: Dict[str, Any] = {}
+    if prng_impl_str is not None:
+        prng_extra["prng_impl"] = resolve_prng_impl(prng_impl_str)
+
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
         num_generations=generations,
         elitism=elitism,
+        **prng_extra,
         **{k: v for k, v in kwargs.items() if k in ["mutation_strength_schedule"]},
     )
 
@@ -182,7 +206,12 @@ def build_engine(
 
     initial_population = kwargs.get("initial_population", None)
 
-    return GeneticEngineAdapter(genetic_engine, genome_config, initial_population=initial_population)
+    return GeneticEngineAdapter(
+        genetic_engine,
+        genome_config,
+        initial_population=initial_population,
+        prng_impl=prng_impl_str,
+    )
 
 
 def build_engine_from_catalog(

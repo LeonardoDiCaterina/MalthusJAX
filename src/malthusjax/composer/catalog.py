@@ -29,7 +29,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-from ._registry import get_registry, register as _registry_register
+from ._registry import get_registry
+from ._registry import register as _registry_register
 
 
 def _ensure_registered() -> None:
@@ -38,10 +39,10 @@ def _ensure_registered() -> None:
 
     Idempotent — repeated calls are cheap (Python caches imports).
     """
-    import malthusjax.operators.selection  # noqa: F401
+    import malthusjax.core.fitness  # noqa: F401
     import malthusjax.operators.crossover  # noqa: F401
     import malthusjax.operators.mutation  # noqa: F401
-    import malthusjax.core.fitness  # noqa: F401
+    import malthusjax.operators.selection  # noqa: F401
 
 
 class OperatorCatalog:
@@ -209,12 +210,8 @@ class OperatorCatalog:
             return self._evosax_strategies[operator_type]
 
         if operator_type not in self._registry:
-            available = sorted(
-                list(self._registry.keys()) + list(self._evosax_strategies.keys())
-            )
-            raise KeyError(
-                f"Unknown operator type: '{operator_type}'. Available: {available}"
-            )
+            available = sorted(list(self._registry.keys()) + list(self._evosax_strategies.keys()))
+            raise KeyError(f"Unknown operator type: '{operator_type}'. Available: {available}")
 
         factory, defaults = self._registry[operator_type]
         merged = {**defaults, **user_params}
@@ -228,7 +225,12 @@ class OperatorCatalog:
     # Introspection & extension
     # ------------------------------------------------------------------
 
-    def register(self, operator_type: str, factory: Callable, override: bool = False) -> None:
+    def register(
+        self,
+        operator_type: str,
+        factory: Callable[..., Any],
+        override: bool = False,
+    ) -> None:
         """Register a new operator type at runtime.
 
         Args:
@@ -248,9 +250,7 @@ class OperatorCatalog:
 
     def list_available(self) -> List[str]:
         """Return sorted list of all registered operator keys."""
-        return sorted(
-            list(self._registry.keys()) + list(self._evosax_strategies.keys())
-        )
+        return sorted(list(self._registry.keys()) + list(self._evosax_strategies.keys()))
 
     def get_help(self, operator_type: str) -> str:
         """Get help string for operator type."""
