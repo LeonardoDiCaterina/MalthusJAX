@@ -131,3 +131,168 @@ class ExperimentResult:
             stdev = statistics.stdev(vals) if len(vals) > 1 else 0.0
             summary[k] = {"mean": mean, "median": med, "stdev": stdev}
         return summary
+
+# ---------------------------------------------------------------------------
+# ComparisonResult — aligned multi-pipeline results
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ComparisonResult:
+    """Aligned results from multiple pipelines for direct comparison.
+
+    Returned by :meth:`Composer.compare` and :meth:`Composer.from_toml`.
+
+    Attributes
+    ----------
+    pipelines : Dict[str, ExperimentResult]
+        Mapping of pipeline name → :class:`ExperimentResult`.
+    shared_config : Dict[str, Any]
+        The shared configuration that was common across all pipelines.
+    initial_population : optional
+        The shared initial population array, if one was generated.
+    """
+
+    pipelines: Dict[str, ExperimentResult]
+    shared_config: Dict[str, Any] = field(default_factory=dict)
+    initial_population: Optional[Any] = field(default=None, repr=False)
+    negate_map: Dict[str, bool] = field(default_factory=dict)
+    """Per-pipeline sign-flip flag.
+
+    When ``True`` for a pipeline, fitness values are **negated** before
+    display so that all pipelines share a unified "lower is better"
+    convention.  Built automatically by :meth:`Composer.compare` based
+    on each pipeline's backend (MalthusJAX uses a maximisation
+    convention internally, so its values are negated for display).
+    """
+
+    # -- internal helper ---------------------------------------------------
+
+    _FITNESS_KEYS = frozenset({"best_fitness", "mean_fitness"})
+
+    def _sign(self, pipeline_name: str) -> float:
+        """Return ``-1.0`` if *pipeline_name* should be negated, else ``1.0``."""
+        return -1.0 if self.negate_map.get(pipeline_name, False) else 1.0
+
+    # -- Convenience accessors --------------------------------------------
+
+    @property
+    def names(self) -> List[str]:
+        """Pipeline names in insertion order."""
+        return list(self.pipelines.keys())
+
+    def summary_table(self) -> Dict[str, Dict[str, float]]:
+        """Per-pipeline aggregated summary.
+
+        Returns ``{pipeline_name: {metric: value, ...}, ...}`` using the
+        mean across seeds for each metric.  Fitness values are
+        automatically sign-normalised so that **lower is better** across
+        all pipelines.
+        """
+        table: Dict[str, Dict[str, float]] = {}
+        for name, exp in self.pipelines.items():
+            agg = exp.aggregated_summary()
+            s = self._sign(name)
+            # Flatten to the mean; negate fitness keys if needed
+            table[name] = {
+                k: (v["mean"] * s if k in self._FITNESS_KEYS else v["mean"])
+                for k, v in agg.items()
+            }
+        return table
+
+    def convergence_data(
+        self, seed_index: int = 0
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """Per-pipeline convergence history for a single seed.
+
+        Fitness values are sign-normalised so that **lower is better**
+        across all pipelines (controlled by :attr:`negate_map`).
+
+        Parameters
+        ----------
+        seed_index
+            Which seed's history to return (default: first seed).
+
+        Returns
+        -------
+        ``{pipeline_name: [{"generation": ..., "best_fitness": ...}, ...]}``
+        """
+        data: Dict[str, List[Dict[str, Any]]] = {}
+        for name, exp in self.pipelines.items():
+            if seed_index < len(exp.runs):
+                raw = exp.runs[seed_index].history
+                s = self._sign(name)
+                if s < 0:
+                    data[name] = [
+                        {
+                            k: (v * s if k in self._FITNESS_KEYS else v)
+                            for k, v in row.items()
+                        }
+                        for row in raw
+                    ]
+                else:
+                    data[name] = raw
+            else:
+                data[name] = []
+        return data
+
+    def plot_convergence(
+        self,
+        seed_index: int = 0,
+        ax: Any = None,
+        title: Optional[str] = None,
+        negate: Optional[Dict[str, bool]] = None,
+    ) -> Any:
+        """Overlay convergence curves on a matplotlib axis.
+
+        Sign normalisation from :attr:`negate_map` is applied
+        **automatically** (via :meth:`convergence_data`).  The *negate*
+        parameter adds an **extra** per-pipeline flip on top, useful for
+        switching between "lower is better" and "higher is better"
+        display after the automatic normalisation.
+
+        Parameters
+        ----------
+        seed_index
+            Which seed's history to plot (default: first seed).
+        ax
+            Matplotlib axis.  If ``None``, a new figure is created.
+        title
+            Plot title.  Defaults to ``"Convergence comparison"``.
+        negate
+            Optional extra per-pipeline sign flip applied **on top** of
+            the automatic normalisation.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+        """
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as e:
+            raise ImportError(
+                "matplotlib is required for plot_convergence(). "
+                "Install it with: pip install matplotlib"
+            ) from e
+
+        if ax is None:
+            _, ax = plt.subplots(figsize=(8, 4))
+
+        extra_negate = negate or {}
+        conv = self.convergence_data(seed_index)  # already sign-normalised
+
+        for name, history in conv.items():
+            if not history:
+                continue
+            gens = [h["generation"] for h in history]
+            best = [h["best_fitness"] for h in history]
+            if extra_negate.get(name, False):
+                best = [-b for b in best]
+            ax.plot(gens, best, label=name, linewidth=2)
+
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("Best Fitness")
+        ax.set_title(title or "Convergence comparison")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        return ax

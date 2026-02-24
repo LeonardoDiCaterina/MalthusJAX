@@ -18,7 +18,10 @@ Compares:
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, Tuple
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -27,6 +30,8 @@ import pytest
 from evosax.algorithms.population_based import SimpleGA
 from evosax.problems import BBOBProblem
 
+from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult
+from malthusjax.benchmarking.runner import BenchmarkRunner
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.engine.base import _get_evolution_kernel
@@ -179,6 +184,183 @@ def _evosax_init_and_warmup(
     return carry, jit_step
 
 
+# ---------------------------------------------------------------------------
+# Engine Protocol Adapters — for BenchmarkRunner integration
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class MalthusJAXBenchEngine:
+    """Wraps a MalthusJAX GeneticEngine to satisfy the ``Engine`` protocol.
+
+    ``run_once(key)`` returns the standard dict expected by
+    :class:`BenchmarkRunner`: ``{history, summary, timings}``.
+    """
+
+    pop_size: int
+    dims: int
+    problem: str = "sphere"
+    num_generations: int = NUM_GENERATIONS_LONG
+    elite_ratio: float = 0.5
+
+    def run_once(self, key: jax.Array) -> Dict[str, Any]:
+        engine = _build_malthusjax_engine(
+            self.pop_size,
+            self.dims,
+            problem=self.problem,
+            num_generations=self.num_generations,
+            elite_ratio=self.elite_ratio,
+        )
+        t0 = time.time()
+        state = engine.init_state(key)
+        t_init = time.time() - t0
+
+        t0 = time.time()
+        final_state, scan_history, _ = engine.run(state, compile=True)
+        final_state.best_fitness.block_until_ready()
+        t_evo = time.time() - t0
+
+        # Unpack stacked scan history arrays → list of dicts
+        n_gens = int(scan_history.generation.shape[0])
+        history: List[Dict[str, Any]] = []
+        for g in range(n_gens):
+            history.append(
+                {
+                    "generation": int(scan_history.generation[g]),
+                    "best_fitness": float(scan_history.best_fitness[g]),
+                    "mean_fitness": float(scan_history.mean_fitness[g]),
+                }
+            )
+
+        summary = {
+            "best_fitness": float(final_state.best_fitness),
+            "final_generation": n_gens - 1,
+            "total_evaluations": n_gens * self.pop_size,
+        }
+        timings = {"initialization": t_init, "evolution": t_evo}
+        return {"history": history, "summary": summary, "timings": timings}
+
+
+@dataclass
+class EvosaxBenchEngine:
+    """Wraps evosax SimpleGA to satisfy the ``Engine`` protocol.
+
+    ``run_once(key)`` returns the standard dict expected by
+    :class:`BenchmarkRunner`: ``{history, summary, timings}``.
+    """
+
+    pop_size: int
+    dims: int
+    problem: str = "sphere"
+    num_generations: int = NUM_GENERATIONS_LONG
+    elite_ratio: float = 0.5
+
+    def run_once(self, key: jax.Array) -> Dict[str, Any]:
+        strategy, params, es_problem, carry = _build_evosax_ga(
+            self.pop_size, self.dims, self.problem, self.elite_ratio
+        )
+        step = _evosax_step_fn(strategy, params, es_problem)
+
+        # Record per-generation history via a modified scan that outputs fitness
+        def step_with_output(carry, _):
+            state, p_state, rng = carry
+            rng, rng_step = jax.random.split(rng)
+            x, state = strategy.ask(rng_step, state, params)
+            fitness, p_state, _ = es_problem.eval(rng_step, x, p_state)
+            state, _ = strategy.tell(rng_step, x, fitness, state, params)
+            new_carry = (state, p_state, rng)
+            output = {
+                "best_fitness": state.best_fitness,
+                "mean_fitness": jnp.mean(fitness),
+            }
+            return new_carry, output
+
+        jit_scan = jax.jit(
+            lambda c: jax.lax.scan(step_with_output, c, None, length=self.num_generations)
+        )
+
+        t0 = time.time()
+        final_carry, gen_outputs = jit_scan(carry)
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_carry)
+        t_evo = time.time() - t0
+
+        es_state, _, _ = final_carry
+        n_gens = self.num_generations
+
+        history: List[Dict[str, Any]] = []
+        for g in range(n_gens):
+            history.append(
+                {
+                    "generation": g,
+                    "best_fitness": float(gen_outputs["best_fitness"][g]),
+                    "mean_fitness": float(gen_outputs["mean_fitness"][g]),
+                }
+            )
+
+        summary = {
+            "best_fitness": float(es_state.best_fitness),
+            "final_generation": n_gens - 1,
+            "total_evaluations": n_gens * self.pop_size,
+        }
+        timings = {"evolution": t_evo}
+        return {"history": history, "summary": summary, "timings": timings}
+
+
+def _run_comparison(
+    pop_size: int,
+    dims: int,
+    problem: str = "sphere",
+    num_generations: int = NUM_GENERATIONS_LONG,
+    seeds: Tuple[int, ...] = (42, 123, 7),
+) -> ComparisonResult:
+    """Run both frameworks via BenchmarkRunner and return a ComparisonResult.
+
+    This is the reusable core for Groups 2 & 5.  MalthusJAX fitness values
+    are **not** negated here because ``BBOBConfig(maximize=False)`` already
+    produces raw minimisation values — no sign-flip needed.
+    """
+    mjx_engine = MalthusJAXBenchEngine(
+        pop_size=pop_size,
+        dims=dims,
+        problem=problem,
+        num_generations=num_generations,
+    )
+    esx_engine = EvosaxBenchEngine(
+        pop_size=pop_size,
+        dims=dims,
+        problem=problem,
+        num_generations=num_generations,
+    )
+
+    mjx_runner = BenchmarkRunner(
+        engine=mjx_engine,
+        experiment_name=f"malthusjax_{problem}_p{pop_size}_d{dims}",
+        write_artifacts=False,
+    )
+    esx_runner = BenchmarkRunner(
+        engine=esx_engine,
+        experiment_name=f"evosax_{problem}_p{pop_size}_d{dims}",
+        write_artifacts=False,
+    )
+
+    mjx_result = mjx_runner.run(seeds=seeds)
+    esx_result = esx_runner.run(seeds=seeds)
+
+    return ComparisonResult(
+        pipelines={"malthusjax": mjx_result, "evosax": esx_result},
+        shared_config={
+            "pop_size": pop_size,
+            "dims": dims,
+            "problem": problem,
+            "num_generations": num_generations,
+            "seeds": list(seeds),
+        },
+        # MalthusJAX with maximize=False already returns raw minimisation
+        # values, so no sign flip is needed for this benchmark.
+        negate_map={"malthusjax": False, "evosax": False},
+    )
+
+
 # ============================================================================
 # BENCHMARK GROUP 1 — Single-Step Latency (warm dispatch)
 # ============================================================================
@@ -227,27 +409,29 @@ class TestSingleStepLatency:
 
 
 class TestMultiGenThroughput:
-    """Full evolution loop: N generations via jax.lax.scan."""
+    """Full evolution loop: N generations via jax.lax.scan.
+
+    Uses the ``Engine``-protocol adapters
+    (:class:`MalthusJAXBenchEngine` / :class:`EvosaxBenchEngine`) so the
+    benchmarked code path is identical to what :class:`BenchmarkRunner`
+    executes.  pytest-benchmark still handles the wall-clock timing.
+    """
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
     def test_malthusjax_scan(self, benchmark, pop_size: int, dims: int):
         """MalthusJAX: full scan loop for {NUM_GENERATIONS_SHORT} gens."""
-        engine = _build_malthusjax_engine(
-            pop_size, dims, num_generations=NUM_GENERATIONS_SHORT
+        bench_engine = MalthusJAXBenchEngine(
+            pop_size=pop_size,
+            dims=dims,
+            num_generations=NUM_GENERATIONS_SHORT,
         )
-        key = jr.PRNGKey(SEED)
-        state = engine.init_state(key)
-
-        # Warm up the scan kernel (compile once)
-        final, _, _ = engine.run(state, compile=True)
-        final.best_fitness.block_until_ready()
+        # Warm-up (compile)
+        bench_engine.run_once(jr.PRNGKey(0))
 
         def _run():
-            # Re-init state each iteration (engine.run consumes/donates buffers)
-            s = engine.init_state(key)
-            f, _, _ = engine.run(s, compile=True)
-            f.best_fitness.block_until_ready()
+            result = bench_engine.run_once(jr.PRNGKey(SEED))
+            assert result["summary"]["best_fitness"] is not None
 
         benchmark.group = f"scan_{NUM_GENERATIONS_SHORT}gen/pop{pop_size}_d{dims}"
         benchmark.name = "malthusjax"
@@ -257,21 +441,17 @@ class TestMultiGenThroughput:
     @pytest.mark.parametrize("dims", DIMENSIONS)
     def test_evosax_scan(self, benchmark, pop_size: int, dims: int):
         """Evosax SimpleGA: full scan loop for {NUM_GENERATIONS_SHORT} gens."""
-        strategy, params, es_problem, carry = _build_evosax_ga(pop_size, dims)
-        step = _evosax_step_fn(strategy, params, es_problem)
-
-        def scan_loop(carry):
-            return jax.lax.scan(step, carry, None, length=NUM_GENERATIONS_SHORT)
-
-        jit_scan = jax.jit(scan_loop)
-
-        # Warm up
-        _wc, _ = jit_scan(carry)
-        jax.tree_util.tree_map(lambda x: x.block_until_ready(), _wc)
+        bench_engine = EvosaxBenchEngine(
+            pop_size=pop_size,
+            dims=dims,
+            num_generations=NUM_GENERATIONS_SHORT,
+        )
+        # Warm-up (compile)
+        bench_engine.run_once(jr.PRNGKey(0))
 
         def _run():
-            c, _ = jit_scan(carry)
-            jax.tree_util.tree_map(lambda x: x.block_until_ready(), c)
+            result = bench_engine.run_once(jr.PRNGKey(SEED))
+            assert result["summary"]["best_fitness"] is not None
 
         benchmark.group = f"scan_{NUM_GENERATIONS_SHORT}gen/pop{pop_size}_d{dims}"
         benchmark.name = "evosax"
@@ -476,49 +656,68 @@ class TestOperatorMicrobenchmarks:
 class TestConvergenceParity:
     """Verify both frameworks converge to comparable fitness on BBOB problems.
 
-    This is NOT a speed benchmark — it's a correctness-adjacent snapshot ensuring
-    that MalthusJAX achieves competitive final fitness vs evosax on the same problem.
-    Runs once per (problem, dims) pair with a fixed budget of generations.
+    Uses :class:`BenchmarkRunner` and :class:`ComparisonResult` from the
+    ``malthusjax.benchmarking`` infrastructure for structured multi-seed
+    execution and sign-normalised comparison.
+
+    This is NOT a speed benchmark — it's a correctness-adjacent snapshot
+    ensuring MalthusJAX produces finite, reasonable fitness values and
+    that the reporting pipeline works end-to-end.
     """
 
     @pytest.mark.parametrize("problem", PROBLEMS)
     @pytest.mark.parametrize("dims", DIMENSIONS)
     def test_fitness_parity(self, problem: str, dims: int):
-        """Compare final best fitness after fixed generation budget."""
+        """Compare final best fitness after fixed generation budget (3 seeds)."""
         pop_size = 200
         num_gens = NUM_GENERATIONS_LONG
+        seeds = (42, 123, 7)
 
-        # --- MalthusJAX ---
-        engine = _build_malthusjax_engine(
-            pop_size, dims, problem=problem, num_generations=num_gens
+        comparison = _run_comparison(
+            pop_size=pop_size,
+            dims=dims,
+            problem=problem,
+            num_generations=num_gens,
+            seeds=seeds,
         )
-        key = jr.PRNGKey(SEED)
-        state = engine.init_state(key)
-        final_mjx, _, _ = engine.run(state, compile=True)
-        mjx_fitness = float(final_mjx.best_fitness)
-        final_mjx.best_fitness.block_until_ready()
 
-        # --- Evosax ---
-        strategy, params, es_problem, carry = _build_evosax_ga(pop_size, dims, problem)
-        step = _evosax_step_fn(strategy, params, es_problem)
-        jit_scan = jax.jit(lambda c: jax.lax.scan(step, c, None, length=num_gens))
-        final_carry, _ = jit_scan(carry)
-        jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_carry)
-        es_state, _, _ = final_carry
-        esx_fitness = float(es_state.best_fitness)
+        # ---- Validate ComparisonResult structure ----
+        assert set(comparison.names) == {"malthusjax", "evosax"}
 
-        # MalthusJAX uses maximize=False for BBOB, so best_fitness is the raw
-        # minimization value (lower is better). Evosax also minimizes.
+        for name in comparison.names:
+            exp = comparison.pipelines[name]
+            assert len(exp.runs) == len(seeds), (
+                f"{name}: expected {len(seeds)} runs, got {len(exp.runs)}"
+            )
+            for run in exp.runs:
+                assert run.status == "success", (
+                    f"{name} seed={run.seed} failed: {run.error}"
+                )
+
+        # ---- Aggregated summary via ComparisonResult ----
+        table = comparison.summary_table()
+        mjx_best = table["malthusjax"]["best_fitness"]
+        esx_best = table["evosax"]["best_fitness"]
+
         print(
-            f"\n  [{problem} d={dims}] "
-            f"MalthusJAX={mjx_fitness:.6f}  Evosax={esx_fitness:.6f}"
+            f"\n  [{problem} d={dims}]  (mean over {len(seeds)} seeds)"
+            f"\n    MalthusJAX best_fitness = {mjx_best:.6f}"
+            f"\n    Evosax     best_fitness = {esx_best:.6f}"
         )
 
-        # Phase 0 baseline: record values, sanity-check only (not NaN/Inf).
-        # Strict convergence assertions will be added in later phases after
-        # the engine fixes are applied.
-        assert jnp.isfinite(mjx_fitness), f"MalthusJAX returned non-finite fitness: {mjx_fitness}"
-        assert jnp.isfinite(esx_fitness), f"Evosax returned non-finite fitness: {esx_fitness}"
+        # ---- Convergence history from first seed ----
+        conv = comparison.convergence_data(seed_index=0)
+        for name in comparison.names:
+            assert len(conv[name]) > 0, f"No history for {name}"
+            assert "best_fitness" in conv[name][0], f"Missing best_fitness in {name} history"
+
+        # ---- Phase 0: sanity-only assertions (finite values) ----
+        assert jnp.isfinite(mjx_best), (
+            f"MalthusJAX returned non-finite mean best_fitness: {mjx_best}"
+        )
+        assert jnp.isfinite(esx_best), (
+            f"Evosax returned non-finite mean best_fitness: {esx_best}"
+        )
 
 
 # ============================================================================

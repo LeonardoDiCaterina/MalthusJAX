@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Protocol, Sequence
 import chex
 import jax.random as jr
 
+from ..core.random import PRNGImpl, create_key, resolve_prng_impl
 from .io import write_experiment_artifacts
 from .results import ExperimentResult, RunResult
 
@@ -35,6 +36,7 @@ class BenchmarkRunner:
     experiment_name: str = "benchmark_experiment"
     output_dir: Optional[Path] = None
     write_artifacts: bool = True
+    prng_impl: Optional[str] = None
 
     def run(
         self,
@@ -50,8 +52,10 @@ class BenchmarkRunner:
         """
         runs: List[RunResult] = []
 
+        impl = resolve_prng_impl(self.prng_impl) if self.prng_impl else None
+
         for seed in seeds:
-            key = jr.PRNGKey(seed)
+            key = create_key(seed, impl=impl) if impl else jr.PRNGKey(seed)
             run_result = self._run_single_seed(seed, key, timeout_seconds)
             runs.append(run_result)
 
