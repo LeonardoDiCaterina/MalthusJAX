@@ -58,8 +58,7 @@ def resolve_prng_impl(name: str | PRNGImpl | None) -> PRNGImpl:
     if key in _PRNG_ALIASES:
         return _PRNG_ALIASES[key]
     raise ValueError(
-        f"Unknown PRNG implementation {name!r}. "
-        f"Choose from: {sorted(_PRNG_ALIASES.keys())}"
+        f"Unknown PRNG implementation {name!r}. Choose from: {sorted(_PRNG_ALIASES.keys())}"
     )
 
 
