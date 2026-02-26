@@ -5,13 +5,15 @@ Refactored for 'Init-Phase Compilation': Resource mapping happens once at initia
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Tuple, Type, TypeVar, cast, Union
+from typing import Any, Callable, Optional, Tuple, Type, TypeVar, Union, cast
 
 import chex
 import jax
 import jax.numpy as jnp
 import jax.random as jar
 from flax import struct
+
+from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, validate_key
 
 from ..core.base import BaseGenome, BasePopulation
 from ..core.fitness.base import BaseEvaluator
@@ -31,8 +33,6 @@ from .resource_mapper import (
     ShardingManager,
     compute_resource_map,
 )
-
-from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, validate_key
 
 # TODO: update selection doctring
 
@@ -301,13 +301,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         # Extract best genome by indexing genes directly (best_idx is a JAX array, not Python int)
         best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], evaluated_pop.genes)
-
-        # Ensure both branches return the same pytree structure.
-        # If old_state.best_genome has a different structure (e.g., a raw array),
-        # broadcast it into the structure of best_candidate so branches match.
-        if jax.tree_util.tree_structure(old_state.best_genome) != jax.tree_util.tree_structure(
-            best_candidate
-        ):
+        old_tree: Any = jax.tree_util.tree_structure(old_state.best_genome)
+        cand_tree: Any = jax.tree_util.tree_structure(best_candidate)
+        if old_tree != cand_tree:
             old_struct = jax.tree_util.tree_map(lambda _: old_state.best_genome, best_candidate)
         else:
             old_struct = old_state.best_genome
@@ -421,7 +417,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             .set_typed_keys(typed)
         )
 
-        active_cross = self.crossover.set_input_length(rmap.crossover.input_count // 2).set_typed_keys(typed)
+        # configure crossover with correct input length and key type
+        active_cross = self.crossover.set_input_length(
+            rmap.crossover.input_count // 2
+        ).set_typed_keys(typed)
         active_mut = self.mutation.set_input_length(rmap.mutation.input_count).set_typed_keys(typed)
 
         op_state = OperatorState(selection=active_sel, crossover=active_cross, mutation=active_mut)
@@ -522,7 +521,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         # Extract best candidate using tree_map in case best_idx is a JAX array
         best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], population.genes)
         # Ensure both branches return the same pytree structure.
-        if jax.tree_util.tree_structure(state.best_genome) != jax.tree_util.tree_structure(best_candidate):
+        if jax.tree_util.tree_structure(state.best_genome) != jax.tree_util.tree_structure(
+            best_candidate
+        ):
             state_struct = jax.tree_util.tree_map(lambda _: state.best_genome, best_candidate)
         else:
             state_struct = state.best_genome

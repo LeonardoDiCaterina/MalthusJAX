@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Generic, List, Optional, Tuple, TypeVar, cast, Union
+from typing import Any, Generic, List, Optional, Tuple, TypeVar, Union, cast
 
 import chex
 import jax
