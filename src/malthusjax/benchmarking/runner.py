@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Protocol, Sequence
 import chex
 import jax.random as jr
 
-from ..core.random import PRNGImpl, create_key, resolve_prng_impl
+from ..core.random import create_key, resolve_prng_impl
 from .io import write_experiment_artifacts
 from .results import ExperimentResult, RunResult
 
