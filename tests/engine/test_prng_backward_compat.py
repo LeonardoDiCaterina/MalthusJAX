@@ -3,13 +3,13 @@
 import jax.random as jr
 import pytest
 
-from malthusjax.engine.genetic_fastengine import GeneticEngine
+from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.random import is_new_style_key
-from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+from malthusjax.engine.genetic_fastengine import GeneticEngine
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
-from malthusjax.core.genome.real_genome import RealGenomeConfig
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
 
 @pytest.fixture

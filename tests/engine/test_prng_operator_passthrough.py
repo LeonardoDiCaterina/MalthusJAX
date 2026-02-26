@@ -1,16 +1,15 @@
 """Tests for operator-level PRNG key integrity and determinism."""
 
 import jax
-import jax.random as jr
 import pytest
 
-from malthusjax.core.random import create_key, PRNGImpl, is_new_style_key
-from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.core.random import create_key, is_new_style_key
+from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
 
 @pytest.fixture
@@ -66,7 +65,19 @@ def test_crossover_mutation_keys_reshape_and_usage(small_engine):
     assert k_mut.shape[0] >= 1
 
     # Run a reproduction step to ensure operators accept keys and run
-    elites, selected_idx = small_engine._selection_phase(k_sel, state.population, state.operators, small_engine.engine_params)
+    elites, selected_idx = small_engine._selection_phase(
+        k_sel,
+        state.population,
+        state.operators,
+        small_engine.engine_params,
+    )
 
-    mutants = small_engine._reproduction_phase(k_cross, k_mut, selected_idx, state.population, state.operators, state.resource_map)
+    mutants = small_engine._reproduction_phase(
+        k_cross,
+        k_mut,
+        selected_idx,
+        state.population,
+        state.operators,
+        state.resource_map,
+    )
     assert mutants.genes is not None

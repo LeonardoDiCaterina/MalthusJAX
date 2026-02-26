@@ -1,10 +1,10 @@
 """Tests for ResourceMap.get_keys() across PRNG implementations and derivation strategies."""
 
 import jax
-import jax.random as jr
 import pytest
 
-from malthusjax.core.random import create_key, PRNGImpl
+from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
+from malthusjax.core.random import create_key
 from malthusjax.engine.resource_mapper import (
     KeyDerivationStrategy,
     compute_resource_map,
@@ -12,7 +12,6 @@ from malthusjax.engine.resource_mapper import (
 from malthusjax.operators.crossover.binary import SinglePointCrossover
 from malthusjax.operators.mutation.binary import BitFlipMutation
 from malthusjax.operators.selection.tournament import TournamentSelection
-from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
 
 
 def make_rmap(strategy: KeyDerivationStrategy):
@@ -49,12 +48,11 @@ def test_get_keys_shapes_and_different(prng_impl):
 
 def test_key_slices_are_distinct(prng_impl):
     try:
-        master = create_key(1, impl=prng_impl)
+        _ = create_key(1, impl=prng_impl)  # ensure impl supported
     except ValueError:
         pytest.skip(f"impl {prng_impl} not supported by this JAX build")
 
     rmap = make_rmap(KeyDerivationStrategy.SPLIT)
-    all_keys = rmap.get_keys(master)
 
     sel_slice = rmap.get_key_slice("selection")
     cross_slice = rmap.get_key_slice("crossover")

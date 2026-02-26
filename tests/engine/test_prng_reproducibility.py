@@ -1,16 +1,15 @@
 """Reproducibility tests across PRNG implementations and key derivation strategies."""
 
 import jax
-import jax.random as jr
 import pytest
 
-from malthusjax.core.random import create_key, PRNGImpl
-from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.core.random import PRNGImpl, create_key
+from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
 
 def make_engine(prng_impl=PRNGImpl.THREEFRY, key_derivation=None):
@@ -76,8 +75,16 @@ def test_reproducibility_across_key_derivation(prng_impl):
     from malthusjax.engine.resource_mapper import KeyDerivationStrategy
 
     e_split = make_engine()
-    e_split = e_split.replace(engine_params=e_split.engine_params.replace(key_derivation=KeyDerivationStrategy.SPLIT))
-    e_fold = e_split.replace(engine_params=e_split.engine_params.replace(key_derivation=KeyDerivationStrategy.FOLD))
+    e_split = e_split.replace(
+        engine_params=e_split.engine_params.replace(
+            key_derivation=KeyDerivationStrategy.SPLIT
+        )
+    )
+    e_fold = e_split.replace(
+        engine_params=e_split.engine_params.replace(
+            key_derivation=KeyDerivationStrategy.FOLD
+        )
+    )
 
     f1, _, _ = e_split.run(e_split.init_state(k), compile=False)
     f1b, _, _ = e_split.run(e_split.init_state(k), compile=False)
