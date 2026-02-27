@@ -7,6 +7,7 @@ import chex
 from ..core.genome.binary_genome import BinaryGenomeConfig
 from ..core.genome.real_genome import RealGenomeConfig
 from ..core.random import resolve_prng_impl
+from ..engine.base import compute_unroll_num
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 
 
@@ -190,6 +191,7 @@ def build_engine(
         pop_size=pop_size,
         num_generations=generations,
         elitism=elitism,
+        unroll_num=compute_unroll_num(generations),
         **prng_extra,
         **{k: v for k, v in kwargs.items() if k in ["mutation_strength_schedule"]},
     )

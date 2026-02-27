@@ -27,6 +27,16 @@ P = TypeVar("P", bound=BasePopulation[Any])  # Population type (parameterized wi
 _field: Any = struct.field  # Helper alias for typed field calls
 
 
+def compute_unroll_num(num_generations: int) -> int:
+    """Compute a reasonable scan unroll factor from the number of generations.
+
+    Returns 10% of *num_generations* clamped to ``[1, num_generations]``.
+    Call this **outside** of any ``@struct.dataclass`` so the value is
+    determined once at construction time, not during JIT tracing.
+    """
+    return min(max(1, num_generations // 10), num_generations)
+
+
 def validate_engine_params(params: "AbstractEngineParams") -> None:
     """
     Validate engine parameters outside of JIT context.
@@ -54,21 +64,14 @@ class AbstractEngineParams:
     - pop_size: Population size (must be > 0).
     - elitism: Number of elite individuals preserved each generation (0 ≤ elitism < pop_size).
     - num_generations: Number of evolution steps (must be > 0).
-    - unroll_num: JAX scan unroll factor for latency/memory trade-off.
-      Auto-tuned to 10% of num_generations (clamped [1, num_generations]).
-      Smaller = more memory, higher latency; larger = less memory, more memory usage.
+    - unroll_num: JAX scan unroll factor for latency/memory trade-off (default 1).
+      Use ``compute_unroll_num(num_generations)`` to auto-tune at construction time.
     """
 
     pop_size: int = _field(pytree_node=False, default=100)
     elitism: int = _field(pytree_node=False, default=0)
     num_generations: int = _field(pytree_node=False, default=50)
     unroll_num: int = _field(pytree_node=False, default=1)
-
-    def __post_init__(self) -> None:
-        # make unroll_num a 10% of num_generations if possible
-        object.__setattr__(
-            self, "unroll_num", min(max(1, self.num_generations // 10), self.num_generations)
-        )
 
 
 @struct.dataclass

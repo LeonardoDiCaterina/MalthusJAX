@@ -3,6 +3,7 @@ from .base import (
     AbstractEngineParams,
     AbstractEvolutionState,
     AbstractGenerationOutput,
+    compute_unroll_num,
 )
 from .genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
 
@@ -16,5 +17,6 @@ __all__ = [
     "GeneticEngine",
     "GeneticEngineParams",
     "GeneticGenerationOutput",
+    "compute_unroll_num",
     # "DiversityAwareEngine",
 ]
