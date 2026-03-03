@@ -56,6 +56,7 @@ __all__ = [
 ]
 
 # --- 3. ENGINE (Top Level) ---
-from .engine.base import AbstractEngine, AbstractEngineParams, AbstractEvolutionState
+from .engine.base import AbstractEngine, AbstractEngineParams, AbstractEvolutionState, compute_unroll_num
 from .engine.genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
+from .engine.schedules import ScheduleType, compute_scheduled_strength
 # from .engine.diversity_engine import DiversityAwareEngine
