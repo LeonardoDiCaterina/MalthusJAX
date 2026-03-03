@@ -207,20 +207,24 @@ selected_idx = active_sel(key_selection, population)
 
 Engines can optionally apply a time-dependent mutation strength schedule to vary exploration over generations.
 
-**Configuration**:
+**Configuration (new — JAX-native)**:
 
 ```python
-def schedule(generation: int) -> float:
-    """Linearly decay mutation strength from 0.5 to 0.01."""
-    return 0.5 * (1.0 - generation / num_generations)
+from malthusjax.engine.schedules import ScheduleType
 
 engine_params = GeneticEngineParams(
     ...,
-    mutation_strength_schedule=schedule
+    schedule_type=ScheduleType.LINEAR_DECAY,
+    initial_strength=0.5,
+    final_strength=0.01,
 )
 ```
 
-The schedule function is called each generation in `_get_active_operators()` and applied to the mutation operator before reproduction.
+Available schedules: `CONSTANT` (default), `LINEAR_DECAY`, `COSINE_ANNEAL`, `EXPONENTIAL_DECAY`.
+
+All schedule computation uses `jnp` operations, so it is safe inside `jax.lax.scan` — no recompilation per generation.
+
+> **Deprecated**: The `mutation_strength_schedule` callable parameter is still accepted for backward compatibility but will be removed in v0.4.0. Prefer the `schedule_type` / `initial_strength` / `final_strength` fields.
 
 ---
 

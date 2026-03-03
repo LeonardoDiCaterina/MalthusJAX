@@ -9,6 +9,8 @@ to enable static allocation and precise "cascade" data flow.
 from enum import Enum
 from typing import Any, NamedTuple, Tuple, cast
 
+import logging
+
 import chex
 import jax
 import jax.numpy as jnp
@@ -19,6 +21,7 @@ from jax.sharding import PartitionSpec as P
 from malthusjax.operators.base import BaseCrossover, BaseMutation, BaseSelection
 
 _field: Any = struct.field  # Helper for typed contexts
+_logger = logging.getLogger(__name__)
 
 
 class KeyDerivationStrategy(Enum):
@@ -109,6 +112,7 @@ class ResourceMap:
     next_key: OperatorAllocation = _field(pytree_node=False)
 
     pop_size: int = _field(pytree_node=False)
+    num_pairs: int = _field(pytree_node=False)
     genome_shape: Tuple[int, ...] = _field(pytree_node=False)
     key_derivation: KeyDerivationStrategy = _field(
         pytree_node=False, default=KeyDerivationStrategy.SPLIT
@@ -163,6 +167,16 @@ def compute_resource_map(
     offspring=2 → pairs=9 → 18 offspring, slice 1 in merge).
     Returns: ResourceMap with allocation details for all 4 operator stages.
     """
+    # --- AR-1: FOLD + RBG guard ---
+    if key_derivation == KeyDerivationStrategy.FOLD:
+        prng_impl = getattr(jax.config, 'jax_default_prng_impl', 'threefry2x32')
+        if prng_impl in ('rbg', 'unsafe_rbg'):
+            raise ValueError(
+                f"KeyDerivationStrategy.FOLD is incompatible with PRNG impl '{prng_impl}'. "
+                "fold_in is not supported for RBG/UNSAFE_RBG backends. "
+                "Use KeyDerivationStrategy.SPLIT or switch to 'threefry2x32'."
+            )
+
     current_key_idx = 0
 
     # Determine genome shape (for metadata)
@@ -213,6 +227,17 @@ def compute_resource_map(
     # This might be slightly larger than pop_size (e.g. 18), we will allow that
     cross_output_count = num_pairs * crossover.num_offspring
 
+    # AR-3: Warn if overproduction exceeds 10%
+    overproduction = cross_output_count - pop_size
+    if overproduction > 0 and overproduction / pop_size > 0.10:
+        _logger.warning(
+            "Crossover overproduction ratio %.1f%% (producing %d offspring for pop_size=%d). "
+            "Consider adjusting pop_size or num_offspring to reduce waste.",
+            100.0 * overproduction / pop_size,
+            cross_output_count,
+            pop_size,
+        )
+
     cross_keys_needed = crossover.num_keys(input_shape=(num_pairs,))
 
     crossover_alloc = OperatorAllocation(
@@ -259,6 +284,7 @@ def compute_resource_map(
         mutation=mutation_alloc,
         next_key=next_key_alloc,
         pop_size=pop_size,
+        num_pairs=num_pairs,
         genome_shape=genome_shape,
         key_derivation=key_derivation,
     )

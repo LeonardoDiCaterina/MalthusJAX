@@ -5,6 +5,7 @@ Refactored for 'Init-Phase Compilation': Resource mapping happens once at initia
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Callable, Optional, Tuple, Type, TypeVar, Union, cast
 
 import chex
@@ -17,9 +18,6 @@ from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, valid
 
 from ..core.base import BaseGenome, BasePopulation
 from ..core.fitness.base import BaseEvaluator
-from ..core.genome.binary_genome import BinaryGenomeConfig, BinaryPopulation
-from ..core.genome.categorical_genome import CategoricalGenomeConfig, CategoricalPopulation
-from ..core.genome.real_genome import RealGenomeConfig, RealPopulation
 from ..operators.base import BaseCrossover, BaseMutation, BaseSelection
 from .base import (
     AbstractEngine,
@@ -33,6 +31,7 @@ from .resource_mapper import (
     ShardingManager,
     compute_resource_map,
 )
+from .schedules import ScheduleType, compute_scheduled_strength
 
 # TODO: update selection doctring
 
@@ -54,18 +53,31 @@ def traceable(name: str) -> Callable[[T], T]:
 class GeneticEngineParams(AbstractEngineParams):
     """
     Configuration for Genetic Engine (extends base params).
+
     - key_derivation: KeyDerivationStrategy for RNG generation.
       SPLIT: Sequential jax.random.split (uncorrelated, single-threaded).
       FOLD: Parallel jax.random.fold_in (deterministic, parallelizable).
-    - mutation_strength_schedule: Optional callable(generation: int) → strength: float.
-      If provided, mutation strength varies by generation (e.g., cooling schedule).
-      Called in _get_active_operators per step with current generation.
+    - schedule_type: ScheduleType enum controlling mutation strength over
+      generations.  ``CONSTANT`` (default) applies no schedule.
+      ``LINEAR_DECAY``, ``COSINE_ANNEAL``, and ``EXPONENTIAL_DECAY`` are
+      pure-JAX schedules safe inside ``jax.lax.scan``.
+    - initial_strength: Mutation strength at generation 0 (used by
+      non-CONSTANT schedules).  Defaults to ``0.1``.
+    - final_strength: Target mutation strength at the last generation
+      (used by LINEAR_DECAY and COSINE_ANNEAL).  Defaults to ``0.0``.
+    - mutation_strength_schedule: **DEPRECATED** — Legacy Python callable.
+      Use ``schedule_type``, ``initial_strength``, ``final_strength`` instead.
     """
 
     key_derivation: KeyDerivationStrategy = _field(
         pytree_node=False, default=KeyDerivationStrategy.SPLIT
     )
     prng_impl: PRNGImpl = _field(pytree_node=False, default=PRNGImpl.THREEFRY)
+    schedule_type: ScheduleType = _field(
+        pytree_node=False, default=ScheduleType.CONSTANT
+    )
+    initial_strength: float = 0.1
+    final_strength: float = 0.0
     mutation_strength_schedule: Optional[Callable[[int], float]] = _field(
         pytree_node=False, default=None
     )
@@ -154,14 +166,42 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
     @traceable("Phase_0a_Get_Active_Operators")
     def _get_active_operators(self, operators: OperatorState, generation: int) -> OperatorState:
-        """Returns OperatorState with scheduled mutation strength baked in."""
-        params = cast(GeneticEngineParams, self.engine_params)
-        if params.mutation_strength_schedule is None:
-            return operators
+        """Returns OperatorState with scheduled mutation strength baked in.
 
-        scheduled_strength = params.mutation_strength_schedule(generation)
+        Uses the JAX-native ``ScheduleType`` enum when set.  Falls back to
+        the **deprecated** ``mutation_strength_schedule`` callable for
+        backward compatibility (emits a ``DeprecationWarning`` once).
+        """
+        params = cast(GeneticEngineParams, self.engine_params)
+
+        # --- Legacy callable path (deprecated) ---------------------------------
+        if params.mutation_strength_schedule is not None:
+            warnings.warn(
+                "mutation_strength_schedule is deprecated and will be removed in "
+                "v0.4.0. Use schedule_type, initial_strength, and final_strength "
+                "on GeneticEngineParams instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            scheduled_strength = params.mutation_strength_schedule(generation)
+            updated_mutation = cast(Any, operators.mutation).replace(
+                mutation_strength=scheduled_strength
+            )
+            return cast(OperatorState, cast(Any, operators).replace(mutation=updated_mutation))
+
+        # --- New JAX-native path ------------------------------------------------
+        if params.schedule_type == ScheduleType.CONSTANT:
+            return operators  # fast path: no struct mutation
+
+        strength = compute_scheduled_strength(
+            params.schedule_type,
+            generation,
+            params.num_generations,
+            params.initial_strength,
+            params.final_strength,
+        )
         updated_mutation = cast(Any, operators.mutation).replace(
-            mutation_strength=scheduled_strength
+            mutation_strength=strength
         )
         return cast(OperatorState, cast(Any, operators).replace(mutation=updated_mutation))
 
@@ -214,19 +254,20 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         p1_idx = parent_indices[:num_pairs]
         p2_idx = parent_indices[num_pairs : num_pairs * 2]
 
-        # Debug assertions (dev-mode checks) 🔍
-        # Parent indices should match expected input_count (2 * num_pairs)
-        assert parent_indices.shape[0] == rmap.crossover.input_count, (
-            "Parent indices length mismatch: "
-            f"got {parent_indices.shape[0]}, expected {rmap.crossover.input_count}"
-        )
+        # Validate parent indices match expected input_count (2 * num_pairs)
+        if parent_indices.shape[0] != rmap.crossover.input_count:
+            raise ValueError(
+                "Parent indices length mismatch: "
+                f"got {parent_indices.shape[0]}, expected {rmap.crossover.input_count}"
+            )
 
         # Keys should be allocated per-pair (uses operator's num_keys contract)
         expected_cross_keys = operators.crossover.num_keys(input_shape=(num_pairs,))
-        assert keys_crossover.shape[0] == expected_cross_keys, (
-            "Crossover keys length mismatch: "
-            f"got {keys_crossover.shape[0]}, expected {expected_cross_keys} (num_pairs={num_pairs})"
-        )
+        if keys_crossover.shape[0] != expected_cross_keys:
+            raise ValueError(
+                "Crossover keys length mismatch: "
+                f"got {keys_crossover.shape[0]}, expected {expected_cross_keys} (num_pairs={num_pairs})"
+            )
 
         p1_pop = population[p1_idx]
         p2_pop = population[p2_idx]
@@ -240,11 +281,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         # This catches operators that report `num_offspring` but actually return a different
         # number of offspring in their `_recombine_one` implementation.
         produced_offspring = jax.tree_util.tree_leaves(offspring_pop.genes)[0].shape[0]
-        assert produced_offspring == rmap.crossover.output_count, (
-            "Crossover produced {produced_offspring} offspring but ResourceMap "
-            f"expected {rmap.crossover.output_count}. Ensure `operator.num_offspring` "
-            "matches the length of the tuple returned by `_recombine_one`."
-        )
+        if produced_offspring != rmap.crossover.output_count:
+            raise ValueError(
+                f"Crossover produced {produced_offspring} offspring but ResourceMap "
+                f"expected {rmap.crossover.output_count}. Ensure `operator.num_offspring` "
+                "matches the length of the tuple returned by `_recombine_one`."
+            )
 
         final_pop = cast(
             BasePopulation[Any],
@@ -427,23 +469,17 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         pop_cls: Type[BasePopulation[Any]]
         cfg: Any
-        if isinstance(self.genome_config, BinaryGenomeConfig):
-            pop_cls = BinaryPopulation
-            cfg = self.genome_config
-        elif isinstance(self.genome_config, RealGenomeConfig):
-            pop_cls = RealPopulation
-            cfg = self.genome_config
-        elif isinstance(self.genome_config, CategoricalGenomeConfig):
-            pop_cls = CategoricalPopulation
-            cfg = self.genome_config
-        else:
-            raise ValueError(f"Unsupported config: {type(self.genome_config)}")
-
         init_pop_key, rng_key = jar.split(rng_key)
 
-        population = cast(Any, pop_cls).init_random(init_pop_key, cfg, self.engine_params.pop_size)
+        # Protocol dispatch: config.init_population() replaces isinstance chain (JR-2)
+        if not hasattr(self.genome_config, 'init_population'):
+            raise ValueError(
+                f"Unsupported genome config: {type(self.genome_config).__name__}. "
+                "Config must implement init_population(key, size) -> BasePopulation."
+            )
+        population = self.genome_config.init_population(init_pop_key, self.engine_params.pop_size)
 
-        target_dtype = cfg.dtype
+        target_dtype = self.genome_config.dtype
 
         def _enforce_layout(leaf: chex.Array) -> chex.Array:
             if hasattr(leaf, "dtype") and jnp.issubdtype(leaf.dtype, jnp.floating):

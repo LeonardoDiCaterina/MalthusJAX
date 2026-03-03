@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 import time
 from abc import ABC, abstractmethod
 from typing import Any, Generic, List, Optional, Tuple, TypeVar, Union, cast
@@ -262,13 +261,14 @@ class AbstractEngine(Generic[G, P], ABC):
         return hlo_text
 
 
-@functools.lru_cache(maxsize=32)
 def _get_evolution_kernel(
     params: AbstractEngineParams, compile_jit: bool = True, unroll_num: int = 1
 ) -> Any:
     """
-    Factory: Builds and caches evolution kernel (jax.lax.scan loop).
-    Caching: lru_cache by params ensures one compilation per config.
+    Factory: Builds evolution kernel (jax.lax.scan loop).
+    JAX's own compilation cache (keyed on static args + input shapes) handles
+    deduplication — an additional lru_cache is redundant and can leak memory
+    by preventing GC of closed-over engine/state references (JR-3).
     Closure pattern: _evolve_loop captures engine as compile-time constant (static_argnums=0).
     This avoids passing engine in scan carry ("light carry"), reducing memory.
     donate_argnums=1 donates initial_state arrays (JIT donation optimization).
