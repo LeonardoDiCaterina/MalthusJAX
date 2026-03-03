@@ -181,7 +181,7 @@ class OptimizedSimpleGA(SimpleGA):
 
 def _build_malthus_ga(pop_size, dims, seed, hypers, problem_evaluator):
     """Standard MalthusJAX GA."""
-    genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
+    genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
     
     mutation = GaussianMutation(
         mutation_rate=hypers.get('mutation_rate', 0.1),
@@ -454,7 +454,7 @@ def build_final_mjx_ga(pop_size, dims, seed, hypers, problem_evaluator):
     - Selection: TopK
     - Precision: FP32
     """
-    genome_config = RealGenomeConfig(length=dims, bounds=(-5.0, 5.0))
+    genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
     
     mutation = GaussianMutation(
         mutation_rate=hypers.get('mutation_rate', 0.1),

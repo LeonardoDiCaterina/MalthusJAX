@@ -349,7 +349,7 @@ def analyze_unroll_impact(
     results = []
 
     # Create genome config
-    genome_config = RealGenomeConfig(length=dim, bounds=(-5.0, 5.0))
+    genome_config = RealGenomeConfig(shape=(dim,), bounds=(-5.0, 5.0))
 
     # Create fitness evaluator using BBOB
     evaluator = create_bbob_evaluator(task, dim)
@@ -443,7 +443,7 @@ def analyze_operator_breakdown(
     the underlying JAX operations that dominate dispatch timing.
     """
     # Create genome config
-    genome_config = RealGenomeConfig(length=dim, bounds=(-5.0, 5.0))
+    genome_config = RealGenomeConfig(shape=(dim,), bounds=(-5.0, 5.0))
 
     # Create fitness evaluator using BBOB
     evaluator = create_bbob_evaluator(task, dim)
