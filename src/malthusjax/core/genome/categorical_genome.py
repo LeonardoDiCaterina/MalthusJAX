@@ -28,6 +28,13 @@ class CategoricalGenomeConfig:
     )
 
 
+    def init_population(
+        self, key: chex.PRNGKey, size: int
+    ) -> BasePopulation[CategoricalGenome]:
+        """Create a random population from this config (protocol method for JR-2)."""
+        return CategoricalPopulation.init_random(key, self, size)
+
+
 @struct.dataclass
 class CategoricalGenome(BaseGenome):
     """Categorical sequence genome for discrete optimization.

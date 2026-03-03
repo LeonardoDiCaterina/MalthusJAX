@@ -39,6 +39,13 @@ class RealGenomeConfig:
     )
 
 
+    def init_population(
+        self, key: chex.PRNGKey, size: int
+    ) -> BasePopulation[RealGenome]:
+        """Create a random population from this config (protocol method for JR-2)."""
+        return RealPopulation.init_random(key, self, size)
+
+
 @struct.dataclass
 class RealGenome(BaseGenome):
     """

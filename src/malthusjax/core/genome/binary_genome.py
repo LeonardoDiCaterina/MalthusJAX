@@ -42,6 +42,12 @@ class BinaryGenomeConfig:
             return (self.length,)
         return self.shape
 
+    def init_population(
+        self, key: chex.PRNGKey, size: int
+    ) -> BasePopulation[BinaryGenome]:
+        """Create a random population from this config (protocol method for JR-2)."""
+        return BinaryPopulation.init_random(key, self, size)
+
 
 @struct.dataclass
 class BinaryGenome(BaseGenome):
