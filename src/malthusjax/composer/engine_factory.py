@@ -187,13 +187,24 @@ def build_engine(
     if prng_impl_str is not None:
         prng_extra["prng_impl"] = resolve_prng_impl(prng_impl_str)
 
+    # Pass through schedule fields (new API) and legacy callable (deprecated)
+    _schedule_keys = [
+        "schedule_type",
+        "initial_strength",
+        "final_strength",
+        "mutation_strength_schedule",
+    ]
+    schedule_extra: Dict[str, Any] = {
+        k: v for k, v in kwargs.items() if k in _schedule_keys
+    }
+
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
         num_generations=generations,
         elitism=elitism,
         unroll_num=compute_unroll_num(generations),
         **prng_extra,
-        **{k: v for k, v in kwargs.items() if k in ["mutation_strength_schedule"]},
+        **schedule_extra,
     )
 
     genetic_engine = GeneticEngine(
