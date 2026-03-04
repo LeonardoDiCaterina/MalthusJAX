@@ -10,6 +10,7 @@ from ..benchmarking import BenchmarkRunner, ExperimentResult, StubEngine
 from ..benchmarking.results import ComparisonResult
 from .catalog import OperatorCatalog
 from .config import load_experiment_config
+from .engine_catalog import EngineRegistry
 from .engine_factory import build_engine_from_catalog
 from .evosax_adapter import build_evosax_engine
 
@@ -29,6 +30,7 @@ class Composer:
         engine: Optional[Any] = None,
         # Backend selection
         backend: str = "malthusjax",
+        engine_type: str = "ga",
         evosax_strategy: str = "SimpleGA",
         # Real operator specifications (malthusjax backend)
         fitness: Optional[str] = None,
@@ -61,6 +63,9 @@ class Composer:
             output_dir: Where to write results
             engine: Pre-built engine (overrides everything if provided)
             backend: ``"malthusjax"`` or ``"evosax"`` (default: ``"malthusjax"``)
+            engine_type: Engine type spec for malthusjax backend, e.g.
+                ``"ga"`` (default), ``"ga:elitism=4"``, or any registered
+                engine.  Use :class:`EngineRegistry` to list/register engines.
             evosax_strategy: Evosax strategy name when backend="evosax"
                 (``"SimpleGA"``, ``"MR15_GA"``, ``"DifferentialEvolution"``)
             fitness: Fitness evaluator spec, e.g. ``"sphere:dim=10"``
@@ -128,6 +133,7 @@ class Composer:
                     selection=selection,
                     crossover=crossover,
                     mutation=mutation,
+                    engine_type=engine_type,
                     genome_type=genome_type,
                     pop_size=pop_size,
                     generations=generations,
@@ -343,22 +349,29 @@ class Composer:
         selection: Optional[str],
         crossover: Optional[str],
         mutation: Optional[str],
+        engine_type: str = "ga",
         **config: Any,
     ) -> Any:
-        """Build real GeneticEngine from operator specs and config."""
+        """Build engine from operator specs and config via EngineRegistry."""
         catalog = OperatorCatalog()
 
-        catalog_operators = {
-            "fitness": catalog.get(fitness or "sphere:dim=10"),
-            "selection": catalog.get(
-                selection
-                or f"tournament:num_selections={config['pop_size'] // 2},tournament_size=3"
-            ),
-            "crossover": catalog.get(crossover or "blend:alpha=0.5"),
-            "mutation": catalog.get(mutation or "gaussian:mutation_rate=0.1"),
-        }
+        resolved_evaluator = catalog.get(fitness or "sphere:dim=10")
+        resolved_selection = catalog.get(
+            selection
+            or f"tournament:num_selections={config['pop_size'] // 2},tournament_size=3"
+        )
+        resolved_crossover = catalog.get(crossover or "blend:alpha=0.5")
+        resolved_mutation = catalog.get(mutation or "gaussian:mutation_rate=0.1")
 
-        return build_engine_from_catalog(catalog_operators, config)
+        engine_registry = EngineRegistry()
+        return engine_registry.get(
+            engine_type,
+            evaluator=resolved_evaluator,
+            selection=resolved_selection,
+            crossover=resolved_crossover,
+            mutation=resolved_mutation,
+            **config,
+        )
 
     def _build_evosax_engine(
         self,
