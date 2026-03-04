@@ -7,6 +7,140 @@
 
 MalthusJAX is a composable, type-safe evolutionary algorithm framework built on JAX and XLA for high-performance population-based optimization and evolutionary computation research. The framework uses a strict 3-level hierarchical architecture with static resource budgeting, functional purity, and explicit compilation boundaries to enable JIT-friendly code without sacrificing algorithm clarity or extensibility.
 
+## Usage Examples
+
+```python
+from malthusjax.composer import Composer
+
+# 1. Create a default composer
+composer = Composer.create_default()
+
+# 2. Run a quick experiment on the Sphere function
+result = composer.quick_run(
+    seeds=[42, 43, 44], 
+    experiment_name="fast_sphere_opt", 
+    output_dir="./results", 
+    fitness="sphere:dim=10", # Optimizing a 10D Sphere function
+    genome_type="real",      # Continuous real numbers
+    genome_length=10,
+    bounds=(-5.0, 5.0),
+    generations=10, 
+    pop_size=32,
+    elitism=2
+)
+
+# 3. View results
+for i in range(3):
+    print(f"Run Status: {result.runs[i].status}")
+    if result.runs[i].history:
+        final_gen = result.runs[i].history[-1]
+        print(f"Final Best Fitness: {final_gen['best_fitness']}")
+```
+
+```python
+import jax
+import jax.random as jar
+
+# MalthusJAX Core & Operators
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
+from malthusjax.operators.selection import ElitePoolSelection
+from malthusjax.operators.crossover import SimulatedBinaryCrossover
+from malthusjax.operators.mutation import GaussianMutation
+from malthusjax.engine import GeneticEngine, GeneticEngineParams
+
+# 1. Define the optimization problem (10-dimensional Sphere function)
+genome_config = RealGenomeConfig(shape=(10,), bounds=(-5.0, 5.0))
+eval_config = BBOBConfig(maximize=False, fn_name="sphere", num_dims=10, seed=42)
+evaluator = BBOBEvaluator.create(eval_config)
+
+# 2. Setup genetic operators
+selection = ElitePoolSelection(num_selections=20, elite_k=2)
+crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)
+mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5)
+
+# 3. Initialize the Engine
+engine_params = GeneticEngineParams(pop_size=32, elitism=2, num_generations=100)
+engine = GeneticEngine(
+    engine_params=engine_params,
+    genome_config=genome_config,
+    evaluator=evaluator,
+    selection=selection,
+    crossover=crossover,
+    mutation=mutation,
+    enable_progress_bar=False
+)
+
+# 4. Run the evolution loop
+key = jar.PRNGKey(42)
+state = engine.init_state(rng_key=key)
+
+print(f"Initial Best Fitness: {state.best_fitness:.6f}")
+
+for i in range(engine_params.num_generations):
+    state, _ = engine.step(state)
+    
+    if (i + 1) % 20 == 0:
+        print(f"Generation {state.generation}: Best Fitness = {state.best_fitness:.6f}")
+
+print(f"\nEvolution Complete! Final Best Fitness: {state.best_fitness:.6f}")
+```
+
+```python
+import jax
+import jax.random as jar
+import jax.numpy as jnp
+
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
+from malthusjax.operators.mutation.real import GaussianMutation
+from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
+
+# 1. Setup the Engine (same as synchronous evolution)
+genome_config = RealGenomeConfig(shape=(3,), bounds=(-5.0, 5.0))
+eval_config = BBOBConfig(maximize=False, fn_name="sphere", num_dims=3, seed=42)
+evaluator = BBOBEvaluator.create(eval_config)
+
+engine = GeneticEngine(
+    engine_params=GeneticEngineParams(pop_size=30, elitism=2, num_generations=100),
+    genome_config=genome_config,
+    evaluator=evaluator,
+    selection=ElitePoolSelection(num_selections=30, elite_k=3),
+    crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
+    mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5)
+)
+
+# Initialize state
+key = jar.PRNGKey(42)
+state = engine.init_state(key)
+
+# Mock function to represent an external fitness evaluation
+def evaluate_remotely(population):
+    # Imagine this sends data to a cluster, runs a physics simulation, etc.
+    # Here we just use the built-in evaluator for demonstration
+    return engine.evaluator.evaluate_population(population)
+
+print(f"Initial Best Fitness: {state.best_fitness:.6f}")
+
+# 2. The Ask/Tell Loop
+for i in range(100): # Number of generations
+    # ASK: Get the engine ready with entropy, and grab the current population
+    engine_with_entropy, population = engine.ask(state)
+    
+    # EXTERNALLY EVALUATE: Calculate fitness outside the standard JAX loop
+    evaluated_pop = evaluate_remotely(population)
+    
+    # TELL: Return the evaluated population to generate the next state
+    state = engine_with_entropy.tell(state, evaluated_pop)
+    
+    if (i + 1) % 20 == 0:
+        print(f"Generation {state.generation}: Best Fitness = {state.best_fitness:.6f}")
+
+print(f"\nEvolution Complete! Final Best Fitness: {state.best_fitness:.6f}")
+```
+
 ## Core Design Principles
 
 **Immutability & PyTree Compatibility**: All state uses Flax `struct.dataclass` (immutable) to enable safe JIT compilation and transparent tracing. Configuration classes are marked `pytree_node=False` to avoid tracing static metadata.
