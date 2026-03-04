@@ -439,6 +439,264 @@ class MyOperator(BaseMutation):
 
 ---
 
+## Composer: Config-Driven Experiment Orchestration
+
+The **Composer** sits at Level 3.5 of the architecture and provides a product-first API for assembling, running, and comparing evolutionary experiments. It unifies the MalthusJAX engine pipeline with evosax interoperability, multi-seed benchmarking, and TOML-based configuration — all through a single entry point.
+
+### Quick Start
+
+```python
+from malthusjax.composer import Composer
+
+composer = Composer.create_default()
+
+# One-call experiment: specify operators as string specs
+result = composer.quick_run(
+    fitness="sphere:dim=10",
+    selection="tournament:num_selections=25,tournament_size=3",
+    crossover="blend:alpha=0.5",
+    mutation="gaussian:mutation_rate=0.1",
+    pop_size=100,
+    generations=200,
+    seeds=(42, 43, 44),
+)
+
+print(result.aggregated_summary())
+```
+
+### Architecture Overview
+
+The Composer brings together four subsystems:
+
+| Component | Module | Role |
+|-----------|--------|------|
+| **OperatorCatalog** | `composer/catalog.py` | Resolves operator string specs → instances |
+| **EngineRegistry** | `composer/engine_catalog.py` | Resolves engine string specs → configured engines |
+| **EvosaxAdapter** | `composer/evosax_adapter.py` | Wraps evosax ask/tell strategies for interop |
+| **BenchmarkRunner** | `benchmarking/runner.py` | Multi-seed execution with artifact I/O |
+
+Data flow:
+
+```
+String specs  →  OperatorCatalog  →  operator instances  ─┐
+                 EngineRegistry   →  engine factory       ─┼→ BenchmarkRunner → ExperimentResult
+                                                           │
+TOML config   →  load_experiment_config  → shared+pipeline ┘
+```
+
+### String Specification Format
+
+All operators and engines use a unified spec format: `"name:param1=value1,param2=value2"`
+
+**Operator Specs** (resolved by `OperatorCatalog`):
+
+| Category | Examples |
+|----------|----------|
+| **Selection** | `"tournament:num_selections=50,tournament_size=3"`, `"roulette"`, `"elite_pool"` |
+| **Crossover** | `"blend:alpha=0.5"`, `"simulated_binary:eta=2.0"`, `"binomial"`, `"uniform_real"` |
+| **Mutation** | `"gaussian:mutation_rate=0.1"`, `"polynomial:mutation_rate=0.05"`, `"ball"` |
+| **Fitness** | `"sphere:dim=10"`, `"bbob:fn_name=rastrigin,dim=5"`, `"griewank"`, `"knapsack"` |
+
+**Engine Specs** (resolved by `EngineRegistry`):
+
+| Engine | Spec | Description |
+|--------|------|-------------|
+| **GA** | `"ga"`, `"ga:pop_size=200,elitism=4"` | Standard genetic algorithm (`GeneticEngine`) |
+
+Custom engines can be registered at runtime:
+
+```python
+from malthusjax.composer import EngineRegistry
+
+reg = EngineRegistry()
+reg.register("nsga2", my_nsga2_factory, defaults={"pop_size": 100})
+print(reg.list_available())  # ['ga', 'nsga2']
+```
+
+### Composer.quick_run()
+
+The primary entry point. Supports two backends:
+
+**MalthusJAX backend** (default) — builds a `GeneticEngine` from operator specs:
+
+```python
+result = composer.quick_run(
+    backend="malthusjax",       # default
+    engine_type="ga",           # resolved via EngineRegistry
+    fitness="sphere:dim=10",
+    selection="tournament:num_selections=25,tournament_size=3",
+    crossover="blend:alpha=0.5",
+    mutation="gaussian:mutation_rate=0.1",
+    pop_size=100,
+    generations=200,
+    genome_length=10,
+    bounds=(-5.0, 5.0),
+    elitism=2,
+    prng_impl="threefry",       # or "philox" for GPU
+    seeds=(42, 43, 44),
+)
+```
+
+**Evosax backend** — wraps evosax population-based strategies (ask/tell):
+
+```python
+result = composer.quick_run(
+    backend="evosax",
+    evosax_strategy="SimpleGA",   # or "MR15_GA", "DifferentialEvolution"
+    fitness="sphere:dim=10",
+    pop_size=100,
+    generations=200,
+)
+```
+
+Both backends return an `ExperimentResult` with identical structure, enabling direct cross-framework comparison.
+
+### Composer.compare()
+
+Run multiple pipelines with aligned seeds and optional shared initial population:
+
+```python
+cmp = composer.compare(
+    pipelines={
+        "Blend+Gaussian": dict(
+            crossover="blend:alpha=0.5",
+            mutation="gaussian:mutation_rate=0.1",
+        ),
+        "SBX+Polynomial": dict(
+            crossover="simulated_binary:eta=2",
+            mutation="polynomial:mutation_rate=0.1",
+        ),
+        "Evosax SimpleGA": dict(
+            backend="evosax",
+            evosax_strategy="SimpleGA",
+        ),
+    },
+    # Shared across all pipelines:
+    fitness="sphere:dim=10",
+    pop_size=50,
+    generations=100,
+    seeds=(42, 43),
+)
+
+# Comparison analysis
+cmp.summary_table()        # Per-pipeline aggregated metrics
+cmp.convergence_data()     # Per-generation history for plotting
+cmp.plot_convergence()     # Matplotlib overlay plot
+```
+
+`ComparisonResult` automatically normalises fitness values across backends (MalthusJAX uses a maximisation convention internally; evosax uses minimisation). The `negate_map` ensures all displayed values follow a unified "lower is better" convention.
+
+### TOML-Driven Experiments
+
+Define experiments declaratively in TOML and run with a single call:
+
+```toml
+# experiment.toml
+[experiment]
+name = "crossover_comparison"
+output_dir = "results/crossover_comparison"
+
+[experiment.shared]
+fitness       = "sphere:dim=10"
+selection     = "tournament:num_selections=25,tournament_size=3"
+mutation      = "gaussian:mutation_rate=0.1"
+engine_type   = "ga"
+pop_size      = 50
+generations   = 100
+genome_length = 10
+bounds        = [-5.0, 5.0]
+seeds         = [42, 43, 44]
+prng_impl     = "threefry"
+
+[pipelines.blend_ga]
+backend   = "malthusjax"
+crossover = "blend:alpha=0.5"
+
+[pipelines.sbx_ga]
+backend   = "malthusjax"
+crossover = "simulated_binary:eta=2.0"
+
+[pipelines.evosax_simple]
+backend         = "evosax"
+evosax_strategy = "SimpleGA"
+```
+
+```python
+result = Composer.from_toml("experiment.toml")
+result.plot_convergence()
+```
+
+`from_toml()` merges `[experiment.shared]` defaults with per-pipeline overrides, generates a shared initial population for fair comparison, and returns a `ComparisonResult`.
+
+### Result Objects
+
+The Composer returns structured result objects from the benchmarking module:
+
+| Class | Contents |
+|-------|----------|
+| `RunResult` | Single-seed data: status, metrics, per-generation history, timings |
+| `ExperimentResult` | Multi-seed: list of `RunResult`, aggregated summary, combined history |
+| `ComparisonResult` | Multi-pipeline: dict of `ExperimentResult`, summary table, convergence plotting |
+
+```python
+# ExperimentResult API
+result.aggregated_summary()    # {metric: {mean, median, stdev}}
+result.combined_history()      # Flattened history across all seeds
+result.canonical_summary       # First run's metrics
+
+# ComparisonResult API
+cmp.summary_table()            # {pipeline: {metric: value}}
+cmp.convergence_data()         # {pipeline: [{generation, best_fitness, ...}]}
+cmp.plot_convergence()         # Matplotlib convergence overlay
+cmp.names                      # Pipeline names in insertion order
+```
+
+Artifacts (JSON summaries, CSV histories) are written automatically to the output directory when `write_artifacts=True`.
+
+### EngineRegistry
+
+The `EngineRegistry` provides a catalog pattern for engine types, paralleling the `OperatorCatalog` for operators. Engines self-register at import time via `engine/__init__.py`.
+
+```python
+from malthusjax.composer import EngineRegistry
+
+reg = EngineRegistry()
+
+# Introspection
+reg.list_available()           # ['ga']
+reg.get_help("ga")             # Docstring + defaults
+reg.parse_spec("ga:pop_size=200")  # ('ga', {'pop_size': 200})
+
+# Direct instantiation (requires operator instances)
+engine = reg.get(
+    "ga:pop_size=100",
+    evaluator=sphere_eval,
+    selection=tournament,
+    crossover=blend,
+    mutation=gaussian,
+    generations=200,
+)
+
+# Runtime registration
+def my_nsga2_factory(evaluator, selection, crossover, mutation, **kw):
+    return MyNSGA2Engine(evaluator=evaluator, ...)
+
+reg.register("nsga2", my_nsga2_factory, defaults={"pop_size": 100})
+```
+
+The `engine_type` parameter in `quick_run()` routes through the `EngineRegistry`:
+
+```python
+# Use registered engine type
+result = composer.quick_run(
+    engine_type="ga:elitism=4",
+    fitness="sphere:dim=10",
+    ...
+)
+```
+
+---
+
 ## 📚 Layer-Specific Technical Documentation
 
 Each layer provides detailed technical specifications for developers implementing or extending components:
@@ -454,6 +712,10 @@ Each layer provides detailed technical specifications for developers implementin
 
 ### Level 3: Engines
 - [Engine Architecture](src/malthusjax/engine/README.md) — Execution model, ResourceMap contract, key derivation strategies (SPLIT vs FOLD), init-phase compilation
+
+### Level 3.5: Composer & Benchmarking
+- [Composer Demo](examples/_DEMO_COMPOSER/) — Interactive notebooks, TOML config examples, quick reference
+- [Benchmarking Infrastructure](src/malthusjax/benchmarking/) — Multi-seed runner, result objects, artifact I/O
 
 ---
 
@@ -546,9 +808,9 @@ make type-check     # mypy with strict settings
 
 These features are currently under development:
 
-- **Benchmarking Suite**: Comprehensive performance profiling tools (execution model analysis, dispatch vs compute overhead quantification)
-- **Composer Framework**: Meta-algorithm orchestration for multi-population and island-model evolution
 - **Visualization Tools**: HLO graph profiling, evolution trace analysis, population diversity visualization
+- **Island-Model Evolution**: Multi-population migration topologies via Composer pipelines
+- **Additional Engine Types**: NSGA-II, CMA-ES, and other strategies in the EngineRegistry
 
 See [docs/](docs/) for design documents and progress tracking.
 
