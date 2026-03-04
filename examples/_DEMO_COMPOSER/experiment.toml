@@ -6,6 +6,7 @@ output_dir = "results/crossover_comparison"
 fitness       = "sphere:dim=10"
 selection     = "tournament:num_selections=25,tournament_size=3"
 mutation      = "gaussian:mutation_rate=0.1"
+engine_type   = "ga"                     # Engine from EngineRegistry (default: "ga")
 pop_size      = 50
 generations   = 100
 genome_length = 10
