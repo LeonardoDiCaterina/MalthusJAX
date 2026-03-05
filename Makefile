@@ -55,6 +55,10 @@ test-failing:
 	  tests/engine/test_genetic_engine_scheduling.py \
 	  tests/operators/mutation/test_real_mutation.py
 
+run_failing:
+	@echo "--- Rerunning only the tests that failed last time (uses pytest cache) ---"
+	python -m pytest --last-failed -v
+
 test-fixes:
 	@echo "--- Running recently fixed tests ---"
 	python -m pytest --no-cov -v \

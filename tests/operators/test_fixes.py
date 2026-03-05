@@ -327,9 +327,9 @@ class TestFullEvolutionPipeline:
 
         # Select parents
         selector = TournamentSelection(num_selections=4, tournament_size=3)
-        indices = selector(keys[1], pop)
+        parent_idx, elite_idx = selector(keys[1], pop)
 
-        parents = pop[indices]
+        parents = pop[parent_idx]
         assert len(parents) == 4
 
         # Crossover

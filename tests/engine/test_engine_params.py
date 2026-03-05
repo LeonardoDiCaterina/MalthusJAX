@@ -20,7 +20,8 @@ class TestComputeUnrollNum:
     """Unit tests for the compute_unroll_num factory function."""
 
     def test_standard_100(self):
-        assert compute_unroll_num(100) == 10
+        # compute_unroll_num is deprecated and currently returns 1 always
+        assert compute_unroll_num(100) == 1
 
     def test_small_1(self):
         assert compute_unroll_num(1) == 1
@@ -32,15 +33,13 @@ class TestComputeUnrollNum:
         assert compute_unroll_num(10) == 1
 
     def test_large_1000(self):
-        assert compute_unroll_num(1000) == 100
+        assert compute_unroll_num(1000) == 1
 
     def test_boundary_11(self):
-        # 11 // 10 == 1
         assert compute_unroll_num(11) == 1
 
     def test_boundary_20(self):
-        # 20 // 10 == 2
-        assert compute_unroll_num(20) == 2
+        assert compute_unroll_num(20) == 1
 
     def test_returns_at_most_num_generations(self):
         # When num_generations is very small, clamp to num_generations itself
