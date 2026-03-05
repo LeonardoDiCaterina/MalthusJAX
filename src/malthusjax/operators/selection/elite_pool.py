@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 import chex
 import jax
-import jax.lax
+import jax.numpy as jnp
 import jax.random
 from flax import struct
 
@@ -23,7 +23,7 @@ class ElitePoolSelection(BaseSelection[P, C]):
     Strategy: Restrict selection to top elite_k individuals, sample uniformly from pool.
     Shape contract: fitness (pop_size,) → selected_indices (num_selections,).
     Key budget: 1 pre-allocated subkey (randint for pool sampling).
-    Performance: O(N log K) via jax.lax.top_k for elite filtering; O(1) per sample.
+    Performance: O(N) via jnp.argpartition for elite filtering; O(1) per sample.
     Trade-off: High exploitation (best genes preserved) vs low diversity (limited gene pool).
     Use when: Final refinement phase or small elite trusted pool (K << N).
     """
@@ -48,7 +48,9 @@ class ElitePoolSelection(BaseSelection[P, C]):
             rng = keys if keys.ndim == 0 else keys[0]
         else:
             rng = keys if keys.ndim <= 1 else keys[0]
-        _, best_k_indices = jax.lax.top_k(fitness, self.elite_k)
+        # jnp.argpartition(-fitness, k) gives top-k indices in O(N) — order
+        # within the pool is arbitrary but irrelevant since we sample randomly.
+        best_k_indices = jnp.argpartition(-fitness, self.elite_k)[: self.elite_k]
         random_selections = jax.random.randint(
             rng, shape=(self.num_selections,), minval=0, maxval=self.elite_k
         )

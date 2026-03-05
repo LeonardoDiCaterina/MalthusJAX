@@ -218,14 +218,16 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     ) -> Tuple[Any, chex.Array]:
         """
         Select parents via elite preservation + selection operator (Phase 1).
-        Elite handling: If elitism > 0, top_k extracts elite_idx, returns genes (0 leading rows).
-        If elitism == 0, empty genes tree preserves structure for JAX tree_map.
+        Elite handling: If elitism > 0, argpartition extracts elite_idx in O(N)
+        (vs top_k O(N log N)). Returns genes (0 leading rows when elitism==0).
         Selection output: selected_idx indices into population (shape: (num_selections,)).
         Returns: (elites_genes tree, selected_indices for mating).
         """
-        # Handle zero-elitism safely: top_k with k=0 is invalid
+        # Handle zero-elitism safely: argpartition with k=0 is invalid
         if params.elitism > 0:
-            _, elite_idx = jax.lax.top_k(population.fitness, params.elitism)
+            # jnp.argpartition(-fitness, k) gives the k indices with the
+            # largest fitness values in O(N) — no full sort needed.
+            elite_idx = jnp.argpartition(-population.fitness, params.elitism)[: params.elitism]
             elites_genes = population[elite_idx].genes
         else:
             # Create empty "genes" structure with 0 leading rows to preserve tree shape
