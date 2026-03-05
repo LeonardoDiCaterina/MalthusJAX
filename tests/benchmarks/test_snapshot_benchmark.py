@@ -928,6 +928,42 @@ class TestStepPhaseBreakdown:
         benchmark.name = "05_trackbest_light"
         benchmark(_run_light)
 
+    def test_elite_topk_vs_argpartition(self, benchmark):
+        """Direct comparison: jax.lax.top_k vs jnp.argpartition for elite selection.
+
+        Isolates just the index-extraction kernel at pop=500, elite_k=250.
+        Run this after applying the argpartition fix to confirm the speedup.
+        """
+        import jax.lax as lax
+
+        fitness = jax.random.uniform(jr.PRNGKey(0), (self._POP,))
+        elite_k = self._POP // 2
+
+        # top_k baseline
+        jit_topk = jax.jit(lambda f: lax.top_k(f, elite_k)[1])
+        jit_topk(fitness).block_until_ready()  # warm up
+
+        # argpartition challenger
+        jit_argpart = jax.jit(lambda f: jnp.argpartition(-f, elite_k)[:elite_k])
+        jit_argpart(fitness).block_until_ready()  # warm up
+
+        # Benchmark argpartition (current impl after the fix)
+        def _run_argpart():
+            idx = jit_argpart(fitness)
+            idx.block_until_ready()
+
+        benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = "06_argpartition_vs_topk"
+        benchmark(_run_argpart)
+
+        # Also print top_k time for reference via a single timed call
+        import time
+        t0 = time.perf_counter()
+        for _ in range(200):
+            jit_topk(fitness).block_until_ready()
+        topk_mean_us = (time.perf_counter() - t0) / 200 * 1e6
+        print(f"\n  [ref] top_k mean ≈ {topk_mean_us:.1f} µs  (argpartition above for comparison)")
+
 
 # ============================================================================
 # BENCHMARK GROUP 8 — Scaling Sweep
