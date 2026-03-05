@@ -228,13 +228,17 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             # jnp.argpartition(-fitness, k) gives the k indices with the
             # largest fitness values in O(N) — no full sort needed.
             elite_idx = jnp.argpartition(-population.fitness, params.elitism)[: params.elitism]
-            elites_genes = population[elite_idx].genes
+            # tree_map directly on genes avoids the extra fitness[elite_idx] gather
+            # and temporary BasePopulation reconstruction that population[idx].genes incurs.
+            elites_genes = jax.tree_util.tree_map(lambda x: x[elite_idx], population.genes)
         else:
             # Create empty "genes" structure with 0 leading rows to preserve tree shape
             elites_genes = jax.tree_util.tree_map(lambda x: x[:0], population.genes)
 
-        selected_idx = cast(chex.Array, operators.selection(key_selection, population))
-        # parents = population[selected_idx]
+        # Pass population.fitness directly — BaseSelection.__call__ uses getattr(.fitness)
+        # but passing the full population pytree makes XLA bind genes buffers to the
+        # selection kernel unnecessarily.
+        selected_idx = cast(chex.Array, operators.selection(key_selection, population.fitness))
 
         return elites_genes, selected_idx
 
