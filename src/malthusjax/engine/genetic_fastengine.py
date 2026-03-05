@@ -267,7 +267,18 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         Returns: (elites_genes tree, selected_indices for mating).
         """
         # Selection operator returns (parent_indices, elite_indices) tuple.
-        parent_idx, elite_idx = operators.selection(key_selection, population.fitness)
+        # The engine always assumes a maximization convention, so we must
+        # convert the fitness values when solving a minimization problem.
+        # ``maximize`` is pulled from the evaluator config (default True).
+        maximize = getattr(self.evaluator.config, "maximize", True)
+        if maximize:
+            sel_fitness = population.fitness
+        else:
+            # flip sign so that lower raw fitness becomes higher for the
+            # downstream selectors which all use ``argmax`` semantics.
+            sel_fitness = -population.fitness
+
+        parent_idx, elite_idx = operators.selection(key_selection, sel_fitness)
 
         # Extract elite genes using tree_map
         if params.elitism > 0:

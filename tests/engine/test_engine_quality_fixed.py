@@ -201,6 +201,77 @@ class TestEngineDeterminism(unittest.TestCase):
         self.assertEqual(result1, result2, "Same seed should produce same result")
 
 
+class TestBBobMinimizationProgress(unittest.TestCase):
+    """Regression guard for #CV-4: minimisation problems must make repeated progress.
+
+    Although earlier optimisation-direction tests covered the sign logic, they
+    exercised only simple synthetic functions (sphere) that return strictly
+    non-negative values.  BBOB problems can produce both positive and negative
+    fitness values, and the engine previously failed to respect the
+    ``maximize=False`` flag during selection.  The bug manifested as a one‑step
+    improvement followed by complete stagnation (delta_best==0) in the snapshot
+    benchmarks.
+
+    This test instantiates a small BBOB engine with ``maximize=False`` and
+    verifies that the best fitness continues to decrease (more negative) over a
+    handful of generations, which would not occur if selection were inverted.
+    """
+
+    def test_bbob_minimization_improves(self):
+        from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+        from malthusjax.core.genome.real_genome import RealGenomeConfig
+        from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+        from malthusjax.operators.crossover.real import UniformCrossover
+        from malthusjax.operators.mutation.real import GaussianMutation
+        from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
+        from malthusjax.engine.schedules import TrackBest
+        import jax.random as jar
+
+        # small-scale experiment to keep test fast
+        pop_size = 50
+        dims = 3
+        seed = 42
+
+        genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
+        bbob_config = BBOBConfig(fn_name="sphere", num_dims=dims, seed=seed, maximize=False)
+        evaluator = BBOBEvaluator.create(bbob_config)
+
+        elite_k = max(1, int(pop_size * 0.5))
+        selection = ElitePoolSelection(num_selections=pop_size, elite_k=elite_k)
+        crossover = UniformCrossover(num_offspring=2, crossover_rate=0.5)
+        mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
+
+        params = GeneticEngineParams(
+            pop_size=pop_size,
+            num_generations=10,
+            elitism=elite_k,
+            track_best=TrackBest.LIGHT,
+        )
+
+        engine = GeneticEngine(
+            evaluator=evaluator,
+            genome_config=genome_config,
+            selection=selection,
+            crossover=crossover,
+            mutation=mutation,
+            engine_params=params,
+            enable_progress_bar=False,
+        )
+
+        state = engine.init_state(jar.PRNGKey(seed))
+        best_history = [float(state.best_fitness)]
+        for _ in range(10):
+            state, output = engine.step(state)
+            best_history.append(float(output.best_fitness))
+
+        # at least one subsequent generation should have produced a lower best
+        # fitness than the initial value (more negative implies improvement).
+        self.assertTrue(
+            any(b < best_history[0] for b in best_history[1:]),
+            f"no improvement seen, history={best_history}",
+        )
+
+
 class TestOptimizationDirectionRealGenome(unittest.TestCase):
     """Test that engine correctly maximizes or minimizes with real genome.
 
