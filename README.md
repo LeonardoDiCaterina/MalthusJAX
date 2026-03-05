@@ -1,13 +1,147 @@
-# MalthusJAX: A JAX-Native Evolutionary Computation Framework
+# MalthusJAX
 
-[![JAX](https://img.shields.io/badge/JAX-0.4+-blue.svg)](https://github.com/google/jax)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](http://mypy-lang.org/)
-[![Coverage](https://img.shields.io/badge/coverage-80%25+-brightgreen.svg)](https://github.com/pytest-dev/pytest-cov)
+[![JAX](https://img.shields.io/badge/JAX-0.4+-blue.svg)](https://github.com/google/jax)  
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)  
+[![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](http://mypy-lang.org/)  
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-MalthusJAX is a composable, type-safe evolutionary algorithm framework built on JAX and XLA for high-performance population-based optimization and evolutionary computation research. The framework uses a strict 3-level hierarchical architecture with static resource budgeting, functional purity, and explicit compilation boundaries to enable JIT-friendly code without sacrificing algorithm clarity or extensibility.
+A JAX‑native evolutionary computation framework that lets you
+configure and compare algorithms with a single TOML file.  
+Run GPU‑speed, multi‑seed benchmarks out of the box and extend every
+layer without sacrificing performance.
 
-## Usage Examples
+---
+
+## Installation
+
+```sh
+# regular install from PyPI or local source
+pip install malthusjax
+
+# development build (runs linters, type‑checks, tests)
+make install-dev
+```
+
+Python 3.8+ is required (see `pyproject.toml`).
+
+---
+
+## Quick start
+
+Write an experiment in TOML:
+
+```toml
+# experiment.toml
+[experiment]
+name       = "sphere_test"
+output_dir = "results/sphere"
+
+[experiment.shared]
+fitness       = "sphere:dim=10"
+genome_type   = "real"
+genome_length = 10
+bounds        = [ -5.0, 5.0 ]
+pop_size      = 64
+generations   = 100
+seeds         = [ 42, 43, 44 ]
+
+[pipelines.ga]
+engine_type = "ga"
+selection   = "tournament:num_selections=64,tournament_size=3"
+crossover   = "simulated_binary:eta=15"
+mutation    = "gaussian:mutation_rate=0.1"
+```
+
+Load and execute in Python:
+
+```python
+from malthusjax.composer import Composer
+
+result = Composer.from_toml("experiment.toml")
+print(result.summary_table())
+result.plot_convergence()
+```
+
+The Composer handles multi‑seed runner, artifact logging and optional
+`backend="evosax"` comparison automatically.
+
+---
+
+## Modular ecosystem
+
+Three interchangeable layers let you build algorithms like Lego:
+
+* **Core** – `BaseGenome`, `BasePopulation`, fitness evaluators.
+* **Operators** – selection, crossover, mutation; each a `@struct.dataclass`
+  callable that jit‑compiles cleanly.
+* **Engines** – evolution strategies (`GeneticEngine` by default),
+  assembled through the Composer or by hand.
+
+Swap components at will; type checks ensure compatibility, and the JAX
+compiler never recompiles once an experiment begins.
+
+---
+
+## Extensibility example
+
+Subclass a base class for a custom operator:
+
+```python
+import jax
+import jax.numpy as jnp
+from flax import struct
+from malthusjax.operators.mutation import BaseMutation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
+
+@struct.dataclass
+class ElitePerturbation(BaseMutation):
+    num_offspring: int = struct.field(pytree_node=False)
+    step: float        = struct.field(pytree_node=False)
+
+    @property
+    def num_keys_per_atomic_operation(self):
+        return 1
+
+    def _generate_noise(self, keys, cfg: RealGenomeConfig):
+        return jax.random.uniform(keys[0], shape=cfg.shape)
+
+    def _mutate_one(self, genome: RealGenome, noise, cfg: RealGenomeConfig):
+        mask = jnp.where(noise < 0.5, 0.0, self.step)
+        return genome.replace(values=genome.values + mask)
+```
+
+Use it in any pipeline as you would a built‑in operator. You can extend
+genomes, evaluators or even engines the same way; the JIT and training
+loop remain intact.
+
+---
+
+## Performance story
+
+All components are pure functions with a pre‑computed RNG budget.
+Random sampling, arithmetic and vectorised loops fuse into a single
+XLA kernel (the “Three‑Tier Architecture”).  This yields GPU‑level
+throughput with **zero recompilation** after the first generation.
+
+---
+
+## Ecosystem interoperability
+
+Turn on `backend="evosax"` in `Composer.quick_run()` or `compare()` to
+benchmark against industry‑standard strategies while keeping the same
+API, seed alignment and result objects.
+
+---
+
+## Documentation – deep dive
+
+* [Genome & population](src/malthusjax/core/genome/README.md)  
+* [Fitness evaluators](src/malthusjax/core/fitness/README.md)  
+* [Engine architecture](src/malthusjax/engine/README.md)
+
+---
+
+MIT Licensed · Python 3.8+ · [Homepage](https://github.com/LeonardoDiCaterina/MalthusJAX)
 
 ```python
 from malthusjax.composer import Composer
