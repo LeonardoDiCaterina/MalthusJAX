@@ -40,6 +40,7 @@ from malthusjax.engine.genetic_fastengine import (
     GeneticEngineParams,
     GeneticEvolutionState,
 )
+from malthusjax.engine.schedules import TrackBest
 from malthusjax.operators.crossover.real import UniformCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
@@ -55,6 +56,7 @@ DIMENSIONS = [10, 50]
 POP_SIZES = [100, 500]
 NUM_GENERATIONS_SHORT = 50
 NUM_GENERATIONS_LONG = 500
+UNROLL_FACTORS = [1, 5, 10, 25]  # lax.scan unroll sweep
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +71,8 @@ def _build_malthusjax_engine(
     num_generations: int = 1,
     elite_ratio: float = 0.5,
     selection_type: str = "elite_pool",
+    unroll_num: int = 1,
+    track_best: TrackBest = TrackBest.LIGHT,
 ) -> GeneticEngine:
     """Build a ready-to-use MalthusJAX GeneticEngine."""
     genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
@@ -90,6 +94,8 @@ def _build_malthusjax_engine(
         pop_size=pop_size,
         num_generations=num_generations,
         elitism=elite_count,
+        unroll_num=unroll_num,
+        track_best=track_best,
     )
 
     return GeneticEngine(
@@ -202,6 +208,7 @@ class MalthusJAXBenchEngine:
     problem: str = "sphere"
     num_generations: int = NUM_GENERATIONS_LONG
     elite_ratio: float = 0.5
+    unroll_num: int = 1
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
         engine = _build_malthusjax_engine(
@@ -210,6 +217,7 @@ class MalthusJAXBenchEngine:
             problem=self.problem,
             num_generations=self.num_generations,
             elite_ratio=self.elite_ratio,
+            unroll_num=self.unroll_num,
         )
         t0 = time.time()
         state = engine.init_state(key)
@@ -721,7 +729,208 @@ class TestConvergenceParity:
 
 
 # ============================================================================
-# BENCHMARK GROUP 6 — Scaling Sweep
+# BENCHMARK GROUP 6 — Unroll Factor Sweep
+# ============================================================================
+
+
+class TestUnrollSweep:
+    """Measure how lax.scan unroll_num affects per-generation throughput.
+
+    Higher unroll values allow XLA to fuse more steps into one HLO program,
+    reducing dispatch overhead at the cost of compile time and peak memory.
+    Run at fixed pop=100, d=10 to isolate the unroll effect cleanly.
+
+    Benchmark: N-generation scan wall-clock time at each unroll factor.
+    """
+
+    # Fixed config so results are directly comparable
+    _POP = 100
+    _DIMS = 10
+    _GENS = 50  # Short enough to keep memory per unroll level reasonable
+
+    @pytest.mark.parametrize("unroll", UNROLL_FACTORS)
+    def test_malthusjax_unroll_scan(self, benchmark, unroll: int):
+        """MalthusJAX: {_GENS}-gen scan at unroll={unroll}."""
+        bench_engine = MalthusJAXBenchEngine(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=self._GENS,
+            unroll_num=unroll,
+        )
+        # Warm-up (compile with this unroll factor)
+        bench_engine.run_once(jr.PRNGKey(0))
+
+        def _run():
+            result = bench_engine.run_once(jr.PRNGKey(SEED))
+            assert result["summary"]["best_fitness"] is not None
+
+        benchmark.group = f"unroll_scan_{self._GENS}gen/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = f"unroll_{unroll}"
+        benchmark(_run)
+
+
+# ============================================================================
+# BENCHMARK GROUP 7 — Step Phase Breakdown (MalthusJAX only)
+# ============================================================================
+
+
+class TestStepPhaseBreakdown:
+    """Isolate and benchmark each phase of GeneticEngine.step() independently.
+
+    Explains the single-step latency gap vs evosax by attributing cost to:
+      Phase 0 — PRNG allocation (4-way jr.split)
+      Phase 1 — Selection  (top_k for elites + selection operator)
+      Phase 2 — Reproduction (crossover vmap + mutation vmap)
+      Phase 3a — Merge (dynamic_update_slice buffer reuse)
+      Phase 3b — Evaluate (BBOB fitness vmap)
+
+    All phases are JIT-compiled individually over a warm state so XLA
+    cost models are representative.  pop=500, d=10 to match the config
+    where the single-step gap is most visible.
+    """
+
+    _POP = 500
+    _DIMS = 10
+
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        engine = _build_malthusjax_engine(self._POP, self._DIMS)
+        key = jr.PRNGKey(SEED)
+        state, jit_step = _malthusjax_init_and_warmup(engine)
+        self.engine = engine
+        self.state = state
+        self.jit_step = jit_step
+
+    def test_full_step(self, benchmark):
+        """Full engine step — baseline for phase sum."""
+        state = self.state
+
+        def _run():
+            s, _ = self.jit_step(state)
+            s.best_fitness.block_until_ready()
+
+        benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = "00_full_step"
+        benchmark(_run)
+
+    def test_phase0_entropy(self, benchmark):
+        """Phase 0: 4-way PRNG split (_allocate_entropy)."""
+        state = self.state
+        jit_entropy = jax.jit(self.engine._allocate_entropy)
+        # Warm up
+        out = jit_entropy(state)
+        out[0].block_until_ready()
+
+        def _run():
+            keys = jit_entropy(state)
+            keys[0].block_until_ready()
+
+        benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = "01_entropy"
+        benchmark(_run)
+
+    def test_phase1_selection(self, benchmark):
+        """Phase 1: elite top_k + selection operator."""
+        state = self.state
+        engine = self.engine
+
+        k_sel, _, _, _ = engine._allocate_entropy(state)
+
+        jit_sel = jax.jit(
+            lambda k, pop, ops, params: engine._selection_phase(k, pop, ops, params)
+        )
+        # Warm up
+        _, idx = jit_sel(k_sel, state.population, state.operators, engine.engine_params)
+        idx.block_until_ready()
+
+        def _run():
+            _, idx = jit_sel(k_sel, state.population, state.operators, engine.engine_params)
+            idx.block_until_ready()
+
+        benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = "02_selection"
+        benchmark(_run)
+
+    def test_phase2_reproduction(self, benchmark):
+        """Phase 2: crossover vmap + mutation vmap."""
+        state = self.state
+        engine = self.engine
+
+        k_sel, k_cross, k_mut, _ = engine._allocate_entropy(state)
+        _, parent_indices = engine._selection_phase(
+            k_sel, state.population, state.operators, engine.engine_params
+        )
+
+        jit_repro = jax.jit(
+            lambda kc, km, pidx, pop, ops, rmap: engine._reproduction_phase(
+                kc, km, pidx, pop, ops, rmap
+            )
+        )
+        out_pop = jit_repro(
+            k_cross, k_mut, parent_indices,
+            state.population, state.operators, state.resource_map,
+        )
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), out_pop)
+
+        def _run():
+            pop = jit_repro(
+                k_cross, k_mut, parent_indices,
+                state.population, state.operators, state.resource_map,
+            )
+            jax.tree_util.tree_map(lambda x: x.block_until_ready(), pop)
+
+        benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = "03_reproduction"
+        benchmark(_run)
+
+    def test_phase3b_evaluate(self, benchmark):
+        """Phase 3b: fitness evaluation only."""
+        state = self.state
+        engine = self.engine
+
+        jit_eval = jax.jit(
+            lambda genes, s: engine._evaluate(genes, s)
+        )
+        out = jit_eval(state.population.genes, state)
+        out.fitness.block_until_ready()
+
+        def _run():
+            pop = jit_eval(state.population.genes, state)
+            pop.fitness.block_until_ready()
+
+        benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = "04_evaluate"
+        benchmark(_run)
+
+    def test_track_best_full_vs_light(self, benchmark):
+        """Compare step latency: TrackBest.LIGHT (default) vs FULL (argmax+gather+where)."""
+        engine_full = _build_malthusjax_engine(
+            self._POP, self._DIMS, track_best=TrackBest.FULL
+        )
+        state_full, jit_full = _malthusjax_init_and_warmup(engine_full)
+
+        engine_light = _build_malthusjax_engine(
+            self._POP, self._DIMS, track_best=TrackBest.LIGHT
+        )
+        state_light, jit_light = _malthusjax_init_and_warmup(engine_light)
+
+        # Benchmark FULL
+        def _run_full():
+            s, _ = jit_full(state_full)
+            s.best_fitness.block_until_ready()
+
+        # Benchmark LIGHT
+        def _run_light():
+            s, _ = jit_light(state_light)
+            s.best_fitness.block_until_ready()
+
+        benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = "05_trackbest_light"
+        benchmark(_run_light)
+
+
+# ============================================================================
+# BENCHMARK GROUP 8 — Scaling Sweep
 # ============================================================================
 
 
