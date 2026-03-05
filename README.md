@@ -120,6 +120,12 @@ Random sampling, arithmetic and vectorised loops fuse into a single
 XLA kernel (the “Three‑Tier Architecture”).  This yields GPU‑level
 throughput with **zero recompilation** after the first generation.
 
+*By default the engine disables per‑phase tracing labels to allow full
+kernel fusion; if you need HLO profiler annotations for debugging, set
+`GeneticEngineParams(debug_tracing=True)` or call
+`malthusjax.engine.genetic_fastengine.enable_tracing()` before
+initialization.*
+
 ---
 
 ## Ecosystem interoperability

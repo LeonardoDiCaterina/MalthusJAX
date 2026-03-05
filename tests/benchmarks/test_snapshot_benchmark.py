@@ -732,12 +732,24 @@ class TestConvergenceParity:
         table = comparison.summary_table()
         mjx_best = table["malthusjax"]["best_fitness"]
         esx_best = table["evosax"]["best_fitness"]
+        mjx_start = table["malthusjax"].get("start_best_fitness")
+        mjx_end = table["malthusjax"].get("end_best_fitness")
+        mjx_delta = table["malthusjax"].get("delta_best")
+        esx_start = table["evosax"].get("start_best_fitness")
+        esx_end = table["evosax"].get("end_best_fitness")
+        esx_delta = table["evosax"].get("delta_best")
 
         print(
             f"\n  [{problem} d={dims}]  (mean over {len(seeds)} seeds)"
-            f"\n    MalthusJAX best_fitness = {mjx_best:.6f}"
-            f"\n    Evosax     best_fitness = {esx_best:.6f}"
+            f"\n    MalthusJAX best_fitness = {mjx_best:.6f}, start={mjx_start}, end={mjx_end}, Δ={mjx_delta}"
+            f"\n    Evosax     best_fitness = {esx_best:.6f}, start={esx_start}, end={esx_end}, Δ={esx_delta}"
         )
+
+        # also log metrics from each run for debugging
+        for name in comparison.names:
+            print(f"\n  {name} per-run metrics:")
+            for run in comparison.pipelines[name].runs:
+                print(f"    seed={run.seed} metrics={run.metrics}")
 
         # ---- Convergence history from first seed ----
         conv = comparison.convergence_data(seed_index=0)
