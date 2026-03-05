@@ -142,17 +142,6 @@ class TestAskTellInterface(unittest.TestCase):
         )
         self.assertTrue(genes_match)
 
-    def test_tell_updates_stagnation_counter(self):
-        """Test that tell() correctly updates stagnation counter."""
-        # No improvement case
-        no_improvement_pop = self.state.population
-
-        engine_with_entropy, _ = self.engine.ask(self.state)
-        updated_state = engine_with_entropy.tell(self.state, no_improvement_pop)
-
-        # Stagnation counter should increment
-        self.assertEqual(updated_state.stagnation_counter, self.state.stagnation_counter + 1)
-
     def test_multiple_ask_tell_cycles_maintain_consistency(self):
         """Test that multiple cycles maintain state consistency."""
         state = self.state

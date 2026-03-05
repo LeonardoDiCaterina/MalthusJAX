@@ -42,7 +42,6 @@ class ConcreteEngine(AbstractEngine):
             best_genome=None,  # type: ignore
             generation=0,
             best_fitness=jnp.array(-1.0),
-            stagnation_counter=0,
             rng_key=rng_key,
         )
 

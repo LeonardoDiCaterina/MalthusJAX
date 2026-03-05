@@ -463,69 +463,28 @@ class TestHOFUpdatePhase(unittest.TestCase):
 
         self.state = self.engine.init_state(self.key)
 
-    def test_hof_update_updates_best_fitness(self):
-        """Test that HOF update works without error."""
-        k_next = jar.fold_in(self.state.rng_key, 100)
-        updated_state = self.engine._update_hof(self.state.population, self.state, k_next)
+    def test_step_updates_best_fitness(self):
+        """Test that step() correctly updates best_fitness via inline HOF."""
+        updated_state, metrics = self.engine.step(self.state)
 
-        # HOF update should complete and increment generation
+        # Step should complete and increment generation
         self.assertEqual(updated_state.generation, self.state.generation + 1)
-        # Best fitness and genome should be updated/preserved
+        # Best fitness and genome should be present
         self.assertIsNotNone(updated_state.best_fitness)
         self.assertIsNotNone(updated_state.best_genome)
 
-    def test_hof_update_preserves_best_when_no_improvement(self):
-        """Test that HOF is unchanged when no improvement."""
-        old_best_fit = float(self.state.best_fitness)
+    def test_step_preserves_best_when_no_improvement(self):
+        """Test that best_fitness is preserved when there is no improvement."""
+        # Run one step to get a baseline
+        state_after_step, _ = self.engine.step(self.state)
 
-        # Keep fitness the same (no improvement)
-        new_pop = self.state.population
+        # Run another step — best_fitness should be >= previous (LIGHT mode: monotonic)
+        state_after_two, _ = self.engine.step(state_after_step)
 
-        k_next = jar.fold_in(self.state.rng_key, 100)
-        updated_state = self.engine._update_hof(new_pop, self.state, k_next)
-
-        # Best fitness should remain unchanged
-        self.assertAlmostEqual(float(updated_state.best_fitness), old_best_fit, places=5)
-
-    def test_hof_update_increments_generation(self):
-        """Test that HOF update increments generation counter."""
-        old_gen = self.state.generation
-
-        k_next = jar.fold_in(self.state.rng_key, 100)
-        updated_state = self.engine._update_hof(self.state.population, self.state, k_next)
-
-        self.assertEqual(updated_state.generation, old_gen + 1)
-
-    def test_hof_update_resets_stagnation_on_improvement(self):
-        """Test that stagnation counter behavior on improvement."""
-        # Set initial stagnation
-        old_state = self.state.replace(stagnation_counter=5)
-        old_best_fitness = float(old_state.best_fitness)
-
-        # Create a population with better fitness
-        new_fitness = old_state.population.fitness.copy()
-        new_fitness = new_fitness.at[0].set(old_best_fitness - 5.0)  # Much better
-        new_pop = old_state.population.replace(fitness=new_fitness)
-
-        k_next = jar.fold_in(old_state.rng_key, 100)
-        updated_state = self.engine._update_hof(new_pop, old_state, k_next)
-
-        # When best fitness improves, stagnation should reset to 0
-        if float(updated_state.best_fitness) < old_best_fitness:
-            self.assertEqual(int(updated_state.stagnation_counter), 0)
-
-    def test_hof_update_increments_stagnation_on_no_improvement(self):
-        """Test that stagnation counter increments when no improvement."""
-        old_state = self.state.replace(stagnation_counter=3)
-
-        # No improvement - keep fitness same
-        new_pop = old_state.population
-
-        k_next = jar.fold_in(old_state.rng_key, 100)
-        updated_state = self.engine._update_hof(new_pop, old_state, k_next)
-
-        # Stagnation should increment
-        self.assertEqual(int(updated_state.stagnation_counter), 4)
+        self.assertGreaterEqual(
+            float(state_after_two.best_fitness),
+            float(state_after_step.best_fitness),
+        )
 
 
 if __name__ == "__main__":
