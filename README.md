@@ -1,9 +1,6 @@
 # MalthusJAX
 
-[![JAX](https://img.shields.io/badge/JAX-0.4+-blue.svg)](https://github.com/google/jax)  
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)  
-[![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](http://mypy-lang.org/)  
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![JAX](https://img.shields.io/badge/JAX-0.4+-blue.svg)](https://github.com/google/jax)[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)[![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](http://mypy-lang.org/)[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A JAX‑native evolutionary computation framework that lets you
 configure and compare algorithms with a single TOML file.  
