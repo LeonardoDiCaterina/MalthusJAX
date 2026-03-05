@@ -6,7 +6,7 @@ from .base import (
     compute_unroll_num,
 )
 from .genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
-from .schedules import ScheduleType, compute_scheduled_strength
+from .schedules import ScheduleType, TrackBest, compute_scheduled_strength
 
 # from .diversity_engine import DiversityAwareEngine
 
@@ -19,6 +19,7 @@ __all__ = [
     "GeneticEngineParams",
     "GeneticGenerationOutput",
     "ScheduleType",
+    "TrackBest",
     "compute_scheduled_strength",
     "compute_unroll_num",
     # "DiversityAwareEngine",

@@ -82,8 +82,12 @@ class AbstractEvolutionState(Generic[G, P]):
     - best_genome (G): Best individual found so far (shape: (...genome_shape)).
     - generation (int): Current generation counter (increments each step).
     - best_fitness (Array): Scalar fitness of best_genome.
-    - stagnation_counter (int): Generations since improvement (resets on new best).
     - rng_key (Array): Master PRNG key for next generation (shape: (2,)).
+
+    .. note::
+       ``stagnation_counter`` was removed in Phase 4 (FB-4).  It is now
+       computable post-hoc as
+       ``jnp.diff(jnp.maximum.accumulate(history.best_fitness)) == 0``.
     """
 
     # --- CRITICAL: Population and Best Individual ---
@@ -93,7 +97,6 @@ class AbstractEvolutionState(Generic[G, P]):
     # --- Metadata ---
     generation: int
     best_fitness: chex.Array
-    stagnation_counter: int
     rng_key: chex.Array
 
 

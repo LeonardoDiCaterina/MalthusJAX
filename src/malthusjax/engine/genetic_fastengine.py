@@ -31,7 +31,7 @@ from .resource_mapper import (
     ShardingManager,
     compute_resource_map,
 )
-from .schedules import ScheduleType, compute_scheduled_strength
+from .schedules import ScheduleType, TrackBest, compute_scheduled_strength
 
 # TODO: update selection doctring
 
@@ -75,6 +75,9 @@ class GeneticEngineParams(AbstractEngineParams):
     prng_impl: PRNGImpl = _field(pytree_node=False, default=PRNGImpl.THREEFRY)
     schedule_type: ScheduleType = _field(
         pytree_node=False, default=ScheduleType.CONSTANT
+    )
+    track_best: TrackBest = _field(
+        pytree_node=False, default=TrackBest.LIGHT
     )
     initial_strength: float = 0.1
     final_strength: float = 0.0
@@ -304,9 +307,14 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     ) -> Any:
         """
         Merge elite preservation + mutation results (Phase 3a).
-        Strategy: Preserve top elites, fill remainder with mutant offspring.
-        Slicing: num_elites from elites_genes + (pop_size - num_elites) from mutants.
-        Returns: Concatenated genes tree ready for evaluation.
+
+        Uses ``jax.lax.dynamic_update_slice`` instead of ``jnp.concatenate``
+        (FB-3) so that the output buffer can be donated by XLA — the
+        concatenate op always allocates a new buffer, defeating donation.
+
+        Strategy: Pre-allocate output via ``jnp.empty_like``, write elites
+        into rows ``[0, num_elites)``, then mutants into
+        ``[num_elites, pop_size)``.
         """
         target_size = len(old_state.population)
 
@@ -316,9 +324,22 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         mutants_keep = jax.tree_util.tree_map(lambda x: x[:num_mutants], mutant_genes)
 
-        next_genes = jax.tree_util.tree_map(
-            lambda e, m: jnp.concatenate([e, m], axis=0), elites_genes, mutants_keep
-        )
+        # Use the old population's genes as the destination buffer so that
+        # XLA can reuse / donate the memory instead of allocating afresh.
+        def _fuse(old: jnp.ndarray, elite: jnp.ndarray, mutant: jnp.ndarray) -> jnp.ndarray:
+            # Start from old buffer (will be overwritten in-place by XLA)
+            buf = old
+            if num_elites > 0:
+                start = tuple([0] * len(buf.shape))
+                buf = jax.lax.dynamic_update_slice(buf, elite, start)
+            mutant_start = tuple([num_elites] + [0] * (len(buf.shape) - 1))
+            buf = jax.lax.dynamic_update_slice(buf, mutant, mutant_start)
+            return buf
+
+        # Get old population genes as the base buffer
+        old_genes = old_state.population.genes
+
+        next_genes = jax.tree_util.tree_map(_fuse, old_genes, elites_genes, mutants_keep)
 
         return next_genes
 
@@ -330,53 +351,13 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         evaluated_pop = self.evaluator.evaluate_population(new_population)
         return evaluated_pop
 
-    @traceable("Phase_3c_Update_HOF")
-    def _update_hof(
-        self,
-        evaluated_pop: BasePopulation[Any],
-        old_state: GeneticEvolutionState,
-        k_next: chex.Array,
-    ) -> GeneticEvolutionState:
-        best_idx = jnp.argmax(evaluated_pop.fitness)
-        curr_best_fit = evaluated_pop.fitness[best_idx]
-        is_new = curr_best_fit > old_state.best_fitness
-
-        # Extract best genome by indexing genes directly (best_idx is a JAX array, not Python int)
-        best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], evaluated_pop.genes)
-        old_tree: Any = jax.tree_util.tree_structure(old_state.best_genome)
-        cand_tree: Any = jax.tree_util.tree_structure(best_candidate)
-        if old_tree != cand_tree:
-            old_struct = jax.tree_util.tree_map(lambda _: old_state.best_genome, best_candidate)
-        else:
-            old_struct = old_state.best_genome
-
-        new_best_genome = jax.lax.cond(
-            is_new,
-            lambda _: best_candidate,
-            lambda _: old_struct,
-            operand=None,
-        )
-
-        next_state = cast(
-            GeneticEvolutionState,
-            cast(Any, old_state).replace(
-                population=evaluated_pop,
-                best_genome=new_best_genome,
-                best_fitness=jnp.where(is_new, curr_best_fit, old_state.best_fitness),
-                stagnation_counter=jnp.where(is_new, 0, old_state.stagnation_counter + 1),
-                generation=old_state.generation + 1,
-                rng_key=k_next,
-                # operators=old_state.operators (Implicitly preserved by replace)
-                # resource_map=old_state.resource_map (Implicitly preserved)
-            ),
-        )
-        return next_state
-
     @traceable("GeneticEngine_Step")
     def step(
         self, state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]]
     ) -> Tuple[GeneticEvolutionState, GeneticGenerationOutput]:
         state = cast(GeneticEvolutionState, state)
+        params = cast(GeneticEngineParams, self.engine_params)
+
         k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
 
         # Get operators with scheduled mutation strength baked in
@@ -393,26 +374,98 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         new_pop = self._evaluate(next_genes, state)
 
-        final_state = self._update_hof(new_pop, state, k_next)
+        # ------------------------------------------------------------------
+        # Inline HOF update (replaces _update_hof — FB-4)
+        #
+        # Python-level branching on ``track_best`` is safe because it is a
+        # ``pytree_node=False`` field — only one branch is ever traced.
+        # ------------------------------------------------------------------
+        gen_best_fitness = jnp.max(new_pop.fitness)  # O(N) reduction, fusible
 
-        # 7. HOOKS & METRICS
-        # for hook in self.hooks:
-        #   final_state = hook(final_state, self.engine_params)
+        if params.track_best == TrackBest.NONE:
+            # No tracking: pass through unchanged, report per-gen best
+            new_best_fitness = state.best_fitness
+            new_best_genome = state.best_genome
+            metric_best = gen_best_fitness  # per-gen, NOT monotonic
+        elif params.track_best == TrackBest.LIGHT:
+            # Scalar running max only — no genome in carry
+            new_best_fitness = jnp.maximum(gen_best_fitness, state.best_fitness)
+            new_best_genome = state.best_genome
+            metric_best = new_best_fitness  # monotonic
+        else:  # TrackBest.FULL
+            # Full tracking: argmax + Gather + element-wise jnp.where
+            is_new = gen_best_fitness > state.best_fitness
+            new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
+            best_idx = jnp.argmax(new_pop.fitness)
+            best_candidate = jax.tree_util.tree_map(
+                lambda x: x[best_idx], new_pop.genes
+            )
+            new_best_genome = jax.tree_util.tree_map(
+                lambda n, o: jnp.where(is_new, n, o),
+                best_candidate,
+                state.best_genome,
+            )
+            metric_best = new_best_fitness  # monotonic
+
+        final_state = cast(
+            GeneticEvolutionState,
+            cast(Any, state).replace(
+                population=new_pop,
+                best_genome=new_best_genome,
+                best_fitness=new_best_fitness,
+                generation=state.generation + 1,
+                rng_key=k_next,
+            ),
+        )
 
         metrics = GeneticGenerationOutput(
-            best_fitness=final_state.best_fitness,
+            best_fitness=metric_best,
             mean_fitness=jnp.mean(new_pop.fitness),
             generation=final_state.generation,
             random_key=final_state.rng_key,
         )
 
-        """if self.enable_progress_bar:
-            jax.debug.callback(
-                lambda g, f: print(f"Gen {g}: {f:.4f}"),
-                final_state.generation, final_state.best_fitness
-            )"""
-
         return final_state, metrics
+
+    def run(
+        self,
+        initial_state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]],
+        time_it: bool = False,
+        compile: bool = True,
+        verbose: bool = False,
+    ) -> Tuple[AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any]:
+        """Execute evolution and apply post-scan finalization.
+
+        Delegates the main scan loop to ``AbstractEngine.run()``, then
+        populates ``best_genome`` (and ``best_fitness`` for NONE mode)
+        from the final population.  This one-shot O(N) ``argmax``
+        replaces the per-step Gather that LIGHT/NONE modes skip.
+        """
+        final_state, history, elapsed_time = super().run(
+            initial_state, time_it=time_it, compile=compile, verbose=verbose
+        )
+        params = cast(GeneticEngineParams, self.engine_params)
+
+        if params.track_best in (TrackBest.NONE, TrackBest.LIGHT):
+            best_idx = jnp.argmax(final_state.population.fitness)
+            final_best_genome = jax.tree_util.tree_map(
+                lambda x: x[best_idx], final_state.population.genes
+            )
+            final_state = cast(
+                GeneticEvolutionState,
+                cast(Any, final_state).replace(best_genome=final_best_genome),
+            )
+
+        if params.track_best == TrackBest.NONE:
+            best_idx = jnp.argmax(final_state.population.fitness)
+            final_state = cast(
+                GeneticEvolutionState,
+                cast(Any, final_state).replace(
+                    best_fitness=final_state.population.fitness[best_idx]
+                ),
+            )
+
+        return final_state, history, elapsed_time
 
     def init_state(self, rng_key: Union[int, chex.Array]) -> GeneticEvolutionState:
         """
@@ -520,7 +573,6 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             best_fitness=evaluated_pop.fitness[best_idx],
             generation=0,
             rng_key=rng_key,
-            stagnation_counter=0,
             resource_map=rmap,
             operators=op_state,
         )
@@ -550,34 +602,36 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         k_sel, k_cross, k_mut, k_next = self._entropy_buffer
 
         state = cast(GeneticEvolutionState, cast(Any, state).replace(population=population))
-        # HOF Update (Partial)
-        best_idx = jnp.argmax(population.fitness)
-        curr_best_fit = population.fitness[best_idx]
-        is_new = curr_best_fit > state.best_fitness
-        # Extract best candidate using tree_map in case best_idx is a JAX array
-        best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], population.genes)
-        # Ensure both branches return the same pytree structure.
-        if jax.tree_util.tree_structure(state.best_genome) != jax.tree_util.tree_structure(
-            best_candidate
-        ):
-            state_struct = jax.tree_util.tree_map(lambda _: state.best_genome, best_candidate)
-        else:
-            state_struct = state.best_genome
 
-        new_best_genome = jax.lax.cond(
-            is_new,
-            lambda _: best_candidate,
-            lambda _: state_struct,
-            operand=None,
+        # ------------------------------------------------------------------
+        # Inline HOF update — always FULL in tell() (FB-4)
+        #
+        # Unlike step() (which runs inside jax.lax.scan), tell() runs
+        # eagerly so the per-call overhead of argmax+Gather+where is
+        # negligible.  Users of the ask/tell API expect best_genome to
+        # be correctly maintained.
+        # ------------------------------------------------------------------
+        gen_best_fitness = jnp.max(population.fitness)
+        is_new = gen_best_fitness > state.best_fitness
+        new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
+        best_idx = jnp.argmax(population.fitness)
+        best_candidate = jax.tree_util.tree_map(
+            lambda x: x[best_idx], population.genes
         )
+        new_best_genome = jax.tree_util.tree_map(
+            lambda n, o: jnp.where(is_new, n, o),
+            best_candidate,
+            state.best_genome,
+        )
+
         state = cast(
             GeneticEvolutionState,
             cast(Any, state).replace(
                 best_genome=new_best_genome,
-                best_fitness=jnp.where(is_new, curr_best_fit, state.best_fitness),
-                stagnation_counter=jnp.where(is_new, 0, state.stagnation_counter + 1),
+                best_fitness=new_best_fitness,
             ),
         )
+
         elites, parent_indices = self._selection_phase(
             k_sel, state.population, state.operators, self.engine_params
         )
@@ -600,8 +654,5 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                 population=next_population, generation=state.generation + 1, rng_key=k_next
             ),
         )
-
-        # for hook in self.hooks:
-        #    final_state = hook(final_state, self.engine_params)
 
         return final_state
