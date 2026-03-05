@@ -51,8 +51,7 @@ class TestEvosaxUniformCrossoverWrapper(unittest.TestCase):
             return jax.vmap(lambda m: jnp.where(m, p2.values, p1.values), in_axes=0)(mask_block)
 
         vals = jax.vmap(per_pair)(masks, self.parents_1.genes, self.parents_2.genes)
-        transposed = jnp.transpose(vals, (1, 0) + tuple(range(2, vals.ndim)))
-        expected = transposed.reshape((-1,) + transposed.shape[2:])
+        expected = vals.reshape((-1,) + vals.shape[2:])
 
         self.assertTrue(jnp.allclose(offspring.genes.values, expected))
 

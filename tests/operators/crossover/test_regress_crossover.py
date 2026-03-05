@@ -68,8 +68,8 @@ def test_binary_uniform_mask_semantics():
     assert jnp.array_equal(offm.values, expected)
 
 
-def test_offspring_major_flattening():
-    """Regression test to ensure offspring-major flattening ordering remains stable."""
+def test_pair_major_flattening():
+    """Regression test: crossover flatten is pair-major (no transpose, FB-1)."""
     input_length = 3
     num_offspring = 2
     gene_dim = 4
@@ -78,13 +78,13 @@ def test_offspring_major_flattening():
         input_length, num_offspring, gene_dim
     )
 
-    # same transformation used by BaseCrossover: transpose then reshape
-    transposed = jnp.transpose(nested, (1, 0, 2))
-    flattened = transposed.reshape((-1, gene_dim))
+    # Pair-major: just reshape (no transpose).
+    flattened = nested.reshape((-1, gene_dim))
 
-    # expected concatenation order:
-    #   - offspring 0 across all pairs
-    #   - offspring 1 across all pairs
-    expected = jnp.concatenate([nested[:, o, :] for o in range(num_offspring)], axis=0)
+    # Expected concatenation order:
+    #   - all offspring for pair 0
+    #   - all offspring for pair 1
+    #   - all offspring for pair 2
+    expected = jnp.concatenate([nested[p, :, :] for p in range(input_length)], axis=0)
 
     assert jnp.array_equal(flattened, expected)

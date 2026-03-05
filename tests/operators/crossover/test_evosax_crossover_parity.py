@@ -48,7 +48,6 @@ def test_matches_evosax_direct():
         children.append(jnp.stack(pair_children))
     arr = jnp.stack(children)
 
-    transposed = jnp.transpose(arr, (1, 0) + tuple(range(2, arr.ndim)))
-    expected = transposed.reshape((-1,) + transposed.shape[2:])
+    expected = arr.reshape((-1,) + arr.shape[2:])
 
     assert jnp.allclose(offspring_wrapper.genes.values, expected)
