@@ -89,8 +89,8 @@ test-bench:
 	python -m pytest tests/benchmarks/ --no-cov -v --tb=short --ignore=tests/benchmarks/test_snapshot_benchmark.py
 
 test-bench-snapshot:
-	@echo "--- Running pytest-benchmark snapshot suite ---"
-	python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v --benchmark-only
+	@echo "--- Running pytest-benchmark snapshot suite (requires: make install-bench) ---"
+	python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v
 
 docs:
 	@echo "--- Building Sphinx HTML documentation ---"
