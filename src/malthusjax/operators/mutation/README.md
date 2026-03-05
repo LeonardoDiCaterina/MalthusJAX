@@ -74,8 +74,8 @@ def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> chex.Ar
   - Use nested vmap: outer over parents, inner over offspring per parent.
   - Each offspring gets its own deterministic key block.
   - Fuse RNG + arithmetic via `_mutate_fused()` for XLA kernel fusion.
-  - Flatten offspring from parent-major `(pop_size, num_offspring, ...)` to offspring-major `(num_offspring * pop_size, ...)`.
-  - Return new population via `spawn_offspring()` with reset fitness.
+  - Flatten offspring from `(pop_size, num_offspring, ...)` to `(pop_size * num_offspring, ...)` via direct `reshape` (no transpose).
+  - Return new population via `spawn_offspring()`.
 
 **Key Reshaping**:
 
@@ -83,16 +83,16 @@ def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> chex.Ar
 all_keys.reshape(pop_size, num_offspring, num_keys_per_atomic_operation, 2)
 ```
 
-**Offspring-Major Flattening**:
+**Pair-Major Flattening**:
 
 ```python
 def flatten_fn(x: chex.Array) -> chex.Array:
     # x shape: (pop_size, num_offspring, ...)
-    transposed = jnp.transpose(x, (1, 0) + tuple(range(2, x.ndim)))  # -> (num_offspring, pop_size, ...)
-    return transposed.reshape((-1,) + transposed.shape[2:])  # -> (num_offspring * pop_size, ...)
+    # Direct reshape — no transpose. Same rationale as crossover (see FB-1).
+    return x.reshape((-1,) + x.shape[2:])  # -> (pop_size * num_offspring, ...)
 ```
 
-**Result**: All offspring 0 from all parents come first, then offspring 1, etc. This is the **offspring-major** order used throughout MalthusJAX.
+**Result**: All offspring for parent 0 come first, then all offspring for parent 1, etc. This is the **pair-major** order (consistent with crossover).
 
 ---
 
@@ -166,13 +166,14 @@ def _mutate_one(self, genome, noise_data, config):
     return genome.replace(values=mutated)
 ```
 
-**Step 5: Offspring-Major Flattening**
+**Step 5: Pair-Major Flattening**
 ```python
 # nested shape: (4, 2, 10)
-transposed = jnp.transpose(nested_offspring, (1, 0, 2))  # -> (2, 4, 10)
-flattened = transposed.reshape((8, 10))  # -> (num_offspring * pop_size, 10)
-# Result: [offspring0_parent0, offspring0_parent1, offspring0_parent2, offspring0_parent3,
-#          offspring1_parent0, offspring1_parent1, offspring1_parent2, offspring1_parent3]
+flattened = nested_offspring.reshape((8, 10))  # -> (pop_size * num_offspring, 10)
+# Result: [parent0_offspring0, parent0_offspring1,
+#          parent1_offspring0, parent1_offspring1,
+#          parent2_offspring0, parent2_offspring1,
+#          parent3_offspring0, parent3_offspring1]
 ```
 
 ---
@@ -193,7 +194,7 @@ The codebase provides tests that validate:
 - **Tier 1 correctness**: `_mutate_one` produces expected arithmetic results (e.g., zero noise → no change).
 - **Statistical properties**: Mean/std of generated noise match expected distributions.
 - **Dtype safety**: No implicit type promotion with `config.dtype=jnp.bfloat16`.
-- **Offspring-major ordering**: Flattened offspring match expected layout.
+- **Pair-major ordering**: Flattened offspring match expected layout (direct `reshape`, no transpose).
 
 ---
 
@@ -229,7 +230,7 @@ When implementing a new mutation operator:
   - Verify shape/dtype of `_generate_noise()`.
   - Test zero-noise case (genome unchanged).
   - Verify mutation_rate empirically over 100+ samples.
-  - Check offspring-major ordering.
+  - Check pair-major ordering.
   - Check no dtype promotion.
 
 ---

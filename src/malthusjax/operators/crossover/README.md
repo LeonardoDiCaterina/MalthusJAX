@@ -70,8 +70,8 @@ def _generate_noise(self, keys: chex.PRNGKey, config: RealGenomeConfig) -> Tuple
   - Use nested vmap: outer over parent pairs, inner over offspring per pair.
   - Each offspring gets its own deterministic key block.
   - Fuse RNG + arithmetic via `_cross_fused()` for XLA kernel fusion.
-  - Transpose and flatten offspring from pair-major `(num_pairs, num_offspring, ...)` to offspring-major `(num_offspring * num_pairs, ...)`.
-  - Return new population via `spawn_offspring()` with reset fitness.
+  - Flatten offspring from `(num_pairs, num_offspring, ...)` to `(num_pairs * num_offspring, ...)` via direct `reshape` (no transpose).
+  - Return new population via `spawn_offspring()`.
 
 **Key Reshaping**:
 
@@ -79,16 +79,25 @@ def _generate_noise(self, keys: chex.PRNGKey, config: RealGenomeConfig) -> Tuple
 all_keys.reshape(num_pairs, num_offspring, num_keys_per_atomic_operation, 2)
 ```
 
-**Offspring-Major Flattening**:
+**Pair-Major Flattening**:
 
 ```python
 def flatten_fn(x: chex.Array) -> chex.Array:
     # x shape: (num_pairs, num_offspring, ...)
-    transposed = jnp.transpose(x, (1, 0) + tuple(range(2, x.ndim)))  # -> (num_offspring, num_pairs, ...)
-    return transposed.reshape((-1,) + transposed.shape[2:])  # -> (num_offspring * num_pairs, ...)
+    # Direct reshape — no transpose needed. Output ordering is irrelevant
+    # to downstream mutation/merge/evaluation, and avoiding the transpose
+    # eliminates a physical data copy that would break XLA fusion (see FB-1).
+    return x.reshape((-1,) + x.shape[2:])  # -> (num_pairs * num_offspring, ...)
 ```
 
-**Result**: All offspring 0 from all pairs come first, then offspring 1, etc. This is the **offspring-major** order used throughout MalthusJAX.
+**Result**: All offspring for pair 0 come first, then all offspring for pair 1, etc. This is the **pair-major** order.
+
+> **Design note (FB-1)**: Earlier versions used an offspring-major ordering via
+> `jnp.transpose`. This forced XLA to materialize a physical data copy, creating
+> a fusion barrier between crossover and downstream mutation. Since the engine's
+> merge phase treats all offspring identically (truncation via `[:num_mutants]`),
+> the ordering is semantically irrelevant. Removing the transpose eliminates the
+> copy and enables XLA to fuse crossover → mutation into a single kernel.
 
 ---
 
@@ -159,13 +168,14 @@ def _recombine_one(self, p1, p2, noise_data, config):
     return p1.replace(values=offspring)
 ```
 
-**Step 5: Offspring-Major Flattening**
+**Step 5: Pair-Major Flattening**
 ```python
 # nested shape: (4, 2, 5)
-transposed = jnp.transpose(nested_offspring, (1, 0, 2))  # -> (2, 4, 5)
-flattened = transposed.reshape((8, 5))  # -> (num_offspring * num_pairs, 5)
-# Result: [offspring0_pair0, offspring0_pair1, offspring0_pair2, offspring0_pair3,
-#          offspring1_pair0, offspring1_pair1, offspring1_pair2, offspring1_pair3]
+flattened = nested_offspring.reshape((8, 5))  # -> (num_pairs * num_offspring, 5)
+# Result: [pair0_offspring0, pair0_offspring1,
+#          pair1_offspring0, pair1_offspring1,
+#          pair2_offspring0, pair2_offspring1,
+#          pair3_offspring0, pair3_offspring1]
 ```
 
 ---
@@ -209,6 +219,9 @@ The codebase provides tests that validate:
 - **Dtype safety**: No implicit type promotion with `config.dtype=jnp.bfloat16`.
 - **Offspring-major ordering**: Flattened offspring match expected layout.
 
+> **Note**: As of Phase 3, crossover uses **pair-major** ordering (direct
+> `reshape`). Mutation already used direct `reshape` and was not affected.
+
 ---
 
 ## Performance & XLA Fusion
@@ -243,7 +256,7 @@ When implementing a new crossover operator:
   - Verify shape/dtype of `_generate_noise()`.
   - Test all-False → p1, all-True → p2 mask cases.
   - Verify crossover rate empirically.
-  - Check offspring-major ordering.
+  - Check pair-major ordering.
 
 ---
 
@@ -297,6 +310,6 @@ When implementing a new crossover operator:
 
 3. **Tier 3 (Vectorization)**: `BaseCrossover.__call__(all_keys, p1_pop, p2_pop, config) -> offspring_pop`
    - Nested vmaps over pairs and offspring
-   - Offspring-major flattening for consistency
+   - Pair-major flattening (direct `reshape`, no transpose) for XLA fusion
 
 Together: **JIT compilation**, **reproducibility**, **static budgeting**, and **XLA kernel fusion**.

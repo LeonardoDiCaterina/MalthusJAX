@@ -111,21 +111,28 @@ selected_idx = operators.selection(key_selection, population)
 
 Crosses selected parents and mutates offspring. Operator input sizes were frozen at `init_state()` via `set_input_length()`.
 
+Genes are gathered directly (not full populations) to avoid copying fitness arrays that crossover never reads (FB-5). Lightweight parent populations are built with `spawn_offspring(genes, fitness=jnp.zeros(n))`, skipping the default NaN allocation (FB-2).
+
 ```python
-p1_pop = population[parent_indices[:num_pairs]]
-p2_pop = population[parent_indices[num_pairs:]]
+# FB-5: Gather genes only — crossover never reads fitness
+p1_genes = jax.tree_util.tree_map(lambda x: x[p1_idx], population.genes)
+p2_genes = jax.tree_util.tree_map(lambda x: x[p2_idx], population.genes)
+dummy_fitness = jnp.zeros(num_pairs)
+p1_pop = population.spawn_offspring(p1_genes, fitness=dummy_fitness)
+p2_pop = population.spawn_offspring(p2_genes, fitness=dummy_fitness)
+
 offspring_pop = operators.crossover(k_cross, p1_pop, p2_pop, config)
 final_pop = operators.mutation(k_mut, offspring_pop, config)
 ```
 
 #### _merge()
 
-Combines elites and top mutants to create next population of size `pop_size`.
+Combines elites and top mutants to create next population of size `pop_size`. Uses `jax.lax.dynamic_update_slice` instead of `jnp.concatenate` to enable XLA buffer donation (FB-3).
 
 ```python
 num_elites = elites_genes.shape[0]
 num_mutants = pop_size - num_elites
-next_genes = concatenate([elites_genes, mutants_genes[:num_mutants]])
+# Write elites then mutants into a pre-allocated buffer (dynamic_update_slice)
 ```
 
 #### _evaluate()
@@ -134,7 +141,7 @@ Computes fitness on merged population using `BaseEvaluator.evaluate_population()
 
 #### _update_hof()
 
-Tracks best genome and increments stagnation counter. Stagnation resets when a new best is found.
+Tracks best genome via `TrackBest` enum. Uses `jnp.where` (no `jax.lax.cond` fusion barrier) to conditionally update the best genome (FB-4).
 
 ---
 

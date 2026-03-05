@@ -145,7 +145,7 @@ class BaseCrossover(Generic[G, C, P]):
     Shape contracts:
     - Input: p1_pop, p2_pop with genes leaf shape (N, d, ...).
     - Output: genes shape (N*K, d, ...) where K=num_offspring.
-    - Axis ordering: output is offspring-major after transpose.
+    - Axis ordering: pair-major (direct reshape, no transpose).
     """
 
     num_offspring: int = _field(pytree_node=False, default=1)

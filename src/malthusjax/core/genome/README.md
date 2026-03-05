@@ -145,4 +145,25 @@ new_pop = cast(RealPopulation, cast(Any, pop).replace(genes=new_genes))
 - Prefer pure, functional-style methods to remain compatible with `jax.jit` and `jax.vmap`.
 - Keep configuration as an immutable `@struct.dataclass` that is `pytree_node=False` for non-array fields.
 
+---
+
+## `spawn_offspring` — Population Factory Method
+
+`BasePopulation.spawn_offspring(new_genes, fitness=None)` creates a new population
+from a gene PyTree, optionally with a pre-set fitness array.
+
+```py
+# Default: NaN fitness (signals pending evaluation)
+offspring_pop = parent_pop.spawn_offspring(new_genes)
+assert jnp.all(jnp.isnan(offspring_pop.fitness))
+
+# Hot-path: pass explicit fitness to skip NaN allocation (FB-2)
+dummy = jnp.zeros(n)
+offspring_pop = parent_pop.spawn_offspring(new_genes, fitness=dummy)
+```
+
+**When to use each form**:
+- **Without `fitness`** (default): Use in operator-level code where fitness will be computed later by the engine's `_evaluate` phase. The NaN sentinel lets callers detect unevaluated individuals.
+- **With `fitness`**: Use inside the engine's `_reproduction_phase` where fitness is immediately overwritten — avoids a dead `jnp.broadcast_to(jnp.nan, ...)` allocation per step.
+
 
