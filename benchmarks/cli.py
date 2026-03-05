@@ -17,8 +17,11 @@ except ImportError:
     import tomli as tomllib 
 
 def load_config(path):
-    with open(path, "rb") as f:
-        return tomllib.load(f)
+    try:
+        with open(path, "rb") as f:
+            return tomllib.load(f)
+    except PermissionError as exc:
+        raise FileNotFoundError(f"Config file not found or inaccessible: {path}") from exc
     
     
 def run_single_benchmark(

@@ -56,6 +56,7 @@ class TestRealMutationHarness:
         res_raw = mut(all_keys, pop, config)
 
         # Cast bfloat16 to float32 for NumPy compatibility
+        # atol=1e-2: bfloat16 has only 7 mantissa bits (~0.00195 ULP gap on GPU XLA)
         np.testing.assert_allclose(
-            res_jit.genes.values.astype(float), res_raw.genes.values.astype(float), atol=1e-3
+            res_jit.genes.values.astype(float), res_raw.genes.values.astype(float), atol=1e-2
         )
