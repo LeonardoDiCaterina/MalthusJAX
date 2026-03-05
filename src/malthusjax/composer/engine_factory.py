@@ -60,7 +60,6 @@ class GeneticEngineAdapter:
                 population=evaluated_pop,
                 best_genome=best_genome,
                 best_fitness=best_fitness,
-                stagnation_counter=0,
             )
 
         history = []
@@ -85,7 +84,6 @@ class GeneticEngineAdapter:
             "best_fitness": float(final_state.best_fitness),
             "final_generation": int(final_state.generation),
             "total_evaluations": total_evals,
-            "stagnation_counter": int(final_state.stagnation_counter),
         }
 
         timings = {

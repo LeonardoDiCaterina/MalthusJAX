@@ -167,7 +167,6 @@ class EvosaxEngineAdapter:
             "best_fitness": final_best,
             "final_generation": self.num_generations,
             "total_evaluations": self.num_generations * self.pop_size,
-            "stagnation_counter": 0,
         }
 
         timings: Dict[str, float] = {
