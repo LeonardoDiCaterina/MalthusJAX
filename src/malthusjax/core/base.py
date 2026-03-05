@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, ClassVar, Generic, Iterator, Type, TypeVar, Union, cast
+from typing import Any, ClassVar, Generic, Iterator, Optional, Type, TypeVar, Union, cast
 
 import chex
 import jax
@@ -191,22 +191,33 @@ class BasePopulation(Generic[G]):
         """Proxies to the genome's values (batched)."""
         return cast(Any, self.genes).values
 
-    def spawn_offspring(self, new_genes: G) -> BasePopulation[G]:
-        """Create offspring population with evaluation-pending fitness state.
+    def spawn_offspring(
+        self, new_genes: G, fitness: Optional[chex.Array] = None
+    ) -> BasePopulation[G]:
+        """Create offspring population, optionally with pre-set fitness.
 
-        Resets fitness to NaN to signal pending evaluation, allowing engines
-        to detect unevaluated individuals via jnp.isnan() without conditional
-        branching (XLA-compatible).
+        When ``fitness`` is ``None`` (default), allocates a NaN vector to signal
+        pending evaluation.  Pass an explicit array (e.g. ``jnp.zeros(n)``) to
+        skip the NaN allocation in hot paths where fitness will be overwritten
+        immediately (see FB-2).
+
+        Args:
+            new_genes: Gene PyTree with leading axis = offspring count.
+            fitness: Optional fitness array.  If ``None``, a NaN sentinel of the
+                correct size is created.
+
+        Returns:
+            New ``BasePopulation`` with the given genes and fitness.
         """
-        leaves = jax.tree_util.tree_leaves(new_genes)
-        if not leaves:
-            raise ValueError("Gene structure contains no arrays.")
-
-        n_offspring = leaves[0].shape[0]
-        empty_fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
+        if fitness is None:
+            leaves = jax.tree_util.tree_leaves(new_genes)
+            if not leaves:
+                raise ValueError("Gene structure contains no arrays.")
+            n_offspring = leaves[0].shape[0]
+            fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
 
         return cast(
-            BasePopulation[G], cast(Any, self).replace(genes=new_genes, fitness=empty_fitness)
+            BasePopulation[G], cast(Any, self).replace(genes=new_genes, fitness=fitness)
         )
 
     def __len__(self) -> int:

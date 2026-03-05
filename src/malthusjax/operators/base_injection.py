@@ -179,7 +179,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
         - Outer vmap: Iterate over input_length pairs.
         - Middle vmap: Iterate over num_offspring per pair.
         - Inner arithmetic: _recombine_one (pure, no vmap).
-        Then transpose and flatten: (L, K, ...) → (K, L, ...) → (LK, ...).
+        Flatten: (L, K, ...) → (LK, ...) — no transpose (pair-major; see FB-1).
         """
         flat_keys = all_keys.reshape((-1, all_keys.shape[-1]))
         if flat_keys.shape[0] == 0:
@@ -206,11 +206,13 @@ class BaseCrossover_injection(Generic[G, C, P]):
             noise, p1_pop.genes, p2_pop.genes
         )
 
-        def merge_and_flatten_block(x: chex.Array) -> chex.Array:
-            transposed = jnp.transpose(x, (1, 0) + tuple(range(2, x.ndim)))
-            return transposed.reshape((-1,) + transposed.shape[2:])
+        def flatten_fn(x: chex.Array) -> chex.Array:
+            # Flatten (pairs, offspring, ...d) → (pairs * offspring, ...d).
+            # No transpose needed — output ordering is irrelevant to downstream
+            # mutation/merge/evaluation. Avoids physical data copy in XLA (FB-1).
+            return x.reshape((-1,) + x.shape[2:])
 
-        new_genes = jax.tree_util.tree_map(merge_and_flatten_block, nested_offspring)
+        new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
 
         return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
 

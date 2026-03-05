@@ -233,8 +233,8 @@ class BaseCrossover(Generic[G, C, P]):
         """Tier 3 — Population-level crossover via nested vmap.
 
         Reshapes pre-allocated keys to (input_length, num_offspring, atomic_keys, 2),
-        applies _cross_fused via two vmaps over pairs and offspring, then transposes
-        and flattens output from (pairs, offspring, ...) to (offspring*pairs, ...).
+        applies _cross_fused via two vmaps over pairs and offspring, then flattens
+        output from (pairs, offspring, ...) to (pairs*offspring, ...).
 
         Args:
             all_keys: Pre-allocated keys, shape product = num_keys() result.
@@ -243,7 +243,8 @@ class BaseCrossover(Generic[G, C, P]):
 
         Returns:
             Offspring population with genes shape (N*K, d, ...) where K=num_offspring.
-            Axis ordering: offspring-major (transpose reorders from pair-major).
+            Axis ordering: pair-major (no transpose — avoids physical data copy
+            that would break XLA fusion with downstream mutation; see FB-1).
         """
         # Key reshape is determined by PRNG implementation (set at engine init).
         if self.typed_keys:
@@ -265,8 +266,10 @@ class BaseCrossover(Generic[G, C, P]):
         nested_offspring = vmap_pairs(keys_reshaped, p1_pop.genes, p2_pop.genes)
 
         def flatten_fn(x: chex.Array) -> chex.Array:
-            transposed = jnp.transpose(x, (1, 0) + tuple(range(2, x.ndim)))
-            return transposed.reshape((-1,) + transposed.shape[2:])
+            # Flatten (pairs, offspring, ...d) → (pairs * offspring, ...d).
+            # No transpose needed — output ordering is irrelevant to downstream
+            # mutation/merge/evaluation. Avoids physical data copy in XLA (FB-1).
+            return x.reshape((-1,) + x.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
         return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))

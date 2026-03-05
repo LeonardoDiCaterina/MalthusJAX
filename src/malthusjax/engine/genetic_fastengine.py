@@ -272,8 +272,14 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                 f"got {keys_crossover.shape[0]}, expected {expected_cross_keys} (num_pairs={num_pairs})"
             )
 
-        p1_pop = population[p1_idx]
-        p2_pop = population[p2_idx]
+        # FB-5: Gather genes only — crossover never reads fitness, so
+        # copying the fitness array for each parent pair is wasted work.
+        p1_genes = jax.tree_util.tree_map(lambda x: x[p1_idx], population.genes)
+        p2_genes = jax.tree_util.tree_map(lambda x: x[p2_idx], population.genes)
+        # Build lightweight parent populations with dummy fitness (FB-2).
+        dummy_fitness = jnp.zeros(num_pairs)
+        p1_pop = population.spawn_offspring(p1_genes, fitness=dummy_fitness)
+        p2_pop = population.spawn_offspring(p2_genes, fitness=dummy_fitness)
 
         offspring_pop = cast(
             BasePopulation[Any],
