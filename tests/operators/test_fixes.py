@@ -112,11 +112,11 @@ class TestSelectionAcceptsRawFitness:
         fitness = jnp.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
         selector = TournamentSelection(num_selections=3, tournament_size=2)
-        indices = selector(key, fitness)
+        parents, elites = selector(key, fitness)
 
-        assert indices.shape == (3,)
-        assert jnp.all(indices < 5)
-        assert jnp.all(indices >= 0)
+        assert parents.shape == (3,)
+        assert jnp.all(parents < 5)
+        assert jnp.all(parents >= 0)
 
     def test_selection_accepts_population_object(self):
         """Selection should accept Population object with .fitness attribute."""
@@ -133,10 +133,10 @@ class TestSelectionAcceptsRawFitness:
         )
 
         selector = TournamentSelection(num_selections=3, tournament_size=2)
-        indices = selector(k2, pop)
+        parents, elites = selector(k2, pop)
 
-        assert indices.shape == (3,)
-        assert jnp.all(indices < pop_size)
+        assert parents.shape == (3,)
+        assert jnp.all(parents < pop_size)
 
 
 # ============================================================================
