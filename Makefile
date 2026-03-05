@@ -3,7 +3,7 @@
 # Convenient aliases for common development tasks.
 # All tool configurations live in pyproject.toml.
 
-.PHONY: help install-dev install-bench test test-fast test-failing \
+.PHONY: help install-dev install-bench test test-fast test-failing test-fixes \
         lint format format-check type-check check-all docs bench
 
 help:
@@ -12,7 +12,8 @@ help:
 	@echo "  make install-bench  Install package + benchmark deps (evosax, pandas, scipy)"
 	@echo "  make test           Run full pytest suite with coverage (min 80%)"
 	@echo "  make test-fast      Run full suite, skip coverage (faster iteration)"
-	@echo "  make test-failing   Re-run only the subset known to fail on multi-GPU hosts"
+	@echo "  make test-failing   Re-run only the subset known to fail on multi-GPU hosts
+  make test-fixes     Re-run the two most-recently fixed tests (cli + bfloat16)"
 	@echo "  make lint           Ruff lint check (no fixes)"
 	@echo "  make format         Ruff auto-format (mutates files)"
 	@echo "  make format-check   Ruff format check only (no mutations)"
@@ -51,6 +52,12 @@ test-failing:
 	  tests/engine/test_genetic_engine_jit.py \
 	  tests/engine/test_genetic_engine_scheduling.py \
 	  tests/operators/mutation/test_real_mutation.py
+
+test-fixes:
+	@echo "--- Running recently fixed tests ---"
+	python -m pytest --no-cov -v \
+	  tests/benchmarks/test_cli.py::TestLoadConfig::test_load_missing_file \
+	  tests/operators/mutation/test_real_mutation.py::TestRealMutationHarness::test_jit_reproducibility
 
 lint:
 	@echo "--- Checking code quality with Ruff ---"

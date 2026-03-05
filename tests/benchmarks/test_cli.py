@@ -45,8 +45,13 @@ unroll_factors = [1]
         assert cfg['grid']['pop_sizes'] == [32]
 
     def test_load_missing_file(self):
-        """Test loading a non-existent file raises error."""
-        with pytest.raises(FileNotFoundError):
+        """Test loading a non-existent file raises error.
+
+        Accepts both FileNotFoundError and PermissionError: on Linux, opening a
+        path whose parent directory doesn't exist at the root level raises
+        PermissionError (EACCES) rather than FileNotFoundError (ENOENT).
+        """
+        with pytest.raises((FileNotFoundError, PermissionError)):
             load_config("/nonexistent/path/config.toml")
 
 
