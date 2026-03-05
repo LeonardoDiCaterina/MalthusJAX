@@ -38,13 +38,46 @@ from .schedules import ScheduleType, TrackBest, compute_scheduled_strength
 T = TypeVar("T", bound=Callable[..., Any])
 _field: Any = struct.field  # Helper alias for typed dataclass fields
 
+# ---------------------------------------------------------------------------
+# HLO tracing gate
+# ---------------------------------------------------------------------------
+# By default tracing is OFF so XLA can fuse all 5 phases into a single kernel.
+# Set ``debug_tracing=True`` in GeneticEngineParams (or call enable_tracing())
+# to re-enable jax.named_call labels for profiling / HLO inspection.
+# ---------------------------------------------------------------------------
+_TRACING_ENABLED: bool = False
+
+
+def enable_tracing() -> None:
+    """Enable jax.named_call phase labels globally (for HLO profiling)."""
+    global _TRACING_ENABLED
+    _TRACING_ENABLED = True
+
+
+def disable_tracing() -> None:
+    """Disable jax.named_call phase labels (default; allows XLA kernel fusion)."""
+    global _TRACING_ENABLED
+    _TRACING_ENABLED = False
+
 
 def traceable(name: str) -> Callable[[T], T]:
-    """Correctly wraps a method in jax.named_call for HLO profiling labels."""
+    """Wraps a method in jax.named_call when _TRACING_ENABLED is True.
+
+    Both the raw function and the named variant are pre-built at decoration
+    time.  The ``if _TRACING_ENABLED`` check is a pure Python branch evaluated
+    once per JAX trace, so there is zero XLA overhead when tracing is off.
+    """
 
     def decorator(fn: T) -> T:
-        # jax.named_call is untyped; cast it back to the original callable type
-        return jax.named_call(fn, name=name)
+        # Pre-build the named variant once (avoids re-wrapping on every call)
+        named_fn: T = cast(T, jax.named_call(fn, name=name))
+
+        def conditional(*args: Any, **kwargs: Any) -> Any:
+            if _TRACING_ENABLED:
+                return named_fn(*args, **kwargs)
+            return fn(*args, **kwargs)
+
+        return cast(T, conditional)
 
     return decorator
 
@@ -84,6 +117,13 @@ class GeneticEngineParams(AbstractEngineParams):
     mutation_strength_schedule: Optional[Callable[[int], float]] = _field(
         pytree_node=False, default=None
     )
+    debug_tracing: bool = _field(pytree_node=False, default=False)
+    """Enable jax.named_call phase labels for HLO profiling (default: False).
+
+    When False (default) the traceable decorators are no-ops, allowing XLA to
+    fuse all phases into a single kernel.  Set to True to get named labels in
+    the XLA HLO / profiler output.
+    """
 
 
 @struct.dataclass
@@ -492,6 +532,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         One-time cost; results cached in state.resource_map throughout run.
         """
         params = cast(GeneticEngineParams, self.engine_params)
+
+        # Apply tracing gate before the first JIT trace happens.
+        if params.debug_tracing:
+            enable_tracing()
+        else:
+            disable_tracing()
 
         # Accept an integer seed and create a typed key using the configured PRNG impl,
         # otherwise validate provided key and warn for legacy PRNGKey.
