@@ -3,7 +3,7 @@
 # Convenient aliases for common development tasks.
 # All tool configurations live in pyproject.toml.
 
-.PHONY: help install-dev install-bench test test-fast test-failing test-fixes \
+.PHONY: help install-dev install-bench test test-fast test-failing test-fixes test-bench test-bench-snapshot \
         lint format format-check type-check check-all docs bench
 
 help:
@@ -12,15 +12,17 @@ help:
 	@echo "  make install-bench  Install package + benchmark deps (evosax, pandas, scipy)"
 	@echo "  make test           Run full pytest suite with coverage (min 80%)"
 	@echo "  make test-fast      Run full suite, skip coverage (faster iteration)"
-	@echo "  make test-failing   Re-run only the subset known to fail on multi-GPU hosts
-  make test-fixes     Re-run the two most-recently fixed tests (cli + bfloat16)"
-	@echo "  make lint           Ruff lint check (no fixes)"
-	@echo "  make format         Ruff auto-format (mutates files)"
-	@echo "  make format-check   Ruff format check only (no mutations)"
-	@echo "  make type-check     mypy strict check on src/"
-	@echo "  make check-all      lint + format-check + type-check + test"
-	@echo "  make bench          Run TOML-driven dispatch timing benchmark"
-	@echo "  make docs           Build Sphinx HTML docs"
+	@echo "  make test-failing       Re-run only the subset known to fail on multi-GPU hosts"
+	@echo "  make test-fixes         Re-run the two most-recently fixed tests (cli + bfloat16)"
+	@echo "  make test-bench         Run functional tests in tests/benchmarks/ (no timing)"
+	@echo "  make test-bench-snapshot  Run pytest-benchmark snapshot suite"
+	@echo "  make bench              Run TOML-driven dispatch timing CLI benchmark"
+	@echo "  make lint               Ruff lint check (no fixes)"
+	@echo "  make format             Ruff auto-format (mutates files)"
+	@echo "  make format-check       Ruff format check only (no mutations)"
+	@echo "  make type-check         mypy strict check on src/"
+	@echo "  make check-all          lint + format-check + type-check + test"
+	@echo "  make docs               Build Sphinx HTML docs"
 
 install-dev:
 	@echo "--- Installing dev dependencies ---"
@@ -81,6 +83,14 @@ check-all: lint format-check type-check test
 bench:
 	@echo "--- Running dispatch timing benchmark ---"
 	python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --quick
+
+test-bench:
+	@echo "--- Running benchmark unit tests (functional, no timing harness) ---"
+	python -m pytest tests/benchmarks/ --no-cov -v --tb=short --ignore=tests/benchmarks/test_snapshot_benchmark.py
+
+test-bench-snapshot:
+	@echo "--- Running pytest-benchmark snapshot suite ---"
+	python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v --benchmark-only
 
 docs:
 	@echo "--- Building Sphinx HTML documentation ---"
