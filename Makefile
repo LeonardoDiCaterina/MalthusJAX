@@ -1,29 +1,56 @@
 # Makefile for MalthusJAX
 #
-# This file provides convenient aliases for common development tasks.
-# All configurations are stored in `pyproject.toml`.
+# Convenient aliases for common development tasks.
+# All tool configurations live in pyproject.toml.
 
-# Use .PHONY to ensure these commands run even if files with these names exist
-.PHONY: help install-dev test lint format type-check check-all docs
+.PHONY: help install-dev install-bench test test-fast test-failing \
+        lint format format-check type-check check-all docs bench
 
-# Default target: show help
 help:
 	@echo "--- MalthusJAX Development ---"
-	@echo "  make install-dev    Install for development"
-	@echo "  make test           Run pytest with coverage"
-	@echo "  make lint           Check for linting errors with Ruff"
-	@echo "  make format         Format code with Ruff"
-	@echo "  make type-check     Run mypy type checker"
-	@echo "  make check-all      Run all checks (lint, format, types, test)"
-	@echo "  make docs           Build the Sphinx documentation"
+	@echo "  make install-dev    Install package + dev/docs/examples deps"
+	@echo "  make install-bench  Install package + benchmark deps (evosax, pandas, scipy)"
+	@echo "  make test           Run full pytest suite with coverage (min 80%)"
+	@echo "  make test-fast      Run full suite, skip coverage (faster iteration)"
+	@echo "  make test-failing   Re-run only the subset known to fail on multi-GPU hosts"
+	@echo "  make lint           Ruff lint check (no fixes)"
+	@echo "  make format         Ruff auto-format (mutates files)"
+	@echo "  make format-check   Ruff format check only (no mutations)"
+	@echo "  make type-check     mypy strict check on src/"
+	@echo "  make check-all      lint + format-check + type-check + test"
+	@echo "  make bench          Run TOML-driven dispatch timing benchmark"
+	@echo "  make docs           Build Sphinx HTML docs"
 
 install-dev:
-	@echo "--- Installing development dependencies ---"
+	@echo "--- Installing dev dependencies ---"
 	pip install -e ".[dev,docs,examples]"
+
+install-bench:
+	@echo "--- Installing benchmark dependencies ---"
+	pip install -e ".[dev,benchmarks]"
 
 test:
 	@echo "--- Running tests with coverage ---"
 	python -m pytest
+
+test-fast:
+	@echo "--- Running tests without coverage ---"
+	python -m pytest --no-cov -q
+
+test-failing:
+	@echo "--- Running previously failing test subset ---"
+	python -m pytest --no-cov -q \
+	  tests/benchmarks/test_cli.py \
+	  tests/composer/test_optimization_direction.py \
+	  tests/engine/test_engine_edge_cases_fixed.py \
+	  tests/engine/test_engine_quality_fixed.py \
+	  tests/engine/test_genetic_engine.py \
+	  tests/engine/test_genetic_engine_asktel.py \
+	  tests/engine/test_genetic_engine_core.py \
+	  tests/engine/test_genetic_engine_fixes.py \
+	  tests/engine/test_genetic_engine_jit.py \
+	  tests/engine/test_genetic_engine_scheduling.py \
+	  tests/operators/mutation/test_real_mutation.py
 
 lint:
 	@echo "--- Checking code quality with Ruff ---"
@@ -33,17 +60,21 @@ format:
 	@echo "--- Formatting code with Ruff ---"
 	ruff format .
 
+format-check:
+	@echo "--- Checking formatting (no mutations) ---"
+	ruff format --check .
+
 type-check:
 	@echo "--- Running mypy type checker ---"
 	mypy src
 
-check-all: lint format type-check test
+check-all: lint format-check type-check test
 	@echo "--- All checks passed! ---"
 
+bench:
+	@echo "--- Running dispatch timing benchmark ---"
+	python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --quick
+
 docs:
-	@echo "--- Building documentation ---"
+	@echo "--- Building Sphinx HTML documentation ---"
 	sphinx-build -b html docs/source docs/build/html
-	# sphinx-build: This is the main Sphinx command
-	# -b html: This says "use the HTML builder"
-	# docs/source: This is the source directory for the docs
-	# docs/build/html: This is where the built HTML files will go

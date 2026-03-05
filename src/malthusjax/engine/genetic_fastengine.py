@@ -540,18 +540,23 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         target_dtype = self.genome_config.dtype
 
+        num_devices = len(sharding_mgr.devices)
+        _pop_shardable = (self.engine_params.pop_size % num_devices == 0)
+
         def _enforce_layout(leaf: chex.Array) -> chex.Array:
             if hasattr(leaf, "dtype") and jnp.issubdtype(leaf.dtype, jnp.floating):
                 leaf = leaf.astype(target_dtype)
 
             if (
-                hasattr(leaf, "shape")
+                _pop_shardable
+                and hasattr(leaf, "shape")
                 and len(leaf.shape) >= 2
                 and leaf.shape[0] == self.engine_params.pop_size
             ):
                 return jax.device_put(leaf, sharding_mgr.matrix_sharding)
             elif (
-                hasattr(leaf, "shape")
+                _pop_shardable
+                and hasattr(leaf, "shape")
                 and len(leaf.shape) == 1
                 and leaf.shape[0] == self.engine_params.pop_size
             ):
@@ -561,7 +566,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         sharded_genes = jax.tree_util.tree_map(_enforce_layout, population.genes)
         fitness_casted = population.fitness.astype(target_dtype)
-        sharded_fitness = jax.device_put(fitness_casted, sharding_mgr.vector_sharding)
+        sharded_fitness = jax.device_put(
+            fitness_casted,
+            sharding_mgr.vector_sharding if _pop_shardable else sharding_mgr.replicated_sharding,
+        )
 
         population = population.replace(genes=sharded_genes, fitness=sharded_fitness)
 

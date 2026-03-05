@@ -5,12 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "malthusjax"
 version = "0.1.0"
-description = "JAX-based genetic programming framework with tensorized parallelization"
+description = "JAX-native evolutionary computation framework with composable operators, config-driven experiments, and GPU-speed multi-seed benchmarking"
 readme = "README.md"
 license = {file = "LICENSE"}
 
-keywords = ["genetic-programming", "evolutionary-computation", "jax", "machine-learning"]
-requires-python = ">=3.8"
+keywords = ["genetic-algorithms", "evolutionary-computation", "jax", "machine-learning", "evosax"]
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -33,9 +33,10 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-xdist>=3.0.0",
+    "pytest-benchmark>=4.0.0",
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
-    "ruff>=0.5.0",  # <-- REPLACES black, flake8, isort
+    "ruff>=0.5.0",
 ]
 docs = [
     "sphinx>=5.0.0",
@@ -48,7 +49,13 @@ examples = [
     "seaborn>=0.12.0",
     "jupyter>=1.0.0",
 ]
-all = ["malthusjax[dev,docs,examples]"] # This syntax is correct
+benchmarks = [
+    "pandas>=1.5.0",
+    "scipy>=1.9.0",
+    "evosax",
+    "tomli>=2.0.0; python_version < '3.11'",
+]
+all = ["malthusjax[dev,docs,examples,benchmarks]"]
 
 [project.urls]
 Homepage = "https://github.com/LeonardoDiCaterina/MalthusJAX"
@@ -113,12 +120,13 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 addopts = [
     "--strict-markers",
-    "--verbose",
-    "--cov", # Enable coverage
+    "--cov=src/malthusjax",
+    "--cov-report=term-missing",
 ]
 markers = [
-    "slow: marks tests as slow",
+    "slow: marks tests as slow (deselect with -m 'not slow')",
     "integration: marks tests as integration tests",
+    "benchmark: marks tests as performance benchmarks",
 ]
 
 [tool.coverage.run]
