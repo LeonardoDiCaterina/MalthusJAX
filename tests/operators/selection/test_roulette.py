@@ -25,13 +25,13 @@ class TestRouletteSelection:
 
         # High Temperature -> Near Random (Index 5 should appear ~12.5% of time)
         sel_hot = RouletteSelection(num_selections=num_trials, temperature=100.0)
-        idx_hot = sel_hot(key, pop)
-        hot_rate = jnp.sum(idx_hot == 5) / num_trials
+        parent_hot, _ = sel_hot(key, pop)
+        hot_rate = jnp.sum(parent_hot == 5) / num_trials
 
         # Low Temperature -> Near Deterministic (Index 5 should appear ~100% of time)
         sel_cold = RouletteSelection(num_selections=num_trials, temperature=0.01)
-        idx_cold = sel_cold(key, pop)
-        cold_rate = jnp.sum(idx_cold == 5) / num_trials
+        parent_cold, _ = sel_cold(key, pop)
+        cold_rate = jnp.sum(parent_cold == 5) / num_trials
 
         assert cold_rate > hot_rate
         assert cold_rate > 0.95
@@ -43,14 +43,27 @@ class TestRouletteSelection:
 
         # Path 1: Gumbel-Max (num_selections == pop_size)
         sel_gumbel = RouletteSelection(num_selections=pop_size, use_gumbel_trick=True)
-        res_gumbel = sel_gumbel(key, pop)
+        parent_gumbel, elite_gumbel = sel_gumbel(key, pop)
 
         # Path 2: Categorical (Force standard path via flag)
         sel_std = RouletteSelection(num_selections=pop_size, use_gumbel_trick=False)
-        res_std = sel_std(key, pop)
+        parent_std, elite_std = sel_std(key, pop)
 
-        assert res_gumbel.shape == (pop_size,)
-        assert res_std.shape == (pop_size,)
+        assert parent_gumbel.shape == (pop_size,)
+        assert parent_std.shape == (pop_size,)
+        # n_elites=0 by default
+        assert elite_gumbel.shape == (0,)
+        assert elite_std.shape == (0,)
+
+    def test_elite_extraction(self, setup_roulette_data):
+        """Verifies elite indices via default get_elite_indices path."""
+        pop, key = setup_roulette_data
+        sel = RouletteSelection(num_selections=5, temperature=1.0).set_n_elites(2)
+        parent_idx, elite_idx = sel(key, pop)
+        assert parent_idx.shape == (5,)
+        assert elite_idx.shape == (2,)
+        # Top-2 should include index 5 (fitness 50.0)
+        assert 5 in elite_idx
 
     def test_large_population_safety(self):
         """Tests that the operator can be reconfigured for large populations."""

@@ -27,13 +27,15 @@ _field: Any = struct.field  # Helper alias for typed field calls
 
 
 def compute_unroll_num(num_generations: int) -> int:
-    """Compute a reasonable scan unroll factor from the number of generations.
+    """Compute a scan unroll factor.
 
-    Returns 10% of *num_generations* clamped to ``[1, num_generations]``.
-    Call this **outside** of any ``@struct.dataclass`` so the value is
-    determined once at construction time, not during JIT tracing.
+    .. deprecated::
+        Always returns 1.  Benchmarks show ``unroll_num > 1`` grows the XLA
+        program linearly (unroll_5 → 2.3×, unroll_25 → 9×) with no throughput
+        benefit on GPU.  The ``unroll_num`` parameter is kept for backward
+        compatibility but has no effect.
     """
-    return min(max(1, num_generations // 10), num_generations)
+    return 1
 
 
 def validate_engine_params(params: "AbstractEngineParams") -> None:
@@ -70,7 +72,7 @@ class AbstractEngineParams:
     pop_size: int = _field(pytree_node=False, default=100)
     elitism: int = _field(pytree_node=False, default=0)
     num_generations: int = _field(pytree_node=False, default=50)
-    unroll_num: int = _field(pytree_node=False, default=1)
+    unroll_num: int = _field(pytree_node=False, default=1)  # deprecated: no-op, always 1
 
 
 @struct.dataclass
@@ -275,8 +277,21 @@ def _get_evolution_kernel(
     Closure pattern: _evolve_loop captures engine as compile-time constant (static_argnums=0).
     This avoids passing engine in scan carry ("light carry"), reducing memory.
     donate_argnums=1 donates initial_state arrays (JIT donation optimization).
-    unroll_num: Scan unroll factor (latency vs memory trade-off).
+    unroll_num: Deprecated no-op — always overridden to 1.  Benchmarks show
+    scan unrolling grows XLA IR linearly (unroll_5 → 2.3×, unroll_25 → 9×)
+    with zero throughput benefit on GPU.  XLA fuses across scan iterations
+    automatically.
     """
+    if unroll_num != 1:
+        import warnings
+        warnings.warn(
+            f"unroll_num={unroll_num} has no performance benefit on GPU and increases "
+            "XLA compile time linearly. It has been overridden to 1. "
+            "See GeneticEngineParams docstring for details.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+    unroll_num = 1  # hard-override: scan unrolling is always harmful on GPU
 
     def _evolve_loop(
         engine: AbstractEngine[G, P], initial_state: AbstractEvolutionState[G, P]

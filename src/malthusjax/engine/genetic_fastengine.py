@@ -217,30 +217,26 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         params: AbstractEngineParams,
     ) -> Tuple[Any, chex.Array]:
         """
-        Select parents via elite preservation + selection operator (Phase 1).
-        Elite handling: If elitism > 0, argpartition extracts elite_idx in O(N)
-        (vs top_k O(N log N)). Returns genes (0 leading rows when elitism==0).
-        Selection output: selected_idx indices into population (shape: (num_selections,)).
+        Select parents and extract elites via fused selection operator (Phase 1).
+
+        The selection operator's ``__call__`` returns a ``(parent_idx, elite_idx)``
+        tuple.  ``ElitePoolSelection`` fuses both into a single O(N)
+        ``argpartition``; other selectors compute elite indices with a
+        separate O(N) pass (equivalent cost to the engine doing it before).
+
         Returns: (elites_genes tree, selected_indices for mating).
         """
-        # Handle zero-elitism safely: argpartition with k=0 is invalid
+        # Selection operator returns (parent_indices, elite_indices) tuple.
+        parent_idx, elite_idx = operators.selection(key_selection, population.fitness)
+
+        # Extract elite genes using tree_map
         if params.elitism > 0:
-            # jnp.argpartition(-fitness, k) gives the k indices with the
-            # largest fitness values in O(N) — no full sort needed.
-            elite_idx = jnp.argpartition(-population.fitness, params.elitism)[: params.elitism]
-            # tree_map directly on genes avoids the extra fitness[elite_idx] gather
-            # and temporary BasePopulation reconstruction that population[idx].genes incurs.
             elites_genes = jax.tree_util.tree_map(lambda x: x[elite_idx], population.genes)
         else:
             # Create empty "genes" structure with 0 leading rows to preserve tree shape
             elites_genes = jax.tree_util.tree_map(lambda x: x[:0], population.genes)
 
-        # Pass population.fitness directly — BaseSelection.__call__ uses getattr(.fitness)
-        # but passing the full population pytree makes XLA bind genes buffers to the
-        # selection kernel unnecessarily.
-        selected_idx = cast(chex.Array, operators.selection(key_selection, population.fitness))
-
-        return elites_genes, selected_idx
+        return elites_genes, parent_idx
 
     @traceable("Phase_2_Reproduction_Fused")
     def _reproduction_phase(
@@ -522,6 +518,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             .replace(num_selections=rmap.selection.output_count)
             .set_input_length(rmap.selection.input_count)
             .set_typed_keys(typed)
+            .set_n_elites(params.elitism)
         )
 
         # configure crossover with correct input length and key type

@@ -50,9 +50,10 @@ def test_selection_deterministic_given_key(small_engine):
     pop = state.population
     sel = state.operators.selection  # Use baked operator (typed_keys set by engine)
 
-    out1 = sel(k_sel, pop)
-    out2 = sel(k_sel, pop)
-    assert jax.numpy.array_equal(out1, out2)
+    parent1, elite1 = sel(k_sel, pop)
+    parent2, elite2 = sel(k_sel, pop)
+    assert jax.numpy.array_equal(parent1, parent2)
+    assert jax.numpy.array_equal(elite1, elite2)
 
 
 def test_crossover_mutation_keys_reshape_and_usage(small_engine):

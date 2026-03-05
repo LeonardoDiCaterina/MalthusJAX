@@ -285,12 +285,18 @@ class BaseSelection(Generic[P, C]):
 
     Shape contracts:
     - Input fitness: (pop_size,) array.
-    - Output indices: (num_selections,) integer array.
+    - Output parent indices: (num_selections,) integer array.
+    - Output elite indices: (n_elites,) integer array (for preservation).
+
+    The ``n_elites`` field controls how many elite indices the operator
+    returns alongside parents.  It is set once during engine init via
+    ``set_n_elites()`` and is static (pytree_node=False).
     """
 
     num_selections: int = _field(pytree_node=False)
     input_length: int = _field(pytree_node=False, default=-1)
     typed_keys: bool = _field(pytree_node=False, default=False)
+    n_elites: int = _field(pytree_node=False, default=0)
 
     def set_input_length(self, length: int) -> "BaseSelection[P, C]":
         """Lock population size for static budgeting."""
@@ -303,6 +309,10 @@ class BaseSelection(Generic[P, C]):
         False = legacy uint32[2].
         """
         return cast("BaseSelection[P, C]", cast(Any, self).replace(typed_keys=typed))
+
+    def set_n_elites(self, n: int) -> "BaseSelection[P, C]":
+        """Set elite count for preservation (called once at engine init)."""
+        return cast("BaseSelection[P, C]", cast(Any, self).replace(n_elites=n))
 
     @property
     @abstractmethod
@@ -331,10 +341,28 @@ class BaseSelection(Generic[P, C]):
         """
         raise NotImplementedError
 
+    def get_elite_indices(self, fitness: chex.Array) -> chex.Array:
+        """Return indices of the top ``n_elites`` individuals.
+
+        Default implementation: O(N) ``jnp.argpartition``.  Subclasses
+        (e.g. ``ElitePoolSelection``) may override ``__call__`` to fuse
+        this with parent selection in a single pass.
+
+        Returns:
+            Integer array of shape ``(n_elites,)``.  Empty when
+            ``n_elites == 0``.
+        """
+        if self.n_elites == 0:
+            return jnp.zeros(0, dtype=jnp.int32)
+        pop_size = fitness.shape[0]
+        if self.n_elites >= pop_size:
+            return jnp.arange(pop_size, dtype=jnp.int32)
+        return jnp.argpartition(-fitness, self.n_elites)[: self.n_elites]
+
     def __call__(
         self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any
-    ) -> chex.Array:
-        """Select from population (accepts either Population or fitness array).
+    ) -> Tuple[chex.Array, chex.Array]:
+        """Select parents and extract elites in one call.
 
         Args:
             keys: PRNG key(s) for selection.
@@ -342,7 +370,11 @@ class BaseSelection(Generic[P, C]):
             config: Optional configuration.
 
         Returns:
-            Selected indices, shape (num_selections,).
+            ``(parent_indices, elite_indices)`` tuple.
+            ``parent_indices``: shape ``(num_selections,)``.
+            ``elite_indices``:  shape ``(n_elites,)`` (empty when ``n_elites == 0``).
         """
         fitness = getattr(population, "fitness", population)
-        return self._select(keys, fitness, config, **kwargs)
+        parent_idx = self._select(keys, fitness, config, **kwargs)
+        elite_idx = self.get_elite_indices(fitness)
+        return parent_idx, elite_idx
