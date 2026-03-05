@@ -727,6 +727,12 @@ class TestConvergenceParity:
                 assert "start_best_fitness" in run.metrics
                 assert "end_best_fitness" in run.metrics
                 assert "delta_best" in run.metrics
+                # minimization problems should show improvement (start>end)
+                # delta may be zero when the initial population already contains
+                # the best value; we only fail if the metric is negative.
+                assert run.metrics["delta_best"] >= 0, (
+                    f"non‑improving run {run.seed}: delta={run.metrics['delta_best']}"
+                )
 
         # ---- Aggregated summary via ComparisonResult ----
         table = comparison.summary_table()
