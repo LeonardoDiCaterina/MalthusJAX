@@ -13,6 +13,11 @@ Compares:
     - Multi-generation throughput (scan loop)
     - JIT compilation time
     - Operator-level microbenchmarks (selection, crossover, mutation, fitness)
+
+    **Note:** the engines now record the starting and ending best fitness
+    values (and the delta between them) in the benchmark summaries so that the
+    results show whether evolution is making real improvements instead of
+    merely churning random numbers.
 """
 
 from __future__ import annotations
@@ -240,8 +245,16 @@ class MalthusJAXBenchEngine:
                 }
             )
 
+        # compute fitness deltas for reporting
+        start_best = history[0]["best_fitness"]
+        end_best = history[-1]["best_fitness"]
+        delta_best = start_best - end_best  # positive improvement for minimisation
+
         summary = {
             "best_fitness": float(final_state.best_fitness),
+            "start_best_fitness": start_best,
+            "end_best_fitness": end_best,
+            "delta_best": delta_best,
             "final_generation": n_gens - 1,
             "total_evaluations": n_gens * self.pop_size,
         }
@@ -305,8 +318,16 @@ class EvosaxBenchEngine:
                 }
             )
 
+        # fitness deltas
+        start_best = history[0]["best_fitness"]
+        end_best = history[-1]["best_fitness"]
+        delta_best = start_best - end_best
+
         summary = {
             "best_fitness": float(es_state.best_fitness),
+            "start_best_fitness": start_best,
+            "end_best_fitness": end_best,
+            "delta_best": delta_best,
             "final_generation": n_gens - 1,
             "total_evaluations": n_gens * self.pop_size,
         }
@@ -701,6 +722,11 @@ class TestConvergenceParity:
                 assert run.status == "success", (
                     f"{name} seed={run.seed} failed: {run.error}"
                 )
+                # each run summary should now include start/end/delta metrics
+                # metrics dictionary holds the numeric summary fields
+                assert "start_best_fitness" in run.metrics
+                assert "end_best_fitness" in run.metrics
+                assert "delta_best" in run.metrics
 
         # ---- Aggregated summary via ComparisonResult ----
         table = comparison.summary_table()
