@@ -534,13 +534,13 @@ class TestOperatorMicrobenchmarks:
         key = jr.PRNGKey(1)
 
         jit_sel = jax.jit(sel)
-        # Warm up
-        _idx = jit_sel(key, fitness)
-        _idx.block_until_ready()
+        # Warm up — __call__ returns (parent_idx, elite_idx) tuple
+        _parent, _elite = jit_sel(key, fitness)
+        _parent.block_until_ready()
 
         def _run():
-            idx = jit_sel(key, fitness)
-            idx.block_until_ready()
+            parent_idx, elite_idx = jit_sel(key, fitness)
+            parent_idx.block_until_ready()
 
         benchmark.group = f"operator_selection/pop{pop_size}"
         benchmark.name = "elite_pool"
@@ -555,12 +555,12 @@ class TestOperatorMicrobenchmarks:
         key = jr.PRNGKey(1)
 
         jit_sel = jax.jit(sel)
-        _idx = jit_sel(key, fitness)
-        _idx.block_until_ready()
+        _parent, _elite = jit_sel(key, fitness)
+        _parent.block_until_ready()
 
         def _run():
-            idx = jit_sel(key, fitness)
-            idx.block_until_ready()
+            parent_idx, elite_idx = jit_sel(key, fitness)
+            parent_idx.block_until_ready()
 
         benchmark.group = f"operator_selection/pop{pop_size}"
         benchmark.name = "tournament"
