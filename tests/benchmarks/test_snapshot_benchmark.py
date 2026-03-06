@@ -48,6 +48,10 @@ from malthusjax.engine.genetic_fastengine import (
 from malthusjax.engine.schedules import TrackBest
 from malthusjax.operators.crossover.real import UniformCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
+# wrappers around native evosax implementations; used to isolate
+# architectural overhead by keeping the same operators as evosax itself
+from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
+from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.selection.tournament import TournamentSelection
 
@@ -78,8 +82,16 @@ def _build_malthusjax_engine(
     selection_type: str = "elite_pool",
     unroll_num: int = 1,
     track_best: TrackBest = TrackBest.LIGHT,
+    use_evosax_ops: bool = False,
 ) -> GeneticEngine:
-    """Build a ready-to-use MalthusJAX GeneticEngine."""
+    """Build a ready-to-use MalthusJAX GeneticEngine.
+
+    When ``use_evosax_ops`` is True the engine will employ the
+    ``EvosaxUniformCrossoverWrapper`` and ``EvosaxGaussianWrapper``
+    rather than the native implementations.  This lets us measure the
+    costs of the MalthusJAX engine architecture itself while holding the
+    genetic operators constant with evosax's own operators.
+    """
     genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
 
     bbob_config = BBOBConfig(fn_name=problem, num_dims=dims, seed=SEED, maximize=False)
@@ -92,8 +104,12 @@ def _build_malthusjax_engine(
     else:
         selection = ElitePoolSelection(num_selections=pop_size, elite_k=elite_count)
 
-    crossover = UniformCrossover(num_offspring=2, crossover_rate=0.5)
-    mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
+    if use_evosax_ops:
+        crossover = EvosaxUniformCrossoverWrapper(num_offspring=2, crossover_rate=0.5)
+        mutation = EvosaxGaussianWrapper(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
+    else:
+        crossover = UniformCrossover(num_offspring=2, crossover_rate=0.5)
+        mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
 
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
@@ -206,6 +222,10 @@ class MalthusJAXBenchEngine:
 
     ``run_once(key)`` returns the standard dict expected by
     :class:`BenchmarkRunner`: ``{history, summary, timings}``.
+
+    The `use_evosax_ops` flag controls whether the engine is constructed
+    with native MalthusJAX operators or the evosax wrappers.  This allows
+    us to measure the overhead of the engine architecture itself.
     """
 
     pop_size: int
@@ -214,6 +234,7 @@ class MalthusJAXBenchEngine:
     num_generations: int = NUM_GENERATIONS_LONG
     elite_ratio: float = 0.5
     unroll_num: int = 1
+    use_evosax_ops: bool = False
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
         engine = _build_malthusjax_engine(
@@ -223,6 +244,7 @@ class MalthusJAXBenchEngine:
             num_generations=self.num_generations,
             elite_ratio=self.elite_ratio,
             unroll_num=self.unroll_num,
+            use_evosax_ops=self.use_evosax_ops,
         )
         t0 = time.time()
         state = engine.init_state(key)
@@ -341,6 +363,7 @@ def _run_comparison(
     problem: str = "sphere",
     num_generations: int = NUM_GENERATIONS_LONG,
     seeds: Tuple[int, ...] = (42, 123, 7),
+    use_evosax_ops: bool = False,
 ) -> ComparisonResult:
     """Run both frameworks via BenchmarkRunner and return a ComparisonResult.
 
@@ -353,6 +376,7 @@ def _run_comparison(
         dims=dims,
         problem=problem,
         num_generations=num_generations,
+        use_evosax_ops=use_evosax_ops,
     )
     esx_engine = EvosaxBenchEngine(
         pop_size=pop_size,
@@ -402,9 +426,12 @@ class TestSingleStepLatency:
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
-    def test_malthusjax_step(self, benchmark, pop_size: int, dims: int):
+    @pytest.mark.parametrize("use_evosax_ops", [False, True])
+    def test_malthusjax_step(
+        self, benchmark, pop_size: int, dims: int, use_evosax_ops: bool
+    ):
         """MalthusJAX: single jit-compiled step (warm)."""
-        engine = _build_malthusjax_engine(pop_size, dims)
+        engine = _build_malthusjax_engine(pop_size, dims, use_evosax_ops=use_evosax_ops)
         state, jit_step = _malthusjax_init_and_warmup(engine)
 
         def _run():
@@ -412,7 +439,9 @@ class TestSingleStepLatency:
             s.best_fitness.block_until_ready()
 
         benchmark.group = f"single_step/pop{pop_size}_d{dims}"
-        benchmark.name = "malthusjax"
+        benchmark.name = (
+            "malthusjax_evosaxops" if use_evosax_ops else "malthusjax"
+        )
         benchmark(_run)
 
     # --- Evosax ---
@@ -448,12 +477,16 @@ class TestMultiGenThroughput:
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
-    def test_malthusjax_scan(self, benchmark, pop_size: int, dims: int):
+    @pytest.mark.parametrize("use_evosax_ops", [False, True])
+    def test_malthusjax_scan(
+        self, benchmark, pop_size: int, dims: int, use_evosax_ops: bool
+    ):
         """MalthusJAX: full scan loop for {NUM_GENERATIONS_SHORT} gens."""
         bench_engine = MalthusJAXBenchEngine(
             pop_size=pop_size,
             dims=dims,
             num_generations=NUM_GENERATIONS_SHORT,
+            use_evosax_ops=use_evosax_ops,
         )
         # Warm-up (compile)
         bench_engine.run_once(jr.PRNGKey(0))
@@ -463,7 +496,9 @@ class TestMultiGenThroughput:
             assert result["summary"]["best_fitness"] is not None
 
         benchmark.group = f"scan_{NUM_GENERATIONS_SHORT}gen/pop{pop_size}_d{dims}"
-        benchmark.name = "malthusjax"
+        benchmark.name = (
+            "malthusjax_evosaxops" if use_evosax_ops else "malthusjax"
+        )
         benchmark(_run)
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
