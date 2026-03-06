@@ -35,6 +35,7 @@ import pytest
 from evosax.algorithms.population_based import SimpleGA
 from evosax.problems import BBOBProblem
 
+from malthusjax.benchmarking.io import write_experiment_artifacts
 from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult
 from malthusjax.benchmarking.runner import BenchmarkRunner
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
@@ -558,18 +559,24 @@ def _run_injection_experiment(
     mutation_type: str = "gaussian",
     use_injection_ops: bool = False,
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
+    output_dir: Optional[Path] = None,
 ) -> "ExperimentResult":
     """Run a single MalthusJAX configuration via BenchmarkRunner.
 
     Reusable core for Group 11 (injection + key-derivation parity tests).
     Returns an :class:`ExperimentResult` rather than a
     :class:`ComparisonResult` because these tests have no evosax counterpart.
+
+    If *output_dir* is given the runner writes ``summary.json`` and
+    ``histories_combined.csv`` to a sub-directory named after the
+    experiment.
     """
     suffix = (
         f"{'inj' if use_injection_ops else 'std'}"
         f"_{crossover_type}x_{mutation_type}m"
         f"_{key_derivation.value}"
     )
+    experiment_name = f"mjx_{problem}_p{pop_size}_d{dims}_{suffix}"
     engine = MalthusJAXBenchEngine(
         pop_size=pop_size,
         dims=dims,
@@ -580,10 +587,15 @@ def _run_injection_experiment(
         use_injection_ops=use_injection_ops,
         key_derivation=key_derivation,
     )
+
+    write = output_dir is not None
+    exp_output_dir = (output_dir / experiment_name) if write else None
+
     runner = BenchmarkRunner(
         engine=engine,
-        experiment_name=f"mjx_{problem}_p{pop_size}_d{dims}_{suffix}",
-        write_artifacts=False,
+        experiment_name=experiment_name,
+        output_dir=exp_output_dir,
+        write_artifacts=write,
     )
     return runner.run(seeds=seeds)
 
@@ -1512,6 +1524,16 @@ def _assert_experiment_result(
         )
 
 
+# Default root for fitness-parity artifacts.
+# Override via the ``MALTHUSJAX_PARITY_RESULTS`` env-var.
+_PARITY_RESULTS_DIR = Path(
+    __import__("os").environ.get(
+        "MALTHUSJAX_PARITY_RESULTS",
+        str(Path(__file__).resolve().parents[2] / "results" / "fitness_parity"),
+    )
+)
+
+
 class TestInjectionFitnessParity:
     """Verify that injection-mode operators produce correct evolutionary dynamics.
 
@@ -1525,6 +1547,9 @@ class TestInjectionFitnessParity:
 
     These are NOT speed benchmarks — they run without the ``benchmark``
     fixture and validate correctness end-to-end via :class:`BenchmarkRunner`.
+    Fitness artifacts (``summary.json`` + ``histories_combined.csv``) are
+    written under ``results/fitness_parity/`` (configurable via the
+    ``MALTHUSJAX_PARITY_RESULTS`` environment variable).
 
     Pop=200, d=10, 100 generations, 3 seeds keeps wall-clock time short
     while still exercising the full scan loop.
@@ -1534,6 +1559,7 @@ class TestInjectionFitnessParity:
     _DIMS = 10
     _GENS = 100
     _SEEDS = (42, 123, 7)
+    _OUTPUT_DIR = _PARITY_RESULTS_DIR
 
     # --- Crossover parity ---
 
@@ -1548,6 +1574,7 @@ class TestInjectionFitnessParity:
             seeds=self._SEEDS,
             crossover_type=crossover_type,
             use_injection_ops=use_injection,
+            output_dir=self._OUTPUT_DIR,
         )
         mode = "injection" if use_injection else "standard"
         label = f"crossover={crossover_type} mode={mode}"
@@ -1571,6 +1598,7 @@ class TestInjectionFitnessParity:
             seeds=self._SEEDS,
             mutation_type=mutation_type,
             use_injection_ops=use_injection,
+            output_dir=self._OUTPUT_DIR,
         )
         mode = "injection" if use_injection else "standard"
         label = f"mutation={mutation_type} mode={mode}"
@@ -1596,6 +1624,7 @@ class TestInjectionFitnessParity:
             num_generations=self._GENS,
             seeds=self._SEEDS,
             key_derivation=key_derivation,
+            output_dir=self._OUTPUT_DIR,
         )
         label = f"key_derivation={key_derivation.value}"
         _assert_experiment_result(result, label, self._SEEDS)
@@ -1625,6 +1654,7 @@ class TestInjectionFitnessParity:
             crossover_type=crossover_type,
             use_injection_ops=True,
             key_derivation=key_derivation,
+            output_dir=self._OUTPUT_DIR,
         )
         label = (
             f"injection crossover={crossover_type} key_derivation={key_derivation.value}"
@@ -1654,6 +1684,7 @@ class TestInjectionFitnessParity:
             mutation_type=mutation_type,
             use_injection_ops=True,
             key_derivation=key_derivation,
+            output_dir=self._OUTPUT_DIR,
         )
         label = (
             f"injection mutation={mutation_type} key_derivation={key_derivation.value}"
