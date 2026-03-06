@@ -268,6 +268,28 @@ def _malthusjax_init_and_warmup(
 
 
 # ---------------------------------------------------------------------------
+# Helpers — Canonical (shared) population initialisation
+# ---------------------------------------------------------------------------
+
+
+def _canonical_population(
+    key: jax.Array,
+    pop_size: int,
+    dims: int,
+    bounds: Tuple[float, float] = (-5.0, 5.0),
+) -> jax.Array:
+    """Generate a deterministic starting population from a PRNG key.
+
+    Both MalthusJAX and evosax engines call this same function so that,
+    for a given seed, every configuration begins from *identical* initial
+    genes.  The output is a plain ``(pop_size, dims)`` float32 array.
+    """
+    return jax.random.uniform(
+        key, (pop_size, dims), minval=bounds[0], maxval=bounds[1],
+    )
+
+
+# ---------------------------------------------------------------------------
 # Helpers — Evosax
 # ---------------------------------------------------------------------------
 
@@ -277,9 +299,22 @@ def _build_evosax_ga(
     dims: int,
     problem: str = "sphere",
     elite_ratio: float = 0.5,
+    rng: Optional[jax.Array] = None,
+    init_x: Optional[jax.Array] = None,
 ) -> Tuple[SimpleGA, Any, BBOBProblem, Any]:
-    """Build evosax SimpleGA + BBOB problem, return (strategy, params, problem, init_carry)."""
-    rng = jr.PRNGKey(SEED)
+    """Build evosax SimpleGA + BBOB problem, return (strategy, params, problem, init_carry).
+
+    Parameters
+    ----------
+    rng : optional
+        Root PRNG key.  Defaults to ``jr.PRNGKey(SEED)`` for backward
+        compatibility with the speed-benchmark groups.
+    init_x : optional
+        Pre-generated initial population ``(pop_size, dims)``.
+        When given, this array is used instead of sampling a new one.
+    """
+    if rng is None:
+        rng = jr.PRNGKey(SEED)
 
     es_problem = BBOBProblem(problem, num_dims=dims, seed=SEED)
     init_solution = es_problem.sample(rng)
@@ -292,7 +327,8 @@ def _build_evosax_ga(
     r_init, r_start = jax.random.split(rng)
     p_state = es_problem.init(r_init)
 
-    init_x = jax.random.uniform(r_init, (pop_size, dims), minval=-5.0, maxval=5.0)
+    if init_x is None:
+        init_x = jax.random.uniform(r_init, (pop_size, dims), minval=-5.0, maxval=5.0)
     init_fit = jnp.full((pop_size,), jnp.inf)
     es_state = strategy.init(r_init, init_x, init_fit, es_params)
 
@@ -353,6 +389,12 @@ class MalthusJAXBenchEngine:
     control which operator variant (standard or injection-mode) is used.
     ``key_derivation`` selects between ``SPLIT`` (sequential, uncorrelated) and
     ``FOLD`` (parallel, deterministic) entropy strategies.
+
+    When ``canonical_init`` is True, the engine derives a *canonical* starting
+    population from the per-seed key via :func:`_canonical_population` so that
+    every configuration — including evosax — begins from identical gene
+    values.  This makes fitness comparisons across operator variants and
+    frameworks meaningful.
     """
 
     pop_size: int
@@ -366,6 +408,7 @@ class MalthusJAXBenchEngine:
     mutation_type: str = "gaussian"
     use_injection_ops: bool = False
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT
+    canonical_init: bool = False
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
         engine = _build_malthusjax_engine(
@@ -381,9 +424,36 @@ class MalthusJAXBenchEngine:
             use_injection_ops=self.use_injection_ops,
             key_derivation=self.key_derivation,
         )
-        t0 = time.time()
-        state = engine.init_state(key)
-        t_init = time.time() - t0
+
+        if self.canonical_init:
+            # Derive (pop_key, evo_key) deterministically from the per-seed
+            # key.  The pop_key feeds _canonical_population; evo_key seeds
+            # the engine state so subsequent evolution is still unique.
+            pop_key, evo_key = jr.split(key)
+            shared_genes = _canonical_population(
+                pop_key, self.pop_size, self.dims,
+                bounds=engine.genome_config.bounds,
+            )
+            t0 = time.time()
+            state = engine.init_state(evo_key)
+            # Override randomly-generated population with canonical genes.
+            new_genome = state.population.genes.replace(values=shared_genes)
+            new_pop = state.population.replace(genes=new_genome)
+            evaluated_pop = engine.evaluator.evaluate_population(new_pop)
+            best_idx = jnp.argmax(evaluated_pop.fitness)
+            best_genome = jax.tree_util.tree_map(
+                lambda x: x[best_idx], evaluated_pop.genes,
+            )
+            state = state.replace(
+                population=evaluated_pop,
+                best_genome=best_genome,
+                best_fitness=evaluated_pop.fitness[best_idx],
+            )
+            t_init = time.time() - t0
+        else:
+            t0 = time.time()
+            state = engine.init_state(key)
+            t_init = time.time() - t0
 
         t0 = time.time()
         final_state, scan_history, _ = engine.run(state, compile=True)
@@ -425,6 +495,11 @@ class EvosaxBenchEngine:
 
     ``run_once(key)`` returns the standard dict expected by
     :class:`BenchmarkRunner`: ``{history, summary, timings}``.
+
+    When ``canonical_init`` is True the engine derives the starting
+    population via :func:`_canonical_population` using the same key-split
+    convention as :class:`MalthusJAXBenchEngine`, guaranteeing identical
+    initial genes across frameworks for each seed.
     """
 
     pop_size: int
@@ -432,11 +507,24 @@ class EvosaxBenchEngine:
     problem: str = "sphere"
     num_generations: int = NUM_GENERATIONS_LONG
     elite_ratio: float = 0.5
+    canonical_init: bool = False
+    canonical_bounds: Tuple[float, float] = (-5.0, 5.0)
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
-        strategy, params, es_problem, carry = _build_evosax_ga(
-            self.pop_size, self.dims, self.problem, self.elite_ratio
-        )
+        if self.canonical_init:
+            pop_key, evo_key = jr.split(key)
+            shared_genes = _canonical_population(
+                pop_key, self.pop_size, self.dims,
+                bounds=self.canonical_bounds,
+            )
+            strategy, params, es_problem, carry = _build_evosax_ga(
+                self.pop_size, self.dims, self.problem, self.elite_ratio,
+                rng=evo_key, init_x=shared_genes,
+            )
+        else:
+            strategy, params, es_problem, carry = _build_evosax_ga(
+                self.pop_size, self.dims, self.problem, self.elite_ratio,
+            )
         step = _evosax_step_fn(strategy, params, es_problem)
 
         # Record per-generation history via a modified scan that outputs fitness
@@ -560,6 +648,7 @@ def _run_injection_experiment(
     use_injection_ops: bool = False,
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
     output_dir: Optional[Path] = None,
+    canonical_init: bool = False,
 ) -> "ExperimentResult":
     """Run a single MalthusJAX configuration via BenchmarkRunner.
 
@@ -570,6 +659,10 @@ def _run_injection_experiment(
     If *output_dir* is given the runner writes ``summary.json`` and
     ``histories_combined.csv`` to a sub-directory named after the
     experiment.
+
+    When *canonical_init* is True, every seed starts from a canonical
+    population generated by :func:`_canonical_population` so that
+    cross-configuration comparisons are apples-to-apples.
     """
     suffix = (
         f"{'inj' if use_injection_ops else 'std'}"
@@ -586,6 +679,7 @@ def _run_injection_experiment(
         mutation_type=mutation_type,
         use_injection_ops=use_injection_ops,
         key_derivation=key_derivation,
+        canonical_init=canonical_init,
     )
 
     write = output_dir is not None
@@ -598,6 +692,94 @@ def _run_injection_experiment(
         write_artifacts=write,
     )
     return runner.run(seeds=seeds)
+
+
+def _run_parity_comparison(
+    pop_size: int,
+    dims: int,
+    problem: str = "sphere",
+    num_generations: int = NUM_GENERATIONS_LONG,
+    seeds: Tuple[int, ...] = (42, 123, 7),
+    crossover_type: str = "uniform",
+    mutation_type: str = "gaussian",
+    use_injection_ops: bool = False,
+    key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
+    output_dir: Optional[Path] = None,
+) -> ComparisonResult:
+    """Run a MalthusJAX configuration **and** evosax from the same canonical
+    starting population, returning a :class:`ComparisonResult`.
+
+    Evosax acts as the *golden-standard* baseline.  Both engines derive an
+    identical initial population from each seed key via
+    :func:`_canonical_population`, ensuring that any fitness difference is
+    attributable to the evolutionary operators — not random initialisation.
+
+    If *output_dir* is given, artifacts for **both** pipelines are written.
+    """
+    suffix = (
+        f"{'inj' if use_injection_ops else 'std'}"
+        f"_{crossover_type}x_{mutation_type}m"
+        f"_{key_derivation.value}"
+    )
+    mjx_name = f"mjx_{problem}_p{pop_size}_d{dims}_{suffix}"
+    esx_name = f"evosax_{problem}_p{pop_size}_d{dims}"
+
+    bounds = (-5.0, 5.0)  # match RealGenomeConfig default for BBOB benchmarks
+
+    mjx_engine = MalthusJAXBenchEngine(
+        pop_size=pop_size,
+        dims=dims,
+        problem=problem,
+        num_generations=num_generations,
+        crossover_type=crossover_type,
+        mutation_type=mutation_type,
+        use_injection_ops=use_injection_ops,
+        key_derivation=key_derivation,
+        canonical_init=True,
+    )
+    esx_engine = EvosaxBenchEngine(
+        pop_size=pop_size,
+        dims=dims,
+        problem=problem,
+        num_generations=num_generations,
+        canonical_init=True,
+        canonical_bounds=bounds,
+    )
+
+    write = output_dir is not None
+
+    mjx_runner = BenchmarkRunner(
+        engine=mjx_engine,
+        experiment_name=mjx_name,
+        output_dir=(output_dir / mjx_name) if write else None,
+        write_artifacts=write,
+    )
+    esx_runner = BenchmarkRunner(
+        engine=esx_engine,
+        experiment_name=esx_name,
+        output_dir=(output_dir / esx_name) if write else None,
+        write_artifacts=write,
+    )
+
+    mjx_result = mjx_runner.run(seeds=seeds)
+    esx_result = esx_runner.run(seeds=seeds)
+
+    return ComparisonResult(
+        pipelines={"malthusjax": mjx_result, "evosax": esx_result},
+        shared_config={
+            "pop_size": pop_size,
+            "dims": dims,
+            "problem": problem,
+            "num_generations": num_generations,
+            "crossover_type": crossover_type,
+            "mutation_type": mutation_type,
+            "use_injection_ops": use_injection_ops,
+            "key_derivation": key_derivation.value,
+            "seeds": list(seeds),
+            "canonical_init": True,
+        },
+        negate_map={"malthusjax": False, "evosax": False},
+    )
 
 
 # ============================================================================
@@ -1505,7 +1687,7 @@ def _assert_experiment_result(
     label: str,
     seeds: Tuple[int, ...],
 ) -> None:
-    """Shared assertions for injection and key-derivation parity tests."""
+    """Shared assertions for a single ExperimentResult pipeline."""
     assert len(result.runs) == len(seeds), (
         f"{label}: expected {len(seeds)} runs, got {len(result.runs)}"
     )
@@ -1524,6 +1706,46 @@ def _assert_experiment_result(
         )
 
 
+def _assert_parity_comparison(
+    comparison: ComparisonResult,
+    label: str,
+    seeds: Tuple[int, ...],
+) -> None:
+    """Validate both pipelines in a parity ComparisonResult.
+
+    Checks that:
+    1. Both MalthusJAX and evosax pipelines ran successfully.
+    2. All runs are finite and non-degrading.
+    3. MalthusJAX fitness is in a reasonable range relative to evosax
+       (golden standard).
+    """
+    assert set(comparison.names) == {"malthusjax", "evosax"}, (
+        f"{label}: expected pipelines malthusjax+evosax, got {comparison.names}"
+    )
+
+    for name in comparison.names:
+        result = comparison.pipelines[name]
+        _assert_experiment_result(result, f"{label}/{name}", seeds)
+
+    # Aggregated comparison — log summary for human review
+    table = comparison.summary_table()
+    mjx_best = table["malthusjax"]["best_fitness"]
+    esx_best = table["evosax"]["best_fitness"]
+    mjx_delta = table["malthusjax"].get("delta_best")
+    esx_delta = table["evosax"].get("delta_best")
+
+    print(
+        f"\n  [{label}]  (mean over {len(seeds)} seeds, canonical init)"
+        f"\n    MalthusJAX  best_fitness = {mjx_best:.6f}, Δ = {mjx_delta}"
+        f"\n    Evosax      best_fitness = {esx_best:.6f}, Δ = {esx_delta}"
+        f"\n    ratio (mjx/esx) = {mjx_best / esx_best:.4f}"
+    )
+
+    # Sanity: both must be finite
+    assert jnp.isfinite(mjx_best), f"{label}: MalthusJAX non-finite mean best"
+    assert jnp.isfinite(esx_best), f"{label}: evosax non-finite mean best"
+
+
 # Default root for fitness-parity artifacts.
 # Override via the ``MALTHUSJAX_PARITY_RESULTS`` env-var.
 _PARITY_RESULTS_DIR = Path(
@@ -1537,24 +1759,25 @@ _PARITY_RESULTS_DIR = Path(
 class TestInjectionFitnessParity:
     """Verify that injection-mode operators produce correct evolutionary dynamics.
 
-    This group ensures that using injection-mode variants does not break the
-    evolution loop — every operator type in both standard and injection mode
-    must:
-      1. Complete without errors over multiple seeds.
-      2. Return finite ``best_fitness`` values.
-      3. Show non-negative ``delta_best`` (evolution must not get worse on
-         average; delta may be zero when the initial pop is already optimal).
+    Every test in this group runs a MalthusJAX configuration alongside an
+    evosax SimpleGA baseline (**golden standard**).  Both engines start from
+    the **same canonical population** for each seed via
+    :func:`_canonical_population`, so fitness differences are attributable
+    purely to operator behaviour — not random initialisation.
 
-    These are NOT speed benchmarks — they run without the ``benchmark``
-    fixture and validate correctness end-to-end via :class:`BenchmarkRunner`.
-    Fitness artifacts (``summary.json`` + ``histories_combined.csv``) are
-    written under ``results/fitness_parity/`` (configurable via the
-    ``MALTHUSJAX_PARITY_RESULTS`` environment variable).
+    Assertions:
+      1. All runs complete without errors across all seeds.
+      2. Fitness values are finite.
+      3. ``delta_best >= 0`` (evolution must not degrade).
+      4. Evosax results serve as the reference: MalthusJAX results are
+         logged side-by-side for human comparison.
 
-    Pop=200, d=10, 100 generations and a **larger seed set** (30+ seeds)
-    provides much stronger statistical confidence while remaining practical
-    on modern hardware.  Increase ``MALTHUSJAX_PARITY_RESULTS`` if you
-    wish to redirect the output.
+    These are NOT speed benchmarks — they validate correctness end-to-end.
+    Fitness artifacts are written under ``results/fitness_parity/``
+    (configurable via ``MALTHUSJAX_PARITY_RESULTS``).
+
+    Pop=200, d=10, 100 generations over 30 seeds provides strong
+    statistical confidence with 95% CI.
     """
 
     _POP = 200
@@ -1569,8 +1792,11 @@ class TestInjectionFitnessParity:
     @pytest.mark.parametrize("crossover_type", _INJECTION_CROSSOVER_TYPES)
     @pytest.mark.parametrize("use_injection", [False, True], ids=["standard", "injection"])
     def test_crossover_parity(self, crossover_type: str, use_injection: bool):
-        """Each crossover type in standard and injection mode must converge."""
-        result = _run_injection_experiment(
+        """Crossover parity: MalthusJAX (standard/injection) vs evosax golden standard."""
+        mode = "injection" if use_injection else "standard"
+        label = f"crossover={crossover_type} mode={mode}"
+
+        comparison = _run_parity_comparison(
             pop_size=self._POP,
             dims=self._DIMS,
             num_generations=self._GENS,
@@ -1579,22 +1805,18 @@ class TestInjectionFitnessParity:
             use_injection_ops=use_injection,
             output_dir=self._OUTPUT_DIR,
         )
-        mode = "injection" if use_injection else "standard"
-        label = f"crossover={crossover_type} mode={mode}"
-        _assert_experiment_result(result, label, self._SEEDS)
-
-        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
-        print(
-            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
-        )
+        _assert_parity_comparison(comparison, label, self._SEEDS)
 
     # --- Mutation parity ---
 
     @pytest.mark.parametrize("mutation_type", _INJECTION_MUTATION_TYPES)
     @pytest.mark.parametrize("use_injection", [False, True], ids=["standard", "injection"])
     def test_mutation_parity(self, mutation_type: str, use_injection: bool):
-        """Each mutation type in standard and injection mode must converge."""
-        result = _run_injection_experiment(
+        """Mutation parity: MalthusJAX (standard/injection) vs evosax golden standard."""
+        mode = "injection" if use_injection else "standard"
+        label = f"mutation={mutation_type} mode={mode}"
+
+        comparison = _run_parity_comparison(
             pop_size=self._POP,
             dims=self._DIMS,
             num_generations=self._GENS,
@@ -1603,14 +1825,7 @@ class TestInjectionFitnessParity:
             use_injection_ops=use_injection,
             output_dir=self._OUTPUT_DIR,
         )
-        mode = "injection" if use_injection else "standard"
-        label = f"mutation={mutation_type} mode={mode}"
-        _assert_experiment_result(result, label, self._SEEDS)
-
-        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
-        print(
-            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
-        )
+        _assert_parity_comparison(comparison, label, self._SEEDS)
 
     # --- Key derivation parity ---
 
@@ -1620,8 +1835,10 @@ class TestInjectionFitnessParity:
         ids=["split", "fold"],
     )
     def test_key_derivation_parity(self, key_derivation: KeyDerivationStrategy):
-        """SPLIT and FOLD key derivation must both produce valid evolution."""
-        result = _run_injection_experiment(
+        """Key derivation parity: SPLIT/FOLD vs evosax golden standard."""
+        label = f"key_derivation={key_derivation.value}"
+
+        comparison = _run_parity_comparison(
             pop_size=self._POP,
             dims=self._DIMS,
             num_generations=self._GENS,
@@ -1629,13 +1846,7 @@ class TestInjectionFitnessParity:
             key_derivation=key_derivation,
             output_dir=self._OUTPUT_DIR,
         )
-        label = f"key_derivation={key_derivation.value}"
-        _assert_experiment_result(result, label, self._SEEDS)
-
-        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
-        print(
-            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
-        )
+        _assert_parity_comparison(comparison, label, self._SEEDS)
 
     # --- Combined injection + key derivation parity ---
 
@@ -1648,8 +1859,13 @@ class TestInjectionFitnessParity:
     def test_injection_crossover_with_key_derivation(
         self, crossover_type: str, key_derivation: KeyDerivationStrategy
     ):
-        """Injection crossover × both key derivation strategies must converge."""
-        result = _run_injection_experiment(
+        """Injection crossover × key derivation vs evosax golden standard."""
+        label = (
+            f"injection crossover={crossover_type} "
+            f"key_derivation={key_derivation.value}"
+        )
+
+        comparison = _run_parity_comparison(
             pop_size=self._POP,
             dims=self._DIMS,
             num_generations=self._GENS,
@@ -1659,15 +1875,7 @@ class TestInjectionFitnessParity:
             key_derivation=key_derivation,
             output_dir=self._OUTPUT_DIR,
         )
-        label = (
-            f"injection crossover={crossover_type} key_derivation={key_derivation.value}"
-        )
-        _assert_experiment_result(result, label, self._SEEDS)
-
-        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
-        print(
-            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
-        )
+        _assert_parity_comparison(comparison, label, self._SEEDS)
 
     @pytest.mark.parametrize(
         "key_derivation",
@@ -1678,8 +1886,13 @@ class TestInjectionFitnessParity:
     def test_injection_mutation_with_key_derivation(
         self, mutation_type: str, key_derivation: KeyDerivationStrategy
     ):
-        """Injection mutation × both key derivation strategies must converge."""
-        result = _run_injection_experiment(
+        """Injection mutation × key derivation vs evosax golden standard."""
+        label = (
+            f"injection mutation={mutation_type} "
+            f"key_derivation={key_derivation.value}"
+        )
+
+        comparison = _run_parity_comparison(
             pop_size=self._POP,
             dims=self._DIMS,
             num_generations=self._GENS,
@@ -1689,12 +1902,4 @@ class TestInjectionFitnessParity:
             key_derivation=key_derivation,
             output_dir=self._OUTPUT_DIR,
         )
-        label = (
-            f"injection mutation={mutation_type} key_derivation={key_derivation.value}"
-        )
-        _assert_experiment_result(result, label, self._SEEDS)
-
-        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
-        print(
-            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
-        )
+        _assert_parity_comparison(comparison, label, self._SEEDS)
