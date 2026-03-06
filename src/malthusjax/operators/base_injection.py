@@ -131,6 +131,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
 
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
+    typed_keys: bool = _field(pytree_node=False, default=False)
 
     @property
     @abstractmethod
@@ -141,6 +142,10 @@ class BaseCrossover_injection(Generic[G, C, P]):
     def num_keys(self, input_shape: Tuple[int, ...]) -> int:
         """Returns 1 key; _generate_noise handles internal splitting."""
         return 1
+
+    def set_typed_keys(self, typed: bool) -> "BaseCrossover_injection[G, C, P]":
+        """Set the PRNG key format flag (new-style typed vs legacy uint32)."""
+        return cast("BaseCrossover_injection[G, C, P]", cast(Any, self).replace(typed_keys=typed))
 
     def set_input_length(self, length: int) -> "BaseCrossover[G, C, P]":
         """Locks pair count for static budgeting."""
