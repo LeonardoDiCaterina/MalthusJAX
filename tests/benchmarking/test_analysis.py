@@ -7,7 +7,18 @@ from pathlib import Path
 
 import pytest
 
-from malthusjax.benchmarking import analysis
+# import analysis without triggering malthusjax __init__ (evosax dependency)
+import importlib.util
+from pathlib import Path as _Path
+
+spec = importlib.util.spec_from_file_location(
+    "malthusjax.benchmarking.analysis",
+    _Path("src/malthusjax/benchmarking/analysis.py"),
+)
+analysis = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+spec.loader.exec_module(analysis)
+
 
 
 @pytest.fixture(scope="module")
