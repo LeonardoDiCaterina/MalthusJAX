@@ -1551,14 +1551,17 @@ class TestInjectionFitnessParity:
     written under ``results/fitness_parity/`` (configurable via the
     ``MALTHUSJAX_PARITY_RESULTS`` environment variable).
 
-    Pop=200, d=10, 100 generations, 3 seeds keeps wall-clock time short
-    while still exercising the full scan loop.
+    Pop=200, d=10, 100 generations and a **larger seed set** (30+ seeds)
+    provides much stronger statistical confidence while remaining practical
+    on modern hardware.  Increase ``MALTHUSJAX_PARITY_RESULTS`` if you
+    wish to redirect the output.
     """
 
     _POP = 200
     _DIMS = 10
     _GENS = 100
-    _SEEDS = (42, 123, 7)
+    # use 30 distinct seeds for thorough parity checking
+    _SEEDS = tuple(range(30))
     _OUTPUT_DIR = _PARITY_RESULTS_DIR
 
     # --- Crossover parity ---
