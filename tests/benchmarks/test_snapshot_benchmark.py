@@ -105,8 +105,9 @@ def _build_malthusjax_engine(
         selection = ElitePoolSelection(num_selections=pop_size, elite_k=elite_count)
 
     if use_evosax_ops:
-        crossover = EvosaxUniformCrossoverWrapper(num_offspring=2, crossover_rate=0.5)
-        mutation = EvosaxGaussianWrapper(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
+        crossover = EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=0.5)
+        # Evosax wrapper only accepts mutation_strength; drop mutation_rate
+        mutation = EvosaxGaussianWrapper(num_offspring=1, mutation_strength=0.1)
     else:
         crossover = UniformCrossover(num_offspring=2, crossover_rate=0.5)
         mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
