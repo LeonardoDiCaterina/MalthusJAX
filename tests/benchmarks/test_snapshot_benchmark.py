@@ -46,8 +46,25 @@ from malthusjax.engine.genetic_fastengine import (
     GeneticEvolutionState,
 )
 from malthusjax.engine.schedules import TrackBest
-from malthusjax.operators.crossover.real import UniformCrossover
-from malthusjax.operators.mutation.real import GaussianMutation
+from malthusjax.engine.resource_mapper import KeyDerivationStrategy
+from malthusjax.operators.crossover.real import (
+    BlendCrossover,
+    BlendCrossover_injection,
+    BinomialCrossover,
+    BinomialCrossover_injection,
+    SimulatedBinaryCrossover,
+    SimulatedBinaryCrossover_injection,
+    UniformCrossover,
+    UniformCrossover_injection,
+)
+from malthusjax.operators.mutation.real import (
+    BallMutation,
+    BallMutation_injection,
+    GaussianMutation,
+    GaussianMutation_injection,
+    PolynomialMutation,
+    PolynomialMutation_injection,
+)
 # wrappers around native evosax implementations; used to isolate
 # architectural overhead by keeping the same operators as evosax itself
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
@@ -106,6 +123,59 @@ UNROLL_FACTORS = [1, 5, 10, 25]  # lax.scan unroll sweep
 # ---------------------------------------------------------------------------
 
 
+def _build_crossover(crossover_type: str, use_injection: bool):
+    """Factory for crossover operators, including injection-mode variants.
+
+    Args:
+        crossover_type: One of "uniform", "blend", "sbx", "binomial".
+        use_injection: When True, returns the injection-mode (_injection) variant
+            that materialises the full noise tensor from a single PRNG key.
+    """
+    if crossover_type == "uniform":
+        cls_std = UniformCrossover
+        cls_inj = UniformCrossover_injection
+        kwargs = dict(num_offspring=1, crossover_rate=0.5)
+    elif crossover_type == "blend":
+        cls_std = BlendCrossover
+        cls_inj = BlendCrossover_injection
+        kwargs = dict(num_offspring=1, crossover_rate=0.9, alpha=0.5)
+    elif crossover_type == "sbx":
+        cls_std = SimulatedBinaryCrossover
+        cls_inj = SimulatedBinaryCrossover_injection
+        kwargs = dict(num_offspring=2, crossover_rate=0.9, eta=20.0)
+    elif crossover_type == "binomial":
+        cls_std = BinomialCrossover
+        cls_inj = BinomialCrossover_injection
+        kwargs = dict(num_offspring=1, crossover_rate=0.9)
+    else:
+        raise ValueError(f"Unknown crossover_type: {crossover_type!r}")
+    return (cls_inj if use_injection else cls_std)(**kwargs)
+
+
+def _build_mutation(mutation_type: str, use_injection: bool):
+    """Factory for mutation operators, including injection-mode variants.
+
+    Args:
+        mutation_type: One of "gaussian", "ball", "polynomial".
+        use_injection: When True, returns the injection-mode (_injection) variant.
+    """
+    if mutation_type == "gaussian":
+        cls_std = GaussianMutation
+        cls_inj = GaussianMutation_injection
+        kwargs = dict(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
+    elif mutation_type == "ball":
+        cls_std = BallMutation
+        cls_inj = BallMutation_injection
+        kwargs = dict(num_offspring=1, radius=0.1, mutation_rate=1.0)
+    elif mutation_type == "polynomial":
+        cls_std = PolynomialMutation
+        cls_inj = PolynomialMutation_injection
+        kwargs = dict(num_offspring=1, mutation_rate=0.1, eta=20.0)
+    else:
+        raise ValueError(f"Unknown mutation_type: {mutation_type!r}")
+    return (cls_inj if use_injection else cls_std)(**kwargs)
+
+
 def _build_malthusjax_engine(
     pop_size: int,
     dims: int,
@@ -116,14 +186,30 @@ def _build_malthusjax_engine(
     unroll_num: int = 1,
     track_best: TrackBest = TrackBest.LIGHT,
     use_evosax_ops: bool = False,
+    crossover_type: str = "uniform",
+    mutation_type: str = "gaussian",
+    use_injection_ops: bool = False,
+    key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
 ) -> GeneticEngine:
     """Build a ready-to-use MalthusJAX GeneticEngine.
 
-    When ``use_evosax_ops`` is True the engine will employ the
-    ``EvosaxUniformCrossoverWrapper`` and ``EvosaxGaussianWrapper``
-    rather than the native implementations.  This lets us measure the
-    costs of the MalthusJAX engine architecture itself while holding the
-    genetic operators constant with evosax's own operators.
+    Parameters
+    ----------
+    use_evosax_ops:
+        When True the engine employs ``EvosaxUniformCrossoverWrapper`` and
+        ``EvosaxGaussianWrapper`` — overrides ``crossover_type`` /
+        ``mutation_type`` / ``use_injection_ops``.
+    crossover_type:
+        One of ``"uniform"``, ``"blend"``, ``"sbx"``, ``"binomial"``.
+    mutation_type:
+        One of ``"gaussian"``, ``"ball"``, ``"polynomial"``.
+    use_injection_ops:
+        When True, use injection-mode operator variants that materialise the
+        full noise tensor from a single PRNG key before applying it pair-wise.
+    key_derivation:
+        ``KeyDerivationStrategy.SPLIT`` (default, uncorrelated sub-keys via
+        ``jax.random.split``) or ``KeyDerivationStrategy.FOLD`` (parallel
+        sub-keys via ``jax.random.fold_in``).
     """
     genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
 
@@ -142,8 +228,8 @@ def _build_malthusjax_engine(
         # Evosax wrapper only accepts mutation_strength; drop mutation_rate
         mutation = EvosaxGaussianWrapper(num_offspring=1, mutation_strength=0.1)
     else:
-        crossover = UniformCrossover(num_offspring=1, crossover_rate=0.5)
-        mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
+        crossover = _build_crossover(crossover_type, use_injection_ops)
+        mutation = _build_mutation(mutation_type, use_injection_ops)
 
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
@@ -151,6 +237,7 @@ def _build_malthusjax_engine(
         elitism=elite_count,
         unroll_num=unroll_num,
         track_best=track_best,
+        key_derivation=key_derivation,
     )
 
     return GeneticEngine(
@@ -257,9 +344,14 @@ class MalthusJAXBenchEngine:
     ``run_once(key)`` returns the standard dict expected by
     :class:`BenchmarkRunner`: ``{history, summary, timings}``.
 
-    The `use_evosax_ops` flag controls whether the engine is constructed
+    The ``use_evosax_ops`` flag controls whether the engine is constructed
     with native MalthusJAX operators or the evosax wrappers.  This allows
     us to measure the overhead of the engine architecture itself.
+
+    The ``crossover_type`` / ``mutation_type`` / ``use_injection_ops`` fields
+    control which operator variant (standard or injection-mode) is used.
+    ``key_derivation`` selects between ``SPLIT`` (sequential, uncorrelated) and
+    ``FOLD`` (parallel, deterministic) entropy strategies.
     """
 
     pop_size: int
@@ -269,6 +361,10 @@ class MalthusJAXBenchEngine:
     elite_ratio: float = 0.5
     unroll_num: int = 1
     use_evosax_ops: bool = False
+    crossover_type: str = "uniform"
+    mutation_type: str = "gaussian"
+    use_injection_ops: bool = False
+    key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
         engine = _build_malthusjax_engine(
@@ -279,6 +375,10 @@ class MalthusJAXBenchEngine:
             elite_ratio=self.elite_ratio,
             unroll_num=self.unroll_num,
             use_evosax_ops=self.use_evosax_ops,
+            crossover_type=self.crossover_type,
+            mutation_type=self.mutation_type,
+            use_injection_ops=self.use_injection_ops,
+            key_derivation=self.key_derivation,
         )
         t0 = time.time()
         state = engine.init_state(key)
@@ -446,6 +546,46 @@ def _run_comparison(
         # values, so no sign flip is needed for this benchmark.
         negate_map={"malthusjax": False, "evosax": False},
     )
+
+
+def _run_injection_experiment(
+    pop_size: int,
+    dims: int,
+    problem: str = "sphere",
+    num_generations: int = NUM_GENERATIONS_LONG,
+    seeds: Tuple[int, ...] = (42, 123, 7),
+    crossover_type: str = "uniform",
+    mutation_type: str = "gaussian",
+    use_injection_ops: bool = False,
+    key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
+) -> "ExperimentResult":
+    """Run a single MalthusJAX configuration via BenchmarkRunner.
+
+    Reusable core for Group 11 (injection + key-derivation parity tests).
+    Returns an :class:`ExperimentResult` rather than a
+    :class:`ComparisonResult` because these tests have no evosax counterpart.
+    """
+    suffix = (
+        f"{'inj' if use_injection_ops else 'std'}"
+        f"_{crossover_type}x_{mutation_type}m"
+        f"_{key_derivation.value}"
+    )
+    engine = MalthusJAXBenchEngine(
+        pop_size=pop_size,
+        dims=dims,
+        problem=problem,
+        num_generations=num_generations,
+        crossover_type=crossover_type,
+        mutation_type=mutation_type,
+        use_injection_ops=use_injection_ops,
+        key_derivation=key_derivation,
+    )
+    runner = BenchmarkRunner(
+        engine=engine,
+        experiment_name=f"mjx_{problem}_p{pop_size}_d{dims}_{suffix}",
+        write_artifacts=False,
+    )
+    return runner.run(seeds=seeds)
 
 
 # ============================================================================
@@ -1122,4 +1262,405 @@ class TestScalingSweep:
         benchmark.group = "scaling_d10"
         benchmark.name = f"evosax_pop{pop_size}"
         benchmark(_run)
-        
+
+
+# ============================================================================
+# BENCHMARK GROUP 9 — Injection Operator Performance
+# ============================================================================
+
+_INJECTION_CROSSOVER_TYPES = ["uniform", "blend", "sbx", "binomial"]
+_INJECTION_MUTATION_TYPES = ["gaussian", "ball", "polynomial"]
+
+
+class TestInjectionOperators:
+    """Compare injection-mode operators against their standard counterparts.
+
+    Fixed configuration (pop=100, d=10) isolates operator cost from scaling
+    effects.  Each crossover and mutation type is benchmarked in both standard
+    mode (per-pair key allocation) and injection mode (single key, full
+    materialisation), with the same selection operator and fitness function.
+
+    These benchmarks quantify the materialisation overhead of injection mode
+    and serve as regression baselines for its cache/memory trade-offs.
+    """
+
+    _POP = 100
+    _DIMS = 10
+
+    # --- Crossover ---
+
+    @pytest.mark.parametrize("crossover_type", _INJECTION_CROSSOVER_TYPES)
+    @pytest.mark.parametrize("use_injection", [False, True])
+    def test_crossover_step(
+        self, benchmark, crossover_type: str, use_injection: bool
+    ):
+        """Single warm step for each crossover type in standard / injection mode."""
+        engine = _build_malthusjax_engine(
+            self._POP,
+            self._DIMS,
+            crossover_type=crossover_type,
+            use_injection_ops=use_injection,
+        )
+        state, jit_step = _malthusjax_init_and_warmup(engine)
+
+        def _run():
+            s, _ = jit_step(state)
+            s.best_fitness.block_until_ready()
+
+        mode = "injection" if use_injection else "standard"
+        benchmark.group = f"injection_crossover/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = f"{crossover_type}_{mode}"
+        benchmark(_run)
+
+    # --- Mutation ---
+
+    @pytest.mark.parametrize("mutation_type", _INJECTION_MUTATION_TYPES)
+    @pytest.mark.parametrize("use_injection", [False, True])
+    def test_mutation_step(
+        self, benchmark, mutation_type: str, use_injection: bool
+    ):
+        """Single warm step for each mutation type in standard / injection mode."""
+        engine = _build_malthusjax_engine(
+            self._POP,
+            self._DIMS,
+            mutation_type=mutation_type,
+            use_injection_ops=use_injection,
+        )
+        state, jit_step = _malthusjax_init_and_warmup(engine)
+
+        def _run():
+            s, _ = jit_step(state)
+            s.best_fitness.block_until_ready()
+
+        mode = "injection" if use_injection else "standard"
+        benchmark.group = f"injection_mutation/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = f"{mutation_type}_{mode}"
+        benchmark(_run)
+
+    # --- Scan loop ---
+
+    @pytest.mark.parametrize("crossover_type", _INJECTION_CROSSOVER_TYPES)
+    @pytest.mark.parametrize("use_injection", [False, True])
+    def test_crossover_scan(
+        self, benchmark, crossover_type: str, use_injection: bool
+    ):
+        """50-generation scan comparing standard vs injection crossover."""
+        bench_engine = MalthusJAXBenchEngine(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=NUM_GENERATIONS_SHORT,
+            crossover_type=crossover_type,
+            use_injection_ops=use_injection,
+        )
+        bench_engine.run_once(jr.PRNGKey(0))  # warm-up / compile
+
+        def _run():
+            result = bench_engine.run_once(jr.PRNGKey(SEED))
+            assert result["summary"]["best_fitness"] is not None
+
+        mode = "injection" if use_injection else "standard"
+        benchmark.group = (
+            f"injection_crossover_scan_{NUM_GENERATIONS_SHORT}gen"
+            f"/pop{self._POP}_d{self._DIMS}"
+        )
+        benchmark.name = f"{crossover_type}_{mode}"
+        benchmark(_run)
+
+    @pytest.mark.parametrize("mutation_type", _INJECTION_MUTATION_TYPES)
+    @pytest.mark.parametrize("use_injection", [False, True])
+    def test_mutation_scan(
+        self, benchmark, mutation_type: str, use_injection: bool
+    ):
+        """50-generation scan comparing standard vs injection mutation."""
+        bench_engine = MalthusJAXBenchEngine(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=NUM_GENERATIONS_SHORT,
+            mutation_type=mutation_type,
+            use_injection_ops=use_injection,
+        )
+        bench_engine.run_once(jr.PRNGKey(0))  # warm-up / compile
+
+        def _run():
+            result = bench_engine.run_once(jr.PRNGKey(SEED))
+            assert result["summary"]["best_fitness"] is not None
+
+        mode = "injection" if use_injection else "standard"
+        benchmark.group = (
+            f"injection_mutation_scan_{NUM_GENERATIONS_SHORT}gen"
+            f"/pop{self._POP}_d{self._DIMS}"
+        )
+        benchmark.name = f"{mutation_type}_{mode}"
+        benchmark(_run)
+
+
+# ============================================================================
+# BENCHMARK GROUP 10 — Key Derivation Strategy (SPLIT vs FOLD)
+# ============================================================================
+
+
+class TestKeyDerivationStrategy:
+    """Compare ``KeyDerivationStrategy.SPLIT`` vs ``FOLD`` entropy strategies.
+
+    ``SPLIT`` uses sequential ``jax.random.split`` to generate uncorrelated
+    sub-keys, whereas ``FOLD`` uses ``jax.random.fold_in`` which is
+    parallelisable at the cost of weaker independence guarantees.
+
+    Tests run at pop=500, d=10 where the per-step key-allocation cost is
+    most visible compared with operator latency; both single-step and full
+    scan timings are recorded.
+    """
+
+    _POP = 500
+    _DIMS = 10
+
+    @pytest.mark.parametrize(
+        "key_derivation",
+        [KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD],
+        ids=["split", "fold"],
+    )
+    def test_single_step(self, benchmark, key_derivation: KeyDerivationStrategy):
+        """Single warm step under each key-derivation strategy."""
+        engine = _build_malthusjax_engine(
+            self._POP,
+            self._DIMS,
+            key_derivation=key_derivation,
+        )
+        state, jit_step = _malthusjax_init_and_warmup(engine)
+
+        def _run():
+            s, _ = jit_step(state)
+            s.best_fitness.block_until_ready()
+
+        benchmark.group = f"key_derivation/pop{self._POP}_d{self._DIMS}"
+        benchmark.name = key_derivation.value
+        benchmark(_run)
+
+    @pytest.mark.parametrize(
+        "key_derivation",
+        [KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD],
+        ids=["split", "fold"],
+    )
+    def test_scan(self, benchmark, key_derivation: KeyDerivationStrategy):
+        """50-generation scan under each key-derivation strategy."""
+        bench_engine = MalthusJAXBenchEngine(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=NUM_GENERATIONS_SHORT,
+            key_derivation=key_derivation,
+        )
+        bench_engine.run_once(jr.PRNGKey(0))  # warm-up / compile
+
+        def _run():
+            result = bench_engine.run_once(jr.PRNGKey(SEED))
+            assert result["summary"]["best_fitness"] is not None
+
+        benchmark.group = (
+            f"key_derivation_scan_{NUM_GENERATIONS_SHORT}gen"
+            f"/pop{self._POP}_d{self._DIMS}"
+        )
+        benchmark.name = key_derivation.value
+        benchmark(_run)
+
+    @pytest.mark.parametrize("pop_size", [100, 500, 1024])
+    @pytest.mark.parametrize(
+        "key_derivation",
+        [KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD],
+        ids=["split", "fold"],
+    )
+    def test_scaling(self, benchmark, pop_size: int, key_derivation: KeyDerivationStrategy):
+        """Key derivation strategy scaling sweep (d=10, varying pop_size)."""
+        dims = 10
+        engine = _build_malthusjax_engine(pop_size, dims, key_derivation=key_derivation)
+        state, jit_step = _malthusjax_init_and_warmup(engine)
+
+        def _run():
+            s, _ = jit_step(state)
+            s.best_fitness.block_until_ready()
+
+        benchmark.group = "key_derivation_scaling_d10"
+        benchmark.name = f"{key_derivation.value}_pop{pop_size}"
+        benchmark(_run)
+
+
+# ============================================================================
+# BENCHMARK GROUP 11 — Injection + Key Derivation Fitness Parity
+# ============================================================================
+
+
+def _assert_experiment_result(
+    result: "ExperimentResult",
+    label: str,
+    seeds: Tuple[int, ...],
+) -> None:
+    """Shared assertions for injection and key-derivation parity tests."""
+    assert len(result.runs) == len(seeds), (
+        f"{label}: expected {len(seeds)} runs, got {len(result.runs)}"
+    )
+    for run in result.runs:
+        assert run.status == "success", (
+            f"{label} seed={run.seed} failed: {run.error}"
+        )
+        assert "start_best_fitness" in run.metrics
+        assert "end_best_fitness" in run.metrics
+        assert "delta_best" in run.metrics
+        assert jnp.isfinite(run.metrics["best_fitness"]), (
+            f"{label} seed={run.seed}: non-finite best_fitness"
+        )
+        assert run.metrics["delta_best"] >= 0, (
+            f"{label} seed={run.seed}: non-improving run (delta={run.metrics['delta_best']})"
+        )
+
+
+class TestInjectionFitnessParity:
+    """Verify that injection-mode operators produce correct evolutionary dynamics.
+
+    This group ensures that using injection-mode variants does not break the
+    evolution loop — every operator type in both standard and injection mode
+    must:
+      1. Complete without errors over multiple seeds.
+      2. Return finite ``best_fitness`` values.
+      3. Show non-negative ``delta_best`` (evolution must not get worse on
+         average; delta may be zero when the initial pop is already optimal).
+
+    These are NOT speed benchmarks — they run without the ``benchmark``
+    fixture and validate correctness end-to-end via :class:`BenchmarkRunner`.
+
+    Pop=200, d=10, 100 generations, 3 seeds keeps wall-clock time short
+    while still exercising the full scan loop.
+    """
+
+    _POP = 200
+    _DIMS = 10
+    _GENS = 100
+    _SEEDS = (42, 123, 7)
+
+    # --- Crossover parity ---
+
+    @pytest.mark.parametrize("crossover_type", _INJECTION_CROSSOVER_TYPES)
+    @pytest.mark.parametrize("use_injection", [False, True], ids=["standard", "injection"])
+    def test_crossover_parity(self, crossover_type: str, use_injection: bool):
+        """Each crossover type in standard and injection mode must converge."""
+        result = _run_injection_experiment(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=self._GENS,
+            seeds=self._SEEDS,
+            crossover_type=crossover_type,
+            use_injection_ops=use_injection,
+        )
+        mode = "injection" if use_injection else "standard"
+        label = f"crossover={crossover_type} mode={mode}"
+        _assert_experiment_result(result, label, self._SEEDS)
+
+        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
+        print(
+            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
+        )
+
+    # --- Mutation parity ---
+
+    @pytest.mark.parametrize("mutation_type", _INJECTION_MUTATION_TYPES)
+    @pytest.mark.parametrize("use_injection", [False, True], ids=["standard", "injection"])
+    def test_mutation_parity(self, mutation_type: str, use_injection: bool):
+        """Each mutation type in standard and injection mode must converge."""
+        result = _run_injection_experiment(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=self._GENS,
+            seeds=self._SEEDS,
+            mutation_type=mutation_type,
+            use_injection_ops=use_injection,
+        )
+        mode = "injection" if use_injection else "standard"
+        label = f"mutation={mutation_type} mode={mode}"
+        _assert_experiment_result(result, label, self._SEEDS)
+
+        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
+        print(
+            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
+        )
+
+    # --- Key derivation parity ---
+
+    @pytest.mark.parametrize(
+        "key_derivation",
+        [KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD],
+        ids=["split", "fold"],
+    )
+    def test_key_derivation_parity(self, key_derivation: KeyDerivationStrategy):
+        """SPLIT and FOLD key derivation must both produce valid evolution."""
+        result = _run_injection_experiment(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=self._GENS,
+            seeds=self._SEEDS,
+            key_derivation=key_derivation,
+        )
+        label = f"key_derivation={key_derivation.value}"
+        _assert_experiment_result(result, label, self._SEEDS)
+
+        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
+        print(
+            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
+        )
+
+    # --- Combined injection + key derivation parity ---
+
+    @pytest.mark.parametrize(
+        "key_derivation",
+        [KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD],
+        ids=["split", "fold"],
+    )
+    @pytest.mark.parametrize("crossover_type", _INJECTION_CROSSOVER_TYPES)
+    def test_injection_crossover_with_key_derivation(
+        self, crossover_type: str, key_derivation: KeyDerivationStrategy
+    ):
+        """Injection crossover × both key derivation strategies must converge."""
+        result = _run_injection_experiment(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=self._GENS,
+            seeds=self._SEEDS,
+            crossover_type=crossover_type,
+            use_injection_ops=True,
+            key_derivation=key_derivation,
+        )
+        label = (
+            f"injection crossover={crossover_type} key_derivation={key_derivation.value}"
+        )
+        _assert_experiment_result(result, label, self._SEEDS)
+
+        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
+        print(
+            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
+        )
+
+    @pytest.mark.parametrize(
+        "key_derivation",
+        [KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD],
+        ids=["split", "fold"],
+    )
+    @pytest.mark.parametrize("mutation_type", _INJECTION_MUTATION_TYPES)
+    def test_injection_mutation_with_key_derivation(
+        self, mutation_type: str, key_derivation: KeyDerivationStrategy
+    ):
+        """Injection mutation × both key derivation strategies must converge."""
+        result = _run_injection_experiment(
+            pop_size=self._POP,
+            dims=self._DIMS,
+            num_generations=self._GENS,
+            seeds=self._SEEDS,
+            mutation_type=mutation_type,
+            use_injection_ops=True,
+            key_derivation=key_derivation,
+        )
+        label = (
+            f"injection mutation={mutation_type} key_derivation={key_derivation.value}"
+        )
+        _assert_experiment_result(result, label, self._SEEDS)
+
+        mean_best = sum(r.metrics["best_fitness"] for r in result.runs) / len(result.runs)
+        print(
+            f"\n  [{label}]  mean best_fitness over {len(self._SEEDS)} seeds = {mean_best:.6f}"
+        )
