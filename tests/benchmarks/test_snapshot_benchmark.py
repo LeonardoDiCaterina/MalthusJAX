@@ -58,11 +58,44 @@ from malthusjax.operators.selection.tournament import TournamentSelection
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+"""fn_names_short_dict = {
+    # Part 1: Separable functions
+    "sphere": "Sphere",
+    "ellipsoidal": "Ellipsoidal",
+    "rastrigin": "Rastrigin",
+    "bueche_rastrigin": "Büche-Rastrigin",
+    "linear_slope": "Linear Slope",
+    # Part 2: Functions with low or moderate conditioning
+    "attractive_sector": "Attractive Sector",
+    "step_ellipsoidal": "Step Ellipsoidal",
+    "rosenbrock": "Rosenbrock",
+    "rosenbrock_rotated": "Rosenbrock Rotated",
+    # Part 3: Functions with high conditioning and unimodal
+    "ellipsoidal_rotated": "Ellipsoidal Rotated",
+    "discus": "Discus",
+    "bent_cigar": "Bent Cigar",
+    "sharp_ridge": "Sharp Ridge",
+    "different_powers": "Different Powers",
+    # Part 4: Multi-modal functions with adequate global structure
+    "rastrigin_rotated": "Rastrigin Rotated",
+    "weierstrass": "Weierstrass",
+    "schaffers_f7": "Schaffers F7",
+    "schaffers_f7_ill_cond": "Schaffers F7 Ill-cond.",
+    "griewank_rosenbrock": "Griewank-Rosenbrock",
+    # Part 5: Multi-modal functions with weak global structure
+    "schwefel": "Schwefel",
+    "gallagher_101_me": "Gallagher 101-me",
+    "gallagher_21_hi": "Gallagher 21-hi",
+    "katsuura": "Katsuura",
+    "lunacek": "Lunacek",
+}
+
+"""
 
 SEED = 42
-PROBLEMS = ["sphere", "rastrigin"]
+PROBLEMS = ["sphere", "rastrigin", "ellipsoidal_rotated", "schwefel", "griewank_rosenbrock"]  # subset of BBOB functions for benchmarking
 DIMENSIONS = [10, 50]
-POP_SIZES = [100, 500]
+POP_SIZES = [100, 500, 1024, 1025]  # powers of two and just above to test vectorization effects
 NUM_GENERATIONS_SHORT = 50
 NUM_GENERATIONS_LONG = 500
 UNROLL_FACTORS = [1, 5, 10, 25]  # lax.scan unroll sweep
@@ -109,7 +142,7 @@ def _build_malthusjax_engine(
         # Evosax wrapper only accepts mutation_strength; drop mutation_rate
         mutation = EvosaxGaussianWrapper(num_offspring=1, mutation_strength=0.1)
     else:
-        crossover = UniformCrossover(num_offspring=2, crossover_rate=0.5)
+        crossover = UniformCrossover(num_offspring=1, crossover_rate=0.5)
         mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1)
 
     engine_params = GeneticEngineParams(
@@ -363,7 +396,7 @@ def _run_comparison(
     dims: int,
     problem: str = "sphere",
     num_generations: int = NUM_GENERATIONS_LONG,
-    seeds: Tuple[int, ...] = (42, 123, 7),
+    seeds: Tuple[int, ...] = (42, 123, 7, 99, 0, 1, 2021, 2022, 2023, 2024),
     use_evosax_ops: bool = False,
 ) -> ComparisonResult:
     """Run both frameworks via BenchmarkRunner and return a ComparisonResult.
@@ -733,10 +766,10 @@ class TestConvergenceParity:
     @pytest.mark.parametrize("problem", PROBLEMS)
     @pytest.mark.parametrize("dims", DIMENSIONS)
     def test_fitness_parity(self, problem: str, dims: int):
-        """Compare final best fitness after fixed generation budget (3 seeds)."""
+        """Compare final best fitness after fixed generation budget (10 seeds)."""
         pop_size = 200
         num_gens = NUM_GENERATIONS_LONG
-        seeds = (42, 123, 7)
+        seeds = (42, 123, 7, 99, 0, 1, 2021, 2022, 2023, 2024)
 
         comparison = _run_comparison(
             pop_size=pop_size,
@@ -1053,6 +1086,7 @@ class TestStepPhaseBreakdown:
 # BENCHMARK GROUP 8 — Scaling Sweep
 # ============================================================================
 
+size_sweep_pop_sizes = [50, 100, 200, 500, 1000]
 
 class TestScalingSweep:
     """Measure how throughput scales with population size.
@@ -1060,7 +1094,7 @@ class TestScalingSweep:
     Useful for detecting O(N²) regressions introduced by fixes.
     """
 
-    @pytest.mark.parametrize("pop_size", [50, 100, 200, 500, 1000])
+    @pytest.mark.parametrize("pop_size", size_sweep_pop_sizes)
     def test_malthusjax_scaling(self, benchmark, pop_size: int):
         """MalthusJAX step latency scaling with population size (d=10)."""
         dims = 10
@@ -1075,7 +1109,7 @@ class TestScalingSweep:
         benchmark.name = f"malthusjax_pop{pop_size}"
         benchmark(_run)
 
-    @pytest.mark.parametrize("pop_size", [50, 100, 200, 500, 1000])
+    @pytest.mark.parametrize("pop_size", size_sweep_pop_sizes)
     def test_evosax_scaling(self, benchmark, pop_size: int):
         """Evosax step latency scaling with population size (d=10)."""
         dims = 10
@@ -1088,3 +1122,4 @@ class TestScalingSweep:
         benchmark.group = "scaling_d10"
         benchmark.name = f"evosax_pop{pop_size}"
         benchmark(_run)
+        
