@@ -38,7 +38,12 @@ class GeneticEngineAdapter:
             - 'summary': Dict[str, Any] - final summary metrics
             - 'timings': Dict[str, float] - timing info
         """
+        import time
+
+        # time initialization (includes any compilation costs on first call)
+        t_init_start = time.perf_counter()
         state = self.genetic_engine.init_state(key)
+        t_init_end = time.perf_counter()
 
         # If an explicit initial population is provided, construct an evaluated
         # population object and replace the state's population with it.
@@ -65,6 +70,7 @@ class GeneticEngineAdapter:
         history = []
         final_state = state
 
+        t_evo_start = time.perf_counter()
         for _ in range(self.genetic_engine.engine_params.num_generations):
             final_state, metrics = self.genetic_engine.step(final_state)
 
@@ -78,6 +84,7 @@ class GeneticEngineAdapter:
                     "std_fitness": 0.0,  # Could compute if needed
                 }
             )
+        t_evo_end = time.perf_counter()
 
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
         summary = {
@@ -87,8 +94,8 @@ class GeneticEngineAdapter:
         }
 
         timings = {
-            "initialization": 0.01,  # Placeholder
-            "evolution": 0.05 * final_state.generation,  # Rough estimate
+            "initialization": t_init_end - t_init_start,
+            "evolution": t_evo_end - t_evo_start,
         }
 
         return {
