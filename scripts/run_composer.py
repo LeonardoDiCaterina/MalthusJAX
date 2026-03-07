@@ -47,8 +47,23 @@ def main() -> None:
     print(result.summary_table())
 
     if args.write_artifacts:
-        result.write_artifacts()
-        print(f"Artifacts written to {result.output_dir}")
+        # ExperimentResult defines write_artifacts; ComparisonResult does not.
+        if hasattr(result, "write_artifacts"):
+            result.write_artifacts()
+            print(f"Artifacts written to {result.output_dir}")
+        else:
+            # ComparisonResult: iterate over pipelines and call writer on each
+            for name, exp in result.pipelines.items():
+                # runner stores output_dir in metadata when run via Composer
+                out = exp.metadata.get("output_dir")
+                if out:
+                    # write summary and history manually
+                    from malthusjax.benchmarking.io import write_summary_json, write_histories_csv
+
+                    write_summary_json(exp, out)
+                    write_histories_csv(exp, out)
+                    print(f"Artifacts for pipeline '{name}' written to {out}")
+            # note: shared initial population not written here"
 
     if args.plot:
         try:
