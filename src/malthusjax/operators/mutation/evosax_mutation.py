@@ -68,11 +68,10 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
     def num_keys(self, input_shape: tuple[int, ...]) -> int:
         """Return key budget.
 
-        - If ``injection_mode=True``, always request a single key (the operator
-          splits internally for maximum performance).
+        - If ``injection_mode=True`` (default), always request a single key.
+          The operator splits internally for maximum performance.
         - Otherwise, if `input_length` has been set (via `set_input_length`),
           behave like a standard fused operator and return per-pair budgeting.
-        - If neither applies, return 1 (legacy injection-style).
         """
         if self.injection_mode:
             return 1
