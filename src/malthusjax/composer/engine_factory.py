@@ -76,39 +76,37 @@ class GeneticEngineAdapter:
                 best_fitness=best_fitness,
             )
 
-        history = []
-        final_state = state
-
         # ------------------------------------------------------------------
-        # Warmup step: run one step *before* the timed loop to trigger XLA
-        # kernel compilation for all operators and the fitness evaluator.
-        # JAX caches compiled kernels globally, so this cost is paid at most
-        # once per process.  We record it separately as "compile" so callers
-        # can distinguish compilation overhead from steady-state performance.
+        # Warmup: trigger full jax.lax.scan compilation by running with a
+        # duplicate state.  engine.run() donates its input (donate_argnums=1),
+        # so the warmup state is consumed; we then run again with the real
+        # state, reusing the cached XLA kernel.
         # ------------------------------------------------------------------
         t_compile_start = time.perf_counter()
-        _ws, _ = self.genetic_engine.step(final_state)
-        _ws.best_fitness.block_until_ready()
+        warmup_state = self.genetic_engine.init_state(key)
+        _, _, _ = self.genetic_engine.run(warmup_state, time_it=True, compile=True)
         t_compile_end = time.perf_counter()
-        del _ws  # discard warmup result; final_state is unchanged (step is pure)
 
+        # ------------------------------------------------------------------
+        # Evolution: use the compiled jax.lax.scan loop for ~10-20x speedup
+        # over a Python for-loop calling step() repeatedly.
+        # ------------------------------------------------------------------
         t_evo_start = time.perf_counter()
-        for _ in range(self.genetic_engine.engine_params.num_generations):
-            final_state, metrics = self.genetic_engine.step(final_state)
+        final_state, scan_history, _ = self.genetic_engine.run(state, time_it=True, compile=True)
+        t_evo_end = time.perf_counter()
 
+        # Convert stacked JAX arrays from scan to list-of-dicts format
+        num_gens = int(self.genetic_engine.engine_params.num_generations)
+        history = []
+        for g in range(num_gens):
             history.append(
                 {
-                    "generation": int(final_state.generation),
-                    "best_fitness": float(final_state.best_fitness),
-                    "mean_fitness": (
-                        float(metrics.mean_fitness) if hasattr(metrics, "mean_fitness") else 0.0
-                    ),
-                    "std_fitness": 0.0,  # Could compute if needed
+                    "generation": g + 1,
+                    "best_fitness": float(scan_history.best_fitness[g]),
+                    "mean_fitness": float(scan_history.mean_fitness[g]),
+                    "std_fitness": 0.0,
                 }
             )
-        # Force sync so t_evo_end reflects actual device completion.
-        final_state.best_fitness.block_until_ready()
-        t_evo_end = time.perf_counter()
 
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
         summary = {
