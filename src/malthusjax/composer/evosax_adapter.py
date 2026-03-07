@@ -123,7 +123,9 @@ class EvosaxEngineAdapter:
             state, _metrics = self.strategy.tell(k_init, init_x, fitness, state, self.params)
 
         # Force device sync so the init timer is accurate.
-        state.best_fitness.block_until_ready()
+        # Block on init_x (a JAX array) rather than state fields which may be
+        # Python scalars in some evosax versions.
+        init_x.block_until_ready()
         t_init_end = time.perf_counter()
 
         # ---- 1b. Warmup step (triggers XLA kernel compilation) -----------
@@ -132,11 +134,12 @@ class EvosaxEngineAdapter:
         # process.  We record it as "compile" so callers can distinguish
         # compilation overhead from steady-state speed.
         t_compile_start = time.perf_counter()
-        _k_w = jr.fold_in(k_run, 0xDEAD)
+        _k_w = jr.fold_in(k_run, jnp.uint32(0xDEAD))
         _x_w, _ws = self.strategy.ask(_k_w, state, self.params)
         _fit_w, _ps_w, _ = self.problem.eval(_k_w, _x_w, p_state)
         _ws, _ = self.strategy.tell(_k_w, _x_w, _fit_w, _ws, self.params)
-        _ws.best_fitness.block_until_ready()
+        # Block on the fitness array — guaranteed to be a JAX device array.
+        _fit_w.block_until_ready()
         t_compile_end = time.perf_counter()
         del _x_w, _ws, _fit_w, _ps_w  # discard warmup state; state is unchanged
 
@@ -173,7 +176,9 @@ class EvosaxEngineAdapter:
             )
 
         # Force sync so t_evo_end reflects actual device completion.
-        state.best_fitness.block_until_ready()
+        # Block on the last fitness array, not state.best_fitness which may
+        # be a Python scalar in some evosax versions.
+        fitness.block_until_ready()
         t_evo_end = time.perf_counter()
 
         # ---- 3. Assemble output ------------------------------------------
