@@ -72,20 +72,21 @@ def main() -> None:
             except Exception as e:  # pragma: no cover
                 print(f"Failed to write artifacts: {e}")
         else:
-            # ComparisonResult: iterate over pipelines and call writer on each
-            from malthusjax.benchmarking.io import write_summary_json, write_histories_csv
-
+            # ComparisonResult: artifacts already written by each quick_run call.
+            # Simply report the paths if available.
             for name, exp in result.pipelines.items():
-                out = exp.metadata.get("output_dir")
-                if not out:
-                    print(f"No output_dir metadata for pipeline '{name}'; skipping artifact write")
-                    continue
-                try:
-                    write_summary_json(exp, out)
-                    write_histories_csv(exp, out)
-                    print(f"Artifacts for pipeline '{name}' written to {out}")
-                except Exception as e:  # pragma: no cover
-                    print(f"Failed to write artifacts for '{name}': {e}")
+                paths = exp.metadata.get("artifact_paths")
+                if paths:
+                    print(f"Pipeline '{name}' artifacts:")
+                    for k, p in paths.items():
+                        print(f"  {k}: {p}")
+                else:
+                    # fallback: maybe output_dir was stored
+                    out = exp.metadata.get("output_dir")
+                    if out:
+                        print(f"Artifacts for pipeline '{name}' located at {out}")
+                    else:
+                        print(f"No artifact metadata for pipeline '{name}'")
             # note: shared initial population not written here
 
     if args.plot:
