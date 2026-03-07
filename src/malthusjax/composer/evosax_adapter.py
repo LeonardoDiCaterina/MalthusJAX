@@ -122,7 +122,23 @@ class EvosaxEngineAdapter:
             fitness, p_state, _ = self.problem.eval(k_init, init_x, p_state)
             state, _metrics = self.strategy.tell(k_init, init_x, fitness, state, self.params)
 
+        # Force device sync so the init timer is accurate.
+        state.best_fitness.block_until_ready()
         t_init_end = time.perf_counter()
+
+        # ---- 1b. Warmup step (triggers XLA kernel compilation) -----------
+        # Run a single ask→tell cycle before the timed loop.  JAX caches
+        # compiled kernels globally, so this cost is paid at most once per
+        # process.  We record it as "compile" so callers can distinguish
+        # compilation overhead from steady-state speed.
+        t_compile_start = time.perf_counter()
+        _k_w = jr.fold_in(k_run, 0xDEAD)
+        _x_w, _ws = self.strategy.ask(_k_w, state, self.params)
+        _fit_w, _ps_w, _ = self.problem.eval(_k_w, _x_w, p_state)
+        _ws, _ = self.strategy.tell(_k_w, _x_w, _fit_w, _ws, self.params)
+        _ws.best_fitness.block_until_ready()
+        t_compile_end = time.perf_counter()
+        del _x_w, _ws, _fit_w, _ps_w  # discard warmup state; state is unchanged
 
         # ---- 2. Evolution loop -------------------------------------------
         t_evo_start = time.perf_counter()
@@ -156,6 +172,8 @@ class EvosaxEngineAdapter:
                 }
             )
 
+        # Force sync so t_evo_end reflects actual device completion.
+        state.best_fitness.block_until_ready()
         t_evo_end = time.perf_counter()
 
         # ---- 3. Assemble output ------------------------------------------
@@ -171,6 +189,7 @@ class EvosaxEngineAdapter:
 
         timings: Dict[str, float] = {
             "initialization": t_init_end - t_init_start,
+            "compile": t_compile_end - t_compile_start,
             "evolution": t_evo_end - t_evo_start,
         }
 

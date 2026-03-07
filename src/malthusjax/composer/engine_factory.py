@@ -40,9 +40,14 @@ class GeneticEngineAdapter:
         """
         import time
 
-        # time initialization (includes any compilation costs on first call)
+        import jax
+
+        # time initialization (pure array ops; XLA kernels may compile here on
+        # the first-ever call to this engine's fitness evaluator)
         t_init_start = time.perf_counter()
         state = self.genetic_engine.init_state(key)
+        # Force device sync so the init timer is accurate.
+        state.best_fitness.block_until_ready()
         # record starting best fitness
         initial_best = float(state.best_fitness)
         if hasattr(self, "maximize") and self.maximize:
@@ -74,6 +79,19 @@ class GeneticEngineAdapter:
         history = []
         final_state = state
 
+        # ------------------------------------------------------------------
+        # Warmup step: run one step *before* the timed loop to trigger XLA
+        # kernel compilation for all operators and the fitness evaluator.
+        # JAX caches compiled kernels globally, so this cost is paid at most
+        # once per process.  We record it separately as "compile" so callers
+        # can distinguish compilation overhead from steady-state performance.
+        # ------------------------------------------------------------------
+        t_compile_start = time.perf_counter()
+        _ws, _ = self.genetic_engine.step(final_state)
+        _ws.best_fitness.block_until_ready()
+        t_compile_end = time.perf_counter()
+        del _ws  # discard warmup result; final_state is unchanged (step is pure)
+
         t_evo_start = time.perf_counter()
         for _ in range(self.genetic_engine.engine_params.num_generations):
             final_state, metrics = self.genetic_engine.step(final_state)
@@ -88,6 +106,8 @@ class GeneticEngineAdapter:
                     "std_fitness": 0.0,  # Could compute if needed
                 }
             )
+        # Force sync so t_evo_end reflects actual device completion.
+        final_state.best_fitness.block_until_ready()
         t_evo_end = time.perf_counter()
 
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
@@ -100,6 +120,7 @@ class GeneticEngineAdapter:
 
         timings = {
             "initialization": t_init_end - t_init_start,
+            "compile": t_compile_end - t_compile_start,
             "evolution": t_evo_end - t_evo_start,
         }
 
