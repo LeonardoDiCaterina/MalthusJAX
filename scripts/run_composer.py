@@ -51,6 +51,32 @@ def main() -> None:
         summary = {}
     print(summary)
 
+    # print runtime/duration information
+    def _print_runtime(res_obj, label=""):
+        durations = [r.duration_seconds for r in res_obj.runs if r.duration_seconds is not None]
+        if durations:
+            avg = sum(durations) / len(durations)
+            print(f"{label}average duration per run: {avg:.3f} s (n={len(durations)})")
+        # also show aggregated timing metrics if present
+        timing_keys = set()
+        for r in res_obj.runs:
+            if r.timings:
+                timing_keys.update(r.timings.keys())
+        if timing_keys:
+            print(f"{label}average timings:")
+            for key in sorted(timing_keys):
+                vals = [r.timings.get(key, 0.0) for r in res_obj.runs if r.timings]
+                if vals:
+                    print(f"  {key}: {sum(vals)/len(vals):.3f} s")
+
+    if hasattr(result, "pipelines"):
+        # comparison result: print for each pipeline separately
+        for name, exp in result.pipelines.items():
+            print(f"\n-- Pipeline '{name}' runtime info --")
+            _print_runtime(exp, label="  ")
+    else:
+        _print_runtime(result)
+
     # if we ran multiple pipelines, report any that produced no metrics
     if hasattr(result, "pipelines"):
         for name, exp in result.pipelines.items():
