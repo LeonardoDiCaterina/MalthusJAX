@@ -43,6 +43,10 @@ class GeneticEngineAdapter:
         # time initialization (includes any compilation costs on first call)
         t_init_start = time.perf_counter()
         state = self.genetic_engine.init_state(key)
+        # record starting best fitness
+        initial_best = float(state.best_fitness)
+        if hasattr(self, "maximize") and self.maximize:
+            initial_best = -initial_best
         t_init_end = time.perf_counter()
 
         # If an explicit initial population is provided, construct an evaluated
@@ -88,6 +92,7 @@ class GeneticEngineAdapter:
 
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
         summary = {
+            "initial_fitness": initial_best,
             "best_fitness": float(final_state.best_fitness),
             "final_generation": int(final_state.generation),
             "total_evaluations": total_evals,
