@@ -77,22 +77,36 @@ class GeneticEngineAdapter:
             )
 
         # ------------------------------------------------------------------
-        # Warmup: trigger full jax.lax.scan compilation by running with a
-        # duplicate state.  engine.run() donates its input (donate_argnums=1),
-        # so the warmup state is consumed; we then run again with the real
-        # state, reusing the cached XLA kernel.
+        # Warmup: compile a single step (this is very cheap and avoids the
+        # Python-loop overhead influencing the compile timing later).
         # ------------------------------------------------------------------
+        _ws, _ = self.genetic_engine.step(state)
+        _ws.best_fitness.block_until_ready()
+
+        # ------------------------------------------------------------------
+        # Compile the full scan kernel without executing it by lowering and
+        # compiling the jit function directly.  This isolates compilation time
+        # from actual evolution execution.
+        # ------------------------------------------------------------------
+        from ..engine.base import _get_evolution_kernel
+
         t_compile_start = time.perf_counter()
-        warmup_state = self.genetic_engine.init_state(key)
-        _, _, _ = self.genetic_engine.run(warmup_state, time_it=True, compile=True)
+        jit_fn = _get_evolution_kernel(
+            self.genetic_engine.engine_params, compile_jit=True
+        )
+        # lowering/compile triggers XLA optimization but does not run
+        _ = jit_fn.lower(self.genetic_engine, state).compile()
         t_compile_end = time.perf_counter()
 
         # ------------------------------------------------------------------
-        # Evolution: use the compiled jax.lax.scan loop for ~10-20x speedup
-        # over a Python for-loop calling step() repeatedly.
+        # Evolution: run the pre-compiled scan, timing only the execution phase.
+        # We disable further compilation with ``compile=False`` since the kernel
+        # is already cached.
         # ------------------------------------------------------------------
         t_evo_start = time.perf_counter()
-        final_state, scan_history, _ = self.genetic_engine.run(state, time_it=True, compile=True)
+        final_state, scan_history, _ = self.genetic_engine.run(
+            state, time_it=True, compile=False
+        )
         t_evo_end = time.perf_counter()
 
         # Convert stacked JAX arrays from scan to list-of-dicts format

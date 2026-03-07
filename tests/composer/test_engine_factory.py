@@ -61,6 +61,10 @@ def test_engine_adapter_run_once():
     assert "summary" in result
     assert "timings" in result
 
+    # compile timing should be reported
+    assert "compile" in result["timings"]
+    assert "evolution" in result["timings"]
+
     # Check history format
     history = result["history"]
     assert isinstance(history, list)
@@ -76,6 +80,13 @@ def test_engine_adapter_run_once():
     assert "best_fitness" in summary
     assert "final_generation" in summary
     assert "total_evaluations" in summary
+
+    # Running a second time should have lower compile cost (cache hit)
+    key2 = jr.PRNGKey(123456)
+    result2 = adapter.run_once(key2)
+    assert result2["timings"]["compile"] <= result["timings"]["compile"]
+    # ideally much smaller
+    assert result2["timings"]["compile"] < result["timings"]["compile"] * 0.5
 
 
 def test_build_engine_from_catalog():
