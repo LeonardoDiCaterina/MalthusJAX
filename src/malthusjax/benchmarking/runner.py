@@ -13,6 +13,12 @@ from ..core.random import create_key, resolve_prng_impl
 from .io import write_experiment_artifacts
 from .results import ExperimentResult, RunResult
 
+# tqdm is optional; import lazily for progress bars in loops
+try:
+    from tqdm import tqdm
+except ImportError:  # pragma: no cover
+    tqdm = None  # type: ignore
+
 
 class Engine(Protocol):
     """Protocol for evolutionary engines used by BenchmarkRunner."""
@@ -55,7 +61,12 @@ class BenchmarkRunner:
 
         impl = resolve_prng_impl(self.prng_impl) if self.prng_impl else None
 
-        for i, seed in enumerate(seeds):
+        # iterate through seeds with optional progress feedback
+        iterable = enumerate(seeds)
+        if tqdm is not None:
+            iterable = tqdm(iterable, total=len(seeds), desc="seeds")
+
+        for i, seed in iterable:
             key = create_key(seed, impl=impl) if impl else jr.PRNGKey(seed)
             # Only trace the first seed
             trace_this = self.trace_dir if i == 0 else None
