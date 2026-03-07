@@ -114,14 +114,20 @@ def compute_scheduled_strength(
     jnp.ndarray
         Scalar strength value for the current generation.
     """
+    # Python-level branching on schedule type (static dispatch).
+    # Since `schedule` is a concrete Python int (IntEnum with pytree_node=False),
+    # only the selected branch is traced by JAX, avoiding computation of all 4
+    # schedule formulas in the XLA kernel.
+    if schedule == ScheduleType.CONSTANT:
+        return jnp.asarray(initial_strength)
+    
     t = generation / max_generations
-    strength_map = jnp.array(
-        [
-            initial_strength,  # CONSTANT
-            initial_strength + (final_strength - initial_strength) * t,  # LINEAR_DECAY
-            final_strength
-            + (initial_strength - final_strength) * 0.5 * (1.0 + jnp.cos(jnp.pi * t)),  # COSINE
-            initial_strength * jnp.exp(-3.0 * t),  # EXPONENTIAL_DECAY
-        ]
-    )
-    return strength_map[schedule]
+    
+    if schedule == ScheduleType.LINEAR_DECAY:
+        return initial_strength + (final_strength - initial_strength) * t
+    elif schedule == ScheduleType.COSINE_ANNEAL:
+        return final_strength + (initial_strength - final_strength) * 0.5 * (1.0 + jnp.cos(jnp.pi * t))
+    elif schedule == ScheduleType.EXPONENTIAL_DECAY:
+        return initial_strength * jnp.exp(-3.0 * t)
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule}")

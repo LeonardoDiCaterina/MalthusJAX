@@ -26,18 +26,6 @@ P = TypeVar("P", bound=BasePopulation[Any])  # Population type (parameterized wi
 _field: Any = struct.field  # Helper alias for typed field calls
 
 
-def compute_unroll_num(num_generations: int) -> int:
-    """Compute a scan unroll factor.
-
-    .. deprecated::
-        Always returns 1.  Benchmarks show ``unroll_num > 1`` grows the XLA
-        program linearly (unroll_5 → 2.3×, unroll_25 → 9×) with no throughput
-        benefit on GPU.  The ``unroll_num`` parameter is kept for backward
-        compatibility but has no effect.
-    """
-    return 1
-
-
 def validate_engine_params(params: "AbstractEngineParams") -> None:
     """
     Validate engine parameters outside of JIT context.
@@ -66,7 +54,6 @@ class AbstractEngineParams:
     - elitism: Number of elite individuals preserved each generation (0 ≤ elitism < pop_size).
     - num_generations: Number of evolution steps (must be > 0).
     - unroll_num: JAX scan unroll factor for latency/memory trade-off (default 1).
-      Use ``compute_unroll_num(num_generations)`` to auto-tune at construction time.
     """
 
     pop_size: int = _field(pytree_node=False, default=100)
@@ -291,7 +278,6 @@ def _get_evolution_kernel(
             DeprecationWarning,
             stacklevel=3,
         )
-    unroll_num = 1  # hard-override: scan unrolling is always harmful on GPU
 
     def _evolve_loop(
         engine: AbstractEngine[G, P], initial_state: AbstractEvolutionState[G, P]
