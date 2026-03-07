@@ -55,6 +55,8 @@ class TestComposerRealEngines:
             assert len(run.history) == 3  # generations
             assert "best_fitness" in run.metrics  # Fixed: use .metrics not .summary
             assert "total_evaluations" in run.metrics
+            # starting fitness should have been recorded by adapters
+            assert "initial_fitness" in run.metrics
 
     def test_quick_run_partial_operator_specs(self):
         """Test quick_run with only some operators specified (uses defaults)."""
