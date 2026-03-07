@@ -26,6 +26,27 @@ P = TypeVar("P", bound=BasePopulation[Any])  # Population type (parameterized wi
 _field: Any = struct.field  # Helper alias for typed field calls
 
 
+def compute_unroll_num(num_generations: int) -> int:
+    """Compute scan unroll factor for evolution loop.
+
+    .. deprecated::
+       Scan unrolling is deprecated.  Benchmarks show it grows XLA IR
+       linearly with no throughput benefit on GPU, as XLA fuses across
+       scan iterations automatically.  This function now always returns 1.
+
+    Parameters
+    ----------
+    num_generations : int
+        Total number of generations (unused).
+
+    Returns
+    -------
+    int
+        Always returns 1.
+    """
+    return 1
+
+
 def validate_engine_params(params: "AbstractEngineParams") -> None:
     """
     Validate engine parameters outside of JIT context.
