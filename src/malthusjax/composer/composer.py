@@ -14,6 +14,13 @@ from .engine_catalog import EngineRegistry
 from .engine_factory import build_engine_from_catalog
 from .evosax_adapter import build_evosax_engine
 
+# tqdm is an optional dependency used for progress bars in loops.
+# Import lazily so the package remains optional.
+try:
+    from tqdm import tqdm
+except ImportError:  # pragma: no cover - optional dependency
+    tqdm = None  # type: ignore
+
 
 @dataclass
 class Composer:
@@ -239,7 +246,13 @@ class Composer:
 
         results: Dict[str, ExperimentResult] = {}
         negate_map: Dict[str, bool] = {}
-        for name, pipeline_kwargs in pipelines.items():
+        
+        # iterate over pipelines with optional progress reporting
+        iterable = pipelines.items()
+        if tqdm is not None:
+            iterable = tqdm(iterable, total=len(pipelines), desc="pipelines")
+
+        for name, pipeline_kwargs in iterable:
             # Merge: shared_kwargs ← pipeline_kwargs (pipeline wins)
             merged = {**shared_kwargs, **pipeline_kwargs}
             merged["seeds"] = seeds
