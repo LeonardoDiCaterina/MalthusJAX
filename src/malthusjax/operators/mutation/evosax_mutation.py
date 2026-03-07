@@ -46,8 +46,11 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
         PRNG key, calls Evosax mutation on the genome values and returns a
         JIT-friendly `RealGenome` via `from_tensor`.
         """
-        # keys: (atomic_keys, 2) where atomic_keys == self.num_keys_per_atomic_operation
-        prng_key = keys.reshape((-1, keys.shape[-1]))[0]
+        # keys may be legacy (atomic_keys, 2) or typed (atomic_keys,).
+        if self.typed_keys:
+            prng_key = keys.reshape(-1)[0]
+        else:
+            prng_key = keys.reshape((-1, keys.shape[-1]))[0]
 
         mutated_values = evosax_mutation(
             key=prng_key,

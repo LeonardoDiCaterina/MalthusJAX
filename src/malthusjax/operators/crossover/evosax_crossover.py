@@ -49,16 +49,33 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
     ) -> RealGenome:
         """
         Atomic Crossover Kernel (Single-Key Wrapper Pattern).
-        Extracts first PRNG key from `keys` (shape (..., atomic_keys=1, 2));
-        calls evosax.crossover on value arrays; wraps result into RealGenome.
-        Decouples XLA boundary from evosax kernel (operates on pure arrays).
+        Extracts a PRNG key from `keys` and calls ``evosax.crossover`` on the
+        raw value arrays.  Supports both legacy (uint32[2]) keys and new-style
+        typed keys.
 
-        Returns: Offspring RealGenome with (d,) values
+        ``keys`` shape depends on ``self.typed_keys``:
+
+        * ``typed_keys=False`` (legacy): ``(..., atomic_keys, 2)``
+        * ``typed_keys=True`` (new-style):  ``(..., atomic_keys)``
+
+        In either case we flatten away the outer dimensions and select the
+        first atomic key.  The resulting ``prng_key`` is either a length-2
+        array or a scalar, both of which are valid to pass to JAX random
+        primitives and hence to evosax.
+
+        Returns
+        -------
+        RealGenome
+            Offspring genome with shape ``(d,)``.
         """
-        # Reshape to extract single key: keys is (..., 1, 2) → flatten to (2,)
-        prng_key = keys.reshape((-1, keys.shape[-1]))[0]
+        if self.typed_keys:
+            # keys: (..., atomic_keys) -> flatten to (atomic_keys,)
+            prng_key = keys.reshape(-1)[0]
+        else:
+            # keys: (..., atomic_keys, 2) -> flatten to (atomic_keys, 2)
+            prng_key = keys.reshape((-1, keys.shape[-1]))[0]
 
-        # evosax.crossover: (key, p1_values, p2_values, rate) → (d,) offspring
+        # evosax.crossover: (key, p1_values, p2_values, rate) -> (d,) offspring
         child_vals = evosax_crossover(prng_key, p1.values, p2.values, self.crossover_rate)
 
         return RealGenome.from_tensor(child_vals, config)
