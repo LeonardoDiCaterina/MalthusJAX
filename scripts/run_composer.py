@@ -33,14 +33,25 @@ def main() -> None:
         action="store_true",
         help="Write JSON/CSV artifacts to the configured output directory.",
     )
+    parser.add_argument(
+        "--trace",
+        type=str,
+        default=None,
+        metavar="DIR",
+        help="Enable JAX profiler tracing for seed[0] of each pipeline. "
+             "Outputs Perfetto-compatible traces to DIR/<pipeline_name>/.",
+    )
     args = parser.parse_args()
 
     # load and execute the experiment
     try:
-        result = Composer.from_toml(args.config)
+        result = Composer.from_toml(args.config, trace_dir=args.trace)
     except Exception as exc:  # pragma: no cover - user script
         print(f"Failed to load/execute experiment: {exc}")
         sys.exit(1)
+
+    if args.trace:
+        print(f"\nJAX profiler traces written to: {args.trace}/")
 
     # display high-level summary
     print("\n=== Experiment summary ===")

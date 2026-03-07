@@ -37,6 +37,7 @@ class BenchmarkRunner:
     output_dir: Optional[Path] = None
     write_artifacts: bool = True
     prng_impl: Optional[str] = None
+    trace_dir: Optional[Path] = None  # If set, capture JAX trace for seed[0]
 
     def run(
         self,
@@ -54,9 +55,11 @@ class BenchmarkRunner:
 
         impl = resolve_prng_impl(self.prng_impl) if self.prng_impl else None
 
-        for seed in seeds:
+        for i, seed in enumerate(seeds):
             key = create_key(seed, impl=impl) if impl else jr.PRNGKey(seed)
-            run_result = self._run_single_seed(seed, key, timeout_seconds)
+            # Only trace the first seed
+            trace_this = self.trace_dir if i == 0 else None
+            run_result = self._run_single_seed(seed, key, timeout_seconds, trace_dir=trace_this)
             runs.append(run_result)
 
         # Create experiment result
@@ -79,14 +82,26 @@ class BenchmarkRunner:
         return experiment
 
     def _run_single_seed(
-        self, seed: int, key: chex.Array, timeout_seconds: Optional[float]
+        self,
+        seed: int,
+        key: chex.Array,
+        timeout_seconds: Optional[float],
+        trace_dir: Optional[Path] = None,
     ) -> RunResult:
         """Run a single seed and collect results."""
+        import jax
+
         start_time = time.time()
 
         try:
-            # Call engine
-            engine_result = self.engine.run_once(key)
+            # Optionally wrap in JAX profiler trace
+            if trace_dir is not None:
+                trace_path = Path(trace_dir)
+                trace_path.mkdir(parents=True, exist_ok=True)
+                with jax.profiler.trace(str(trace_path)):
+                    engine_result = self.engine.run_once(key)
+            else:
+                engine_result = self.engine.run_once(key)
 
             # Extract results
             history = engine_result.get("history", [])

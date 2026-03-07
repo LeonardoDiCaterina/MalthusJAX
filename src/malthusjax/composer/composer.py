@@ -45,6 +45,7 @@ class Composer:
         elitism: int = 2,
         maximize: bool = False,
         prng_impl: Optional[str] = None,
+        trace_dir: Optional[Path | str] = None,
         **kwargs: Any,
     ) -> ExperimentResult:
         """Quick-run an experiment with sensible defaults.
@@ -152,6 +153,7 @@ class Composer:
             output_dir=output_dir,
             write_artifacts=True,
             prng_impl=prng_impl,
+            trace_dir=Path(trace_dir) if trace_dir else None,
         )
 
         return runner.run(seeds)
@@ -232,6 +234,9 @@ class Composer:
                 maxval=float(bounds[1]),
             )
 
+        # Extract trace_dir if present (we handle it specially per-pipeline)
+        trace_base = shared_kwargs.pop("trace_dir", None)
+
         results: Dict[str, ExperimentResult] = {}
         negate_map: Dict[str, bool] = {}
         for name, pipeline_kwargs in pipelines.items():
@@ -239,6 +244,10 @@ class Composer:
             merged = {**shared_kwargs, **pipeline_kwargs}
             merged["seeds"] = seeds
             merged.setdefault("experiment_name", name)
+
+            # Set per-pipeline trace_dir if tracing is enabled
+            if trace_base is not None:
+                merged["trace_dir"] = Path(trace_base) / name
 
             # Inject shared initial population
             if init_pop is not None and "initial_population" not in merged:
@@ -269,6 +278,7 @@ class Composer:
         pipelines: Optional[List[str]] = None,
         shared_initial_population: bool = True,
         pop_seed: int = 123,
+        trace_dir: Optional[str | Path] = None,
     ) -> ComparisonResult:
         """Load a TOML experiment file and run all pipelines.
 
@@ -283,6 +293,10 @@ class Composer:
             Generate a shared initial population for fair comparison.
         pop_seed
             Seed for the shared initial population.
+        trace_dir
+            If set, capture JAX profiler traces for seed[0] of each
+            pipeline.  Traces are written to ``trace_dir/<pipeline_name>/``
+            in Perfetto-compatible format.
 
         Returns
         -------
@@ -328,6 +342,7 @@ class Composer:
             seeds=seeds,
             shared_initial_population=shared_initial_population,
             pop_seed=pop_seed,
+            trace_dir=trace_dir,
             **shared,
         )
 
