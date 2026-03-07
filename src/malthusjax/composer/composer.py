@@ -45,7 +45,7 @@ class Composer:
         elitism: int = 2,
         maximize: bool = False,
         prng_impl: Optional[str] = None,
-        trace_dir: Optional[Path | str] = None,
+        trace_dir: Optional[Path | str] = Path("results/traces"),
         **kwargs: Any,
     ) -> ExperimentResult:
         """Quick-run an experiment with sensible defaults.
@@ -153,7 +153,7 @@ class Composer:
             output_dir=output_dir,
             write_artifacts=True,
             prng_impl=prng_impl,
-            trace_dir=Path(trace_dir) if trace_dir else None,
+            trace_dir=Path(trace_dir) if trace_dir is not None else None,
         )
 
         return runner.run(seeds)

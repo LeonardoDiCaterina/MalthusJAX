@@ -36,10 +36,13 @@ def main() -> None:
     parser.add_argument(
         "--trace",
         type=str,
-        default=None,
+        default="results/traces",
         metavar="DIR",
-        help="Enable JAX profiler tracing for seed[0] of each pipeline. "
-             "Outputs Perfetto-compatible traces to DIR/<pipeline_name>/.",
+        help=(
+            "Enable JAX profiler tracing for seed[0] of each pipeline. "
+            "Outputs Perfetto-compatible traces to DIR/<pipeline_name>/. "
+            "Default is results/traces."
+        ),
     )
     args = parser.parse_args()
 
