@@ -51,6 +51,14 @@ def main() -> None:
         summary = {}
     print(summary)
 
+    # if result is a ComparisonResult we can also pull raw aggregated data to
+    # highlight the starting fitness when it exists.
+    if hasattr(result, "pipelines"):
+        for name, exp in result.pipelines.items():
+            agg = exp.aggregated_summary()
+            if "initial_fitness" in agg:
+                print(f"pipeline '{name}' initial_fitness = {agg['initial_fitness']['mean']}")
+
     # print runtime/duration information
     def _print_runtime(res_obj, label=""):
         durations = [r.duration_seconds for r in res_obj.runs if r.duration_seconds is not None]
