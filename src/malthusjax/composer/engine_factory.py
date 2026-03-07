@@ -99,13 +99,13 @@ class GeneticEngineAdapter:
         t_compile_end = time.perf_counter()
 
         # ------------------------------------------------------------------
-        # Evolution: run the pre-compiled scan, timing only the execution phase.
-        # We disable further compilation with ``compile=False`` since the kernel
-        # is already cached.
+        # Evolution: run the pre-compiled scan.  Since we already warmed up
+        # and compiled above, `compile=True` will hit JAX's JIT cache and
+        # execute the cached kernel (no re-compilation).
         # ------------------------------------------------------------------
         t_evo_start = time.perf_counter()
         final_state, scan_history, _ = self.genetic_engine.run(
-            state, time_it=True, compile=False
+            state, time_it=True, compile=True
         )
         t_evo_end = time.perf_counter()
 
@@ -236,10 +236,17 @@ def build_engine(
         "initial_strength",
         "final_strength",
         "mutation_strength_schedule",
+        "track_best",  # HOF tracking mode
     ]
     schedule_extra: Dict[str, Any] = {
         k: v for k, v in kwargs.items() if k in _schedule_keys
     }
+
+    # Performance optimization: disable HOF tracking by default for benchmarking
+    # Users can override with track_best="light" or track_best="full"
+    from ..engine.schedules import TrackBest
+    if "track_best" not in schedule_extra:
+        schedule_extra["track_best"] = TrackBest.NONE
 
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
