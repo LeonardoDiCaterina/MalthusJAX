@@ -16,30 +16,33 @@ class TestEvosaxGaussianWrapper(unittest.TestCase):
         self.population = RealPopulation.init_random(self.key, self.config, self.pop_size)
 
     def test_evosex_wrapper_mutation(self):
-        mutator = EvosaxGaussianWrapper(mutation_strength=0.2)
+        # exercise both injection modes to catch regressions
+        for inj in (True, False):
+            mutator = EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=inj)
 
-        # Resource allocation
-        n_keys = mutator.num_keys(input_shape=(self.pop_size,))
-        self.assertEqual(n_keys, 1)
+            # Resource allocation
+            n_keys = mutator.num_keys(input_shape=(self.pop_size,))
+            self.assertEqual(n_keys, 1 if inj else self.pop_size * mutator.num_offspring * mutator.num_keys_per_atomic_operation)
 
-        k_op, _ = jar.split(self.key)
-        keys = jar.split(k_op, n_keys)
+            k_op, _ = jar.split(self.key)
+            keys = jar.split(k_op, n_keys)
 
-        # JIT and execute
-        jit_mutator = jax.jit(mutator)
-        new_pop = jit_mutator(keys, self.population, self.config)
+            # JIT and execute
+            jit_mutator = jax.jit(mutator)
+            new_pop = jit_mutator(keys, self.population, self.config)
 
-        # Basic assertions
-        self.assertEqual(new_pop.genes.values.shape, self.population.genes.values.shape)
-        diff = jnp.sum(jnp.abs(new_pop.genes.values - self.population.genes.values))
-        # With non-zero mutation strength, we expect some change in the genes
-        self.assertTrue(diff > 0, "Evosax wrapper failed to modify genes")
+            # Basic assertions
+            self.assertEqual(new_pop.genes.values.shape, self.population.genes.values.shape)
+            diff = jnp.sum(jnp.abs(new_pop.genes.values - self.population.genes.values))
+            # With non-zero mutation strength, we expect some change in the genes
+            self.assertTrue(diff > 0, "Evosax wrapper failed to modify genes")
 
     def test_no_keys_raises(self):
-        mutator = EvosaxGaussianWrapper(mutation_strength=0.2)
-        # Pass an empty key array
+        # both injection and non-injection modes should raise cleanly
         empty_keys = jnp.empty((0, 2), dtype=jnp.uint32)
-        with self.assertRaises(ValueError):
+        for inj in (True, False):
+            mutator = EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=inj)
+            with self.assertRaises(ValueError):
             mutator(empty_keys, self.population, self.config)
 
 

@@ -20,9 +20,11 @@ class TestEvosaxUniformCrossoverWrapper(unittest.TestCase):
         p2_genes = RealGenome(values=jnp.full((self.pop_size, self.config.shape[0]), 1.0))
         self.parents_2 = self.parents_1.spawn_offspring(p2_genes)
 
-    def _test_wrapper(self, num_offspring=1, crossover_rate=0.5):
+    def _test_wrapper(self, num_offspring=1, crossover_rate=0.5, injection_mode=True):
         wrapper = EvosaxUniformCrossoverWrapper(
-            num_offspring=num_offspring, crossover_rate=crossover_rate
+            num_offspring=num_offspring,
+            crossover_rate=crossover_rate,
+            injection_mode=injection_mode,
         ).set_input_length(self.pop_size)
         n_keys = wrapper.num_keys(input_shape=(self.pop_size,))
         if wrapper.injection_mode:
@@ -64,10 +66,22 @@ class TestEvosaxUniformCrossoverWrapper(unittest.TestCase):
         self.assertTrue(jnp.allclose(offspring.genes.values, expected))
 
     def test_uniform_single_offspring(self):
-        self._test_wrapper(num_offspring=1, crossover_rate=0.5)
+        # verify both modes
+        self._test_wrapper(num_offspring=1, crossover_rate=0.5, injection_mode=True)
+        self._test_wrapper(num_offspring=1, crossover_rate=0.5, injection_mode=False)
 
     def test_uniform_two_offspring(self):
-        self._test_wrapper(num_offspring=2, crossover_rate=0.7)
+        self._test_wrapper(num_offspring=2, crossover_rate=0.7, injection_mode=True)
+        self._test_wrapper(num_offspring=2, crossover_rate=0.7, injection_mode=False)
+
+    def test_no_keys_raises(self):
+        empty_keys = jnp.empty((0, 2), dtype=jnp.uint32)
+        for inj in (True, False):
+            wrapper = EvosaxUniformCrossoverWrapper(
+                num_offspring=1, crossover_rate=0.5, injection_mode=inj
+            )
+            with self.assertRaises(ValueError):
+                wrapper(empty_keys, self.parents_1, self.parents_2, self.config)
 
 
 if __name__ == "__main__":
