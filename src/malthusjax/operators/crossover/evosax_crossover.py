@@ -122,6 +122,10 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         Returns:
             Offspring population.
         """
+        # global sanity check: missing keys should fail regardless of mode
+        if all_keys.size == 0:
+            raise ValueError("No PRNG keys provided to EvosaxUniformCrossoverWrapper")
+
         if not self.injection_mode:
             # Fall back to base class implementation
             return super().__call__(all_keys, p1_pop, p2_pop, config, **kwargs)
