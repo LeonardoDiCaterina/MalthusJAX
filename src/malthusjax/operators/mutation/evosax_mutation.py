@@ -7,7 +7,7 @@ from evosax.algorithms.population_based.simple_ga import mutation as evosax_muta
 from flax import struct
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
-from malthusjax.operators.base import BaseMutation
+from malthusjax.operators.base import BaseMutation, _field
 from malthusjax.operators.mutation.real import (
     GaussianMutation_injection as InjectionGaussianMutation,
 )
