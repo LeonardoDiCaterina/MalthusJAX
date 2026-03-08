@@ -43,8 +43,8 @@ test-fast:
 test-failing:
 	@echo "--- Running previously failing test subset ---"
 	python -m pytest --no-cov -q \
-	  tests/benchmarks/test_cli.py \
-	  tests/composer/test_optimization_direction.py \
+	  tests/composer/test_engine_factory.py::test_engine_adapter_run_once \
+	  tests/composer/test_optimization_direction.py::TestOptimizationDirection::test_optimization_directions_are_opposite \
 	  tests/engine/test_engine_edge_cases_fixed.py \
 	  tests/engine/test_engine_quality_fixed.py \
 	  tests/engine/test_genetic_engine.py \
@@ -53,7 +53,13 @@ test-failing:
 	  tests/engine/test_genetic_engine_fixes.py \
 	  tests/engine/test_genetic_engine_jit.py \
 	  tests/engine/test_genetic_engine_scheduling.py \
-	  tests/operators/mutation/test_real_mutation.py
+	  tests/engine/test_genetic_engine_phases.py::TestSelectionPhase::test_elite_genes_are_best_fitness \
+	  tests/engine/test_hof_tracking.py::TestTrackBestLight::test_history_is_monotonic \
+	  tests/engine/test_hof_tracking.py::TestTrackBestFull::test_best_fitness_tracks_global_best \
+	  tests/engine/test_hof_tracking.py::TestTrackBestFull::test_history_is_monotonic \
+	  tests/operators/mutation/test_real_mutation.py \
+	  tests/operators/mutation/test_evosax.py::TestEvosaxAblationIntegrity::test_evosax_wrapper_identity \
+	  tests/operators/mutation/test_evosax_mutation_parity.py::test_mutation_matches_evosax_direct
 
 run_failing:
 	@echo "--- Rerunning only the tests that failed last time (uses pytest cache) ---"
