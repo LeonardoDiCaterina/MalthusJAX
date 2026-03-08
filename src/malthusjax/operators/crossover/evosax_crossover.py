@@ -1,6 +1,8 @@
 from typing import Any
 
 import chex
+import jax
+import jax.numpy as jnp
 from evosax.algorithms.population_based.simple_ga import crossover as evosax_crossover
 from flax import struct
 
@@ -19,14 +21,31 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
     Use for: Benchmarking evosax compatibility; ablation studies; comparative evolution.
     Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)
     Key budget: 1 key (split dynamically, not pre-allocated)
+    
+    With ``injection_mode=True`` (default), the engine passes a single key and
+    this operator splits internally for maximum performance.
     """
 
     num_offspring: int = _field(pytree_node=False, default=1)
     crossover_rate: float = 0.5
+    injection_mode: bool = _field(pytree_node=False, default=True)
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 1
+
+    def num_keys(self, input_shape: tuple[int, ...]) -> int:
+        """Return key budget.
+        
+        With ``injection_mode=True``, always returns 1 (single key, split internally).
+        """
+        if self.injection_mode:
+            return 1
+        return input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation
+
+    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> Any:
+        """Not used - overridden by _cross_fused."""
+        return None
 
     def _recombine_one(  # type: ignore [override]
         self,
@@ -79,3 +98,56 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         child_vals = evosax_crossover(prng_key, p1.values, p2.values, self.crossover_rate)
 
         return RealGenome.from_tensor(child_vals, config)
+
+    def __call__(
+        self,
+        all_keys: chex.Array,
+        p1_pop: RealPopulation,
+        p2_pop: RealPopulation,
+        config: RealGenomeConfig,
+        **kwargs: Any,
+    ) -> RealPopulation:
+        """Population-level crossover with injection_mode support.
+
+        When ``injection_mode=True``, consumes single key and splits internally
+        for maximum performance (single vmap instead of nested vmaps).
+
+        Args:
+            all_keys: Pre-allocated keys. Shape depends on injection_mode:
+                - True: single key (scalar or shape (2,) for legacy)
+                - False: standard pre-allocated shape
+            p1_pop, p2_pop: Parent populations.
+            config: Genome configuration.
+
+        Returns:
+            Offspring population.
+        """
+        if not self.injection_mode:
+            # Fall back to base class implementation
+            return super().__call__(all_keys, p1_pop, p2_pop, config, **kwargs)
+
+        # injection_mode: single key, split internally, single vmap
+        num_pairs = p1_pop.genes.values.shape[0]
+        keys = jax.random.split(all_keys, num_pairs * self.num_offspring)
+
+        def _cross_one(key: chex.Array, p1_vals: chex.Array, p2_vals: chex.Array) -> chex.Array:
+            return evosax_crossover(key, p1_vals, p2_vals, self.crossover_rate)
+
+        # Single vmap over all (pair, offspring) combinations
+        # For num_offspring=1, we just vmap over pairs
+        if self.num_offspring == 1:
+            offspring_vals = jax.vmap(_cross_one)(keys, p1_pop.genes.values, p2_pop.genes.values)
+        else:
+            # Repeat parents for multiple offspring per pair
+            keys_reshaped = keys.reshape(num_pairs, self.num_offspring)
+            p1_vals_rep = jnp.repeat(p1_pop.genes.values[:, None, :], self.num_offspring, axis=1)
+            p2_vals_rep = jnp.repeat(p2_pop.genes.values[:, None, :], self.num_offspring, axis=1)
+
+            def _cross_pair(k_block: chex.Array, p1: chex.Array, p2: chex.Array) -> chex.Array:
+                return jax.vmap(_cross_one)(k_block, p1, p2)
+
+            offspring_vals = jax.vmap(_cross_pair)(keys_reshaped, p1_vals_rep, p2_vals_rep)
+            offspring_vals = offspring_vals.reshape(-1, offspring_vals.shape[-1])
+
+        new_genes = RealGenome(values=offspring_vals)
+        return p1_pop.spawn_offspring(new_genes)

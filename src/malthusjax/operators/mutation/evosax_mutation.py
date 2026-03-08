@@ -33,7 +33,7 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
     """
 
     mutation_strength: float = 0.1
-    injection_mode: bool = struct.field(pytree_node=False, default=True)
+    injection_mode: bool = struct.field(pytree_node=False, default=False)
 
     @property
     def num_keys_per_atomic_operation(self) -> int:

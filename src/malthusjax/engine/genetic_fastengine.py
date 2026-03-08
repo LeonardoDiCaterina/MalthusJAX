@@ -267,18 +267,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         Returns: (elites_genes tree, selected_indices for mating).
         """
         # Selection operator returns (parent_indices, elite_indices) tuple.
-        # The engine always assumes a maximization convention, so we must
-        # convert the fitness values when solving a minimization problem.
-        # ``maximize`` is pulled from the evaluator config (default True).
-        maximize = getattr(self.evaluator.config, "maximize", True)
-        if maximize:
-            sel_fitness = population.fitness
-        else:
-            # flip sign so that lower raw fitness becomes higher for the
-            # downstream selectors which all use ``argmax`` semantics.
-            sel_fitness = -population.fitness
-
-        parent_idx, elite_idx = operators.selection(key_selection, sel_fitness)
+        # Evaluators already store fitness in "higher is better" convention
+        # (negating for minimisation), so we pass fitness through directly.
+        parent_idx, elite_idx = operators.selection(key_selection, population.fitness)
 
         # Extract elite genes using tree_map
         if params.elitism > 0:
@@ -438,13 +429,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         #
         # Python-level branching on ``track_best`` is safe because it is a
         # ``pytree_node=False`` field — only one branch is ever traced.
-        # Also handle minimization problems by querying evaluator.config.maximize.
+        # Evaluators store fitness in "higher is better" convention (they
+        # negate for minimisation), so the engine always uses jnp.max /
+        # jnp.maximum / jnp.argmax uniformly.
         # ------------------------------------------------------------------
-        maximize = getattr(self.evaluator.config, "maximize", True)
-        if maximize:
-            gen_best_fitness = jnp.max(new_pop.fitness)
-        else:
-            gen_best_fitness = jnp.min(new_pop.fitness)
+        gen_best_fitness = jnp.max(new_pop.fitness)
 
         if params.track_best == TrackBest.NONE:
             # No tracking: pass through unchanged, report per-gen best
@@ -452,21 +441,14 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             new_best_genome = state.best_genome
             metric_best = gen_best_fitness  # per-gen, NOT monotonic
         elif params.track_best == TrackBest.LIGHT:
-            # Running max/min only — no genome in carry
-            if maximize:
-                new_best_fitness = jnp.maximum(gen_best_fitness, state.best_fitness)
-            else:
-                new_best_fitness = jnp.minimum(gen_best_fitness, state.best_fitness)
+            # Running max only — no genome in carry
+            new_best_fitness = jnp.maximum(gen_best_fitness, state.best_fitness)
             new_best_genome = state.best_genome
             metric_best = new_best_fitness  # monotonic
         else:  # TrackBest.FULL
-            # Full tracking: argmax/argmin + Gather + element-wise jnp.where
-            if maximize:
-                is_new = gen_best_fitness > state.best_fitness
-                best_idx = jnp.argmax(new_pop.fitness)
-            else:
-                is_new = gen_best_fitness < state.best_fitness
-                best_idx = jnp.argmin(new_pop.fitness)
+            # Full tracking: argmax + Gather + element-wise jnp.where
+            is_new = gen_best_fitness > state.best_fitness
+            best_idx = jnp.argmax(new_pop.fitness)
             new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
             best_candidate = jax.tree_util.tree_map(
                 lambda x: x[best_idx], new_pop.genes
@@ -517,12 +499,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
         params = cast(GeneticEngineParams, self.engine_params)
 
-        maximize = getattr(self.evaluator.config, "maximize", True)
+        # Evaluators store fitness in "higher is better" convention, so
+        # argmax always finds the best individual regardless of direction.
         if params.track_best in (TrackBest.NONE, TrackBest.LIGHT):
-            if maximize:
-                best_idx = jnp.argmax(final_state.population.fitness)
-            else:
-                best_idx = jnp.argmin(final_state.population.fitness)
+            best_idx = jnp.argmax(final_state.population.fitness)
             final_best_genome = jax.tree_util.tree_map(
                 lambda x: x[best_idx], final_state.population.genes
             )
@@ -532,10 +512,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
 
         if params.track_best == TrackBest.NONE:
-            if maximize:
-                best_idx = jnp.argmax(final_state.population.fitness)
-            else:
-                best_idx = jnp.argmin(final_state.population.fitness)
+            best_idx = jnp.argmax(final_state.population.fitness)
             final_state = cast(
                 GeneticEvolutionState,
                 cast(Any, final_state).replace(
