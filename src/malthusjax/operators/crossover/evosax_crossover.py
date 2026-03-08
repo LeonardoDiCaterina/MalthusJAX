@@ -44,8 +44,8 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         return input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation
 
     def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> Any:
-        """Not used - overridden by _cross_fused."""
-        return None
+        """Unused — _cross_fused overrides the full Tier-1/2 pipeline."""
+        raise NotImplementedError("EvosaxUniformCrossoverWrapper does not use _generate_noise")
 
     def _recombine_one(  # type: ignore [override]
         self,
@@ -126,22 +126,27 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
             # Fall back to base class implementation
             return super().__call__(all_keys, p1_pop, p2_pop, config, **kwargs)
 
-        # injection_mode: single key, split internally, single vmap
-        num_pairs = p1_pop.genes.values.shape[0]
-        keys = jax.random.split(all_keys, num_pairs * self.num_offspring)
+        # injection_mode: all_keys is a single-key slice from the ResourceMapper buffer.
+        # Shape: (1, 2) for legacy uint32 keys, (1,) for new-style typed keys.
+        # Extract the scalar/pair before splitting so jax.random.split receives a
+        # valid single key rather than a batched slice.
+        key = all_keys[0]  # (1,2)→(2,) for legacy; (1,)→scalar for typed
+        num_pairs = p1_pop.values.shape[0]
+        keys = jax.random.split(key, num_pairs * self.num_offspring)
 
-        def _cross_one(key: chex.Array, p1_vals: chex.Array, p2_vals: chex.Array) -> chex.Array:
-            return evosax_crossover(key, p1_vals, p2_vals, self.crossover_rate)
+        def _cross_one(k: chex.Array, p1_vals: chex.Array, p2_vals: chex.Array) -> chex.Array:
+            return evosax_crossover(k, p1_vals, p2_vals, self.crossover_rate)
 
-        # Single vmap over all (pair, offspring) combinations
-        # For num_offspring=1, we just vmap over pairs
         if self.num_offspring == 1:
-            offspring_vals = jax.vmap(_cross_one)(keys, p1_pop.genes.values, p2_pop.genes.values)
+            offspring_vals = jax.vmap(_cross_one)(keys, p1_pop.values, p2_pop.values)
         else:
-            # Repeat parents for multiple offspring per pair
-            keys_reshaped = keys.reshape(num_pairs, self.num_offspring)
-            p1_vals_rep = jnp.repeat(p1_pop.genes.values[:, None, :], self.num_offspring, axis=1)
-            p2_vals_rep = jnp.repeat(p2_pop.genes.values[:, None, :], self.num_offspring, axis=1)
+            # Preserve trailing (2,) for legacy uint32 keys when reshaping.
+            if self.typed_keys:
+                keys_reshaped = keys.reshape(num_pairs, self.num_offspring)
+            else:
+                keys_reshaped = keys.reshape(num_pairs, self.num_offspring, 2)
+            p1_vals_rep = jnp.repeat(p1_pop.values[:, None, :], self.num_offspring, axis=1)
+            p2_vals_rep = jnp.repeat(p2_pop.values[:, None, :], self.num_offspring, axis=1)
 
             def _cross_pair(k_block: chex.Array, p1: chex.Array, p2: chex.Array) -> chex.Array:
                 return jax.vmap(_cross_one)(k_block, p1, p2)

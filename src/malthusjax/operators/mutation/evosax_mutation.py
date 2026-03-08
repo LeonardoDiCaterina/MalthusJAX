@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any
 
 import chex
 import jax
@@ -29,6 +29,8 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
     """
 
     mutation_strength: float = 0.1
+    injection_mode: bool = _field(pytree_node=False, default=True)
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
         # This wrapper consumes 1 atomic key for each fused operation. We
@@ -62,15 +64,24 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
     def num_keys(self, input_shape: tuple[int, ...]) -> int:
         """Return key budget.
 
-        - If `input_length` has been set (via `set_input_length`), behave like a
-          standard fused operator and return per-pair budgeting.
-        - Otherwise the wrapper uses a single global key (injection-style) and
-          reports a budget of 1.
+        With ``injection_mode=True`` (default), always returns 1 so the
+        ResourceMapper allocates a single key that this wrapper splits
+        dynamically.  With ``injection_mode=False``, returns the standard
+        per-individual budget delegated to the base-class fused path.
         """
-        if self.input_length > 0:
-            # behave like BaseMutation.num_keys when input_length is explicitly set
-            return int(self.input_length * self.num_offspring * self.num_keys_per_atomic_operation)
-        return 1
+        if self.injection_mode:
+            return 1
+        return int(input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation)
+
+    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> Any:
+        """Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""
+        raise NotImplementedError("EvosaxGaussianWrapper does not use _generate_noise")
+
+    def _mutate_one(
+        self, genome: RealGenome, noise_data: Any, config: RealGenomeConfig, **kwargs: Any
+    ) -> RealGenome:
+        """Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""
+        raise NotImplementedError("EvosaxGaussianWrapper does not use _mutate_one")
     def __call__(
         self,
         all_keys: chex.Array,
@@ -78,34 +89,38 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
         config: RealGenomeConfig,
         **kwargs: Any,
     ) -> RealPopulation:
+        """Population-level mutation with injection_mode support.
+
+        When ``injection_mode=True``, consumes a single pre-allocated key
+        (ResourceMapper slice shape ``(1, 2)`` legacy / ``(1,)`` typed),
+        extracts it, and splits into ``N * num_offspring`` subkeys for a
+        single flat vmap.  Correct output shape ``(N * num_offspring, D)``
+        is always produced regardless of ``num_offspring``.
+
+        When ``injection_mode=False``, delegates to the base-class fused
+        path which uses the full pre-allocated key budget.
         """
-        Injection-style call: accepts a single PRNG key and applies Evosax mutation
-        per individual by splitting the single key into `pop_size` subkeys. If more
-        than one key is provided, fall back to the fused BaseMutation implementation.
-        """
-        if all_keys.size == 0:
-            raise ValueError("No PRNG keys provided to EvosaxGaussianWrapper")
+        if not self.injection_mode:
+            return super().__call__(all_keys, population, config, **kwargs)
 
-        # Single-key optimization: split into per-individual subkeys
-        if all_keys.shape[0] == 1:
-            key = all_keys[0]
-            n = len(population)
-            subkeys = jax.random.split(key, n)
+        # all_keys is the ResourceMapper slice for this operator.
+        # Shape: (1, 2) for legacy uint32 keys, (1,) for new-style typed keys.
+        # Extract the single key so jax.random.split receives a valid PRNGKey.
+        key = all_keys[0]  # (1,2)→(2,) for legacy; (1,)→scalar for typed
+        n = population.values.shape[0]  # JAX static shape; avoids host-device sync
+        total_offspring = n * self.num_offspring
+        subkeys = jax.random.split(key, total_offspring)
 
-            # Vectorized Evosax mutation over all individuals
-            def _call_evosax(k: Any, sol: Any) -> Any:
-                # evosax library is untyped; keep this helper deliberately untyped
-                return evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
+        def _call_evosax(k: Any, sol: Any) -> Any:
+            # evosax library is untyped; keep helper untyped to match
+            return evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
 
-            mutated_vals: jnp.ndarray = jax.vmap(_call_evosax)(subkeys, population.genes.values)
+        if self.num_offspring == 1:
+            mutated_vals = jax.vmap(_call_evosax)(subkeys, population.values)
+        else:
+            # Tile each genome num_offspring times so vmap covers all (individual, offspring)
+            repeated_vals = jnp.repeat(population.values, self.num_offspring, axis=0)
+            mutated_vals = jax.vmap(_call_evosax)(subkeys, repeated_vals)
 
-            new_genes = RealGenome(values=mutated_vals)
-            # population.replace is dynamically provided; use casts to satisfy mypy
-            replaced = cast(Any, population).replace(
-                genes=new_genes, fitness=jnp.full((n,), jnp.nan)
-            )
-            new_pop = cast(RealPopulation, replaced)
-            return new_pop
-
-        # Otherwise, use default fused behavior from BaseMutation
-        return super().__call__(all_keys, population, config, **kwargs)
+        new_genes = RealGenome(values=mutated_vals)
+        return population.spawn_offspring(new_genes)
