@@ -4,8 +4,8 @@ from malthusjax.operators.crossover.binary import UniformCrossover, SinglePointC
 
 key = jax.random.PRNGKey(0)
 config = BinaryGenomeConfig(shape=(8,))
-pop1 = BinaryPopulation.random_init(jax.random.PRNGKey(1), config, n=4)
-pop2 = BinaryPopulation.random_init(jax.random.PRNGKey(2), config, n=4)
+pop1 = BinaryPopulation.init_random(jax.random.PRNGKey(1), config, size=4)
+pop2 = BinaryPopulation.init_random(jax.random.PRNGKey(2), config, size=4)
 
 # K=1 fast path
 op = UniformCrossover(num_offspring=1, input_length=4, typed_keys=False)
