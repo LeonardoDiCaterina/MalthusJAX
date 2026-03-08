@@ -66,45 +66,47 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
         raise NotImplementedError("Injection mode: override _generate_noise instead")
 
     def __call__(self, all_keys: chex.Array, population: P, config: C, **kwargs: Any) -> P:
-        """Tier 3 — Vectorized bulk mutation via vmap nesting.
+        """Tier 3 — Vectorized bulk mutation via vmap.
 
         Input: Single key (flattened to shape (2,)).
         Output: Population with shape (input_length * num_offspring, ...)
 
-        Vmap nesting strategy:
-        - Outer vmap: Iterate over input_length individuals.
-        - Inner vmap: Iterate over num_offspring mutants per individual.
-        - Reshape (metadata): (input_length, num_offspring, ...) → (N, ...).
+        For num_offspring=1 uses a single flat vmap (no reshape, no tree_map).
+        For num_offspring>1 uses nested vmap with a pair-major flatten at the end.
         """
         flat_keys = all_keys.reshape((-1, all_keys.shape[-1]))
         if flat_keys.shape[0] == 0:
             raise ValueError("No RNG keys provided to BaseMutation_injection")
         single_key = flat_keys[0]
 
-        noise = self._generate_noise(single_key, config)
+        noise = self._generate_noise(single_key, config)  # leading dim: (N*K, ...)
 
+        if self.num_offspring == 1:
+            # Fast path: noise is already (N, ...) — flat vmap, no reshape needed.
+            def _mutate_flat(n: chex.Array, g: G) -> G:
+                return self._mutate_one(g, n, config)
+
+            new_genes = jax.vmap(_mutate_flat, in_axes=(0, 0))(noise, population.genes)
+            return cast(P, population.spawn_offspring(cast(G, new_genes)))
+
+        # General path: reshape flat noise to (N, K, ...) then nested vmap.
         def reshape_noise(x: chex.Array) -> chex.Array:
             return x.reshape((self.input_length, self.num_offspring) + x.shape[1:])
 
-        noise = jax.tree_util.tree_map(reshape_noise, noise)
-
-        def _mutate_one_inner(n: chex.Array, g: G) -> G:
-            return self._mutate_one(g, n, config)
+        noise_nk = jax.tree_util.tree_map(reshape_noise, noise)
 
         def _process_noise_block(noise_block: chex.Array, g: G) -> G:
             def _inner(n: chex.Array) -> G:
-                return _mutate_one_inner(n, g)
+                return self._mutate_one(g, n, config)
 
             return jax.vmap(_inner, in_axes=0)(noise_block)
 
-        nested_offspring = jax.vmap(_process_noise_block, in_axes=(0, 0))(noise, population.genes)
+        nested_offspring = jax.vmap(_process_noise_block, in_axes=(0, 0))(noise_nk, population.genes)
 
         def flatten_fn(x: chex.Array) -> chex.Array:
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
-        if not hasattr(new_genes, "values"):
-            new_genes = population.GENOME_CLS.from_tensor(new_genes, population.config)
         return cast(P, population.spawn_offspring(cast(G, new_genes)))
 
 
@@ -147,9 +149,9 @@ class BaseCrossover_injection(Generic[G, C, P]):
         """Set the PRNG key format flag (new-style typed vs legacy uint32)."""
         return cast("BaseCrossover_injection[G, C, P]", cast(Any, self).replace(typed_keys=typed))
 
-    def set_input_length(self, length: int) -> "BaseCrossover[G, C, P]":
+    def set_input_length(self, length: int) -> "BaseCrossover_injection[G, C, P]":
         """Locks pair count for static budgeting."""
-        return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(input_length=length))
+        return cast("BaseCrossover_injection[G, C, P]", cast(Any, self).replace(input_length=length))
 
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
@@ -175,40 +177,48 @@ class BaseCrossover_injection(Generic[G, C, P]):
         raise NotImplementedError("Injection mode: override _generate_noise instead")
 
     def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, **kwargs: Any) -> P:
-        """Tier 3 — Vectorized bulk crossover with nested vmap.
+        """Tier 3 — Vectorized bulk crossover via vmap.
 
         Input: Single key (flattened to shape (2,)).
         Output: Population of offspring shape (input_length * num_offspring, ...)
 
-        Vmap nesting (three-level):
-        - Outer vmap: Iterate over input_length pairs.
-        - Middle vmap: Iterate over num_offspring per pair.
-        - Inner arithmetic: _recombine_one (pure, no vmap).
-        Flatten: (L, K, ...) → (LK, ...) — no transpose (pair-major; see FB-1).
+        For num_offspring=1 uses a single flat vmap (no reshape, no tree_map).
+        For num_offspring>1 uses nested vmap with a pair-major flatten at the end
+        — no transpose needed (FB-1).
+
+        Note: _recombine_one must return a single genome G, not a tuple.
         """
         flat_keys = all_keys.reshape((-1, all_keys.shape[-1]))
         if flat_keys.shape[0] == 0:
             raise ValueError("No RNG keys provided to BaseCrossover_injection")
         single_key = flat_keys[0]
 
-        noise = self._generate_noise(single_key, config)
+        noise = self._generate_noise(single_key, config)  # leading dim: (N*K, ...)
 
+        if self.num_offspring == 1:
+            # Fast path: noise is already (N, ...) — flat vmap, no reshape needed.
+            def _cross_flat(n: chex.Array, p1: G, p2: G) -> G:
+                return self._recombine_one(p1, p2, n, config, **kwargs)
+
+            new_genes = jax.vmap(_cross_flat, in_axes=(0, 0, 0))(
+                noise, p1_pop.genes, p2_pop.genes
+            )
+            return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
+
+        # General path: reshape flat noise to (N, K, ...) then nested vmap.
         def reshape_noise(x: chex.Array) -> chex.Array:
             return x.reshape((self.input_length, self.num_offspring) + x.shape[1:])
 
-        noise = jax.tree_util.tree_map(reshape_noise, noise)
+        noise_nk = jax.tree_util.tree_map(reshape_noise, noise)
 
         def _per_pair_block(noise_block: chex.Array, p1: G, p2: G) -> Any:
             def _per_offspring(n: chex.Array) -> G:
-                out = self._recombine_one(p1, p2, n, config, **kwargs)
-                if isinstance(out, tuple):
-                    return cast(G, out[0])
-                return out
+                return self._recombine_one(p1, p2, n, config, **kwargs)
 
             return jax.vmap(_per_offspring, in_axes=0)(noise_block)
 
         nested_offspring = jax.vmap(_per_pair_block, in_axes=(0, 0, 0))(
-            noise, p1_pop.genes, p2_pop.genes
+            noise_nk, p1_pop.genes, p2_pop.genes
         )
 
         def flatten_fn(x: chex.Array) -> chex.Array:
@@ -218,7 +228,6 @@ class BaseCrossover_injection(Generic[G, C, P]):
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
-
         return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
 
 
