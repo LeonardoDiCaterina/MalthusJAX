@@ -73,7 +73,7 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         fitness, _, _ = self.evosax_problem.eval(rng, x, self.evosax_state)
         result = fitness[0]
 
-        return jax.lax.select(self.config.maximize, result, -result)
+        return jax.lax.select(self.config.maximize, -result, result)
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
@@ -97,7 +97,7 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
 
         fitness_scores, _, _ = self.evosax_problem.eval(keys, X, self.evosax_state)
 
-        final_fitness = jax.lax.select(self.config.maximize, fitness_scores, -fitness_scores)
+        final_fitness = jax.lax.select(self.config.maximize, -fitness_scores, fitness_scores)
 
         return cast(
             BasePopulation[RealGenome], cast(Any, population).replace(fitness=final_fitness)
