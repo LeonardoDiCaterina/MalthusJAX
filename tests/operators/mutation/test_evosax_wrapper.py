@@ -43,7 +43,7 @@ class TestEvosaxGaussianWrapper(unittest.TestCase):
         for inj in (True, False):
             mutator = EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=inj)
             with self.assertRaises(ValueError):
-            mutator(empty_keys, self.population, self.config)
+                mutator(empty_keys, self.population, self.config)
 
 
 if __name__ == "__main__":
