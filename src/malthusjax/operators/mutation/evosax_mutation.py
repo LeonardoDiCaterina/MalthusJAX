@@ -26,15 +26,9 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
     Trade-off: Dynamic key splitting (memory efficient) vs static XLA shape stability.
     Purpose: Benchmarking evosax compatibility, ablation baseline for framework
     comparison, demonstrating alternative single-key injection interface pattern.
-
-    With ``injection_mode=True`` (default), the engine passes a single key and
-    this operator splits internally for maximum performance. This bypasses the
-    nested-vmap overhead of BaseMutation.__call__.
     """
 
     mutation_strength: float = 0.1
-    injection_mode: bool = struct.field(pytree_node=False, default=False)
-
     @property
     def num_keys_per_atomic_operation(self) -> int:
         # This wrapper consumes 1 atomic key for each fused operation. We
@@ -68,18 +62,15 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
     def num_keys(self, input_shape: tuple[int, ...]) -> int:
         """Return key budget.
 
-        - If ``injection_mode=True`` (default), always request a single key.
-          The operator splits internally for maximum performance.
-        - Otherwise, if `input_length` has been set (via `set_input_length`),
-          behave like a standard fused operator and return per-pair budgeting.
+        - If `input_length` has been set (via `set_input_length`), behave like a
+          standard fused operator and return per-pair budgeting.
+        - Otherwise the wrapper uses a single global key (injection-style) and
+          reports a budget of 1.
         """
-        if self.injection_mode:
-            return 1
         if self.input_length > 0:
             # behave like BaseMutation.num_keys when input_length is explicitly set
             return int(self.input_length * self.num_offspring * self.num_keys_per_atomic_operation)
         return 1
-
     def __call__(
         self,
         all_keys: chex.Array,
