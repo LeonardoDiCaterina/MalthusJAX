@@ -21,7 +21,10 @@ def test_matches_evosax_direct():
         pop_size
     )
     n_keys = wrapper.num_keys(input_shape=(pop_size,))
-    expected_n = pop_size * wrapper.num_offspring * wrapper.num_keys_per_atomic_operation
+    if wrapper.injection_mode:
+        expected_n = 1
+    else:
+        expected_n = pop_size * wrapper.num_offspring * wrapper.num_keys_per_atomic_operation
     assert n_keys == expected_n
 
     k_op, _ = jar.split(key)
@@ -30,8 +33,12 @@ def test_matches_evosax_direct():
     offspring_wrapper = jax.jit(wrapper)(keys, parents_1, parents_2, config)
 
     # Build expected offspring by calling evosax.crossover per pair & offspring
-    flat = keys.reshape((-1, keys.shape[-1]))
-    subkeys = flat  # keys are already per-offspring
+    if wrapper.injection_mode:
+        base_key = keys[0]
+        subkeys = jar.split(base_key, pop_size * wrapper.num_offspring)
+    else:
+        flat = keys.reshape((-1, keys.shape[-1]))
+        subkeys = flat  # keys are already per-offspring
 
     children = []
     for i in range(pop_size):

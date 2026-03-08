@@ -25,7 +25,10 @@ class TestEvosaxUniformCrossoverWrapper(unittest.TestCase):
             num_offspring=num_offspring, crossover_rate=crossover_rate
         ).set_input_length(self.pop_size)
         n_keys = wrapper.num_keys(input_shape=(self.pop_size,))
-        expected_n = int(self.pop_size * num_offspring * wrapper.num_keys_per_atomic_operation)
+        if wrapper.injection_mode:
+            expected_n = 1
+        else:
+            expected_n = int(self.pop_size * num_offspring * wrapper.num_keys_per_atomic_operation)
         self.assertEqual(n_keys, expected_n)
 
         k_op, _ = jar.split(self.key)
@@ -35,9 +38,14 @@ class TestEvosaxUniformCrossoverWrapper(unittest.TestCase):
         jit_op = jax.jit(wrapper)
         offspring = jit_op(keys, self.parents_1, self.parents_2, self.config)
 
-        # Compute expected masks using the provided per-offspring keys
-        flat = keys.reshape((-1, keys.shape[-1]))
-        subkeys = flat  # already one key per offspring
+        # Compute expected masks using the same splitting logic as the wrapper.
+        if wrapper.injection_mode:
+            # keys array contains a single key
+            base_key = keys[0]
+            subkeys = jar.split(base_key, self.pop_size * num_offspring)
+        else:
+            flat = keys.reshape((-1, keys.shape[-1]))
+            subkeys = flat  # already one key per offspring
 
         def per_row(k):
             return jar.bernoulli(k, p=crossover_rate, shape=self.config.shape)
