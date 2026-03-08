@@ -230,11 +230,16 @@ class BaseCrossover(Generic[G, C, P]):
         return cast(G, cast(Any, p1).replace(values=offspring_values))
 
     def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, **kwargs: Any) -> P:
-        """Tier 3 — Population-level crossover via nested vmap.
+        """Tier 3 — Population-level crossover via vmap.
 
-        Reshapes pre-allocated keys to (input_length, num_offspring, atomic_keys, 2),
-        applies _cross_fused via two vmaps over pairs and offspring, then flattens
-        output from (pairs, offspring, ...) to (pairs*offspring, ...).
+        For num_offspring=1 (the common case), uses a single flat vmap identical in
+        structure to evosax, avoiding the inner vmap, the (N,1,d)→(N,d) reshape, and
+        the tree_map(flatten_fn) traversal.
+
+        For num_offspring>1, falls back to the nested vmap path: reshapes pre-allocated
+        keys to (input_length, num_offspring, atomic_keys, [2]), applies _cross_fused
+        via two vmaps, then flattens output from (pairs, offspring, ...) to
+        (pairs*offspring, ...).
 
         Args:
             all_keys: Pre-allocated keys, shape product = num_keys() result.
@@ -246,15 +251,30 @@ class BaseCrossover(Generic[G, C, P]):
             Axis ordering: pair-major (no transpose — avoids physical data copy
             that would break XLA fusion with downstream mutation; see FB-1).
         """
+        n_keys = self.num_keys_per_atomic_operation
+
+        if self.num_offspring == 1:
+            # Fast path: flat single vmap — same structure as evosax crossover.
+            # Eliminates inner vmap, (N,1,d)→(N,d) reshape, and tree_map traversal.
+            if self.typed_keys:
+                keys_flat = all_keys.reshape(self.input_length, n_keys)
+            else:
+                keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
+
+            def _cross_flat(k: chex.Array, p1: G, p2: G) -> G:
+                return self._cross_fused(k, p1, p2, config, **kwargs)
+
+            new_genes = jax.vmap(_cross_flat, in_axes=(0, 0, 0))(
+                keys_flat, p1_pop.genes, p2_pop.genes
+            )
+            return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
+
+        # General path: nested vmap for num_offspring > 1.
         # Key reshape is determined by PRNG implementation (set at engine init).
         if self.typed_keys:
-            keys_reshaped = all_keys.reshape(
-                self.input_length, self.num_offspring, self.num_keys_per_atomic_operation
-            )
+            keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys)
         else:
-            keys_reshaped = all_keys.reshape(
-                self.input_length, self.num_offspring, self.num_keys_per_atomic_operation, 2
-            )
+            keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys, 2)
 
         def _process_pairs(k_block: chex.Array, parent1: G, parent2: G) -> Any:
             def _inner_cross(k: chex.Array) -> G:
