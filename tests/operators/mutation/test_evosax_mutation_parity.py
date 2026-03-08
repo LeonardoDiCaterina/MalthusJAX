@@ -16,7 +16,10 @@ def test_mutation_matches_evosax_direct():
     parents = RealPopulation.init_random(k1, cfg, pop_size)
 
     wrapper = EvosaxGaussianWrapper(mutation_strength=0.2).set_input_length(pop_size)
-    expected_n = pop_size * wrapper.num_offspring * wrapper.num_keys_per_atomic_operation
+    if wrapper.injection_mode:
+        expected_n = 1
+    else:
+        expected_n = pop_size * wrapper.num_offspring * wrapper.num_keys_per_atomic_operation
     n_keys = wrapper.num_keys(input_shape=(pop_size,))
     assert n_keys == expected_n
 

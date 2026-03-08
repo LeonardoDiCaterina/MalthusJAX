@@ -100,6 +100,9 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
         When ``injection_mode=False``, delegates to the base-class fused
         path which uses the full pre-allocated key budget.
         """
+        if all_keys.size == 0:
+            raise ValueError("No PRNG keys provided to EvosaxGaussianWrapper")
+
         if not self.injection_mode:
             return super().__call__(all_keys, population, config, **kwargs)
 

@@ -113,8 +113,13 @@ class TestEvosaxAblationIntegrity:
         res = mut(all_keys, pop, config)
 
         # expected: same key applied to each genome
+        if mut.injection_mode:
+            base_key = all_keys[0]
+            subkeys = jr.split(base_key, len(pop))
+        else:
+            subkeys = all_keys.reshape((-1, all_keys.shape[-1]))
         expected_values = jax.vmap(lambda k, g: evosax_func(k, g, strength))(
-            all_keys, pop.genes.values
+            subkeys, pop.genes.values
         )
 
         np.testing.assert_allclose(res.genes.values, expected_values, atol=1e-5)
