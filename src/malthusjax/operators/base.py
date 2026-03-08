@@ -88,10 +88,15 @@ class BaseMutation(Generic[G, C, P]):
         return self._mutate_one(genome, noise, config, **kwargs)
 
     def __call__(self, all_keys: chex.Array, population: P, config: C, **kwargs: Any) -> P:
-        """Tier 3 — Population-level mutation via nested vmap.
+        """Tier 3 — Population-level mutation via vmap.
 
-        Reshapes pre-allocated keys to (input_length, num_offspring, atomic_keys, 2),
-        applies _mutate_fused via two vmaps, then flattens output to (N*K, ...).
+        For num_offspring=1 (the common case), uses a single flat vmap identical in
+        structure to evosax, avoiding the inner vmap, the (N,1,d)→(N,d) reshape, and
+        the tree_map(flatten_fn) traversal.
+
+        For num_offspring>1, falls back to the nested vmap path: reshapes pre-allocated
+        keys to (input_length, num_offspring, atomic_keys, [2]), applies _mutate_fused
+        via two vmaps, then flattens output to (N*K, ...).
 
         Args:
             all_keys: Pre-allocated keys, shape product = num_keys() result.
@@ -101,16 +106,32 @@ class BaseMutation(Generic[G, C, P]):
         Returns:
             New population with genes shape (N*K, d, ...) where K=num_offspring.
         """
-        # Key reshape is determined by PRNG implementation (set at engine init).
+        n_keys = self.num_keys_per_atomic_operation
+
+        if self.num_offspring == 1:
+            # Fast path: flat single vmap — same structure as evosax mutation.
+            # Eliminates inner vmap, (N,1,d)→(N,d) reshape, and tree_map traversal.
+            if self.typed_keys:
+                keys_flat = all_keys.reshape(self.input_length, n_keys)
+            else:
+                keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
+
+            def _mutate_flat(k: chex.Array, g: G) -> G:
+                return self._mutate_fused(k, g, config, **kwargs)
+
+            new_genes = jax.vmap(_mutate_flat, in_axes=(0, 0))(keys_flat, population.genes)
+            return cast(P, population.spawn_offspring(cast(G, new_genes)))
+
+        # General path: nested vmap for num_offspring > 1.
         # typed_keys=True (new-style): keys are 1D array of typed scalars → 3D reshape.
         # typed_keys=False (legacy): keys are (N,2) uint32 arrays → 4D reshape.
         if self.typed_keys:
             keys_reshaped = all_keys.reshape(
-                self.input_length, self.num_offspring, self.num_keys_per_atomic_operation
+                self.input_length, self.num_offspring, n_keys
             )
         else:
             keys_reshaped = all_keys.reshape(
-                self.input_length, self.num_offspring, self.num_keys_per_atomic_operation, 2
+                self.input_length, self.num_offspring, n_keys, 2
             )
 
         def _mutate_single(keys_block: chex.Array, genome: G) -> G:
@@ -123,6 +144,7 @@ class BaseMutation(Generic[G, C, P]):
         nested_offspring = vmap_process(keys_reshaped, population.genes)
 
         def flatten_fn(x: chex.Array) -> chex.Array:
+            # Flatten (individuals, offspring, ...d) → (individuals * offspring, ...d).
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
