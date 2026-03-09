@@ -1,8 +1,3 @@
-# Makefile for MalthusJAX
-#
-# Convenient aliases for common development tasks.
-# All tool configurations live in pyproject.toml.
-
 .PHONY: help install-dev install-bench test test-fast test-failing test-fixes test-bench test-bench-snapshot \
         lint format format-check type-check check-all docs bench
 
@@ -17,6 +12,7 @@ help:
 	@echo "  make test-bench         Run functional tests in tests/benchmarks/ (no timing)"
 	@echo "  make test-bench-snapshot  Run pytest-benchmark snapshot suite"
 	@echo "  make bench              Run TOML-driven dispatch timing CLI benchmark"
+	@echo "  make *-nohup           Run the same command under nohup and log output to a timestamped file"
 	@echo "  make lint               Ruff lint check (no fixes)"
 	@echo "  make format             Ruff auto-format (mutates files)"
 	@echo "  make format-check       Ruff format check only (no mutations)"
@@ -105,3 +101,26 @@ test-bench-snapshot:
 docs:
 	@echo "--- Building Sphinx HTML documentation ---"
 	sphinx-build -b html docs/source docs/build/html
+
+define run_nohup
+	@logfile=$$(date +%Y%m%d_%H%M%S)_$1__nohup.log; \
+	echo "--- Running $1 (nohup) output -> $$logfile ---"; \
+	nohup $(2) > $$logfile 2>&1 &
+endef
+
+test-nohup:
+	$(call run_nohup,test,python -m pytest)
+
+test-fast-nohup:
+	$(call run_nohup,test-fast,python -m pytest --no-cov -q)
+
+
+test-bench-nohup:
+	$(call run_nohup,test-bench,python -m pytest tests/benchmarks/ --no-cov -v --tb=short --ignore=tests/benchmarks/test_snapshot_benchmark.py)
+
+bench-nohup:
+	$(call run_nohup,bench,python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --quick)
+
+
+test-bench-snapshot-nohup:
+	$(call run_nohup,test-bench-snapshot,python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v)
