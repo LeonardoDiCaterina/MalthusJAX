@@ -209,11 +209,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
     @traceable("Phase_0a_Get_Active_Operators")
     def _get_active_operators(self, operators: OperatorState, generation: int) -> OperatorState:
-        """Returns OperatorState with scheduled mutation strength baked in.
+        """Returns OperatorState, applying deprecated legacy schedule if set.
 
-        Uses the JAX-native ``ScheduleType`` enum when set.  Falls back to
-        the **deprecated** ``mutation_strength_schedule`` callable for
-        backward compatibility (emits a ``DeprecationWarning`` once).
+        With the new operator-level scheduling, operators compute their own
+        scheduled strength from the ``generation`` argument passed to
+        ``__call__``.  This method only handles the **deprecated** legacy
+        ``mutation_strength_schedule`` callable for backward compatibility.
         """
         params = cast(GeneticEngineParams, self.engine_params)
 
@@ -222,7 +223,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             warnings.warn(
                 "mutation_strength_schedule is deprecated and will be removed in "
                 "v0.4.0. Use schedule_type, initial_strength, and final_strength "
-                "on GeneticEngineParams instead.",
+                "on the operator (e.g. GaussianMutation) instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -232,21 +233,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             return cast(OperatorState, cast(Any, operators).replace(mutation=updated_mutation))
 
-        # --- New JAX-native path ------------------------------------------------
-        if params.schedule_type == ScheduleType.CONSTANT:
-            return operators  # fast path: no struct mutation
-
-        strength = compute_scheduled_strength(
-            params.schedule_type,
-            generation,
-            params.num_generations,
-            params.initial_strength,
-            params.final_strength,
-        )
-        updated_mutation = cast(Any, operators.mutation).replace(
-            mutation_strength=strength
-        )
-        return cast(OperatorState, cast(Any, operators).replace(mutation=updated_mutation))
+        # --- New path: operators handle scheduling internally -------------------
+        return operators
 
     @traceable("Phase_1_Selection_Read")
     def _selection_phase(
@@ -289,6 +277,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         population: BasePopulation[Any],
         operators: OperatorState,
         rmap: ResourceMap,
+        generation: int = 0,
     ) -> BasePopulation[Any]:
         """
         Crossover + Mutation (Phase 2): Cascade: parents → offspring → mutants.
@@ -327,7 +316,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         offspring_pop = cast(
             BasePopulation[Any],
-            operators.crossover(keys_crossover, p1_pop, p2_pop, self.genome_config),
+            operators.crossover(keys_crossover, p1_pop, p2_pop, self.genome_config, generation=generation),
         )
 
         # Validate that the crossover operator produced the expected number of offspring
@@ -343,7 +332,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         final_pop = cast(
             BasePopulation[Any],
-            operators.mutation(keys_mutation, offspring_pop, self.genome_config),
+            operators.mutation(keys_mutation, offspring_pop, self.genome_config, generation=generation),
         )
 
         return final_pop
@@ -418,7 +407,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
 
         mutants = self._reproduction_phase(
-            k_cross, k_mut, parent_indices, state.population, active_operators, state.resource_map
+            k_cross, k_mut, parent_indices, state.population, active_operators, state.resource_map,
+            generation=state.generation,
         )
         next_genes = self._merge(elites, mutants.genes, state)
 
@@ -574,11 +564,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             .set_n_elites(params.elitism)
         )
 
-        # configure crossover with correct input length and key type
         active_cross = self.crossover.set_input_length(
             rmap.crossover.input_count // 2
-        ).set_typed_keys(typed)
-        active_mut = self.mutation.set_input_length(rmap.mutation.input_count).set_typed_keys(typed)
+        ).set_typed_keys(typed).set_max_generations(params.num_generations)
+        active_mut = self.mutation.set_input_length(rmap.mutation.input_count).set_typed_keys(typed).set_max_generations(params.num_generations)
 
         op_state = OperatorState(selection=active_sel, crossover=active_cross, mutation=active_mut)
 
@@ -710,7 +699,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         active_operators = self._get_active_operators(state.operators, state.generation)
 
         mutants = self._reproduction_phase(
-            k_cross, k_mut, parent_indices, state.population, active_operators, state.resource_map
+            k_cross, k_mut, parent_indices, state.population, active_operators, state.resource_map,
+            generation=state.generation,
         )
 
         next_genes = self._merge(elites, mutants.genes, state)

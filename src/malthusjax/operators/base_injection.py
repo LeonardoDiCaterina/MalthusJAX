@@ -44,7 +44,7 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
         raise NotImplementedError
 
     @abstractmethod
-    def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
+    def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
         """Tier 2 — Noise generation from single PRNG key.
 
         Contract:
@@ -65,7 +65,7 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
         """Tier 2 implementation unsupported in injection mode; use _generate_noise."""
         raise NotImplementedError("Injection mode: override _generate_noise instead")
 
-    def __call__(self, all_keys: chex.Array, population: P, config: C, **kwargs: Any) -> P:
+    def __call__(self, all_keys: chex.Array, population: P, config: C, generation: int = 0) -> P:
         """Tier 3 — Vectorized bulk mutation via vmap.
 
         Input: Single key (flattened to shape (2,)).
@@ -79,7 +79,7 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
             raise ValueError("No RNG keys provided to BaseMutation_injection")
         single_key = flat_keys[0]
 
-        noise = self._generate_noise(single_key, config)  # leading dim: (N*K, ...)
+        noise = self._generate_noise(single_key, config, generation)  # leading dim: (N*K, ...)
 
         if self.num_offspring == 1:
             # Fast path: noise is already (N, ...) — flat vmap, no reshape needed.
@@ -154,7 +154,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
         return cast("BaseCrossover_injection[G, C, P]", cast(Any, self).replace(input_length=length))
 
     @abstractmethod
-    def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
+    def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
         """Tier 2 — Mask/index generation from single PRNG key.
 
         Contract:
@@ -176,7 +176,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
         """Tier 2 unsupported; override _generate_noise instead."""
         raise NotImplementedError("Injection mode: override _generate_noise instead")
 
-    def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, **kwargs: Any) -> P:
+    def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, generation: int = 0) -> P:
         """Tier 3 — Vectorized bulk crossover via vmap.
 
         Input: Single key (flattened to shape (2,)).
@@ -193,12 +193,12 @@ class BaseCrossover_injection(Generic[G, C, P]):
             raise ValueError("No RNG keys provided to BaseCrossover_injection")
         single_key = flat_keys[0]
 
-        noise = self._generate_noise(single_key, config)  # leading dim: (N*K, ...)
+        noise = self._generate_noise(single_key, config, generation)  # leading dim: (N*K, ...)
 
         if self.num_offspring == 1:
             # Fast path: noise is already (N, ...) — flat vmap, no reshape needed.
             def _cross_flat(n: chex.Array, p1: G, p2: G) -> G:
-                return self._recombine_one(p1, p2, n, config, **kwargs)
+                return self._recombine_one(p1, p2, n, config)
 
             new_genes = jax.vmap(_cross_flat, in_axes=(0, 0, 0))(
                 noise, p1_pop.genes, p2_pop.genes
@@ -213,7 +213,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
 
         def _per_pair_block(noise_block: chex.Array, p1: G, p2: G) -> Any:
             def _per_offspring(n: chex.Array) -> G:
-                return self._recombine_one(p1, p2, n, config, **kwargs)
+                return self._recombine_one(p1, p2, n, config)
 
             return jax.vmap(_per_offspring, in_axes=0)(noise_block)
 

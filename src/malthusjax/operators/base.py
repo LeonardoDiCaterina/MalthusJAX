@@ -38,6 +38,7 @@ class BaseMutation(Generic[G, C, P]):
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
     typed_keys: bool = _field(pytree_node=False, default=False)
+    max_generations: int = _field(pytree_node=False, default=1)
 
     @property
     @abstractmethod
@@ -65,17 +66,21 @@ class BaseMutation(Generic[G, C, P]):
         """
         return cast("BaseMutation[G, C, P]", cast(Any, self).replace(typed_keys=typed))
 
+    def set_max_generations(self, n: int) -> "BaseMutation[G, C, P]":
+        """Set total generation count for operator-level scheduling."""
+        return cast("BaseMutation[G, C, P]", cast(Any, self).replace(max_generations=n))
+
     @abstractmethod
     def _mutate_one(self, genome: G, noise_data: Any, config: C, **kwargs: Any) -> G:
         """Tier 1 — Pure mutation arithmetic: genome + noise → mutated genome."""
         raise NotImplementedError
 
     @abstractmethod
-    def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
+    def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
         """Tier 2 — Noise generation: keys → noise PyTree."""
         raise NotImplementedError
 
-    def _mutate_fused(self, keys: chex.Array, genome: G, config: C, **kwargs: Any) -> G:
+    def _mutate_fused(self, keys: chex.Array, genome: G, config: C, generation: int = 0) -> G:
         """Fused RNG + arithmetic for single (individual, offspring) pair.
 
         Combines Tier 1 and Tier 2 into a single traceable unit for XLA
@@ -84,10 +89,10 @@ class BaseMutation(Generic[G, C, P]):
 
         Input key shape: (num_keys_per_atomic_operation, 2)
         """
-        noise = self._generate_noise(keys, config)
-        return self._mutate_one(genome, noise, config, **kwargs)
+        noise = self._generate_noise(keys, config, generation)
+        return self._mutate_one(genome, noise, config)
 
-    def __call__(self, all_keys: chex.Array, population: P, config: C, **kwargs: Any) -> P:
+    def __call__(self, all_keys: chex.Array, population: P, config: C, generation: int = 0) -> P:
         """Tier 3 — Population-level mutation via vmap.
 
         For num_offspring=1 (the common case), uses a single flat vmap identical in
@@ -102,6 +107,7 @@ class BaseMutation(Generic[G, C, P]):
             all_keys: Pre-allocated keys, shape product = num_keys() result.
             population: Input population with genes shape (N, d, ...).
             config: Genome configuration.
+            generation: Current generation number (traced inside scan).
 
         Returns:
             New population with genes shape (N*K, d, ...) where K=num_offspring.
@@ -117,7 +123,7 @@ class BaseMutation(Generic[G, C, P]):
                 keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
 
             def _mutate_flat(k: chex.Array, g: G) -> G:
-                return self._mutate_fused(k, g, config, **kwargs)
+                return self._mutate_fused(k, g, config, generation)
 
             new_genes = jax.vmap(_mutate_flat, in_axes=(0, 0))(keys_flat, population.genes)
             return cast(P, population.spawn_offspring(cast(G, new_genes)))
@@ -135,7 +141,7 @@ class BaseMutation(Generic[G, C, P]):
             )
 
         def _mutate_single(keys_block: chex.Array, genome: G) -> G:
-            return self._mutate_fused(keys_block, genome, config, **kwargs)
+            return self._mutate_fused(keys_block, genome, config, generation)
 
         def _process_population(k_block: chex.Array, g: G) -> G:
             return jax.vmap(_mutate_single, in_axes=(0, None))(k_block, g)
@@ -173,6 +179,7 @@ class BaseCrossover(Generic[G, C, P]):
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
     typed_keys: bool = _field(pytree_node=False, default=False)
+    max_generations: int = _field(pytree_node=False, default=1)
 
     @property
     @abstractmethod
@@ -201,8 +208,12 @@ class BaseCrossover(Generic[G, C, P]):
         """
         return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(typed_keys=typed))
 
+    def set_max_generations(self, n: int) -> "BaseCrossover[G, C, P]":
+        """Set total generation count for operator-level scheduling."""
+        return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(max_generations=n))
+
     @abstractmethod
-    def _generate_noise(self, keys: chex.PRNGKey, config: C) -> Any:
+    def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
         """Tier 2 — Recombination mask/index generation: keys → noise PyTree."""
         raise NotImplementedError
 
@@ -214,16 +225,16 @@ class BaseCrossover(Generic[G, C, P]):
         """
         raise NotImplementedError
 
-    def _cross_fused(self, keys: chex.Array, p1: G, p2: G, config: C, **kwargs: Any) -> G:
+    def _cross_fused(self, keys: chex.Array, p1: G, p2: G, config: C, generation: int = 0) -> G:
         """Fused RNG + recombination for single (pair, offspring) combination.
 
         Input key shape: (num_keys_per_atomic_operation, 2).
         Combines Tier 1 and 2 for XLA kernel fusion.
         """
-        noise = self._generate_noise(keys, config)
-        return self._recombine_one(p1, p2, noise, config, **kwargs)
+        noise = self._generate_noise(keys, config, generation)
+        return self._recombine_one(p1, p2, noise, config)
 
-    def cross_single_pair(self, key: chex.Array, p1: G, p2: G, config: C, **kwargs: Any) -> G:
+    def cross_single_pair(self, key: chex.Array, p1: G, p2: G, config: C, generation: int = 0) -> G:
         """Crossover for a single pair (not from population-level __call__).
 
         Useful for interactive/debug crossover where pair comes from arbitrary
@@ -233,6 +244,7 @@ class BaseCrossover(Generic[G, C, P]):
             key: Single PRNG key, shape (2,).
             p1, p2: Individual parent genomes.
             config: Genome configuration.
+            generation: Current generation number.
 
         Returns:
             Batched offspring genome, shape (num_offspring, ...).
@@ -246,12 +258,12 @@ class BaseCrossover(Generic[G, C, P]):
             keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation, 2)
 
         def _cross_one_return_values(k: chex.Array) -> chex.Array:
-            return cast(Any, self._cross_fused(k, p1, p2, config, **kwargs)).values
+            return cast(Any, self._cross_fused(k, p1, p2, config, generation)).values
 
         offspring_values = jax.vmap(_cross_one_return_values)(keys_reshaped)
         return cast(G, cast(Any, p1).replace(values=offspring_values))
 
-    def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, **kwargs: Any) -> P:
+    def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, generation: int = 0) -> P:
         """Tier 3 — Population-level crossover via vmap.
 
         For num_offspring=1 (the common case), uses a single flat vmap identical in
@@ -267,6 +279,7 @@ class BaseCrossover(Generic[G, C, P]):
             all_keys: Pre-allocated keys, shape product = num_keys() result.
             p1_pop, p2_pop: Parent populations with genes shape (N, d, ...).
             config: Genome configuration.
+            generation: Current generation number (traced inside scan).
 
         Returns:
             Offspring population with genes shape (N*K, d, ...) where K=num_offspring.
@@ -284,7 +297,7 @@ class BaseCrossover(Generic[G, C, P]):
                 keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
 
             def _cross_flat(k: chex.Array, p1: G, p2: G) -> G:
-                return self._cross_fused(k, p1, p2, config, **kwargs)
+                return self._cross_fused(k, p1, p2, config, generation)
 
             new_genes = jax.vmap(_cross_flat, in_axes=(0, 0, 0))(
                 keys_flat, p1_pop.genes, p2_pop.genes
@@ -300,7 +313,7 @@ class BaseCrossover(Generic[G, C, P]):
 
         def _process_pairs(k_block: chex.Array, parent1: G, parent2: G) -> Any:
             def _inner_cross(k: chex.Array) -> G:
-                return self._cross_fused(k, parent1, parent2, config, **kwargs)
+                return self._cross_fused(k, parent1, parent2, config, generation)
 
             return jax.vmap(_inner_cross, in_axes=0)(k_block)
 

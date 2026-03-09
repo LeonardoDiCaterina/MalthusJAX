@@ -36,7 +36,7 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulatio
         """Bernoulli mask generation requires 1 PRNG subkey."""
         return 1
 
-    def _generate_noise(self, keys: chex.PRNGKey, config: RealGenomeConfig) -> chex.Array:
+    def _generate_noise(self, keys: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
         """
         Tier 2 — Bernoulli Mask (Binary noise).
         Generates (d,) boolean array via Bernoulli(p=crossover_rate). Pre-allocated key
@@ -87,7 +87,7 @@ class UniformCrossover_injection(
         """Single key for Bernoulli mask generation (split internally)."""
         return 1
 
-    def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig) -> chex.Array:
+    def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
         """Generate all (pair, offspring) masks upfront. Shape: (n_pairs * n_offspring, d)."""
         if self.input_length <= 0 or self.num_offspring <= 0:
             raise ValueError(
@@ -141,6 +141,7 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]
         self,
         keys: chex.PRNGKey,
         config: RealGenomeConfig,
+        generation: int = 0,
     ) -> Tuple[chex.Array, chex.Array]:
         """
         Tier 2 — Stochastic Payload (Heterogeneous).
@@ -211,6 +212,7 @@ class BlendCrossover_injection(
         self,
         key: chex.PRNGKey,
         config: RealGenomeConfig,
+        generation: int = 0,
     ) -> Tuple[chex.Array, chex.Array]:
         """Generate all (pair, offspring) decisions and samples in parallel. Returns tuple."""
         if self.input_length <= 0 or self.num_offspring <= 0:
@@ -281,6 +283,7 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealP
         self,
         keys: chex.PRNGKey,
         config: RealGenomeConfig,
+        generation: int = 0,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         """
         Tier 2 — Stochastic Payload (Heterogeneous).
@@ -354,6 +357,7 @@ class SimulatedBinaryCrossover_injection(
         self,
         key: chex.PRNGKey,
         config: RealGenomeConfig,
+        generation: int = 0,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         """Generate all (pair, offspring) decisions, spreads, and swaps in parallel."""
         if self.input_length <= 0 or self.num_offspring <= 0:
@@ -420,7 +424,7 @@ class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulati
         """Bernoulli mask requires 1 PRNG subkey."""
         return 1
 
-    def _generate_noise(self, keys: chex.PRNGKey, config: RealGenomeConfig) -> chex.Array:
+    def _generate_noise(self, keys: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
         """Tier 2 — Bernoulli Mask. Returns (d,) boolean array for per-gene selection."""
         return jax.random.bernoulli(keys[0], p=self.crossover_rate, shape=config.shape)
 
@@ -468,7 +472,7 @@ class BinomialCrossover_injection(
         """Single key for Bernoulli mask generation (split internally)."""
         return 1
 
-    def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig) -> chex.Array:
+    def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
         """Generate all (pair, offspring) masks upfront. Shape: (n_pairs * n_offspring, d)."""
         if self.input_length <= 0 or self.num_offspring <= 0:
             raise ValueError(

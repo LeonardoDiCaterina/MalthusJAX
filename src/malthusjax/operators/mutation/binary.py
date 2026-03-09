@@ -33,7 +33,7 @@ class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopul
     def num_keys_per_atomic_operation(self) -> int:
         return 1
 
-    def _generate_noise(self, keys: chex.Array, config: BinaryGenomeConfig) -> chex.Array:
+    def _generate_noise(self, keys: chex.Array, config: BinaryGenomeConfig, generation: int = 0) -> chex.Array:
         """Tier 2: Generate the flip mask."""
         return jax.random.bernoulli(keys[0], p=self.mutation_rate, shape=config.shape)
 
@@ -72,7 +72,7 @@ class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopu
         return 2
 
     def _generate_noise(
-        self, keys: chex.Array, config: BinaryGenomeConfig
+        self, keys: chex.Array, config: BinaryGenomeConfig, generation: int = 0
     ) -> Tuple[chex.Array, chex.Array]:
         """Tier 2: Decision mask and permutation indices."""
         should_mutate = jax.random.bernoulli(keys[0], p=self.mutation_rate)
@@ -113,7 +113,7 @@ class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulati
         return 3
 
     def _generate_noise(
-        self, keys: chex.Array, config: BinaryGenomeConfig
+        self, keys: chex.Array, config: BinaryGenomeConfig, generation: int = 0
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         """Tier 2: Decision mask and swap positions."""
         should_mutate = jax.random.bernoulli(keys[0], p=self.mutation_rate)

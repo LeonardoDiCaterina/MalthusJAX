@@ -43,7 +43,7 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
             return 1
         return input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation
 
-    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig) -> Any:
+    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0) -> Any:
         """Unused — _cross_fused overrides the full Tier-1/2 pipeline."""
         raise NotImplementedError("EvosaxUniformCrossoverWrapper does not use _generate_noise")
 
@@ -64,7 +64,7 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         p1: RealGenome,
         p2: RealGenome,
         config: RealGenomeConfig,
-        **kwargs: Any,
+        generation: int = 0,
     ) -> RealGenome:
         """
         Atomic Crossover Kernel (Single-Key Wrapper Pattern).
@@ -105,7 +105,7 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         p1_pop: RealPopulation,
         p2_pop: RealPopulation,
         config: RealGenomeConfig,
-        **kwargs: Any,
+        generation: int = 0,
     ) -> RealPopulation:
         """Population-level crossover with injection_mode support.
 
@@ -128,7 +128,7 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
 
         if not self.injection_mode:
             # Fall back to base class implementation
-            return super().__call__(all_keys, p1_pop, p2_pop, config, **kwargs)
+            return super().__call__(all_keys, p1_pop, p2_pop, config, generation=generation)
 
         # injection_mode: all_keys is a single-key slice from the ResourceMapper buffer.
         # Shape: (1, 2) for legacy uint32 keys, (1,) for new-style typed keys.
