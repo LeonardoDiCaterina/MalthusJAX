@@ -264,10 +264,11 @@ class TestBBobMinimizationProgress(unittest.TestCase):
             state, output = engine.step(state)
             best_history.append(float(output.best_fitness))
 
-        # at least one subsequent generation should have produced a lower best
-        # fitness than the initial value (more negative implies improvement).
+        # at least one subsequent generation should have produced a higher
+        # fitness than the initial value (engine uses higher-is-better convention;
+        # the evaluator negates for minimisation, so improvement means less negative).
         self.assertTrue(
-            any(b < best_history[0] for b in best_history[1:]),
+            any(b > best_history[0] for b in best_history[1:]),
             f"no improvement seen, history={best_history}",
         )
 
