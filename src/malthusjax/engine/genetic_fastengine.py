@@ -5,7 +5,6 @@ Refactored for 'Init-Phase Compilation': Resource mapping happens once at initia
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Callable, Optional, Tuple, Type, TypeVar, Union, cast
 
 import chex
@@ -98,8 +97,6 @@ class GeneticEngineParams(AbstractEngineParams):
       non-CONSTANT schedules).  Defaults to ``0.1``.
     - final_strength: Target mutation strength at the last generation
       (used by LINEAR_DECAY and COSINE_ANNEAL).  Defaults to ``0.0``.
-    - mutation_strength_schedule: **DEPRECATED** — Legacy Python callable.
-      Use ``schedule_type``, ``initial_strength``, ``final_strength`` instead.
     """
 
     key_derivation: KeyDerivationStrategy = _field(
@@ -114,9 +111,6 @@ class GeneticEngineParams(AbstractEngineParams):
     )
     initial_strength: float = 0.1
     final_strength: float = 0.0
-    mutation_strength_schedule: Optional[Callable[[int], float]] = _field(
-        pytree_node=False, default=None
-    )
     debug_tracing: bool = _field(pytree_node=False, default=False)
     """Enable jax.named_call phase labels for HLO profiling (default: False).
 
@@ -206,35 +200,6 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         k_next = all_keys[rmap.get_key_slice("next_key")][0]
 
         return k_sel_slice, k_cross, k_mut, k_next
-
-    @traceable("Phase_0a_Get_Active_Operators")
-    def _get_active_operators(self, operators: OperatorState, generation: int) -> OperatorState:
-        """Returns OperatorState, applying deprecated legacy schedule if set.
-
-        With the new operator-level scheduling, operators compute their own
-        scheduled strength from the ``generation`` argument passed to
-        ``__call__``.  This method only handles the **deprecated** legacy
-        ``mutation_strength_schedule`` callable for backward compatibility.
-        """
-        params = cast(GeneticEngineParams, self.engine_params)
-
-        # --- Legacy callable path (deprecated) ---------------------------------
-        if params.mutation_strength_schedule is not None:
-            warnings.warn(
-                "mutation_strength_schedule is deprecated and will be removed in "
-                "v0.4.0. Use schedule_type, initial_strength, and final_strength "
-                "on the operator (e.g. GaussianMutation) instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            scheduled_strength = params.mutation_strength_schedule(generation)
-            updated_mutation = cast(Any, operators.mutation).replace(
-                mutation_strength=scheduled_strength
-            )
-            return cast(OperatorState, cast(Any, operators).replace(mutation=updated_mutation))
-
-        # --- New path: operators handle scheduling internally -------------------
-        return operators
 
     @traceable("Phase_1_Selection_Read")
     def _selection_phase(
@@ -399,15 +364,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
 
-        # Get operators with scheduled mutation strength baked in
-        active_operators = self._get_active_operators(state.operators, state.generation)
-
         elites, parent_indices = self._selection_phase(
-            k_sel, state.population, active_operators, self.engine_params
+            k_sel, state.population, state.operators, self.engine_params
         )
 
         mutants = self._reproduction_phase(
-            k_cross, k_mut, parent_indices, state.population, active_operators, state.resource_map,
+            k_cross, k_mut, parent_indices, state.population, state.operators, state.resource_map,
             generation=state.generation,
         )
         next_genes = self._merge(elites, mutants.genes, state)
@@ -695,11 +657,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             k_sel, state.population, state.operators, self.engine_params
         )
 
-        # Get operators with scheduled mutation strength baked in
-        active_operators = self._get_active_operators(state.operators, state.generation)
-
         mutants = self._reproduction_phase(
-            k_cross, k_mut, parent_indices, state.population, active_operators, state.resource_map,
+            k_cross, k_mut, parent_indices, state.population, state.operators, state.resource_map,
             generation=state.generation,
         )
 

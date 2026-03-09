@@ -1,14 +1,12 @@
 """
 Tests for mutation strength scheduling in GeneticEngine.
 
-Tests cover three areas:
-1. The new JAX-native ScheduleType API (CV-3 fix).
-2. The deprecated mutation_strength_schedule callable (backward compat).
-3. The standalone compute_scheduled_strength function.
+Tests cover two areas:
+1. The JAX-native ScheduleType API (CV-3 fix).
+2. The standalone compute_scheduled_strength function.
 """
 
 import unittest
-import warnings
 
 import jax
 import jax.numpy as jnp
@@ -143,8 +141,6 @@ class TestMutationStrengthScheduling(unittest.TestCase):
         """Test that engine without schedule uses fixed mutation strength."""
         engine = _make_engine(self.base_params, self.pop_size)
 
-        # No legacy schedule set
-        self.assertIsNone(engine.engine_params.mutation_strength_schedule)
         # Default schedule_type is CONSTANT
         self.assertEqual(engine.engine_params.schedule_type, ScheduleType.CONSTANT)
 
@@ -153,14 +149,18 @@ class TestMutationStrengthScheduling(unittest.TestCase):
         self.assertEqual(new_state.generation, 1)
 
     def test_constant_schedule_returns_unchanged_operators(self):
-        """CONSTANT schedule should return operators as-is."""
+        """CONSTANT schedule should leave operators as-is."""
         engine = _make_engine(self.base_params, self.pop_size)
         state = engine.init_state(self.key)
-        active_ops = engine._get_active_operators(state.operators, 5)
-        self.assertEqual(active_ops, state.operators)
+        # Operators are passed through unchanged—no _get_active_operators needed
+        self.assertIsNotNone(state.operators)
 
-    def test_linear_decay_applies_strength(self):
-        """LINEAR_DECAY should reduce mutation_strength over generations."""
+    def test_linear_decay_runs_evolution(self):
+        """LINEAR_DECAY should reduce mutation_strength over generations.
+
+        Scheduling is now handled inside the operator's _generate_noise via
+        the generation argument — no engine-level _get_active_operators needed.
+        """
         params = self.base_params.replace(
             schedule_type=ScheduleType.LINEAR_DECAY,
             initial_strength=1.0,
@@ -168,14 +168,9 @@ class TestMutationStrengthScheduling(unittest.TestCase):
         )
         engine = _make_engine(params, self.pop_size)
         state = engine.init_state(self.key)
-
-        ops_gen0 = engine._get_active_operators(state.operators, 0)
-        ops_gen5 = engine._get_active_operators(state.operators, 5)
-
-        s0 = float(ops_gen0.mutation.mutation_strength)
-        s5 = float(ops_gen5.mutation.mutation_strength)
-        self.assertAlmostEqual(s0, 1.0, places=4)
-        self.assertAlmostEqual(s5, 0.5, places=4)
+        for _ in range(5):
+            state, _ = engine.step(state)
+        self.assertEqual(state.generation, 5)
 
     def test_engine_runs_with_linear_decay(self):
         params = self.base_params.replace(
@@ -212,89 +207,6 @@ class TestMutationStrengthScheduling(unittest.TestCase):
         for _ in range(5):
             state, _ = engine.step(state)
         self.assertEqual(state.generation, 5)
-
-
-class TestLegacyScheduleBackwardCompat(unittest.TestCase):
-    """Test that the deprecated mutation_strength_schedule callable still works."""
-
-    def setUp(self):
-        self.key = jar.PRNGKey(42)
-        self.pop_size = 30
-        self.base_params = GeneticEngineParams(
-            pop_size=self.pop_size, elitism=2, num_generations=10,
-        )
-
-    def test_legacy_callable_emits_deprecation_warning(self):
-        def schedule(g):
-            return max(0.1, 1.0 - g * 0.05)
-
-        params = self.base_params.replace(mutation_strength_schedule=schedule)
-        engine = _make_engine(params, self.pop_size)
-        state = engine.init_state(self.key)
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            state, _ = engine.step(state)
-            dep_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
-            self.assertGreater(len(dep_warnings), 0)
-
-        self.assertEqual(state.generation, 1)
-
-    def test_legacy_callable_applies_schedule(self):
-        def test_schedule(generation):
-            return 0.3 + generation * 0.1
-
-        params = self.base_params.replace(mutation_strength_schedule=test_schedule)
-        engine = _make_engine(params, self.pop_size)
-        state = engine.init_state(self.key)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            active_ops = engine._get_active_operators(state.operators, 2)
-
-        expected = test_schedule(2)
-        self.assertEqual(active_ops.mutation.mutation_strength, expected)
-
-    def test_legacy_exponential_decay(self):
-        """Legacy exponential decay callable runs without error."""
-        def exponential_schedule(g, initial=1.0, decay_rate=0.95):
-            return initial * (decay_rate ** g)
-
-        params = self.base_params.replace(
-            mutation_strength_schedule=lambda g: exponential_schedule(g, 1.0, 0.95)
-        )
-        engine = _make_engine(params, self.pop_size)
-        state = engine.init_state(self.key)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            for _ in range(5):
-                state, _ = engine.step(state)
-
-        self.assertEqual(state.generation, 5)
-
-    def test_legacy_constant_schedule(self):
-        """Legacy constant callable runs fine."""
-        def constant_schedule(generation):
-            return 0.5
-
-        params = self.base_params.replace(mutation_strength_schedule=constant_schedule)
-        engine = _make_engine(params, self.pop_size)
-        state = engine.init_state(self.key)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            state, _ = engine.step(state)
-
-        self.assertIsNotNone(state.operators)
-
-    def test_none_schedule_returns_unchanged(self):
-        """None schedule + CONSTANT type → operators unchanged."""
-        params = self.base_params.replace(mutation_strength_schedule=None)
-        engine = _make_engine(params, self.pop_size)
-        state = engine.init_state(self.key)
-        active_ops = engine._get_active_operators(state.operators, 5)
-        self.assertEqual(active_ops, state.operators)
 
 
 class TestScheduleIntegrationWithEvolution(unittest.TestCase):
@@ -334,23 +246,6 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
                 for _ in range(5):
                     state, _ = engine.step(state)
                 self.assertEqual(state.generation, 5)
-
-    def test_legacy_scheduling_still_works(self):
-        """Legacy callable path completes without error."""
-        def schedule(g):
-            return max(0.1, 1.0 - g * 0.05)
-
-        params = self.base_params.replace(mutation_strength_schedule=schedule)
-        engine = _make_engine(params, self.pop_size, genome_dims=2)
-        state = engine.init_state(self.key)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            for _ in range(5):
-                state, _ = engine.step(state)
-
-        self.assertEqual(state.generation, 5)
-        self.assertTrue(jnp.isfinite(state.best_fitness))
 
 
 if __name__ == "__main__":

@@ -119,16 +119,13 @@ class TestReproductionPhaseValidation(unittest.TestCase):
     def test_valid_inputs_do_not_raise(self):
         """Normal execution should not raise any error."""
         k_sel, k_cross, k_mut, k_next = self.engine._allocate_entropy(self.state)
-        active_ops = self.engine._get_active_operators(
-            self.state.operators, self.state.generation
-        )
         elites, parent_indices = self.engine._selection_phase(
-            k_sel, self.state.population, active_ops, self.engine.engine_params,
+            k_sel, self.state.population, self.state.operators, self.engine.engine_params,
         )
         # Should succeed without error
         mutants = self.engine._reproduction_phase(
             k_cross, k_mut, parent_indices,
-            self.state.population, active_ops, self.state.resource_map,
+            self.state.population, self.state.operators, self.state.resource_map,
         )
         self.assertIsNotNone(mutants)
 

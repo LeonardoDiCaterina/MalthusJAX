@@ -230,12 +230,11 @@ def build_engine(
     if prng_impl_str is not None:
         prng_extra["prng_impl"] = resolve_prng_impl(prng_impl_str)
 
-    # Pass through schedule fields (new API) and legacy callable (deprecated)
+    # Pass through schedule fields and HOF tracking mode
     _schedule_keys = [
         "schedule_type",
         "initial_strength",
         "final_strength",
-        "mutation_strength_schedule",
         "track_best",  # HOF tracking mode
     ]
     schedule_extra: Dict[str, Any] = {
