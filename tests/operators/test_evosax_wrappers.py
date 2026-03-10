@@ -15,16 +15,13 @@ from __future__ import annotations
 
 import pytest
 
-import jax.random as jr
-
-from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key
-from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.fitness.real_evaluators import SphereConfig, SphereEvaluator
-from malthusjax.operators.selection import ElitePoolSelection
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key
+from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.crossover import EvosaxUniformCrossoverWrapper
 from malthusjax.operators.mutation import EvosaxGaussianWrapper
-from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-
+from malthusjax.operators.selection import ElitePoolSelection
 
 # We used to parameterize over several impls, but some JAX versions
 # (notably the one installed in CI) raise a ``ValueError`` when asked to
