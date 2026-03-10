@@ -11,10 +11,6 @@ __all__ = [
     "RouletteSelection",
     "ElitePoolSelection",
 ]
-# ---------------------------------------------------------------------------
-# Catalog registration
-# ---------------------------------------------------------------------------
-
 
 def _register_selection() -> None:
     """Register selection operators with the global catalog registry."""

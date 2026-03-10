@@ -21,7 +21,7 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPop
     Per-bit independent selection from parents via Bernoulli mask. XLA fuses mask generation
     (Tier 2) with selection kernel (Tier 1) into single compiled operation.
 
-    Shape contract: Parent (N,) × Parent (N,) → Offspring (N,)
+    Shape contract: Parent (N,) X Parent (N,) -> Offspring (N,)
     Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.
     """
 
@@ -32,7 +32,10 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPop
         """Bernoulli mask generation requires 1 PRNG subkey."""
         return 1
 
-    def _generate_noise(self, keys: chex.PRNGKey, config: BinaryGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(self,
+                        keys: chex.PRNGKey,
+                        config: BinaryGenomeConfig,
+                        generation: int = 0) -> chex.Array:
         """Tier 2 — Bernoulli Mask. Returns (N,) boolean array for per-bit selection."""
         return jax.random.bernoulli(keys[0], p=self.crossover_rate, shape=config.shape)
 
@@ -62,7 +65,7 @@ class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, Binar
     Selects a random crossover point [1, N-1); swaps segments. Avoids boundary points (0, N)
     to ensure meaningful recombination (both parents contribute genes).
 
-    Shape contract: Parent (N,) × Parent (N,) → Offspring (N,)
+    Shape contract: Parent (N,) X Parent (N,) -> Offspring (N,)
     Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.
     """
 

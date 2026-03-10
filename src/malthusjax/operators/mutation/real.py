@@ -15,9 +15,9 @@ import jax.random
 from flax import struct
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.engine.schedules import ScheduleType, compute_scheduled_strength
 from malthusjax.operators.base import BaseMutation, _field
 from malthusjax.operators.base_injection import BaseMutation_injection
-from malthusjax.engine.schedules import ScheduleType, compute_scheduled_strength
 
 
 @struct.dataclass

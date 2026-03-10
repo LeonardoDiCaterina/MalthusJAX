@@ -58,7 +58,6 @@ class ElitePoolSelection(BaseSelection[P, C]):
         pool_k = min(self.elite_k, pop_size)
 
         if pool_k >= pop_size:
-            # Pool covers entire population — argpartition unnecessary
             best_k_indices = jnp.arange(pop_size)
         else:
             best_k_indices = jnp.argpartition(-fitness, pool_k)[:pool_k]
@@ -87,7 +86,6 @@ class ElitePoolSelection(BaseSelection[P, C]):
         """
         fitness = getattr(population, "fitness", population)
 
-        # Key extraction (same logic as _select)
         if self.typed_keys:
             rng = keys if keys.ndim == 0 else keys[0]
         else:
@@ -97,25 +95,19 @@ class ElitePoolSelection(BaseSelection[P, C]):
         k = min(max(self.elite_k, self.n_elites), pop_size)
 
         if k >= pop_size:
-            # Pool covers entire population — argpartition unnecessary
             top_k_idx = jnp.arange(pop_size)
         else:
-            # Single O(N) partial sort covers both parent pool and preservation
             top_k_idx = jnp.argpartition(-fitness, k)[:k]
 
         pool_k = min(self.elite_k, pop_size)
 
         if self.n_elites == 0:
-            # No preservation — pool is exactly top_elite_k (fast path)
             pool = top_k_idx[:pool_k]
             elite_idx = jnp.zeros(0, dtype=jnp.int32)
         elif self.elite_k == self.n_elites:
-            # Both want the same set — no secondary sort
             pool = top_k_idx[:pool_k]
             elite_idx = top_k_idx[:self.n_elites]
         else:
-            # Need ranking within top-k to split correctly.
-            # O(k log k) on ≤max(elite_k, n_elites) elements — negligible.
             sorted_within = jnp.argsort(-fitness[top_k_idx])
             sorted_top_k = top_k_idx[sorted_within]
             pool = sorted_top_k[:pool_k]

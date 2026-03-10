@@ -13,7 +13,6 @@ import jax.numpy as jnp
 
 from malthusjax.operators.base import BaseCrossover, BaseMutation
 
-# Type variables for the decorators (parameterize generics to satisfy mypy)
 TMutation = TypeVar("TMutation", bound=BaseMutation[Any, Any, Any])
 TCrossover = TypeVar("TCrossover", bound=BaseCrossover[Any, Any, Any])
 
@@ -30,7 +29,6 @@ def ablation_single_key_mutation(cls: TMutation) -> TMutation:
         class BitFlipMutation_ablation(BitFlipMutation):
             pass
     """
-    # Store original methods
     original_call = cls.__call__
 
     def new_num_keys(self: TMutation, input_shape: Tuple[int, ...]) -> int:
@@ -93,7 +91,6 @@ def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
         class UniformCrossover_ablation(UniformCrossover):
             pass
     """
-    # Store original methods
     original_call = cls.__call__
 
     def new_num_keys(self: TCrossover, input_shape: Tuple[int, ...]) -> int:
@@ -137,7 +134,6 @@ def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
 
         return cast(Any, original_call)(self, keys_reshaped, p1_pop, p2_pop, config, **kwargs)
 
-    # Patch the class methods safely (cast to Any to avoid mypy method-assign complaints)
     cast(Any, cls).num_keys = new_num_keys
     cast(Any, cls).__call__ = new_call
 

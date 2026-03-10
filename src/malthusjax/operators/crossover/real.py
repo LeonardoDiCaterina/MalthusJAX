@@ -27,7 +27,6 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulatio
     Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.
     """
 
-    # This operator produces a single offspring per pair (static contract)
     num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
     crossover_rate: float = 0.5
 
@@ -228,7 +227,6 @@ class BlendCrossover_injection(
             random_samples = jax.random.uniform(k_val, shape=config.shape, dtype=config.dtype)
             return should_cross, random_samples
 
-        # vmap returns tuple of vmapped arrays: (n, ), (n, d)
         should_crosss, random_samples = jax.vmap(per_row, in_axes=0)(subkeys)
         return should_crosss, random_samples
 
@@ -375,7 +373,6 @@ class SimulatedBinaryCrossover_injection(
             swap_mask = jax.random.bernoulli(k_swap, p=0.5, shape=config.shape)
             return should_cross, u, swap_mask
 
-        # vmap returns tuple of vmapped arrays: (n, ), (n, d), (n, d)
         should_crosss, u_arr, swap_mask_arr = jax.vmap(per_row, in_axes=0)(subkeys)
         return should_crosss, u_arr, swap_mask_arr
 

@@ -78,19 +78,16 @@ def create_key(seed: int, impl: Optional[PRNGImpl] = None) -> jax.Array:
     """
     impl = impl or DEFAULT_IMPL
 
-    # Prefer new jax.random.key API when available
     key_ctor = getattr(jax.random, "key", None)
     if callable(key_ctor):
         try:
             return cast(jax.Array, key_ctor(seed, impl=impl.value))
         except TypeError:
-            # Older jax.random.key may not accept impl argument
             warnings.warn(
                 "jax.random.key exists but does not accept 'impl='; falling back to PRNGKey",
                 RuntimeWarning,
             )
 
-    # Fallback: legacy PRNGKey (uint32[2]) — preserves deterministic behavior
     warnings.warn(
         "Using legacy jax.random.PRNGKey fallback; consider upgrading JAX to use 'jax.random.key'",
         DeprecationWarning,

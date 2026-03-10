@@ -23,7 +23,6 @@ from .real import (
     UniformCrossover_injection as RealUniformCrossover_injection,
 )
 
-# Keep backward-compat name
 UniformCrossover = BinaryUniformCrossover
 
 __all__ = [
@@ -41,18 +40,12 @@ __all__ = [
     "EvosaxUniformCrossoverWrapper",
 ]
 
-# ---------------------------------------------------------------------------
-# Catalog registration
-# ---------------------------------------------------------------------------
-
-
 def _register_crossover() -> None:
     """Register crossover operators with the global catalog registry."""
     from malthusjax.composer._registry import register_table
 
     register_table(
         [
-            # Real-valued crossover
             ("uniform_real", RealUniformCrossover, {}),
             ("uniform_real_injection", RealUniformCrossover_injection, {}),
             ("blend", BlendCrossover, {}),
@@ -62,7 +55,6 @@ def _register_crossover() -> None:
             ("binomial", BinomialCrossover, {}),
             ("binomial_injection", BinomialCrossover_injection, {}),
             ("evosax_uniform_crossover", EvosaxUniformCrossoverWrapper, {}),
-            # Binary crossover
             ("uniform_binary", BinaryUniformCrossover, {}),
             ("single_point", SinglePointCrossover, {}),
         ],

@@ -3,15 +3,11 @@ from typing import Any, Generic, Tuple, cast
 
 import chex
 import jax
-import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.operators.base import BaseCrossover, BaseMutation, C, G, P, _field
+from malthusjax.operators.base import BaseMutation, C, G, P, _field
 
 
-# ==========================================
-# 1. MUTATION
-# ==========================================
 @struct.dataclass
 class BaseMutation_injection(BaseMutation[G, C, P]):
     """Vectorized mutation with external noise injection (single-key mode).
@@ -101,7 +97,8 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
 
             return jax.vmap(_inner, in_axes=0)(noise_block)
 
-        nested_offspring = jax.vmap(_process_noise_block, in_axes=(0, 0))(noise_nk, population.genes)
+        nested_offspring = jax.vmap(_process_noise_block,
+                                    in_axes=(0, 0))(noise_nk, population.genes)
 
         def flatten_fn(x: chex.Array) -> chex.Array:
             return x.reshape((-1,) + x.shape[2:])
@@ -109,10 +106,6 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
         return cast(P, population.spawn_offspring(cast(G, new_genes)))
 
-
-# ==========================================
-# 2. CROSSOVER
-# ==========================================
 @struct.dataclass
 class BaseCrossover_injection(Generic[G, C, P]):
     """Vectorized crossover with external noise injection (single-key mode).
@@ -134,6 +127,7 @@ class BaseCrossover_injection(Generic[G, C, P]):
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
     typed_keys: bool = _field(pytree_node=False, default=False)
+    max_generations: int = _field(pytree_node=False, default=1)
 
     @property
     @abstractmethod
@@ -151,7 +145,12 @@ class BaseCrossover_injection(Generic[G, C, P]):
 
     def set_input_length(self, length: int) -> "BaseCrossover_injection[G, C, P]":
         """Locks pair count for static budgeting."""
-        return cast("BaseCrossover_injection[G, C, P]", cast(Any, self).replace(input_length=length))
+        return cast("BaseCrossover_injection[G, C, P]",
+                    cast(Any, self).replace(input_length=length))
+
+    def set_max_generations(self, n: int) -> "BaseCrossover_injection[G, C, P]":
+        """Set total generation count for operator-level scheduling."""
+        return cast("BaseCrossover_injection[G, C, P]", cast(Any, self).replace(max_generations=n))
 
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
@@ -176,7 +175,11 @@ class BaseCrossover_injection(Generic[G, C, P]):
         """Tier 2 unsupported; override _generate_noise instead."""
         raise NotImplementedError("Injection mode: override _generate_noise instead")
 
-    def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, generation: int = 0) -> P:
+    def __call__(self,
+                 all_keys: chex.Array,
+                 p1_pop: P, p2_pop: P,
+                 config: C,
+                 generation: int = 0) -> P:
         """Tier 3 — Vectorized bulk crossover via vmap.
 
         Input: Single key (flattened to shape (2,)).
@@ -193,10 +196,9 @@ class BaseCrossover_injection(Generic[G, C, P]):
             raise ValueError("No RNG keys provided to BaseCrossover_injection")
         single_key = flat_keys[0]
 
-        noise = self._generate_noise(single_key, config, generation)  # leading dim: (N*K, ...)
+        noise = self._generate_noise(single_key, config, generation)
 
         if self.num_offspring == 1:
-            # Fast path: noise is already (N, ...) — flat vmap, no reshape needed.
             def _cross_flat(n: chex.Array, p1: G, p2: G) -> G:
                 return self._recombine_one(p1, p2, n, config)
 
@@ -205,7 +207,6 @@ class BaseCrossover_injection(Generic[G, C, P]):
             )
             return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
 
-        # General path: reshape flat noise to (N, K, ...) then nested vmap.
         def reshape_noise(x: chex.Array) -> chex.Array:
             return x.reshape((self.input_length, self.num_offspring) + x.shape[1:])
 
@@ -222,9 +223,6 @@ class BaseCrossover_injection(Generic[G, C, P]):
         )
 
         def flatten_fn(x: chex.Array) -> chex.Array:
-            # Flatten (pairs, offspring, ...d) → (pairs * offspring, ...d).
-            # No transpose needed — output ordering is irrelevant to downstream
-            # mutation/merge/evaluation. Avoids physical data copy in XLA (FB-1).
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)

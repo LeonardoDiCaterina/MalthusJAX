@@ -3,7 +3,9 @@ from typing import Any
 import chex
 import jax
 import jax.numpy as jnp
-from evosax.algorithms.population_based.simple_ga import crossover as evosax_crossover
+from evosax.algorithms.population_based import (  # type: ignore [import]
+    crossover as evosax_crossover,
+)
 from flax import struct
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
@@ -19,9 +21,8 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
     Design trade-off: Dynamic key splitting vs. static shape stability.
 
     Use for: Benchmarking evosax compatibility; ablation studies; comparative evolution.
-    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)
+    Shape contract: Parent (d,) X Parent (d,) -> Offspring (d,)
     Key budget: 1 key (split dynamically, not pre-allocated)
-    
     With ``injection_mode=True`` (default), the engine passes a single key and
     this operator splits internally for maximum performance.
     """
@@ -36,14 +37,16 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
 
     def num_keys(self, input_shape: tuple[int, ...]) -> int:
         """Return key budget.
-        
         With ``injection_mode=True``, always returns 1 (single key, split internally).
         """
         if self.injection_mode:
             return 1
         return input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation
 
-    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0) -> Any:
+    def _generate_noise(self,
+                        keys: chex.Array,
+                        config: RealGenomeConfig,
+                        generation: int = 0) -> Any:
         """Unused — _cross_fused overrides the full Tier-1/2 pipeline."""
         raise NotImplementedError("EvosaxUniformCrossoverWrapper does not use _generate_noise")
 
@@ -88,13 +91,10 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
             Offspring genome with shape ``(d,)``.
         """
         if self.typed_keys:
-            # keys: (..., atomic_keys) -> flatten to (atomic_keys,)
             prng_key = keys.reshape(-1)[0]
         else:
-            # keys: (..., atomic_keys, 2) -> flatten to (atomic_keys, 2)
             prng_key = keys.reshape((-1, keys.shape[-1]))[0]
 
-        # evosax.crossover: (key, p1_values, p2_values, rate) -> (d,) offspring
         child_vals = evosax_crossover(prng_key, p1.values, p2.values, self.crossover_rate)
 
         return RealGenome.from_tensor(child_vals, config)
@@ -122,19 +122,13 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         Returns:
             Offspring population.
         """
-        # global sanity check: missing keys should fail regardless of mode
         if all_keys.size == 0:
             raise ValueError("No PRNG keys provided to EvosaxUniformCrossoverWrapper")
 
         if not self.injection_mode:
-            # Fall back to base class implementation
             return super().__call__(all_keys, p1_pop, p2_pop, config, generation=generation)
 
-        # injection_mode: all_keys is a single-key slice from the ResourceMapper buffer.
-        # Shape: (1, 2) for legacy uint32 keys, (1,) for new-style typed keys.
-        # Extract the scalar/pair before splitting so jax.random.split receives a
-        # valid single key rather than a batched slice.
-        key = all_keys[0]  # (1,2)→(2,) for legacy; (1,)→scalar for typed
+        key = all_keys[0]
         num_pairs = p1_pop.values.shape[0]
         keys = jax.random.split(key, num_pairs * self.num_offspring)
 
@@ -144,7 +138,6 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         if self.num_offspring == 1:
             offspring_vals = jax.vmap(_cross_one)(keys, p1_pop.values, p2_pop.values)
         else:
-            # Preserve trailing (2,) for legacy uint32 keys when reshaping.
             if self.typed_keys:
                 keys_reshaped = keys.reshape(num_pairs, self.num_offspring)
             else:
