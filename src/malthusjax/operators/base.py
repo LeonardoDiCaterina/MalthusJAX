@@ -9,7 +9,6 @@ from flax import struct
 from malthusjax.core.base import BasePopulation
 from malthusjax.core.random import is_new_style_key
 
-# 1. Strict TypeVars
 G = TypeVar("G")  # Genome Data
 C = TypeVar("C")  # Config Data
 P = TypeVar("P", bound=BasePopulation[Any])
@@ -115,8 +114,10 @@ class BaseMutation(Generic[G, C, P]):
         n_keys = self.num_keys_per_atomic_operation
 
         if self.num_offspring == 1:
-            # Fast path: flat single vmap — same structure as evosax mutation.
-            # Eliminates inner vmap, (N,1,d)→(N,d) reshape, and tree_map traversal.
+            """
+            Fast path: flat single vmap — same structure as evosax mutation.
+            Eliminates inner vmap, (N,1,d)→(N,d) reshape, and tree_map traversal
+            """
             if self.typed_keys:
                 keys_flat = all_keys.reshape(self.input_length, n_keys)
             else:
@@ -126,11 +127,13 @@ class BaseMutation(Generic[G, C, P]):
                 return self._mutate_fused(k, g, config, generation)
 
             new_genes = jax.vmap(_mutate_flat, in_axes=(0, 0))(keys_flat, population.genes)
-            return cast(P, population.spawn_offspring(cast(G, new_genes)))
+            return cast(P, population.spawn_offspring(new_genes))
 
-        # General path: nested vmap for num_offspring > 1.
-        # typed_keys=True (new-style): keys are 1D array of typed scalars → 3D reshape.
-        # typed_keys=False (legacy): keys are (N,2) uint32 arrays → 4D reshape.
+        """
+        General path: nested vmap for num_offspring > 1.
+        typed_keys=True (new-style): keys are 1D array of typed scalars → 3D reshape.
+        typed_keys=False (legacy): keys are (N,2) uint32 arrays → 4D reshape.
+        """
         if self.typed_keys:
             keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys)
         else:
@@ -146,11 +149,11 @@ class BaseMutation(Generic[G, C, P]):
         nested_offspring = vmap_process(keys_reshaped, population.genes)
 
         def flatten_fn(x: chex.Array) -> chex.Array:
-            # Flatten (individuals, offspring, ...d) → (individuals * offspring, ...d).
+            """flatten (individuals, offspring, ...d) → (individuals * offspring, ...d)"""
             return x.reshape((-1,) + x.shape[2:])
 
-        new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
-        return cast(P, population.spawn_offspring(cast(G, new_genes)))
+        new_genes_flat = cast(G, jax.tree_util.tree_map(flatten_fn, nested_offspring))
+        return cast(P, population.spawn_offspring(new_genes_flat))
 
 
 @struct.dataclass
@@ -300,7 +303,7 @@ class BaseCrossover(Generic[G, C, P]):
             new_genes = jax.vmap(_cross_flat, in_axes=(0, 0, 0))(
                 keys_flat, p1_pop.genes, p2_pop.genes
             )
-            return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
+            return cast(P, p1_pop.spawn_offspring(new_genes))
 
         # General path: nested vmap for num_offspring > 1.
         # Key reshape is determined by PRNG implementation (set at engine init).
@@ -324,8 +327,8 @@ class BaseCrossover(Generic[G, C, P]):
             # mutation/merge/evaluation. Avoids physical data copy in XLA (FB-1).
             return x.reshape((-1,) + x.shape[2:])
 
-        new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
-        return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
+        new_genes_flat = cast(G, jax.tree_util.tree_map(flatten_fn, nested_offspring))
+        return cast(P, p1_pop.spawn_offspring(new_genes_flat))
 
 
 @struct.dataclass
