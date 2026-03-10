@@ -1,4 +1,7 @@
 .PHONY: help install-dev install-bench test test-fast test-failing test-fixes test-bench test-bench-snapshot \
+        test-bench-group-01 test-bench-group-02 test-bench-group-03 test-bench-group-04 \
+        test-bench-group-05 test-bench-group-06 test-bench-group-07 test-bench-group-08 \
+        test-bench-group-09 test-bench-group-10 test-bench-group-11 \
         lint format format-check type-check check-all docs bench
 
 help:
@@ -96,7 +99,88 @@ test-bench:
 
 test-bench-snapshot:
 	@echo "--- Running pytest-benchmark snapshot suite (requires: make install-bench) ---"
-	python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v
+	python -m pytest tests/benchmarks/test_benchmark_*.py --no-cov -v
+
+# individual group targets for convenience
+
+test-bench-group-01:
+	@echo "--- Running single-step latency benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_01_single_step.py --no-cov -v --benchmark-only
+
+test-bench-group-02:
+	@echo "--- Running multi-gen throughput benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_02_multi_gen_throughput.py --no-cov -v --benchmark-only
+
+test-bench-group-03:
+	@echo "--- Running JIT compilation benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_03_compilation.py --no-cov -v --benchmark-only
+
+test-bench-group-04:
+	@echo "--- Running operator microbenchmark tests ---"
+	pytest tests/benchmarks/test_benchmark_04_operators.py --no-cov -v --benchmark-only
+
+test-bench-group-05:
+	@echo "--- Running convergence parity benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_05_convergence.py --no-cov -v --benchmark-only
+
+test-bench-group-06:
+	@echo "--- Running unroll factor sweep benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_06_unroll.py --no-cov -v --benchmark-only
+
+test-bench-group-07:
+	@echo "--- Running phase breakdown benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_07_phases.py --no-cov -v --benchmark-only
+
+test-bench-group-08:
+	@echo "--- Running scaling sweep benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_08_scaling.py --no-cov -v --benchmark-only
+
+test-bench-group-09:
+	@echo "--- Running injection operator performance benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_09_injection.py --no-cov -v --benchmark-only
+
+test-bench-group-10:
+	@echo "--- Running key derivation strategy benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_10_key_derivation.py --no-cov -v --benchmark-only
+
+test-bench-group-11:
+	@echo "--- Running injection + key derivation parity benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_11_injection_parity.py --no-cov -v --benchmark-only
+
+# nohup variants for each group
+
+test-bench-group-01-nohup:
+	$(call run_nohup,test-bench-group-01,make test-bench-group-01)
+
+test-bench-group-02-nohup:
+	$(call run_nohup,test-bench-group-02,make test-bench-group-02)
+
+test-bench-group-03-nohup:
+	$(call run_nohup,test-bench-group-03,make test-bench-group-03)
+
+test-bench-group-04-nohup:
+	$(call run_nohup,test-bench-group-04,make test-bench-group-04)
+
+test-bench-group-05-nohup:
+	$(call run_nohup,test-bench-group-05,make test-bench-group-05)
+
+test-bench-group-06-nohup:
+	$(call run_nohup,test-bench-group-06,make test-bench-group-06)
+
+test-bench-group-07-nohup:
+	$(call run_nohup,test-bench-group-07,make test-bench-group-07)
+
+test-bench-group-08-nohup:
+	$(call run_nohup,test-bench-group-08,make test-bench-group-08)
+
+test-bench-group-09-nohup:
+	$(call run_nohup,test-bench-group-09,make test-bench-group-09)
+
+test-bench-group-10-nohup:
+	$(call run_nohup,test-bench-group-10,make test-bench-group-10)
+
+test-bench-group-11-nohup:
+	$(call run_nohup,test-bench-group-11,make test-bench-group-11)
 
 docs:
 	@echo "--- Building Sphinx HTML documentation ---"
