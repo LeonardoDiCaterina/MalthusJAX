@@ -36,13 +36,10 @@ class TestEvosaxUniformCrossoverWrapper(unittest.TestCase):
         k_op, _ = jar.split(self.key)
         keys = jar.split(k_op, n_keys)
 
-        # Run wrapper
         jit_op = jax.jit(wrapper)
         offspring = jit_op(keys, self.parents_1, self.parents_2, self.config)
 
-        # Compute expected masks using the same splitting logic as the wrapper.
         if wrapper.injection_mode:
-            # keys array contains a single key
             base_key = keys[0]
             subkeys = jar.split(base_key, self.pop_size * num_offspring)
         else:
