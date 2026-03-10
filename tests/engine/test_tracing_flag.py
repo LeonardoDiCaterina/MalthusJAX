@@ -1,16 +1,15 @@
-import jax
+from malthusjax.core.fitness.real_evaluators import SphereEvaluator
+from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine import genetic_fastengine as ge
 from malthusjax.engine.genetic_fastengine import (
-    GeneticEngineParams,
     GeneticEngine,
-    enable_tracing,
+    GeneticEngineParams,
     disable_tracing,
+    enable_tracing,
 )
-from malthusjax.core.genome.real_genome import RealGenomeConfig
-from malthusjax.core.fitness.real_evaluators import SphereEvaluator
-from malthusjax.operators.selection.tournament import TournamentSelection
 from malthusjax.operators.crossover.real import BlendCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
+from malthusjax.operators.selection.tournament import TournamentSelection
 
 
 def make_engine(debug: bool) -> GeneticEngine:

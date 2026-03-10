@@ -11,12 +11,12 @@ import jax.random as jr
 import pytest
 
 from malthusjax.core.fitness.binary_evaluators import KnapsackConfig, KnapsackEvaluator
-from malthusjax.core.random import PRNGImpl, create_key
-from malthusjax.engine.resource_mapper import KeyDerivationStrategy
 
 # Import genome types and configurations
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.random import PRNGImpl, create_key
+from malthusjax.engine.resource_mapper import KeyDerivationStrategy
 
 
 @pytest.fixture
@@ -265,12 +265,12 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
 
     Useful for PRNG-focused tests that need a baked operator set in `state.operators`.
     """
-    from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-    from malthusjax.core.genome.real_genome import RealGenomeConfig
     from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-    from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+    from malthusjax.core.genome.real_genome import RealGenomeConfig
+    from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
     from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
     from malthusjax.operators.mutation.real import GaussianMutation
+    from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
     params = GeneticEngineParams(
         pop_size=32,

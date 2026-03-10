@@ -20,7 +20,6 @@ from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

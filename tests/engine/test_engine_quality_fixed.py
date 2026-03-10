@@ -218,14 +218,15 @@ class TestBBobMinimizationProgress(unittest.TestCase):
     """
 
     def test_bbob_minimization_improves(self):
+        import jax.random as jar
+
         from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
         from malthusjax.core.genome.real_genome import RealGenomeConfig
-        from malthusjax.operators.selection.elite_pool import ElitePoolSelection
-        from malthusjax.operators.crossover.real import UniformCrossover
-        from malthusjax.operators.mutation.real import GaussianMutation
         from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
         from malthusjax.engine.schedules import TrackBest
-        import jax.random as jar
+        from malthusjax.operators.crossover.real import UniformCrossover
+        from malthusjax.operators.mutation.real import GaussianMutation
+        from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
         # small-scale experiment to keep test fast
         pop_size = 50

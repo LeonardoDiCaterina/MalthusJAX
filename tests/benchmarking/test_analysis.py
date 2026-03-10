@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
-import pytest
-
 # import analysis without triggering malthusjax __init__ (evosax dependency)
 import importlib.util
+from pathlib import Path
 from pathlib import Path as _Path
+
+import pytest
 
 spec = importlib.util.spec_from_file_location(
     "malthusjax.benchmarking.analysis",

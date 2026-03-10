@@ -1,9 +1,7 @@
-import pytest
-import jax.random as jr
 from pathlib import Path
 
-from malthusjax.composer import Composer
 from malthusjax.benchmarking.runner import BenchmarkRunner
+from malthusjax.composer import Composer
 
 
 def test_quick_run_uses_default_trace_dir(monkeypatch, tmp_path):

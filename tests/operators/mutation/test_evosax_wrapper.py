@@ -22,7 +22,14 @@ class TestEvosaxGaussianWrapper(unittest.TestCase):
 
             # Resource allocation
             n_keys = mutator.num_keys(input_shape=(self.pop_size,))
-            self.assertEqual(n_keys, 1 if inj else self.pop_size * mutator.num_offspring * mutator.num_keys_per_atomic_operation)
+            self.assertEqual(
+                n_keys,
+                1
+                if inj
+                else self.pop_size
+                * mutator.num_offspring
+                * mutator.num_keys_per_atomic_operation,
+            )
 
             k_op, _ = jar.split(self.key)
             keys = jar.split(k_op, n_keys)

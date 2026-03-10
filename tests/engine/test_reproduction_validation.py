@@ -16,7 +16,6 @@ from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (
     GeneticEngine,
     GeneticEngineParams,
-    OperatorState,
 )
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
