@@ -6,10 +6,9 @@ Pre-calculates exact RNG requirements and operator output shapes
 to enable static allocation and precise "cascade" data flow.
 """
 
+import logging
 from enum import Enum
 from typing import Any, NamedTuple, Tuple, cast
-
-import logging
 
 import chex
 import jax
@@ -18,9 +17,8 @@ from flax import struct
 from jax.sharding import Mesh, NamedSharding
 from jax.sharding import PartitionSpec as P
 
-from malthusjax.operators.base import BaseCrossover, BaseMutation, BaseSelection
+from malthusjax.operators.base import BaseCrossover, BaseMutation, BaseSelection, _field
 
-_field: Any = struct.field  # Helper for typed contexts
 _logger = logging.getLogger(__name__)
 
 
@@ -136,12 +134,10 @@ class ResourceMap:
         FOLD path: vmap(fold_in(master_key, i)) for i in 0..total_rng_budget-1 — parallel.
         """
         if self.key_derivation == KeyDerivationStrategy.SPLIT:
-            # Sequential splitting
             return cast(chex.Array, jax.random.split(master_key, int(self.total_rng_budget)))
         elif self.key_derivation == KeyDerivationStrategy.FOLD:
-            # Parallel fold_in: avoid Python-level conversions so this works with JAX tracers
+
             def _fold_in(i: chex.Array) -> chex.Array:
-                # Call fold_in with a JAX value directly (no int()), which is safe under vmap
                 return jax.random.fold_in(master_key, i)
 
             indices = jnp.arange(int(self.total_rng_budget))
@@ -167,10 +163,9 @@ def compute_resource_map(
     offspring=2 → pairs=9 → 18 offspring, slice 1 in merge).
     Returns: ResourceMap with allocation details for all 4 operator stages.
     """
-    # --- AR-1: FOLD + RBG guard ---
     if key_derivation == KeyDerivationStrategy.FOLD:
-        prng_impl = getattr(jax.config, 'jax_default_prng_impl', 'threefry2x32')
-        if prng_impl in ('rbg', 'unsafe_rbg'):
+        prng_impl = getattr(jax.config, "jax_default_prng_impl", "threefry2x32")
+        if prng_impl in ("rbg", "unsafe_rbg"):
             raise ValueError(
                 f"KeyDerivationStrategy.FOLD is incompatible with PRNG impl '{prng_impl}'. "
                 "fold_in is not supported for RBG/UNSAFE_RBG backends. "
@@ -179,9 +174,6 @@ def compute_resource_map(
 
     current_key_idx = 0
 
-    # Determine genome shape (for metadata)
-    # Prefer `resolved_shape` if available (handles legacy `length` alias)
-    # Normalize genome_shape to Tuple[int, ...]
     genome_shape: Tuple[int, ...]
     if hasattr(genome_config, "resolved_shape"):
         genome_shape = cast(Tuple[int, ...], genome_config.resolved_shape)
@@ -217,7 +209,6 @@ def compute_resource_map(
     )
     current_key_idx += sel_keys_needed
 
-    # crossover
     cross_input_count = sel_output_count  # e.g. 18 (if pop_size=17)
     num_pairs = cross_input_count // 2  # e.g. 9
 
@@ -227,7 +218,6 @@ def compute_resource_map(
     # This might be slightly larger than pop_size (e.g. 18), we will allow that
     cross_output_count = num_pairs * crossover.num_offspring
 
-    # AR-3: Warn if overproduction exceeds 10%
     overproduction = cross_output_count - pop_size
     if overproduction > 0 and overproduction / pop_size > 0.10:
         _logger.warning(
@@ -250,7 +240,6 @@ def compute_resource_map(
     )
     current_key_idx += cross_keys_needed
 
-    # mutation
     mut_input_count = cross_output_count
     mutation = mutation.set_input_length(mut_input_count)
     mut_output_count = mut_input_count * mutation.num_offspring
@@ -266,7 +255,6 @@ def compute_resource_map(
     )
     current_key_idx += mut_keys_needed
 
-    # next generation key
     next_key_alloc = OperatorAllocation(
         num_keys=1,
         start_idx=current_key_idx,

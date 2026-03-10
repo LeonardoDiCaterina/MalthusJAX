@@ -292,6 +292,7 @@ def _get_evolution_kernel(
     """
     if unroll_num != 1:
         import warnings
+
         warnings.warn(
             f"unroll_num={unroll_num} has no performance benefit on GPU and increases "
             "XLA compile time linearly. It has been overridden to 1. "

@@ -5,7 +5,7 @@ Refactored for 'Init-Phase Compilation': Resource mapping happens once at initia
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Tuple, Type, TypeVar, Union, cast
+from typing import Any, Callable, Tuple, TypeVar, Union, cast
 
 import chex
 import jax
@@ -30,7 +30,7 @@ from .resource_mapper import (
     ShardingManager,
     compute_resource_map,
 )
-from .schedules import ScheduleType, TrackBest, compute_scheduled_strength
+from .schedules import ScheduleType, TrackBest
 
 # TODO: update selection doctring
 
@@ -68,7 +68,6 @@ def traceable(name: str) -> Callable[[T], T]:
     """
 
     def decorator(fn: T) -> T:
-        # Pre-build the named variant once (avoids re-wrapping on every call)
         named_fn: T = cast(T, jax.named_call(fn, name=name))
 
         def conditional(*args: Any, **kwargs: Any) -> Any:
@@ -103,12 +102,8 @@ class GeneticEngineParams(AbstractEngineParams):
         pytree_node=False, default=KeyDerivationStrategy.SPLIT
     )
     prng_impl: PRNGImpl = _field(pytree_node=False, default=PRNGImpl.THREEFRY)
-    schedule_type: ScheduleType = _field(
-        pytree_node=False, default=ScheduleType.CONSTANT
-    )
-    track_best: TrackBest = _field(
-        pytree_node=False, default=TrackBest.LIGHT
-    )
+    schedule_type: ScheduleType = _field(pytree_node=False, default=ScheduleType.CONSTANT)
+    track_best: TrackBest = _field(pytree_node=False, default=TrackBest.LIGHT)
     initial_strength: float = 0.1
     final_strength: float = 0.0
     debug_tracing: bool = _field(pytree_node=False, default=False)
@@ -219,16 +214,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         Returns: (elites_genes tree, selected_indices for mating).
         """
-        # Selection operator returns (parent_indices, elite_indices) tuple.
-        # Evaluators already store fitness in "higher is better" convention
-        # (negating for minimisation), so we pass fitness through directly.
         parent_idx, elite_idx = operators.selection(key_selection, population.fitness)
 
-        # Extract elite genes using tree_map
         if params.elitism > 0:
             elites_genes = jax.tree_util.tree_map(lambda x: x[elite_idx], population.genes)
         else:
-            # Create empty "genes" structure with 0 leading rows to preserve tree shape
             elites_genes = jax.tree_util.tree_map(lambda x: x[:0], population.genes)
 
         return elites_genes, parent_idx
@@ -255,49 +245,44 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         p1_idx = parent_indices[:num_pairs]
         p2_idx = parent_indices[num_pairs : num_pairs * 2]
 
-        # Validate parent indices match expected input_count (2 * num_pairs)
         if parent_indices.shape[0] != rmap.crossover.input_count:
             raise ValueError(
                 "Parent indices length mismatch: "
                 f"got {parent_indices.shape[0]}, expected {rmap.crossover.input_count}"
             )
 
-        # Keys should be allocated per-pair (uses operator's num_keys contract)
         expected_cross_keys = operators.crossover.num_keys(input_shape=(num_pairs,))
         if keys_crossover.shape[0] != expected_cross_keys:
             raise ValueError(
                 "Crossover keys length mismatch: "
-                f"got {keys_crossover.shape[0]}, expected {expected_cross_keys} (num_pairs={num_pairs})"
+                f"got {keys_crossover.shape[0]}, expected {expected_cross_keys} "
+                f"(num_pairs={num_pairs})"
             )
-
-        # FB-5: Gather genes only — crossover never reads fitness, so
-        # copying the fitness array for each parent pair is wasted work.
         p1_genes = jax.tree_util.tree_map(lambda x: x[p1_idx], population.genes)
         p2_genes = jax.tree_util.tree_map(lambda x: x[p2_idx], population.genes)
-        # Build lightweight parent populations with dummy fitness (FB-2).
         dummy_fitness = jnp.zeros(num_pairs)
         p1_pop = population.spawn_offspring(p1_genes, fitness=dummy_fitness)
         p2_pop = population.spawn_offspring(p2_genes, fitness=dummy_fitness)
 
         offspring_pop = cast(
             BasePopulation[Any],
-            operators.crossover(keys_crossover, p1_pop, p2_pop, self.genome_config, generation=generation),
+            operators.crossover(
+                keys_crossover, p1_pop, p2_pop, self.genome_config, generation=generation
+            ),
         )
-
-        # Validate that the crossover operator produced the expected number of offspring
-        # This catches operators that report `num_offspring` but actually return a different
-        # number of offspring in their `_recombine_one` implementation.
         produced_offspring = jax.tree_util.tree_leaves(offspring_pop.genes)[0].shape[0]
         if produced_offspring != rmap.crossover.output_count:
             raise ValueError(
                 f"Crossover produced {produced_offspring} offspring but ResourceMap "
                 f"expected {rmap.crossover.output_count}. Ensure `operator.num_offspring` "
-                "matches the length of the tuple returned by `_recombine_one`."
+                f"matches the length of the tuple returned by `_recombine_one`."
             )
 
         final_pop = cast(
             BasePopulation[Any],
-            operators.mutation(keys_mutation, offspring_pop, self.genome_config, generation=generation),
+            operators.mutation(
+                keys_mutation, offspring_pop, self.genome_config, generation=generation
+            ),
         )
 
         return final_pop
@@ -328,10 +313,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         mutants_keep = jax.tree_util.tree_map(lambda x: x[:num_mutants], mutant_genes)
 
-        # Use the old population's genes as the destination buffer so that
-        # XLA can reuse / donate the memory instead of allocating afresh.
         def _fuse(old: jnp.ndarray, elite: jnp.ndarray, mutant: jnp.ndarray) -> jnp.ndarray:
-            # Start from old buffer (will be overwritten in-place by XLA)
             buf = old
             if num_elites > 0:
                 start = tuple([0] * len(buf.shape))
@@ -340,9 +322,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             buf = jax.lax.dynamic_update_slice(buf, mutant, mutant_start)
             return buf
 
-        # Get old population genes as the base buffer
         old_genes = old_state.population.genes
-
         next_genes = jax.tree_util.tree_map(_fuse, old_genes, elites_genes, mutants_keep)
 
         return next_genes
@@ -369,7 +349,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
 
         mutants = self._reproduction_phase(
-            k_cross, k_mut, parent_indices, state.population, state.operators, state.resource_map,
+            k_cross,
+            k_mut,
+            parent_indices,
+            state.population,
+            state.operators,
+            state.resource_map,
             generation=state.generation,
         )
         next_genes = self._merge(elites, mutants.genes, state)
@@ -388,23 +373,21 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         gen_best_fitness = jnp.max(new_pop.fitness)
 
         if params.track_best == TrackBest.NONE:
-            # No tracking: pass through unchanged, report per-gen best
+            """No tracking: pass through unchanged, report per-gen best"""
             new_best_fitness = state.best_fitness
             new_best_genome = state.best_genome
             metric_best = gen_best_fitness  # per-gen, NOT monotonic
         elif params.track_best == TrackBest.LIGHT:
-            # Running max only — no genome in carry
+            """Running max only — no genome in carry """
             new_best_fitness = jnp.maximum(gen_best_fitness, state.best_fitness)
             new_best_genome = state.best_genome
             metric_best = new_best_fitness  # monotonic
-        else:  # TrackBest.FULL
-            # Full tracking: argmax + Gather + element-wise jnp.where
+        else:
+            """Full tracking: argmax + Gather + element-wise jnp.where """
             is_new = gen_best_fitness > state.best_fitness
             best_idx = jnp.argmax(new_pop.fitness)
             new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
-            best_candidate = jax.tree_util.tree_map(
-                lambda x: x[best_idx], new_pop.genes
-            )
+            best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], new_pop.genes)
             new_best_genome = jax.tree_util.tree_map(
                 lambda n, o: jnp.where(is_new, n, o),
                 best_candidate,
@@ -438,7 +421,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         time_it: bool = False,
         compile: bool = True,
         verbose: bool = False,
-    ) -> Tuple[AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any]:
+    ) -> Tuple[
+        AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any
+    ]:
         """Execute evolution and apply post-scan finalization.
 
         Delegates the main scan loop to ``AbstractEngine.run()``, then
@@ -450,9 +435,6 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             initial_state, time_it=time_it, compile=compile, verbose=verbose
         )
         params = cast(GeneticEngineParams, self.engine_params)
-
-        # Evaluators store fitness in "higher is better" convention, so
-        # argmax always finds the best individual regardless of direction.
         if params.track_best in (TrackBest.NONE, TrackBest.LIGHT):
             best_idx = jnp.argmax(final_state.population.fitness)
             final_best_genome = jax.tree_util.tree_map(
@@ -483,7 +465,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         configured `prng_impl`. If a legacy `PRNGKey` is provided, a
         ``DeprecationWarning`` is emitted.
 
-        Steps: (1) Compute ResourceMap (RNG budget + data flow cascade).
+        Steps:
+        (1) Compute ResourceMap (RNG budget + data flow cascade).
         (2) Bake operators: set_input_length freezes static sizes for XLA.
         (3) Enforce GSPMD sharding layout (per-device or replicated).
         (4) Initialize and evaluate population.
@@ -492,20 +475,16 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         """
         params = cast(GeneticEngineParams, self.engine_params)
 
-        # Apply tracing gate before the first JIT trace happens.
         if params.debug_tracing:
             enable_tracing()
         else:
             disable_tracing()
 
-        # Accept an integer seed and create a typed key using the configured PRNG impl,
-        # otherwise validate provided key and warn for legacy PRNGKey.
         if isinstance(rng_key, int):
             rng_key = create_key(rng_key, impl=params.prng_impl)
         else:
             validate_key(rng_key, context="GeneticEngine.init_state()")
 
-        # Determine key format once — propagated to all operators as static flag.
         typed = is_new_style_key(rng_key)
 
         rmap = compute_resource_map(
@@ -526,19 +505,21 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             .set_n_elites(params.elitism)
         )
 
-        active_cross = self.crossover.set_input_length(
-            rmap.crossover.input_count // 2
-        ).set_typed_keys(typed).set_max_generations(params.num_generations)
-        active_mut = self.mutation.set_input_length(rmap.mutation.input_count).set_typed_keys(typed).set_max_generations(params.num_generations)
+        active_cross = (
+            self.crossover.set_input_length(rmap.crossover.input_count // 2)
+            .set_typed_keys(typed)
+            .set_max_generations(params.num_generations)
+        )
+        active_mut = (
+            self.mutation.set_input_length(rmap.mutation.input_count)
+            .set_typed_keys(typed)
+            .set_max_generations(params.num_generations)
+        )
 
         op_state = OperatorState(selection=active_sel, crossover=active_cross, mutation=active_mut)
-
-        pop_cls: Type[BasePopulation[Any]]
-        cfg: Any
         init_pop_key, rng_key = jar.split(rng_key)
 
-        # Protocol dispatch: config.init_population() replaces isinstance chain (JR-2)
-        if not hasattr(self.genome_config, 'init_population'):
+        if not hasattr(self.genome_config, "init_population"):
             raise ValueError(
                 f"Unsupported genome config: {type(self.genome_config).__name__}. "
                 "Config must implement init_population(key, size) -> BasePopulation."
@@ -546,9 +527,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         population = self.genome_config.init_population(init_pop_key, self.engine_params.pop_size)
 
         target_dtype = self.genome_config.dtype
-
         num_devices = len(sharding_mgr.devices)
-        _pop_shardable = (self.engine_params.pop_size % num_devices == 0)
+        _pop_shardable = self.engine_params.pop_size % num_devices == 0
 
         def _enforce_layout(leaf: chex.Array) -> chex.Array:
             if hasattr(leaf, "dtype") and jnp.issubdtype(leaf.dtype, jnp.floating):
@@ -598,9 +578,6 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             operators=op_state,
         )
 
-    # ==========================================
-    # ASK / TELL Interface
-    # ==========================================
     def ask(self, state: GeneticEvolutionState) -> Tuple["GeneticEngine", BasePopulation[Any]]:
         """
         Ask for next evaluation batch (injection-style interface).
@@ -623,22 +600,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         k_sel, k_cross, k_mut, k_next = self._entropy_buffer
 
         state = cast(GeneticEvolutionState, cast(Any, state).replace(population=population))
-
-        # ------------------------------------------------------------------
-        # Inline HOF update — always FULL in tell() (FB-4)
-        #
-        # Unlike step() (which runs inside jax.lax.scan), tell() runs
-        # eagerly so the per-call overhead of argmax+Gather+where is
-        # negligible.  Users of the ask/tell API expect best_genome to
-        # be correctly maintained.
-        # ------------------------------------------------------------------
         gen_best_fitness = jnp.max(population.fitness)
         is_new = gen_best_fitness > state.best_fitness
         new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
         best_idx = jnp.argmax(population.fitness)
-        best_candidate = jax.tree_util.tree_map(
-            lambda x: x[best_idx], population.genes
-        )
+        best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], population.genes)
         new_best_genome = jax.tree_util.tree_map(
             lambda n, o: jnp.where(is_new, n, o),
             best_candidate,
@@ -658,7 +624,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
 
         mutants = self._reproduction_phase(
-            k_cross, k_mut, parent_indices, state.population, state.operators, state.resource_map,
+            k_cross,
+            k_mut,
+            parent_indices,
+            state.population,
+            state.operators,
+            state.resource_map,
             generation=state.generation,
         )
 
