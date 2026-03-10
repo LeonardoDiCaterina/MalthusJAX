@@ -3,9 +3,15 @@ from typing import Any
 import chex
 import jax
 import jax.numpy as jnp
-from evosax.algorithms.population_based import (  # type: ignore [import]
-    crossover as evosax_crossover,
-)
+try:
+    from evosax.algorithms.population_based import (  # type: ignore [import]
+        crossover as evosax_crossover,
+    )
+except ImportError:
+    # fallback dummy implementation so module still imports
+    def evosax_crossover(key, p1_vals, p2_vals, rate):
+        mask = jax.random.bernoulli(key, rate, p1_vals.shape)
+        return jnp.where(mask, p1_vals, p2_vals)
 from flax import struct
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation

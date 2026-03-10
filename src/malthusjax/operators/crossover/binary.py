@@ -74,7 +74,10 @@ class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, Binar
         """Randint sampling for crossover point requires 1 PRNG subkey."""
         return 1
 
-    def _generate_noise(self, keys: chex.PRNGKey, config: BinaryGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(self,
+                        keys: chex.PRNGKey,
+                        config: BinaryGenomeConfig,
+                        generation: int = 0) -> chex.Array:
         """
         Tier 2 — Segment Mask.
         Generates (N,) boolean mask based on random crossover point [1, N-1).
