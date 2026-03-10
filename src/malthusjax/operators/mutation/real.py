@@ -43,7 +43,9 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
         """Requires 2 keys: one for the Bernoulli mask and one for Gaussian noise."""
         return 2
 
-    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         """
         Tier 2 — Noise Generation.
         Generates mask (Bernoulli) and noise (Gaussian scaled by scheduled strength).
@@ -59,8 +61,11 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
             strength = jnp.array(self.mutation_strength, dtype=dtype)
         else:
             strength = compute_scheduled_strength(
-                self.schedule_type, generation, self.max_generations,
-                self.mutation_strength, self.final_strength,
+                self.schedule_type,
+                generation,
+                self.max_generations,
+                self.mutation_strength,
+                self.final_strength,
             ).astype(dtype)
         return raw_noise * strength * mask_val
 
@@ -104,7 +109,9 @@ class GaussianMutation_injection(
         """
         return 2
 
-    def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, key: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         if self.input_length <= 0 or self.num_offspring <= 0:
             msg = "Set `input_length` and `num_offspring` before calling _generate_noise."
             raise ValueError(msg)
@@ -118,8 +125,11 @@ class GaussianMutation_injection(
             strength = self.mutation_strength
         else:
             strength = compute_scheduled_strength(
-                self.schedule_type, generation, self.max_generations,
-                self.mutation_strength, self.final_strength,
+                self.schedule_type,
+                generation,
+                self.max_generations,
+                self.mutation_strength,
+                self.final_strength,
             )
 
         def per_row(k_row: chex.Array) -> chex.Array:
@@ -170,7 +180,9 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
         """Requires 3 keys: 1 for Bernoulli mask, 1 for Gaussian vector, 1 for Magnitude scaling."""
         return 3
 
-    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         """
         Tier 2 — Noise Generation (Muller's Method).
         Returns: (d,) array = unit_direction * scheduled_radius * u^(1/d) * mask.
@@ -188,8 +200,11 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
             radius = self.radius
         else:
             radius = compute_scheduled_strength(
-                self.schedule_type, generation, self.max_generations,
-                self.radius, self.final_radius,
+                self.schedule_type,
+                generation,
+                self.max_generations,
+                self.radius,
+                self.final_radius,
             )
         r = radius * jnp.power(u, 1.0 / dimension)
         unit_vector = raw_vector / norm
@@ -229,7 +244,9 @@ class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig
     def num_keys_per_atomic_operation(self) -> int:
         return 3
 
-    def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, key: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         if self.input_length <= 0 or self.num_offspring <= 0:
             msg = "Set `input_length` and `num_offspring` before calling _generate_noise."
             raise ValueError(msg)
@@ -242,8 +259,11 @@ class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig
             radius = self.radius
         else:
             radius = compute_scheduled_strength(
-                self.schedule_type, generation, self.max_generations,
-                self.radius, self.final_radius,
+                self.schedule_type,
+                generation,
+                self.max_generations,
+                self.radius,
+                self.final_radius,
             )
 
         def per_row(k_row: chex.Array) -> chex.Array:
@@ -296,7 +316,9 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
         """Requires 2 keys: one for the Bernoulli mask and one for the 'u' value."""
         return 2
 
-    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         """
         Tier 2 — Noise Generation (Polynomial mutation).
         Returns: (d,) array = delta_q * bound_range * mask (scaled by [min,max]).
@@ -354,7 +376,9 @@ class PolynomialMutation_injection(
     def num_keys_per_atomic_operation(self) -> int:
         return 2
 
-    def _generate_noise(self, key: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, key: chex.PRNGKey, config: RealGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         if self.input_length <= 0 or self.num_offspring <= 0:
             msg = "Set `input_length` and `num_offspring` before calling _generate_noise."
             raise ValueError(msg)

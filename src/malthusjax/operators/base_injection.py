@@ -97,14 +97,16 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
 
             return jax.vmap(_inner, in_axes=0)(noise_block)
 
-        nested_offspring = jax.vmap(_process_noise_block,
-                                    in_axes=(0, 0))(noise_nk, population.genes)
+        nested_offspring = jax.vmap(_process_noise_block, in_axes=(0, 0))(
+            noise_nk, population.genes
+        )
 
         def flatten_fn(x: chex.Array) -> chex.Array:
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes = jax.tree_util.tree_map(flatten_fn, nested_offspring)
         return cast(P, population.spawn_offspring(cast(G, new_genes)))
+
 
 @struct.dataclass
 class BaseCrossover_injection(Generic[G, C, P]):
@@ -145,8 +147,9 @@ class BaseCrossover_injection(Generic[G, C, P]):
 
     def set_input_length(self, length: int) -> "BaseCrossover_injection[G, C, P]":
         """Locks pair count for static budgeting."""
-        return cast("BaseCrossover_injection[G, C, P]",
-                    cast(Any, self).replace(input_length=length))
+        return cast(
+            "BaseCrossover_injection[G, C, P]", cast(Any, self).replace(input_length=length)
+        )
 
     def set_max_generations(self, n: int) -> "BaseCrossover_injection[G, C, P]":
         """Set total generation count for operator-level scheduling."""
@@ -175,11 +178,9 @@ class BaseCrossover_injection(Generic[G, C, P]):
         """Tier 2 unsupported; override _generate_noise instead."""
         raise NotImplementedError("Injection mode: override _generate_noise instead")
 
-    def __call__(self,
-                 all_keys: chex.Array,
-                 p1_pop: P, p2_pop: P,
-                 config: C,
-                 generation: int = 0) -> P:
+    def __call__(
+        self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, generation: int = 0
+    ) -> P:
         """Tier 3 — Vectorized bulk crossover via vmap.
 
         Input: Single key (flattened to shape (2,)).
@@ -199,12 +200,11 @@ class BaseCrossover_injection(Generic[G, C, P]):
         noise = self._generate_noise(single_key, config, generation)
 
         if self.num_offspring == 1:
+
             def _cross_flat(n: chex.Array, p1: G, p2: G) -> G:
                 return self._recombine_one(p1, p2, n, config)
 
-            new_genes = jax.vmap(_cross_flat, in_axes=(0, 0, 0))(
-                noise, p1_pop.genes, p2_pop.genes
-            )
+            new_genes = jax.vmap(_cross_flat, in_axes=(0, 0, 0))(noise, p1_pop.genes, p2_pop.genes)
             return cast(P, p1_pop.spawn_offspring(cast(G, new_genes)))
 
         def reshape_noise(x: chex.Array) -> chex.Array:

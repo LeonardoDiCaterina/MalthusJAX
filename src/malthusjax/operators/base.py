@@ -132,13 +132,9 @@ class BaseMutation(Generic[G, C, P]):
         # typed_keys=True (new-style): keys are 1D array of typed scalars → 3D reshape.
         # typed_keys=False (legacy): keys are (N,2) uint32 arrays → 4D reshape.
         if self.typed_keys:
-            keys_reshaped = all_keys.reshape(
-                self.input_length, self.num_offspring, n_keys
-            )
+            keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys)
         else:
-            keys_reshaped = all_keys.reshape(
-                self.input_length, self.num_offspring, n_keys, 2
-            )
+            keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys, 2)
 
         def _mutate_single(keys_block: chex.Array, genome: G) -> G:
             return self._mutate_fused(keys_block, genome, config, generation)
@@ -263,7 +259,9 @@ class BaseCrossover(Generic[G, C, P]):
         offspring_values = jax.vmap(_cross_one_return_values)(keys_reshaped)
         return cast(G, cast(Any, p1).replace(values=offspring_values))
 
-    def __call__(self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, generation: int = 0) -> P:
+    def __call__(
+        self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, generation: int = 0
+    ) -> P:
         """Tier 3 — Population-level crossover via vmap.
 
         For num_offspring=1 (the common case), uses a single flat vmap identical in

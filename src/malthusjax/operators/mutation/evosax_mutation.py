@@ -73,7 +73,9 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
             return 1
         return int(input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation)
 
-    def _generate_noise(self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0) -> Any:
+    def _generate_noise(
+        self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0
+    ) -> Any:
         """Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""
         raise NotImplementedError("EvosaxGaussianWrapper does not use _generate_noise")
 
@@ -82,6 +84,7 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
     ) -> RealGenome:
         """Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""
         raise NotImplementedError("EvosaxGaussianWrapper does not use _mutate_one")
+
     def __call__(
         self,
         all_keys: chex.Array,

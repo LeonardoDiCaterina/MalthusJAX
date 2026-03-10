@@ -106,12 +106,12 @@ class ElitePoolSelection(BaseSelection[P, C]):
             elite_idx = jnp.zeros(0, dtype=jnp.int32)
         elif self.elite_k == self.n_elites:
             pool = top_k_idx[:pool_k]
-            elite_idx = top_k_idx[:self.n_elites]
+            elite_idx = top_k_idx[: self.n_elites]
         else:
             sorted_within = jnp.argsort(-fitness[top_k_idx])
             sorted_top_k = top_k_idx[sorted_within]
             pool = sorted_top_k[:pool_k]
-            elite_idx = sorted_top_k[:self.n_elites]
+            elite_idx = sorted_top_k[: self.n_elites]
 
         random_selections = jax.random.randint(
             rng, shape=(self.num_selections,), minval=0, maxval=pool_k

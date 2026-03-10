@@ -12,6 +12,7 @@ __all__ = [
     "ElitePoolSelection",
 ]
 
+
 def _register_selection() -> None:
     """Register selection operators with the global catalog registry."""
     from malthusjax.composer._registry import register_table

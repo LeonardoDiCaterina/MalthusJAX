@@ -3,6 +3,7 @@ from typing import Any
 import chex
 import jax
 import jax.numpy as jnp
+
 try:
     from evosax.algorithms.population_based import (  # type: ignore [import]
         crossover as evosax_crossover,
@@ -12,6 +13,8 @@ except ImportError:
     def evosax_crossover(key, p1_vals, p2_vals, rate):
         mask = jax.random.bernoulli(key, rate, p1_vals.shape)
         return jnp.where(mask, p1_vals, p2_vals)
+
+
 from flax import struct
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
@@ -49,10 +52,9 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
             return 1
         return input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation
 
-    def _generate_noise(self,
-                        keys: chex.Array,
-                        config: RealGenomeConfig,
-                        generation: int = 0) -> Any:
+    def _generate_noise(
+        self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0
+    ) -> Any:
         """Unused — _cross_fused overrides the full Tier-1/2 pipeline."""
         raise NotImplementedError("EvosaxUniformCrossoverWrapper does not use _generate_noise")
 

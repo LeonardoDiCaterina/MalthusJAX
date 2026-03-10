@@ -40,6 +40,7 @@ __all__ = [
     "EvosaxUniformCrossoverWrapper",
 ]
 
+
 def _register_crossover() -> None:
     """Register crossover operators with the global catalog registry."""
     from malthusjax.composer._registry import register_table

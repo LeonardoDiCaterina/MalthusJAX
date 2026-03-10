@@ -32,10 +32,9 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPop
         """Bernoulli mask generation requires 1 PRNG subkey."""
         return 1
 
-    def _generate_noise(self,
-                        keys: chex.PRNGKey,
-                        config: BinaryGenomeConfig,
-                        generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, keys: chex.PRNGKey, config: BinaryGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         """Tier 2 — Bernoulli Mask. Returns (N,) boolean array for per-bit selection."""
         return jax.random.bernoulli(keys[0], p=self.crossover_rate, shape=config.shape)
 
@@ -74,10 +73,9 @@ class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, Binar
         """Randint sampling for crossover point requires 1 PRNG subkey."""
         return 1
 
-    def _generate_noise(self,
-                        keys: chex.PRNGKey,
-                        config: BinaryGenomeConfig,
-                        generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, keys: chex.PRNGKey, config: BinaryGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         """
         Tier 2 — Segment Mask.
         Generates (N,) boolean mask based on random crossover point [1, N-1).

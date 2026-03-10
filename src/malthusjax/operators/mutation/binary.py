@@ -33,7 +33,9 @@ class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopul
     def num_keys_per_atomic_operation(self) -> int:
         return 1
 
-    def _generate_noise(self, keys: chex.Array, config: BinaryGenomeConfig, generation: int = 0) -> chex.Array:
+    def _generate_noise(
+        self, keys: chex.Array, config: BinaryGenomeConfig, generation: int = 0
+    ) -> chex.Array:
         """Tier 2: Generate the flip mask."""
         return jax.random.bernoulli(keys[0], p=self.mutation_rate, shape=config.shape)
 

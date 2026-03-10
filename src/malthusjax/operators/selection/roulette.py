@@ -52,21 +52,15 @@ class RouletteSelection(BaseSelection[P, C]):
             else:
                 num_chunks = (self.num_selections + self.chunk_size - 1) // self.chunk_size
 
-                def _chunk_body(
-                    carry: chex.Array, _: Any
-                ) -> tuple[chex.Array, chex.Array]:
+                def _chunk_body(carry: chex.Array, _: Any) -> tuple[chex.Array, chex.Array]:
                     key = carry
                     key, subkey = jax.random.split(key)
-                    uniform = jax.random.uniform(
-                        subkey, shape=(self.chunk_size, pop_size)
-                    )
+                    uniform = jax.random.uniform(subkey, shape=(self.chunk_size, pop_size))
                     gumbel = -jnp.log(-jnp.log(uniform))
                     indices = jnp.argmax(logits + gumbel, axis=1)
                     return key, indices
 
-                _, all_indices = jax.lax.scan(
-                    _chunk_body, rng, None, length=num_chunks
-                )
+                _, all_indices = jax.lax.scan(_chunk_body, rng, None, length=num_chunks)
                 return all_indices.reshape(-1)[: self.num_selections]
         else:
             probs = jax.nn.softmax(logits)
