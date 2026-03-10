@@ -84,7 +84,10 @@ class ElitePoolSelection(BaseSelection[P, C]):
         Returns:
             ``(parent_indices, elite_indices)`` tuple.
         """
-        fitness = getattr(population, "fitness", population)
+        # ensure `fitness` is an ndarray regardless of whether the caller
+        # passed a population object or a raw array.  This resolves mypy
+        # complaints about missing ``shape`` attribute and allows negation.
+        fitness: chex.Array = jnp.asarray(getattr(population, "fitness", population))
 
         if self.typed_keys:
             rng = keys if keys.ndim == 0 else keys[0]
