@@ -62,6 +62,9 @@ docs/build/
 mlruns/
 mlartifacts/
 
+#visulaization folder as it is not yet ready
+src/malthusjax/visualization/
+
 # examples – ignore notebooks
 examples/*.ipynb
 
