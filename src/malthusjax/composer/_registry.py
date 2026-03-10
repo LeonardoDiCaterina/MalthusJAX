@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, Tuple
 
-# catalog_key → (factory_callable, default_kwargs)
 _OPERATOR_REGISTRY: Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]] = {}
 
 

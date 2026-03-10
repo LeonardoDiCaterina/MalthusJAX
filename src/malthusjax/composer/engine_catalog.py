@@ -65,10 +65,6 @@ class EngineRegistry:
         _ensure_engines_registered()
         self._registry = get_registry()
 
-    # ------------------------------------------------------------------
-    # Spec parsing
-    # ------------------------------------------------------------------
-
     def parse_spec(self, spec: str) -> Tuple[str, Dict[str, Any]]:
         """Parse engine specification string.
 
@@ -124,17 +120,12 @@ class EngineRegistry:
         except ValueError:
             pass
 
-        # Strip quotes
         if (value_str.startswith('"') and value_str.endswith('"')) or (
             value_str.startswith("'") and value_str.endswith("'")
         ):
             return value_str[1:-1]
 
         return value_str
-
-    # ------------------------------------------------------------------
-    # Instance creation
-    # ------------------------------------------------------------------
 
     def get(
         self,
@@ -177,8 +168,6 @@ class EngineRegistry:
             )
 
         factory, defaults = self._registry[engine_name]
-
-        # Merge precedence: defaults < spec_params < explicit kwargs
         merged_params = {**defaults, **spec_params, **kwargs}
 
         try:
@@ -193,10 +182,6 @@ class EngineRegistry:
             raise ValueError(
                 f"Invalid parameters for engine '{engine_name}': {e}"
             ) from e
-
-    # ------------------------------------------------------------------
-    # Introspection & extension
-    # ------------------------------------------------------------------
 
     def register(
         self,
@@ -216,8 +201,6 @@ class EngineRegistry:
         if not override and engine_name in self._registry:
             raise KeyError(f"Engine '{engine_name}' is already registered")
 
-        # Also push into global registry so subsequent EngineRegistry()
-        # instances see the new entry.
         _engine_register(engine_name, factory, defaults, override=True)
         self._registry[engine_name] = (factory, defaults or {})
 

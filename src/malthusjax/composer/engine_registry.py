@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, List, Tuple
 
-# engine_name → (factory_callable, default_kwargs)
 _ENGINE_REGISTRY: Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]] = {}
 
 

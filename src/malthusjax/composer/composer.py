@@ -11,22 +11,19 @@ from ..benchmarking.results import ComparisonResult
 from .catalog import OperatorCatalog
 from .config import load_experiment_config
 from .engine_catalog import EngineRegistry
-from .engine_factory import build_engine_from_catalog
 from .evosax_adapter import build_evosax_engine
 
-# tqdm is an optional dependency used for progress bars in loops.
-# Import lazily so the package remains optional.
 try:
     from tqdm import tqdm
 except ImportError:  # pragma: no cover - optional dependency
-    tqdm = None  # type: ignore
+    tqdm = None
 
 
 @dataclass
 class Composer:
     """Compose and run evolutionary experiments with sensible defaults."""
 
-    registry: Optional[Any] = None  # Will be Registry when implemented
+    registry: Optional[Any] = None
     config: Dict[str, Any] = field(default_factory=dict)
 
     def quick_run(
@@ -165,8 +162,6 @@ class Composer:
 
         return runner.run(seeds)
 
-    # -- compare ----------------------------------------------------------
-
     def compare(
         self,
         pipelines: Dict[str, Dict[str, Any]],
@@ -228,7 +223,6 @@ class Composer:
             )
             cmp.plot_convergence()
         """
-        # Build shared initial population if requested
         init_pop = None
         if shared_initial_population:
             pop_size = int(shared_kwargs.get("pop_size", 50))
@@ -241,37 +235,27 @@ class Composer:
                 maxval=float(bounds[1]),
             )
 
-        # Extract trace_dir if present (we handle it specially per-pipeline)
         trace_base = shared_kwargs.pop("trace_dir", None)
 
         results: Dict[str, ExperimentResult] = {}
         negate_map: Dict[str, bool] = {}
-        
-        # iterate over pipelines with optional progress reporting
+
         iterable = pipelines.items()
         if tqdm is not None:
             iterable = tqdm(iterable, total=len(pipelines), desc="pipelines")
 
         for name, pipeline_kwargs in iterable:
-            # Merge: shared_kwargs ← pipeline_kwargs (pipeline wins)
             merged = {**shared_kwargs, **pipeline_kwargs}
             merged["seeds"] = seeds
             merged.setdefault("experiment_name", name)
 
-            # Set per-pipeline trace_dir if tracing is enabled
             if trace_base is not None:
                 merged["trace_dir"] = Path(trace_base) / name
 
-            # Inject shared initial population
             if init_pop is not None and "initial_population" not in merged:
                 merged["initial_population"] = init_pop
 
             results[name] = self.quick_run(**merged)
-
-            # MalthusJAX uses a maximisation convention internally
-            # (fitness is negated so higher = better).  Flag these
-            # pipelines so ComparisonResult can normalise to the
-            # standard "lower is better" convention for display.
             backend = merged.get("backend", "malthusjax")
             negate_map[name] = backend != "evosax"
 
@@ -281,8 +265,6 @@ class Composer:
             initial_population=init_pop,
             negate_map=negate_map,
         )
-
-    # -- from_toml --------------------------------------------------------
 
     @classmethod
     def from_toml(
@@ -335,13 +317,10 @@ class Composer:
         experiment_meta, resolved = load_experiment_config(str(path), pipelines=pipelines)
         shared = experiment_meta.get("shared", {})
 
-        # Extract seeds from shared config (they go to compare, not each pipeline)
         seeds = tuple(shared.pop("seeds", (42, 43, 44)))
 
-        # Separate pipeline overrides from shared defaults
         pipeline_overrides: Dict[str, Dict[str, Any]] = {}
         for name, merged_cfg in resolved.items():
-            # Remove shared keys from each pipeline to get just the overrides
             overrides = {
                 k: v
                 for k, v in merged_cfg.items()
@@ -358,8 +337,6 @@ class Composer:
             trace_dir=trace_dir,
             **shared,
         )
-
-    # -- Private helpers --------------------------------------------------
 
     def _has_real_operators(
         self,

@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import time
 from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import chex
+import jax.numpy as jnp
 
 from ..core.genome.binary_genome import BinaryGenomeConfig
-from ..core.genome.real_genome import RealGenomeConfig
+
+# for now it only supports real genomes but it will be extended in the future
+from ..core.genome.real_genome import RealGenomeConfig, RealPopulation
 from ..core.random import resolve_prng_impl
-from ..engine.base import compute_unroll_num
+from ..engine.base import _get_evolution_kernel, compute_unroll_num
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
+from ..engine.schedules import TrackBest
 
 
 class GeneticEngineAdapter:
@@ -38,28 +43,17 @@ class GeneticEngineAdapter:
             - 'summary': Dict[str, Any] - final summary metrics
             - 'timings': Dict[str, float] - timing info
         """
-        import time
-
-        import jax
-
-        # time initialization (pure array ops; XLA kernels may compile here on
-        # the first-ever call to this engine's fitness evaluator)
         t_init_start = time.perf_counter()
         state = self.genetic_engine.init_state(key)
-        # Force device sync so the init timer is accurate.
         state.best_fitness.block_until_ready()
-        # record starting best fitness
         initial_best = float(state.best_fitness)
         if hasattr(self, "maximize") and self.maximize:
             initial_best = -initial_best
         t_init_end = time.perf_counter()
 
-        # If an explicit initial population is provided, construct an evaluated
-        # population object and replace the state's population with it.
         if self.initial_population is not None:
-            import jax.numpy as jnp
 
-            from ..core.genome.real_genome import RealPopulation
+
 
             arr = jnp.asarray(self.initial_population)
             pop = RealPopulation.from_array(arr, self.genome_config, axis=0)
@@ -76,19 +70,9 @@ class GeneticEngineAdapter:
                 best_fitness=best_fitness,
             )
 
-        # ------------------------------------------------------------------
-        # Warmup: compile a single step (this is very cheap and avoids the
-        # Python-loop overhead influencing the compile timing later).
-        # ------------------------------------------------------------------
+        # warmup
         _ws, _ = self.genetic_engine.step(state)
         _ws.best_fitness.block_until_ready()
-
-        # ------------------------------------------------------------------
-        # Compile the full scan kernel without executing it by lowering and
-        # compiling the jit function directly.  This isolates compilation time
-        # from actual evolution execution.
-        # ------------------------------------------------------------------
-        from ..engine.base import _get_evolution_kernel
 
         t_compile_start = time.perf_counter()
         jit_fn = _get_evolution_kernel(
@@ -109,7 +93,6 @@ class GeneticEngineAdapter:
         )
         t_evo_end = time.perf_counter()
 
-        # Convert stacked JAX arrays from scan to list-of-dicts format
         num_gens = int(self.genetic_engine.engine_params.num_generations)
         history = []
         for g in range(num_gens):
@@ -173,8 +156,6 @@ def build_engine(
         GeneticEngineAdapter wrapping configured GeneticEngine
     """
     genome_config: Union[RealGenomeConfig, BinaryGenomeConfig]
-    # Backwards-compatibility: accept `genome_length` (scalar) as an alias
-    # for the single-dimension `genome_shape` argument used elsewhere in the API.
     if "genome_length" in kwargs:
         genome_shape = (int(kwargs.pop("genome_length")),)
 
@@ -187,14 +168,11 @@ def build_engine(
     else:
         raise ValueError(f"Unsupported genome type: {genome_type}")
 
-    # Coerce operator spec strings into actual operator instances if needed
     OperatorCatalog: Any = None
     try:
         from .catalog import OperatorCatalog as _OperatorCatalog
-
         OperatorCatalog = _OperatorCatalog
     except Exception:
-        # Avoid circular imports breaking; if it fails, user must pass operator instances
         OperatorCatalog = None
 
     if isinstance(selection_op, str):
@@ -212,7 +190,6 @@ def build_engine(
             raise TypeError("mutation_op provided as string but OperatorCatalog is unavailable")
         mutation_op = OperatorCatalog().get(mutation_op)
 
-    # Defensive validation: ensure operators implement required methods
     for name, op in [
         ("selection", selection_op),
         ("crossover", crossover_op),
@@ -224,26 +201,21 @@ def build_engine(
                 "Provide operator instance from OperatorCatalog.get(spec)"
                 " or a proper implementation."
             )
-    # Resolve PRNG implementation if provided
     prng_impl_str = kwargs.pop("prng_impl", None)
     prng_extra: Dict[str, Any] = {}
     if prng_impl_str is not None:
         prng_extra["prng_impl"] = resolve_prng_impl(prng_impl_str)
 
-    # Pass through schedule fields and HOF tracking mode
     _schedule_keys = [
         "schedule_type",
         "initial_strength",
         "final_strength",
-        "track_best",  # HOF tracking mode
+        "track_best",
     ]
     schedule_extra: Dict[str, Any] = {
         k: v for k, v in kwargs.items() if k in _schedule_keys
     }
 
-    # Performance optimization: disable HOF tracking by default for benchmarking
-    # Users can override with track_best="light" or track_best="full"
-    from ..engine.schedules import TrackBest
     if "track_best" not in schedule_extra:
         schedule_extra["track_best"] = TrackBest.NONE
 

@@ -29,10 +29,6 @@ from evosax.algorithms.population_based import (
 )
 from evosax.problems import BBOBProblem
 
-# ---------------------------------------------------------------------------
-# Strategy registry
-# ---------------------------------------------------------------------------
-
 EVOSAX_STRATEGIES: Dict[str, type] = {
     "SimpleGA": SimpleGA,
     "MR15_GA": MR15_GA,
@@ -43,12 +39,6 @@ EVOSAX_STRATEGIES: Dict[str, type] = {
 def list_strategies() -> list[str]:
     """Return available evosax strategy names."""
     return sorted(EVOSAX_STRATEGIES.keys())
-
-
-# ---------------------------------------------------------------------------
-# Adapter
-# ---------------------------------------------------------------------------
-
 
 class EvosaxEngineAdapter:
     """Adapter to make evosax strategies compatible with BenchmarkRunner.Engine protocol.
@@ -100,8 +90,6 @@ class EvosaxEngineAdapter:
         k_init, k_run = jr.split(key)
         p_state = self.problem.init(k_init)
 
-        # Allow externally provided initial population for reproducible
-        # comparisons. If not provided, sample uniformly from bounds.
         if self.initial_population is not None:
             init_x = jnp.asarray(self.initial_population)
         else:
@@ -115,35 +103,28 @@ class EvosaxEngineAdapter:
         init_fit = jnp.full((self.pop_size,), jnp.inf)
 
         state = self.strategy.init(k_init, init_x, init_fit, self.params)
-
-        # If an explicit initial population was supplied, evaluate it and
-        # tell the strategy so the internal best_fitness is updated.
         if self.initial_population is not None:
             fitness, p_state, _ = self.problem.eval(k_init, init_x, p_state)
             state, _metrics = self.strategy.tell(k_init, init_x, fitness, state, self.params)
 
-        # Force device sync so the init timer is accurate.
-        # Block on init_x (a JAX array) rather than state fields which may be
-        # Python scalars in some evosax versions.
         init_x.block_until_ready()
         t_init_end = time.perf_counter()
 
-        # ---- 1b. Warmup step (triggers XLA kernel compilation) -----------
-        # Run a single ask→tell cycle before the timed loop.  JAX caches
-        # compiled kernels globally, so this cost is paid at most once per
-        # process.  We record it as "compile" so callers can distinguish
-        # compilation overhead from steady-state speed.
+        """
+        Run a single ask→tell cycle before the timed loop.  JAX caches
+        compiled kernels globally, so this cost is paid at most once per
+        process.  We record it as "compile" so callers can distinguish
+        compilation overhead from steady-state speed.
+        """
         t_compile_start = time.perf_counter()
         _k_w = jr.fold_in(k_run, jnp.uint32(0xDEAD))
         _x_w, _ws = self.strategy.ask(_k_w, state, self.params)
         _fit_w, _ps_w, _ = self.problem.eval(_k_w, _x_w, p_state)
         _ws, _ = self.strategy.tell(_k_w, _x_w, _fit_w, _ws, self.params)
-        # Block on the fitness array — guaranteed to be a JAX device array.
         _fit_w.block_until_ready()
         t_compile_end = time.perf_counter()
         del _x_w, _ws, _fit_w, _ps_w  # discard warmup state; state is unchanged
 
-        # ---- 2. Evolution loop -------------------------------------------
         t_evo_start = time.perf_counter()
 
         history: list[Dict[str, Any]] = []
@@ -152,7 +133,7 @@ class EvosaxEngineAdapter:
         for gen in range(self.num_generations):
             rng, rng_step = jr.split(rng)
 
-            # ask  →  tell
+            # ask  ->  tell
             x, state = self.strategy.ask(rng_step, state, self.params)
             fitness, p_state, _ = self.problem.eval(rng_step, x, p_state)
             state, _metrics = self.strategy.tell(rng_step, x, fitness, state, self.params)
@@ -174,14 +155,9 @@ class EvosaxEngineAdapter:
                     "std_fitness": std_f,
                 }
             )
-
-        # Force sync so t_evo_end reflects actual device completion.
-        # Block on the last fitness array, not state.best_fitness which may
-        # be a Python scalar in some evosax versions.
         fitness.block_until_ready()
         t_evo_end = time.perf_counter()
 
-        # ---- 3. Assemble output ------------------------------------------
         final_best = float(state.best_fitness)
         if self.maximize:
             final_best = -final_best
@@ -203,11 +179,6 @@ class EvosaxEngineAdapter:
             "summary": summary,
             "timings": timings,
         }
-
-
-# ---------------------------------------------------------------------------
-# Factory
-# ---------------------------------------------------------------------------
 
 
 def build_evosax_engine(
@@ -259,11 +230,9 @@ def build_evosax_engine(
     EvosaxEngineAdapter
         Ready to call ``.run_once(key)``.
     """
-    # ---- handle common aliases -----------------------------------------
     if "num_generations" in kwargs:
         generations = int(kwargs.pop("num_generations"))
 
-    # ---- resolve fitness spec if provided --------------------------------
     if fitness_spec is not None:
         from .catalog import OperatorCatalog
 
@@ -277,7 +246,6 @@ def build_evosax_engine(
         if "maximize" in parsed_params:
             maximize = parsed_params["maximize"]
 
-    # ---- strategy --------------------------------------------------------
     if strategy_name not in EVOSAX_STRATEGIES:
         raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
 

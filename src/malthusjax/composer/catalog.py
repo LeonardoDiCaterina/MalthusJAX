@@ -112,16 +112,11 @@ class OperatorCatalog:
         _ensure_registered()
         self._registry = get_registry()
 
-        # Evosax strategy name helpers (return plain strings, not operators)
         self._evosax_strategies: Dict[str, str] = {
             "evosax_simplega": "SimpleGA",
             "evosax_mr15": "MR15_GA",
             "evosax_de": "DifferentialEvolution",
         }
-
-    # ------------------------------------------------------------------
-    # Spec parsing
-    # ------------------------------------------------------------------
 
     def parse_spec(self, spec: str) -> Tuple[str, Dict[str, Any]]:
         """Parse operator specification string.
@@ -186,10 +181,6 @@ class OperatorCatalog:
 
         return value_str
 
-    # ------------------------------------------------------------------
-    # Instance creation
-    # ------------------------------------------------------------------
-
     def get(self, spec: str) -> Any:
         """Get configured operator instance from specification string.
 
@@ -205,7 +196,6 @@ class OperatorCatalog:
         """
         operator_type, user_params = self.parse_spec(spec)
 
-        # Evosax strategy helpers (return plain name strings)
         if operator_type in self._evosax_strategies:
             return self._evosax_strategies[operator_type]
 
@@ -220,10 +210,6 @@ class OperatorCatalog:
             return factory(**merged)
         except TypeError as e:
             raise ValueError(f"Invalid parameters for '{operator_type}': {e}") from e
-
-    # ------------------------------------------------------------------
-    # Introspection & extension
-    # ------------------------------------------------------------------
 
     def register(
         self,
@@ -243,8 +229,6 @@ class OperatorCatalog:
         ):
             raise KeyError(f"Operator type '{operator_type}' already registered")
 
-        # Also push into global registry so subsequent OperatorCatalog()
-        # instances see the new entry.
         _registry_register(operator_type, factory, override=True)
         self._registry[operator_type] = (factory, {})
 
