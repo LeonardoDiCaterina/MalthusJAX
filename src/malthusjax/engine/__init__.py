@@ -1,3 +1,5 @@
+from typing import Any
+
 from .base import (
     AbstractEngine,
     AbstractEngineParams,
@@ -36,18 +38,18 @@ def _register_engines() -> None:
     from ..composer.engine_registry import register_table
 
     def _ga_factory(
-        evaluator,
-        selection,
-        crossover,
-        mutation,
-        genome_type="real",
-        pop_size=50,
-        generations=100,
-        genome_shape=(10,),
-        bounds=(-5.0, 5.0),
-        elitism=2,
-        **kwargs,
-    ):
+        evaluator: Any,
+        selection: Any,
+        crossover: Any,
+        mutation: Any,
+        genome_type: str = "real",
+        pop_size: int = 50,
+        generations: int = 100,
+        genome_shape: tuple[int, ...] = (10,),
+        bounds: tuple[float, float] = (-5.0, 5.0),
+        elitism: int = 2,
+        **kwargs: Any,
+    ) -> Any:
         """Standard genetic algorithm (GeneticEngine).
 
         Wraps :class:`GeneticEngine` in a

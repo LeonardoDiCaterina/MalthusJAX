@@ -68,7 +68,7 @@ def traceable(name: str) -> Callable[[T], T]:
     """
 
     def decorator(fn: T) -> T:
-        named_fn: T = cast(T, jax.named_call(fn, name=name))
+        named_fn = jax.named_call(fn, name=name)
 
         def conditional(*args: Any, **kwargs: Any) -> Any:
             if _TRACING_ENABLED:

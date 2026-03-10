@@ -117,15 +117,20 @@ def compute_scheduled_strength(
     if schedule == ScheduleType.CONSTANT:
         return jnp.asarray(initial_strength)
 
-    t = generation / max_generations
+    # Ensure `t` is a JAX array so that subsequent arithmetic yields
+    # a jnp.ndarray (mypy requires the return type to match).  `generation`
+    # may already be a tracer; if it's a plain int the cast keeps things
+    # safe.
+    t = jnp.asarray(generation) / max_generations
 
     if schedule == ScheduleType.LINEAR_DECAY:
-        return initial_strength + (final_strength - initial_strength) * t
+        return jnp.asarray(initial_strength + (final_strength - initial_strength) * t)
     elif schedule == ScheduleType.COSINE_ANNEAL:
-        return final_strength + (initial_strength - final_strength) * 0.5 * (
-            1.0 + jnp.cos(jnp.pi * t)
+        return jnp.asarray(
+            final_strength
+            + (initial_strength - final_strength) * 0.5 * (1.0 + jnp.cos(jnp.pi * t))
         )
     elif schedule == ScheduleType.EXPONENTIAL_DECAY:
-        return initial_strength * jnp.exp(-3.0 * t)
+        return jnp.asarray(initial_strength * jnp.exp(-3.0 * t))
     else:
         raise ValueError(f"Unknown schedule type: {schedule}")
