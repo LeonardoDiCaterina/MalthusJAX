@@ -122,7 +122,7 @@ class GaussianMutation_injection(
         subkeys = subkeys.reshape((n, self.num_keys_per_atomic_operation, -1))
 
         if self.schedule_type == ScheduleType.CONSTANT:
-            strength = self.mutation_strength
+            strength = jnp.asarray(self.mutation_strength)
         else:
             strength = compute_scheduled_strength(
                 self.schedule_type,
@@ -197,7 +197,7 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
         u = jax.random.uniform(k_mag, shape=(), minval=0.0, maxval=1.0, dtype=dtype)
         dimension = jnp.array(jnp.prod(jnp.array(shape)), dtype=dtype)
         if self.schedule_type == ScheduleType.CONSTANT:
-            radius = self.radius
+            radius = jnp.asarray(self.radius)
         else:
             radius = compute_scheduled_strength(
                 self.schedule_type,
@@ -256,7 +256,7 @@ class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig
         subkeys = subkeys.reshape((n, self.num_keys_per_atomic_operation, -1))
 
         if self.schedule_type == ScheduleType.CONSTANT:
-            radius = self.radius
+            radius = jnp.asarray(self.radius)
         else:
             radius = compute_scheduled_strength(
                 self.schedule_type,

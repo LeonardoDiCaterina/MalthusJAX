@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import chex
 import jax
@@ -33,10 +33,12 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
-        # This wrapper consumes 1 atomic key for each fused operation. We
-        # expose 1 here so that the BaseMutation reshape logic produces a
-        # non-zero atomic key axis. The single key will be flattened and the
-        # first 2-int PRNG pair extracted before calling Evosax.
+        """
+        This wrapper consumes 1 atomic key for each fused operation. We
+         expose 1 here so that the BaseMutation reshape logic produces a
+         non-zero atomic key axis. The single key will be flattened and the
+         first 2-int PRNG pair extracted before calling Evosax.
+        """
         return 1
 
     def _mutate_fused(
@@ -47,7 +49,6 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
         PRNG key, calls Evosax mutation on the genome values and returns a
         JIT-friendly `RealGenome` via `from_tensor`.
         """
-        # keys may be legacy (atomic_keys, 2) or typed (atomic_keys,).
         if self.typed_keys:
             prng_key = keys.reshape(-1)[0]
         else:
@@ -80,7 +81,7 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
         raise NotImplementedError("EvosaxGaussianWrapper does not use _generate_noise")
 
     def _mutate_one(
-        self, genome: RealGenome, noise_data: Any, config: RealGenomeConfig
+        self, genome: RealGenome, noise_data: Any, config: RealGenomeConfig, **kwargs: Any
     ) -> RealGenome:
         """Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""
         raise NotImplementedError("EvosaxGaussianWrapper does not use _mutate_one")
@@ -129,4 +130,4 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
             mutated_vals = jax.vmap(_call_evosax)(subkeys, repeated_vals)
 
         new_genes = RealGenome(values=mutated_vals)
-        return population.spawn_offspring(new_genes)
+        return cast(RealPopulation, population.spawn_offspring(new_genes))
