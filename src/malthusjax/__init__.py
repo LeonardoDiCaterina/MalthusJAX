@@ -42,21 +42,51 @@ __all__ = [
     "selection",
     "crossover",
     "mutation",
-    # Core Genomes
+    # Core top-level types
     "BaseGenome",
     "BasePopulation",
+    "DistanceMetric",
+    # Evaluator bases & configs
+    "BaseEvaluator",
+    "BinarySumConfig",
+    "BinarySumEvaluator",
+    "KnapsackConfig",
+    "KnapsackEvaluator",
+    "BoxConfig",
+    "BoxEvaluator",
+    "GriewankConfig",
+    "GriewankEvaluator",
+    "SphereConfig",
+    "SphereEvaluator",
+    # Genomes & populations
     "BinaryGenome",
     "BinaryGenomeConfig",
+    "BinaryPopulation",
+    "CategoricalGenome",
+    "CategoricalGenomeConfig",
+    "CategoricalPopulation",
     "RealGenome",
     "RealGenomeConfig",
-    # Engines
+    "RealPopulation",
+    # Engine abstractions & helpers
+    "AbstractEngine",
+    "AbstractEngineParams",
+    "AbstractEvolutionState",
+    "compute_unroll_num",
     "GeneticEngine",
     "GeneticEngineParams",
     "GeneticGenerationOutput",
+    "ScheduleType",
+    "compute_scheduled_strength",
 ]
 
 # --- 3. ENGINE (Top Level) ---
-from .engine.base import AbstractEngine, AbstractEngineParams, AbstractEvolutionState, compute_unroll_num
+from .engine.base import (
+    AbstractEngine,
+    AbstractEngineParams,
+    AbstractEvolutionState,
+    compute_unroll_num,
+)
 from .engine.genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
 from .engine.schedules import ScheduleType, compute_scheduled_strength
 # from .engine.diversity_engine import DiversityAwareEngine
