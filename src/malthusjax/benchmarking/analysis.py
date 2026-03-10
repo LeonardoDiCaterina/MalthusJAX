@@ -14,12 +14,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 try:
-    import pandas as pd  # type: ignore
+    import pandas
 except ImportError:  # pragma: no cover - pandas is optional
-    pd = None  # type: ignore
+    pandas = None
 
 
 def load_benchmark_file(path: Path) -> Dict[str, Any]:
@@ -36,7 +36,7 @@ def load_benchmark_file(path: Path) -> Dict[str, Any]:
         Parsed JSON object.
     """
     with open(path, "r") as f:
-        return json.load(f)
+        return cast(Dict[str, Any], json.load(f))
 
 
 def benchmarks_to_records(data: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -59,15 +59,16 @@ def benchmarks_to_records(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     return records
 
 
-def to_dataframe(data: Dict[str, Any]) -> "pd.DataFrame":
-    """Return a :mod:`pandas` DataFrame containing all benchmarks.
+def to_dataframe(data: Dict[str, Any]) -> pandas.DataFrame: # type: ignore
+    """
+    Return a :mod:`pandas` DataFrame containing all benchmarks.
 
     Requires :mod:`pandas`; raises ``ImportError`` if pandas is not
     installed.
     """
-    if pd is None:
+    if pandas is None:
         raise ImportError("pandas is required to convert benchmarks to DataFrame")
-    return pd.DataFrame(benchmarks_to_records(data))
+    return pandas.DataFrame(benchmarks_to_records(data))
 
 
 def compute_grouped_kpis(data: Dict[str, Any]) -> Dict[Tuple[str, str], Dict[str, float]]:
@@ -78,7 +79,7 @@ def compute_grouped_kpis(data: Dict[str, Any]) -> Dict[Tuple[str, str], Dict[str
     is intended for lightweight use outside of pandas.
     """
     records = benchmarks_to_records(data)
-    groups: Dict[Tuple[str, str], List[Dict[str, Any]]] = {}
+    groups: Dict[Tuple[Any, Any], List[Dict[str, Any]]] = {}
     for r in records:
         key = (r.get("group"), r.get("name"))
         groups.setdefault(key, []).append(r)
@@ -86,14 +87,14 @@ def compute_grouped_kpis(data: Dict[str, Any]) -> Dict[Tuple[str, str], Dict[str
     kpis: Dict[Tuple[str, str], Dict[str, float]] = {}
     for key, recs in groups.items():
         # compute simple aggregates, ignoring missing values
-        vals = [r.get("mean") for r in recs if r.get("mean") is not None]
+        vals: List[float] = [cast(float, r.get("mean")) for r in recs if r.get("mean") is not None]
         if not vals:
             continue
         mean = sum(vals) / len(vals)
         # population stddev
         var = sum((v - mean) ** 2 for v in vals) / len(vals)
         std = var ** 0.5
-        kpis[key] = {"mean": mean, "stddev": std, "count": len(vals)}
+        kpis[cast(Tuple[str, str], key)] = {"mean": mean, "stddev": std, "count": len(vals)}
     return kpis
 
 
@@ -124,7 +125,7 @@ def sample_usage(path: Optional[Path] = None) -> None:
 # the test suite in environments without visualization dependencies.
 
 
-def plot_group(group: str, data: Dict[str, Any], ax=None) -> Any:
+def plot_group(group: str, data: Dict[str, Any], ax: Any | None = None) -> Any:
     """Draw a bar chart of mean timings for all benchmark names in ``group``.
 
     Parameters
@@ -143,12 +144,15 @@ def plot_group(group: str, data: Dict[str, Any], ax=None) -> Any:
         raise ImportError("matplotlib required for plotting")
 
     records = benchmarks_to_records(data)
-    names = []
-    means = []
+    names: List[str] = []
+    means: List[float] = []
     for r in records:
         if r.get("group") == group:
-            names.append(r.get("name"))
-            means.append(r.get("mean"))
+            name = r.get("name")
+            mean = r.get("mean")
+            if name is not None and mean is not None:
+                names.append(cast(str, name))
+                means.append(cast(float, mean))
     if ax is None:
         fig, ax = plt.subplots()
     ax.bar(names, means)

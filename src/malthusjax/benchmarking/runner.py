@@ -17,7 +17,7 @@ from .results import ExperimentResult, RunResult
 try:
     from tqdm import tqdm
 except ImportError:  # pragma: no cover
-    tqdm = None  # type: ignore
+    tqdm = None
 
 
 class Engine(Protocol):
