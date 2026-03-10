@@ -1,18 +1,22 @@
-from typing import Any
+from typing import Any, cast
 
 import chex
 import jax
 import jax.numpy as jnp
 
 try:
-    from evosax.algorithms.population_based import (  # type: ignore [import]
+    from evosax.algorithms.population_based import (
         crossover as evosax_crossover,
     )
 except ImportError:
     # fallback dummy implementation so module still imports
-    def evosax_crossover(key, p1_vals, p2_vals, rate):
+    def evosax_crossover(key: chex.Array,
+                         p1_vals: chex.Array,
+                         p2_vals: chex.Array,
+                         rate: float
+                        ) -> chex.Array:
         mask = jax.random.bernoulli(key, rate, p1_vals.shape)
-        return jnp.where(mask, p1_vals, p2_vals)
+        return jnp.where(mask, p2_vals, p1_vals)
 
 
 from flax import struct
@@ -160,4 +164,4 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
             offspring_vals = offspring_vals.reshape(-1, offspring_vals.shape[-1])
 
         new_genes = RealGenome(values=offspring_vals)
-        return p1_pop.spawn_offspring(new_genes)
+        return cast(RealPopulation, p1_pop.spawn_offspring(new_genes))
