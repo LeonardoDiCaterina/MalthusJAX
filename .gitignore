@@ -883,3 +883,11 @@ Results_DAH02/traces/sbx_ga/plugins/profile/2026_03_07_16_40_37/jit_squeeze(9172
 Results_DAH02/traces/sbx_ga/plugins/profile/2026_03_07_16_40_37/jit_subtract(50876).hlo_proto.pb
 Results_DAH02/traces/sbx_ga/plugins/profile/2026_03_07_16_40_37/jit_subtract(95433).hlo_proto.pb
 Results_DAH02/traces/sbx_ga/plugins/profile/2026_03_07_16_40_37/jit_true_divide(95963).hlo_proto.pb
+src/malthusjax/visualization/__init__.py
+src/malthusjax/visualization/base.py
+src/malthusjax/visualization/multi_run.py
+src/malthusjax/visualization/single_run.py
+src/malthusjax/visualization/__init__.py
+src/malthusjax/visualization/base.py
+src/malthusjax/visualization/multi_run.py
+src/malthusjax/visualization/single_run.py
