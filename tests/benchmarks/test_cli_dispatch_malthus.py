@@ -1,20 +1,18 @@
 """Tests for the MalthusJAX Adapter Profiler CLI."""
 
-import pytest
-import tempfile
-from pathlib import Path
 import jax
 import jax.random as jr
 import numpy as np
+import pytest
 
 from benchmarks.cli_dispatch_malthus import (
-    get_available_engines,
-    build_adapter,
-    measure_single_run,
-    profile_configuration,
-    compute_statistics,
     RunResult,
     StatsSummary,
+    build_adapter,
+    compute_statistics,
+    get_available_engines,
+    measure_single_run,
+    profile_configuration,
 )
 from benchmarks.framework.registry import ComparisonRegistry
 
@@ -32,7 +30,7 @@ class TestGetAvailableEngines:
         engines = get_available_engines()
         assert "Standard_GA" in engines
 
-    @pytest.mark.skip(reason="MR15_GA depends on OneFifthGeneticEngine which is not yet implemented")
+    @pytest.mark.skip(reason="MR15_GA depends is not yet implemented")
     def test_contains_mr15_ga(self):
         """Test that MR15_GA is in the available engines."""
         engines = get_available_engines()
@@ -61,7 +59,7 @@ class TestBuildAdapter:
         assert adapter.__class__.__name__ == "MalthusAdapter"
         assert adapter.engine is not None
 
-    @pytest.mark.skip(reason="MR15_GA depends on OneFifthGeneticEngine which is not yet implemented")
+    @pytest.mark.skip(reason="MR15_GA depends is not yet implemented")
     def test_build_mr15_ga(self):
         """Test building a MR15_GA adapter."""
         adapter = build_adapter(
@@ -102,13 +100,12 @@ class TestMeasureSingleRun:
 
     def test_measure_simple_function(self):
         """Test measuring timing for a simple JAX function."""
+
         def simple_fn(x):
             return x * 2
 
         x = jax.numpy.ones((100,))
-        cold_ms, warm_ms, compile_ms = measure_single_run(
-            simple_fn, x, warmup_runs=1, timed_runs=3
-        )
+        cold_ms, warm_ms, compile_ms = measure_single_run(simple_fn, x, warmup_runs=1, timed_runs=3)
 
         assert cold_ms > 0
         assert warm_ms >= 0
@@ -116,27 +113,25 @@ class TestMeasureSingleRun:
 
     def test_warm_faster_than_cold(self):
         """Test that warm execution is faster than cold (includes compilation)."""
+
         def fn(x):
-            return jax.numpy.sum(x ** 2)
+            return jax.numpy.sum(x**2)
 
         x = jax.numpy.ones((1000,))
-        cold_ms, warm_ms, compile_ms = measure_single_run(
-            fn, x, warmup_runs=2, timed_runs=5
-        )
+        cold_ms, warm_ms, compile_ms = measure_single_run(fn, x, warmup_runs=2, timed_runs=5)
 
         # Warm should be faster than cold (cold includes compilation)
         assert warm_ms < cold_ms
 
     def test_compile_time_positive(self):
         """Test that compile time estimate is positive for new functions."""
+
         def unique_fn(x):
             # Unique function to force new compilation
             return jax.numpy.sin(x) * jax.numpy.cos(x) + x
 
         x = jax.numpy.ones((500,))
-        cold_ms, warm_ms, compile_ms = measure_single_run(
-            unique_fn, x, warmup_runs=1, timed_runs=3
-        )
+        cold_ms, warm_ms, compile_ms = measure_single_run(unique_fn, x, warmup_runs=1, timed_runs=3)
 
         assert compile_ms >= 0
 
@@ -268,7 +263,7 @@ class TestComputeStatistics:
         stats = compute_statistics(results)
 
         assert stats.n_runs == 5
-        assert stats.warm_mean == pytest.approx(10.2, rel=0.01)  # Mean of 10.0, 10.1, 10.2, 10.3, 10.4
+        assert stats.warm_mean == pytest.approx(10.2, rel=0.01)  # avg(10.0, 10.1, 10.2, 10.3, 10.4)
         assert stats.warm_std > 0
         assert stats.warm_min == 10.0
         assert stats.warm_max == 10.4
@@ -324,8 +319,8 @@ class TestAdapterExecution:
         state = adapter.init(key)
 
         assert state is not None
-        assert hasattr(state, 'population')
-        assert hasattr(state, 'generation')
+        assert hasattr(state, "population")
+        assert hasattr(state, "generation")
 
     def test_adapter_step(self):
         """Test that adapters can execute a step."""
