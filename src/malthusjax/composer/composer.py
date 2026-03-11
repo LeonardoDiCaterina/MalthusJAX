@@ -1,3 +1,11 @@
+"""High-level API for declarative and programmatic experiments.
+
+The :class:`Composer` class wraps the benchmarking system with convenient
+helper methods like :meth:`quick_run`, :meth:`compare`, and :meth:`from_toml`.
+It orchestrates engine construction, seeding, result aggregation and provides
+sensible defaults for rapid prototyping.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -62,35 +70,21 @@ class Composer:
 
         When no operator specs are provided, falls back to StubEngine.
 
-        Args:
-            seeds: Random seeds to run (default: 3 seeds)
-            experiment_name: Name for the experiment
-            output_dir: Where to write results
-            engine: Pre-built engine (overrides everything if provided)
-            backend: ``"malthusjax"`` or ``"evosax"`` (default: ``"malthusjax"``)
-            engine_type: Engine type spec for malthusjax backend, e.g.
-                ``"ga"`` (default), ``"ga:elitism=4"``, or any registered
-                engine.  Use :class:`EngineRegistry` to list/register engines.
-            evosax_strategy: Evosax strategy name when backend="evosax"
-                (``"SimpleGA"``, ``"MR15_GA"``, ``"DifferentialEvolution"``)
-            fitness: Fitness evaluator spec, e.g. ``"sphere:dim=10"``
-            selection: Selection operator spec (malthusjax only)
-            crossover: Crossover operator spec (malthusjax only)
-            mutation: Mutation operator spec (malthusjax only)
-            genome_type: ``"real"`` or ``"binary"`` (default: ``"real"``)
-            pop_size: Population size (default: 50)
-            generations: Number of generations (default: 100)
-            genome_length: Length of genome vectors (default: 10)
-            bounds: Bounds for real genomes (default: (-5.0, 5.0))
-            elitism: Elite count (malthusjax only, default: 2)
-            maximize: Report fitness in maximisation convention (default: False)
-            prng_impl: JAX PRNG backend — ``"threefry"`` (default),
-                ``"philox"`` (GPU-friendly), ``"rbg"``, or ``"unsafe_rbg"``.
-                Controls how random keys are created and split.
-            **kwargs: Additional config passed to engine/runner
+        This entry point accepts a wide array of configuration options
+        (seeds, engine selection, operators, population parameters, etc.) and
+        returns an :class:`ExperimentResult` containing individual run outputs
+        and summary metrics. Two backends are supported:
 
-        Returns:
-            ExperimentResult with all runs and aggregated metrics
+        ``"malthusjax"`` (the default) interprets string specifications via
+        :class:`OperatorCatalog`, while ``"evosax"`` constructs an
+        :class:`EvosaxEngineAdapter` from an evosax strategy name. When no
+        operator specs are provided the method falls back to
+        :class:`~.benchmarking.StubEngine` so the caller can still exercise the
+        benchmarking pipeline.
+
+        The *output_dir* argument is resolved against ``results/`` if not
+        supplied. All remaining keyword arguments are forwarded to the
+        underlying engine or the :class:`BenchmarkRunner`.
 
         Examples::
 
@@ -170,36 +164,22 @@ class Composer:
         pop_seed: int = 123,
         **shared_kwargs: Any,
     ) -> ComparisonResult:
-        """Run multiple pipelines and return aligned results.
+        """Run multiple experiment pipelines and return their comparison.
 
-        Parameters
-        ----------
-        pipelines
-            ``{name: kwargs_dict}`` — each dict contains **overrides**
-            for :meth:`quick_run`.  Shared parameters should go into
-            *shared_kwargs*.
-        seeds
-            Random seeds passed to every pipeline.
-        shared_initial_population
-            If ``True`` (default), generate a shared initial population
-            so every pipeline starts from the same point.
-        pop_seed
-            Seed for generating the shared initial population.
-        **shared_kwargs
-            Parameters common to every pipeline (``fitness``,
-            ``pop_size``, ``generations``, ``genome_length``, ``bounds``,
-            ``prng_impl``, etc.).  Pipeline-level keys take precedence.
+        The *pipelines* argument maps short names to overrides that will be
+        merged with any supplied *shared_kwargs* and passed down to
+        :meth:`quick_run`. A fixed list of *seeds* is reused for every
+        pipeline; if *shared_initial_population* is True a single random
+        population (seeded by *pop_seed*) is generated once and injected into
+        each run so that results are directly comparable.
 
-        Returns
-        -------
-        ComparisonResult
-            Contains all :class:`ExperimentResult` objects keyed by
-            pipeline name, plus helper methods for summarisation and
-            plotting.
+        Returns a :class:`ComparisonResult` holding one
+        :class:`ExperimentResult` per named pipeline along with helper
+        utilities for summarisation and plotting. Shared configuration values
+        and a flag map indicating whether the pipeline used the evosax backend
+        are also stored.
 
-        Examples
-        --------
-        ::
+        Examples:
 
             cmp = composer.compare(
                 pipelines={
@@ -277,25 +257,18 @@ class Composer:
     ) -> ComparisonResult:
         """Load a TOML experiment file and run all pipelines.
 
-        Parameters
-        ----------
-        path
-            Path to a Composer-style TOML file.
-        pipelines
-            Optional list of pipeline names to run.  If ``None``, all
-            pipelines defined in the file are executed.
-        shared_initial_population
-            Generate a shared initial population for fair comparison.
-        pop_seed
-            Seed for the shared initial population.
-        trace_dir
-            If set, capture JAX profiler traces for seed[0] of each
-            pipeline.  Traces are written to ``trace_dir/<pipeline_name>/``
-            in Perfetto-compatible format.
+        This convenience wrapper reads *path* using
+        :func:`~.config.load_experiment_config`, optionally filtering to the
+        named *pipelines*. Shared metadata such as seeds and bounds are
+        preserved and forwarded to :meth:`compare`.  If
+        *shared_initial_population* is true a single random population is
+        generated once using *pop_seed* and recycled across every pipeline.
+        When *trace_dir* is provided a Perfetto-compatible JAX profiler trace
+        is written for the first seed of each run under
+        ``trace_dir/<pipeline_name>/``.
 
-        Returns
-        -------
-        ComparisonResult
+        Returns a :class:`ComparisonResult` for the executed pipelines.  See
+        the examples below for TOML file structure and typical usage.
 
         Examples
         --------

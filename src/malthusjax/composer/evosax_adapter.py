@@ -72,7 +72,6 @@ class EvosaxEngineAdapter:
         self.initial_population = initial_population
         self.prng_impl = prng_impl
 
-    # -- BenchmarkRunner.Engine protocol ------------------------------------
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
@@ -84,7 +83,6 @@ class EvosaxEngineAdapter:
             ``summary`` : Dict       - final summary metrics
             ``timings`` : Dict       - wall-clock timing breakdown
         """
-        # ---- 1. Initialisation -------------------------------------------
         t_init_start = time.perf_counter()
 
         k_init, k_run = jr.split(key)

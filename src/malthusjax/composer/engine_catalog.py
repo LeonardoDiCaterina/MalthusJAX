@@ -66,16 +66,10 @@ class EngineRegistry:
         self._registry = get_registry()
 
     def parse_spec(self, spec: str) -> Tuple[str, Dict[str, Any]]:
-        """Parse engine specification string.
-
-        Args:
-            spec: String like ``"ga"`` or ``"nsga2:pop_size=100,generations=200"``
-
-        Returns:
-            Tuple of ``(engine_name, params_dict)``.
-
-        Raises:
-            ValueError: If *spec* format is invalid.
+        """Parse an engine specification such as ``"ga"`` or
+        ``"nsga2:pop_size=100,generations=200"`` and return the
+        ``(engine_name, params_dict)`` tuple.  A ``ValueError`` is raised when
+        the string cannot be interpreted.
         """
         spec = spec.strip()
         if not spec:
@@ -136,28 +130,15 @@ class EngineRegistry:
         mutation: Any,
         **kwargs: Any,
     ) -> Any:
-        """Get configured engine from specification string.
+        """Resolve *spec* to a concrete engine instance.
 
-        The factory receives the resolved operator *instances* plus any
-        additional keyword arguments (merged from registry defaults,
-        spec-level overrides, and explicit ``**kwargs``).
-
-        Args:
-            spec: e.g. ``"ga"`` or ``"ga:pop_size=100"``
-            evaluator: Fitness evaluator instance (e.g. ``SphereEvaluator``)
-            selection: Selection operator instance
-            crossover: Crossover operator instance
-            mutation: Mutation operator instance
-            **kwargs: Additional engine params (``pop_size``, ``generations``,
-                ``genome_type``, ``bounds``, ``elitism``, ``prng_impl``, etc.)
-
-        Returns:
-            Engine instance satisfying the
-            :class:`~malthusjax.benchmarking.runner.Engine` protocol.
-
-        Raises:
-            KeyError: If engine name is not registered.
-            ValueError: If parameters are invalid for the engine.
+        The specification string and any ``**kwargs`` are merged with registry
+        defaults before invoking the underlying factory.  The caller must
+        supply already-resolved operator instances for evaluator,
+        selection, crossover and mutation; all other keyword parameters are
+        forwarded transparently.  Errors during construction are re‑raised as
+        ``KeyError`` (unknown engine name) or ``ValueError`` (invalid
+        parameters).
         """
         engine_name, spec_params = self.parse_spec(spec)
 
@@ -190,13 +171,12 @@ class EngineRegistry:
         defaults: Dict[str, Any] | None = None,
         override: bool = False,
     ) -> None:
-        """Register a new engine type at runtime.
+        """Register a new engine type in the catalog.
 
-        Args:
-            engine_name: String name for the engine (e.g. ``"nsga2"``).
-            factory: Callable that creates engine instances.
-            defaults: Default kwargs for the factory.
-            override: Whether to override existing registrations.
+        *engine_name* gives the string key (e.g. ``"nsga2"``) and *factory*
+        is a callable that constructs instances when invoked.  Optional
+        *defaults* provide baseline parameters; set *override* if you wish to
+        replace an existing registration.
         """
         if not override and engine_name in self._registry:
             raise KeyError(f"Engine '{engine_name}' is already registered")
@@ -209,16 +189,10 @@ class EngineRegistry:
         return sorted(self._registry.keys())
 
     def get_help(self, engine_name: str) -> str:
-        """Get help string for an engine type.
+        """Return a formatted help string for a registered engine.
 
-        Args:
-            engine_name: Registered engine name.
-
-        Returns:
-            Formatted help string with docstring and defaults.
-
-        Raises:
-            KeyError: If engine name is not registered.
+        The output includes the engine's docstring and its default parameters.
+        A ``KeyError`` is raised if *engine_name* isn't present in the catalog.
         """
         if engine_name not in self._registry:
             raise KeyError(f"Unknown engine: '{engine_name}'")

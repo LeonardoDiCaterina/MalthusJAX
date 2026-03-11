@@ -1,3 +1,11 @@
+"""Simple TOML-based configuration loader for Composer experiments.
+
+This lightweight utility exposes ``load_config`` and
+``load_experiment_config`` for parsing pipeline and experiment definitions
+without pulling in heavier dependencies; validation and schema handling are
+performed at call sites.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple, cast
@@ -32,49 +40,19 @@ def load_experiment_config(
     path: str,
     pipelines: Optional[List[str]] = None,
 ) -> Tuple[Dict[str, Any], Dict[str, Dict[str, Any]]]:
-    """Load a Composer-style experiment TOML.
+    """Load a Composer-style experiment TOML file.
 
-    Expected schema::
+    The configuration should define an ``[experiment]`` section with
+    metadata and a ``[pipelines.*]`` subsection for each pipeline. Shared
+    defaults may be specified under ``[experiment.shared]`` and will be
+    merged into every pipeline.
 
-        [experiment]
-        name = "my_experiment"
-        output_dir = "results/my_experiment"
-
-        [experiment.shared]          # defaults inherited by all pipelines
-        fitness      = "sphere:dim=10"
-        pop_size     = 50
-        generations  = 100
-        genome_length = 10
-        bounds       = [-5.0, 5.0]
-        seeds        = [42, 43, 44]
-        prng_impl    = "threefry"
-
-        [pipelines.blend_ga]
-        backend   = "malthusjax"
-        crossover = "blend:alpha=0.5"
-        mutation  = "gaussian:mutation_rate=0.1"
-
-        [pipelines.evosax_simple]
-        backend         = "evosax"
-        evosax_strategy = "SimpleGA"
-
-    Parameters
-    ----------
-    path
-        Path to the TOML file.
-    pipelines
-        Optional list of pipeline names to load.  If ``None``, all
-        ``[pipelines.*]`` sections are returned.
-
-    Returns
-    -------
-    (experiment_meta, resolved_pipelines)
-        *experiment_meta* contains top-level metadata (``name``,
-        ``output_dir``) plus a ``"shared"`` key with the merged defaults.
-
-        *resolved_pipelines* is ``{name: kwargs_dict}`` where each dict
-        is ready to be splatted into :meth:`Composer.quick_run`.  Shared
-        defaults are already merged (pipeline-level keys win).
+    The *path* argument names the TOML file to read; if *pipelines* is
+    supplied only those sections are returned, otherwise every pipeline in
+    the file is processed. The function returns a pair consisting of
+    experiment metadata (including a merged ``"shared"`` dict) and a
+    mapping from pipeline names to kwargs dictionaries that can be passed
+    directly to :meth:`Composer.quick_run`.
     """
     try:
         with open(path, "rb") as f:

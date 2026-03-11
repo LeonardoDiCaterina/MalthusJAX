@@ -1,3 +1,11 @@
+"""Simple representation of a directed computation graph.
+
+A :class:`Pipeline` consists of named :class:`~.node.Node` objects and an
+optional wiring table describing dependencies.  The class provides
+validation against a :class:`~.registry.Registry` and a basic builder that
+invokes each node in sequence.
+"""
+
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Sequence
 
@@ -11,6 +19,11 @@ class Pipeline:
     wiring: Dict[str, Sequence[str]] = field(default_factory=dict)
 
     def validate(self, registry: Any) -> None:
+        """Check that every node refers to a registered factory.
+
+        A ``KeyError`` will be raised by the registry if any node type is
+        unknown, so callers can catch and report configuration errors early.
+        """
         for node in self.nodes:
             # ensure node type exists
             registry.get(node.type)

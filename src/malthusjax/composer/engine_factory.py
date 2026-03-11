@@ -1,3 +1,14 @@
+"""Helpers for constructing engines from string/catalog specifications.
+
+This module contains adapters and factory functions that bridge the
+low-level :class:`~malthusjax.engine.GeneticEngine` implementation with the
+higher-level Composer infrastructure.  The primary entry points are
+``build_engine`` and ``build_engine_from_catalog`` which take resolved
+operator instances (or strings) along with configuration parameters and
+produce a :class:`GeneticEngineAdapter` conforming to the
+:class:`~malthusjax.benchmarking.runner.Engine` protocol.
+"""
+
 from __future__ import annotations
 
 import time
@@ -37,11 +48,11 @@ class GeneticEngineAdapter:
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
-        Returns:
-            dict with keys:
-            - 'history': List[Dict[str, Any]] - per-generation stats
-            - 'summary': Dict[str, Any] - final summary metrics
-            - 'timings': Dict[str, float] - timing info
+
+        The returned dictionary contains three entries:
+        ``'history'`` (list of per-generation statistics), ``'summary'``
+        (final metrics), and ``'timings'`` (initialization/compile/evolution
+        durations).
         """
         t_init_start = time.perf_counter()
         state = self.genetic_engine.init_state(key)
@@ -139,21 +150,15 @@ def build_engine(
     bounds: Tuple[float, float] = (-5.0, 5.0),
     **kwargs: Any,
 ) -> GeneticEngineAdapter:
-    """Build a GeneticEngine from catalog operators.
-    Args:
-        fitness_evaluator: Fitness evaluator instance
-        selection_op: Selection operator instance
-        crossover_op: Crossover operator instance
-        mutation_op: Mutation operator instance
-        genome_type: "real" or "binary"
-        pop_size: Population size
-        generations: Number of generations
-        elitism: Number of elite individuals
-        genome_shape: Shape of real genomes
-        bounds: Bounds for real genomes (min, max)
-        **kwargs: Additional engine parameters
-    Returns:
-        GeneticEngineAdapter wrapping configured GeneticEngine
+    """Build a :class:`GeneticEngine` from concrete operator instances.
+
+    The caller must supply a fitness evaluator plus selection, crossover and
+    mutation operators. Optional parameters control population size,
+    generations, elitism, genome shape/type and real bounds; any additional
+    keyword arguments are forwarded to the engine constructor (e.g.
+    ``prng_impl`` or strength schedules).  The result is wrapped in a
+    :class:`GeneticEngineAdapter` suitable for use with
+    :class:`~.benchmarking.BenchmarkRunner`.
     """
     genome_config: Union[RealGenomeConfig, BinaryGenomeConfig]
     if "genome_length" in kwargs:
@@ -251,12 +256,13 @@ def build_engine(
 def build_engine_from_catalog(
     catalog_operators: Dict[str, Any], config: Dict[str, Any]
 ) -> GeneticEngineAdapter:
-    """Build engine from catalog operator instances and config.
-    Args:
-        catalog_operators: Dict with keys 'fitness', 'selection', 'crossover', 'mutation'
-        config: Configuration dict with engine parameters
-    Returns:
-        GeneticEngineAdapter ready for BenchmarkRunner
+    """Convenience wrapper that calls :func:`build_engine` using a dict of
+    catalog operator instances and a separate configuration dictionary.
+
+    The *catalog_operators* mapping must contain ``'fitness'``,
+    ``'selection'``, ``'crossover'`` and ``'mutation'`` entries; remaining
+    engine parameters are read from *config*.  Returns a
+    :class:`GeneticEngineAdapter` prepared for benchmarking.
     """
     return build_engine(
         fitness_evaluator=catalog_operators["fitness"],

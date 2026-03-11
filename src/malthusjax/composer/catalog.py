@@ -119,16 +119,10 @@ class OperatorCatalog:
         }
 
     def parse_spec(self, spec: str) -> Tuple[str, Dict[str, Any]]:
-        """Parse operator specification string.
-
-        Args:
-            spec: String like ``"operator_type:param1=value1,param2=value2"``
-
-        Returns:
-            Tuple of ``(operator_type, params_dict)``.
-
-        Raises:
-            ValueError: If *spec* format is invalid.
+        """Parse an operator specification such as
+        ``"operator_type:param1=value1,param2=value2"`` and return a
+        tuple ``(operator_type, params_dict)``.  A ``ValueError`` is raised if
+        the string is malformed.
         """
         spec = spec.strip()
         if not spec:
@@ -182,17 +176,10 @@ class OperatorCatalog:
         return value_str
 
     def get(self, spec: str) -> Any:
-        """Get configured operator instance from specification string.
-
-        Args:
-            spec: e.g. ``"tournament:num_selections=5,tournament_size=3"``
-
-        Returns:
-            Configured operator instance.
-
-        Raises:
-            KeyError: If operator type is not registered.
-            ValueError: If parameters are invalid for the operator.
+        """Resolve *spec* to a configured operator instance.  The
+        spec string may include comma-separated parameter overrides.  A
+        ``KeyError`` is raised for unknown operator types and a
+        ``ValueError`` for invalid parameter combinations.
         """
         operator_type, user_params = self.parse_spec(spec)
 
@@ -217,12 +204,9 @@ class OperatorCatalog:
         factory: Callable[..., Any],
         override: bool = False,
     ) -> None:
-        """Register a new operator type at runtime.
-
-        Args:
-            operator_type: String name for the operator.
-            factory: Callable that creates operator instances from ``**kwargs``.
-            override: Whether to override existing registrations.
+        """Register a new operator type in the catalog.  Supply a string
+        key and a factory callable which accepts ``**kwargs``.  Set *override*
+        to ``True`` to replace an existing entry.
         """
         if not override and (
             operator_type in self._registry or operator_type in self._evosax_strategies
