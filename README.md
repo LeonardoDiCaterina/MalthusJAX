@@ -165,9 +165,10 @@ engine = GeneticEngine(
 
 key = jar.PRNGKey(42)
 state = engine.init_state(rng_key=key)
-final_state, history = engine.run(state)
+final_state, history, elapsed_time = engine.run(state, time_it=True)
 
 print(f"Best fitness: {final_state.best_fitness:.6f}")
+print(f"Elapsed time: {elapsed_time:.6f} seconds")
 ```
 
 Every operator is a JIT-compilable callable -- swap any component and the engine recompiles once, then runs at full speed.
