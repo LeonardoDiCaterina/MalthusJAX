@@ -1,20 +1,18 @@
 malthusjax.engine package
 =========================
 
+.. automodule:: malthusjax.engine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
 .. toctree::
    :maxdepth: 4
 
-   malthusjax.engine.BasicMalthusEngine
    malthusjax.engine.base
-   malthusjax.engine.state
-
-Module contents
----------------
-
-.. automodule:: malthusjax.engine
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   malthusjax.engine.genetic_fastengine
+   malthusjax.engine.resource_mapper
+   malthusjax.engine.schedules

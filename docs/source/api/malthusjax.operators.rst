@@ -1,6 +1,11 @@
 malthusjax.operators package
 ============================
 
+.. automodule:: malthusjax.operators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Subpackages
 -----------
 
@@ -18,11 +23,5 @@ Submodules
    :maxdepth: 4
 
    malthusjax.operators.base
-
-Module contents
----------------
-
-.. automodule:: malthusjax.operators
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   malthusjax.operators.base_ablation
+   malthusjax.operators.base_injection

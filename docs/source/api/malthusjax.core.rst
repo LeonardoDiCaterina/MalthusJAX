@@ -1,6 +1,11 @@
 malthusjax.core package
 =======================
 
+.. automodule:: malthusjax.core
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Subpackages
 -----------
 
@@ -17,11 +22,4 @@ Submodules
    :maxdepth: 4
 
    malthusjax.core.base
-
-Module contents
----------------
-
-.. automodule:: malthusjax.core
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   malthusjax.core.random
