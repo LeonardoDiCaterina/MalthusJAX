@@ -2,7 +2,7 @@
         test-bench-group-01 test-bench-group-02 test-bench-group-03 test-bench-group-04 \
         test-bench-group-05 test-bench-group-06 test-bench-group-07 test-bench-group-08 \
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
-        lint format format-check type-check check-all docs bench
+        lint format format-check type-check check-all docs docs-clean docs-open bench
 
 help:
 	@echo "--- MalthusJAX Development ---"
@@ -21,7 +21,22 @@ help:
 	@echo "  make format-check       Ruff format check only (no mutations)"
 	@echo "  make type-check         mypy strict check on src/"
 	@echo "  make check-all          lint + format-check + type-check + test"
-	@echo "  make docs               Build Sphinx HTML docs"
+	@echo ""
+	@echo "--- Documentation Workflow ---"
+	@echo "  make docs                    Build Sphinx HTML docs (picks up all changes)"
+	@echo "  make docs-clean              Remove docs/build/ (clean rebuild)"
+	@echo "  make docs-open               Open built docs in browser"
+	@echo "  make -C docs apidoc-force    Regenerate API stubs after API changes"
+	@echo ""
+	@echo "Documentation Update Guide:"
+	@echo "  • Changed Python API?        → make -C docs apidoc-force && make docs"
+	@echo "  • Edited markdown files?     → make docs (rebuilds automatically)"
+	@echo "  • Updated docstrings?        → make docs (autodoc picks them up)"
+	@echo "  • Full clean rebuild?        → make docs-clean && make docs"
+	@echo ""
+	@echo "Markdown docs live in: docs/source/*.md (synced from docs/)"
+	@echo "API stubs auto-generated in:  docs/source/api/ (don't edit manually)"
+	@echo "Built site output in:         docs/build/html/"
 
 install-dev:
 	@echo "--- Installing dev dependencies ---"
@@ -182,9 +197,30 @@ test-bench-group-10-nohup:
 test-bench-group-11-nohup:
 	$(call run_nohup,test-bench-group-11,make test-bench-group-11)
 
+# ============================================================================= #
+# Documentation targets
+# ============================================================================= #
+# Workflow:
+#   1. Edit markdown files in docs/source/*.md or docstrings in src/
+#   2. If you changed the API (added/removed/renamed modules):
+#      → make -C docs apidoc-force (regenerate API stubs)
+#   3. Run: make docs (rebuilds the entire site with verbose output)
+#   4. View: open docs/build/html/index.html
+#
+# See also: docs/Makefile for sphinx-specific targets (apidoc, apidoc-force, etc.)
+# ============================================================================= #
+
 docs:
 	@echo "--- Building Sphinx HTML documentation ---"
-	sphinx-build -b html docs/source docs/build/html
+	python -m sphinx -v -b html docs/source docs/build/html
+
+docs-clean:
+	@echo "--- Cleaning docs build directory ---"
+	rm -rf docs/build
+
+docs-open:
+	@echo "--- Opening docs in browser ---"
+	open docs/build/html/index.html
 
 define run_nohup
 	@logfile=$$(date +%Y%m%d_%H%M%S)_$1__nohup.log; \
