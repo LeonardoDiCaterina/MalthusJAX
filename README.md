@@ -16,7 +16,7 @@ No boilerplate. No recompilation between generations. Just fast evolution.
 
 ## Installation
 
-\`\`\`sh
+```sh
 # Install directly from GitHub
 pip install git+https://github.com/LeonardoDiCaterina/MalthusJAX.git
 
@@ -24,7 +24,7 @@ pip install git+https://github.com/LeonardoDiCaterina/MalthusJAX.git
 git clone https://github.com/LeonardoDiCaterina/MalthusJAX.git
 cd MalthusJAX
 make install-dev
-\`\`\`
+```
 
 Python 3.8+ required.
 
@@ -34,7 +34,7 @@ Python 3.8+ required.
 
 Describe your experiment in a simple config file:
 
-\`\`\`toml
+```toml
 # experiment.toml
 [experiment]
 name       = "sphere_test"
@@ -54,17 +54,17 @@ engine_type = "ga"
 selection   = "tournament:num_selections=64,tournament_size=3"
 crossover   = "simulated_binary:eta=15"
 mutation    = "gaussian:mutation_rate=0.1"
-\`\`\`
+```
 
 Then run it:
 
-\`\`\`python
+```python
 from malthusjax.composer import Composer
 
 result = Composer.from_toml("experiment.toml")
 print(result.summary_table())
 result.plot_convergence()
-\`\`\`
+```
 
 That's it -- multi-seed execution, result aggregation, and convergence plots handled automatically.
 
@@ -73,7 +73,7 @@ That's it -- multi-seed execution, result aggregation, and convergence plots han
 ## Quick Experiment in Pure Python
 Don't want a config file? Use `quick_run()` to launch an experiment in one call:
 
-\`\`\`python
+```python
 from malthusjax.composer import Composer
 
 composer = Composer.create_default()
@@ -89,7 +89,7 @@ result = composer.quick_run(
 )
 
 print(result.aggregated_summary())
-\`\`\`
+```
 
 Operators are specified as readable strings like `"gaussian:mutation_rate=0.1"` -- no need to import individual classes.
 
@@ -99,7 +99,7 @@ Operators are specified as readable strings like `"gaussian:mutation_rate=0.1"` 
 
 Want to know which crossover strategy works best? Compare them with aligned seeds for a fair test:
 
-\`\`\`python
+```python
 cmp = composer.compare(
     pipelines={
         "Blend + Gaussian": dict(
@@ -123,7 +123,7 @@ cmp = composer.compare(
 
 cmp.summary_table()      # Aggregated metrics per pipeline
 cmp.plot_convergence()   # Overlay convergence curves
-\`\`\`
+```
 
 Cross-framework comparison with [evosax](https://github.com/RobertTLange/evosax) is built in -- just set `backend="evosax"`.
 
@@ -133,7 +133,7 @@ Cross-framework comparison with [evosax](https://github.com/RobertTLange/evosax)
 
 For researchers who want to control every component:
 
-\`\`\`python
+```python
 import jax.random as jar
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
@@ -168,7 +168,7 @@ state = engine.init_state(rng_key=key)
 final_state, history = engine.run(state)
 
 print(f"Best fitness: {final_state.best_fitness:.6f}")
-\`\`\`
+```
 
 Every operator is a JIT-compilable callable -- swap any component and the engine recompiles once, then runs at full speed.
 
@@ -178,7 +178,7 @@ Every operator is a JIT-compilable callable -- swap any component and the engine
 
 Need to evaluate fitness outside JAX (physics simulators, cloud services, human-in-the-loop)?
 
-\`\`\`python
+```python
 state = engine.init_state(key)
 
 for i in range(100):
@@ -192,7 +192,7 @@ for i in range(100):
     state = engine_with_entropy.tell(state, evaluated_pop)
 
 print(f"Final: {state.best_fitness:.6f}")
-\`\`\`
+```
 
 ---
 
@@ -229,7 +229,7 @@ The **Composer** sits on top and lets you skip the wiring -- describe what you w
 
 Creating a custom operator is straightforward -- implement the core logic and batching + JIT compilation are inherited automatically:
 
-\`\`\`python
+```python
 import jax
 from flax import struct
 from malthusjax.operators.mutation import BaseMutation
@@ -248,7 +248,7 @@ class MyMutation(BaseMutation):
 
     def _mutate_one(self, genome, noise, cfg):
         return genome.replace(values=genome.values + noise)
-\`\`\`
+```
 
 Drop it into any pipeline -- the engine handles the rest.
 
@@ -256,13 +256,13 @@ Drop it into any pipeline -- the engine handles the rest.
 
 ## Development
 
-\`\`\`bash
+```bash
 make check-all    # Lint + format + type-check + test (80% coverage minimum)
 make test         # Run tests only
 # Ensure 80% test coverage is maintained across the codebase
 make lint         # Ruff linting
 make docs         # Build Sphinx documentation
-\`\`\`
+```
 
 ---
 
