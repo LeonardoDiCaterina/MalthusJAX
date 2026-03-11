@@ -47,9 +47,9 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
         self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0
     ) -> chex.Array:
         """
-        Tier 2 — Noise Generation.
-        Generates mask (Bernoulli) and noise (Gaussian scaled by scheduled strength).
-        Returns: (d,) array = noise * strength * mask for Tier 1 arithmetic.
+        Tier 2 — Noise generation for Gaussian mutation.
+        This produces a noise array shaped like the genome that already includes
+        strength scaling and masking, allowing the arithmetic kernel to simply add it.
         """
         k_mask, k_noise = keys[0], keys[1]
         dtype = config.dtype
@@ -184,8 +184,9 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
         self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0
     ) -> chex.Array:
         """
-        Tier 2 — Noise Generation (Muller's Method).
-        Returns: (d,) array = unit_direction * scheduled_radius * u^(1/d) * mask.
+        Tier 2 — Noise generation using Muller's method.
+        The returned array encodes a uniformly distributed perturbation within
+        a hypersphere, already masked by the mutation rate.
         """
         k_mask, k_vector, k_mag = keys[0], keys[1], keys[2]
         dtype = config.dtype
@@ -320,8 +321,10 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
         self, keys: chex.Array, config: RealGenomeConfig, generation: int = 0
     ) -> chex.Array:
         """
-        Tier 2 — Noise Generation (Polynomial mutation).
-        Returns: (d,) array = delta_q * bound_range * mask (scaled by [min,max]).
+        Tier 2 — Noise generation for polynomial mutation.
+        Produces an array of deltas scaled by the genome’s bound range and
+        masked by the mutation rate, ready for addition in the arithmetic
+        kernel.
         """
         k_mask, k_val = keys[0], keys[1]
         dtype = config.dtype

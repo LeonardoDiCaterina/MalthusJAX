@@ -80,14 +80,12 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
         noise = self._generate_noise(single_key, config, generation)  # leading dim: (N*K, ...)
 
         if self.num_offspring == 1:
-            # Fast path: noise is already (N, ...) — flat vmap, no reshape needed.
             def _mutate_flat(n: chex.Array, g: G) -> G:
                 return self._mutate_one(g, n, config)
 
             new_genes = jax.vmap(_mutate_flat, in_axes=(0, 0))(noise, population.genes)
             return cast(P, population.spawn_offspring(new_genes))
 
-        # General path: reshape flat noise to (N, K, ...) then nested vmap.
         def reshape_noise(x: chex.Array) -> chex.Array:
             return x.reshape((self.input_length, self.num_offspring) + x.shape[1:])
 

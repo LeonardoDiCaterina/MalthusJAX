@@ -42,20 +42,12 @@ def ablation_single_key_mutation(cls: TMutation) -> TMutation:
         config: Any,
         **kwargs: Any,
     ) -> Any:
-        """Override: Split single key internally, preserving original logic.
+        """Override: Split a single key internally and delegate to original.
 
-        Transforms input key shape (2,) to output shape matching original
-        __call__ expectation (input_length, num_offspring, atomic_keys, 2).
-        Allows direct comparison of single-key splitting overhead vs
-        pre-allocated key performance during vmap execution.
-
-        Args:
-            all_keys: Single PRNG key, shape (..., 2).
-            population: Mutation input population.
-            config: Genome configuration.
-
-        Returns:
-            Population with mutated genes (same shape as original __call__).
+        The incoming *all_keys* tensor is reduced to a single PRNG key which
+        is then split the requisite number of times. This facilitates
+        benchmarking the cost of dynamic splitting versus using a pre‑allocated
+        key bundle.
         """
         single_key = jnp.asarray(all_keys).reshape(-1)[:2]
 
@@ -105,19 +97,11 @@ def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
         config: Any,
         **kwargs: Any,
     ) -> Any:
-        """Override: Split single key internally for crossover operations.
+        """Override: Split single key internally for crossover.
 
-        Transforms input key shape (2,) to output shape matching original
-        __call__ expectation (input_length, num_offspring, atomic_keys, 2).
-        Maintains nested vmap structure but with dynamic key splitting.
-
-        Args:
-            all_keys: Single PRNG key, shape (..., 2).
-            p1_pop, p2_pop: Parent populations.
-            config: Genome configuration.
-
-        Returns:
-            Population of recombined offspring (same shape as original __call__).
+        Reduces the provided key to a lone PRNG key, splits it locally and then
+        invokes the original crossover logic. This decoration is intended for
+        performance profiling.
         """
         single_key = jnp.asarray(all_keys).reshape(-1)[:2]
 

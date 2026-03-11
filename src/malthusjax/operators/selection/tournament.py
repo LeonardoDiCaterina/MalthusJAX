@@ -33,9 +33,11 @@ class TournamentSelection(BaseSelection[P, C]):
     def _select(
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
-        """
-        Selects num_selections parents via competitive tournaments.
-        Returns: (num_selections,) indices into [0, pop_size).
+        """Select parents through competitive tournaments.
+
+        Each of the ``num_selections`` tournaments samples ``tournament_size``
+        candidates and picks the fittest. The returned array contains the
+        winning indices.
         """
         if self.typed_keys:
             rng = keys if keys.ndim == 0 else keys[0]

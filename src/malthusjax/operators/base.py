@@ -92,24 +92,13 @@ class BaseMutation(Generic[G, C, P]):
         return self._mutate_one(genome, noise, config)
 
     def __call__(self, all_keys: chex.Array, population: P, config: C, generation: int = 0) -> P:
-        """Tier 3 — Population-level mutation via vmap.
+        """Tier 3 — Population-level mutation using JAX vmaps.
 
-        For num_offspring=1 (the common case), uses a single flat vmap identical in
-        structure to evosax, avoiding the inner vmap, the (N,1,d)→(N,d) reshape, and
-        the tree_map(flatten_fn) traversal.
-
-        For num_offspring>1, falls back to the nested vmap path: reshapes pre-allocated
-        keys to (input_length, num_offspring, atomic_keys, [2]), applies _mutate_fused
-        via two vmaps, then flattens output to (N*K, ...).
-
-        Args:
-            all_keys: Pre-allocated keys, shape product = num_keys() result.
-            population: Input population with genes shape (N, d, ...).
-            config: Genome configuration.
-            generation: Current generation number (traced inside scan).
-
-        Returns:
-            New population with genes shape (N*K, d, ...) where K=num_offspring.
+        This method orchestrates either a flat or nested vmap over the provided
+        pre‑allocated keys to mutate an entire population. When
+        ``num_offspring == 1`` it mirrors evosax's simple structure; when
+        >1 it reshapes and flattens the result so that offspring are stacked
+        behind their parents.
         """
         n_keys = self.num_keys_per_atomic_operation
 
@@ -234,22 +223,14 @@ class BaseCrossover(Generic[G, C, P]):
         return self._recombine_one(p1, p2, noise, config)
 
     def cross_single_pair(self, key: chex.Array, p1: G, p2: G, config: C, generation: int = 0) -> G:
-        """Crossover for a single pair (not from population-level __call__).
+        """Perform crossover on a single parent pair outside of __call__.
 
-        Useful for interactive/debug crossover where pair comes from arbitrary
-        genomes (not pre-split population). Use __call__ for population-level.
-
-        Args:
-            key: Single PRNG key, shape (2,).
-            p1, p2: Individual parent genomes.
-            config: Genome configuration.
-            generation: Current generation number.
-
-        Returns:
-            Batched offspring genome, shape (num_offspring, ...).
+        This helper is handy for on‑the‑fly debugging or visualization when
+        parents are not drawn from a batched population. It internally splits
+        the provided *key* into the required format and then applies the
+        fused crossover logic.
         """
         keys = jax.random.split(key, self.num_offspring * self.num_keys_per_atomic_operation)
-        # Determine key format: use operator flag if set, otherwise auto-detect from key.
         typed = self.typed_keys or is_new_style_key(key)
         if typed:
             keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation)
@@ -265,33 +246,17 @@ class BaseCrossover(Generic[G, C, P]):
     def __call__(
         self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, generation: int = 0
     ) -> P:
-        """Tier 3 — Population-level crossover via vmap.
+        """Tier 3 — Population-level crossover executed via JAX vmaps.
 
-        For num_offspring=1 (the common case), uses a single flat vmap identical in
-        structure to evosax, avoiding the inner vmap, the (N,1,d)→(N,d) reshape, and
-        the tree_map(flatten_fn) traversal.
-
-        For num_offspring>1, falls back to the nested vmap path: reshapes pre-allocated
-        keys to (input_length, num_offspring, atomic_keys, [2]), applies _cross_fused
-        via two vmaps, then flattens output from (pairs, offspring, ...) to
-        (pairs*offspring, ...).
-
-        Args:
-            all_keys: Pre-allocated keys, shape product = num_keys() result.
-            p1_pop, p2_pop: Parent populations with genes shape (N, d, ...).
-            config: Genome configuration.
-            generation: Current generation number (traced inside scan).
-
-        Returns:
-            Offspring population with genes shape (N*K, d, ...) where K=num_offspring.
-            Axis ordering: pair-major (no transpose — avoids physical data copy
-            that would break XLA fusion with downstream mutation; see FB-1).
+        Handles both the single‑offspring fast path and the general nested vmap
+        case, reshaping keys appropriately and flattening the resulting offspring
+        into a single batch.
+        for num_offspring == 1, performs a simple vmap over pairs with no reshape.
+        for num_offspring > 1, performs a nested vmap and then flattens
         """
         n_keys = self.num_keys_per_atomic_operation
 
         if self.num_offspring == 1:
-            # Fast path: flat single vmap — same structure as evosax crossover.
-            # Eliminates inner vmap, (N,1,d)→(N,d) reshape, and tree_map traversal.
             if self.typed_keys:
                 keys_flat = all_keys.reshape(self.input_length, n_keys)
             else:
@@ -305,8 +270,6 @@ class BaseCrossover(Generic[G, C, P]):
             )
             return cast(P, p1_pop.spawn_offspring(new_genes))
 
-        # General path: nested vmap for num_offspring > 1.
-        # Key reshape is determined by PRNG implementation (set at engine init).
         if self.typed_keys:
             keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys)
         else:
@@ -322,9 +285,10 @@ class BaseCrossover(Generic[G, C, P]):
         nested_offspring = vmap_pairs(keys_reshaped, p1_pop.genes, p2_pop.genes)
 
         def flatten_fn(x: chex.Array) -> chex.Array:
-            # Flatten (pairs, offspring, ...d) → (pairs * offspring, ...d).
-            # No transpose needed — output ordering is irrelevant to downstream
-            # mutation/merge/evaluation. Avoids physical data copy in XLA (FB-1).
+            # collapse the pair/offspring axes into one batch dimension,
+            # producing shape (pairs*offspring, …).  The ordering of elements
+            # is preserved, so downstream stages (mutation, evaluation, etc.)
+            # see a simple flat population and XLA won’t incur any copies
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes_flat = cast(G, jax.tree_util.tree_map(flatten_fn, nested_offspring))
@@ -384,16 +348,11 @@ class BaseSelection(Generic[P, C]):
     def _select(
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
-        """Select indices from population based on fitness.
+        """Select parent indices from a fitness vector.
 
-        Args:
-            keys: PRNG key(s) for stochastic selection; ignored if deterministic.
-            fitness: Fitness array, shape (pop_size,).
-            config: Optional configuration.
-            **kwargs: Operator-specific arguments.
-
-        Returns:
-            Selected indices, shape (num_selections,).
+        Concrete subclasses implement the selection logic, using *keys* when a
+        stochastic mechanism is required. The returned array has length
+        ``num_selections``.
         """
         raise NotImplementedError
 
@@ -403,10 +362,6 @@ class BaseSelection(Generic[P, C]):
         Default implementation: O(N) ``jnp.argpartition``.  Subclasses
         (e.g. ``ElitePoolSelection``) may override ``__call__`` to fuse
         this with parent selection in a single pass.
-
-        Returns:
-            Integer array of shape ``(n_elites,)``.  Empty when
-            ``n_elites == 0``.
         """
         if self.n_elites == 0:
             return jnp.zeros(0, dtype=jnp.int32)
@@ -418,17 +373,11 @@ class BaseSelection(Generic[P, C]):
     def __call__(
         self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any
     ) -> Tuple[chex.Array, chex.Array]:
-        """Select parents and extract elites in one call.
+        """Run a selection pass returning parents and elites.
 
-        Args:
-            keys: PRNG key(s) for selection.
-            population: Population object (with .fitness) or fitness array directly.
-            config: Optional configuration.
-
-        Returns:
-            ``(parent_indices, elite_indices)`` tuple.
-            ``parent_indices``: shape ``(num_selections,)``.
-            ``elite_indices``:  shape ``(n_elites,)`` (empty when ``n_elites == 0``).
+        This wrapper extracts fitness from the provided *population* (or uses
+        the array directly), then calls ``_select`` followed by
+        ``get_elite_indices`` to produce both parent and elite index arrays.
         """
         fitness = getattr(population, "fitness", population)
         parent_idx = self._select(keys, fitness, config, **kwargs)

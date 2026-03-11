@@ -42,12 +42,10 @@ class ElitePoolSelection(BaseSelection[P, C]):
     def _select(
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
-        """
-        Selects num_selections parents uniformly from top elite_k individuals.
-        Returns: (num_selections,) indices into [0, pop_size).
+        """Choose parents uniformly from the top *elite_k* individuals.
 
-        This is the primitive parent-only path.  Prefer ``__call__`` which
-        fuses parent selection with elite extraction.
+        This simpler primitive method is mainly used when the fused
+        ``__call__`` path (which also extracts elites) is not required.
         """
         if self.typed_keys:
             rng = keys if keys.ndim == 0 else keys[0]
@@ -74,19 +72,11 @@ class ElitePoolSelection(BaseSelection[P, C]):
         config: Optional[C] = None,
         **kwargs: Any,
     ) -> Tuple[chex.Array, chex.Array]:
-        """Select parents from elite pool AND extract preservation elites.
+        """Select parents from the elite pool and simultaneously identify elites.
 
-        Fuses both operations into a single ``argpartition(-fitness, k)``
-        where ``k = max(elite_k, n_elites)``.  When the two sizes differ a
-        lightweight O(k log k) ``argsort`` within the top-k identifies the
-        correct subsets — negligible cost since k << N.
-
-        Returns:
-            ``(parent_indices, elite_indices)`` tuple.
+        This implementation avoids a second O(N) scan by performing a single
+        ``argpartition`` on the combined effect of ``elite_k`` and ``n_elites``.
         """
-        # ensure `fitness` is an ndarray regardless of whether the caller
-        # passed a population object or a raw array.  This resolves mypy
-        # complaints about missing ``shape`` attribute and allows negation.
         fitness: chex.Array = jnp.asarray(getattr(population, "fitness", population))
 
         if self.typed_keys:

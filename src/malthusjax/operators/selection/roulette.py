@@ -32,11 +32,11 @@ class RouletteSelection(BaseSelection[P, C]):
     def _select(
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
-        """
-        Samples num_selections parents with probability ∝ exp(fitness/temperature).
-        Returns: (num_selections,) indices into [0, pop_size).
-        Uses Gumbel-Max trick when num_selections==pop_size (efficient parallel path);
-        falls back to softmax+jax.random.choice for other configurations.
+        """Draw parents proportional to fitness using a softmax or Gumbel-Max.
+
+        When ``num_selections == pop_size`` and the Gumbel trick is enabled,
+        a parallel variant computes all samples in one shot; otherwise a
+        categorical draw is performed.
         """
         if self.typed_keys:
             rng = keys if keys.ndim == 0 else keys[0]
