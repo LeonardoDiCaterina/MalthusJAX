@@ -1,3 +1,12 @@
+"""Data structures for storing and manipulating benchmark outcomes.
+
+This module defines :class:`RunResult` and :class:`ExperimentResult` which
+record per-seed histories, summary metrics, errors, and timing information.
+Utilities for serialization/deserialization and simple aggregation are
+provided, along with :class:`ComparisonResult` for aligning multiple
+pipelines.
+"""
+
 from __future__ import annotations
 
 import json
@@ -9,6 +18,13 @@ from typing import Any, Dict, List, Optional
 
 @dataclass
 class RunResult:
+    """Immutable record of a single seeded engine execution.
+
+    Instances capture the seed value, success status, computed numeric
+    metrics and generation history, plus optional timing data, artifact paths
+    and error messages.  A UTC timestamp is recorded on creation.
+    """
+
     seed: int
     status: str  # e.g., "success", "failure", "timeout", "error"
     metrics: Dict[str, float]
@@ -20,6 +36,10 @@ class RunResult:
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> Dict[str, Any]:
+        """Serialize the object to a JSON-friendly dictionary.
+
+        The ISO-formatted ``created_at`` timestamp is included directly.
+        """
         return {
             "seed": self.seed,
             "status": self.status,
@@ -37,6 +57,12 @@ class RunResult:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RunResult":
+        """Reconstruct a :class:`RunResult` from a dictionary produced by
+        :meth:`to_dict`.
+
+        The *created_at* field is parsed from ISO format if present, or
+        defaulted to the current UTC time.
+        """
         d = dict(data)
         created = d.get("created_at")
         if isinstance(created, str):
@@ -57,6 +83,7 @@ class RunResult:
 
     @classmethod
     def from_json(cls, data: str) -> "RunResult":
+        """Create a :class:`RunResult` from a JSON string."""
         return cls.from_dict(json.loads(data))
 
 
@@ -98,6 +125,12 @@ class ExperimentResult:
         )
 
     def combined_history(self, seed_field: str = "seed") -> List[Dict[str, Any]]:
+        """Concatenate all run histories into a single list.
+
+        Each row receives an extra key (default ``"seed"``) identifying the
+        originating seed.  This is convenient for writing CSV or pandas
+        tables.
+        """
         rows: List[Dict[str, Any]] = []
         for run in self.runs:
             for row in run.history:
@@ -112,6 +145,12 @@ class ExperimentResult:
         return self.runs[0].metrics
 
     def aggregated_summary(self) -> Dict[str, Dict[str, float]]:
+        """Compute mean/median/stddev for each metric across runs.
+
+        Non-numeric values are ignored.  The result maps each metric name to a
+        small dict containing ``mean``, ``median`` and ``stdev`` (zero when
+        only one value is available).
+        """
         # Collect numeric metrics across runs
         agg: Dict[str, List[float]] = {}
         for r in self.runs:
@@ -208,14 +247,10 @@ class ComparisonResult:
         Fitness values are sign-normalised so that **lower is better**
         across all pipelines (controlled by :attr:`negate_map`).
 
-        Parameters
-        ----------
-        seed_index
-            Which seed's history to return (default: first seed).
-
-        Returns
-        -------
-        ``{pipeline_name: [{"generation": ..., "best_fitness": ...}, ...]}``
+        The *seed_index* argument selects which seed's history is extracted
+        (defaulting to the first).  The returned mapping contains one list of
+        generation/fitness dictionaries per pipeline, with fitness values
+        already adjusted according to ``negate_map``.
         """
         data: Dict[str, List[Dict[str, Any]]] = {}
         for name, exp in self.pipelines.items():
@@ -251,21 +286,13 @@ class ComparisonResult:
         switching between "lower is better" and "higher is better"
         display after the automatic normalisation.
 
-        Parameters
-        ----------
-        seed_index
-            Which seed's history to plot (default: first seed).
-        ax
-            Matplotlib axis.  If ``None``, a new figure is created.
-        title
-            Plot title.  Defaults to ``"Convergence comparison"``.
-        negate
-            Optional extra per-pipeline sign flip applied **on top** of
-            the automatic normalisation.
-
-        Returns
-        -------
-        matplotlib.axes.Axes
+        Calling this method produces an overlaid convergence plot for the
+        chosen *seed_index* (first seed by default).  If *ax* is omitted a new
+        figure and axis are created.  The *title* parameter overrides the
+        default ``"Convergence comparison"`` string.  An additional *negate*
+        mapping may be supplied to flip any pipeline's curve after the built-in
+        normalisation.  The Matplotlib axis object containing the plot is
+        returned.
         """
         try:
             import matplotlib.pyplot as plt

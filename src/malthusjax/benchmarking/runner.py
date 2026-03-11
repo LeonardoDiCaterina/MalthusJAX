@@ -1,3 +1,12 @@
+"""Benchmarking runner and engine protocol definitions.
+
+This lightweight module defines the :class:`BenchmarkRunner` class which
+executes an evolutionary engine across multiple random seeds, collects the
+results, and optionally writes artifact files.  A small ``Engine`` protocol
+is specified here for engines to implement, and a simple deterministic
+:class:`StubEngine` is provided for testing purposes.
+"""
+
 from __future__ import annotations
 
 import time
@@ -21,15 +30,22 @@ except ImportError:  # pragma: no cover
 
 
 class Engine(Protocol):
-    """Protocol for evolutionary engines used by BenchmarkRunner."""
+    """Simple protocol that engines must satisfy.
+
+    Any engine plugged into :class:`BenchmarkRunner` needs to expose a
+    ``run_once`` method accepting a JAX random key and returning a dictionary
+    containing three standard entries: ``'history'`` for per-generation
+    statistics, ``'summary'`` for final metrics, and an optional ``'timings'``
+    dictionary capturing performance data.  This loose contract allows the
+    benchmarking infrastructure to remain agnostic to concrete engine
+    implementations.
+    """
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
-        """Run one evolutionary experiment.
-        Returns:
-            dict with keys:
-            - 'history': List[Dict[str, Any]] - per-generation stats
-            - 'summary': Dict[str, Any] - final summary metrics
-            - 'timings': Dict[str, float] - optional timing info
+        """Execute a single run of the engine and return its result dictionary.
+
+        The caller is responsible for interpreting the resulting keys as
+        described in the class docstring above.
         """
         ...
 
@@ -50,12 +66,15 @@ class BenchmarkRunner:
         seeds: Sequence[int],
         timeout_seconds: Optional[float] = None,
     ) -> ExperimentResult:
-        """Run benchmark across multiple seeds.
-        Args:
-            seeds: List of random seeds to run
-            timeout_seconds: Optional timeout per seed (not implemented yet)
-        Returns:
-            ExperimentResult with all runs and aggregated metrics
+        """Drive the supplied engine over a sequence of seeds.
+
+        Each seed is converted into a PRNG key (honouring any configured
+        *prng_impl*), and ``_run_single_seed`` is invoked in turn.  Progress
+        bars are shown if ``tqdm`` is installed.  Results from all seeds are
+        collated into an :class:`ExperimentResult`; metadata such as the list of
+        seeds and run counts are automatically populated.  When an output
+        directory is provided the corresponding JSON/CSV artifacts are also
+        written.
         """
         runs: List[RunResult] = []
 
@@ -99,7 +118,13 @@ class BenchmarkRunner:
         timeout_seconds: Optional[float],
         trace_dir: Optional[Path] = None,
     ) -> RunResult:
-        """Run a single seed and collect results."""
+        """Execute the engine for one seed and package the outcome.
+
+        The method measures wall time, optionally wraps the engine invocation
+        in a JAX profiler trace, and normalizes the returned summary metrics to
+        floats.  Any exceptions raised by the engine are caught and recorded in
+        the resulting :class:`RunResult` with ``status="error"``.
+        """
         import jax
 
         start_time = time.time()
@@ -161,7 +186,13 @@ class StubEngine:
     improvement_rate: float = 0.1
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
-        """Generate deterministic fake evolution data."""
+        """Produce a predictable synthetic result for testing.
+
+        The returned history and summary values are driven deterministically by
+        the supplied key so that test cases can assert against known outputs.
+        This stub avoids any actual computation while still exercising the
+        benchmarking machinery.
+        """
         # Use seed to make results deterministic but varied
         seed_int = int(key[0]) if hasattr(key, "__getitem__") else 42
 

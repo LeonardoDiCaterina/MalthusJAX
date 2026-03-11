@@ -25,15 +25,8 @@ except ImportError:  # pragma: no cover - pandas is optional
 def load_benchmark_file(path: Path) -> Dict[str, Any]:
     """Load a pytest-benchmark JSON file.
 
-    Parameters
-    ----------
-    path
-        Path to the ``.json`` file stored by ``pytest --benchmark-save``.
-
-    Returns
-    -------
-    dict
-        Parsed JSON object.
+    This helper opens the given JSON file (created by ``pytest --benchmark-save``)
+    and returns the parsed object.
     """
     with open(path, "r") as f:
         return cast(Dict[str, Any], json.load(f))
@@ -128,15 +121,10 @@ def sample_usage(path: Optional[Path] = None) -> None:
 def plot_group(group: str, data: Dict[str, Any], ax: Any | None = None) -> Any:
     """Draw a bar chart of mean timings for all benchmark names in ``group``.
 
-    Parameters
-    ----------
-    group
-        The benchmark group name (e.g. ``"single_step/pop100_d10"``).
-    data
-        Loaded benchmark JSON data.
-    ax
-        Optional ``matplotlib.axes.Axes`` to plot into; a new figure is
-        created if ``None``.
+    The *group* string selects which subset of benchmarks to draw.  The
+    *data* argument should be the parsed JSON structure from a benchmark file.
+    An existing Matplotlib axis may be supplied in *ax*; otherwise a new
+    figure/axis pair is instantiated before plotting.
     """
     try:
         import matplotlib.pyplot as plt
