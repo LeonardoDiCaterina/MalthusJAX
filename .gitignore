@@ -890,3 +890,5 @@ src/malthusjax/visualization/multi_run.py
 src/malthusjax/visualization/single_run.py
 tests/benchmarks/test_snapshot_benchmark.py.bak
 .github/copilot-instructions.md
+docs/build/
+docs/source/api/ # if you never want the stubs tracked
