@@ -87,40 +87,20 @@ def compute_scheduled_strength(
     initial_strength: float,
     final_strength: float = 0.0,
 ) -> jnp.ndarray:
-    """Compute mutation strength for a given generation.
+    """Return the mutation strength corresponding to a generation.
 
-    This function uses only ``jnp`` operations so that ``generation``
-    can be a JAX tracer (e.g. the loop counter inside ``jax.lax.scan``).
-    The ``schedule`` and ``max_generations`` arguments are expected to be
-    concrete Python values (``pytree_node=False`` fields) and are used
-    for the schedule-type dispatch and normalisation respectively.
+    The implementation relies exclusively on ``jnp`` operations so that
+    ``generation`` may be a tracer inside a JAX scan. The schedule type and
+    max generations are expected to be concrete constants used to select and
+    normalise the curve.
 
-    Parameters
-    ----------
-    schedule : ScheduleType
-        Which schedule curve to apply.
-    generation : int
-        Current generation counter (may be a JAX tracer).
-    max_generations : int
-        Total number of generations (static, concrete int).
-    initial_strength : float
-        Strength value at generation 0.
-    final_strength : float, optional
-        Target strength at the final generation (default ``0.0``).
-        Ignored for ``CONSTANT`` and ``EXPONENTIAL_DECAY``.
-
-    Returns
-    -------
-    jnp.ndarray
-        Scalar strength value for the current generation.
+    Supported schedules include constant, linear decay, cosine annealing and
+    exponential decay. ``final_strength`` is ignored for types that do not
+    depend on it.
     """
     if schedule == ScheduleType.CONSTANT:
         return jnp.asarray(initial_strength)
 
-    # Ensure `t` is a JAX array so that subsequent arithmetic yields
-    # a jnp.ndarray (mypy requires the return type to match).  `generation`
-    # may already be a tracer; if it's a plain int the cast keeps things
-    # safe.
     t = jnp.asarray(generation) / max_generations
 
     if schedule == ScheduleType.LINEAR_DECAY:

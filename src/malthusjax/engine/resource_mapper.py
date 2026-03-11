@@ -63,20 +63,18 @@ class ShardingManager:
         self.replicated_sharding = NamedSharding(self.mesh, self.replicated_spec)
 
     def alloc_population(self, shape: Tuple[int, ...], dtype: Any = jnp.float32) -> chex.Array:
-        """
-        Allocates a zero-filled population tensor with enforced sharding.
+        """Create a zero-initialized array for a population using the configured sharding.
 
-        We use jax.device_put to force the layout immediately upon creation.
-        This prevents XLA from creating it on Host then moving to Device.
+        The tensor is immediately placed on device with the desired layout
+        to avoid host‑device transfers during execution.
         """
         return cast(chex.Array, jax.device_put(jnp.zeros(shape, dtype=dtype), self.pop_sharding))
 
     def split_key_sharded(self, key: chex.Array, num: int) -> chex.Array:
-        """
-        Splits RNG keys such that each device gets its own independent stream.
-        This is crucial for Multi-GPU stochasticity.
+        """Produce a sharded sequence of RNG keys for multi‑device execution.
 
-        Enforce that the keys are sharded across the batch dimension
+        The resulting array is placed on the population sharding mesh so that
+        each device receives its own independent key stream.
         """
         keys = jax.random.split(key, num)
 
@@ -127,11 +125,11 @@ class ResourceMap:
         return int(alloc.output_count)
 
     def get_keys(self, master_key: chex.Array) -> chex.Array:
-        """
-        Generate all RNG keys for one generation (branches on key_derivation strategy).
-        Returns: Array (total_rng_budget,) stacked from sequential split or parallel fold_in.
-        SPLIT path: jax.random.split(master_key, total_rng_budget) — sequential.
-        FOLD path: vmap(fold_in(master_key, i)) for i in 0..total_rng_budget-1 — parallel.
+        """Derive a flat buffer of RNG keys according to the selected strategy.
+
+        For ``SPLIT`` the method simply calls ``jax.random.split``; for
+        ``FOLD`` it vmap‑folds the master key over integer indices. In either
+        case the output length matches ``total_rng_budget``.
         """
         if self.key_derivation == KeyDerivationStrategy.SPLIT:
             return cast(chex.Array, jax.random.split(master_key, int(self.total_rng_budget)))
@@ -154,14 +152,23 @@ def compute_resource_map(
     pop_size: int,
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
 ) -> ResourceMap:
-    """
-    Compile static RNG budget and cascade data flow.
-    Cascade: pop_size →[Selection]→ parents_needed →[Crossover]→ offspring →
-    [Mutation]→ mutants → [Merge]→ next pop_size.
-    Ceiling logic: pairs_needed = (pop_size + num_offspring - 1) // num_offspring
-    ensures enough pairs to cover pop_size even with rounding (e.g., pop=17,
-    offspring=2 → pairs=9 → 18 offspring, slice 1 in merge).
-    Returns: ResourceMap with allocation details for all 4 operator stages.
+    """Calculate RNG budget and data-flow allocations for one generation.
+
+    The function computes how many parents, pairs and offspring will be
+    produced and allocates key ranges for each operator accordingly. It also
+    applies safety checks (e.g. fold_in compatibility) and returns a
+    :class:`ResourceMap` describing the allocations.
+    ----------
+    The logical flow is:
+    1. Selection: pop_size → parents_needed (indices)
+    2. Crossover: parents_needed → offspring_count (genomes)
+    3. Mutation: offspring_count → mutant_count (genomes)
+    4. Next Key: single key for next generation derivation.
+    ----------
+    in case of overproduction (offspring > pop_size), the excess is noted but not prevented;
+    users are advised to adjust parameters to minimize waste.
+    in case of odd population size in crossover, the last parent may be duplicated to form a pair;
+    this results in the self-crossover of the last parent
     """
     if key_derivation == KeyDerivationStrategy.FOLD:
         prng_impl = getattr(jax.config, "jax_default_prng_impl", "threefry2x32")
@@ -213,9 +220,6 @@ def compute_resource_map(
     num_pairs = cross_input_count // 2  # e.g. 9
 
     crossover = crossover.set_input_length(num_pairs)
-
-    # Output: Pairs * num_offspring (per pair)
-    # This might be slightly larger than pop_size (e.g. 18), we will allow that
     cross_output_count = num_pairs * crossover.num_offspring
 
     overproduction = cross_output_count - pop_size

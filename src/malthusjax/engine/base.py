@@ -27,22 +27,12 @@ _field: Any = struct.field  # Helper alias for typed field calls
 
 
 def compute_unroll_num(num_generations: int) -> int:
-    """Compute scan unroll factor for evolution loop.
+    """Return the scan unroll factor for an evolution loop.
 
-    .. deprecated::
-       Scan unrolling is deprecated.  Benchmarks show it grows XLA IR
-       linearly with no throughput benefit on GPU, as XLA fuses across
-       scan iterations automatically.  This function now always returns 1.
-
-    Parameters
-    ----------
-    num_generations : int
-        Total number of generations (unused).
-
-    Returns
-    -------
-    int
-        Always returns 1.
+    Historically this adjusted XLA scan unrolling, but the mechanism was
+    deprecated after benchmarks showed no benefit and a linear growth in IR
+    size. It remains here for backwards compatibility and now always returns
+    ``1`` regardless of *num_generations*.
     """
     return 1
 
@@ -80,7 +70,7 @@ class AbstractEngineParams:
     pop_size: int = _field(pytree_node=False, default=100)
     elitism: int = _field(pytree_node=False, default=0)
     num_generations: int = _field(pytree_node=False, default=50)
-    unroll_num: int = _field(pytree_node=False, default=1)  # deprecated: no-op, always 1
+    unroll_num: int = _field(pytree_node=False, default=1)
 
 
 @struct.dataclass
@@ -93,18 +83,11 @@ class AbstractEvolutionState(Generic[G, P]):
     - generation (int): Current generation counter (increments each step).
     - best_fitness (Array): Scalar fitness of best_genome.
     - rng_key (Array): Master PRNG key for next generation (shape: (2,)).
-
-    .. note::
-       ``stagnation_counter`` was removed in Phase 4 (FB-4).  It is now
-       computable post-hoc as
-       ``jnp.diff(jnp.maximum.accumulate(history.best_fitness)) == 0``.
     """
 
-    # --- CRITICAL: Population and Best Individual ---
     population: P
     best_genome: G
 
-    # --- Metadata ---
     generation: int
     best_fitness: chex.Array
     rng_key: chex.Array
@@ -155,18 +138,12 @@ class AbstractEngine(Generic[G, P], ABC):
 
     @abstractmethod
     def init_state(self, rng_key: Union[int, jnp.ndarray]) -> AbstractEvolutionState[G, P]:
-        """
-        Initialize evolution state (Init-Phase Compilation).
+        """Build and return the initial evolution state.
 
-        Accepts either an integer seed or a pre-constructed PRNG key. If a seed is
-        provided the concrete engine implementation is expected to create a typed
-        PRNG key (e.g., using ``malthusjax.core.random.create_key``) based on its
-        configuration.
-
-        Responsibilities: Compile ResourceMap, bake operators with static input sizes,
-        enforce sharding layout, initialize population, evaluate, identify best.
-        One-time cost; results cached in returned state for all step() calls.
-        Returns: Initial state ready for run() or step() iteration.
+        This first-phase compilation step sets up the resource mapper, operators,
+        and initial population. If *rng_key* is an integer, implementations
+        should convert it to a typed PRNG key using the configured backend.
+        The returned state is cached and reused by ``step`` and ``run``.
         """
         validate_engine_params(self.engine_params)
         raise NotImplementedError
@@ -175,12 +152,12 @@ class AbstractEngine(Generic[G, P], ABC):
     def step(
         self, state: AbstractEvolutionState[G, P]
     ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput]:
-        """
-        Execute one generation (called per scan iteration).
-        Generic engines implement: Entropy allocation → Selection → Reproduction →
-        Merge → Evaluate → HOF update.
-        Args: state (contains population, rng_key, resource_map, operators).
-        Returns: (new_state with updated population/best/generation, KPI metrics).
+        """Perform a single evolutionary generation update.
+
+        Engines typically perform entropy allocation, selection, reproduction,
+        merging, evaluation, and high‑order‑function updates. The input *state*
+        carries the current population, PRNG key, and other resources. The
+        method returns the updated state together with a KPI payload.
         """
         raise NotImplementedError
 
@@ -191,19 +168,19 @@ class AbstractEngine(Generic[G, P], ABC):
         compile: bool = True,
         verbose: bool = False,
     ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput, Optional[float]]:
-        """
-        Execute complete evolution via JAX scan (num_generations iterations).
-        Retrieves cached/compiled evolution kernel, executes scan, returns final state + history.
-        History: JAX scan output stacks all GenerationOutput KPIs across generations.
-        Args: initial_state (from init_state), compile flag, timing/verbose options.
-        Returns: (final_state, history_kpis, elapsed_time_or_none).
+        """Run the full evolution loop starting from *initial_state*.
+
+        This method obtains the JIT‑compiled scan kernel and executes it for
+        the configured number of generations. If *time_it* is true the method
+        measures wall‑clock duration, optionally printing progress when
+        *verbose* is enabled. Returns the final state, the stacked KPI history,
+        and an optional elapsed time.
         """
         if verbose:
             print(
                 f"Starting evolution: {self.engine_params.num_generations} generations, "
                 f"population size {self.engine_params.pop_size}, compile={compile}"
             )
-
         # Retrieve the compiled loop function
         evolve_fn = _get_evolution_kernel(
             self.engine_params, compile_jit=compile, unroll_num=self.engine_params.unroll_num

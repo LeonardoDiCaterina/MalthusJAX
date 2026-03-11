@@ -179,11 +179,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     def _allocate_entropy(
         self, state: GeneticEvolutionState
     ) -> Tuple[chex.Array, chex.Array, chex.Array, chex.Array]:
-        """
-        Allocate RNG keys for this generation (Phase 0).
-        Slices pre-derived master key array into operator-specific subkeys.
-        Returns: (k_selection, k_crossover, k_mutation, k_next_generation).
-        Shapes: Each is (num_keys,) for that operator per resource_map allocation.
+        """Phase 0 — slice the master RNG buffer into operator subkeys.
+
+        The state contains a precomputed ``ResourceMap``. This method pulls the
+        right slices for selection, crossover, mutation and the next-generation
+        key, returning them as a quadruple of key arrays.
         """
         rmap = state.resource_map
         all_keys = rmap.get_keys(state.rng_key)
@@ -204,15 +204,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         operators: OperatorState,
         params: AbstractEngineParams,
     ) -> Tuple[Any, chex.Array]:
-        """
-        Select parents and extract elites via fused selection operator (Phase 1).
+        """Phase 1 — run selection and optionally gather elites.
 
-        The selection operator's ``__call__`` returns a ``(parent_idx, elite_idx)``
-        tuple.  ``ElitePoolSelection`` fuses both into a single O(N)
-        ``argpartition``; other selectors compute elite indices with a
-        separate O(N) pass (equivalent cost to the engine doing it before).
-
-        Returns: (elites_genes tree, selected_indices for mating).
+        Uses the fused ``operators.selection`` call which may yield both parent
+        and elite indices in one pass. The method then optionally slices the
+        current population to extract elite genomes for preservation.
         """
         parent_idx, elite_idx = operators.selection(key_selection, population.fitness)
 
@@ -234,12 +230,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         rmap: ResourceMap,
         generation: int = 0,
     ) -> BasePopulation[Any]:
-        """
-        Crossover + Mutation (Phase 2): Cascade: parents → offspring → mutants.
-        Parent slicing: Split selected indices into (p1_idx, p2_idx) = first/second halves.
-        Each pair (p1[i], p2[i]) produces num_offspring children via crossover.
-        Offspring count may exceed pop_size (handled in merge phase).
-        Returns: Mutated population (shape: (num_offspring * num_pairs, ...genome_shape)).
+        """Phase 2 — perform crossover followed by mutation.
+
+        The incoming parent indices are split into two equal halves representing
+        mating pairs. Crosser and mutator are then invoked with their
+        respective key bundles, producing an intermediate offspring population
+        which is returned for merging.
         """
         num_pairs = rmap.crossover.input_count // 2
         p1_idx = parent_indices[:num_pairs]
