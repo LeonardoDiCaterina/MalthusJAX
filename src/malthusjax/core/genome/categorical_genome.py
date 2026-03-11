@@ -1,3 +1,10 @@
+"""Categorical genome representation for discrete search spaces.
+
+Provides integer‑indexed sequence genomes along with permutation helpers
+and distance metrics. A matching population class offers batched
+operations and initialization.
+"""
+
 from __future__ import annotations
 
 from typing import Any, ClassVar, Tuple, Type, cast

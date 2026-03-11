@@ -1,3 +1,12 @@
+"""Core genome and population abstractions.
+
+This module defines the base classes used throughout the framework. It
+provides immutable, JAX‑friendly Genome and Population types along with
+utility functions for random initialization, distance metrics and structural
+helpers. All types are designed to be compatible with JAX's PyTree and
+jit/vmap patterns.
+"""
+
 from __future__ import annotations
 
 from abc import abstractmethod

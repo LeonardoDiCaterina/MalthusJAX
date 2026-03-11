@@ -1,3 +1,10 @@
+"""Binary genome fitness evaluators.
+
+Contains classic combinatorial objectives like OneMax (binary sum) and
+0/1 knapsack. Each evaluator adheres to the
+:class:`BaseEvaluator` interface and supports optional maximization.
+"""
+
 from __future__ import annotations
 
 from typing import Any

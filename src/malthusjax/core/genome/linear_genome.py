@@ -1,3 +1,10 @@
+"""Linear genetic programming genome and population definitions.
+
+Encodes programs as sequences of opcode/argument pairs with DAG validity.
+Includes utilities for random initialization, autocorrection, rendering and
+structural distance metrics, plus the corresponding batched container.
+"""
+
 from __future__ import annotations
 
 from typing import Any, ClassVar, List, Optional, Tuple, Type, cast

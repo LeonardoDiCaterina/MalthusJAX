@@ -1,3 +1,11 @@
+"""Linear genetic programming evaluator and primitive operations.
+
+Provides the LinearGPEvaluator implementation along with a suite of
+vectorized arithmetic, logical and ternary operators used by the
+interpreter. Operators maintain a uniform signature to facilitate
+jax.lax.switch dispatch.
+"""
+
 from __future__ import annotations
 
 from typing import Any, List
@@ -18,131 +26,173 @@ PROTECTED_DIV_EPS: float = 1e-6
 
 
 def op_add(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Return the sum of *x* and *y*.
+
+    The third parameter is ignored but kept for a consistent function
+    signature required by the LGP instruction dispatcher.
+    """
     return x + y
 
 
 def op_sub(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Subtract *y* from *x*; *z* is ignored."""
     return x - y
 
 
 def op_mult(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Multiply *x* and *y*; third argument disregarded."""
     return x * y
 
 
 def op_div(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Protected division of *x* by *y* with epsilon guard.
+
+    Returns zero when *y* is very small to avoid numerical issues.
+    """
     return jnp.where(jnp.abs(y) < PROTECTED_DIV_EPS, 0.0, x / y)
 
 
 def op_abs(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Return the absolute value of *x* (ignore other args)."""
     return jnp.abs(x)
 
 
 def op_neg(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Negate *x*; signature preserved for dispatcher."""
     return -x
 
 
 def op_sin(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Sine of *x* scaled by π; others unused."""
     return jnp.sin(jnp.pi * x)
 
 
 def op_cos(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Cosine of *x* scaled by π."""
     return jnp.cos(jnp.pi * x)
 
 
 def op_tan(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Tangent of *x* with infinities or NaNs clipped to zero."""
     val = jnp.tan(jnp.pi * x)
     return jnp.where(jnp.isinf(val) | jnp.isnan(val), 0.0, val)
 
 
 def op_log(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Natural logarithm of *x* if positive, else -1."""
     return jnp.where(x > 0, jnp.log(x), -1.0)
 
 
 def op_sqrt(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Square root of positive *x*, otherwise zero."""
     return jnp.where(x > 0, jnp.sqrt(x), 0.0)
 
 
 def op_pow(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Raise |x| to the power |y|, returning zero when base is zero."""
     base = jnp.abs(x)
     exp = jnp.abs(y)
     return jnp.where(base == 0, 0.0, jnp.power(base, exp))
 
 
 def op_exp(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Compute e to the power of *x*."""
     return jnp.exp(x)
 
 
 def op_sign(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Signum of *x* (-1, 0, or 1)."""
     return jnp.sign(x)
 
 
 def op_max(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Elementwise maximum of *x* and *y*."""
     return jnp.maximum(x, y)
 
 
 def op_min(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Elementwise minimum of *x* and *y*."""
     return jnp.minimum(x, y)
 
 
 def op_mod(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Modulo operation *x* mod *y*."""
     return jnp.mod(x, y)
 
 
 def op_frac(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Fractional component of *x* (x - floor(x))."""
     return x - jnp.floor(x)
 
 
 def op_mdist(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Mean distance: compute (x + y)/2."""
     return 0.5 * (x + y)
 
 
 def op_len(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Compute Euclidean length sqrt(x**2 + y**2)."""
     return jnp.sqrt(x**2 + y**2)
 
 
 # --- 2. Logic / Bitwise Operators ---
 def _bitwise_helper(a: chex.Numeric, b: chex.Numeric, func: Any) -> chex.Numeric:
+    """Convert float inputs to scaled ints, apply *func*, and rescale.
+
+    This helper permits bitwise operations on floating‑point values by
+    temporarily casting to integers. It is considered internal hence the
+    leading underscore.
+    """
     a_int = (a * 1e6).astype(jnp.int32)
     b_int = (b * 1e6).astype(jnp.int32)
     return func(a_int, b_int).astype(jnp.float32) / 1e6
 
 
 def op_and(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Bitwise AND of *x* and *y* via helper conversion."""
     return _bitwise_helper(x, y, jnp.bitwise_and)
 
 
 def op_or(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Bitwise OR of *x* and *y*."""
     return _bitwise_helper(x, y, jnp.bitwise_or)
 
 
 def op_xor(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Bitwise XOR of *x* and *y*."""
     return _bitwise_helper(x, y, jnp.bitwise_xor)
 
 
 def op_step(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Step function: returns -1 if *x*<0 else 1."""
     return jnp.where(x < 0, -1.0, 1.0)
 
 
 # --- 3. Ternary Operators ---
 def op_if(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Ternary conditional: choose *y* if *x*<0 else *z*."""
     return jnp.where(x < 0, y, z)
 
 
 def op_lerp(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Linear interpolation between *x* and *y* controlled by *z*."""
     return x + (y - x) * z
 
 
 def op_clip(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Clip *x* between bounds *y* and *z*."""
     return jnp.clip(x, y, z)
 
 
 # --- 4. Smooth Operators ---
 def op_sstep(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Smoothstep function: cubic polynomial in [0,1] range."""
     x_c = jnp.clip(x, 0.0, 1.0)
     return x_c**2 * (3.0 - 2.0 * x_c)
 
 
 def op_sstepp(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
+    """Smoothstep‑prime: quintic easing polynomial between 0 and 1."""
     x_c = jnp.clip(x, 0.0, 1.0)
     return x_c**3 * (x_c * (x_c * 6.0 - 15.0) + 10.0)
 

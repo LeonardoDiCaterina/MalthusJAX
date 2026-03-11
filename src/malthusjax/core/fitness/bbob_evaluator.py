@@ -1,3 +1,10 @@
+"""Wrapper around evosax BBOB benchmark problems.
+
+Exposes a MalthusJAX-friendly evaluator that leverages the evosax
+BBOBProblem API for deterministic black‑box function evaluation. Plays
+nicely with our population and maximization conventions.
+"""
+
 from __future__ import annotations
 
 from typing import Any, cast

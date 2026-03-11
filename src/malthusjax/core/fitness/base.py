@@ -1,3 +1,10 @@
+"""Core fitness evaluation interfaces and configurations.
+
+Defines the abstract base classes that concrete evaluators inherit from.
+Includes helper types such as regression data tuples and the static
+configuration dataclass used across the evaluator hierarchy.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Generic, Tuple, TypeVar, cast

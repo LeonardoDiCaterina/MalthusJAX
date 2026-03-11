@@ -1,3 +1,10 @@
+"""Real‑valued genome types and utilities.
+
+Implements continuous genome representations along with vector norms,
+noise injection and basic algebraic helpers. Also provides the parallel
+population container specialized for real vectors.
+"""
+
 from __future__ import annotations
 
 from typing import Any, ClassVar, Tuple, Type, cast

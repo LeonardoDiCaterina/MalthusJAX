@@ -1,3 +1,10 @@
+"""Binary genome and population types.
+
+Defines the representation for bit‑string genomes along with helper methods
+for conversion, distance computation and simple bit tricks. Includes the
+corresponding population container and random initialization logic.
+"""
+
 from __future__ import annotations
 
 from typing import Any, ClassVar, Tuple, Type, cast

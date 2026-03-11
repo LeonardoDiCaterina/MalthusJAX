@@ -1,3 +1,10 @@
+"""Basic real‑valued benchmark fitness evaluators.
+
+This module implements simple analytic functions such as Sphere,
+Griewank and a box‑constrained optimization example. Each evaluator is a
+:class:`BaseEvaluator` subclass with a static configuration dataclass.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Tuple
