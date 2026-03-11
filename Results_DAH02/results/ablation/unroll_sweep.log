@@ -1,0 +1,59 @@
+nohup: ignoring input
+W0110 19:02:16.685480 1260035 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+W0110 19:02:16.688421 1259584 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+
+============================================================
+MalthusJAX Adapter Profiler
+============================================================
+Device: cuda:0
+Task: sphere | Dim: 50 | Pop: 128 | Gens: 200
+Unroll factors: [1, 2, 4, 8, 16]
+Runs per config: 20
+Engines: ['Standard_GA', 'Standard_GA_Ablation']
+Output: results/profiler/unroll_sweep_v1/sphere_d50_p128_20260110_190216
+============================================================
+
+Standard_GA [unroll=1]: .................... Mean: 4.10ms ± 0.10ms
+
+Standard_GA [unroll=2]: .................... Mean: 3.60ms ± 0.09ms
+
+Standard_GA [unroll=4]: .................... Mean: 3.63ms ± 0.08ms
+
+Standard_GA [unroll=8]: .................... Mean: 3.70ms ± 0.07ms
+
+Standard_GA [unroll=16]: .................... Mean: 3.93ms ± 0.12ms
+
+Standard_GA_Ablation [unroll=1]: .................... Mean: 6.39ms ± 0.14ms
+
+Standard_GA_Ablation [unroll=2]: .................... Mean: 5.31ms ± 0.05ms
+
+Standard_GA_Ablation [unroll=4]: .................... Mean: 5.29ms ± 0.06ms
+
+Standard_GA_Ablation [unroll=8]: .................... Mean: 5.29ms ± 0.05ms
+
+Standard_GA_Ablation [unroll=16]: .................... Mean: 5.67ms ± 0.11ms
+
+==========================================================================================
+STATISTICAL SUMMARY
+==========================================================================================
+Engine                 Unroll   Mean (ms)    Std        95% CI               CV%     
+------------------------------------------------------------------------------------------
+Standard_GA            1        4.102        0.103      [4.05, 4.15]         2.52    
+Standard_GA            2        3.596        0.091      [3.55, 3.64]         2.54    
+Standard_GA            4        3.635        0.077      [3.60, 3.67]         2.13    
+Standard_GA            8        3.699        0.065      [3.67, 3.73]         1.76    
+Standard_GA            16       3.935        0.120      [3.88, 3.99]         3.04    
+Standard_GA_Ablation   1        6.391        0.136      [6.33, 6.46]         2.13    
+Standard_GA_Ablation   2        5.309        0.046      [5.29, 5.33]         0.86    
+Standard_GA_Ablation   4        5.294        0.058      [5.27, 5.32]         1.09    
+Standard_GA_Ablation   8        5.294        0.053      [5.27, 5.32]         1.00    
+Standard_GA_Ablation   16       5.669        0.107      [5.62, 5.72]         1.88    
+------------------------------------------------------------------------------------------
+
+Fastest: Standard_GA (unroll=2) - 3.596 ms
+Most stable: Standard_GA_Ablation (unroll=2) - CV=0.86%
+==========================================================================================
+
+Results saved to: results/profiler/unroll_sweep_v1/sphere_d50_p128_20260110_190216
+  - raw_results.csv: 200 individual measurements
+  - statistics.csv: 10 configuration summaries

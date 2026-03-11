@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Engine: Orchestration and Compilation &mdash; MalthusJAX  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Experiment Orchestration via Composer" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html" />
+    <link rel="prev" title="Functional Genetic Operators" href="3-GENETIC_OPERATORS.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MalthusJAX
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The Engine: Orchestration and Compilation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#stateful-architecture-and-the-scan-contract">4.1. Stateful Architecture and the Scan Contract</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#design-rationale-state-threading-vs-mutable-loops">4.1.1. Design Rationale: State Threading vs. Mutable Loops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#abstractengine-the-protocol">4.1.2. AbstractEngine — The Protocol</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#abstractevolutionstate-the-scan-carry">4.1.3. AbstractEvolutionState — The Scan Carry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#abstractengineparams-static-configuration">4.1.4. AbstractEngineParams — Static Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#generational-loop-architecture-five-phase-orchestration">4.2. Generational Loop Architecture: Five-Phase Orchestration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#phase-0-entropy-allocation">4.2.1. Phase 0 — Entropy Allocation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-1-selection">4.2.2. Phase 1 — Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-2-reproduction-crossover-mutation">4.2.3. Phase 2 — Reproduction (Crossover + Mutation)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-3a-merge">4.2.4. Phase 3a — Merge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-3b-evaluate">4.2.5. Phase 3b — Evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-4-hall-of-fame-update">4.2.6. Phase 4 — Hall-of-Fame Update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-and-finalization">4.2.7. Output and Finalization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#alternative-execution-mode-ask-tell-interface">4.3. Alternative Execution Mode: Ask/Tell Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deterministic-resource-allocation">4.4. Deterministic Resource Allocation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#resource-maps">4.4.1. Resource Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-derivation-strategies">4.4.2. Key Derivation Strategies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sharding-and-multi-device-distribution">4.4.3. Sharding and Multi-Device Distribution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#operator-level-personalization-and-scheduling">4.5. Operator-Level Personalization and Scheduling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#generation-aware-operators">4.5.1. Generation-Aware Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configurable-hall-of-fame-tracking">4.5.2. Configurable Hall-of-Fame Tracking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#compilation-and-hlo-transparency">4.6. Compilation and HLO Transparency</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scan-based-kernel-caching">4.6.1. Scan-Based Kernel Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hlo-tracing-and-named-call-labels">4.6.2. HLO Tracing and Named Call Labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#buffer-donation-and-memory-reuse">4.6.3. Buffer Donation and Memory Reuse</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#initialization-and-state-management">4.7. Initialization and State Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#worked-example-customizing-an-engine">4.8. Worked Example: Customizing an Engine</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MalthusJAX</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The Engine: Orchestration and Compilation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/4-ENGINE_ORCHESTRATION.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-engine-orchestration-and-compilation">
+<h1>The Engine: Orchestration and Compilation<a class="headerlink" href="#the-engine-orchestration-and-compilation" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">malthusjax.engine</span></code> module implements Tier 2 of the framework. This tier orchestrates genomes, fitness evaluators, and genetic operators into a fully compilable evolution loop using a <strong>scan-based stateful architecture</strong>. The core design principle is <strong>immutable state threading</strong>: the evolution loop carries one opaque state object through <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>, guaranteeing JAX traceability and JIT compilability to a single XLA kernel. This architecture enables three key capabilities:</p>
+<ol class="arabic simple">
+<li><p><strong>Deterministic reproducibility</strong> — explicit PRNG threading with configurable key derivation strategies (SPLIT vs. FOLD)</p></li>
+<li><p><strong>Seamless GPU/TPU deployment</strong> — XLA buffer donation and named sharding for multi-device execution</p></li>
+<li><p><strong>Tunable compilation surface</strong> — separation of static configuration (compiled into the kernel) from dynamic state (traced by XLA), enabling users to control what appears in the HLO graph</p></li>
+</ol>
+<p>The framework provides two execution modes: <code class="docutils literal notranslate"><span class="pre">step()</span></code> for iterative in-process evolution, and <code class="docutils literal notranslate"><span class="pre">ask()</span></code>/<code class="docutils literal notranslate"><span class="pre">tell()</span></code> for external fitness evaluation (e.g., remote simulations). Both modes preserve identical state semantics.</p>
+<hr class="docutils" />
+<section id="stateful-architecture-and-the-scan-contract">
+<h2>4.1. Stateful Architecture and the Scan Contract<a class="headerlink" href="#stateful-architecture-and-the-scan-contract" title="Link to this heading"></a></h2>
+<section id="design-rationale-state-threading-vs-mutable-loops">
+<h3>4.1.1. Design Rationale: State Threading vs. Mutable Loops<a class="headerlink" href="#design-rationale-state-threading-vs-mutable-loops" title="Link to this heading"></a></h3>
+<p>JAX’s functional paradigm prohibits mutable arrays and side effects within traced code. Rather than fighting this constraint, the engine embraces it by threading all intermediate data (population, best solution, generation counter, PRNG key) through a single immutable state object. At each generation, <code class="docutils literal notranslate"><span class="pre">step(state)</span></code> reads the carry, computes the next generation, and returns an updated carry. This carries two benefits: (1) <strong>reproducibility</strong> — given an initial state and a seed, evolution is deterministic (random keys are threaded, not drawn from an implicit global stream), and (2) <strong>compiler transparency</strong> — XLA sees the entire evolution loop as a pure function, enabling its optimizer to inline, fuse, and compile multiple generations into a single kernel with optimized memory reuse.</p>
+</section>
+<section id="abstractengine-the-protocol">
+<h3>4.1.2. AbstractEngine — The Protocol<a class="headerlink" href="#abstractengine-the-protocol" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">AbstractEngine</span></code> defines a minimal contract: two abstract methods <code class="docutils literal notranslate"><span class="pre">init_state(seed)</span></code> and <code class="docutils literal notranslate"><span class="pre">step(state)</span></code>, plus a provided <code class="docutils literal notranslate"><span class="pre">run()</span></code> method that wraps <code class="docutils literal notranslate"><span class="pre">step</span></code> in <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>. The <code class="docutils literal notranslate"><span class="pre">run()</span></code> method caches the compiled evolution kernel at the module level, keyed by the engine instance identity. This ensures each engine configuration receives a distinct XLA executable, avoiding cross-configuration cache collisions.</p>
+<p>The engine supports two semantics for hyperparameter modification:</p>
+<ul class="simple">
+<li><p><strong>Static parameters</strong> (e.g., population size, elitism count, PRNG strategy) are compiled into the kernel. Changing them triggers recompilation.</p></li>
+<li><p><strong>Dynamic parameters</strong> (e.g., mutation strength, scheduled via per-generation callbacks) are traced by XLA and incur per-iteration cost but allow runtime tuning.</p></li>
+</ul>
+</section>
+<section id="abstractevolutionstate-the-scan-carry">
+<h3>4.1.3. AbstractEvolutionState — The Scan Carry<a class="headerlink" href="#abstractevolutionstate-the-scan-carry" title="Link to this heading"></a></h3>
+<p>Evolution state is decomposed into two layers: <strong>traced fields</strong> (population genetics and fitness values) and <strong>metadata fields</strong> (operator configurations, resource maps). PyTree registration controls which fields enter the JAX trace. Traced fields include population, best solution found so far, generation counter, and the PRNG key. Metadata fields—operator instances, resource allocation tables, scheduling parameters—are marked <code class="docutils literal notranslate"><span class="pre">pytree_node=False</span></code>. They ride along in the carry without bloating the JAX trace or triggering buffer allocation on each scan iteration.</p>
+<p>This separation is configurable: users can promote metadata to traced fields for HLO transparency or demote traced fields to metadata for compilation tightness.</p>
+</section>
+<section id="abstractengineparams-static-configuration">
+<h3>4.1.4. AbstractEngineParams — Static Configuration<a class="headerlink" href="#abstractengineparams-static-configuration" title="Link to this heading"></a></h3>
+<p>Hyperparameters controlling the evolution loop are immutable dataclasses marked entirely as static configuration (<code class="docutils literal notranslate"><span class="pre">pytree_node=False</span></code>). This makes the engine hashable by instance identity, ensuring dictionary-based kernel caching is type-safe. Modification of engine parameters (e.g., changing <code class="docutils literal notranslate"><span class="pre">pop_size</span></code>) produces a new engine instance, triggering fresh XLA compilation.</p>
+</section>
+</section>
+<section id="generational-loop-architecture-five-phase-orchestration">
+<h2>4.2. Generational Loop Architecture: Five-Phase Orchestration<a class="headerlink" href="#generational-loop-architecture-five-phase-orchestration" title="Link to this heading"></a></h2>
+<p>Each call to <code class="docutils literal notranslate"><span class="pre">step(state)</span></code> executes one generation in five phases: entropy allocation, selection, reproduction, population merge, and evaluation. This phase structure is architectural (not arbitrary). It separates distinct concerns—randomness management, parent selection, variation, population assembly, and fitness assessment—such that each phase can be independently personalized, traced for inspection, or optimized by the compiler.</p>
+<section id="phase-0-entropy-allocation">
+<h3>4.2.1. Phase 0 — Entropy Allocation<a class="headerlink" href="#phase-0-entropy-allocation" title="Link to this heading"></a></h3>
+<p>At the start of each generation, the PRNG key is partitioned into operator-specific sub-keys using a pre-computed resource allocation table. The table specifies how many keys each operator needs and where in the flat key array they reside. This design decouples random key derivation from operator invocation: keys are allocated once, centrally, and operators receive their slices as pure inputs. This separation enables:</p>
+<ul class="simple">
+<li><p><strong>Reproducibility auditing</strong> — key allocation is deterministic and order-independent</p></li>
+<li><p><strong>Operator composition</strong> — operators are not responsible for key splitting; they receive ready-to-use keys</p></li>
+<li><p><strong>XLA optimization</strong> — key allocation can be moved outside loops or fused with other arithmetic</p></li>
+</ul>
+</section>
+<section id="phase-1-selection">
+<h3>4.2.2. Phase 1 — Selection<a class="headerlink" href="#phase-1-selection" title="Link to this heading"></a></h3>
+<p>Selection identifies elite individuals for preservation and parental individuals for reproduction. The selection operator reads population fitness values and returns index arrays. Elitism is handled by concatenating elite genes with reproduced offspring; when elitism is zero, an empty structure of matching type is created to maintain tree shape. Selection is decoupled from reproduction, allowing independent tuning of selection pressure and reproduction rate.</p>
+</section>
+<section id="phase-2-reproduction-crossover-mutation">
+<h3>4.2.3. Phase 2 — Reproduction (Crossover + Mutation)<a class="headerlink" href="#phase-2-reproduction-crossover-mutation" title="Link to this heading"></a></h3>
+<p>Reproductive variation is applied in two sequential stages—crossover followed by mutation—chained as a single operation. Parent pairs are gathered from the selected indices; the crossover operator produces offspring; the mutation operator refines them. Both operators receive the generation counter, enabling time-dependent behavior (e.g., mutation rate decay) without mutating operator state. The generation counter is a tracer inside the scan loop, making schedule functions pure JAX and compatible with XLA.</p>
+</section>
+<section id="phase-3a-merge">
+<h3>4.2.4. Phase 3a — Merge<a class="headerlink" href="#phase-3a-merge" title="Link to this heading"></a></h3>
+<p>Elite genes and mutated offspring are combined into the next-generation population. The implementation uses JAX’s <code class="docutils literal notranslate"><span class="pre">dynamic_update_slice</span></code> rather than concatenation, permitting XLA to reuse the old population buffer in-place through buffer donation. This pattern transfers physical memory ownership from one generation to the next without allocation between generations.</p>
+</section>
+<section id="phase-3b-evaluate">
+<h3>4.2.5. Phase 3b — Evaluate<a class="headerlink" href="#phase-3b-evaluate" title="Link to this heading"></a></h3>
+<p>The merged population is passed to the fitness evaluator, which applies the objective function via <code class="docutils literal notranslate"><span class="pre">vmap</span></code> over the population batch. Evaluation is decoupled from variation, enabling use cases where evaluation is external (ask/tell mode) or remote.</p>
+</section>
+<section id="phase-4-hall-of-fame-update">
+<h3>4.2.6. Phase 4 — Hall-of-Fame Update<a class="headerlink" href="#phase-4-hall-of-fame-update" title="Link to this heading"></a></h3>
+<p>The best solution across generations is tracked via configurable overhead. Three modes are available:</p>
+<ul class="simple">
+<li><p><strong>NONE</strong>: Track the best-with-generation as a post-scan pass (zero per-step cost)</p></li>
+<li><p><strong>LIGHT</strong>: Track monotonic improvement online (small per-step cost)</p></li>
+<li><p><strong>FULL</strong>: Update the best genome on every generation (higher per-step cost but complete history)</p></li>
+</ul>
+<p>Python-level branching selects which mode is compiled, ensuring only one code path enters the XLA kernel per JIT instance.</p>
+</section>
+<section id="output-and-finalization">
+<h3>4.2.7. Output and Finalization<a class="headerlink" href="#output-and-finalization" title="Link to this heading"></a></h3>
+<p>After each <code class="docutils literal notranslate"><span class="pre">step()</span></code>, generation metrics (best fitness, mean fitness, generation number) are extracted and stacked by <code class="docutils literal notranslate"><span class="pre">lax.scan</span></code> into a history array of shape <code class="docutils literal notranslate"><span class="pre">(num_generations,)</span></code>. Post-scan finalization (outside tracing) fills in missing information (e.g., best genome for NONE mode) via a one-shot pass over the final population.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="alternative-execution-mode-ask-tell-interface">
+<h2>4.3. Alternative Execution Mode: Ask/Tell Interface<a class="headerlink" href="#alternative-execution-mode-ask-tell-interface" title="Link to this heading"></a></h2>
+<p>For scenarios where fitness evaluation is external (e.g., expensive simulations, remote evaluation services, hybrid CPU/GPU pipelines), the engine provides an <code class="docutils literal notranslate"><span class="pre">ask()</span></code>/<code class="docutils literal notranslate"><span class="pre">tell()</span></code> interface instead of the direct <code class="docutils literal notranslate"><span class="pre">step()</span></code> method. The call <code class="docutils literal notranslate"><span class="pre">engine.ask(state)</span></code> allocates entropy and returns a population candidate for external evaluation (alongside a buffered key receipt). The call <code class="docutils literal notranslate"><span class="pre">engine.tell(state,</span> <span class="pre">evaluated_pop)</span></code> consumes the buffered keys, executes selection through evaluation, and returns the updated state. This pattern maintains identical state semantics and allows integration with non-JAX fitness functions while preserving reproducibility through explicit key threading.</p>
+</section>
+<hr class="docutils" />
+<section id="deterministic-resource-allocation">
+<h2>4.4. Deterministic Resource Allocation<a class="headerlink" href="#deterministic-resource-allocation" title="Link to this heading"></a></h2>
+<section id="resource-maps">
+<h3>4.4.1. Resource Maps<a class="headerlink" href="#resource-maps" title="Link to this heading"></a></h3>
+<p>At initialization, the engine computes a resource allocation plan specifying how many PRNG keys each operator needs and where in the flat key array they are located. This pre-computation enables zero-overhead key slicing during each generation: the key derivation is done once, and operators receive their slices as pure inputs without dynamic lookup or recursion. The resource map is marked metadata (not traced), avoiding JAX overhead.</p>
+</section>
+<section id="key-derivation-strategies">
+<h3>4.4.2. Key Derivation Strategies<a class="headerlink" href="#key-derivation-strategies" title="Link to this heading"></a></h3>
+<p>Two strategies are available for generating the per-generation key block:</p>
+<ul class="simple">
+<li><p><strong>SPLIT</strong>: Sequential hash chain (<code class="docutils literal notranslate"><span class="pre">jax.random.split</span></code>), lower memory but sequential parallelism</p></li>
+<li><p><strong>FOLD</strong>: Fully parallel (<code class="docutils literal notranslate"><span class="pre">vmap(fold_in)</span></code>), higher memory overhead but deterministic and seekable</p></li>
+</ul>
+<p>The choice is static (compiled into the kernel) and specified at engine creation time. The FOLD strategy is incompatible with certain PRNG implementations (e.g., RBG) where <code class="docutils literal notranslate"><span class="pre">fold_in</span></code> is unsupported.</p>
+</section>
+<section id="sharding-and-multi-device-distribution">
+<h3>4.4.3. Sharding and Multi-Device Distribution<a class="headerlink" href="#sharding-and-multi-device-distribution" title="Link to this heading"></a></h3>
+<p>For multi-device execution (e.g., data-parallel evolution across GPU devices), the engine provides a <code class="docutils literal notranslate"><span class="pre">ShardingManager</span></code> that enforces JAX <code class="docutils literal notranslate"><span class="pre">NamedSharding</span></code> specifications. This component is optional and non-intrusive—it does not affect the evolution semantics on single devices but enables deployment across a device mesh when instantiated. Population buffers are allocated with explicit sharding metadata, allowing XLA to optimize communication patterns and buffer placement.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="operator-level-personalization-and-scheduling">
+<h2>4.5. Operator-Level Personalization and Scheduling<a class="headerlink" href="#operator-level-personalization-and-scheduling" title="Link to this heading"></a></h2>
+<section id="generation-aware-operators">
+<h3>4.5.1. Generation-Aware Operators<a class="headerlink" href="#generation-aware-operators" title="Link to this heading"></a></h3>
+<p>Operators accept an optional generation counter as a parameter, enabling time-dependent behavior (e.g., mutation rate decay, crossover bias modulation) without mutating operator state. Scheduling functions are pure JAX, compiled into the kernel, and safe inside <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>. This design decouples scheduling logic from operator logic, allowing users to implement custom schedules (e.g., Bayesian optimization of decay rates) without forking operators.</p>
+<p>Schedule types include:</p>
+<ul class="simple">
+<li><p><strong>CONSTANT</strong>: Time-independent (baseline)</p></li>
+<li><p><strong>LINEAR_DECAY</strong>: Strength decreases linearly from initial to final value</p></li>
+<li><p><strong>COSINE_ANNEAL</strong>: Cosine annealing schedule</p></li>
+<li><p><strong>EXPONENTIAL_DECAY</strong>: Exponential decay schedule</p></li>
+</ul>
+<p>Scheduling parameters are static configuration; changing them triggers recompilation.</p>
+</section>
+<section id="configurable-hall-of-fame-tracking">
+<h3>4.5.2. Configurable Hall-of-Fame Tracking<a class="headerlink" href="#configurable-hall-of-fame-tracking" title="Link to this heading"></a></h3>
+<p>Post-evaluation, the engine updates its best-solution record. Three modes control the overhead and completeness of this tracking:</p>
+<ul class="simple">
+<li><p><strong>NONE</strong> (zero cost, post-hoc recovery): Best solution is found after evolution completes</p></li>
+<li><p><strong>LIGHT</strong> (minimal cost, monotonic): Best fitness is tracked but not genome</p></li>
+<li><p><strong>FULL</strong> (per-generation cost, complete history): Both best fitness and genome are updated every step</p></li>
+</ul>
+<p>The selected mode is baked into the compiled kernel via Python branching outside the JIT boundary.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="compilation-and-hlo-transparency">
+<h2>4.6. Compilation and HLO Transparency<a class="headerlink" href="#compilation-and-hlo-transparency" title="Link to this heading"></a></h2>
+<section id="scan-based-kernel-caching">
+<h3>4.6.1. Scan-Based Kernel Caching<a class="headerlink" href="#scan-based-kernel-caching" title="Link to this heading"></a></h3>
+<p>The evolution loop is compiled once per engine instance. The cached kernel is retrieved by <code class="docutils literal notranslate"><span class="pre">id(engine)</span></code>, ensuring each configuration has a distinct XLA executable. After compilation, XLA optimizes the entire evolution process as a single function, applying loop fusion, buffer reuse, and kernel specialization. The unroll depth is automatic (XLA decides); manual configuration is deprecated.</p>
+</section>
+<section id="hlo-tracing-and-named-call-labels">
+<h3>4.6.2. HLO Tracing and Named Call Labels<a class="headerlink" href="#hlo-tracing-and-named-call-labels" title="Link to this heading"></a></h3>
+<p>Each evolution phase can be wrapped with HLO labels for profiling and inspection. By default, labels are disabled, allowing full fusion. When enabled (e.g., <code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.debug_tracing=True</span></code>), <code class="docutils literal notranslate"><span class="pre">jax.named_call</span></code> annotations insert readable phase names into the HLO graph, facilitating performance debugging. Enabling tracing incurs no overhead when disabled (the branch is resolved before XLA sees the code).</p>
+<p>Users can extract the compiled HLO text via <code class="docutils literal notranslate"><span class="pre">engine.get_hlo_text(state)</span></code> for inspection and custom optimization.</p>
+</section>
+<section id="buffer-donation-and-memory-reuse">
+<h3>4.6.3. Buffer Donation and Memory Reuse<a class="headerlink" href="#buffer-donation-and-memory-reuse" title="Link to this heading"></a></h3>
+<p>The merge phase writes elite and mutant genes into the old population buffer, enabling XLA to donate (reuse) that buffer rather than allocate fresh memory. This pattern cascades through generations: each generation’s population buffer is the destination for the next, reducing memory traffic and improving cache locality.</p>
+</section>
+</section>
+<section id="initialization-and-state-management">
+<h2>4.7. Initialization and State Management<a class="headerlink" href="#initialization-and-state-management" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">init_state(seed)</span></code> is a one-time setup phase that:</p>
+<ol class="arabic simple">
+<li><p>Initializes the first population via the genome’s <code class="docutils literal notranslate"><span class="pre">random_init()</span></code> method</p></li>
+<li><p>Evaluates the initial population to seed the fitness values</p></li>
+<li><p>Configures all operators (setting input dimensions, scheduling bounds, key typing)</p></li>
+<li><p>Computes the resource allocation table</p></li>
+<li><p>Returns a fully ready <code class="docutils literal notranslate"><span class="pre">GeneticEvolutionState</span></code></p></li>
+</ol>
+<p>The initialized state is immutable and can be threaded through repeated <code class="docutils literal notranslate"><span class="pre">step()</span></code> calls (or parallel <code class="docutils literal notranslate"><span class="pre">run()</span></code> calls), enabling batch experiments with identical starting conditions. After calling <code class="docutils literal notranslate"><span class="pre">engine.run(state)</span></code>, the state’s buffers are consumed; for repeated runs, reinitialize via <code class="docutils literal notranslate"><span class="pre">init_state(seed)</span></code> with a fresh seed.</p>
+</section>
+<hr class="docutils" />
+<section id="worked-example-customizing-an-engine">
+<h2>4.8. Worked Example: Customizing an Engine<a class="headerlink" href="#worked-example-customizing-an-engine" title="Link to this heading"></a></h2>
+<p>The following example, derived directly from the engine’s test suite, demonstrates how the customization axes described in this chapter are composed in practice. A minimal engine targeting the Sphere benchmark is constructed with: (1) cosine annealing on mutation strength, (2) the FOLD key derivation strategy for fully parallel entropy allocation, and (3) LIGHT hall-of-fame tracking for minimal overhead with monotonic fitness history.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jar</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.bbob_evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BBOBConfig</span><span class="p">,</span> <span class="n">BBOBEvaluator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenomeConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.genetic_fastengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneticEngine</span><span class="p">,</span> <span class="n">GeneticEngineParams</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.resource_mapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">KeyDerivationStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.schedules</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScheduleType</span><span class="p">,</span> <span class="n">TrackBest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.crossover.real</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulatedBinaryCrossover</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.mutation.real</span><span class="w"> </span><span class="kn">import</span> <span class="n">GaussianMutation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.selection.elite_pool</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElitePoolSelection</span>
+
+<span class="c1"># --- Static configuration (compiled into the kernel) ---</span>
+<span class="n">engine_params</span> <span class="o">=</span> <span class="n">GeneticEngineParams</span><span class="p">(</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">elitism</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">num_generations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">key_derivation</span><span class="o">=</span><span class="n">KeyDerivationStrategy</span><span class="o">.</span><span class="n">FOLD</span><span class="p">,</span>   <span class="c1"># parallel entropy allocation</span>
+    <span class="n">schedule_type</span><span class="o">=</span><span class="n">ScheduleType</span><span class="o">.</span><span class="n">COSINE_ANNEAL</span><span class="p">,</span>    <span class="c1"># mutation strength schedule</span>
+    <span class="n">initial_strength</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">final_strength</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">track_best</span><span class="o">=</span><span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span><span class="p">,</span>                  <span class="c1"># monotonic history, low overhead</span>
+<span class="p">)</span>
+
+<span class="n">genome_config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">BBOBConfig</span><span class="p">(</span><span class="n">fn_name</span><span class="o">=</span><span class="s2">&quot;sphere&quot;</span><span class="p">,</span> <span class="n">num_dims</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">GeneticEngine</span><span class="p">(</span>
+    <span class="n">engine_params</span><span class="o">=</span><span class="n">engine_params</span><span class="p">,</span>
+    <span class="n">genome_config</span><span class="o">=</span><span class="n">genome_config</span><span class="p">,</span>
+    <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluator</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="n">ElitePoolSelection</span><span class="p">(</span><span class="n">num_selections</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">elite_k</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+    <span class="n">crossover</span><span class="o">=</span><span class="n">SimulatedBinaryCrossover</span><span class="p">(</span><span class="n">num_offspring</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mf">15.0</span><span class="p">),</span>
+    <span class="n">mutation</span><span class="o">=</span><span class="n">GaussianMutation</span><span class="p">(</span><span class="n">num_offspring</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mutation_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">mutation_strength</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># --- Run: state is initialized, evolution loop JIT-compiled and executed ---</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">jar</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">))</span>
+<span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">timings</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+<span class="c1"># history.best_fitness is monotonically non-decreasing (TrackBest.LIGHT)</span>
+<span class="c1"># Recover stagnation post-hoc without any per-step overhead:</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="n">stagnation_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Each engine parameter is a distinct customization axis: swapping <code class="docutils literal notranslate"><span class="pre">ScheduleType.COSINE_ANNEAL</span></code> for <code class="docutils literal notranslate"><span class="pre">ScheduleType.CONSTANT</span></code> changes only the schedule branch compiled into the kernel; swapping <code class="docutils literal notranslate"><span class="pre">KeyDerivationStrategy.FOLD</span></code> for <code class="docutils literal notranslate"><span class="pre">SPLIT</span></code> changes only the entropy allocation pattern; switching <code class="docutils literal notranslate"><span class="pre">TrackBest.LIGHT</span></code> for <code class="docutils literal notranslate"><span class="pre">TrackBest.FULL</span></code> changes only the hall-of-fame update path. All other phases remain unchanged, reflecting the phase-separation design of §4.2.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="3-GENETIC_OPERATORS.html" class="btn btn-neutral float-left" title="Functional Genetic Operators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html" class="btn btn-neutral float-right" title="Experiment Orchestration via Composer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Leonardo Di Caterina.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,478 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Functional Genetic Operators &mdash; MalthusJAX  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The Engine: Orchestration and Compilation" href="4-ENGINE_ORCHESTRATION.html" />
+    <link rel="prev" title="Core Abstractions: Genomes, Populations, and Fitness" href="2-CORE_ABSTRACTIONS.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MalthusJAX
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Functional Genetic Operators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#operator-base-architecture-malthusjax-operators-base">3.1. Operator Base Architecture (malthusjax.operators.base)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-pure-operator-contract">3.1.1. The Pure Operator Contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#operators-as-pytrees">3.1.2. Operators as PyTrees</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sharding-and-distributed-execution-shardmanager">3.1.3. Sharding and Distributed Execution (ShardManager)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#vectorized-tournament-selection">3.2.1. Vectorized Tournament Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#roulette-wheel-proportionate-selection">3.2.2. Roulette Wheel / Proportionate Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#elite-pool-selection">3.2.3. Elite Pool Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statistical-properties-of-independent-vs-permuted-sampling">3.2.4. Statistical Properties of Independent vs. Permuted Sampling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#crossover-malthusjax-operators-crossover">3.3. Crossover (malthusjax.operators.crossover)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#continuous-real-crossover">3.3.1. Continuous / Real Crossover</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#third-party-ecosystem-interoperability-evosax-crossover-py">3.3.2. Third-Party Ecosystem Interoperability (evosax_crossover.py)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mutation-strategies-malthusjax-operators-mutation">3.4. Mutation Strategies (malthusjax.operators.mutation)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#continuous-mutation">3.4.1. Continuous Mutation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#evosax-mutation-wrappers-evosax-mutation-py">3.4.3. Evosax Mutation Wrappers (evosax_mutation.py)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-operator-diagnostics-and-manipulation">3.6. Advanced Operator Diagnostics and Manipulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#operator-ablation-base-ablation-py">3.5.1. Operator Ablation (base_ablation.py)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#injection-and-regressions-base-injection-py">3.5.2. Injection and Regressions (base_injection.py)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MalthusJAX</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Functional Genetic Operators</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/3-GENETIC_OPERATORS.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="functional-genetic-operators">
+<h1>Functional Genetic Operators<a class="headerlink" href="#functional-genetic-operators" title="Link to this heading"></a></h1>
+<p>This section covers the <code class="docutils literal notranslate"><span class="pre">malthusjax.operators</span></code> module. In MalthusJAX, operators (Selection, Crossover, Mutation) are strictly pure functions wrapped in PyTree classes, transforming an input population into a new population without mutating the original arrays.</p>
+<section id="operator-base-architecture-malthusjax-operators-base">
+<h2>3.1. Operator Base Architecture (malthusjax.operators.base)<a class="headerlink" href="#operator-base-architecture-malthusjax-operators-base" title="Link to this heading"></a></h2>
+<section id="the-pure-operator-contract">
+<h3>3.1.1. The Pure Operator Contract<a class="headerlink" href="#the-pure-operator-contract" title="Link to this heading"></a></h3>
+<p>Operators enforce stateless, reproducible genetic operations through a standardized signature: <code class="docutils literal notranslate"><span class="pre">new_population</span> <span class="pre">=</span> <span class="pre">operator(population,</span> <span class="pre">PRNGKey)</span></code>. The signature has been extended with an optional <code class="docutils literal notranslate"><span class="pre">generation:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></code> argument, permitting operators to adjust behavior over time—for example, mutation strength or crossover radius according to a schedule—without modifying the operator’s PyTree fields. Any required state (adaptive mutation rates, temperature schedules) must be explicitly passed and returned; internal state updates are prohibited.</p>
+</section>
+<section id="operators-as-pytrees">
+<h3>3.1.2. Operators as PyTrees<a class="headerlink" href="#operators-as-pytrees" title="Link to this heading"></a></h3>
+<p>Operators are registered as PyTrees, permitting them to be compiled within <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> functions and passed seamlessly through the GeneticEngine. Differentiation between hyper-parameters requiring dynamic updates (continuous mutation probabilities) and static configuration flags (crossover styles, distribution indices) is enforced in the PyTree flattening process, with static fields marked appropriately.</p>
+</section>
+<section id="sharding-and-distributed-execution-shardmanager">
+<h3>3.1.3. Sharding and Distributed Execution (ShardManager)<a class="headerlink" href="#sharding-and-distributed-execution-shardmanager" title="Link to this heading"></a></h3>
+<p>Operators respect JAX NamedSharding specifications when populations are sharded across multiple TPUs/GPUs. The framework maps array axes for <code class="docutils literal notranslate"><span class="pre">vmap</span></code> operations and maintains correct sharding semantics throughout the computational graph, as verified by integration tests.</p>
+</section>
+</section>
+<section id="selection-mechanisms-malthusjax-operators-selection">
+<h2>3.2. Selection Mechanisms (malthusjax.operators.selection)<a class="headerlink" href="#selection-mechanisms-malthusjax-operators-selection" title="Link to this heading"></a></h2>
+<p>Selection operators filter the population based on fitness scores, outputting a mating pool or the next generation’s elite. Unlike crossover and mutation, selection does not touch the genome tensors themselves; it only examines the vector of fitness values and returns integer indices of chosen individuals. This design minimizes memory movement and keeps the operation lightweight, allowing the heavy data (genes) to remain in-place while the engine rearranges them via <code class="docutils literal notranslate"><span class="pre">jax.numpy.take</span></code> or similar.</p>
+<p>Every selection operator returns two complementary index arrays: <strong>parent indices</strong> for breeding and <strong>elite indices</strong> for preservation across generations. Since selection has direct access to fitness values, it is the natural place to identify the top-performing individuals. The efficient primitive underlying all elite extraction is <code class="docutils literal notranslate"><span class="pre">jnp.argpartition</span></code>, which identifies the top-k elements in O(N) time (vs. O(N log N) for a full sort). This operation is used transparently by all selectors: Tournament, Roulette, and Elite Pool each may call <code class="docutils literal notranslate"><span class="pre">argpartition</span></code> to extract elites, allowing the engine to preserve genetic quality without redundant fitness scans.</p>
+<p>In the common genetic algorithm implementation, the selection step actually chooses twice the number of parents required by the downstream crossover operator. Crossover expects pairs of genomes; to preserve memory coalescence it first selects <code class="docutils literal notranslate"><span class="pre">2×pop_size</span></code> indices, then splits them into two separate buffers and recombines them in a criss‑cross pattern. This avoids interleaving non-neighboring entries in the same array and keeps the XLA compiler happy with sequential memory access.</p>
+<section id="vectorized-tournament-selection">
+<h3>3.2.1. Vectorized Tournament Selection<a class="headerlink" href="#vectorized-tournament-selection" title="Link to this heading"></a></h3>
+<p>Tournament selection embodies a middle ground between extreme exploitation (Elitism, always favoring the best) and fitness-weighted methods (Roulette, which can waste computation on weak individuals), simulating competitive tournaments efficiently on accelerators. The procedure is simple: for each of the <code class="docutils literal notranslate"><span class="pre">num_selections</span></code> mating pairs, randomly sample <code class="docutils literal notranslate"><span class="pre">tournament_size</span></code> individuals from the population and select the one with the highest fitness. This is repeated <code class="docutils literal notranslate"><span class="pre">num_selections</span></code> times, allowing the same individual to win multiple tournaments and thus appear multiple times in the mating pool.</p>
+<p>The appeal of this approach lies in its adjustable selection pressure. A small tournament size (e.g., 2–3) means tournaments are competitive but not overwhelming, preserving diversity in the mating pool. A large tournament size (e.g., 7–10) intensifies selection pressure, biasing heavily toward the fittest individuals and reducing diversity faster. In finite populations, this dial provides an easy way to control exploration versus exploitation without explicitly computing fitness ranks or probabilities.</p>
+<p>The implementation in <code class="docutils literal notranslate"><span class="pre">tournament.py</span></code> uses <code class="docutils literal notranslate"><span class="pre">jax.random.randint</span></code> to sample <code class="docutils literal notranslate"><span class="pre">num_selections</span> <span class="pre">×</span> <span class="pre">tournament_size</span></code> candidate indices in a single batched operation. Fitness values for those candidates are gathered via <code class="docutils literal notranslate"><span class="pre">jax.numpy.take</span></code>, producing an array of shape <code class="docutils literal notranslate"><span class="pre">(num_selections,</span> <span class="pre">tournament_size)</span></code>. An <code class="docutils literal notranslate"><span class="pre">argmax</span></code> along the second axis identifies the fittest individual in each tournament. Finally, <code class="docutils literal notranslate"><span class="pre">take_along_axis</span></code> retrieves the actual indices of those winners. This fully vectorized approach avoids any Python loops and compiles cleanly to XLA.</p>
+<p>The method consumes exactly <strong>one PRNG key</strong> per invocation, split from the engine’s top-level key. It is therefore lightweight in terms of randomness budget and scales well with population size.</p>
+<p><strong>Selection Pressure Dynamics:</strong> The relationship between <code class="docutils literal notranslate"><span class="pre">tournament_size</span></code> and the probability that a randomly chosen individual is selected at least once follows a well-studied pattern. For uniform selection, each individual has probability $p = \frac{1}{\text{pop_size}}$ of being chosen per tournament draw. The probability of winning $k$ tournaments out of <code class="docutils literal notranslate"><span class="pre">num_selections</span></code> follows a binomial distribution, with higher <code class="docutils literal notranslate"><span class="pre">tournament_size</span></code> pushing the distribution toward the fittest and away from the mediocre.</p>
+<p>Example 3.2.1 demonstrates tournament selection.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.selection.tournament</span><span class="w"> </span><span class="kn">import</span> <span class="n">TournamentSelection</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+
+<span class="n">selection</span> <span class="o">=</span> <span class="n">TournamentSelection</span><span class="p">(</span><span class="n">num_selections</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">tournament_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">])</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="c1"># Select 20 parent indices from a population of 5</span>
+<span class="n">selected_indices</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">_select</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">fitness</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">selected_indices</span><span class="p">)</span>  <span class="c1"># shape (20,), values in [0, 5)</span>
+<span class="c1"># Individuals with high fitness appear more frequently</span>
+</pre></div>
+</div>
+</section>
+<section id="roulette-wheel-proportionate-selection">
+<h3>3.2.2. Roulette Wheel / Proportionate Selection<a class="headerlink" href="#roulette-wheel-proportionate-selection" title="Link to this heading"></a></h3>
+<p>Roulette (also called fitness-proportional selection) implements fitness-proportionate probabilistic selection, departing from tournament’s rank-based approach. Each individual’s probability of selection is directly proportional to its fitness. The mental model is a real roulette wheel whose segments are sized according to each individual’s fitness; spinning the wheel favors fitter individuals but never completely excludes weaker ones.</p>
+<p>This method naturally balances exploration and exploitation: strong individuals dominate the mating pool, but the stochastic draw ensures that even below-average genomes have a chance to reproduce (unless fitness is wildly disparate). The trade-off is that it requires computing fitness probabilities, which involves a softmax denominator and can become numerically unstable if fitness values have huge variance.</p>
+<p>A critical tuning parameter is <strong>temperature</strong>, which controls the peakedness of the selection distribution. Low temperature (e.g., 0.1) sharpens the softmax, making selection much more biased toward the very best individuals (high exploitation). High temperature (e.g., 10.0) flattens the softmax toward uniform, diluting fitness information and favoring exploration despite fitness differences.</p>
+<p>The implementation in <code class="docutils literal notranslate"><span class="pre">roulette.py</span></code> offers two strategies:</p>
+<ol class="arabic simple">
+<li><p><strong>Gumbel-Max Trick</strong> (when <code class="docutils literal notranslate"><span class="pre">num_selections</span> <span class="pre">==</span> <span class="pre">pop_size</span></code>): This is a trick to sample without replacement in O(1) parallel time. The method adds independent Gumbel noise to the log-odds of each individual, then takes the argmax. This produces a permutation of the population indices with the correct distribution. Gumbel-Max is extremely efficient when you need to select an entire new generation (n=pop_size selections from n choices). However, on large populations it can create a temporary tensor of shape <code class="docutils literal notranslate"><span class="pre">(pop_size,</span> <span class="pre">pop_size)</span></code>, which consumes O(pop_size²) memory. To mitigate this, the implementation introduces <strong>chunking</strong>: it splits the selection into batches of <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> (default 1024), reducing peak memory to O(chunk_size × pop_size).</p></li>
+</ol>
+<p><strong>Mathematical Foundation:</strong> The Gumbel-Max trick exploits a property of the Gumbel distribution. For a categorical distribution with probabilities $\{p_1, p_2, \ldots, p_N\}$ and corresponding log-probabilities $\{\log p_1, \log p_2, \ldots, \log p_N\}$, to draw a sample:</p>
+<p>$$\text{Sample} = \arg\max_{i=1}^{N} \left( \log p_i + g_i \right)$$</p>
+<p>where $g_i \sim \text{Gumbel}(0,1)$ are i.i.d. standard Gumbel random variables. The Gumbel distribution is sampled via the inverse transform:</p>
+<p>$$g_i = -\log(-\log U_i), \quad U_i \sim \text{Uniform}(0,1)$$</p>
+<p>In MalthusJAX’s implementation, the logits are the normalized fitness values $\log(\text{softmax}(f_i / T))$ where $T$ is the temperature. The beauty of Gumbel-Max is that it naturally produces a permutation when applied repeatedly: the first argmax gives one sample, removing it and re-applying gives an independent second sample with the correct conditional probability, and so forth. Thus, a single parallel batch of <code class="docutils literal notranslate"><span class="pre">pop_size</span></code> Gumbel samples yields an entire shuffle without loops.</p>
+<p><strong>Why it Works:</strong> The key insight is that $\arg\max(\log p + g)$ has the same distribution as sampling from the categorical. This is because the probability of index $i$ being the maximum is proportional to $p_i$ (after accounting for the Gumbel CDF). This elegant property makes Gumbel-Max both theoretically sound and computationally efficient on GPUs—no sequential rejection sampling, no numerical rescaling of probabilities.</p>
+<ol class="arabic simple">
+<li><p><strong>Categorical Sampling</strong> (for arbitrary <code class="docutils literal notranslate"><span class="pre">num_selections</span></code>): When the number of selections differs from pop_size, or when Gumbel-Max is disabled for safety, the code falls back to <code class="docutils literal notranslate"><span class="pre">jax.random.categorical</span></code>. This computes the softmax probabilities once, then samples <code class="docutils literal notranslate"><span class="pre">num_selections</span></code> indices with replacement according to those probabilities. This is memory-efficient (O(pop_size) for the probability vector) and numerically stable thanks to JAX’s careful softmax implementation.</p></li>
+</ol>
+<p>Both paths consume exactly <strong>one PRNG key</strong> per invocation.</p>
+<p><strong>Temperature Dynamics:</strong> As temperature varies, the effective selection pressure changes:</p>
+<p>$$P(\text{select} = i) = \frac{\exp(f_i / T)}{\sum_j \exp(f_j / T)}$$</p>
+<p>For very low $T$ (e.g., 0.01), the exponential amplifies fitness differences, and the highest-fitness individual captures nearly all selections. For $T = 1.0$ (default), the landscape is moderately sharp. For high $T$ (e.g., 100.0), the distribution flattens toward uniform despite fitness variation.</p>
+<p>Example 3.2.2 demonstrates roulette selection with different temperature settings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.selection.roulette</span><span class="w"> </span><span class="kn">import</span> <span class="n">RouletteSelection</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+
+<span class="c1"># Balanced roulette with default temperature</span>
+<span class="n">selection</span> <span class="o">=</span> <span class="n">RouletteSelection</span><span class="p">(</span><span class="n">num_selections</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">])</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="n">selected_indices</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">_select</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">fitness</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">selected_indices</span><span class="p">)</span>  <span class="c1"># shape (20,), values in [0, 5)</span>
+<span class="c1"># Higher fitness individuals appear more frequently proportionally</span>
+
+<span class="c1"># High-temperature (explorative) variant</span>
+<span class="n">selection_explore</span> <span class="o">=</span> <span class="n">RouletteSelection</span><span class="p">(</span><span class="n">num_selections</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="n">selected_explore</span> <span class="o">=</span> <span class="n">selection_explore</span><span class="o">.</span><span class="n">_select</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">fitness</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">selected_explore</span><span class="p">)</span>  <span class="c1"># more uniform distribution across all individuals</span>
+
+<span class="c1"># Low-temperature (exploitative) variant</span>
+<span class="n">selection_exploit</span> <span class="o">=</span> <span class="n">RouletteSelection</span><span class="p">(</span><span class="n">num_selections</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">selected_exploit</span> <span class="o">=</span> <span class="n">selection_exploit</span><span class="o">.</span><span class="n">_select</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">fitness</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">selected_exploit</span><span class="p">)</span>  <span class="c1"># heavily biased toward top individuals</span>
+</pre></div>
+</div>
+</section>
+<section id="elite-pool-selection">
+<h3>3.2.3. Elite Pool Selection<a class="headerlink" href="#elite-pool-selection" title="Link to this heading"></a></h3>
+<p>Elite pool selection restricts the mating pool to the top-performing individuals, maximizing exploitation at the cost of exploration. Only the top <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> individuals (sorted by fitness) are allowed to reproduce. All parents for the next generation are sampled uniformly with replacement from this restricted elite pool. Weak individuals—no matter how diverse their genomes—are permanently excluded from breeding.</p>
+<p>This approach has two significant consequences. <em>Positive</em>: it guarantees that every offspring inherits genes exclusively from proven high-performers, leading to fast convergence on local optima and minimal wasted evaluation on mediocre genomes. <em>Negative</em>: it reduces genetic diversity and can cause premature convergence to sub-optimal solutions if the elite pool lacks sufficient variation. In large populations this is less problematic, but in small elite pools (e.g., <code class="docutils literal notranslate"><span class="pre">elite_k</span> <span class="pre">=</span> <span class="pre">5</span></code> with <code class="docutils literal notranslate"><span class="pre">pop_size</span> <span class="pre">=</span> <span class="pre">100</span></code>), you lose most of the population’s genetic material.</p>
+<p>Elite pool is the preferred <em>default</em> selection in <strong>evosax</strong> SimpleGA, both because it is conceptually simple to implement and experimentally fast to run. When comparing MalthusJAX to evosax, it is important to note that using elite pool selection in MalthusJAX makes the search landscape artificially narrower than what a fair comparison with tournament or roulette would provide. Fair benchmarking should therefore use tournament or roulette as the selection operator when comparing algorithms across frameworks.</p>
+<p>The implementation in <code class="docutils literal notranslate"><span class="pre">elite_pool.py</span></code> is highly optimized, using <code class="docutils literal notranslate"><span class="pre">jnp.argpartition</span></code> for O(N) elite filtering and fusing parent selection with elite preservation into a single scan. It uses <code class="docutils literal notranslate"><span class="pre">jnp.argpartition(-fitness,</span> <span class="pre">elite_k)</span></code> to identify the top <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> individuals in a single O(N) pass (much faster than a full sort). Once the elite indices are extracted, parent selection becomes a trivial O(num_selections) operation: just uniformly sample indices into the elite pool via <code class="docutils literal notranslate"><span class="pre">jax.random.randint</span></code>. Furthermore, the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method fuses both parent selection and elite preservation for the next generation, avoiding a redundant second pass through the fitness vector.</p>
+<p>The method consumes exactly <strong>one PRNG key</strong> per invocation.</p>
+<p><strong>Diversity vs. Convergence Trade-off:</strong> The relationship between <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> and genetic diversity is sharp. For <code class="docutils literal notranslate"><span class="pre">elite_k</span> <span class="pre">=</span> <span class="pre">pop_size</span></code>, elite pool degenerates to uniform selection (maximal diversity, minimal exploitation). As <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> shrinks, diversity plummets exponentially: with <code class="docutils literal notranslate"><span class="pre">elite_k</span> <span class="pre">=</span> <span class="pre">sqrt(pop_size)</span></code>, only a handful of genetic templates dominate, likely leading to lock-in on local optima. The sweet spot depends on the problem: rough landscapes benefit from larger <code class="docutils literal notranslate"><span class="pre">elite_k</span></code>; smooth, unimodal landscapes tolerate smaller pools.</p>
+<p><strong>Why evosax uses it:</strong> Speed and simplicity. <code class="docutils literal notranslate"><span class="pre">argpartition</span></code> is a hardware-friendly O(N) operation that minimizes compilation overhead and synchronization on distributed systems. In multi-GPU settings where communication is expensive, elite pool’s minimal state (just <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> indices) is easier to broadcast. Evosax prioritizes empirical speed on standard benchmarks; MalthusJAX offers the flexibility to choose selection strategies tailored to your problem.</p>
+<p>Example 3.2.3 demonstrates elite pool selection with varying pool sizes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.selection.elite_pool</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElitePoolSelection</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+
+<span class="c1"># Conservative elite pool: keep top 10 out of 100</span>
+<span class="n">selection</span> <span class="o">=</span> <span class="n">ElitePoolSelection</span><span class="p">(</span><span class="n">num_selections</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">elite_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">,</span> <span class="mf">2.9</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> 
+                      <span class="mf">0.9</span><span class="p">,</span> <span class="mf">2.6</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="mf">2.4</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">2.2</span><span class="p">])</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="c1"># Select 50 parents from top 10 individuals (with replacement)</span>
+<span class="n">selected_indices</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">_select</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">fitness</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">selected_indices</span><span class="p">)</span>  <span class="c1"># shape (50,), mostly values in {top 10 indices}</span>
+<span class="c1"># Only the 10 fittest genomes appear; others never breed</span>
+
+<span class="c1"># Compare with larger elite pool: preserve more diversity</span>
+<span class="n">selection_diverse</span> <span class="o">=</span> <span class="n">ElitePoolSelection</span><span class="p">(</span><span class="n">num_selections</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">elite_k</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">selected_diverse</span> <span class="o">=</span> <span class="n">selection_diverse</span><span class="o">.</span><span class="n">_select</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">fitness</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">selected_diverse</span><span class="p">)</span>  <span class="c1"># shape (50,), values distributed across all 20 individuals</span>
+<span class="c1"># Weaker individuals have a chance, slower convergence but less risk of getting stuck</span>
+
+<span class="c1"># Why evosax&#39; SimpleGA uses this (it&#39;s fast!):</span>
+<span class="c1"># O(N) argpartition vs O(N log N) sort or O(num_selections * pool_size) for tournament</span>
+</pre></div>
+</div>
+<p><strong>Comparison with Other Selectors:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Speed</p></th>
+<th class="head"><p>Diversity</p></th>
+<th class="head"><p>Theory</p></th>
+<th class="head"><p>Use Case</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Elite Pool</strong></p></td>
+<td><p>O(N) argpartition</p></td>
+<td><p>Very Low</p></td>
+<td><p>High exploitation, limited exploration</p></td>
+<td><p>Fast refinement, avoid weak genes</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Tournament</strong></p></td>
+<td><p>O(num_selections × tournament_size)</p></td>
+<td><p>Medium</p></td>
+<td><p>Tunable pressure via tournament size</p></td>
+<td><p>Balanced, general-purpose</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Roulette</strong></p></td>
+<td><p>O(N) softmax</p></td>
+<td><p>Medium-High</p></td>
+<td><p>Fitness-weighted, can waste on weak</p></td>
+<td><p>Problem-dependent, well-characterized fitness</p></td>
+</tr>
+</tbody>
+</table>
+<p>For fair comparison with evosax, use <strong>tournament selection</strong> or <strong>roulette</strong> in MalthusJAX to restore the exploration that evosax’s elite pool removes.</p>
+</section>
+<section id="statistical-properties-of-independent-vs-permuted-sampling">
+<h3>3.2.4. Statistical Properties of Independent vs. Permuted Sampling<a class="headerlink" href="#statistical-properties-of-independent-vs-permuted-sampling" title="Link to this heading"></a></h3>
+<p>Selection in standard Genetic Algorithms produces two pools of parents that will later be paired for crossover.  A subtle but important distinction arises depending on whether those pools are drawn independently or obtained by permuting a single sample.  We formalize the difference as follows.</p>
+<ol class="arabic simple">
+<li><p><strong>Statement of the Problem</strong></p></li>
+</ol>
+<p>Let $A$ be a finite set of elements. Let $P$ be a probability distribution over $A$ representing a selection criterion, such that the probability of drawing element $a \in A$ is $P(a)=p_a$.  We define two distinct processes for generating pairs of $N$–dimensional sequences to be used as operands (e.g., parent pools in a Genetic Algorithm):</p>
+<p><em>Process I (Independent Generation):</em> Generate two $N$–tuples, $X$ and $X’$, where $X,X’ \in A^N$.  Each element $x_i \in X$ and $x’_i \in X’$ is drawn independently and identically distributed (i.i.d.) according to $P$.</p>
+<p><em>Process II (Permuted Copy):</em> Generate a single $N$–tuple $X \in A^N$ i.i.d. according to $P$.  Let $Y=X$.  Generate $Y’$ by applying a random permutation $\pi$ drawn uniformly from the symmetric group $S_N$, such that $Y’=\pi(Y)=(x_{\pi(1)},\dots,x_{\pi(N)})$.</p>
+<p><strong>Objective:</strong> To prove that while the marginal probabilities of individual elements in $X’$ and $Y’$ are identical, their joint probabilities with respect to $X$ diverge, creating a measurable impact on the rate of self‑crossover.</p>
+<ol class="arabic simple" start="2">
+<li><p><strong>Proof of Marginal Equivalence (Individual Level)</strong></p></li>
+</ol>
+<p>We evaluate the probability of observing a specific element $a$ at an arbitrary index $k$.  For Process I ($X’$):</p>
+<p>$$P(x’_k=a)=p_a$$</p>
+<p>For Process II ($Y’$):</p>
+<p>$$P(y’<em>k=a)=\sum</em>{j=1}^N P(x_{\pi(k)}=a\mid\pi(k)=j)P(\pi(k)=j) = \frac{p_a}{N} \sum_{j=1}^N 1 = p_a$$</p>
+<p>Conclusion: $P(x’_k=a)=P(y’_k=a)=p_a$.  The marginal properties of the sequences are identical.</p>
+<ol class="arabic simple" start="3">
+<li><p><strong>Divergence at the Population Level (Joint Probability)</strong></p></li>
+</ol>
+<p>We evaluate the joint probability of drawing element $a$ at index $k$ in both sequences simultaneously—representing a targeted mating pair $(x_k,x’_k)$ versus $(x_k,y’_k)$.  For Process I (Independent):</p>
+<p>$$P(x_k=a,x’_k=a) = p_a^2$$</p>
+<p>For Process II (Permuted):</p>
+<p>$$P(x_k=a,y’_k=a) = P(y’_k=a\mid x_k=a)P(x_k=a)$$</p>
+<p>Using the permutation cases:</p>
+<p>$$P(y’_k=a\mid x_k=a)=\frac{1}{N}+\frac{N-1}{N}p_a$$</p>
+<p>hence</p>
+<p>$$P(x_k=a,y’_k=a)=\frac{p_a}{N}+\frac{N-1}{N}p_a^2$$</p>
+<p>The joint probabilities diverge; the permuted copy introduces a structural dependence.</p>
+<ol class="arabic simple" start="4">
+<li><p><strong>Implications for Self‑Crossover</strong></p></li>
+</ol>
+<p>A self‑crossover occurs when an individual is mated with an exact copy of itself.  The excess probability introduced by Process II is</p>
+<p>$$\Delta P = \frac{p_a(1-p_a)}{N}$$</p>
+<p>which is strictly positive for $0&lt;p_a&lt;1$ and inversely proportional to $N$.  Thus, a “shuffle‑and‑mate” strategy increases the chance of self‑crossover relative to drawing two independent pools.  For large populations the effect vanishes, but in finite‑sized GPU‑friendly pools it can induce unwanted genetic drift.</p>
+<p><strong>Takeaway:</strong> drawing parent pools independently preserves i.i.d. assumptions, reduces redundant self‑mating, and aligns better with coalesced memory access patterns on hardware.  It is therefore the preferred selection strategy in MalthusJAX’s default operators.</p>
+</section>
+</section>
+<section id="crossover-malthusjax-operators-crossover">
+<h2>3.3. Crossover (malthusjax.operators.crossover)<a class="headerlink" href="#crossover-malthusjax-operators-crossover" title="Link to this heading"></a></h2>
+<p>Crossover operators define how genetic material is mixed between parent genomes to create offspring. In MalthusJAX crossover is the most complex operator type because it must accept two parent populations at once (a paired mating pool), budget and consume PRNG keys deterministically for each pair/offspring, vectorize across both the number of parent pairs and the number of offspring produced per pair, and output a flattened population with a predictable memory layout.</p>
+<ul class="simple">
+<li><p><strong>Tier 1 – pure recombination.</strong>  A subclass implements <code class="docutils literal notranslate"><span class="pre">_recombine_one(p1,p2,noise,config)</span></code>
+which takes two <em>individual</em> genomes and some noise data and returns a single
+offspring genome.  This method is free of any randomness or batching, and is
+therefore trivial to test or jit on its own.  (The higher-level <code class="docutils literal notranslate"><span class="pre">__call__</span></code>
+method now also accepts <code class="docutils literal notranslate"><span class="pre">generation</span></code> so schedules can drive noise parameters
+through the pipeline.)</p></li>
+<li><p><strong>Tier 2 – noise generation.</strong>  <code class="docutils literal notranslate"><span class="pre">_generate_noise(key,config[,generation])</span></code> produces whatever
+auxiliary data the recombination kernel needs: a Boolean mask for uniform
+crossover, a scalar crossover point, real‑valued blending coefficients, etc.
+When schedulers are active the optional <code class="docutils literal notranslate"><span class="pre">generation</span></code> argument is used to
+compute time‑dependent parameters (e.g. linearly decaying radius or
+mutation strength). The only requirement is that the domain of the noise
+matches the output expected by <code class="docutils literal notranslate"><span class="pre">_recombine_one</span></code>.</p></li>
+<li><p><strong>Tier 3 – population‑level vmap.</strong>  <code class="docutils literal notranslate"><span class="pre">BaseCrossover.__call__</span></code> handles all the
+bookkeeping: reshape pre‑allocated keys into <code class="docutils literal notranslate"><span class="pre">(pairs,</span> <span class="pre">offspring,</span> <span class="pre">atomic_keys,[2])</span></code>,
+apply nested <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> over pairs and offspring, then flatten the resulting
+<code class="docutils literal notranslate"><span class="pre">(pairs,offspring,...)</span></code> array back to <code class="docutils literal notranslate"><span class="pre">(pairs*offspring,...)</span></code>.  <code class="docutils literal notranslate"><span class="pre">__call__</span></code>
+signature has been extended to <code class="docutils literal notranslate"><span class="pre">(...,</span> <span class="pre">generation:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0)</span></code> so that the
+scheduler value flows into each noise generator.  This tier also
+knows how to detect the <em>fast path</em> when <code class="docutils literal notranslate"><span class="pre">num_offspring</span> <span class="pre">==</span> <span class="pre">1</span></code>, collapsing the
+nested vmaps into a single flat vmap (evosax‑style) for better compile time
+and memory coalescence.</p></li>
+</ul>
+<p>Key budgeting is central to the design.  Each concrete operator exposes a
+<code class="docutils literal notranslate"><span class="pre">num_keys_per_atomic_operation</span></code> property that tells the engine how many subkeys
+it will consume for <em>one pair, one offspring</em>.  The resource mapper then
+pre‑allocates a contiguous block of keys of the proper shape so that
+<code class="docutils literal notranslate"><span class="pre">__call__</span></code> can simply <code class="docutils literal notranslate"><span class="pre">reshape</span></code> them without further splits.  The use of a
+<code class="docutils literal notranslate"><span class="pre">typed_keys</span></code> flag (and its K=1 fast path) ensures that both legacy <code class="docutils literal notranslate"><span class="pre">uint32</span></code> keys
+and the newer typed-PRNG keys are handled correctly.</p>
+<p>Memory layout is deliberately <strong>pair‑major</strong>: siblings produced by the same
+parent pair are adjacent in the flattened output.  This ordering avoids costly
+transposes during flattening and keeps downstream mutation/crossover kernels
+able to fuse with the upstream kernels without breaking XLA’s layout assumptions
+(FB‑1).</p>
+<section id="continuous-real-crossover">
+<h3>3.3.1. Continuous / Real Crossover<a class="headerlink" href="#continuous-real-crossover" title="Link to this heading"></a></h3>
+</section>
+<section id="third-party-ecosystem-interoperability-evosax-crossover-py">
+<h3>3.3.2. Third-Party Ecosystem Interoperability (evosax_crossover.py)<a class="headerlink" href="#third-party-ecosystem-interoperability-evosax-crossover-py" title="Link to this heading"></a></h3>
+<p>The framework bridges MalthusJAX’s modular architecture with external JAX evolution libraries by writing adapter/wrapper classes that expose the evosax API via the MalthusJAX operator contract, ensuring structural parity. Adapter implementations must account for the performance cost of the abstractions required to achieve interoperability and theoretical fidelity to the Genetic Algorithm paradigm.</p>
+</section>
+</section>
+<section id="mutation-strategies-malthusjax-operators-mutation">
+<h2>3.4. Mutation Strategies (malthusjax.operators.mutation)<a class="headerlink" href="#mutation-strategies-malthusjax-operators-mutation" title="Link to this heading"></a></h2>
+<p>Mutation operators are responsible for injecting stochastic perturbations into
+individual genomes.  Like crossover, the implementation follows the <strong>three‑tier
+architecture</strong> motivated by JAX performance best practices:</p>
+<ul class="simple">
+<li><p><strong>Tier 1 – pure mutation kernel</strong> (<code class="docutils literal notranslate"><span class="pre">_mutate_one</span></code>).  Subclasses implement a
+deterministic transformation of a single genome given a piece of noise
+data.  This function is JIT‑traceable on its own and contains no randomness or
+batching logic.</p></li>
+<li><p><strong>Tier 2 – noise generation</strong> (<code class="docutils literal notranslate"><span class="pre">_generate_noise</span></code>).  Given a block of PRNG
+keys the operator produces whatever auxiliary data the mutation needs: a
+Boolean flip mask, a Gaussian perturbation tensor, a vector of polynomial
+coefficients, etc.  The signature includes an optional <code class="docutils literal notranslate"><span class="pre">generation</span></code>
+argument; when a schedule is attached the function will compute generation-
+dependent strengths/radii before returning.  The contract requires that the
+output noise PyTree have leading shape <code class="docutils literal notranslate"><span class="pre">(input_length,</span> <span class="pre">num_offspring,</span> <span class="pre">...)</span></code>
+so that the caller can vectorize over it.</p></li>
+<li><p><strong>Tier 3 – population-level vmap</strong> (<code class="docutils literal notranslate"><span class="pre">__call__</span></code>).  This wrapper handles key
+budgeting, reshaping, and two levels of <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> (pairs → offspring).  The
+base class also implements a <strong>fast path for the common case <code class="docutils literal notranslate"><span class="pre">num_offspring==1</span></code></strong>:
+keys are simply flattened to shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">n_keys)</span></code> and a single flat vmap
+identical to the evosax implementation is used.  This eliminates an inner vmap,
+the <code class="docutils literal notranslate"><span class="pre">(N,1,...)</span></code>→<code class="docutils literal notranslate"><span class="pre">(N,...)</span></code> reshape, and the tree_map traversal, significantly
+reducing compile time and memory traffic.</p></li>
+</ul>
+<p>Keys are pre‑allocated by the engine’s <code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code> using the operator’s
+<code class="docutils literal notranslate"><span class="pre">num_keys_per_atomic_operation</span></code> property.  For a standard mutation this means
+<code class="docutils literal notranslate"><span class="pre">input_length</span> <span class="pre">×</span> <span class="pre">num_offspring</span> <span class="pre">×</span> <span class="pre">atomic_keys</span></code> subkeys; for the K=1 fast path the
+budget reduces accordingly.  The boolean <code class="docutils literal notranslate"><span class="pre">typed_keys</span></code> flag controls whether the
+keys include a trailing dimension of size 2 (legacy <code class="docutils literal notranslate"><span class="pre">uint32</span></code> keys) or are
+scalar typed values; all operators transparently reshape based on this flag.</p>
+<p>Two auxiliary modes arise from this design:</p>
+<ul class="simple">
+<li><p><strong>Injection mode</strong> (<code class="docutils literal notranslate"><span class="pre">BaseMutation_injection</span></code> in <code class="docutils literal notranslate"><span class="pre">base_injection.py</span></code>): the
+operator consumes a single PRNG key and expects <code class="docutils literal notranslate"><span class="pre">_generate_noise</span></code> to return a
+fully materialized noise tensor.  This trades memory for determinism and is
+used in regression tests and replay experiments.</p></li>
+<li><p><strong>Ablation mode</strong> (<code class="docutils literal notranslate"><span class="pre">base_ablation.py</span></code>): a decorator that converts any operator
+into a single‑key variant for benchmarking the cost of dynamic key splitting.
+It overrides <code class="docutils literal notranslate"><span class="pre">num_keys()</span></code> to return 1 and splits internally before delegating
+to the original <code class="docutils literal notranslate"><span class="pre">__call__</span></code>.</p></li>
+</ul>
+<p>This layered structure makes mutation operators both fast and flexible: you can
+write a simple scalar kernel in Tier 1, let the base class take care of poking
+it through a population, and still reason precisely about how many random
+numbers will be consumed.</p>
+<section id="continuous-mutation">
+<h3>3.4.1. Continuous Mutation<a class="headerlink" href="#continuous-mutation" title="Link to this heading"></a></h3>
+<p>Continuous mutation applies scaled perturbations to floating-point values. The implementation uses JAX PRNGs to generate Gaussian/Polynomial noise and handles boundary constraints via clipping.</p>
+</section>
+<section id="evosax-mutation-wrappers-evosax-mutation-py">
+<h3>3.4.3. Evosax Mutation Wrappers (evosax_mutation.py)<a class="headerlink" href="#evosax-mutation-wrappers-evosax-mutation-py" title="Link to this heading"></a></h3>
+<p>The framework wraps stateful evosax parameter structs into MalthusJAX PyTree nodes, re-using verified high-performance mutation strategies from the evosax suite.</p>
+</section>
+</section>
+<section id="randomness-and-prng-management">
+<h2>3.5. Randomness and PRNG Management<a class="headerlink" href="#randomness-and-prng-management" title="Link to this heading"></a></h2>
+<p>Before diving into diagnostics, it helps to understand how operators manage pseudo‑random number generators. Every operator class declares a small integer attribute (typically <code class="docutils literal notranslate"><span class="pre">num_keys</span></code> or similar) representing how many independent PRNG subkeys it consumes per invocation. For simple selection operators this value is often zero, while a mutation operator might need one key per gene or another fixed number.</p>
+<p>When an operator is called it receives a single top‑level <code class="docutils literal notranslate"><span class="pre">jax.random.PRNGKey</span></code>. It can either split this key itself into the required number of subkeys:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">subkeys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">num_keys</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1"># use subkeys[0], subkeys[1], ...</span>
+</pre></div>
+</div>
+<p>or it can operate in “injection” mode where the caller supplies a pre-split tuple of keys. Injection is convenient when multiple operators need to share the same randomness (e.g. synchronized crossover across devices) or when an external loop pre-computes a key schedule. In that case, the operator simply destructures the tuple and uses its entries directly, avoiding further splits.</p>
+<p>This flexible handling of PRNGs ensures that key consumption is explicit and deterministic. Operators document their key requirements in their dataclass definitions and test suites assert that passing a malformed key tuple results in a clear error rather than silent reuse.</p>
+</section>
+<section id="advanced-operator-diagnostics-and-manipulation">
+<h2>3.6. Advanced Operator Diagnostics and Manipulation<a class="headerlink" href="#advanced-operator-diagnostics-and-manipulation" title="Link to this heading"></a></h2>
+<p>MalthusJAX also includes modules for testing, isolating, and manipulating operator behavior in order to support benchmarking and theoretical analysis.</p>
+<section id="operator-ablation-base-ablation-py">
+<h3>3.5.1. Operator Ablation (base_ablation.py)<a class="headerlink" href="#operator-ablation-base-ablation-py" title="Link to this heading"></a></h3>
+<p>Operator ablation enables systematic investigation of operator components by using PyTree decorators to intercept and modify the execution graph dynamically during a benchmark run. This supports analytical studies where specific parts of an operator are turned off or constrained.</p>
+</section>
+<section id="injection-and-regressions-base-injection-py">
+<h3>3.5.2. Injection and Regressions (base_injection.py)<a class="headerlink" href="#injection-and-regressions-base-injection-py" title="Link to this heading"></a></h3>
+<p>Injection-mode operators consume a single PRNG key and accept externally generated noise/masks instead of budgeted subkeys. The <code class="docutils literal notranslate"><span class="pre">BaseMutation_injection</span></code> and <code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection</span></code> classes mirror their standard counterparts but flip the RNG contract: operators take exactly one key rather than a block sized by <code class="docutils literal notranslate"><span class="pre">num_keys()</span></code>, the subclass’s <code class="docutils literal notranslate"><span class="pre">_generate_noise</span></code> method splits that key internally and returns a fully materialized PyTree with leading shape <code class="docutils literal notranslate"><span class="pre">(input_length,</span> <span class="pre">num_offspring,</span> <span class="pre">...)</span></code>, and a fast path exists for <code class="docutils literal notranslate"><span class="pre">num_offspring</span> <span class="pre">==</span> <span class="pre">1</span></code> where the noise is already correctly shaped and a single flat <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> is used.</p>
+<p>Injection mode trades memory for determinism and external control. It is ideal when you want to reproduce the exact same mutations or crossover masks across runs, or when you wish to supply noise from a different source (e.g. a precomputed adversarial perturbation or a replay buffer).</p>
+<p>Because the noise is generated outside the vmap, the operator cannot fuse RNG with arithmetic; large noise tensors may increase compilation time and memory pressure.  Subclasses therefore should avoid overly-complex noise logic unless the benefits of replay outweigh the cost.</p>
+<p>The injection base classes are also the foundation for regression tests: you can wrap an operator with pre-specified noise arrays and feed them through a <code class="docutils literal notranslate"><span class="pre">lax.scan</span></code> to verify that evolution produces expected trajectories (see <code class="docutils literal notranslate"><span class="pre">test_real_injection_crossover.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_real_injection_mutation.py</span></code>).</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="2-CORE_ABSTRACTIONS.html" class="btn btn-neutral float-left" title="Core Abstractions: Genomes, Populations, and Fitness" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="4-ENGINE_ORCHESTRATION.html" class="btn btn-neutral float-right" title="The Engine: Orchestration and Compilation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Leonardo Di Caterina.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

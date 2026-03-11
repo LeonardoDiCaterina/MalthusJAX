@@ -1,0 +1,15 @@
+{
+  "task": "sphere",
+  "dim": 10,
+  "pop_size": 256,
+  "seed": 42,
+  "unroll_factors": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "device": "cuda:0"
+}

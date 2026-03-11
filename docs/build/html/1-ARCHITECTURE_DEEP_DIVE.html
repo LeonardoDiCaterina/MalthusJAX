@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture Deep Dive: MalthusJAX Framework &mdash; MalthusJAX  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Core Abstractions: Genomes, Populations, and Fitness" href="2-CORE_ABSTRACTIONS.html" />
+    <link rel="prev" title="Quick Start" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MalthusJAX
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture Deep Dive: MalthusJAX Framework</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#design-principles">1. Design Principles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#complete-end-to-end-pipeline">1.1 Complete End-to-End Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#standardized-contracts">1.2 Standardized Contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-quality-enforcement">1.3 Code Quality Enforcement</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#organizational-structure">2. Organizational Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#six-tier-architecture">2.1 Six-Tier Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tier-responsibilities">2.2 Tier Responsibilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#terminology">3. Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#related-work">4. Related Work</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MalthusJAX</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture Deep Dive: MalthusJAX Framework</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/1-ARCHITECTURE_DEEP_DIVE.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture-deep-dive-malthusjax-framework">
+<h1>Architecture Deep Dive: MalthusJAX Framework<a class="headerlink" href="#architecture-deep-dive-malthusjax-framework" title="Link to this heading"></a></h1>
+<p>MalthusJAX is architected as a vertical integration spanning six tiers—from low-level genome representations and fitness evaluation through evolutionary operators, orchestration engines, configuration-driven experiment composition, multi-seed benchmarking infrastructure, and finally visualization and analysis. This hierarchical organization establishes standardized interfaces at tier boundaries, permitting independent development of components while maintaining tight interoperability. The framework treats each tier as a distinct responsibility layer, with information flowing both upward (to higher-level abstractions) and downward (to lower-level implementations). By enforcing standardized contracts—PyTree genomes, pure functions for operators and evaluators, symmetric state/output tuples from engines—the design enables researchers to substitute components (e.g., swapping a crossover algorithm or evaluation function) without propagating changes through adjacent layers.</p>
+<p>This chapter explains the foundational philosophy guiding the system’s organization, the concrete responsibilities and boundaries of each tier, how the framework’s six chapters map to these tiers, and the terminology used consistently throughout the thesis.</p>
+<section id="design-principles">
+<h2>1. Design Principles<a class="headerlink" href="#design-principles" title="Link to this heading"></a></h2>
+<section id="complete-end-to-end-pipeline">
+<h3>1.1 Complete End-to-End Pipeline<a class="headerlink" href="#complete-end-to-end-pipeline" title="Link to this heading"></a></h3>
+<p>Rather than isolating component development, the framework builds a functional end-to-end pipeline in which all tiers are simultaneously operational. This allows each component to be tested against standardized benchmarks and to interoperate with other tiers from inception.</p>
+</section>
+<section id="standardized-contracts">
+<h3>1.2 Standardized Contracts<a class="headerlink" href="#standardized-contracts" title="Link to this heading"></a></h3>
+<p>Each tier communicates with adjacent tiers through narrow, published interfaces:</p>
+<ul class="simple">
+<li><p><strong>Tier 0 ↔ Tier 1</strong>: Genomes must implement PyTree protocol; fitness evaluators must be pure functions.</p></li>
+<li><p><strong>Tier 1 ↔ Tier 2</strong>: Operators must implement <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">inputs,</span> <span class="pre">generation)</span> <span class="pre">→</span> <span class="pre">outputs</span></code> signature.</p></li>
+<li><p><strong>Tier 2 ↔ Tier 3</strong>: Engines must implement <code class="docutils literal notranslate"><span class="pre">init_state()</span></code> and <code class="docutils literal notranslate"><span class="pre">step()</span></code> returning standardized state/output tuples.</p></li>
+<li><p><strong>Tier 3 ↔ Tier 4</strong>: Experiments are serialized to <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> dataclass with JSON export.</p></li>
+</ul>
+<p>These contracts are enforced through type annotations and protocol definitions.</p>
+</section>
+<section id="code-quality-enforcement">
+<h3>1.3 Code Quality Enforcement<a class="headerlink" href="#code-quality-enforcement" title="Link to this heading"></a></h3>
+<p>All code is subject to:</p>
+<ul class="simple">
+<li><p><strong>Type checking</strong>: <code class="docutils literal notranslate"><span class="pre">mypy</span> <span class="pre">--strict</span></code> with zero tolerance for untyped code or type: ignore exceptions.</p></li>
+<li><p><strong>Linting</strong>: <code class="docutils literal notranslate"><span class="pre">ruff</span> <span class="pre">check</span></code> enforces style consistency and catches common errors.</p></li>
+<li><p><strong>Test coverage</strong>: ≥80% statement coverage on all modules; critical paths (operators, engine kernels) approach 100%.</p></li>
+</ul>
+<p>These checks are non-negotiable preconditions for code acceptance.</p>
+</section>
+</section>
+<section id="organizational-structure">
+<h2>2. Organizational Structure<a class="headerlink" href="#organizational-structure" title="Link to this heading"></a></h2>
+<section id="six-tier-architecture">
+<h3>2.1 Six-Tier Architecture<a class="headerlink" href="#six-tier-architecture" title="Link to this heading"></a></h3>
+<p>The framework is organized into six horizontal tiers, each with a distinct responsibility:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Tier 5: Visualization
+  └─ Single-run and multi-run analysis plots
+
+Tier 4: Benchmarking
+  └─ Multi-seed orchestration, result aggregation, I/O
+
+Tier 3: Composer
+  └─ Config-driven experiment specification and resolution
+
+Tier 2: Engine
+  └─ Evolutionary loop implementation, JIT compilation
+
+Tier 1: Operators
+  └─ Selection, Crossover, Mutation implementations
+
+Tier 0: Core
+  └─ Genomes, Fitness Evaluators, PRNG utilities
+</pre></div>
+</div>
+<p>Information flows bidirectionally: higher tiers use lower-tier abstractions; lower tiers produce data consumed by higher tiers (e.g., history arrays from Tier 2 feed into Tier 4 result objects).</p>
+</section>
+<section id="tier-responsibilities">
+<h3>2.2 Tier Responsibilities<a class="headerlink" href="#tier-responsibilities" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tier</p></th>
+<th class="head"><p>Module</p></th>
+<th class="head"><p>Primary Responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.core</span></code></p></td>
+<td><p>Immutable data structures (genomes, populations), fitness evaluation, PRNG state management</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.operators</span></code></p></td>
+<td><p>Pure genetic operators implementing standardized call signatures</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.engine</span></code></p></td>
+<td><p>Evolution loop orchestration, XLA compilation, state threading</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.composer</span></code></p></td>
+<td><p>String-to-operator resolution, TOML parsing, multi-backend support</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.benchmarking</span></code></p></td>
+<td><p>Multi-seed experiment execution, result serialization, format-agnostic I/O</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.visualization</span></code></p></td>
+<td><p>Convergence plotting, multi-run analysis, statistical comparison</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="terminology">
+<h2>3. Terminology<a class="headerlink" href="#terminology" title="Link to this heading"></a></h2>
+<p>The following terms are used with consistent meaning throughout this thesis:</p>
+<ul class="simple">
+<li><p><strong>Genome</strong>: An immutable PyTree containing a JAX array and structural metadata. Represents a candidate solution.</p></li>
+<li><p><strong>Population</strong>: A collection of genomes with associated fitness values and optional auxiliary metrics (distance matrices, KPIs).</p></li>
+<li><p><strong>Evaluator</strong>: A pure function computing scalar fitness from a genome.</p></li>
+<li><p><strong>Operator</strong>: A pure function transforming population state (e.g., Selection, Crossover, Mutation).</p></li>
+<li><p><strong>Engine</strong>: The orchestrator implementing the evolution loop via Tier 2.</p></li>
+<li><p><strong>PRNG Key</strong>: JAX’s explicit random state; used exactly once and never reused.</p></li>
+<li><p><strong>Generation</strong>: One iteration of the evolution loop.</p></li>
+<li><p><strong>ExperimentResult</strong>: Serialized container holding all runs, histories, and aggregated metrics from an experiment.</p></li>
+</ul>
+</section>
+<section id="related-work">
+<h2>4. Related Work<a class="headerlink" href="#related-work" title="Link to this heading"></a></h2>
+<p>The architecture of MalthusJAX synthesizes design patterns from several established frameworks in the evolutionary computation and machine learning ecosystems. The ask/tell population-based interface from evosax informed the design of the Engine tier, enabling decoupled execution from state management. The operator modularity and registry-based plugin system of DEAP provided the foundation for the Composer’s operator catalog and string-to-instance resolution mechanism, allowing experiments to be specified declaratively. The benchmarking and result aggregation infrastructure of pygmo shaped the multi-seed execution strategy and comparative analysis utilities of the Benchmarking tier, establishing patterns for cross-algorithm comparison and result serialization. Configuration-driven orchestration patterns from the data pipeline framework kedro influenced the TOML-based specification system and separation of concerns between experiment definition and execution. Rather than adopting any single framework wholesale, MalthusJAX integrates these insights into a coherent architecture unified by type safety, standardized contracts, and PyTree-based data structures native to JAX.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="2-CORE_ABSTRACTIONS.html" class="btn btn-neutral float-right" title="Core Abstractions: Genomes, Populations, and Fitness" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Leonardo Di Caterina.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

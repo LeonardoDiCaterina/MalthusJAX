@@ -1,0 +1,93 @@
+{
+  "name": "demo_evosax",
+  "runs": [
+    {
+      "seed": 42,
+      "status": "success",
+      "metrics": {
+        "best_fitness": -175.69189453125,
+        "final_generation": 10.0,
+        "total_evaluations": 500.0
+      },
+      "history": [
+        {
+          "generation": 1,
+          "best_fitness": -145.1119842529297,
+          "mean_fitness": -66.26930236816406,
+          "std_fitness": 41.976688385009766
+        },
+        {
+          "generation": 2,
+          "best_fitness": -169.1270294189453,
+          "mean_fitness": -90.11419677734375,
+          "std_fitness": 32.29294204711914
+        },
+        {
+          "generation": 3,
+          "best_fitness": -169.1270294189453,
+          "mean_fitness": -109.16386413574219,
+          "std_fitness": 25.629732131958008
+        },
+        {
+          "generation": 4,
+          "best_fitness": -169.1270294189453,
+          "mean_fitness": -117.44840240478516,
+          "std_fitness": 23.196876525878906
+        },
+        {
+          "generation": 5,
+          "best_fitness": -169.1270294189453,
+          "mean_fitness": -130.69960021972656,
+          "std_fitness": 18.019926071166992
+        },
+        {
+          "generation": 6,
+          "best_fitness": -173.6461944580078,
+          "mean_fitness": -135.63099670410156,
+          "std_fitness": 15.838933944702148
+        },
+        {
+          "generation": 7,
+          "best_fitness": -173.6461944580078,
+          "mean_fitness": -142.3397979736328,
+          "std_fitness": 14.731412887573242
+        },
+        {
+          "generation": 8,
+          "best_fitness": -173.6461944580078,
+          "mean_fitness": -144.4403839111328,
+          "std_fitness": 14.314698219299316
+        },
+        {
+          "generation": 9,
+          "best_fitness": -173.8969268798828,
+          "mean_fitness": -144.36489868164062,
+          "std_fitness": 16.28184700012207
+        },
+        {
+          "generation": 10,
+          "best_fitness": -175.69189453125,
+          "mean_fitness": -150.06211853027344,
+          "std_fitness": 15.373104095458984
+        }
+      ],
+      "artifacts": {},
+      "duration_seconds": 0.40270328521728516,
+      "timings": {
+        "initialization": 0.07141604204662144,
+        "evolution": 0.3312534170690924
+      },
+      "error": null,
+      "created_at": "2026-03-07T10:35:22.299280+00:00"
+    }
+  ],
+  "metadata": {
+    "seeds": [
+      42
+    ],
+    "total_runs": 1,
+    "successful_runs": 1
+  },
+  "created_at": "2026-03-07T10:35:22.299288+00:00",
+  "schema_version": "0.1"
+}

@@ -1,0 +1,3 @@
+engine,unroll,task,dim,pop_size,num_gens,n_runs,warm_mean,warm_std,warm_min,warm_max,warm_p5,warm_p50,warm_p95,warm_ci_low,warm_ci_high,warm_cv,compile_mean,compile_std
+Standard_GA,4,sphere,50,128,200,10,3.724,0.067,3.648,3.830,3.650,3.699,3.826,3.676,3.772,1.80,3638.697,78.592
+Standard_GA_Ablation,4,sphere,50,128,200,10,5.308,0.077,5.147,5.416,5.188,5.341,5.387,5.253,5.364,1.46,5287.112,58.161

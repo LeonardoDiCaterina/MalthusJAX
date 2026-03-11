@@ -1,0 +1,63 @@
+{
+  "name": "malthusjax_ga",
+  "runs": [
+    {
+      "seed": 42,
+      "status": "success",
+      "metrics": {
+        "best_fitness": 192.14259338378906,
+        "final_generation": 5.0,
+        "total_evaluations": 100.0
+      },
+      "history": [
+        {
+          "generation": 1,
+          "best_fitness": 186.66981506347656,
+          "mean_fitness": 129.6794891357422,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 2,
+          "best_fitness": 188.18136596679688,
+          "mean_fitness": 167.2228546142578,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 3,
+          "best_fitness": 191.83432006835938,
+          "mean_fitness": 174.65611267089844,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 4,
+          "best_fitness": 192.14259338378906,
+          "mean_fitness": 186.6071014404297,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 5,
+          "best_fitness": 192.14259338378906,
+          "mean_fitness": 188.8691864013672,
+          "std_fitness": 0.0
+        }
+      ],
+      "artifacts": {},
+      "duration_seconds": 0.3100759983062744,
+      "timings": {
+        "initialization": 0.01,
+        "evolution": 0.25
+      },
+      "error": null,
+      "created_at": "2026-03-05T20:40:37.662457+00:00"
+    }
+  ],
+  "metadata": {
+    "seeds": [
+      42
+    ],
+    "total_runs": 1,
+    "successful_runs": 1
+  },
+  "created_at": "2026-03-05T20:40:37.662472+00:00",
+  "schema_version": "0.1"
+}

@@ -1,0 +1,2 @@
+Algorithm,Task,Dim,Pop_Size,Generations,hyperparam_mutation_rate,hyperparam_sigma,hyperparam_elite_ratio,hyperparam_crossover_rate,Mean_Fitness,Fitness_Std,Mean_GPS,Compile_Time,Mean_Exec_Time
+Standard_GA,sphere,50,128,200,0.8,0.5,0.5,0.5,485.3296862792969,39.35403296133339,40670.356968964195,0.9543579790042713,0.004917586539813783

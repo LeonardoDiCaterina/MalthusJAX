@@ -1,0 +1,2 @@
+Function,Duration_ms,Category,Name
+KERNEL_1_DOT,0.365731,,sm90_xmma_gemm_f32f32_tf32f32_f32_nn_n_tilesize128x256x32_warpgroupsize2x1x1_execute_segment_k_off_kernel__5x_cublas

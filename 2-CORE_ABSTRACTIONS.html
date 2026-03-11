@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Core Abstractions: Genomes, Populations, and Fitness &mdash; MalthusJAX  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Functional Genetic Operators" href="3-GENETIC_OPERATORS.html" />
+    <link rel="prev" title="Architecture Deep Dive: MalthusJAX Framework" href="1-ARCHITECTURE_DEEP_DIVE.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MalthusJAX
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Core Abstractions: Genomes, Populations, and Fitness</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-genome-system-malthusjax-core-genome">2.1. The Genome System (malthusjax.core.genome)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-base-genome-pytree">2.1.1. The Base Genome PyTree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#continuous-vs-discrete-representations">2.1.2. Continuous vs. Discrete Representations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tensor-interoperability-and-indexing">2.1.3. Tensor Interoperability and Indexing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#population-metrics-and-kpis">2.1.4. Population Metrics and KPIs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#fitness-evaluators-malthusjax-core-fitness">2.2. Fitness Evaluators (malthusjax.core.fitness)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-evaluator-contract">2.2.1. The Evaluator Contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#continuous-benchmarking-bbobevaluator">2.2.2. Continuous Benchmarking (BBOBEvaluator)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#deterministic-stochasticity-malthusjax-core-random">2.3. Deterministic Stochasticity (malthusjax.core.random)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#jax-prng-key-philosophy">2.3.1. JAX PRNG Key Philosophy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#framework-random-utilities">2.3.2. Framework Random Utilities</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MalthusJAX</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Core Abstractions: Genomes, Populations, and Fitness</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/2-CORE_ABSTRACTIONS.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="core-abstractions-genomes-populations-and-fitness">
+<h1>Core Abstractions: Genomes, Populations, and Fitness<a class="headerlink" href="#core-abstractions-genomes-populations-and-fitness" title="Link to this heading"></a></h1>
+<p>This section breaks down the <code class="docutils literal notranslate"><span class="pre">malthusjax.core</span></code> module, which contains the fundamental data structures and evaluation protocols. In a JAX-native framework, these are strictly defined as PyTrees to ensure compatibility with XLA compilation and vmap vectorization.</p>
+<section id="the-genome-system-malthusjax-core-genome">
+<h2>2.1. The Genome System (malthusjax.core.genome)<a class="headerlink" href="#the-genome-system-malthusjax-core-genome" title="Link to this heading"></a></h2>
+<p>The Genome represents the genetic material of an individual. In MalthusJAX, Genomes are immutable PyTrees wrapping JAX arrays.</p>
+<section id="the-base-genome-pytree">
+<h3>2.1.1. The Base Genome PyTree<a class="headerlink" href="#the-base-genome-pytree" title="Link to this heading"></a></h3>
+<p><strong>Concept:</strong> Abstracting array logic while maintaining JAX tracing capabilities.</p>
+<p>A Base Genome acts as the foundational building block for all genetic representations in the framework. It encapsulates a JAX array along with a small amount of structural metadata and provides a uniform interface for downstream components such as operators and evaluators. Because mutation or crossover operators may sometimes produce values that violate domain constraints (e.g. out-of-bounds reals or invalid categorical indices), each genome also exposes an <code class="docutils literal notranslate"><span class="pre">autocorrect(config)</span></code> method. This hook can be invoked at any point in the pipeline – from inside a mutation operator, by a custom engine, or manually in user code – and has access to both the genome and the experiment configuration. Implementations can therefore perform arbitrary repair logic or catch aberrant mutations without assuming when or where the call occurs. By treating genomes as first-class PyTrees, the system ensures that every genome can be passed through <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code>, <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code>, and other transformations without losing information or causing tracing errors.</p>
+<p><em>Example (autocorrect focus):</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,),</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">RealGenome</span><span class="o">.</span><span class="n">random_init</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">config</span><span class="p">)</span>
+<span class="c1"># custom autocorrect simply clips out-of-bounds values</span>
+<span class="n">g2</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">autocorrect</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>  <span class="c1"># built-in clip behavior</span>
+<span class="c1"># you could subclass RealGenome and override autocorrect</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyGenome</span><span class="p">(</span><span class="n">RealGenome</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">autocorrect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="c1"># e.g. snap-to-nearest-bound instead of clip</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">values</span> <span class="o">&lt;</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                               <span class="n">config</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                               <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">values</span> <span class="o">&gt;</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                               <span class="n">config</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                               <span class="n">g</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">MyGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">vals</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Knowledge Point:</strong> How the base Genome class registers itself using <code class="docutils literal notranslate"><span class="pre">jax.tree_util.register_pytree_node</span></code>. Separation of structural metadata (e.g., bounds, lengths) from the active tensor payload.</p>
+<p>In practice the class implements the PyTree protocol by splitting the object into a “flattened” list of tensors (the payload) and a static metadata tuple. Registration with <code class="docutils literal notranslate"><span class="pre">jax.tree_util.register_pytree_node</span></code> happens at module import time so that the JAX tracer knows how to traverse the type during compilation. This separation allows the metadata — for example, the permissible bounds of a real-valued genome or the dimensionality of a categorical genome — to remain static while the tensor payload is updated by evolutionary operators.</p>
+</section>
+<section id="continuous-vs-discrete-representations">
+<h3>2.1.2. Continuous vs. Discrete Representations<a class="headerlink" href="#continuous-vs-discrete-representations" title="Link to this heading"></a></h3>
+<p><strong>Concept:</strong> Tailoring evolutionary encodings to specific problem domains.</p>
+<p>Different application areas require different genetic encodings: continuous parameter optimization, combinatorial search, or categorical decision variables. MalthusJAX provides specialized genome subclasses that enforce the appropriate domain and offer convenience methods for mutation and initialization. This design keeps client code clean while enabling operators to rely on consistent tensor shapes and container types.</p>
+<p><strong>Knowledge Point:</strong> Implementation details of <code class="docutils literal notranslate"><span class="pre">RealGenome</span></code> (floating-point bounds clipping), <code class="docutils literal notranslate"><span class="pre">BinaryGenome</span></code> (boolean arrays, bit-flipping logic), and <code class="docutils literal notranslate"><span class="pre">CategoricalGenome</span></code> (integer bounds).</p>
+<p>Each subclass inherits from the base genome and adds its own invariant checks. <code class="docutils literal notranslate"><span class="pre">RealGenome</span></code> stores a <code class="docutils literal notranslate"><span class="pre">bounds</span></code> tuple and wraps generated or mutated values with <code class="docutils literal notranslate"><span class="pre">jax.numpy.clip</span></code> to remain within the allowed range. <code class="docutils literal notranslate"><span class="pre">BinaryGenome</span></code> represents its data as a boolean array and the associated operators use simple bitwise XOR and random flips to implement mutation. <code class="docutils literal notranslate"><span class="pre">CategoricalGenome</span></code> encodes each gene as an integer index within a specified set of categories; random initialization uses <code class="docutils literal notranslate"><span class="pre">jax.random.randint</span></code> and mutation re-samples from the category set. All of these types participate transparently in batching and JIT compilation.</p>
+<p><em>Example:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.binary_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">BinaryGenomeConfig</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">bg</span> <span class="o">=</span> <span class="n">BinaryGenome</span><span class="o">.</span><span class="n">random_init</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">BinaryGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,)))</span>
+<span class="c1"># mutate flips bits probabilistically</span>
+<span class="n">bg2</span> <span class="o">=</span> <span class="n">bg</span><span class="o">.</span><span class="n">mutate</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">rate</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="tensor-interoperability-and-indexing">
+<h3>2.1.3. Tensor Interoperability and Indexing<a class="headerlink" href="#tensor-interoperability-and-indexing" title="Link to this heading"></a></h3>
+<p><strong>Concept:</strong> Seamless conversion between raw arrays and Genome objects.</p>
+<p>Users often need to interoperate with raw JAX arrays, for example when loading data from disk or interfacing with other libraries. The genome classes expose factory methods such as <code class="docutils literal notranslate"><span class="pre">from_tensor</span></code> and <code class="docutils literal notranslate"><span class="pre">to_tensor</span></code> that wrap and unwrap the internal array without copying unnecessarily. Because genomes are PyTrees, these methods are also used by <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> and <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> to transform collections of genomes.</p>
+<p><em>Example:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span>
+<span class="n">arr</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">RealGenome</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">())</span>  <span class="c1"># should equal arr</span>
+</pre></div>
+</div>
+<p><strong>Knowledge Point:</strong> Using factory methods (<code class="docutils literal notranslate"><span class="pre">from_tensor</span></code>) and supporting advanced indexing/slicing on Genomes (e.g., <code class="docutils literal notranslate"><span class="pre">test_genome_indexing.py</span></code>) without breaking PyTree structures.</p>
+<p>Implementing <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> and slicing for genome objects required care to maintain the metadata payload. Tests like <code class="docutils literal notranslate"><span class="pre">test_genome_indexing.py</span></code> ensure that slicing a population returns a new genome with the correct shape and metadata, and that the resulting object still behaves as a PyTree. This allows high-level code to treat populations as arrays of genomes while preserving the benefits of the custom types.</p>
+</section>
+<section id="population-metrics-and-kpis">
+<h3>2.1.4. Population Metrics and KPIs<a class="headerlink" href="#population-metrics-and-kpis" title="Link to this heading"></a></h3>
+<p><strong>Concept:</strong> Built-in support for population‑level statistics and extensible key performance indicators.</p>
+<p>While genomes describe individuals, the <code class="docutils literal notranslate"><span class="pre">BasePopulation</span></code> container aggregates them into a coherent batch and adds space for parallel arrays of derived quantities such as fitness values. To support algorithm diagnostics and analysis, the class provides convenience methods like <code class="docutils literal notranslate"><span class="pre">distance_matrix()</span></code> which computes pairwise distances between all members using nested <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> calls. The method simply delegates to <code class="docutils literal notranslate"><span class="pre">genome.distance(g2,</span> <span class="pre">metric=…)</span></code>, meaning the distance metric itself lives on the genome class and can be overridden or extended. These operations are JIT‑safe and avoid explicit Python loops, making it trivial to inspect population diversity or clustering at any point in an experiment, and because the metric is customizable the resulting matrix can later be consumed by fitness evaluators or evolutionary engines for tasks such as multi‑objective optimization or novelty search.</p>
+<p><strong>Knowledge Point:</strong> Extending the population object for arbitrary KPIs (e.g. diversity, age, novelty) and accessing them.</p>
+<p>The dataclass nature of <code class="docutils literal notranslate"><span class="pre">BasePopulation</span></code> means additional metric fields can be added by subclassing or by using the <code class="docutils literal notranslate"><span class="pre">.replace()</span></code> helper. Any statistic over the population – whether a scalar summary or a full matrix – can be computed in a JAX‑friendly way and stored alongside <code class="docutils literal notranslate"><span class="pre">genes</span></code> and <code class="docutils literal notranslate"><span class="pre">fitness</span></code>. Consumers can then access these values with the usual attribute lookup (<code class="docutils literal notranslate"><span class="pre">pop.my_metric</span></code>) and JIT compilation will carry them through the engine. This pattern generalizes to support custom KPIs required by specific research projects without entangling algorithmic code with bookkeeping logic.</p>
+<p><em>Example:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePopulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+
+<span class="c1"># compute and attach a simple variance metric</span>
+<span class="n">pop</span> <span class="o">=</span> <span class="n">BasePopulation</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">RealGenome</span><span class="o">.</span><span class="n">random_init</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">((</span><span class="mi">5</span><span class="p">,),(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))))(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">10</span><span class="p">)),</span>
+                     <span class="n">fitness</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">dists</span> <span class="o">=</span> <span class="n">pop</span><span class="o">.</span><span class="n">distance_matrix</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">)</span>
+<span class="n">pop2</span> <span class="o">=</span> <span class="n">pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">distance</span><span class="o">=</span><span class="n">dists</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pop2</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (10,10)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="fitness-evaluators-malthusjax-core-fitness">
+<h2>2.2. Fitness Evaluators (malthusjax.core.fitness)<a class="headerlink" href="#fitness-evaluators-malthusjax-core-fitness" title="Link to this heading"></a></h2>
+<p>Fitness evaluators define the objective function. MalthusJAX separates the evaluation of a single genome from the batched evaluation of a population.</p>
+<section id="the-evaluator-contract">
+<h3>2.2.1. The Evaluator Contract<a class="headerlink" href="#the-evaluator-contract" title="Link to this heading"></a></h3>
+<p><strong>Concept:</strong> Defining a pure function <code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">=</span> <span class="pre">evaluator(genome)</span></code>.</p>
+<p>Fitness evaluators are the only part of the framework aware of problem semantics. They must behave as pure functions: given the same genome and inputs, they always return the same scalar score. This property is essential for reproducibility and for enabling JIT compilation and vectorization across populations. Evaluators thus avoid any hidden state or side effects; any required data, such as training examples for a neural network, is supplied explicitly via additional arguments that are marked static so that JAX can trace correctly.</p>
+<p><em>Example:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.real_evaluators</span><span class="w"> </span><span class="kn">import</span> <span class="n">SphereEvaluator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+
+<span class="nb">eval</span> <span class="o">=</span> <span class="n">SphereEvaluator</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">),(</span><span class="mi">5</span><span class="p">,))</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>  <span class="c1"># sum of squares</span>
+</pre></div>
+</div>
+<p><strong>Knowledge Point:</strong> Ensuring evaluators are stateless. Handling external data (e.g., training batches for neuroevolution) by passing them as static arguments or <code class="docutils literal notranslate"><span class="pre">lax.scan</span></code> payloads.</p>
+<p>For complex evaluators that iterate over datasets or perform multiple sub-computations, the implementation uses <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code> or <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> internally. When external datasets are involved they are passed in as part of the evaluator object but flagged with <code class="docutils literal notranslate"><span class="pre">pack=True</span></code> or declared as static in <code class="docutils literal notranslate"><span class="pre">__call__</span></code> signatures so they do not participate in gradients or get copied unnecessarily. The accompanying test suite verifies that evaluators can be serialized by <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> and reused across seeds without unexpected behavior.</p>
+</section>
+<section id="continuous-benchmarking-bbobevaluator">
+<h3>2.2.2. Continuous Benchmarking (BBOBEvaluator)<a class="headerlink" href="#continuous-benchmarking-bbobevaluator" title="Link to this heading"></a></h3>
+<p><strong>Concept:</strong> Integrating standard Black-Box Optimization Benchmarks.</p>
+<p>To facilitate fair comparisons with the wider optimization literature, MalthusJAX includes an evaluator that wraps the BBOB benchmark suite. These are well‑known mathematical test functions such as Sphere, Rastrigin, and Rosenbrock that challenge optimization algorithms with multimodality, flat regions, and other pathologies. The <code class="docutils literal notranslate"><span class="pre">BBOBEvaluator</span></code> exposes them through a unified interface and can be configured for dimensionality and noise levels.</p>
+<p><strong>Knowledge Point:</strong> Vectorizing complex mathematical landscapes (Rastrigin, Rosenbrock) using JAX primitives (<code class="docutils literal notranslate"><span class="pre">jax.numpy</span></code>).</p>
+<p>The evaluator implementations are written entirely with <code class="docutils literal notranslate"><span class="pre">jax.numpy</span></code> and auxiliary functions so that they can be compiled and run on accelerators. A single call accepts a batch of genomes and returns a batch of scores using <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code>. This vectorization is critical for high throughput benchmarking and for enabling JIT acceleration of the inner loop of evolutionary engines.</p>
+<p><em>Example:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.bbob_evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BBOBEvaluator</span>
+
+<span class="n">bbob</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;rastrigin&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">pop</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">1</span><span class="p">),(</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">scores</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">bbob</span><span class="p">)(</span><span class="n">pop</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (20,)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="deterministic-stochasticity-malthusjax-core-random">
+<h2>2.3. Deterministic Stochasticity (malthusjax.core.random)<a class="headerlink" href="#deterministic-stochasticity-malthusjax-core-random" title="Link to this heading"></a></h2>
+<p>Randomness is the motor of evolutionary search, but JAX requires explicit state handling for Pseudo-Random Number Generators (PRNGs). This section deserves special attention because <strong>JAX is a relatively young library undergoing rapid API evolution, and random number generation is one of the most volatile areas</strong>. The PRNG interface has already changed significantly between JAX versions: early versions used global state (<code class="docutils literal notranslate"><span class="pre">numpy.random.seed</span></code>), then introduced legacy-style typed keys (uint32[2] tensors), and now support modern pluggable PRNG backends (Threefry, RBG, etc.).</p>
+<p>Currently, MalthusJAX defaults to <strong>Threefry</strong> for maximum portability and bit-for-bit reproducibility across all devices and clusters. However, <strong>Philox is theoretically superior for GPU workloads</strong> (faster iteration, better statistical properties for hardware), but full Philox support has not yet been integrated into the framework’s core operators. Since randomness is absolutely vital to genetic algorithm correctness and reproducibility, the random module is architected with <strong>future-proofing as a first-class design goal</strong>: every key creation, validation, and consumption path is abstracted behind the <code class="docutils literal notranslate"><span class="pre">PRNGImpl</span></code> enum and utility functions, allowing seamless migration to new backends as JAX evolves and as GPU optimization becomes a priority. This forward-thinking design prevents lock-in to deprecated APIs while preserving reproducibility guarantees across versions.</p>
+<section id="jax-prng-key-philosophy">
+<h3>2.3.1. JAX PRNG Key Philosophy<a class="headerlink" href="#jax-prng-key-philosophy" title="Link to this heading"></a></h3>
+<p><strong>Concept:</strong> Escaping the hidden state of standard random libraries (like <code class="docutils literal notranslate"><span class="pre">numpy.random</span></code>).</p>
+<p>JAX treats random number generation as a functional transformation: a PRNG key is an explicit tensor that must be passed to every function needing randomness. This avoids implicit global state and makes the computation graph fully deterministic and reproducible. Users must adopt the practice of splitting keys whenever randomness is consumed, ensuring that each random draw uses a fresh subkey. This design enables several critical benefits:</p>
+<ol class="arabic simple">
+<li><p><strong>Reproducibility</strong>: Given the same seed, the entire evolutionary trajectory is deterministic</p></li>
+<li><p><strong>Traceability</strong>: Every stochastic operation is explicitly coupled to a key, making code auditable</p></li>
+<li><p><strong>JIT Compilation</strong>: Keys can be traced like any other array, so randomness within compiled loops is straightforward</p></li>
+<li><p><strong>Multi-device Execution</strong>: Key splitting schemes distribute seeds across GPUs/TPUs without collision</p></li>
+</ol>
+<p>Unlike stateful libraries (e.g., <code class="docutils literal notranslate"><span class="pre">numpy.random.seed()</span></code> which modifies global state), JAX’s functional approach makes randomness an input and output of every function, ensuring no hidden dependencies.</p>
+<p><strong>Knowledge Point:</strong> The PRNGKey lifecycle: initializing, splitting (<code class="docutils literal notranslate"><span class="pre">jax.random.split</span></code>), and consuming keys.</p>
+<p>The lifecycle follows a strict pattern: initialize a master key, split it into subkeys for specific operations, use each subkey exactly once, and pass the updated master key forward. Within the framework, helpers in <code class="docutils literal notranslate"><span class="pre">core/random.py</span></code> standardize key handling. Engines and operators call <code class="docutils literal notranslate"><span class="pre">key,</span> <span class="pre">subkey</span> <span class="pre">=</span> <span class="pre">jax.random.split(key)</span></code> and return the updated key for later use. A typical evolution step splits the master key into multiple children for population initialization, selection, and mutation.</p>
+<p><em>Example (key lifecycle in evolutionary pseudocode):</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_key</span><span class="p">,</span> <span class="n">validate_key</span>
+
+<span class="c1"># Create a master key using the framework utility</span>
+<span class="n">master_key</span> <span class="o">=</span> <span class="n">create_key</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="s2">&quot;threefry&quot;</span><span class="p">)</span>  <span class="c1"># or &quot;rbg&quot;, etc.</span>
+<span class="n">validate_key</span><span class="p">(</span><span class="n">master_key</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;engine initialization&quot;</span><span class="p">)</span>
+
+<span class="c1"># Split into subkeys for different operations</span>
+<span class="n">master_key</span><span class="p">,</span> <span class="n">pop_key</span><span class="p">,</span> <span class="n">select_key</span><span class="p">,</span> <span class="n">mutate_key</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">master_key</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Each subkey is used for one specific operation</span>
+<span class="n">population</span> <span class="o">=</span> <span class="n">initialize_population</span><span class="p">(</span><span class="n">pop_key</span><span class="p">)</span>              <span class="c1"># pop_key consumed here</span>
+<span class="n">selected</span> <span class="o">=</span> <span class="n">selection_operator</span><span class="p">(</span><span class="n">select_key</span><span class="p">,</span> <span class="n">fitness</span><span class="p">)</span>      <span class="c1"># select_key consumed here</span>
+<span class="n">offspring</span> <span class="o">=</span> <span class="n">mutation_operator</span><span class="p">(</span><span class="n">mutate_key</span><span class="p">,</span> <span class="n">selected</span><span class="p">)</span>     <span class="c1"># mutate_key consumed here</span>
+
+<span class="c1"># master_key is fresh and ready for the next generation</span>
+</pre></div>
+</div>
+<p>Note that reusing a key accidentally produces identical random draws. The framework includes validation logic to warn users if keys are reused or if legacy-style keys are detected, catching bugs early in development.</p>
+</section>
+<section id="framework-random-utilities">
+<h3>2.3.2. Framework Random Utilities<a class="headerlink" href="#framework-random-utilities" title="Link to this heading"></a></h3>
+<p><strong>Concept:</strong> Ergonomic wrappers for common evolutionary random tasks.</p>
+<p>To reduce boilerplate and prevent key misuse, the module <code class="docutils literal notranslate"><span class="pre">core/random.py</span></code> provides utilities for key creation, validation, and backend selection. These functions enable explicit control over PRNG implementations (e.g., Threefry vs. Philox) and provide deprecation guidance for legacy-style keys introduced in older JAX versions.</p>
+<p><strong>Knowledge Point:</strong> Creating typed keys with <code class="docutils literal notranslate"><span class="pre">create_key()</span></code>, resolving PRNG backends, and validating keys for proper usage patterns.</p>
+<p>The module exposes three main utilities:</p>
+<ol class="arabic simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">create_key(seed,</span> <span class="pre">impl)</span></code></strong>: Creates a JAX PRNG key with an explicit backend specification. Supports <code class="docutils literal notranslate"><span class="pre">&quot;threefry&quot;</span></code> (default, portable), <code class="docutils literal notranslate"><span class="pre">&quot;philox&quot;</span></code> (fast on CPU, reliable on all devices), <code class="docutils literal notranslate"><span class="pre">&quot;rbg&quot;</span></code> (hardware-backed on newer systems), and <code class="docutils literal notranslate"><span class="pre">&quot;unsafe_rbg&quot;</span></code>. The function automatically falls back to legacy <code class="docutils literal notranslate"><span class="pre">jax.random.PRNGKey()</span></code> if the new typed key API is unavailable, with a deprecation warning.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">resolve_prng_impl(name)</span></code></strong>: Converts user-facing PRNG names (strings or enum members) to the internal <code class="docutils literal notranslate"><span class="pre">PRNGImpl</span></code> enum. Supports short aliases (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;threefry&quot;</span></code> → <code class="docutils literal notranslate"><span class="pre">PRNGImpl.THREEFRY</span></code>) and full JAX backend strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;threefry2x32&quot;</span></code>).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">validate_key(key,</span> <span class="pre">context)</span></code></strong>: Checks whether a key is legacy-style (uint32[2]) or new-style typed. Issues a deprecation warning if legacy keys are detected, guiding users toward <code class="docutils literal notranslate"><span class="pre">create_key()</span></code> for explicit backend control.</p></li>
+</ol>
+<p><em>Example (key creation and validation):</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_key</span><span class="p">,</span> <span class="n">validate_key</span><span class="p">,</span> <span class="n">resolve_prng_impl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
+
+<span class="c1"># Create a key with explicit PRNG backend</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">create_key</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="s2">&quot;philox&quot;</span><span class="p">)</span>
+<span class="n">validate_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;evolution init&quot;</span><span class="p">)</span>
+
+<span class="c1"># Resolve user input to backend enum</span>
+<span class="n">impl</span> <span class="o">=</span> <span class="n">resolve_prng_impl</span><span class="p">(</span><span class="s2">&quot;threefry&quot;</span><span class="p">)</span>
+<span class="n">key2</span> <span class="o">=</span> <span class="n">create_key</span><span class="p">(</span><span class="mi">456</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="n">impl</span><span class="p">)</span>
+
+<span class="c1"># Use the key for splitting as normal</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey1</span><span class="p">,</span> <span class="n">subkey2</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Backend is consistent across splits: </span><span class="si">{</span><span class="n">subkey1</span><span class="o">.</span><span class="n">shape</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">subkey2</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Key Budgeting in Evolutionary Algorithms</strong>: A typical evolution step requires multiple random draws: population initialization, selection, crossover, and mutation. Best practice is to budget keys upfront and pass them explicitly:</p>
+<p><em>Example (key budgeting in an evolution loop):</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">evolution_step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="c1"># Split key for each operation</span>
+    <span class="n">key</span><span class="p">,</span> <span class="n">init_key</span><span class="p">,</span> <span class="n">select_key</span><span class="p">,</span> <span class="n">cross_key</span><span class="p">,</span> <span class="n">mutate_key</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    
+    <span class="c1"># Or use fold_in for deterministic derivations</span>
+    <span class="n">select_key</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">fold_in</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">generation</span><span class="p">)</span>  <span class="c1"># Depends on generation number</span>
+    
+    <span class="c1"># Each operation uses its dedicated key</span>
+    <span class="c1"># vmap automatically broadcasts across population</span>
+    <span class="n">new_pop</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">initialize_genome</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">config</span><span class="p">),</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))(</span>
+        <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">init_key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_pop</span><span class="p">)),</span> <span class="n">old_pop</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">updated_state</span><span class="p">,</span> <span class="n">key</span>
+</pre></div>
+</div>
+<p><strong>Why Multiple PRNG Backends?</strong> Different accelerators and use cases benefit from different algorithms:</p>
+<ul class="simple">
+<li><p><strong>Threefry</strong>: Portable, identical across all platforms (reproducibility across clusters)</p></li>
+<li><p><strong>Philox</strong>: Faster on modern CPUs, reliable on all GPUs; preferred for GPU-intensive work but not yet integrated into JAX</p></li>
+<li><p><strong>RBG</strong>: Hardware-backed entropy (modern systems); extremely fast but less portable</p></li>
+<li><p><strong>Unsafe RBG</strong>: Hardware entropy without quality checks (risky, not recommended for science)</p></li>
+</ul>
+<p>For benchmarking across frameworks, Threefry ensures bit-for-bit reproducibility with other libraries. For production performance on GPU systems, Philox + typed keys is recommended.</p>
+<p><strong>Batching with vmap and Key Families</strong>: When initializing populations or applying operators across multiple individuals, the framework uses <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> with pre-split key families:</p>
+<p><em>Example (batched initialization):</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_key</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">master_key</span> <span class="o">=</span> <span class="n">create_key</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">master_key</span><span class="p">,</span> <span class="n">pop_key</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">master_key</span><span class="p">)</span>
+
+<span class="c1"># Generate independent keys for each individual</span>
+<span class="n">keys</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">pop_key</span><span class="p">,</span> <span class="n">pop_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># vmap initializes entire population in parallel</span>
+<span class="n">population</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">RealGenome</span><span class="o">.</span><span class="n">random_init</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">config</span><span class="p">))(</span><span class="n">keys</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">population</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (100, 10)</span>
+</pre></div>
+</div>
+<p>This disciplined approach to key handling keeps the core engine code simple and reduces the risk of subtle duplicate-key bugs. All operators and engines follow this pattern, ensuring that randomness is transparent and auditable.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="1-ARCHITECTURE_DEEP_DIVE.html" class="btn btn-neutral float-left" title="Architecture Deep Dive: MalthusJAX Framework" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="3-GENETIC_OPERATORS.html" class="btn btn-neutral float-right" title="Functional Genetic Operators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Leonardo Di Caterina.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

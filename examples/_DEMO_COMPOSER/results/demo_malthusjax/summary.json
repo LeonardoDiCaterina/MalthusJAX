@@ -1,0 +1,93 @@
+{
+  "name": "demo_malthusjax",
+  "runs": [
+    {
+      "seed": 42,
+      "status": "success",
+      "metrics": {
+        "best_fitness": 191.0824737548828,
+        "final_generation": 10.0,
+        "total_evaluations": 500.0
+      },
+      "history": [
+        {
+          "generation": 1,
+          "best_fitness": 165.90826416015625,
+          "mean_fitness": 80.95136260986328,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 2,
+          "best_fitness": 165.90826416015625,
+          "mean_fitness": 115.53023529052734,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 3,
+          "best_fitness": 168.76995849609375,
+          "mean_fitness": 144.15142822265625,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 4,
+          "best_fitness": 180.5157928466797,
+          "mean_fitness": 155.67294311523438,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 5,
+          "best_fitness": 185.24154663085938,
+          "mean_fitness": 163.4715118408203,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 6,
+          "best_fitness": 185.24154663085938,
+          "mean_fitness": 174.5619659423828,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 7,
+          "best_fitness": 187.57708740234375,
+          "mean_fitness": 177.73300170898438,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 8,
+          "best_fitness": 189.7023468017578,
+          "mean_fitness": 181.4626922607422,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 9,
+          "best_fitness": 191.0824737548828,
+          "mean_fitness": 183.56849670410156,
+          "std_fitness": 0.0
+        },
+        {
+          "generation": 10,
+          "best_fitness": 191.0824737548828,
+          "mean_fitness": 186.0545196533203,
+          "std_fitness": 0.0
+        }
+      ],
+      "artifacts": {},
+      "duration_seconds": 1.7426857948303223,
+      "timings": {
+        "initialization": 0.01,
+        "evolution": 0.5
+      },
+      "error": null,
+      "created_at": "2026-03-07T10:35:21.418689+00:00"
+    }
+  ],
+  "metadata": {
+    "seeds": [
+      42
+    ],
+    "total_runs": 1,
+    "successful_runs": 1
+  },
+  "created_at": "2026-03-07T10:35:21.418708+00:00",
+  "schema_version": "0.1"
+}

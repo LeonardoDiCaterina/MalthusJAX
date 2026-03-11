@@ -1,0 +1,11 @@
+{
+  "task": "sphere",
+  "dim": 10,
+  "pop_size": 64,
+  "seed": 42,
+  "engines": [
+    "Standard_GA",
+    "Standard_GA_Ablation"
+  ],
+  "timestamp": "2026-01-09T20:21:09.195606"
+}

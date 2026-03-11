@@ -1,0 +1,7 @@
+run_id,engine,unroll,task,dim,pop_size,num_gens,cold_ms,warm_ms,compile_ms,ms_per_step
+0,Standard_GA,1,sphere,10,32,10,1108.963,0.415,1108.548,0.0415
+1,Standard_GA,1,sphere,10,32,10,1044.577,0.465,1044.112,0.0465
+2,Standard_GA,1,sphere,10,32,10,1057.749,0.416,1057.333,0.0416
+0,Standard_GA,4,sphere,10,32,10,5179.126,0.367,5178.758,0.0367
+1,Standard_GA,4,sphere,10,32,10,5189.717,0.375,5189.343,0.0375
+2,Standard_GA,4,sphere,10,32,10,5258.443,0.362,5258.081,0.0362

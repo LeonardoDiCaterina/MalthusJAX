@@ -1,0 +1,7 @@
+engine,unroll,task,dim,pop_size,num_gens,n_runs,warm_mean,warm_std,warm_min,warm_max,warm_p5,warm_p50,warm_p95,warm_ci_low,warm_ci_high,warm_cv,compile_mean,compile_std
+Standard_GA,1,sphere,50,64,50,1,1.188,0.000,1.188,1.188,1.188,1.188,1.188,1.188,1.188,nan,1049.913,0.000
+Standard_GA,4,sphere,50,64,50,1,0.845,0.000,0.845,0.845,0.845,0.845,0.845,0.845,0.845,nan,6483.052,0.000
+Standard_GA,8,sphere,50,64,50,1,0.957,0.000,0.957,0.957,0.957,0.957,0.957,0.957,0.957,nan,12363.443,0.000
+Standard_GA_Ablation,1,sphere,50,64,50,1,2.251,0.000,2.251,2.251,2.251,2.251,2.251,2.251,2.251,nan,1552.079,0.000
+Standard_GA_Ablation,4,sphere,50,64,50,1,1.668,0.000,1.668,1.668,1.668,1.668,1.668,1.668,1.668,nan,8216.220,0.000
+Standard_GA_Ablation,8,sphere,50,64,50,1,1.716,0.000,1.716,1.716,1.716,1.716,1.716,1.716,1.716,nan,15599.767,0.000

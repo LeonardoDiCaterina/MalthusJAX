@@ -1,0 +1,15 @@
+{
+  "task": "rosenbrock",
+  "dim": 50,
+  "pop_size": 64,
+  "seed": 42,
+  "unroll_factors": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "device": "cuda:0"
+}
