@@ -62,17 +62,10 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         return cls(config=config, data=None, evosax_problem=problem, evosax_state=state)
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        """Single genome evaluation via evosax wrapper.
+        """Single genome evaluation via the evosax problem.
 
-        Args:
-            genome: RealGenome with values shape (d,).
-
-        Returns:
-            Scalar fitness (JAX array). Sign flips according to config.maximize.
-
-        Note:
-            Uses deterministic key (key=0) since BBOB evaluation is deterministic
-            and evosax API requires key argument. Key does not affect output.
+        The input vector is reshaped to match evosax expectations and evaluated
+        deterministically (key=0). Output sign is flipped when minimizing.
         """
         x = genome.values[None, :]
         rng = jax.random.PRNGKey(0)
@@ -87,15 +80,9 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
     ) -> BasePopulation[RealGenome]:
         """Vectorized batch evaluation using evosax native batching.
 
-        Extracts (N, d) values array and evaluates all individuals in parallel
-        via evosax.problem.eval. More efficient than vmapping evaluate() due
-        to evosax's internal optimizations.
-
-        Args:
-            population: Population with genes.values shape (N, d).
-
-        Returns:
-            Population with fitness shape (N,). Sign flipped per maximize flag.
+        The population genes array is fed directly into ``problem.eval`` with a
+        separate key per individual. The resulting fitness vector respects the
+        maximize flag.
         """
         X = population.genes.values
 

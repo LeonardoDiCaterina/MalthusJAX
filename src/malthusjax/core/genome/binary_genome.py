@@ -74,15 +74,10 @@ class BinaryGenome(BaseGenome):
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: BinaryGenomeConfig) -> BinaryGenome:
-        """Initialize bit-string via Bernoulli sampling at scale config.p.
+        """Initialize bit-string via Bernoulli sampling at probability *p*.
 
-        Args:
-            key: PRNGKey for reproducibility.
-            config: BinaryGenomeConfig with shape and p parameters.
-
-        Returns:
-            BinaryGenome with values shape matching config.resolved_shape,
-            dtype matching config.dtype, sampled from Bernoulli(p).
+        The returned genome has dtype and shape determined by the provided
+        configuration.
         """
         values = jax.random.bernoulli(key, config.p, config.resolved_shape).astype(config.dtype)
         return cls(values=values)
@@ -99,12 +94,8 @@ class BinaryGenome(BaseGenome):
     def distance(self, other: BaseGenome, metric: str = "hamming") -> chex.Numeric:
         """Compute distance between binary genomes.
 
-        Args:
-            other: Another genome; cast to BinaryGenome internally.
-            metric: 'hamming' (sum of XOR) or 'euclidean' (L2 norm).
-
-        Returns:
-            Scalar distance value (JAX array, JIT-compatible).
+        The other genome is cast to :class:`BinaryGenome`. Available metrics
+        are Hamming (bitwise mismatch count) or Euclidean norm.
         """
         other_bin = cast(BinaryGenome, other)
 
@@ -137,16 +128,11 @@ class BinaryGenome(BaseGenome):
         return cls(values=arr)
 
     def to_int(self, msb_first: bool = True) -> chex.Numeric:
-        """Convert bit-string to integer via positional weighting.
+        """Convert the bit-string to an integer using positional weights.
 
-        Args:
-            msb_first: If True (default), treat values[0] as most significant bit (MSB).
-                If False, treat values[0] as least significant bit (LSB).
-
-        Returns:
-            Scalar JAX array (integer type) representing the bit-string value.
-            Note: May exceed standard int precision for long strings; use
-            JAX arrays to maintain XLA compatibility.
+        The *msb_first* flag controls bit significance ordering. The result is
+        a scalar JAX array which may exceed native integer precision for long
+        genomes.
         """
         if msb_first:
             # Treat values[0] as the most significant bit (MSB)

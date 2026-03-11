@@ -68,12 +68,9 @@ class CategoricalGenome(BaseGenome):
     def distance(self, other: BaseGenome, metric: str = DistanceMetric.HAMMING) -> chex.Numeric:
         """Compute distance between categorical genomes.
 
-        Args:
-            other: Another genome; cast to CategoricalGenome internally.
-            metric: 'hamming' (mismatch count), 'euclidean' (L2), or 'manhattan' (L1).
-
-        Returns:
-            Scalar distance value (JAX array, JIT-compatible).
+        The *other* genome is treated as a :class:`CategoricalGenome`. Supported
+        metrics are Hamming, Euclidean and Manhattan; the result is a scalar
+        suitable for downstream vectorized computations.
         """
         other_cat = cast(CategoricalGenome, other)
 

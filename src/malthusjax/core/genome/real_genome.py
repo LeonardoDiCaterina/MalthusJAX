@@ -94,10 +94,9 @@ class RealGenome(BaseGenome):
         """
         Computes the distance between this genome and another in continuous space.
 
-        Args:
-            other: Another genome (cast to RealGenome internally).
-            metric: The distance type. Supports 'euclidean' (L2), 'manhattan' (L1),
-                   and a thresholded 'hamming' distance.
+        The *other* genome is cast internally to :class:`RealGenome`. Supported
+        metrics include 'euclidean' (L2), 'manhattan' (L1), and an approximate
+        'hamming' based on a value threshold.
         """
         other_real = cast(RealGenome, other)
 

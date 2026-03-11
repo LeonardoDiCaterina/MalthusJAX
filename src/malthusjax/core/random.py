@@ -68,13 +68,8 @@ def create_key(seed: int, impl: Optional[PRNGImpl] = None) -> jax.Array:
     Falls back to ``jax.random.PRNGKey`` if the new ``jax.random.key`` API
     is not available in the installed JAX version.
 
-    Args:
-        seed: Integer seed.
-        impl: Optional ``PRNGImpl`` specifying the backend (philox, rbg, ...).
-
-    Returns:
-        A JAX PRNG key (array-like). Downstream ``split`` / ``fold_in`` inherit
-        the implementation encoded in this key.
+    The returned key encodes the chosen backend and can be split or folded
+    to propagate the implementation information.
     """
     impl = impl or DEFAULT_IMPL
 

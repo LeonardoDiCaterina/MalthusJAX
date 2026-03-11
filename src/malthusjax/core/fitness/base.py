@@ -54,30 +54,19 @@ class BaseEvaluator(Generic[G, C, D]):
     def evaluate(self, genome: G) -> chex.Numeric:
         """Compute fitness for a single genome.
 
-        Args:
-            genome: Individual genome instance with unbatched values shape.
-
-        Returns:
-            Scalar fitness value (JAX array, JIT-compatible).
-
-        Note:
-            Expected input shape: genome.values shape (d,) or scalar.
-            Expected output shape: scalar (or (k,) for multi-objective).
+        The provided genome should contain unbatched values. The return value is
+        a scalar (or a small vector for multiobjective cases) suitable for
+        JIT‑compiled pipelines. Implementations may use ``self.config`` and
+        ``self.data`` to parameterize the evaluation.
         """
         raise NotImplementedError
 
     def evaluate_population(self, population: BasePopulation[G]) -> BasePopulation[G]:
-        """Vectorized population evaluation via jax.vmap.
+        """Vectorized population evaluation via :func:`jax.vmap`.
 
-        Applies evaluate() to each individual by vmapping over the SoA-lifted
-        genes PyTree. Config and data remain static (in_axes=None); only
-        individual genomes vary (in_axes matched to genes structure).
-
-        Args:
-            population: Population with batched genes (leading shape (N,)).
-
-        Returns:
-            New population with fitness values updated. Fitness shape: (N,).
+        Each member of *population.genes* is passed through ``evaluate``; the
+        resulting fitness array replaces the old values in a new population
+        object.
         """
         fitness_scores = jax.vmap(self.evaluate)(population.genes)
         return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))

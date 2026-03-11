@@ -39,11 +39,8 @@ class SphereEvaluator(BaseEvaluator[RealGenome, SphereConfig, Any]):
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate sphere function on real genome.
 
-        Args:
-            genome: RealGenome with values shape (d,).
-
-        Returns:
-            Scalar fitness. Negative if maximize=False (minimization convention).
+        The value returned respects the maximization flag by optionally
+        negating the standard sum-of-squares objective.
         """
         sphere_value = jnp.sum(jnp.square(genome.values))
         return jax.lax.select(self.config.maximize, sphere_value, -sphere_value)
@@ -69,11 +66,8 @@ class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate Griewank function on real genome.
 
-        Args:
-            genome: RealGenome with values shape (d,).
-
-        Returns:
-            Scalar fitness. Negative if maximize=False (minimization convention).
+        Combines quadratic and cosine components; result sign is flipped when
+        minimizing.
         """
         x = genome.values
         quad_term = jnp.sum(jnp.square(x)) / 4000.0
@@ -116,16 +110,13 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate box-constrained problem on real genome.
 
-        Args:
-            genome: RealGenome with values shape (d,).
-
-        Returns:
-            Scalar fitness: negative objective minus penalty. Returns -objective
-            to convert minimization to the XLA-safe evaluation convention.
+        Computes the selected objective and subtracts a linear penalty for any
+        constraint violations. The result is negated to convert the minimization
+        formulation into the standard XLA-safe convention.
 
         Note:
-            Objective type selection via string (if/elif) traces both branches
-            in JAX; for high cardinality, use enum-based dispatch instead.
+            Objective type is chosen by string; both branches are traced. An
+            enum-driven dispatch is preferable for larger sets of objectives.
         """
         x = genome.values
         lower, upper = self.config.box_bounds
@@ -150,16 +141,10 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
     def create_random_problem(
         key: chex.PRNGKey, dimensions: int, box_size: float = 10.0, maximize: bool = False
     ) -> BoxConfig:
-        """Factory: create random box-constrained optimization instance (static config).
+        """Factory: create random box-constrained optimization instance.
 
-        Args:
-            key: JAX PRNG key for random target and bounds.
-            dimensions: Problem dimensionality.
-            box_size: Size of bounding box around target.
-            maximize: Optimization direction (default False = minimization).
-
-        Returns:
-            BoxConfig with random target and symmetric box constraints.
+        Samples a random target point and constructs symmetric box bounds
+        around it, returning a :class:`BoxConfig` ready for evaluation.
         """
         key1, key2 = jr.split(key, 2)
         target = jr.uniform(key1, (dimensions,), minval=-box_size / 2, maxval=box_size / 2)

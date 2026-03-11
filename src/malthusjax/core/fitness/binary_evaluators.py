@@ -75,11 +75,9 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
         """Evaluate a binary genome representing item selection.
 
-        Args:
-            genome: BinaryGenome with values shape (n_items,).
-
-        Returns:
-            Total value minus penalty for capacity violation (scalar).
+        The returned value equals total item value minus a linear penalty for
+        any capacity violation. This method is JAX‑safe and avoids Python
+        control flow.
         """
         total_weight = jnp.sum(genome.values * self.config.weights)
         total_value = jnp.sum(genome.values * self.config.values)
@@ -94,16 +92,11 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
     def create_random_problem(
         key: chex.PRNGKey, n_items: int, capacity_ratio: float = 0.5, maximize: bool = True
     ) -> KnapsackConfig:
-        """Factory: create random 0/1 knapsack instance (static configuration).
+        """Factory: create random 0/1 knapsack instance.
 
-        Args:
-            key: JAX PRNG key for random weights and values.
-            n_items: Number of items.
-            capacity_ratio: Fraction of total weight for capacity (default 0.5).
-            maximize: Optimization direction (default True).
-
-        Returns:
-            KnapsackConfig with randomly sampled weights, values, and capacity.
+        Random weights and values are sampled, then the capacity is set as a
+        fraction of the total weight. A fully‑initialized :class:`KnapsackConfig`
+        is returned.
         """
         key1, key2 = jr.split(key, 2)
 

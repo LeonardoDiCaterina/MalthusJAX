@@ -82,12 +82,9 @@ class BaseGenome:
         """
         Initialize a single genome instance with random values.
 
-        Args:
-            key: A JAX PRNG key for reproducibility.
-            config: A configuration object specific to the genome implementation.
-
-        Returns:
-            An instance of the specific Genome subclass.
+        Implementations should draw from the appropriate distribution using
+        *key* and respect any bounds encoded in *config*. The result is a
+        concrete `BaseGenome` subclass instance ready for evaluation.
         """
         raise NotImplementedError
 
@@ -129,19 +126,19 @@ class BaseGenome:
     def from_tensor(cls: Type[G], arr: chex.Array, config: Any = None) -> G:
         """Construct a batched Genome instance from a raw array.
 
-        `arr` is expected to be a batched array with leading dim equal to the
-        number of individuals (or offspring). This method must be JIT-
-        friendly and avoid Python-side checks on traced arrays.
+        The supplied array should already include the population dimension as
+        its leading axis. This factory is intentionally minimal to allow
+        JIT tracing without Python conditionals.
         """
         raise NotImplementedError
 
     @classmethod
     def create_population(cls: Type[G], key: chex.PRNGKey, config: Any, pop_size: int) -> G:
-        """Vectorized population initialization via jax.vmap.
+        """Vectorized population initialization via :func:`jax.vmap`.
 
-        Transforms single-genome random_init(key, config) into batched
-        initialization by vmapping over split random keys (in_axes=(0, None)).
-        Returns SoA-lifted genome where each array leaf has shape (pop_size, ...).
+        Splits *key* into *pop_size* subkeys and calls ``random_init`` on each.
+        The resulting batched genome has leading dimension equal to the
+        population size.
         """
         keys = jax.random.split(key, pop_size)
         return jax.vmap(cls.random_init, in_axes=(0, None))(keys, config)
@@ -169,25 +166,11 @@ class BasePopulation(Generic[G]):
 
     @classmethod
     def from_array(cls, arr: chex.Array, config: Any, axis: int = 0) -> BasePopulation[G]:
-        """Construct a population from a raw JAX array.
+        """Build a population by interpreting one axis of *arr* as individuals.
 
-        Interprets ``axis`` as the population (batch) dimension. The array
-        is rearranged so that the population dimension becomes the leading
-        axis, then each slice along that axis is treated as one genome.
-
-        For example, given ``arr.shape == (x, y, z)`` and ``axis=1``, the
-        resulting population has ``y`` individuals each with genome shape
-        ``(x, z)``.
-
-        Args:
-            arr: Raw array containing all individuals' data.
-            config: Genome-level configuration (forwarded to
-                ``GENOME_CLS.from_tensor``).
-            axis: Which dimension of *arr* corresponds to the population.
-                Defaults to ``0`` (leading dimension).
-
-        Returns:
-            A new population with fitness initialized to ``-inf``.
+        The method moves *axis* to the front and delegates to
+        ``GENOME_CLS.from_tensor`` for per‑individual wrapping. Output
+        fitness values are initialized to ``-inf`` as a sentinel.
         """
         arr_batched = jnp.moveaxis(arr, axis, 0)
         pop_size = arr_batched.shape[0]
@@ -205,18 +188,9 @@ class BasePopulation(Generic[G]):
     ) -> BasePopulation[G]:
         """Create offspring population, optionally with pre-set fitness.
 
-        When ``fitness`` is ``None`` (default), allocates a NaN vector to signal
-        pending evaluation.  Pass an explicit array (e.g. ``jnp.zeros(n)``) to
-        skip the NaN allocation in hot paths where fitness will be overwritten
-        immediately (see FB-2).
-
-        Args:
-            new_genes: Gene PyTree with leading axis = offspring count.
-            fitness: Optional fitness array.  If ``None``, a NaN sentinel of the
-                correct size is created.
-
-        Returns:
-            New ``BasePopulation`` with the given genes and fitness.
+        Passing ``fitness=None`` triggers allocation of a NaN vector of the
+        appropriate length; supplying an array avoids the allocation cost
+        when the values are immediately overwritten.
         """
         if fitness is None:
             leaves = jax.tree_util.tree_leaves(new_genes)
@@ -276,14 +250,9 @@ class BasePopulation(Generic[G]):
     def distance_matrix(self, metric: str = DistanceMetric.EUCLIDEAN) -> chex.Array:
         """Compute pairwise distances between all population members.
 
-        Nested vmap: outer fixes individual i, inner iterates over all j,
-        generating (N, N) distance matrix without Python loops (JIT-safe).
-
-        Args:
-            metric: Distance metric forwarded to genome-level distance().
-
-        Returns:
-            (N, N) array where (i, j) = distance(genome[i], genome[j]).
+        The implementation nests two ``jax.vmap`` calls to avoid Python loops
+        and remain fully JIT-compatible. Metric is forwarded to each genome's
+        ``distance`` method; results form an (N, N) matrix.
         """
 
         def _pairwise_distance(g1: G, g2: G) -> chex.Array:

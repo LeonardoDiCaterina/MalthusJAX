@@ -60,18 +60,9 @@ class LinearGenome(BaseGenome):
     def random_init(cls, key: chex.PRNGKey, config: LinearGenomeConfig) -> LinearGenome:
         """Initialize LGP genome with topological DAG validity.
 
-        Samples opcodes uniformly and argument indices subject to DAG
-        constraint: instruction i references indices in [0, N+i). Vmaps
-        argument sampling over per-instruction limits to enforce validity
-        without Python-side control flow (XLA-compatible).
-
-        Args:
-            key: PRNGKey for reproducibility.
-            config: LinearGenomeConfig defining program structure.
-
-        Returns:
-            LinearGenome with ops shape (L,) and args shape (L, max_arity),
-            guaranteeing topological validity.
+        Opcodes are drawn uniformly while argument indices are sampled such
+        that each instruction can only reference earlier instructions or
+        external inputs, ensuring acyclic topology.
         """
         k_ops, k_args = jax.random.split(key)
 
@@ -137,28 +128,21 @@ class LinearGenome(BaseGenome):
 
     @classmethod
     def from_tensor(cls, arr: tuple[chex.Array, chex.Array], config: Any = None) -> "LinearGenome":
-        """Construct LinearGenome from (ops, args) tensor pair.
+        """Construct LinearGenome from an (ops, args) tensor pair.
 
-        Args:
-            arr: Tuple (ops, args) where ops shape (L,) or (N, L) and
-                args shape (L, max_arity) or (N, L, max_arity).
-            config: Unused; included for BaseGenome interface compatibility.
-
-        Returns:
-            LinearGenome instance wrapping the provided arrays.
+        The input tuple may be batched along a leading population dimension.
+        The optional *config* argument is ignored and exists purely for
+        interface consistency.
         """
         ops, args = arr
         return cls(ops=ops, args=args)
 
     def render(self, config: LinearGenomeConfig, op_names: Optional[List[str]] = None) -> str:
-        """Format LGP program as human-readable assembly-like text.
+        """Format the genome as human‑readable assembly text.
 
-        Args:
-            config: LinearGenomeConfig for variable naming and interpretation.
-            op_names: Optional list of opcode names for display; defaults to OP_N.
-
-        Returns:
-            Multi-line string with numbered instructions and symbolic references.
+        Uses *config* to label inputs and temporaries. If *op_names* is
+        provided, those symbols will be used instead of generic ``OP_N``
+        placeholders.
         """
         ops_cpu = np.array(self.ops)
         args_cpu = np.array(self.args)
