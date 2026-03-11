@@ -8,7 +8,7 @@
 
 **Evolve solutions at GPU speed.** MalthusJAX is a JAX-powered evolutionary computation framework -- define your experiment in a TOML file, and run multi-seed, hardware-accelerated benchmarks with a single function call.
 
-For full details, **read the documentation** produced by Sphinx in the `docs/` directory (see `docs/index.html`).
+📖 **[Read the full documentation](https://malthusjax.readthedocs.io/)** for architecture details, API reference, and tutorials.
 
 No boilerplate. No recompilation between generations. Just fast evolution.
 
