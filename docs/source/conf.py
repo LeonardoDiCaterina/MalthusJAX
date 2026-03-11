@@ -2,21 +2,95 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../src'))
+import types
 
-html_theme = 'sphinx_rtd_theme'
+# ---------------------------------------------------------------------------
+# prevent slow imports during autodoc
+# ---------------------------------------------------------------------------
+# When Sphinx imports the package to collect docstrings it may execute
+# expensive initialization code (JAX device discovery, etc.).  To keep the
+# build fast even if the real libraries are installed, insert lightweight
+# dummy modules into sys.modules before anything else happens.
+for _m in (
+    "jax",
+    "jaxlib",
+    "flax",
+    "chex",
+    "optax",
+    "numpy",
+    "sklearn",
+    "scipy",
+    "pandas",
+    "evosax",
+):
+    sys.modules[_m] = types.ModuleType(_m)
 
-# docs/source/conf.py
+sys.path.insert(0, os.path.abspath("../../src"))
 
+# -- Project information -----------------------------------------------------
+project = "MalthusJAX"
+copyright = "2026, Leonardo Di Caterina"
+author = "Leonardo Di Caterina"
+
+# -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinx.ext.autodoc',      # Pulls documentation from docstrings
-    'sphinx.ext.napoleon',     # Understands Google-style docstrings
-    'sphinx.ext.viewcode',     # Adds links to your source code
-    'sphinx_autodoc_typehints', # Uses your type hints in the docs
-    'myst_parser',           # Allows you to write .md files
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
+    "sphinx_autodoc_typehints",
+    "myst_parser",
 ]
 
-# (Optional but recommended) Tell myst_parser to parse docstrings
+# Mock optional / heavy C-extension dependencies so autodoc can import the
+# pure-Python source without having them installed.
+autodoc_mock_imports = [
+    "evosax",
+    "jax",
+    "jaxlib",
+    "flax",
+    "chex",
+    "optax",
+    "numpy",
+    "sklearn",
+    "scipy",
+    "pandas",
+    "pytest",
+]
+
+# -- Napoleon settings -------------------------------------------------------
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 napoleon_include_init_with_doc = True
+
+# -- Autodoc settings --------------------------------------------------------
+autodoc_member_order = "bysource"
+autodoc_typehints = "description"
+autodoc_default_options = {
+    "imported-members": False,
+    "no-value": True,
+}
+
+# -- sphinx-autodoc-typehints settings (renders mypy type annotations) -------
+typehints_fully_qualified = False
+always_document_param_types = True
+typehints_document_rtype = True
+always_use_bars_union = True
+
+# Suppress duplicate object description warnings from re-exported symbols
+suppress_warnings = ["autodoc.import_object", "ref.duplicate"]
+
+# -- MyST settings -----------------------------------------------------------
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "markdown",
+}
+
+# -- HTML output -------------------------------------------------------------
+html_theme = "sphinx_rtd_theme"
+html_static_path = []
+
+# -- Intersphinx mappings ----------------------------------------------------
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+}
