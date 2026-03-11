@@ -3,9 +3,12 @@
 [![JAX](https://img.shields.io/badge/JAX-0.4+-blue.svg)](https://github.com/google/jax)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](http://mypy-lang.org/)
+[![Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg)](https://github.com/LeonardoDiCaterina/MalthusJAX)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **Evolve solutions at GPU speed.** MalthusJAX is a JAX-powered evolutionary computation framework -- define your experiment in a TOML file, and run multi-seed, hardware-accelerated benchmarks with a single function call.
+
+For full details, **read the documentation** produced by Sphinx in the `docs/` directory (see `docs/index.html`).
 
 No boilerplate. No recompilation between generations. Just fast evolution.
 
@@ -256,23 +259,12 @@ Drop it into any pipeline -- the engine handles the rest.
 \`\`\`bash
 make check-all    # Lint + format + type-check + test (80% coverage minimum)
 make test         # Run tests only
+# Ensure 80% test coverage is maintained across the codebase
 make lint         # Ruff linting
 make docs         # Build Sphinx documentation
 \`\`\`
 
 ---
-
-## Deep-Dive Documentation
-
-For architecture details, see the layer-specific docs:
-
-- [Genome & Population Design](src/malthusjax/core/genome/README.md)
-- [Fitness Evaluators](src/malthusjax/core/fitness/README.md)
-- [Selection Operators](src/malthusjax/operators/selection/README.md)
-- [Mutation Operators](src/malthusjax/operators/mutation/README.md)
-- [Crossover Operators](src/malthusjax/operators/crossover/README.md)
-- [Engine Architecture](src/malthusjax/engine/README.md)
-- [Composer Demos & Examples](examples/_DEMO_COMPOSER/)
 
 ---
 
