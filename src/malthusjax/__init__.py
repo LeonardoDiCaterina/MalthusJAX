@@ -4,10 +4,7 @@ MalthusJAX: High-Performance Evolutionary Computation in JAX.
 
 __version__ = "0.2.0"
 
-# --- 1. CORE COMPONENTS (Top Level) ---
 from .core.base import BaseGenome, BasePopulation, DistanceMetric
-
-# Evaluators
 from .core.fitness.base import BaseEvaluator
 from .core.fitness.binary_evaluators import (
     BinarySumConfig,
@@ -30,12 +27,8 @@ from .core.genome.categorical_genome import (
     CategoricalPopulation,
 )
 from .core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
-
-# --- 2. OPERATORS ---
-# Import the submodules entirely. This enables usage like: mjx.selection.TournamentSelection
 from .operators import crossover, mutation, selection
 
-# --- 4. EXPORTS ---
 # Explicitly define what `from malthusjax import *` exports
 __all__ = [
     # Submodules
