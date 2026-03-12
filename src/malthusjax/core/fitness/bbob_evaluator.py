@@ -19,77 +19,91 @@ from malthusjax.core.base import BasePopulation
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.genome.real_genome import RealGenome
 
+BBOB_NAME_ALIASES = {
+    "sphere": "sphere",
+    "rastrigin": "rastrigin",
+    "rastrigin_original": "rastrigin",
+    "rastrigin_rotated": "rastrigin_rotated",
+    "ellipsoidal": "ellipsoidal",
+    "ellipsoidal_original": "ellipsoidal",
+    "ellipsoidal_rotated": "ellipsoidal_rotated",
+    "rosenbrock": "rosenbrock",
+    "rosenbrock_original": "rosenbrock",
+    "rosenbrock_rotated": "rosenbrock_rotated",
+    "schwefel": "schwefel",
+    "griewank_rosenbrock": "griewank_rosenbrock",
+}
+
 
 @struct.dataclass
 class BBOBConfig(BaseEvaluatorConfig):
     """Configuration for BBOB black-box optimization benchmarks.
 
     Attributes:
-        fn_name: BBOB function identifier (e.g., 'sphere', 'rastrigin').
+        fn_name: BBOB function identifier (lowercase: 'sphere', 'rastrigin', etc).
         num_dims: Problem dimensionality.
-        seed: Random seed for problem initialization (rotation matrices, shifts).
+        seed: Seed ID for problem instance (rotation matrices, shifts).
     """
 
     fn_name: str = struct.field(pytree_node=False, default="sphere")  # type: ignore[no-untyped-call]
     num_dims: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
-    seed: int = struct.field(pytree_node=False, default=42)  # type: ignore[no-untyped-call]
+    seed: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
 
 
 @struct.dataclass
 class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
     """BBOB benchmark wrapper for MalthusJAX RealGenome optimization.
 
-    Wraps evosax BBOBProblem for standard black-box test functions. Problem
-    and state are stored as non-PyTree fields (pytree_node=False for problem,
-    True for state) since problem.eval mutates internal state during
-    evaluation and must be threaded through the computation.
+    Wraps evosax BBOBProblem for standard black-box test functions. The problem
+    instance and its state are stored as non-PyTree fields (static).
     """
 
-    # Evosax problem and state are stored directly.
-    # Problem is static (static_arg), state is a PyTree node.
+    # Evosax problem is static (doesn't change)
     evosax_problem: Any = flax.struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-    evosax_state: Any = flax.struct.field(pytree_node=True)  # type: ignore[no-untyped-call]
+    problem_state: Any = flax.struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
     @classmethod
     def create(cls, config: BBOBConfig) -> BBOBEvaluator:
-        """Factory method to initialize the evosax problem and its internal state."""
-        problem = BBOBProblem(fn_name=config.fn_name, num_dims=config.num_dims, seed=config.seed)
+        """Factory method to initialize the evosax BBOBProblem."""
+        # Normalize function name using alias mapping, or keep as-is if not in mapping
+        fn_name_lower = config.fn_name.lower()
+        fn_name_normalized = BBOB_NAME_ALIASES.get(fn_name_lower, config.fn_name)
 
-        # Initialize the problem state (rotation matrices, optimum shifts, etc.)
+        problem = BBOBProblem(fn_name=fn_name_normalized, num_dims=config.num_dims)
+
+        # Initialize problem state (deterministic based on seed)
         rng = jax.random.PRNGKey(config.seed)
-        state = problem.init(rng)
+        problem_state = problem.init(rng)
 
-        return cls(config=config, data=None, evosax_problem=problem, evosax_state=state)
+        return cls(config=config, data=None, evosax_problem=problem, problem_state=problem_state)
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        """Single genome evaluation via the evosax problem.
+        """Single genome evaluation via the evosax fitness function.
 
         The input vector is reshaped to match evosax expectations and evaluated
-        deterministically (key=0). Output sign is flipped when minimizing.
+        deterministically. Output sign is flipped when minimizing.
         """
         x = genome.values[None, :]
         rng = jax.random.PRNGKey(0)
 
-        fitness, _, _ = self.evosax_problem.eval(rng, x, self.evosax_state)
-        result = fitness[0]
+        fitness_scores, _, _ = self.evosax_problem.eval(rng, x, self.problem_state)
+        result = fitness_scores[0]
 
         return jax.lax.select(self.config.maximize, -result, result)
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
     ) -> BasePopulation[RealGenome]:
-        """Vectorized batch evaluation using evosax native batching.
+        """Vectorized batch evaluation using evosax native evaluation.
 
-        The population genes array is fed directly into ``problem.eval`` with a
-        separate key per individual. The resulting fitness vector respects the
-        maximize flag.
+        The population genes array is fed directly into the fitness function with
+        deterministic evaluation. The resulting fitness vector respects the maximize flag.
         """
         X = population.genes.values
 
         rng = jax.random.PRNGKey(0)
-        keys = jax.random.split(rng, X.shape[0])
 
-        fitness_scores, _, _ = self.evosax_problem.eval(keys, X, self.evosax_state)
+        fitness_scores, _, _ = self.evosax_problem.eval(rng, X, self.problem_state)
 
         final_fitness = jax.lax.select(self.config.maximize, -fitness_scores, fitness_scores)
 
