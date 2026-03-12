@@ -14,6 +14,8 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import jax.random as jr
 
+from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+
 from ..benchmarking import BenchmarkRunner, ExperimentResult, StubEngine
 from ..benchmarking.results import ComparisonResult
 from .catalog import OperatorCatalog
@@ -364,15 +366,34 @@ class Composer:
         **kwargs: Any,
     ) -> Any:
         """Build EvosaxEngineAdapter from strategy name and config."""
+        # construct a BBOB evaluator according to the provided spec or
+        # fallback to explicit parameters
+        if fitness_spec is not None:
+            from .catalog import OperatorCatalog
+
+            cat = OperatorCatalog()
+            parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+            fn = parsed_params.get("fn_name", parsed_name)
+            dims = parsed_params.get("dim", parsed_params.get("num_dims", num_dims))
+            seed = parsed_params.get("seed", kwargs.get("seed", 42))
+            maxim = parsed_params.get("maximize", maximize)
+        else:
+            fn = "sphere"
+            dims = num_dims
+            seed = kwargs.get("seed", 42)
+            maxim = maximize
+
+        evalr = BBOBEvaluator.create(
+            BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maxim)
+        )
+
         return build_evosax_engine(
             strategy_name=strategy_name,
-            fitness_spec=fitness_spec or "sphere:dim=" + str(num_dims),
-            num_dims=num_dims,
+            evaluator=evalr,
             pop_size=pop_size,
             generations=generations,
             bounds=bounds,
-            maximize=maximize,
-            seed=kwargs.get("seed", 42),
+            maximize=maxim,
             strategy_params=kwargs.get("strategy_params"),
             initial_population=kwargs.get("initial_population"),
             prng_impl=prng_impl,

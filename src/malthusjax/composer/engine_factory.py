@@ -22,7 +22,7 @@ from ..core.genome.binary_genome import BinaryGenomeConfig
 # for now it only supports real genomes but it will be extended in the future
 from ..core.genome.real_genome import RealGenomeConfig, RealPopulation
 from ..core.random import resolve_prng_impl
-from ..engine.base import _get_evolution_kernel, compute_unroll_num
+from ..engine.base import _get_evolution_kernel
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from ..engine.schedules import TrackBest
 
@@ -81,15 +81,20 @@ class GeneticEngineAdapter:
                 best_fitness=best_fitness,
             )
 
-        # warmup
+        # ------------------------------------------------------------------
+        # Compile: warmup step + XLA compilation of the scan kernel.
+        # The eager step triggers JAX tracing / dispatch warmup, then
+        # lower().compile() forces full XLA optimisation.  Both costs are
+        # captured in the ``compile`` timing bucket — matching the evosax
+        # adapter which runs a 1-iteration warmup scan in the same bucket.
+        # ------------------------------------------------------------------
+        t_compile_start = time.perf_counter()
+
         _ws, _ = self.genetic_engine.step(state)
         _ws.best_fitness.block_until_ready()
 
-        t_compile_start = time.perf_counter()
-        jit_fn = _get_evolution_kernel(
-            self.genetic_engine.engine_params, compile_jit=True
-        )
-        # lowering/compile triggers XLA optimization but does not run
+        ep = self.genetic_engine.engine_params
+        jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
         _ = jit_fn.lower(self.genetic_engine, state).compile()
         t_compile_end = time.perf_counter()
 
@@ -112,7 +117,7 @@ class GeneticEngineAdapter:
                     "generation": g + 1,
                     "best_fitness": float(scan_history.best_fitness[g]),
                     "mean_fitness": float(scan_history.mean_fitness[g]),
-                    "std_fitness": 0.0,
+                    "std_fitness": float(scan_history.std_fitness[g]),
                 }
             )
 
@@ -148,6 +153,7 @@ def build_engine(
     elitism: int = 2,
     genome_shape: Tuple[int, ...] = (10,),
     bounds: Tuple[float, float] = (-5.0, 5.0),
+    unroll_factor: int = 1,
     **kwargs: Any,
 ) -> GeneticEngineAdapter:
     """Build a :class:`GeneticEngine` from concrete operator instances.
@@ -228,7 +234,7 @@ def build_engine(
         pop_size=pop_size,
         num_generations=generations,
         elitism=elitism,
-        unroll_num=compute_unroll_num(generations),
+        unroll_num=unroll_factor,
         **prng_extra,
         **schedule_extra,
     )
