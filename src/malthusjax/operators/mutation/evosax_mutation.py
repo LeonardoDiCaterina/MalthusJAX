@@ -3,9 +3,9 @@ from typing import Any, cast
 import chex
 import jax
 import jax.numpy as jnp
-from evosax.algorithms.population_based.simple_ga import mutation as evosax_mutation
 from flax import struct
 
+from malthusjax.compat.evosax_mimic import mutation as evosax_mutation
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.operators.base import BaseMutation, _field
 from malthusjax.operators.mutation.real import (
