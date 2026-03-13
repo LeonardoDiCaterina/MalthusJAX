@@ -105,6 +105,12 @@ class EvosaxEngineAdapter:
         fitness_init, prob_state_init, _ = self.problem.eval(
             key_eval, population_init, self.problem_state
         )
+        
+        # Track the best fitness from the initial population for use when num_generations=0
+        initial_best_idx = jnp.argmin(fitness_init)
+        initial_best_fitness = fitness_init[initial_best_idx]
+        if self.maximize:
+            initial_best_fitness = -initial_best_fitness
 
         # Evosax algorithms natively minimize. If maximize is True, we must negate the fitness
         tell_fitness_init = -fitness_init if self.maximize else fitness_init
@@ -213,8 +219,10 @@ class EvosaxEngineAdapter:
             history.append(gen_stats)
 
         # 7. Package results
+        # When num_generations=0, history is empty, so use initial_best_fitness
+        best_fitness_value = history[-1].get("best_fitness") if history else float(initial_best_fitness)
         summary = {
-            "best_fitness": history[-1].get("best_fitness", None) if history else None,
+            "best_fitness": best_fitness_value,
             "best_solution": self.strategy.get_best_solution(final_state).tolist(),
             "total_generations": self.num_generations,
             "final_generation": self.num_generations,

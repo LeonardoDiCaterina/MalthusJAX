@@ -117,7 +117,6 @@ class GeneticEngineAdapter:
                     "generation": g + 1,
                     "best_fitness": float(scan_history.best_fitness[g]),
                     "mean_fitness": float(scan_history.mean_fitness[g]),
-                    "std_fitness": float(scan_history.std_fitness[g]),
                 }
             )
 

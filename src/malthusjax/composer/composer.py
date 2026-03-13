@@ -239,7 +239,9 @@ class Composer:
 
             results[name] = self.quick_run(**merged)
             backend = merged.get("backend", "malthusjax")
-            negate_map[name] = backend != "evosax"
+            # Evosax outputs raw fitness values where lower is better (positive values for minimisation).
+            # We negate those so all pipelines report a consistent 'more negative is better' convention.
+            negate_map[name] = backend == "evosax"
 
         return ComparisonResult(
             pipelines=results,
