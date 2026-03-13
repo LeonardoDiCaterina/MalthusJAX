@@ -14,12 +14,15 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-from evosax.algorithms.population_based import SimpleGA
+from evosax.algorithms import SimpleGA
 from evosax.problems import BBOBProblem
 
 from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult
 from malthusjax.benchmarking.runner import BenchmarkRunner
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.bbob_evaluator import (
+    BBOBConfig,
+    BBOBEvaluator,
+)
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (
     GeneticEngine,
@@ -30,7 +33,6 @@ from malthusjax.engine.resource_mapper import KeyDerivationStrategy
 from malthusjax.engine.schedules import TrackBest
 
 # wrappers around native evosax implementations; used to isolate
-# architectural overhead by keeping the same operators as evosax itself
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
 from malthusjax.operators.crossover.real import (
     BinomialCrossover,
@@ -88,6 +90,15 @@ _PARITY_RESULTS_DIR = Path(
 # ---------------------------------------------------------------------------
 # Helpers — MalthusJAX
 # ---------------------------------------------------------------------------
+
+import pytest
+
+
+@pytest.fixture(params=size_sweep_pop_sizes)
+def pop_size(request: Any) -> int:
+    """Parameterized fixture for population size sweeps."""
+    return request.param
+
 
 
 def _build_crossover(crossover_type: str, use_injection: bool):
@@ -269,8 +280,10 @@ def _build_evosax_ga(
     elite_ratio: float = 0.5,
     rng: Optional[jax.Array] = None,
     init_x: Optional[jax.Array] = None,
-) -> Tuple[SimpleGA, Any, BBOBProblem, Any]:
+) -> Tuple[SimpleGA, Any, Any, Any]:
     """Build evosax SimpleGA + BBOB problem, return (strategy, params, problem, init_carry).
+
+    Uses evosax 0.2.0 with ask/tell interface.
 
     Parameters
     ----------
@@ -284,12 +297,13 @@ def _build_evosax_ga(
     if rng is None:
         rng = jr.PRNGKey(SEED)
 
-    es_problem = BBOBProblem(problem, num_dims=dims, seed=SEED)
-    init_solution = es_problem.sample(rng)
+    # evosax 0.2.0 uses lowercase function names
+    es_problem = BBOBProblem(problem.lower(), num_dims=dims)
 
+    # Initialize strategy with sample solution
+    init_solution = es_problem.sample(rng)
     strategy = SimpleGA(population_size=pop_size, solution=init_solution)
-    strategy.elite_ratio = elite_ratio
-    es_params = strategy.default_params.replace(crossover_rate=0.5)
+    es_params = strategy.default_params
 
     # Build initial carry = (es_state, problem_state, rng)
     r_init, r_start = jax.random.split(rng)
@@ -304,9 +318,11 @@ def _build_evosax_ga(
     return strategy, es_params, es_problem, carry
 
 
-def _evosax_step_fn(strategy: SimpleGA, params: Any, problem: BBOBProblem) -> Callable:
-    """Return a scan-compatible step function for evosax."""
+def _evosax_step_fn(strategy: SimpleGA, params: Any, problem: Any) -> Callable:
+    """Return a scan-compatible step function for evosax ask/tell.
 
+    Uses evosax 0.2.0 ask/tell interface.
+    """
     def step(carry, _=None):
         state, p_state, rng = carry
         rng, rng_step = jax.random.split(rng)
@@ -342,6 +358,30 @@ def _evosax_init_and_warmup(
 
 @dataclass
 class MalthusJAXBenchEngine:
+    def _get_engine(self) -> GeneticEngine:
+        if not hasattr(self, "_engine") or self._engine is None:
+            self._engine = _build_malthusjax_engine(
+                self.pop_size,
+                self.dims,
+                problem=self.problem,
+                num_generations=self.num_generations,
+                elite_ratio=self.elite_ratio,
+                unroll_num=self.unroll_num,
+                use_evosax_ops=self.use_evosax_ops,
+                crossover_type=self.crossover_type,
+                mutation_type=self.mutation_type,
+                use_injection_ops=self.use_injection_ops,
+                key_derivation=self.key_derivation,
+            )
+        return self._engine
+
+    def init_state(self, key: jax.Array):
+        """Expose GeneticEngine API for benchmark warmup utilities."""
+        return self._get_engine().init_state(key)
+
+    def step(self, state: GeneticEvolutionState):
+        return self._get_engine().step(state)
+
     """Wraps a MalthusJAX GeneticEngine to satisfy the ``Engine`` protocol.
 
     ``run_once(key)`` returns the standard dict expected by
@@ -375,6 +415,9 @@ class MalthusJAXBenchEngine:
     use_injection_ops: bool = False
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT
     canonical_init: bool = False
+
+    # Internal cached engine for warmup/benchmark hooking
+    _engine: Optional[GeneticEngine] = None
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
         engine = _build_malthusjax_engine(
@@ -505,12 +548,12 @@ class EvosaxBenchEngine:
             )
 
         def step_with_output(carry, _):
-            state, p_state, rng = carry
+            state, problem_state, rng = carry
             rng, rng_step = jax.random.split(rng)
             x, state = strategy.ask(rng_step, state, params)
-            fitness, p_state, _ = es_problem.eval(rng_step, x, p_state)
+            fitness, problem_state, _ = es_problem.eval(rng_step, x, problem_state)
             state, _ = strategy.tell(rng_step, x, fitness, state, params)
-            new_carry = (state, p_state, rng)
+            new_carry = (state, problem_state, rng)
             output = {
                 "best_fitness": state.best_fitness,
                 "mean_fitness": jnp.mean(fitness),
