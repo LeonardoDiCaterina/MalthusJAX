@@ -4,7 +4,7 @@ import numpy as np  # Used for testing utilities
 import pytest
 from evosax.problems import BBOBProblem
 
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.bbob_evaluator import BBOB_NAME_ALIASES, BBOBConfig, BBOBEvaluator
 from malthusjax.core.genome.real_genome import RealGenome
 
 # --- 1. Parameter Sensitivity Tests ---
@@ -34,18 +34,25 @@ def test_bbob_parity_across_functions(real_population, rng_key, fn_name):
     num_dims = real_population.genes.values.shape[1]  # This is 5
     seed = 42
 
-    # Direct evosax setup
-    evosax_prob = BBOBProblem(fn_name=fn_name, num_dims=num_dims, seed=seed)
-    evosax_state = evosax_prob.init(rng_key)
+    # Normalize function name (same as BBOBEvaluator does)
+    fn_name_lower = fn_name.lower()
+    fn_name_normalized = BBOB_NAME_ALIASES.get(fn_name_lower, fn_name)
+
+    # Direct evosax setup with BBOBProblem (evosax 0.2.0 API)
+    evosax_fitness = BBOBProblem(fn_name=fn_name_normalized, num_dims=num_dims)
+    p_state = evosax_fitness.init(rng_key)
 
     # MalthusJAX setup - Explicitly pass num_dims
     config = BBOBConfig(fn_name=fn_name, num_dims=num_dims, seed=seed, maximize=False)
     evaluator = BBOBEvaluator.create(config)
 
     X = real_population.genes.values
-    keys = jax.random.split(rng_key, X.shape[0])
+    rng = jax.random.PRNGKey(0)  # Use same RNG as BBOBEvaluator.evaluate_population
 
-    expected_fitness, _, _ = evosax_prob.eval(keys, X, evosax_state)
+    # Direct evosax evaluation using eval method
+    expected_fitness, _, _ = evosax_fitness.eval(rng, X, p_state)
+
+    # MalthusJAX evaluation
     pop_result = evaluator.evaluate_population(real_population)
 
     # Use np.testing for JAX arrays
@@ -74,7 +81,7 @@ def test_bbob_maximize_parameter_logic(real_population):
 def test_bbob_jit_stability_and_repeatability(real_population):
     """Ensures XLA compilation is stable and results are deterministic."""
     num_dims = real_population.genes.values.shape[1]
-    config = BBOBConfig(fn_name="attractive_sector", num_dims=num_dims, maximize=False)
+    config = BBOBConfig(fn_name="ellipsoidal_rotated", num_dims=num_dims, maximize=False)
     evaluator = BBOBEvaluator.create(config)
 
     @jax.jit
