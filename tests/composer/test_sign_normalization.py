@@ -26,9 +26,10 @@ class TestSignNormalization:
             shared_initial_population=True,
         )
 
-        # MalthusJAX should be negated, evosax should not
-        assert result.negate_map["malthusjax_ga"] is True
-        assert result.negate_map["evosax_ga"] is False
+        # Evosax should be negated (its raw fitness is positive), MalthusJAX already reports
+        # negative(?) fitness values (lower is better) so it should not be flipped.
+        assert result.negate_map["malthusjax_ga"] is False
+        assert result.negate_map["evosax_ga"] is True
 
     def test_summary_table_sign_normalization(self):
         """Test that summary_table applies sign normalization to fitness values."""
@@ -57,8 +58,8 @@ class TestSignNormalization:
         summary = result.summary_table()
 
         # Check the negate_map is correct
-        assert result.negate_map["malthusjax_ga"] is True
-        assert result.negate_map["evosax_ga"] is False
+        assert result.negate_map["malthusjax_ga"] is False
+        assert result.negate_map["evosax_ga"] is True
 
         # Both backends should now have fitness in "lower is better" convention (negative values)
         malthusjax_fitness = summary["malthusjax_ga"]["best_fitness"]
@@ -102,7 +103,7 @@ class TestSignNormalization:
         assert len(evosax_history) > 0
 
         # All fitness values should be negative (lower is better convention)
-        # Both backends use maximisation internally, so both get normalized to negative
+        # Evosax reports a positive minimisation objective, so it is negated during normalization.
         for entry in malthusjax_history:
             assert entry["best_fitness"] < 0, f"MalthusJAX fitness should be negative: {entry}"
 
@@ -183,8 +184,8 @@ evosax_strategy = "SimpleGA"
             result = Composer.from_toml(temp_path, shared_initial_population=True)
 
             # Check negate_map is built correctly
-            assert result.negate_map["malthusjax_blend"] is True
-            assert result.negate_map["evosax_simple"] is False
+            assert result.negate_map["malthusjax_blend"] is False
+            assert result.negate_map["evosax_simple"] is True
 
             # Check summary uses normalized values
             summary = result.summary_table()

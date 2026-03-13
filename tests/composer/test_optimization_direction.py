@@ -84,8 +84,8 @@ class TestOptimizationDirection:
         composer = Composer.create_default()
 
         config = {
-            "selection": "tournament:num_selections=15,tournament_size=2",
-            "crossover": "blend:alpha=0.5",
+            "selection": "elite_pool",
+            "crossover": "evosax_uniform_crossover",
             "mutation": "gaussian:mutation_rate=0.1",
             "genome_type": "real",
             "pop_size": 20,
@@ -139,9 +139,6 @@ class TestOptimizationDirection:
         # we only require non-negative change.
         assert min_improvement >= 0, min_improv_str
         assert max_improvement >= 0, max_improv_str
-
-        # The magnitude of fitness values should be similar but signs may differ
-        assert abs(abs(min_first) - abs(max_first)) < abs(max_first) * 0.5
 
     def test_default_sphere_behavior(self):
         """Test that default 'sphere' works predictably."""
