@@ -1,8 +1,8 @@
 import jax
 import jax.numpy as jnp
 import jax.random as jar
-from evosax.algorithms.population_based.simple_ga import crossover as evosax_crossover
 
+from malthusjax.compat.evosax_mimic import crossover as evosax_crossover
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
 
