@@ -17,7 +17,6 @@ from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfi
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.core.random import PRNGImpl, create_key
 from malthusjax.engine.resource_mapper import KeyDerivationStrategy
-
 from tests.benchmarks.conftest_benchmarks import size_sweep_pop_sizes
 
 
@@ -151,13 +150,6 @@ def high_fitness_values() -> jax.Array:
 
 
 # Utility functions for test assertions
-
-
-def assert_valid_binary_genome(genome: BinaryGenome, config: BinaryGenomeConfig) -> None:
-    """Assert that a binary genome is valid."""
-    assert isinstance(genome, BinaryGenome)
-    assert genome.bits.shape == (config.length,)
-    assert jnp.all((genome.bits == 0) | (genome.bits == 1))
 
 
 def assert_valid_binary_genome(genome: BinaryGenome, config: BinaryGenomeConfig) -> None:

@@ -47,7 +47,7 @@ def test_debug_tracing_on():
     disable_tracing()
     eng = make_engine(debug=True)
     assert not ge._TRACING_ENABLED  # not yet initialized
-    st = eng.init_state(0)
+    eng.init_state(0)
     assert ge._TRACING_ENABLED, "init_state should enable tracing"
     # turning it off manually also works
     disable_tracing()

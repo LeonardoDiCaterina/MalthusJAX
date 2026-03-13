@@ -35,7 +35,12 @@ def test_quick_run_can_override_trace_dir(tmp_path):
     """Supplying trace_dir explicitly should override the default."""
     composer = Composer.create_default()
     custom = tmp_path / "mytraces"
-    result = composer.quick_run(seeds=(0,), experiment_name="bar", output_dir=tmp_path, trace_dir=custom)
+    composer.quick_run(
+        seeds=(0,),
+        experiment_name="bar",
+        output_dir=tmp_path,
+        trace_dir=custom,
+    )
     # check that directory was actually created by the runner
     assert custom.exists()
     assert any(custom.iterdir())  # should contain at least one trace subfolder

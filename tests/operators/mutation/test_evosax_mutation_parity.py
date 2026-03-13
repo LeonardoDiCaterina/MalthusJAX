@@ -1,8 +1,8 @@
 import jax
 import jax.numpy as jnp
 import jax.random as jar
-
 from evosax.algorithms.population_based.simple_ga import mutation as evosax_mutation
+
 #from malthusjax.compat.evosax_mimic import mutation as evosax_func
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper

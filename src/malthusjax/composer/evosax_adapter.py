@@ -105,8 +105,7 @@ class EvosaxEngineAdapter:
         fitness_init, prob_state_init, _ = self.problem.eval(
             key_eval, population_init, self.problem_state
         )
-        
-        # Track the best fitness from the initial population for use when num_generations=0
+
         initial_best_idx = jnp.argmin(fitness_init)
         initial_best_fitness = fitness_init[initial_best_idx]
         if self.maximize:
@@ -115,44 +114,36 @@ class EvosaxEngineAdapter:
         # Evosax algorithms natively minimize. If maximize is True, we must negate the fitness
         tell_fitness_init = -fitness_init if self.maximize else fitness_init
 
-        # 2. Define the main evolutionary step for JAX to scan over
-        def scan_step(carry, _):
+        def scan_step(carry: Tuple[Any, Any, Any], _: Any) -> Tuple[Tuple[Any, Any, Any], Any]:
             rng, state, p_state = carry
             rng, key_ask, key_eval_step, key_tell = jax.random.split(rng, 4)
 
-            # Ask: Generate candidates
             population, state = self.strategy.ask(key_ask, state, self.params)
 
-            # Eval: Assess candidates
             fitness, p_state, _ = self.problem.eval(key_eval_step, population, p_state)
 
-            # compute basic stats from raw fitness array so we can always expose them
             mean_fit = jnp.mean(fitness)
             std_fit = jnp.std(fitness)
 
-            # Invert fitness if maximizing before passing back to evosax
             tell_fitness = -fitness if self.maximize else fitness
 
-            # Tell: Update strategy internal tracking
             state, metrics = self.strategy.tell(key_tell,
                                                 population,
                                                 tell_fitness,
                                                 state,
                                                 self.params)
 
-            # Fold our additional stats into the returned dict; they will be
-            # stacked by lax.scan automatically.
+
             metrics = dict(metrics)  # copy to allow mutation
-            # metrics may already contain a mean/std under some names; override
             metrics["mean_fitness"] = mean_fit
             metrics["std_fitness"] = std_fit
 
             return (rng, state, p_state), metrics
 
-        # 3. Define the main execution block
-        def run_loop(rng, pop_init, fit_init, p_state):
+        def run_loop(
+            rng: Any, pop_init: Any, fit_init: Any, p_state: Any
+        ) -> Tuple[Any, Any]:
             rng, key_init = jax.random.split(rng)
-            # Initialize population-based strategy
             state = self.strategy.init(key_init, pop_init, fit_init, self.params)
 
             carry = (rng, state, p_state)
@@ -166,21 +157,17 @@ class EvosaxEngineAdapter:
             return carry[1], metrics
 
         start_time = time.perf_counter()
-        # 4. Optional Compilation
         if compile:
             run_loop = jax.jit(run_loop)
 
-        # 5. Execute
         compile_start = time.perf_counter()
         final_state, metrics = run_loop(
             key, population_init, tell_fitness_init, prob_state_init
         )
 
-        # Block until ready to ensure async GPU/TPU tasks complete before calculating timings
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
         end_time = time.perf_counter()
 
-        # debug: inspect metrics before flipping
         if False:
             print("DEBUG before flip metrics type", type(metrics))
             try:
@@ -189,38 +176,33 @@ class EvosaxEngineAdapter:
                 print("DEBUG keys error", e)
             print("DEBUG bf values before flip", metrics.get("best_fitness", None))
 
-        # post-process sign flip for maximize flag now that we have full metrics
         if self.maximize:
-            # metrics is a PyTree of arrays stacked over generations; we can
-            # simply negate the appropriate entries
-            def flip(x):
+            def flip(x: chex.Array) -> chex.Array:
                 return -x
             for key_name in ("best_fitness", "best_fitness_in_generation", "mean_fitness"):
                 if key_name in metrics:
                     metrics[key_name] = flip(metrics[key_name])
 
-        # debug: inspect metrics after flipping
         if False:
             print("DEBUG after flip best_fitness", metrics.get("best_fitness", None))
 
-        # 6. Transform `evosax` Dict[str, Array] into the expected BenchmarkRunner format List[Dict]
         history = []
         for g in range(self.num_generations):
             gen_stats = {}
             for k, v in metrics.items():
                 val = v[g]
-                # Check if the metric is a scalar or an array
                 if val.ndim == 0:
                     gen_stats[k] = val.item()
                 else:
                     gen_stats[k] = val.tolist()
-            # always include a zero‑based generation counter (1‑indexed for users)
             gen_stats.setdefault("generation", g + 1)
             history.append(gen_stats)
 
-        # 7. Package results
-        # When num_generations=0, history is empty, so use initial_best_fitness
-        best_fitness_value = history[-1].get("best_fitness") if history else float(initial_best_fitness)
+
+        if history:
+            best_fitness_value = history[-1].get("best_fitness")
+        else:
+            best_fitness_value = float(initial_best_fitness)
         summary = {
             "best_fitness": best_fitness_value,
             "best_solution": self.strategy.get_best_solution(final_state).tolist(),
@@ -244,7 +226,7 @@ class EvosaxEngineAdapter:
 def build_evosax_engine(
         strategy_name: str = "SimpleGA",
         *,
-        evaluator: Optional[BaseEvaluator] = None,
+        evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
         fitness_spec: Optional[str] = None,
         pop_size: int = 50,
         generations: int = 100,

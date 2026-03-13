@@ -111,7 +111,7 @@ def _run_evosax_raw(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip("equality with raw evosax is unreliable with current evosax version; metrics differ")
+@pytest.mark.skip("equality with raw evosax is unreliable; metrics differ")
 class TestEvosaxAdapterMatchesRaw:
     """Adapter output must be bit-identical to a vanilla evosax run."""
 

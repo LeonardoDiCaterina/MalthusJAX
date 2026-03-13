@@ -14,6 +14,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import jax
 import jax.numpy as jnp
 import jax.random as jr
+import pytest
 from evosax.algorithms import SimpleGA
 from evosax.problems import BBOBProblem
 
@@ -90,8 +91,6 @@ _PARITY_RESULTS_DIR = Path(
 # ---------------------------------------------------------------------------
 # Helpers — MalthusJAX
 # ---------------------------------------------------------------------------
-
-import pytest
 
 
 @pytest.fixture(params=size_sweep_pop_sizes)

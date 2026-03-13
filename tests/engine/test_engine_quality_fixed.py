@@ -323,7 +323,6 @@ class TestOptimizationDirectionRealGenome(unittest.TestCase):
         # For sphere with maximize=False: fitness = -sphere_value
         # Raw sphere value = -fitness, should decrease (improve) toward 0
         initial_raw_sphere = -best_history[0]
-        final_raw_sphere = -best_history[-1]
 
         # Rather than insist the final value is smaller (stochastic behaviour can
         # temporarily worsen the raw objective), we assert the algorithm at least

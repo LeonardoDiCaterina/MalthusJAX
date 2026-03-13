@@ -17,9 +17,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, cast
 
 try:
-    import pandas
+    import pandas as pd
 except ImportError:  # pragma: no cover - pandas is optional
-    pandas = None
+    pd = None
 
 
 def load_benchmark_file(path: Path) -> Dict[str, Any]:
@@ -52,16 +52,16 @@ def benchmarks_to_records(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     return records
 
 
-def to_dataframe(data: Dict[str, Any]) -> pandas.DataFrame: # type: ignore
+def to_dataframe(data: Dict[str, Any]) -> pd.DataFrame:
     """
     Return a :mod:`pandas` DataFrame containing all benchmarks.
 
     Requires :mod:`pandas`; raises ``ImportError`` if pandas is not
     installed.
     """
-    if pandas is None:
+    if pd is None:
         raise ImportError("pandas is required to convert benchmarks to DataFrame")
-    return pandas.DataFrame(benchmarks_to_records(data))
+    return pd.DataFrame(benchmarks_to_records(data))
 
 
 def compute_grouped_kpis(data: Dict[str, Any]) -> Dict[Tuple[str, str], Dict[str, float]]:
