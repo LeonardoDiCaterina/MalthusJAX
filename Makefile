@@ -4,6 +4,26 @@
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
         lint format format-check type-check check-all docs docs-clean docs-open bench
 
+# --- Auto-Detect CUDA Version ---
+HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
+ifdef HAS_NVIDIA
+    # Extracts the major version number (e.g., 11, 12, 13)
+    CUDA_MAJOR := $(shell nvidia-smi | grep -Eo 'CUDA Version: [0-9]+' | awk '{print $$3}')
+    
+    ifeq ($(CUDA_MAJOR),13)
+        JAX_EXTRA := cuda13
+    else ifeq ($(CUDA_MAJOR),12)
+        JAX_EXTRA := cuda12
+    else ifeq ($(CUDA_MAJOR),11)
+        JAX_EXTRA := cuda11
+    else
+        JAX_EXTRA := cpu
+    endif
+else
+    JAX_EXTRA := cpu
+endif
+# --------------------------------
+
 help:
 	@echo "--- MalthusJAX Development ---"
 	@echo "  make install-dev    Install package + dev/docs/examples deps"
@@ -39,12 +59,12 @@ help:
 	@echo "Built site output in:         docs/build/html/"
 
 install-dev:
-	@echo "--- Installing dev dependencies ---"
-	pip install -e ".[dev,docs,examples]"
+	@echo "--- Installing dev dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	pip install -e ".[dev,docs,examples,$(JAX_EXTRA)]"
 
 install-bench:
-	@echo "--- Installing benchmark dependencies ---"
-	pip install -e ".[dev,benchmarks]"
+	@echo "--- Installing benchmark dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	pip install -e ".[dev,benchmarks,$(JAX_EXTRA)]"
 
 test:
 	@echo "--- Running tests with coverage ---"

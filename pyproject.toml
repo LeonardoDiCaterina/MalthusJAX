@@ -20,15 +20,20 @@ classifiers = [
 ]
 dependencies = [
     "jax>=0.4.0",
-    "jaxlib>=0.4.0", 
     "numpy>=2.0.0",
     "typing-extensions>=4.0.0",
     "flax>=0.7.0",
     "chex>=0.1.7",
-    "scikit-learn>=1.0.0", 
+    "scikit-learn>=1.0.0",
 ]
 
 [project.optional-dependencies]
+# Optional JAX backends (use via e.g. `pip install -e "[cuda13]"`)
+cuda13 = ["jax[cuda13]>=0.4.0"]
+cuda12 = ["jax[cuda12]>=0.4.0"]
+cuda11 = ["jax[cuda11]>=0.4.0"]
+cpu = ["jax[cpu]>=0.4.0"]
+
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
