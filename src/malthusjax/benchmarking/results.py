@@ -200,9 +200,12 @@ class ComparisonResult:
 
     When ``True`` for a pipeline, fitness values are **negated** before
     display so that all pipelines share a unified "lower is better"
-    convention.  Built automatically by :meth:`Composer.compare` based
-    on each pipeline's backend (MalthusJAX uses a maximisation
-    convention internally, so its values are negated for display).
+    convention (more negative is better).
+
+    This is typically used for pipelines where the raw reported fitness is
+    a standard minimisation value (lower is better) but stored as a positive
+    quantity (e.g., evosax "fitness" values).  The flag is usually set by
+    :meth:`Composer.compare` based on the backend in use.
     """
 
     # -- internal helper ---------------------------------------------------
