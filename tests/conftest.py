@@ -18,6 +18,8 @@ from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, Rea
 from malthusjax.core.random import PRNGImpl, create_key
 from malthusjax.engine.resource_mapper import KeyDerivationStrategy
 
+from tests.benchmarks.conftest_benchmarks import size_sweep_pop_sizes
+
 
 @pytest.fixture
 def knapsack_config(rng_key) -> KnapsackConfig:
@@ -84,6 +86,12 @@ def get_batch_shape(pytree_obj):
 def rng_key() -> jax.Array:
     """Base random key for deterministic tests."""
     return jr.PRNGKey(42)
+
+
+@pytest.fixture(params=size_sweep_pop_sizes)
+def pop_size(request) -> int:
+    """Parametrized population size fixture used in benchmark tests."""
+    return request.param
 
 
 @pytest.fixture
