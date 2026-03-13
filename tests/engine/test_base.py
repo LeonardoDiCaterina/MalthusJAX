@@ -29,6 +29,7 @@ class MockState(AbstractEvolutionState):
 
 @struct.dataclass
 class MockOutput(AbstractGenerationOutput):
+    """Mock output with required fields from AbstractGenerationOutput."""
     pass
 
 
@@ -50,7 +51,9 @@ class ConcreteEngine(AbstractEngine):
         new_gen = state.generation + 1
         new_state = state.replace(generation=new_gen)
         output = MockOutput(
-            best_fitness=jnp.array(0.0), mean_fitness=jnp.array(0.0), generation=jnp.array(new_gen)
+            best_fitness=jnp.array(0.0),
+            mean_fitness=jnp.array(0.0),
+            generation=jnp.array(new_gen)
         )
         return new_state, output
 
