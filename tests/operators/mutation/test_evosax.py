@@ -4,7 +4,8 @@ import jax.random as jr
 import numpy as np
 import pytest
 
-from malthusjax.compat.evosax_mimic import mutation as evosax_func
+from evosax.algorithms.population_based.simple_ga import mutation as evosax_func
+#from malthusjax.compat.evosax_mimic import mutation as evosax_func
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.evosax_mutation import (
     EvosaxGaussianWrapper,
