@@ -25,6 +25,7 @@ def _clean_registry():
 
 def test_register_and_get():
     """Single engine can be registered and retrieved."""
+
     def dummy_factory(**kwargs):
         return {"type": "dummy", **kwargs}
 
@@ -41,6 +42,7 @@ def test_register_and_get():
 
 def test_register_duplicate_raises():
     """Duplicate registration without override raises KeyError."""
+
     def factory_a(**kw):
         return "a"
 
@@ -55,6 +57,7 @@ def test_register_duplicate_raises():
 
 def test_register_duplicate_with_override():
     """Duplicate registration with override=True replaces entry."""
+
     def factory_a(**kw):
         return "a"
 
@@ -73,6 +76,7 @@ def test_register_duplicate_with_override():
 
 def test_register_table():
     """Bulk registration populates the registry."""
+
     def f1(**kw):
         return "f1"
 

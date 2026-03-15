@@ -36,7 +36,7 @@ try:
     except TypeError:
         _test_ga = SimpleGA(popsize=10, num_dims=5)
 
-    HAS_EVOSAX_INIT_TELL = hasattr(_test_ga, 'init') and hasattr(_test_ga, 'tell')
+    HAS_EVOSAX_INIT_TELL = hasattr(_test_ga, "init") and hasattr(_test_ga, "tell")
 except Exception:
     HAS_EVOSAX_INIT_TELL = False
 
@@ -44,15 +44,14 @@ except Exception:
 # Helpers
 # ---------------------------------------------------------------------------
 
-def make_bbob_evaluator(fn_name: str = "sphere",
-                        num_dims: int = 3, seed: int = 42,
-                        maximize: bool = False) -> BBOBEvaluator:
+
+def make_bbob_evaluator(
+    fn_name: str = "sphere", num_dims: int = 3, seed: int = 42, maximize: bool = False
+) -> BBOBEvaluator:
     return BBOBEvaluator.create(
-        BBOBConfig(fn_name=fn_name,
-                   num_dims=num_dims,
-                   seed=seed,
-                   maximize=maximize)
-        )
+        BBOBConfig(fn_name=fn_name, num_dims=num_dims, seed=seed, maximize=maximize)
+    )
+
 
 # ---------------------------------------------------------------------------
 # Registry / list helpers
@@ -200,7 +199,7 @@ class TestBuildEvosaxEngine:
 
 @pytest.mark.skipif(
     not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)"
+    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
 )
 class TestEvosaxAdapterRunOnce:
     """Tests that EvosaxEngineAdapter.run_once satisfies the Engine protocol."""
@@ -271,7 +270,7 @@ class TestEvosaxAdapterRunOnce:
 
 @pytest.mark.skipif(
     not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)"
+    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
 )
 class TestEvosaxDeterminism:
     """Verify reproducibility given the same PRNG key."""
@@ -293,7 +292,6 @@ class TestEvosaxDeterminism:
         assert len(r1["history"]) == len(r2["history"])
         for h1, h2 in zip(r1["history"], r2["history"]):
             assert h1["best_fitness"] == h2["best_fitness"]
-
 
     def test_different_keys_different_results(self):
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
@@ -318,7 +316,7 @@ class TestEvosaxDeterminism:
 
 @pytest.mark.skipif(
     not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)"
+    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
 )
 class TestMaximisationConvention:
     """Verify the sign-flip logic when maximize=True.
@@ -391,8 +389,9 @@ class TestMaximisationConvention:
         min_hist = min_adapter.run_once(key)["history"]
         max_hist = max_adapter.run_once(key)["history"]
         # just assert that at least one generation differs
-        assert any(hmin["best_fitness"] != hmax["best_fitness"]
-                   for hmin, hmax in zip(min_hist, max_hist))
+        assert any(
+            hmin["best_fitness"] != hmax["best_fitness"] for hmin, hmax in zip(min_hist, max_hist)
+        )
 
     def test_sign_flip_applied(self):
         """When maximize=True the adapter should still apply a sign flip on the
@@ -424,7 +423,7 @@ class TestMaximisationConvention:
 
 @pytest.mark.skipif(
     not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)"
+    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
 )
 class TestStrategySmoke:
     """Quick smoke test for each registered strategy to ensure the full
@@ -466,7 +465,7 @@ class TestStrategySmoke:
 
 @pytest.mark.skipif(
     not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)"
+    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
 )
 class TestEvosaxBenchmarkIntegration:
     """Test that EvosaxEngineAdapter works end-to-end with BenchmarkRunner."""
