@@ -107,8 +107,7 @@ def compute_scheduled_strength(
         return jnp.asarray(initial_strength + (final_strength - initial_strength) * t)
     elif schedule == ScheduleType.COSINE_ANNEAL:
         return jnp.asarray(
-            final_strength
-            + (initial_strength - final_strength) * 0.5 * (1.0 + jnp.cos(jnp.pi * t))
+            final_strength + (initial_strength - final_strength) * 0.5 * (1.0 + jnp.cos(jnp.pi * t))
         )
     elif schedule == ScheduleType.EXPONENTIAL_DECAY:
         return jnp.asarray(initial_strength * jnp.exp(-3.0 * t))
