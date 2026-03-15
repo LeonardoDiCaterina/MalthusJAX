@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import jax.random as jar
 from evosax.algorithms.population_based.simple_ga import mutation as evosax_mutation
 
-#from malthusjax.compat.evosax_mimic import mutation as evosax_func
+# from malthusjax.compat.evosax_mimic import mutation as evosax_func
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper
 
@@ -17,9 +17,8 @@ def test_mutation_matches_evosax_direct():
     parents = RealPopulation.init_random(k1, cfg, pop_size)
 
     for inj in (True, False):
-        wrapper = (
-            EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=inj)
-            .set_input_length(pop_size)
+        wrapper = EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=inj).set_input_length(
+            pop_size
         )
         if wrapper.injection_mode:
             expected_n = 1

@@ -26,9 +26,7 @@ class TestEvosaxGaussianWrapper(unittest.TestCase):
                 n_keys,
                 1
                 if inj
-                else self.pop_size
-                * mutator.num_offspring
-                * mutator.num_keys_per_atomic_operation,
+                else self.pop_size * mutator.num_offspring * mutator.num_keys_per_atomic_operation,
             )
 
             k_op, _ = jar.split(self.key)
