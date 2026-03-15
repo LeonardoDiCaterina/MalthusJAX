@@ -18,7 +18,6 @@ assert spec.loader is not None
 spec.loader.exec_module(analysis)
 
 
-
 @pytest.fixture(scope="module")
 def sample_json_path() -> Path:
     # pick the first file under .benchmarks/*/*.json; tests will skip if none
