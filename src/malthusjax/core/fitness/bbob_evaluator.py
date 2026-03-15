@@ -65,13 +65,11 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
     @classmethod
     def create(cls, config: BBOBConfig) -> BBOBEvaluator:
         """Factory method to initialize the evosax BBOBProblem."""
-        # Normalize function name using alias mapping, or keep as-is if not in mapping
         fn_name_lower = config.fn_name.lower()
         fn_name_normalized = BBOB_NAME_ALIASES.get(fn_name_lower, config.fn_name)
 
         problem = BBOBProblem(fn_name=fn_name_normalized, num_dims=config.num_dims)
 
-        # Initialize problem state (deterministic based on seed)
         rng = jax.random.PRNGKey(config.seed)
         problem_state = problem.init(rng)
 

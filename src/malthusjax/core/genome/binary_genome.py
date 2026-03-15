@@ -21,13 +21,72 @@ _field: Any = struct.field
 
 @struct.dataclass
 class BinaryGenomeConfig:
-    """Configuration for binary string genomes.
+    """Static configuration for discrete binary string genomes.
 
-    Attributes:
-        shape: Logical shape of bit-string; defaults to (1,) to ensure non-scalar.
-        length: Legacy alias for shape=(length,); overrides shape if set.
-        p: Bernoulli probability parameter for bit initialization p(b=1).
-        dtype: JAX dtype for bit values; typically jnp.int32 or jnp.int8.
+    This class defines the genome length and initialization properties for all
+    binary genomes created with this configuration. All individuals share the same
+    shape and bit encoding.
+
+    Parameters
+    ----------
+    shape : tuple[int, ...]
+        Logical shape of the bit-string (default: (1,) to prevent scalar genomes).
+        - shape=(10,) → 10-bit string (length 10)
+        - shape=(64,) → 64-bit string (for binary optimization)
+        - shape=(20, 16) → 320-bit matrix (if shaped genomes needed)
+        Default: (1,) (single bit)
+
+        **Legacy Alias**: Passing `length=N` automatically sets `shape=(N,)`.
+
+    length : int | None
+        Backward-compatibility alias for genome_length.
+        If provided, overrides `shape` with `shape=(length,)`.
+        **Deprecated**: Use `shape` directly instead.
+        Default: None
+
+    p : float
+        Bernoulli probability parameter for bit initialization.
+        - p=0.5: Unbiased initialization (default, typical for most problems)
+        - p<0.5: Bias toward 0-bits
+        - p>0.5: Bias toward 1-bits
+        Valid range: [0.0, 1.0]
+        Default: 0.5
+
+    dtype : jnp.dtype
+        JAX data type for bit values.
+        - jnp.int32 (default): Standard integer type, GPU-efficient
+        - jnp.int8: More memory-efficient for very long genomes
+        - jnp.int64: Rarely needed (overkill for binary)
+        Default: jnp.int32
+
+    Notes
+    -----
+    **Binary Genome Representation**:
+
+    Binary genomes use **{0, 1} values internally** (not floating-point).
+    Each bit is stored as an integer (typically jnp.int32 or jnp.int8).
+
+    **Typical Uses**:
+    - Combinatorial optimization (Knapsack, Traveling Salesman)
+    - Feature selection (bit = feature on/off)
+    - Boolean satisfiability (SAT) problems
+    - Constrained selection problems
+
+    **Initialization**:
+    Each bit is sampled from Bernoulli(p), so approximately p fraction of bits
+    are 1 and (1-p) fraction are 0 in initial population.
+    - p=0.5 → ~50% 1-bits, ~50% 0-bits (unbiased)
+    - p=0.1 → ~10% 1-bits, ~90% 0-bits (sparse)
+    - p=0.9 → ~90% 1-bits, ~10% 0-bits (dense)
+
+    **Genome Length via shape**:
+    The effective genome_length is the product of all dimensions, e.g.:
+    - shape=(64,) → length = 64 bits
+    - shape=(8, 8) → length = 64 bits
+    - shape=(16, 16, 4) → length = 1024 bits
+
+    The :property:`resolved_shape` method handles backward-compatibility
+    by honoring the legacy `length` parameter if provided.
     """
 
     # Prefer an explicit 1-D shape default to avoid accidental scalar genomes.
@@ -49,9 +108,7 @@ class BinaryGenomeConfig:
             return (self.length,)
         return self.shape
 
-    def init_population(
-        self, key: chex.PRNGKey, size: int
-    ) -> BasePopulation[BinaryGenome]:
+    def init_population(self, key: chex.PRNGKey, size: int) -> BasePopulation[BinaryGenome]:
         """Create a random population from this config (protocol method for JR-2)."""
         return BinaryPopulation.init_random(key, self, size)
 

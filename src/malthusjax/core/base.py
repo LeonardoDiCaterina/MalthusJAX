@@ -199,9 +199,7 @@ class BasePopulation(Generic[G]):
             n_offspring = leaves[0].shape[0]
             fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
 
-        return cast(
-            BasePopulation[G], cast(Any, self).replace(genes=new_genes, fitness=fitness)
-        )
+        return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes, fitness=fitness))
 
     def __len__(self) -> int:
         """Returns the number of individuals currently in the population."""

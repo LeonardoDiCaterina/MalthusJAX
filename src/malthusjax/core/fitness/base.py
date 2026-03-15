@@ -72,5 +72,4 @@ class BaseEvaluator(Generic[G, C, D]):
         return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
 
 
-# Type-safe alias for regression data (Features, Targets)
 RegressionData = Tuple[chex.Array, chex.Array]

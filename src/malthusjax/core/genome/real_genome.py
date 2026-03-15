@@ -29,14 +29,75 @@ class RealDistanceMetric(BaseDistances):
 
 @struct.dataclass
 class RealGenomeConfig:
-    """
-    Static configuration defining the search space for real-valued genomes.
+    """Static configuration for continuous real-valued genomes.
 
-    Attributes:
-        shape: The shape tuple (length,) of the real-valued vector. For backward
-               compatibility a `length` keyword is accepted and mapped to `shape`.
-        bounds: A tuple (min, max) defining the valid search range for all elements.
-        dtype: The numerical precision (e.g., jnp.float32 or jnp.float64).
+    This class defines the search space and numerical properties for all genomes
+    created with this configuration. All individuals share the same shape and bounds.
+
+    Parameters
+    ----------
+    shape : tuple[int, ...]
+        Shape of the real-valued vector. Defines the dimensionality and array structure.
+        Examples:
+        - shape=(10,) → 10-dimensional vector [d0, d1, ..., d9]
+        - shape=(5, 3) → 5×3 matrix (15 total parameters)
+        - shape=(4, 4, 4) → 4×4×4 tensor (64 total parameters)
+        Default: () (empty shape for backward compatibility)
+
+    bounds : tuple[float, float]
+        Valid range [lower, upper] applied **uniformly to all genes**.
+        - lower: Minimum allowed value (e.g., -10.0)
+        - upper: Maximum allowed value (e.g., +10.0)
+        - All genes will be initialized uniformly within [lower, upper]
+        Default: (-∞, +∞) (unbounded)
+
+        Examples:
+        - bounds=(-1.0, 1.0) → normalized range
+        - bounds=(0.0, 100.0) → positive-only range
+        - bounds=(-5.12, 5.12) → Rastrigin function standard
+        - bounds=(-512.0, 512.0) → Schwefel function standard
+
+    dtype : type or jnp.dtype
+        JAX floating-point dtype for all gene values.
+        - jnp.float32 (default): 32-bit precision, GPU-efficient
+        - jnp.float64: 64-bit precision, higher accuracy but slower
+        Default: jnp.float32
+
+    Notes
+    -----
+    ** CRITICAL: Bounds Enforcement**:
+
+    Bounds are **enforced during initialization** (via :meth:`RealGenome.random_init`).
+    However, bounds are **NOT automatically enforced after mutation or crossover**.
+
+    If your mutation operators can push values outside [lower, upper], you **MUST**:
+    1. Enable clipping in the mutation operator (clip=True for GaussianMutation)
+    2. **OR** call :meth:`RealGenome.autocorrect()` after mutation
+    3. **OR** accept that individuals may operate outside bounds (and handle in fitness)
+
+    **Example Workflow**:
+
+    Without clipping (allowing out-of-bounds):
+
+    - Configuration: bounds=[-1, 1]
+    - After mutation: values might become [-1.5, 1.2] (outside bounds)
+    - Evaluator must handle these values (e.g., clip before evaluation, or penalize)
+
+    With clipping enabled:
+
+    - Use GaussianMutation(..., clip=True)
+    - OR manually: mutated_genome = mutated_genome.autocorrect(config)
+    - Guarantees values stay in [lower, upper]
+
+    **When to Use Unbounded Search**:
+    - Research/exploration: Allow temporary excursions outside nominal bounds
+    - Penalty-based approaches: Evaluator penalizes out-of-bounds genomes
+    - Adaptive problems: Bounds change during evolution (recompute dynamically)
+
+    **When to Enforce Bounds**:
+    - Constrained optimization: Hard-constraint problems
+    - Physics simulations: Physical laws require values in specific ranges
+    - Benchmark problems: Standard bounds are part of problem definition
     """
 
     shape: Tuple[int, ...] = _field(pytree_node=False, default_factory=lambda: ())
@@ -45,10 +106,7 @@ class RealGenomeConfig:
         pytree_node=False, default=jnp.float32
     )
 
-
-    def init_population(
-        self, key: chex.PRNGKey, size: int
-    ) -> BasePopulation[RealGenome]:
+    def init_population(self, key: chex.PRNGKey, size: int) -> BasePopulation[RealGenome]:
         """Create a random population from this config (protocol method for JR-2)."""
         return RealPopulation.init_random(key, self, size)
 

@@ -34,10 +34,7 @@ class CategoricalGenomeConfig:
         default=jnp.int32,  # type: ignore[no-untyped-call]
     )
 
-
-    def init_population(
-        self, key: chex.PRNGKey, size: int
-    ) -> BasePopulation[CategoricalGenome]:
+    def init_population(self, key: chex.PRNGKey, size: int) -> BasePopulation[CategoricalGenome]:
         """Create a random population from this config (protocol method for JR-2)."""
         return CategoricalPopulation.init_random(key, self, size)
 
