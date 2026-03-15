@@ -99,7 +99,6 @@ def pop_size(request: Any) -> int:
     return request.param
 
 
-
 def _build_crossover(crossover_type: str, use_injection: bool):
     """Factory for crossover operators, including injection-mode variants.
 
@@ -322,6 +321,7 @@ def _evosax_step_fn(strategy: SimpleGA, params: Any, problem: Any) -> Callable:
 
     Uses evosax 0.2.0 ask/tell interface.
     """
+
     def step(carry, _=None):
         state, p_state, rng = carry
         rng, rng_step = jax.random.split(rng)
