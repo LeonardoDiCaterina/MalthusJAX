@@ -58,13 +58,15 @@ help:
 	@echo "API stubs auto-generated in:  docs/source/api/ (don't edit manually)"
 	@echo "Built site output in:         docs/build/html/"
 
+PYTHON ?= python
+
 install-dev:
 	@echo "--- Installing dev dependencies (Detected Backend: $(JAX_EXTRA)) ---"
-	pip install -e ".[dev,docs,examples,$(JAX_EXTRA)]"
+	$(PYTHON) -m pip install -e ".[dev,docs,examples,$(JAX_EXTRA)]"
 
 install-bench:
 	@echo "--- Installing benchmark dependencies (Detected Backend: $(JAX_EXTRA)) ---"
-	pip install -e ".[dev,benchmarks,$(JAX_EXTRA)]"
+	$(PYTHON) -m pip install -e ".[dev,benchmarks,$(JAX_EXTRA)]"
 
 test:
 	@echo "--- Running tests with coverage ---"

@@ -39,14 +39,17 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-xdist>=3.0.0",
     "pytest-benchmark>=4.0.0",
+    "hypothesis>=6.80.0",
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
     "ruff>=0.5.0",
 ]
 docs = [
-    "sphinx>=5.0.0",
-    "sphinx-autodoc-typehints>=1.19.0",
-    "sphinx-rtd-theme>=1.2.0",
+    "sphinx>=7",
+    "furo",
+    "sphinx-autodoc-typehints",
+    "numpydoc",
+    "sphinx-copybutton",
     "myst-parser>=0.18.0",
 ]
 examples = [
@@ -132,6 +135,9 @@ markers = [
     "slow: marks tests as slow (deselect with -m 'not slow')",
     "integration: marks tests as integration tests",
     "benchmark: marks tests as performance benchmarks",
+    "invariant: marks tests as property-based invariant tests",
+    "regression: marks tests as regression tests for specific issues",
+    "performance: marks tests as performance-sensitive",
 ]
 
 [tool.coverage.run]
