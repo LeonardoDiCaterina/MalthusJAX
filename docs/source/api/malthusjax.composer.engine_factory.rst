@@ -1,7 +1,7 @@
-malthusjax.operators.crossover.real module
+malthusjax.composer.engine\_factory module
 ==========================================
 
-.. automodule:: malthusjax.operators.crossover.real
+.. automodule:: malthusjax.composer.engine_factory
    :members:
    :show-inheritance:
    :undoc-members:

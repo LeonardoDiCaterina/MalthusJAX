@@ -1,7 +1,7 @@
-malthusjax.engine.base module
+malthusjax.core.random module
 =============================
 
-.. automodule:: malthusjax.engine.base
+.. automodule:: malthusjax.core.random
    :members:
    :show-inheritance:
    :undoc-members:

@@ -39,6 +39,8 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx_autodoc_typehints",
+    "numpydoc",
+    "sphinx_copybutton",
     "myst_parser",
 ]
 
@@ -63,12 +65,17 @@ napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 napoleon_include_init_with_doc = True
 
+# -- NumPy docstring settings ------------------------------------------------
+numpydoc_show_class_members = False
+
 # -- Autodoc settings --------------------------------------------------------
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 autodoc_default_options = {
-    "imported-members": False,
-    "no-value": True,
+    "members": True,
+    "undoc-members": False,
+    "show-inheritance": True,
+    "member-order": "bysource",
 }
 
 # -- sphinx-autodoc-typehints settings (renders mypy type annotations) -------
@@ -87,10 +94,13 @@ source_suffix = {
 }
 
 # -- HTML output -------------------------------------------------------------
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 html_static_path = []
 
 # -- Intersphinx mappings ----------------------------------------------------
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "jax": ("https://jax.readthedocs.io/en/latest/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "flax": ("https://flax.readthedocs.io/en/latest/", None),
 }

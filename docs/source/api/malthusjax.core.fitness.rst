@@ -3,8 +3,8 @@ malthusjax.core.fitness package
 
 .. automodule:: malthusjax.core.fitness
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

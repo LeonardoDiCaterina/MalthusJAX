@@ -1,7 +1,7 @@
-malthusjax.operators.crossover.binary module
+malthusjax.core.genome.binary\_genome module
 ============================================
 
-.. automodule:: malthusjax.operators.crossover.binary
+.. automodule:: malthusjax.core.genome.binary_genome
    :members:
    :show-inheritance:
    :undoc-members:

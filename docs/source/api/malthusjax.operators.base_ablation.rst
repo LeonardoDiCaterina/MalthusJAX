@@ -1,7 +1,7 @@
-malthusjax.operators.crossover.real module
+malthusjax.operators.base\_ablation module
 ==========================================
 
-.. automodule:: malthusjax.operators.crossover.real
+.. automodule:: malthusjax.operators.base_ablation
    :members:
    :show-inheritance:
    :undoc-members:

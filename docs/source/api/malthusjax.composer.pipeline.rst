@@ -1,7 +1,7 @@
-malthusjax.core.fitness.base module
+malthusjax.composer.pipeline module
 ===================================
 
-.. automodule:: malthusjax.core.fitness.base
+.. automodule:: malthusjax.composer.pipeline
    :members:
    :show-inheritance:
    :undoc-members:

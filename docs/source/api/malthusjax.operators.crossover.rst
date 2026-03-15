@@ -3,8 +3,8 @@ malthusjax.operators.crossover package
 
 .. automodule:: malthusjax.operators.crossover
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

@@ -1,7 +1,7 @@
-malthusjax.operators.mutation.binary module
+malthusjax.composer.engine\_registry module
 ===========================================
 
-.. automodule:: malthusjax.operators.mutation.binary
+.. automodule:: malthusjax.composer.engine_registry
    :members:
    :show-inheritance:
    :undoc-members:

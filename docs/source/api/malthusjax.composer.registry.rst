@@ -1,7 +1,7 @@
-malthusjax.core.fitness.base module
+malthusjax.composer.registry module
 ===================================
 
-.. automodule:: malthusjax.core.fitness.base
+.. automodule:: malthusjax.composer.registry
    :members:
    :show-inheritance:
    :undoc-members:

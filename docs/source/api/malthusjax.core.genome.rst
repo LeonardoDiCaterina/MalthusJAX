@@ -3,8 +3,8 @@ malthusjax.core.genome package
 
 .. automodule:: malthusjax.core.genome
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

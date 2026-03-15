@@ -1,7 +1,7 @@
-malthusjax.operators.crossover.binary module
+malthusjax.engine.genetic\_fastengine module
 ============================================
 
-.. automodule:: malthusjax.operators.crossover.binary
+.. automodule:: malthusjax.engine.genetic_fastengine
    :members:
    :show-inheritance:
    :undoc-members:

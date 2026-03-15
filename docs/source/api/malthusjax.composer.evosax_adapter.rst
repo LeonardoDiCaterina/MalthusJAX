@@ -1,7 +1,7 @@
-malthusjax.operators.crossover.real module
+malthusjax.composer.evosax\_adapter module
 ==========================================
 
-.. automodule:: malthusjax.operators.crossover.real
+.. automodule:: malthusjax.composer.evosax_adapter
    :members:
    :show-inheritance:
    :undoc-members:

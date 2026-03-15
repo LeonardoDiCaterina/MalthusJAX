@@ -1,7 +1,7 @@
-malthusjax.operators.mutation.binary module
+malthusjax.operators.base\_injection module
 ===========================================
 
-.. automodule:: malthusjax.operators.mutation.binary
+.. automodule:: malthusjax.operators.base_injection
    :members:
    :show-inheritance:
    :undoc-members:

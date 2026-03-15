@@ -1,7 +1,7 @@
-malthusjax.operators.mutation.real module
+malthusjax.engine.resource\_mapper module
 =========================================
 
-.. automodule:: malthusjax.operators.mutation.real
+.. automodule:: malthusjax.engine.resource_mapper
    :members:
    :show-inheritance:
    :undoc-members:
