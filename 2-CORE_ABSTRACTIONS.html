@@ -1,71 +1,201 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Functional Genetic Operators" href="3-GENETIC_OPERATORS.html"><link rel="prev" title="Architecture Deep Dive: MalthusJAX Framework" href="1-ARCHITECTURE_DEEP_DIVE.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Core Abstractions: Genomes, Populations, and Fitness - MalthusJAX documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
 
 
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
-<head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Core Abstractions: Genomes, Populations, and Fitness &mdash; MalthusJAX  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="_static/js/theme.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Functional Genetic Operators" href="3-GENETIC_OPERATORS.html" />
-    <link rel="prev" title="Architecture Deep Dive: MalthusJAX Framework" href="1-ARCHITECTURE_DEEP_DIVE.html" /> 
-</head>
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
 
-          
-          
-          <a href="index.html" class="icon icon-home">
-            MalthusJAX
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">MalthusJAX  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">MalthusJAX  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Core Abstractions: Genomes, Populations, and Fitness</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#the-genome-system-malthusjax-core-genome">2.1. The Genome System (malthusjax.core.genome)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#the-base-genome-pytree">2.1.1. The Base Genome PyTree</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#continuous-vs-discrete-representations">2.1.2. Continuous vs. Discrete Representations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#tensor-interoperability-and-indexing">2.1.3. Tensor Interoperability and Indexing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#population-metrics-and-kpis">2.1.4. Population Metrics and KPIs</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#fitness-evaluators-malthusjax-core-fitness">2.2. Fitness Evaluators (malthusjax.core.fitness)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#the-evaluator-contract">2.2.1. The Evaluator Contract</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#continuous-benchmarking-bbobevaluator">2.2.2. Continuous Benchmarking (BBOBEvaluator)</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#deterministic-stochasticity-malthusjax-core-random">2.3. Deterministic Stochasticity (malthusjax.core.random)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#jax-prng-key-philosophy">2.3.1. JAX PRNG Key Philosophy</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#framework-random-utilities">2.3.2. Framework Random Utilities</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
@@ -73,41 +203,127 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a><input aria-label="Toggle navigation of malthusjax package" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.benchmarking.html">malthusjax.benchmarking package</a><input aria-label="Toggle navigation of malthusjax.benchmarking package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.analysis.html">malthusjax.benchmarking.analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.cli.html">malthusjax.benchmarking.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.io.html">malthusjax.benchmarking.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.results.html">malthusjax.benchmarking.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.runner.html">malthusjax.benchmarking.runner module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.composer.html">malthusjax.composer package</a><input aria-label="Toggle navigation of malthusjax.composer package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.catalog.html">malthusjax.composer.catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.composer.html">malthusjax.composer.composer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.config.html">malthusjax.composer.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_catalog.html">malthusjax.composer.engine_catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_factory.html">malthusjax.composer.engine_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_registry.html">malthusjax.composer.engine_registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.evosax_adapter.html">malthusjax.composer.evosax_adapter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.node.html">malthusjax.composer.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.pipeline.html">malthusjax.composer.pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.registry.html">malthusjax.composer.registry module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.binary_genome.html">malthusjax.core.genome.binary_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.categorical_genome.html">malthusjax.core.genome.categorical_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.linear_genome.html">malthusjax.core.genome.linear_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.real_genome.html">malthusjax.core.genome.real_genome module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.core.base.html">malthusjax.core.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.core.random.html">malthusjax.core.random module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.engine.html">malthusjax.engine package</a><input aria-label="Toggle navigation of malthusjax.engine package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.base.html">malthusjax.engine.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.genetic_fastengine.html">malthusjax.engine.genetic_fastengine module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.resource_mapper.html">malthusjax.engine.resource_mapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.schedules.html">malthusjax.engine.schedules module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.operators.html">malthusjax.operators package</a><input aria-label="Toggle navigation of malthusjax.operators package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.crossover.html">malthusjax.operators.crossover package</a><input aria-label="Toggle navigation of malthusjax.operators.crossover package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.binary.html">malthusjax.operators.crossover.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.evosax_crossover.html">malthusjax.operators.crossover.evosax_crossover module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.real.html">malthusjax.operators.crossover.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.mutation.html">malthusjax.operators.mutation package</a><input aria-label="Toggle navigation of malthusjax.operators.mutation package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.binary.html">malthusjax.operators.mutation.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.evosax_mutation.html">malthusjax.operators.mutation.evosax_mutation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.real.html">malthusjax.operators.mutation.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.selection.html">malthusjax.operators.selection package</a><input aria-label="Toggle navigation of malthusjax.operators.selection package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base.html">malthusjax.operators.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base_ablation.html">malthusjax.operators.base_ablation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base_injection.html">malthusjax.operators.base_injection module</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">MalthusJAX</a>
-      </nav>
-
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Core Abstractions: Genomes, Populations, and Fitness</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/2-CORE_ABSTRACTIONS.md.txt" rel="nofollow"> View page source</a>
-      </li>
-  </ul>
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
-  <section id="core-abstractions-genomes-populations-and-fitness">
-<h1>Core Abstractions: Genomes, Populations, and Fitness<a class="headerlink" href="#core-abstractions-genomes-populations-and-fitness" title="Link to this heading"></a></h1>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/2-CORE_ABSTRACTIONS.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="core-abstractions-genomes-populations-and-fitness">
+<h1>Core Abstractions: Genomes, Populations, and Fitness<a class="headerlink" href="#core-abstractions-genomes-populations-and-fitness" title="Link to this heading">¶</a></h1>
 <p>This section breaks down the <code class="docutils literal notranslate"><span class="pre">malthusjax.core</span></code> module, which contains the fundamental data structures and evaluation protocols. In a JAX-native framework, these are strictly defined as PyTrees to ensure compatibility with XLA compilation and vmap vectorization.</p>
 <section id="the-genome-system-malthusjax-core-genome">
-<h2>2.1. The Genome System (malthusjax.core.genome)<a class="headerlink" href="#the-genome-system-malthusjax-core-genome" title="Link to this heading"></a></h2>
+<h2>2.1. The Genome System (malthusjax.core.genome)<a class="headerlink" href="#the-genome-system-malthusjax-core-genome" title="Link to this heading">¶</a></h2>
 <p>The Genome represents the genetic material of an individual. In MalthusJAX, Genomes are immutable PyTrees wrapping JAX arrays.</p>
 <section id="the-base-genome-pytree">
-<h3>2.1.1. The Base Genome PyTree<a class="headerlink" href="#the-base-genome-pytree" title="Link to this heading"></a></h3>
+<h3>2.1.1. The Base Genome PyTree<a class="headerlink" href="#the-base-genome-pytree" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Abstracting array logic while maintaining JAX tracing capabilities.</p>
 <p>A Base Genome acts as the foundational building block for all genetic representations in the framework. It encapsulates a JAX array along with a small amount of structural metadata and provides a uniform interface for downstream components such as operators and evaluators. Because mutation or crossover operators may sometimes produce values that violate domain constraints (e.g. out-of-bounds reals or invalid categorical indices), each genome also exposes an <code class="docutils literal notranslate"><span class="pre">autocorrect(config)</span></code> method. This hook can be invoked at any point in the pipeline – from inside a mutation operator, by a custom engine, or manually in user code – and has access to both the genome and the experiment configuration. Implementations can therefore perform arbitrary repair logic or catch aberrant mutations without assuming when or where the call occurs. By treating genomes as first-class PyTrees, the system ensures that every genome can be passed through <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code>, <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code>, and other transformations without losing information or causing tracing errors.</p>
 <p><em>Example (autocorrect focus):</em></p>
@@ -135,7 +351,7 @@
 <p>In practice the class implements the PyTree protocol by splitting the object into a “flattened” list of tensors (the payload) and a static metadata tuple. Registration with <code class="docutils literal notranslate"><span class="pre">jax.tree_util.register_pytree_node</span></code> happens at module import time so that the JAX tracer knows how to traverse the type during compilation. This separation allows the metadata — for example, the permissible bounds of a real-valued genome or the dimensionality of a categorical genome — to remain static while the tensor payload is updated by evolutionary operators.</p>
 </section>
 <section id="continuous-vs-discrete-representations">
-<h3>2.1.2. Continuous vs. Discrete Representations<a class="headerlink" href="#continuous-vs-discrete-representations" title="Link to this heading"></a></h3>
+<h3>2.1.2. Continuous vs. Discrete Representations<a class="headerlink" href="#continuous-vs-discrete-representations" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Tailoring evolutionary encodings to specific problem domains.</p>
 <p>Different application areas require different genetic encodings: continuous parameter optimization, combinatorial search, or categorical decision variables. MalthusJAX provides specialized genome subclasses that enforce the appropriate domain and offer convenience methods for mutation and initialization. This design keeps client code clean while enabling operators to rely on consistent tensor shapes and container types.</p>
 <p><strong>Knowledge Point:</strong> Implementation details of <code class="docutils literal notranslate"><span class="pre">RealGenome</span></code> (floating-point bounds clipping), <code class="docutils literal notranslate"><span class="pre">BinaryGenome</span></code> (boolean arrays, bit-flipping logic), and <code class="docutils literal notranslate"><span class="pre">CategoricalGenome</span></code> (integer bounds).</p>
@@ -150,7 +366,7 @@
 </div>
 </section>
 <section id="tensor-interoperability-and-indexing">
-<h3>2.1.3. Tensor Interoperability and Indexing<a class="headerlink" href="#tensor-interoperability-and-indexing" title="Link to this heading"></a></h3>
+<h3>2.1.3. Tensor Interoperability and Indexing<a class="headerlink" href="#tensor-interoperability-and-indexing" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Seamless conversion between raw arrays and Genome objects.</p>
 <p>Users often need to interoperate with raw JAX arrays, for example when loading data from disk or interfacing with other libraries. The genome classes expose factory methods such as <code class="docutils literal notranslate"><span class="pre">from_tensor</span></code> and <code class="docutils literal notranslate"><span class="pre">to_tensor</span></code> that wrap and unwrap the internal array without copying unnecessarily. Because genomes are PyTrees, these methods are also used by <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> and <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> to transform collections of genomes.</p>
 <p><em>Example:</em></p>
@@ -165,7 +381,7 @@
 <p>Implementing <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> and slicing for genome objects required care to maintain the metadata payload. Tests like <code class="docutils literal notranslate"><span class="pre">test_genome_indexing.py</span></code> ensure that slicing a population returns a new genome with the correct shape and metadata, and that the resulting object still behaves as a PyTree. This allows high-level code to treat populations as arrays of genomes while preserving the benefits of the custom types.</p>
 </section>
 <section id="population-metrics-and-kpis">
-<h3>2.1.4. Population Metrics and KPIs<a class="headerlink" href="#population-metrics-and-kpis" title="Link to this heading"></a></h3>
+<h3>2.1.4. Population Metrics and KPIs<a class="headerlink" href="#population-metrics-and-kpis" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Built-in support for population‑level statistics and extensible key performance indicators.</p>
 <p>While genomes describe individuals, the <code class="docutils literal notranslate"><span class="pre">BasePopulation</span></code> container aggregates them into a coherent batch and adds space for parallel arrays of derived quantities such as fitness values. To support algorithm diagnostics and analysis, the class provides convenience methods like <code class="docutils literal notranslate"><span class="pre">distance_matrix()</span></code> which computes pairwise distances between all members using nested <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> calls. The method simply delegates to <code class="docutils literal notranslate"><span class="pre">genome.distance(g2,</span> <span class="pre">metric=…)</span></code>, meaning the distance metric itself lives on the genome class and can be overridden or extended. These operations are JIT‑safe and avoid explicit Python loops, making it trivial to inspect population diversity or clustering at any point in an experiment, and because the metric is customizable the resulting matrix can later be consumed by fitness evaluators or evolutionary engines for tasks such as multi‑objective optimization or novelty search.</p>
 <p><strong>Knowledge Point:</strong> Extending the population object for arbitrary KPIs (e.g. diversity, age, novelty) and accessing them.</p>
@@ -186,10 +402,10 @@
 </section>
 </section>
 <section id="fitness-evaluators-malthusjax-core-fitness">
-<h2>2.2. Fitness Evaluators (malthusjax.core.fitness)<a class="headerlink" href="#fitness-evaluators-malthusjax-core-fitness" title="Link to this heading"></a></h2>
+<h2>2.2. Fitness Evaluators (malthusjax.core.fitness)<a class="headerlink" href="#fitness-evaluators-malthusjax-core-fitness" title="Link to this heading">¶</a></h2>
 <p>Fitness evaluators define the objective function. MalthusJAX separates the evaluation of a single genome from the batched evaluation of a population.</p>
 <section id="the-evaluator-contract">
-<h3>2.2.1. The Evaluator Contract<a class="headerlink" href="#the-evaluator-contract" title="Link to this heading"></a></h3>
+<h3>2.2.1. The Evaluator Contract<a class="headerlink" href="#the-evaluator-contract" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Defining a pure function <code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">=</span> <span class="pre">evaluator(genome)</span></code>.</p>
 <p>Fitness evaluators are the only part of the framework aware of problem semantics. They must behave as pure functions: given the same genome and inputs, they always return the same scalar score. This property is essential for reproducibility and for enabling JIT compilation and vectorization across populations. Evaluators thus avoid any hidden state or side effects; any required data, such as training examples for a neural network, is supplied explicitly via additional arguments that are marked static so that JAX can trace correctly.</p>
 <p><em>Example:</em></p>
@@ -205,7 +421,7 @@
 <p>For complex evaluators that iterate over datasets or perform multiple sub-computations, the implementation uses <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code> or <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> internally. When external datasets are involved they are passed in as part of the evaluator object but flagged with <code class="docutils literal notranslate"><span class="pre">pack=True</span></code> or declared as static in <code class="docutils literal notranslate"><span class="pre">__call__</span></code> signatures so they do not participate in gradients or get copied unnecessarily. The accompanying test suite verifies that evaluators can be serialized by <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> and reused across seeds without unexpected behavior.</p>
 </section>
 <section id="continuous-benchmarking-bbobevaluator">
-<h3>2.2.2. Continuous Benchmarking (BBOBEvaluator)<a class="headerlink" href="#continuous-benchmarking-bbobevaluator" title="Link to this heading"></a></h3>
+<h3>2.2.2. Continuous Benchmarking (BBOBEvaluator)<a class="headerlink" href="#continuous-benchmarking-bbobevaluator" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Integrating standard Black-Box Optimization Benchmarks.</p>
 <p>To facilitate fair comparisons with the wider optimization literature, MalthusJAX includes an evaluator that wraps the BBOB benchmark suite. These are well‑known mathematical test functions such as Sphere, Rastrigin, and Rosenbrock that challenge optimization algorithms with multimodality, flat regions, and other pathologies. The <code class="docutils literal notranslate"><span class="pre">BBOBEvaluator</span></code> exposes them through a unified interface and can be configured for dimensionality and noise levels.</p>
 <p><strong>Knowledge Point:</strong> Vectorizing complex mathematical landscapes (Rastrigin, Rosenbrock) using JAX primitives (<code class="docutils literal notranslate"><span class="pre">jax.numpy</span></code>).</p>
@@ -223,11 +439,11 @@
 </section>
 </section>
 <section id="deterministic-stochasticity-malthusjax-core-random">
-<h2>2.3. Deterministic Stochasticity (malthusjax.core.random)<a class="headerlink" href="#deterministic-stochasticity-malthusjax-core-random" title="Link to this heading"></a></h2>
+<h2>2.3. Deterministic Stochasticity (malthusjax.core.random)<a class="headerlink" href="#deterministic-stochasticity-malthusjax-core-random" title="Link to this heading">¶</a></h2>
 <p>Randomness is the motor of evolutionary search, but JAX requires explicit state handling for Pseudo-Random Number Generators (PRNGs). This section deserves special attention because <strong>JAX is a relatively young library undergoing rapid API evolution, and random number generation is one of the most volatile areas</strong>. The PRNG interface has already changed significantly between JAX versions: early versions used global state (<code class="docutils literal notranslate"><span class="pre">numpy.random.seed</span></code>), then introduced legacy-style typed keys (uint32[2] tensors), and now support modern pluggable PRNG backends (Threefry, RBG, etc.).</p>
 <p>Currently, MalthusJAX defaults to <strong>Threefry</strong> for maximum portability and bit-for-bit reproducibility across all devices and clusters. However, <strong>Philox is theoretically superior for GPU workloads</strong> (faster iteration, better statistical properties for hardware), but full Philox support has not yet been integrated into the framework’s core operators. Since randomness is absolutely vital to genetic algorithm correctness and reproducibility, the random module is architected with <strong>future-proofing as a first-class design goal</strong>: every key creation, validation, and consumption path is abstracted behind the <code class="docutils literal notranslate"><span class="pre">PRNGImpl</span></code> enum and utility functions, allowing seamless migration to new backends as JAX evolves and as GPU optimization becomes a priority. This forward-thinking design prevents lock-in to deprecated APIs while preserving reproducibility guarantees across versions.</p>
 <section id="jax-prng-key-philosophy">
-<h3>2.3.1. JAX PRNG Key Philosophy<a class="headerlink" href="#jax-prng-key-philosophy" title="Link to this heading"></a></h3>
+<h3>2.3.1. JAX PRNG Key Philosophy<a class="headerlink" href="#jax-prng-key-philosophy" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Escaping the hidden state of standard random libraries (like <code class="docutils literal notranslate"><span class="pre">numpy.random</span></code>).</p>
 <p>JAX treats random number generation as a functional transformation: a PRNG key is an explicit tensor that must be passed to every function needing randomness. This avoids implicit global state and makes the computation graph fully deterministic and reproducible. Users must adopt the practice of splitting keys whenever randomness is consumed, ensuring that each random draw uses a fresh subkey. This design enables several critical benefits:</p>
 <ol class="arabic simple">
@@ -262,7 +478,7 @@
 <p>Note that reusing a key accidentally produces identical random draws. The framework includes validation logic to warn users if keys are reused or if legacy-style keys are detected, catching bugs early in development.</p>
 </section>
 <section id="framework-random-utilities">
-<h3>2.3.2. Framework Random Utilities<a class="headerlink" href="#framework-random-utilities" title="Link to this heading"></a></h3>
+<h3>2.3.2. Framework Random Utilities<a class="headerlink" href="#framework-random-utilities" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Ergonomic wrappers for common evolutionary random tasks.</p>
 <p>To reduce boilerplate and prevent key misuse, the module <code class="docutils literal notranslate"><span class="pre">core/random.py</span></code> provides utilities for key creation, validation, and backend selection. These functions enable explicit control over PRNG implementations (e.g., Threefry vs. Philox) and provide deprecation guidance for legacy-style keys introduced in older JAX versions.</p>
 <p><strong>Knowledge Point:</strong> Creating typed keys with <code class="docutils literal notranslate"><span class="pre">create_key()</span></code>, resolving PRNG backends, and validating keys for proper usage patterns.</p>
@@ -339,35 +555,95 @@
 </section>
 </section>
 
-
-           </div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="3-GENETIC_OPERATORS.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Functional Genetic Operators</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="1-ARCHITECTURE_DEEP_DIVE.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Architecture Deep Dive: MalthusJAX Framework</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Leonardo Di Caterina
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="1-ARCHITECTURE_DEEP_DIVE.html" class="btn btn-neutral float-left" title="Architecture Deep Dive: MalthusJAX Framework" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="3-GENETIC_OPERATORS.html" class="btn btn-neutral float-right" title="Functional Genetic Operators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
     </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Core Abstractions: Genomes, Populations, and Fitness</a><ul>
+<li><a class="reference internal" href="#the-genome-system-malthusjax-core-genome">2.1. The Genome System (malthusjax.core.genome)</a><ul>
+<li><a class="reference internal" href="#the-base-genome-pytree">2.1.1. The Base Genome PyTree</a></li>
+<li><a class="reference internal" href="#continuous-vs-discrete-representations">2.1.2. Continuous vs. Discrete Representations</a></li>
+<li><a class="reference internal" href="#tensor-interoperability-and-indexing">2.1.3. Tensor Interoperability and Indexing</a></li>
+<li><a class="reference internal" href="#population-metrics-and-kpis">2.1.4. Population Metrics and KPIs</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fitness-evaluators-malthusjax-core-fitness">2.2. Fitness Evaluators (malthusjax.core.fitness)</a><ul>
+<li><a class="reference internal" href="#the-evaluator-contract">2.2.1. The Evaluator Contract</a></li>
+<li><a class="reference internal" href="#continuous-benchmarking-bbobevaluator">2.2.2. Continuous Benchmarking (BBOBEvaluator)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#deterministic-stochasticity-malthusjax-core-random">2.3. Deterministic Stochasticity (malthusjax.core.random)</a><ul>
+<li><a class="reference internal" href="#jax-prng-key-philosophy">2.3.1. JAX PRNG Key Philosophy</a></li>
+<li><a class="reference internal" href="#framework-random-utilities">2.3.2. Framework Random Utilities</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright 2026, Leonardo Di Caterina.</p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
+          </div>
         </div>
       </div>
-    </section>
+      
+      
+    </aside>
   </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
-
-</body>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    </body>
 </html>

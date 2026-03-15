@@ -3,8 +3,8 @@ malthusjax.engine package
 
 .. automodule:: malthusjax.engine
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

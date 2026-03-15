@@ -3,8 +3,8 @@ malthusjax.operators.mutation package
 
 .. automodule:: malthusjax.operators.mutation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

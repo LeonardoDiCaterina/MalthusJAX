@@ -1,48 +1,197 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.core.random module" href="malthusjax.core.random.html"><link rel="prev" title="malthusjax.core.genome.real_genome module" href="malthusjax.core.genome.real_genome.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>malthusjax.core.base module - MalthusJAX documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
 
 
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="../">
-<head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>malthusjax.core.base module &mdash; MalthusJAX  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
   
-      <script src="../_static/jquery.js?v=5d32c60e"></script>
-      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="../_static/js/theme.js"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="malthusjax.engine package" href="malthusjax.engine.html" />
-    <link rel="prev" title="malthusjax.core.genome package" href="malthusjax.core.genome.html" /> 
-</head>
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
 
-          
-          
-          <a href="../index.html" class="icon icon-home">
-            MalthusJAX
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">MalthusJAX  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">MalthusJAX  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
@@ -54,80 +203,527 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="malthusjax.html">malthusjax package</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="malthusjax.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="malthusjax.core.html">malthusjax.core package</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="malthusjax.core.html#submodules">Submodules</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="malthusjax.html">malthusjax package</a><input aria-label="Toggle navigation of malthusjax package" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="malthusjax.benchmarking.html">malthusjax.benchmarking package</a><input aria-label="Toggle navigation of malthusjax.benchmarking package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.benchmarking.analysis.html">malthusjax.benchmarking.analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.benchmarking.cli.html">malthusjax.benchmarking.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.benchmarking.io.html">malthusjax.benchmarking.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.benchmarking.results.html">malthusjax.benchmarking.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.benchmarking.runner.html">malthusjax.benchmarking.runner module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html">malthusjax.engine package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.html">malthusjax.operators package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="malthusjax.composer.html">malthusjax.composer package</a><input aria-label="Toggle navigation of malthusjax.composer package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.catalog.html">malthusjax.composer.catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.composer.html">malthusjax.composer.composer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.config.html">malthusjax.composer.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_catalog.html">malthusjax.composer.engine_catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_factory.html">malthusjax.composer.engine_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_registry.html">malthusjax.composer.engine_registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.evosax_adapter.html">malthusjax.composer.evosax_adapter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.node.html">malthusjax.composer.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.pipeline.html">malthusjax.composer.pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.registry.html">malthusjax.composer.registry module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.genome.binary_genome.html">malthusjax.core.genome.binary_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html">malthusjax.core.genome.categorical_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html">malthusjax.core.genome.linear_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.genome.real_genome.html">malthusjax.core.genome.real_genome module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">malthusjax.core.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.random.html">malthusjax.core.random module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="malthusjax.engine.html">malthusjax.engine package</a><input aria-label="Toggle navigation of malthusjax.engine package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html">malthusjax.engine.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html">malthusjax.engine.genetic_fastengine module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.resource_mapper.html">malthusjax.engine.resource_mapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.schedules.html">malthusjax.engine.schedules module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="malthusjax.operators.html">malthusjax.operators package</a><input aria-label="Toggle navigation of malthusjax.operators package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="malthusjax.operators.crossover.html">malthusjax.operators.crossover package</a><input aria-label="Toggle navigation of malthusjax.operators.crossover package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.crossover.binary.html">malthusjax.operators.crossover.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.crossover.evosax_crossover.html">malthusjax.operators.crossover.evosax_crossover module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.crossover.real.html">malthusjax.operators.crossover.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="malthusjax.operators.mutation.html">malthusjax.operators.mutation package</a><input aria-label="Toggle navigation of malthusjax.operators.mutation package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.binary.html">malthusjax.operators.mutation.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.evosax_mutation.html">malthusjax.operators.mutation.evosax_mutation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.real.html">malthusjax.operators.mutation.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="malthusjax.operators.selection.html">malthusjax.operators.selection package</a><input aria-label="Toggle navigation of malthusjax.operators.selection package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html">malthusjax.operators.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base_ablation.html">malthusjax.operators.base_ablation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base_injection.html">malthusjax.operators.base_injection module</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">MalthusJAX</a>
-      </nav>
-
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="malthusjax.html">malthusjax package</a></li>
-          <li class="breadcrumb-item"><a href="malthusjax.core.html">malthusjax.core package</a></li>
-      <li class="breadcrumb-item active">malthusjax.core.base module</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/malthusjax.core.base.rst.txt" rel="nofollow"> View page source</a>
-      </li>
-  </ul>
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
-  <section id="malthusjax-core-base-module">
-<h1>malthusjax.core.base module<a class="headerlink" href="#malthusjax-core-base-module" title="Link to this heading"></a></h1>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/api/malthusjax.core.base.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-malthusjax.core.base">
+<span id="malthusjax-core-base-module"></span><h1>malthusjax.core.base module<a class="headerlink" href="#module-malthusjax.core.base" title="Link to this heading">¶</a></h1>
+<p>Core genome and population abstractions.</p>
+<p>This module defines the base classes used throughout the framework. It
+provides immutable, JAX‑friendly Genome and Population types along with
+utility functions for random initialization, distance metrics and structural
+helpers. All types are designed to be compatible with JAX’s PyTree and
+jit/vmap patterns.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.base.DistanceMetric">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.base.</span></span><span class="sig-name descname"><span class="pre">DistanceMetric</span></span><a class="reference internal" href="../_modules/malthusjax/core/base.html#DistanceMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.DistanceMetric" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Standard metrics supported by most genomes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.base.DistanceMetric.HAMMING">
+<span class="sig-name descname"><span class="pre">HAMMING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hamming'</span></span><a class="headerlink" href="#malthusjax.core.base.DistanceMetric.HAMMING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.base.DistanceMetric.EUCLIDEAN">
+<span class="sig-name descname"><span class="pre">EUCLIDEAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'euclidean'</span></span><a class="headerlink" href="#malthusjax.core.base.DistanceMetric.EUCLIDEAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.base.DistanceMetric.MANHATTAN">
+<span class="sig-name descname"><span class="pre">MANHATTAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'manhattan'</span></span><a class="headerlink" href="#malthusjax.core.base.DistanceMetric.MANHATTAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.base.</span></span><span class="sig-name descname"><span class="pre">BaseGenome</span></span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BaseGenome" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Immutable genome representation optimized for JAX PyTree lifting.</p>
+<p>Single-genome methods compose with jax.vmap to implement population-level
+operations via the Struct-of-Arrays (SoA) pattern: each leaf array gains
+a leading batch dimension (N,). The <cite>subscriptable</cite> flag enables optional
+Pythonic indexing/iteration, trading PyTree traceability for convenience.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.random_init">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">random_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.random_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BaseGenome.random_init" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize a single genome instance with random values.</p>
+<p>Implementations should draw from the appropriate distribution using
+<em>key</em> and respect any bounds encoded in <em>config</em>. The result is a
+concrete <cite>BaseGenome</cite> subclass instance ready for evaluation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>)</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeVar" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code></a>(<code class="docutils literal notranslate"><span class="pre">G</span></code>, bound= BaseGenome)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.distance">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BaseGenome.distance" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the phenotypic or genotypic distance to another genome.</p>
+<p>Note: The ‘other’ argument uses ‘BaseGenome’ to ensure compatibility
+with the Liskov Substitution Principle under strict type checking.
+Implementations should cast ‘other’ to their specific type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGenome</span></code></a></span>)</p></li>
+<li><p><strong>metric</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.autocorrect">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">autocorrect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.autocorrect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BaseGenome.autocorrect" title="Link to this definition">¶</a></dt>
+<dd><p>Enforce domain-specific constraints on the genome (e.g., clipping bounds).</p>
+<p>This method is typically called after mutation or crossover to ensure
+the genome remains in a valid state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGenome</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.size">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.base.BaseGenome.size" title="Link to this definition">¶</a></dt>
+<dd><p>The total number of parameters/elements within the genome.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.shape">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.base.BaseGenome.shape" title="Link to this definition">¶</a></dt>
+<dd><p>The logical shape of the genome’s primary data payload.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.from_tensor">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.from_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BaseGenome.from_tensor" title="Link to this definition">¶</a></dt>
+<dd><p>Construct a batched Genome instance from a raw array.</p>
+<p>The supplied array should already include the population dimension as
+its leading axis. This factory is intentionally minimal to allow
+JIT tracing without Python conditionals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a></span>)</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeVar" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code></a>(<code class="docutils literal notranslate"><span class="pre">G</span></code>, bound= BaseGenome)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.create_population">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.create_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BaseGenome.create_population" title="Link to this definition">¶</a></dt>
+<dd><p>Vectorized population initialization via <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.vmap.html#jax.vmap" title="(in JAX)"><code class="xref py py-func docutils literal notranslate"><span class="pre">jax.vmap()</span></code></a>.</p>
+<p>Splits <em>key</em> into <em>pop_size</em> subkeys and calls <code class="docutils literal notranslate"><span class="pre">random_init</span></code> on each.
+The resulting batched genome has leading dimension equal to the
+population size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>)</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p></li>
+<li><p><strong>pop_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeVar" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code></a>(<code class="docutils literal notranslate"><span class="pre">G</span></code>, bound= BaseGenome)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.base.BaseGenome.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.base.</span></span><span class="sig-name descname"><span class="pre">BasePopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BasePopulation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>]</p>
+<p>A unified container for a collection of candidate solutions.</p>
+<p>This class implements the Struct-of-Arrays (SoA) pattern. The ‘genes’
+attribute holds a Genome instance where every leaf array has an added
+leading dimension of size N (population size).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.genes">
+<span class="sig-name descname"><span class="pre">genes</span></span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.genes" title="Link to this definition">¶</a></dt>
+<dd><p>The batched genome data (SoA).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.fitness">
+<span class="sig-name descname"><span class="pre">fitness</span></span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.fitness" title="Link to this definition">¶</a></dt>
+<dd><p>A (N,) array representing the objective value for each individual.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.config">
+<span class="sig-name descname"><span class="pre">config</span></span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.config" title="Link to this definition">¶</a></dt>
+<dd><p>Static configuration shared by all individuals in the population.</p>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeVar" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code></a>(<code class="docutils literal notranslate"><span class="pre">G</span></code>, bound= BaseGenome)</span>)</p></li>
+<li><p><strong>fitness</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a></span>)</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">genes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">G</span></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.4)"><span class="pre">number</span></a></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.GENOME_CLS">
+<span class="sig-name descname"><span class="pre">GENOME_CLS</span></span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.GENOME_CLS" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.from_array">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.from_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BasePopulation.from_array" title="Link to this definition">¶</a></dt>
+<dd><p>Build a population by interpreting one axis of <em>arr</em> as individuals.</p>
+<p>The method moves <em>axis</em> to the front and delegates to
+<code class="docutils literal notranslate"><span class="pre">GENOME_CLS.from_tensor</span></code> for per‑individual wrapping. Output
+fitness values are initialized to <code class="docutils literal notranslate"><span class="pre">-inf</span></code> as a sentinel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a></span>)</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p></li>
+<li><p><strong>axis</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeVar" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code></a>(<code class="docutils literal notranslate"><span class="pre">G</span></code>, bound= BaseGenome)]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.values">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">values</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.values" title="Link to this definition">¶</a></dt>
+<dd><p>Proxies to the genome’s values (batched).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.spawn_offspring">
+<span class="sig-name descname"><span class="pre">spawn_offspring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.spawn_offspring"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BasePopulation.spawn_offspring" title="Link to this definition">¶</a></dt>
+<dd><p>Create offspring population, optionally with pre-set fitness.</p>
+<p>Passing <code class="docutils literal notranslate"><span class="pre">fitness=None</span></code> triggers allocation of a NaN vector of the
+appropriate length; supplying an array avoids the allocation cost
+when the values are immediately overwritten.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_genes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeVar" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code></a>(<code class="docutils literal notranslate"><span class="pre">G</span></code>, bound= BaseGenome)</span>)</p></li>
+<li><p><strong>fitness</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeVar" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code></a>(<code class="docutils literal notranslate"><span class="pre">G</span></code>, bound= BaseGenome)]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.autocorrect">
+<span class="sig-name descname"><span class="pre">autocorrect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.autocorrect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BasePopulation.autocorrect" title="Link to this definition">¶</a></dt>
+<dd><p>Applies the genome-level autocorrect logic to every individual
+in the population in parallel using jax.vmap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeVar" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code></a>(<code class="docutils literal notranslate"><span class="pre">G</span></code>, bound= BaseGenome)]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.distance_matrix">
+<span class="sig-name descname"><span class="pre">distance_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.distance_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BasePopulation.distance_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Compute pairwise distances between all population members.</p>
+<p>The implementation nests two <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> calls to avoid Python loops
+and remain fully JIT-compatible. Metric is forwarded to each genome’s
+<code class="docutils literal notranslate"><span class="pre">distance</span></code> method; results form an (N, N) matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>metric</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
-
-           </div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="malthusjax.core.random.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">malthusjax.core.random module</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="malthusjax.core.genome.real_genome.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">malthusjax.core.genome.real_genome module</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Leonardo Di Caterina
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="malthusjax.core.genome.html" class="btn btn-neutral float-left" title="malthusjax.core.genome package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="malthusjax.engine.html" class="btn btn-neutral float-right" title="malthusjax.engine package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
     </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.core.base module</a><ul>
+<li><a class="reference internal" href="#malthusjax.core.base.DistanceMetric"><code class="docutils literal notranslate"><span class="pre">DistanceMetric</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.base.DistanceMetric.HAMMING"><code class="docutils literal notranslate"><span class="pre">DistanceMetric.HAMMING</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.DistanceMetric.EUCLIDEAN"><code class="docutils literal notranslate"><span class="pre">DistanceMetric.EUCLIDEAN</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.DistanceMetric.MANHATTAN"><code class="docutils literal notranslate"><span class="pre">DistanceMetric.MANHATTAN</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome"><code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BaseGenome.random_init()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.distance"><code class="docutils literal notranslate"><span class="pre">BaseGenome.distance()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BaseGenome.autocorrect()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.size"><code class="docutils literal notranslate"><span class="pre">BaseGenome.size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.shape"><code class="docutils literal notranslate"><span class="pre">BaseGenome.shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">BaseGenome.from_tensor()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.create_population"><code class="docutils literal notranslate"><span class="pre">BaseGenome.create_population()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.replace"><code class="docutils literal notranslate"><span class="pre">BaseGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation"><code class="docutils literal notranslate"><span class="pre">BasePopulation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.genes"><code class="docutils literal notranslate"><span class="pre">BasePopulation.genes</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">BasePopulation.genes</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.GENOME_CLS"><code class="docutils literal notranslate"><span class="pre">BasePopulation.GENOME_CLS</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.values"><code class="docutils literal notranslate"><span class="pre">BasePopulation.values</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.spawn_offspring"><code class="docutils literal notranslate"><span class="pre">BasePopulation.spawn_offspring()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.autocorrect"><code class="docutils literal notranslate"><span class="pre">BasePopulation.autocorrect()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.distance_matrix"><code class="docutils literal notranslate"><span class="pre">BasePopulation.distance_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.replace"><code class="docutils literal notranslate"><span class="pre">BasePopulation.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright 2026, Leonardo Di Caterina.</p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
+          </div>
         </div>
       </div>
-    </section>
+      
+      
+    </aside>
   </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
-
-</body>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    </body>
 </html>

@@ -1,127 +1,323 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Experiment Orchestration via Composer" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html"><link rel="prev" title="Functional Genetic Operators" href="3-GENETIC_OPERATORS.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>The Engine: Orchestration and Compilation - MalthusJAX documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
 
 
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
-<head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Engine: Orchestration and Compilation &mdash; MalthusJAX  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="_static/js/theme.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Experiment Orchestration via Composer" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html" />
-    <link rel="prev" title="Functional Genetic Operators" href="3-GENETIC_OPERATORS.html" /> 
-</head>
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
 
-          
-          
-          <a href="index.html" class="icon icon-home">
-            MalthusJAX
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">MalthusJAX  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">MalthusJAX  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">The Engine: Orchestration and Compilation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#stateful-architecture-and-the-scan-contract">4.1. Stateful Architecture and the Scan Contract</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#design-rationale-state-threading-vs-mutable-loops">4.1.1. Design Rationale: State Threading vs. Mutable Loops</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#abstractengine-the-protocol">4.1.2. AbstractEngine — The Protocol</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#abstractevolutionstate-the-scan-carry">4.1.3. AbstractEvolutionState — The Scan Carry</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#abstractengineparams-static-configuration">4.1.4. AbstractEngineParams — Static Configuration</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#generational-loop-architecture-five-phase-orchestration">4.2. Generational Loop Architecture: Five-Phase Orchestration</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#phase-0-entropy-allocation">4.2.1. Phase 0 — Entropy Allocation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#phase-1-selection">4.2.2. Phase 1 — Selection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#phase-2-reproduction-crossover-mutation">4.2.3. Phase 2 — Reproduction (Crossover + Mutation)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#phase-3a-merge">4.2.4. Phase 3a — Merge</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#phase-3b-evaluate">4.2.5. Phase 3b — Evaluate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#phase-4-hall-of-fame-update">4.2.6. Phase 4 — Hall-of-Fame Update</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#output-and-finalization">4.2.7. Output and Finalization</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#alternative-execution-mode-ask-tell-interface">4.3. Alternative Execution Mode: Ask/Tell Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#deterministic-resource-allocation">4.4. Deterministic Resource Allocation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#resource-maps">4.4.1. Resource Maps</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#key-derivation-strategies">4.4.2. Key Derivation Strategies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#sharding-and-multi-device-distribution">4.4.3. Sharding and Multi-Device Distribution</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#operator-level-personalization-and-scheduling">4.5. Operator-Level Personalization and Scheduling</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#generation-aware-operators">4.5.1. Generation-Aware Operators</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#configurable-hall-of-fame-tracking">4.5.2. Configurable Hall-of-Fame Tracking</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#compilation-and-hlo-transparency">4.6. Compilation and HLO Transparency</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#scan-based-kernel-caching">4.6.1. Scan-Based Kernel Caching</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#hlo-tracing-and-named-call-labels">4.6.2. HLO Tracing and Named Call Labels</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#buffer-donation-and-memory-reuse">4.6.3. Buffer Donation and Memory Reuse</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#initialization-and-state-management">4.7. Initialization and State Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#worked-example-customizing-an-engine">4.8. Worked Example: Customizing an Engine</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">The Engine: Orchestration and Compilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a><input aria-label="Toggle navigation of malthusjax package" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.benchmarking.html">malthusjax.benchmarking package</a><input aria-label="Toggle navigation of malthusjax.benchmarking package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.analysis.html">malthusjax.benchmarking.analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.cli.html">malthusjax.benchmarking.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.io.html">malthusjax.benchmarking.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.results.html">malthusjax.benchmarking.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.runner.html">malthusjax.benchmarking.runner module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.composer.html">malthusjax.composer package</a><input aria-label="Toggle navigation of malthusjax.composer package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.catalog.html">malthusjax.composer.catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.composer.html">malthusjax.composer.composer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.config.html">malthusjax.composer.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_catalog.html">malthusjax.composer.engine_catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_factory.html">malthusjax.composer.engine_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_registry.html">malthusjax.composer.engine_registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.evosax_adapter.html">malthusjax.composer.evosax_adapter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.node.html">malthusjax.composer.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.pipeline.html">malthusjax.composer.pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.registry.html">malthusjax.composer.registry module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.binary_genome.html">malthusjax.core.genome.binary_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.categorical_genome.html">malthusjax.core.genome.categorical_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.linear_genome.html">malthusjax.core.genome.linear_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.real_genome.html">malthusjax.core.genome.real_genome module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.core.base.html">malthusjax.core.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.core.random.html">malthusjax.core.random module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.engine.html">malthusjax.engine package</a><input aria-label="Toggle navigation of malthusjax.engine package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.base.html">malthusjax.engine.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.genetic_fastengine.html">malthusjax.engine.genetic_fastengine module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.resource_mapper.html">malthusjax.engine.resource_mapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.schedules.html">malthusjax.engine.schedules module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.operators.html">malthusjax.operators package</a><input aria-label="Toggle navigation of malthusjax.operators package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.crossover.html">malthusjax.operators.crossover package</a><input aria-label="Toggle navigation of malthusjax.operators.crossover package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.binary.html">malthusjax.operators.crossover.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.evosax_crossover.html">malthusjax.operators.crossover.evosax_crossover module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.real.html">malthusjax.operators.crossover.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.mutation.html">malthusjax.operators.mutation package</a><input aria-label="Toggle navigation of malthusjax.operators.mutation package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.binary.html">malthusjax.operators.mutation.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.evosax_mutation.html">malthusjax.operators.mutation.evosax_mutation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.real.html">malthusjax.operators.mutation.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.selection.html">malthusjax.operators.selection package</a><input aria-label="Toggle navigation of malthusjax.operators.selection package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base.html">malthusjax.operators.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base_ablation.html">malthusjax.operators.base_ablation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base_injection.html">malthusjax.operators.base_injection module</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">MalthusJAX</a>
-      </nav>
-
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">The Engine: Orchestration and Compilation</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/4-ENGINE_ORCHESTRATION.md.txt" rel="nofollow"> View page source</a>
-      </li>
-  </ul>
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
-  <section id="the-engine-orchestration-and-compilation">
-<h1>The Engine: Orchestration and Compilation<a class="headerlink" href="#the-engine-orchestration-and-compilation" title="Link to this heading"></a></h1>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/4-ENGINE_ORCHESTRATION.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="the-engine-orchestration-and-compilation">
+<h1>The Engine: Orchestration and Compilation<a class="headerlink" href="#the-engine-orchestration-and-compilation" title="Link to this heading">¶</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">malthusjax.engine</span></code> module implements Tier 2 of the framework. This tier orchestrates genomes, fitness evaluators, and genetic operators into a fully compilable evolution loop using a <strong>scan-based stateful architecture</strong>. The core design principle is <strong>immutable state threading</strong>: the evolution loop carries one opaque state object through <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>, guaranteeing JAX traceability and JIT compilability to a single XLA kernel. This architecture enables three key capabilities:</p>
 <ol class="arabic simple">
 <li><p><strong>Deterministic reproducibility</strong> — explicit PRNG threading with configurable key derivation strategies (SPLIT vs. FOLD)</p></li>
@@ -131,13 +327,13 @@
 <p>The framework provides two execution modes: <code class="docutils literal notranslate"><span class="pre">step()</span></code> for iterative in-process evolution, and <code class="docutils literal notranslate"><span class="pre">ask()</span></code>/<code class="docutils literal notranslate"><span class="pre">tell()</span></code> for external fitness evaluation (e.g., remote simulations). Both modes preserve identical state semantics.</p>
 <hr class="docutils" />
 <section id="stateful-architecture-and-the-scan-contract">
-<h2>4.1. Stateful Architecture and the Scan Contract<a class="headerlink" href="#stateful-architecture-and-the-scan-contract" title="Link to this heading"></a></h2>
+<h2>4.1. Stateful Architecture and the Scan Contract<a class="headerlink" href="#stateful-architecture-and-the-scan-contract" title="Link to this heading">¶</a></h2>
 <section id="design-rationale-state-threading-vs-mutable-loops">
-<h3>4.1.1. Design Rationale: State Threading vs. Mutable Loops<a class="headerlink" href="#design-rationale-state-threading-vs-mutable-loops" title="Link to this heading"></a></h3>
+<h3>4.1.1. Design Rationale: State Threading vs. Mutable Loops<a class="headerlink" href="#design-rationale-state-threading-vs-mutable-loops" title="Link to this heading">¶</a></h3>
 <p>JAX’s functional paradigm prohibits mutable arrays and side effects within traced code. Rather than fighting this constraint, the engine embraces it by threading all intermediate data (population, best solution, generation counter, PRNG key) through a single immutable state object. At each generation, <code class="docutils literal notranslate"><span class="pre">step(state)</span></code> reads the carry, computes the next generation, and returns an updated carry. This carries two benefits: (1) <strong>reproducibility</strong> — given an initial state and a seed, evolution is deterministic (random keys are threaded, not drawn from an implicit global stream), and (2) <strong>compiler transparency</strong> — XLA sees the entire evolution loop as a pure function, enabling its optimizer to inline, fuse, and compile multiple generations into a single kernel with optimized memory reuse.</p>
 </section>
 <section id="abstractengine-the-protocol">
-<h3>4.1.2. AbstractEngine — The Protocol<a class="headerlink" href="#abstractengine-the-protocol" title="Link to this heading"></a></h3>
+<h3>4.1.2. AbstractEngine — The Protocol<a class="headerlink" href="#abstractengine-the-protocol" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">AbstractEngine</span></code> defines a minimal contract: two abstract methods <code class="docutils literal notranslate"><span class="pre">init_state(seed)</span></code> and <code class="docutils literal notranslate"><span class="pre">step(state)</span></code>, plus a provided <code class="docutils literal notranslate"><span class="pre">run()</span></code> method that wraps <code class="docutils literal notranslate"><span class="pre">step</span></code> in <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>. The <code class="docutils literal notranslate"><span class="pre">run()</span></code> method caches the compiled evolution kernel at the module level, keyed by the engine instance identity. This ensures each engine configuration receives a distinct XLA executable, avoiding cross-configuration cache collisions.</p>
 <p>The engine supports two semantics for hyperparameter modification:</p>
 <ul class="simple">
@@ -146,20 +342,20 @@
 </ul>
 </section>
 <section id="abstractevolutionstate-the-scan-carry">
-<h3>4.1.3. AbstractEvolutionState — The Scan Carry<a class="headerlink" href="#abstractevolutionstate-the-scan-carry" title="Link to this heading"></a></h3>
+<h3>4.1.3. AbstractEvolutionState — The Scan Carry<a class="headerlink" href="#abstractevolutionstate-the-scan-carry" title="Link to this heading">¶</a></h3>
 <p>Evolution state is decomposed into two layers: <strong>traced fields</strong> (population genetics and fitness values) and <strong>metadata fields</strong> (operator configurations, resource maps). PyTree registration controls which fields enter the JAX trace. Traced fields include population, best solution found so far, generation counter, and the PRNG key. Metadata fields—operator instances, resource allocation tables, scheduling parameters—are marked <code class="docutils literal notranslate"><span class="pre">pytree_node=False</span></code>. They ride along in the carry without bloating the JAX trace or triggering buffer allocation on each scan iteration.</p>
 <p>This separation is configurable: users can promote metadata to traced fields for HLO transparency or demote traced fields to metadata for compilation tightness.</p>
 </section>
 <section id="abstractengineparams-static-configuration">
-<h3>4.1.4. AbstractEngineParams — Static Configuration<a class="headerlink" href="#abstractengineparams-static-configuration" title="Link to this heading"></a></h3>
+<h3>4.1.4. AbstractEngineParams — Static Configuration<a class="headerlink" href="#abstractengineparams-static-configuration" title="Link to this heading">¶</a></h3>
 <p>Hyperparameters controlling the evolution loop are immutable dataclasses marked entirely as static configuration (<code class="docutils literal notranslate"><span class="pre">pytree_node=False</span></code>). This makes the engine hashable by instance identity, ensuring dictionary-based kernel caching is type-safe. Modification of engine parameters (e.g., changing <code class="docutils literal notranslate"><span class="pre">pop_size</span></code>) produces a new engine instance, triggering fresh XLA compilation.</p>
 </section>
 </section>
 <section id="generational-loop-architecture-five-phase-orchestration">
-<h2>4.2. Generational Loop Architecture: Five-Phase Orchestration<a class="headerlink" href="#generational-loop-architecture-five-phase-orchestration" title="Link to this heading"></a></h2>
+<h2>4.2. Generational Loop Architecture: Five-Phase Orchestration<a class="headerlink" href="#generational-loop-architecture-five-phase-orchestration" title="Link to this heading">¶</a></h2>
 <p>Each call to <code class="docutils literal notranslate"><span class="pre">step(state)</span></code> executes one generation in five phases: entropy allocation, selection, reproduction, population merge, and evaluation. This phase structure is architectural (not arbitrary). It separates distinct concerns—randomness management, parent selection, variation, population assembly, and fitness assessment—such that each phase can be independently personalized, traced for inspection, or optimized by the compiler.</p>
 <section id="phase-0-entropy-allocation">
-<h3>4.2.1. Phase 0 — Entropy Allocation<a class="headerlink" href="#phase-0-entropy-allocation" title="Link to this heading"></a></h3>
+<h3>4.2.1. Phase 0 — Entropy Allocation<a class="headerlink" href="#phase-0-entropy-allocation" title="Link to this heading">¶</a></h3>
 <p>At the start of each generation, the PRNG key is partitioned into operator-specific sub-keys using a pre-computed resource allocation table. The table specifies how many keys each operator needs and where in the flat key array they reside. This design decouples random key derivation from operator invocation: keys are allocated once, centrally, and operators receive their slices as pure inputs. This separation enables:</p>
 <ul class="simple">
 <li><p><strong>Reproducibility auditing</strong> — key allocation is deterministic and order-independent</p></li>
@@ -168,23 +364,23 @@
 </ul>
 </section>
 <section id="phase-1-selection">
-<h3>4.2.2. Phase 1 — Selection<a class="headerlink" href="#phase-1-selection" title="Link to this heading"></a></h3>
+<h3>4.2.2. Phase 1 — Selection<a class="headerlink" href="#phase-1-selection" title="Link to this heading">¶</a></h3>
 <p>Selection identifies elite individuals for preservation and parental individuals for reproduction. The selection operator reads population fitness values and returns index arrays. Elitism is handled by concatenating elite genes with reproduced offspring; when elitism is zero, an empty structure of matching type is created to maintain tree shape. Selection is decoupled from reproduction, allowing independent tuning of selection pressure and reproduction rate.</p>
 </section>
 <section id="phase-2-reproduction-crossover-mutation">
-<h3>4.2.3. Phase 2 — Reproduction (Crossover + Mutation)<a class="headerlink" href="#phase-2-reproduction-crossover-mutation" title="Link to this heading"></a></h3>
+<h3>4.2.3. Phase 2 — Reproduction (Crossover + Mutation)<a class="headerlink" href="#phase-2-reproduction-crossover-mutation" title="Link to this heading">¶</a></h3>
 <p>Reproductive variation is applied in two sequential stages—crossover followed by mutation—chained as a single operation. Parent pairs are gathered from the selected indices; the crossover operator produces offspring; the mutation operator refines them. Both operators receive the generation counter, enabling time-dependent behavior (e.g., mutation rate decay) without mutating operator state. The generation counter is a tracer inside the scan loop, making schedule functions pure JAX and compatible with XLA.</p>
 </section>
 <section id="phase-3a-merge">
-<h3>4.2.4. Phase 3a — Merge<a class="headerlink" href="#phase-3a-merge" title="Link to this heading"></a></h3>
+<h3>4.2.4. Phase 3a — Merge<a class="headerlink" href="#phase-3a-merge" title="Link to this heading">¶</a></h3>
 <p>Elite genes and mutated offspring are combined into the next-generation population. The implementation uses JAX’s <code class="docutils literal notranslate"><span class="pre">dynamic_update_slice</span></code> rather than concatenation, permitting XLA to reuse the old population buffer in-place through buffer donation. This pattern transfers physical memory ownership from one generation to the next without allocation between generations.</p>
 </section>
 <section id="phase-3b-evaluate">
-<h3>4.2.5. Phase 3b — Evaluate<a class="headerlink" href="#phase-3b-evaluate" title="Link to this heading"></a></h3>
+<h3>4.2.5. Phase 3b — Evaluate<a class="headerlink" href="#phase-3b-evaluate" title="Link to this heading">¶</a></h3>
 <p>The merged population is passed to the fitness evaluator, which applies the objective function via <code class="docutils literal notranslate"><span class="pre">vmap</span></code> over the population batch. Evaluation is decoupled from variation, enabling use cases where evaluation is external (ask/tell mode) or remote.</p>
 </section>
 <section id="phase-4-hall-of-fame-update">
-<h3>4.2.6. Phase 4 — Hall-of-Fame Update<a class="headerlink" href="#phase-4-hall-of-fame-update" title="Link to this heading"></a></h3>
+<h3>4.2.6. Phase 4 — Hall-of-Fame Update<a class="headerlink" href="#phase-4-hall-of-fame-update" title="Link to this heading">¶</a></h3>
 <p>The best solution across generations is tracked via configurable overhead. Three modes are available:</p>
 <ul class="simple">
 <li><p><strong>NONE</strong>: Track the best-with-generation as a post-scan pass (zero per-step cost)</p></li>
@@ -194,24 +390,24 @@
 <p>Python-level branching selects which mode is compiled, ensuring only one code path enters the XLA kernel per JIT instance.</p>
 </section>
 <section id="output-and-finalization">
-<h3>4.2.7. Output and Finalization<a class="headerlink" href="#output-and-finalization" title="Link to this heading"></a></h3>
+<h3>4.2.7. Output and Finalization<a class="headerlink" href="#output-and-finalization" title="Link to this heading">¶</a></h3>
 <p>After each <code class="docutils literal notranslate"><span class="pre">step()</span></code>, generation metrics (best fitness, mean fitness, generation number) are extracted and stacked by <code class="docutils literal notranslate"><span class="pre">lax.scan</span></code> into a history array of shape <code class="docutils literal notranslate"><span class="pre">(num_generations,)</span></code>. Post-scan finalization (outside tracing) fills in missing information (e.g., best genome for NONE mode) via a one-shot pass over the final population.</p>
 </section>
 </section>
 <hr class="docutils" />
 <section id="alternative-execution-mode-ask-tell-interface">
-<h2>4.3. Alternative Execution Mode: Ask/Tell Interface<a class="headerlink" href="#alternative-execution-mode-ask-tell-interface" title="Link to this heading"></a></h2>
+<h2>4.3. Alternative Execution Mode: Ask/Tell Interface<a class="headerlink" href="#alternative-execution-mode-ask-tell-interface" title="Link to this heading">¶</a></h2>
 <p>For scenarios where fitness evaluation is external (e.g., expensive simulations, remote evaluation services, hybrid CPU/GPU pipelines), the engine provides an <code class="docutils literal notranslate"><span class="pre">ask()</span></code>/<code class="docutils literal notranslate"><span class="pre">tell()</span></code> interface instead of the direct <code class="docutils literal notranslate"><span class="pre">step()</span></code> method. The call <code class="docutils literal notranslate"><span class="pre">engine.ask(state)</span></code> allocates entropy and returns a population candidate for external evaluation (alongside a buffered key receipt). The call <code class="docutils literal notranslate"><span class="pre">engine.tell(state,</span> <span class="pre">evaluated_pop)</span></code> consumes the buffered keys, executes selection through evaluation, and returns the updated state. This pattern maintains identical state semantics and allows integration with non-JAX fitness functions while preserving reproducibility through explicit key threading.</p>
 </section>
 <hr class="docutils" />
 <section id="deterministic-resource-allocation">
-<h2>4.4. Deterministic Resource Allocation<a class="headerlink" href="#deterministic-resource-allocation" title="Link to this heading"></a></h2>
+<h2>4.4. Deterministic Resource Allocation<a class="headerlink" href="#deterministic-resource-allocation" title="Link to this heading">¶</a></h2>
 <section id="resource-maps">
-<h3>4.4.1. Resource Maps<a class="headerlink" href="#resource-maps" title="Link to this heading"></a></h3>
+<h3>4.4.1. Resource Maps<a class="headerlink" href="#resource-maps" title="Link to this heading">¶</a></h3>
 <p>At initialization, the engine computes a resource allocation plan specifying how many PRNG keys each operator needs and where in the flat key array they are located. This pre-computation enables zero-overhead key slicing during each generation: the key derivation is done once, and operators receive their slices as pure inputs without dynamic lookup or recursion. The resource map is marked metadata (not traced), avoiding JAX overhead.</p>
 </section>
 <section id="key-derivation-strategies">
-<h3>4.4.2. Key Derivation Strategies<a class="headerlink" href="#key-derivation-strategies" title="Link to this heading"></a></h3>
+<h3>4.4.2. Key Derivation Strategies<a class="headerlink" href="#key-derivation-strategies" title="Link to this heading">¶</a></h3>
 <p>Two strategies are available for generating the per-generation key block:</p>
 <ul class="simple">
 <li><p><strong>SPLIT</strong>: Sequential hash chain (<code class="docutils literal notranslate"><span class="pre">jax.random.split</span></code>), lower memory but sequential parallelism</p></li>
@@ -220,15 +416,15 @@
 <p>The choice is static (compiled into the kernel) and specified at engine creation time. The FOLD strategy is incompatible with certain PRNG implementations (e.g., RBG) where <code class="docutils literal notranslate"><span class="pre">fold_in</span></code> is unsupported.</p>
 </section>
 <section id="sharding-and-multi-device-distribution">
-<h3>4.4.3. Sharding and Multi-Device Distribution<a class="headerlink" href="#sharding-and-multi-device-distribution" title="Link to this heading"></a></h3>
+<h3>4.4.3. Sharding and Multi-Device Distribution<a class="headerlink" href="#sharding-and-multi-device-distribution" title="Link to this heading">¶</a></h3>
 <p>For multi-device execution (e.g., data-parallel evolution across GPU devices), the engine provides a <code class="docutils literal notranslate"><span class="pre">ShardingManager</span></code> that enforces JAX <code class="docutils literal notranslate"><span class="pre">NamedSharding</span></code> specifications. This component is optional and non-intrusive—it does not affect the evolution semantics on single devices but enables deployment across a device mesh when instantiated. Population buffers are allocated with explicit sharding metadata, allowing XLA to optimize communication patterns and buffer placement.</p>
 </section>
 </section>
 <hr class="docutils" />
 <section id="operator-level-personalization-and-scheduling">
-<h2>4.5. Operator-Level Personalization and Scheduling<a class="headerlink" href="#operator-level-personalization-and-scheduling" title="Link to this heading"></a></h2>
+<h2>4.5. Operator-Level Personalization and Scheduling<a class="headerlink" href="#operator-level-personalization-and-scheduling" title="Link to this heading">¶</a></h2>
 <section id="generation-aware-operators">
-<h3>4.5.1. Generation-Aware Operators<a class="headerlink" href="#generation-aware-operators" title="Link to this heading"></a></h3>
+<h3>4.5.1. Generation-Aware Operators<a class="headerlink" href="#generation-aware-operators" title="Link to this heading">¶</a></h3>
 <p>Operators accept an optional generation counter as a parameter, enabling time-dependent behavior (e.g., mutation rate decay, crossover bias modulation) without mutating operator state. Scheduling functions are pure JAX, compiled into the kernel, and safe inside <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>. This design decouples scheduling logic from operator logic, allowing users to implement custom schedules (e.g., Bayesian optimization of decay rates) without forking operators.</p>
 <p>Schedule types include:</p>
 <ul class="simple">
@@ -240,7 +436,7 @@
 <p>Scheduling parameters are static configuration; changing them triggers recompilation.</p>
 </section>
 <section id="configurable-hall-of-fame-tracking">
-<h3>4.5.2. Configurable Hall-of-Fame Tracking<a class="headerlink" href="#configurable-hall-of-fame-tracking" title="Link to this heading"></a></h3>
+<h3>4.5.2. Configurable Hall-of-Fame Tracking<a class="headerlink" href="#configurable-hall-of-fame-tracking" title="Link to this heading">¶</a></h3>
 <p>Post-evaluation, the engine updates its best-solution record. Three modes control the overhead and completeness of this tracking:</p>
 <ul class="simple">
 <li><p><strong>NONE</strong> (zero cost, post-hoc recovery): Best solution is found after evolution completes</p></li>
@@ -252,23 +448,23 @@
 </section>
 <hr class="docutils" />
 <section id="compilation-and-hlo-transparency">
-<h2>4.6. Compilation and HLO Transparency<a class="headerlink" href="#compilation-and-hlo-transparency" title="Link to this heading"></a></h2>
+<h2>4.6. Compilation and HLO Transparency<a class="headerlink" href="#compilation-and-hlo-transparency" title="Link to this heading">¶</a></h2>
 <section id="scan-based-kernel-caching">
-<h3>4.6.1. Scan-Based Kernel Caching<a class="headerlink" href="#scan-based-kernel-caching" title="Link to this heading"></a></h3>
+<h3>4.6.1. Scan-Based Kernel Caching<a class="headerlink" href="#scan-based-kernel-caching" title="Link to this heading">¶</a></h3>
 <p>The evolution loop is compiled once per engine instance. The cached kernel is retrieved by <code class="docutils literal notranslate"><span class="pre">id(engine)</span></code>, ensuring each configuration has a distinct XLA executable. After compilation, XLA optimizes the entire evolution process as a single function, applying loop fusion, buffer reuse, and kernel specialization. The unroll depth is automatic (XLA decides); manual configuration is deprecated.</p>
 </section>
 <section id="hlo-tracing-and-named-call-labels">
-<h3>4.6.2. HLO Tracing and Named Call Labels<a class="headerlink" href="#hlo-tracing-and-named-call-labels" title="Link to this heading"></a></h3>
+<h3>4.6.2. HLO Tracing and Named Call Labels<a class="headerlink" href="#hlo-tracing-and-named-call-labels" title="Link to this heading">¶</a></h3>
 <p>Each evolution phase can be wrapped with HLO labels for profiling and inspection. By default, labels are disabled, allowing full fusion. When enabled (e.g., <code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.debug_tracing=True</span></code>), <code class="docutils literal notranslate"><span class="pre">jax.named_call</span></code> annotations insert readable phase names into the HLO graph, facilitating performance debugging. Enabling tracing incurs no overhead when disabled (the branch is resolved before XLA sees the code).</p>
 <p>Users can extract the compiled HLO text via <code class="docutils literal notranslate"><span class="pre">engine.get_hlo_text(state)</span></code> for inspection and custom optimization.</p>
 </section>
 <section id="buffer-donation-and-memory-reuse">
-<h3>4.6.3. Buffer Donation and Memory Reuse<a class="headerlink" href="#buffer-donation-and-memory-reuse" title="Link to this heading"></a></h3>
+<h3>4.6.3. Buffer Donation and Memory Reuse<a class="headerlink" href="#buffer-donation-and-memory-reuse" title="Link to this heading">¶</a></h3>
 <p>The merge phase writes elite and mutant genes into the old population buffer, enabling XLA to donate (reuse) that buffer rather than allocate fresh memory. This pattern cascades through generations: each generation’s population buffer is the destination for the next, reducing memory traffic and improving cache locality.</p>
 </section>
 </section>
 <section id="initialization-and-state-management">
-<h2>4.7. Initialization and State Management<a class="headerlink" href="#initialization-and-state-management" title="Link to this heading"></a></h2>
+<h2>4.7. Initialization and State Management<a class="headerlink" href="#initialization-and-state-management" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">init_state(seed)</span></code> is a one-time setup phase that:</p>
 <ol class="arabic simple">
 <li><p>Initializes the first population via the genome’s <code class="docutils literal notranslate"><span class="pre">random_init()</span></code> method</p></li>
@@ -281,7 +477,7 @@
 </section>
 <hr class="docutils" />
 <section id="worked-example-customizing-an-engine">
-<h2>4.8. Worked Example: Customizing an Engine<a class="headerlink" href="#worked-example-customizing-an-engine" title="Link to this heading"></a></h2>
+<h2>4.8. Worked Example: Customizing an Engine<a class="headerlink" href="#worked-example-customizing-an-engine" title="Link to this heading">¶</a></h2>
 <p>The following example, derived directly from the engine’s test suite, demonstrates how the customization axes described in this chapter are composed in practice. A minimal engine targeting the Sphere benchmark is constructed with: (1) cosine annealing on mutation strength, (2) the FOLD key derivation strategy for fully parallel entropy allocation, and (3) LIGHT hall-of-fame tracking for minimal overhead with monotonic fitness history.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jar</span>
 
@@ -332,35 +528,115 @@
 </section>
 </section>
 
-
-           </div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Experiment Orchestration via Composer</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="3-GENETIC_OPERATORS.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Functional Genetic Operators</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Leonardo Di Caterina
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="3-GENETIC_OPERATORS.html" class="btn btn-neutral float-left" title="Functional Genetic Operators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html" class="btn btn-neutral float-right" title="Experiment Orchestration via Composer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
     </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">The Engine: Orchestration and Compilation</a><ul>
+<li><a class="reference internal" href="#stateful-architecture-and-the-scan-contract">4.1. Stateful Architecture and the Scan Contract</a><ul>
+<li><a class="reference internal" href="#design-rationale-state-threading-vs-mutable-loops">4.1.1. Design Rationale: State Threading vs. Mutable Loops</a></li>
+<li><a class="reference internal" href="#abstractengine-the-protocol">4.1.2. AbstractEngine — The Protocol</a></li>
+<li><a class="reference internal" href="#abstractevolutionstate-the-scan-carry">4.1.3. AbstractEvolutionState — The Scan Carry</a></li>
+<li><a class="reference internal" href="#abstractengineparams-static-configuration">4.1.4. AbstractEngineParams — Static Configuration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#generational-loop-architecture-five-phase-orchestration">4.2. Generational Loop Architecture: Five-Phase Orchestration</a><ul>
+<li><a class="reference internal" href="#phase-0-entropy-allocation">4.2.1. Phase 0 — Entropy Allocation</a></li>
+<li><a class="reference internal" href="#phase-1-selection">4.2.2. Phase 1 — Selection</a></li>
+<li><a class="reference internal" href="#phase-2-reproduction-crossover-mutation">4.2.3. Phase 2 — Reproduction (Crossover + Mutation)</a></li>
+<li><a class="reference internal" href="#phase-3a-merge">4.2.4. Phase 3a — Merge</a></li>
+<li><a class="reference internal" href="#phase-3b-evaluate">4.2.5. Phase 3b — Evaluate</a></li>
+<li><a class="reference internal" href="#phase-4-hall-of-fame-update">4.2.6. Phase 4 — Hall-of-Fame Update</a></li>
+<li><a class="reference internal" href="#output-and-finalization">4.2.7. Output and Finalization</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#alternative-execution-mode-ask-tell-interface">4.3. Alternative Execution Mode: Ask/Tell Interface</a></li>
+<li><a class="reference internal" href="#deterministic-resource-allocation">4.4. Deterministic Resource Allocation</a><ul>
+<li><a class="reference internal" href="#resource-maps">4.4.1. Resource Maps</a></li>
+<li><a class="reference internal" href="#key-derivation-strategies">4.4.2. Key Derivation Strategies</a></li>
+<li><a class="reference internal" href="#sharding-and-multi-device-distribution">4.4.3. Sharding and Multi-Device Distribution</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#operator-level-personalization-and-scheduling">4.5. Operator-Level Personalization and Scheduling</a><ul>
+<li><a class="reference internal" href="#generation-aware-operators">4.5.1. Generation-Aware Operators</a></li>
+<li><a class="reference internal" href="#configurable-hall-of-fame-tracking">4.5.2. Configurable Hall-of-Fame Tracking</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#compilation-and-hlo-transparency">4.6. Compilation and HLO Transparency</a><ul>
+<li><a class="reference internal" href="#scan-based-kernel-caching">4.6.1. Scan-Based Kernel Caching</a></li>
+<li><a class="reference internal" href="#hlo-tracing-and-named-call-labels">4.6.2. HLO Tracing and Named Call Labels</a></li>
+<li><a class="reference internal" href="#buffer-donation-and-memory-reuse">4.6.3. Buffer Donation and Memory Reuse</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#initialization-and-state-management">4.7. Initialization and State Management</a></li>
+<li><a class="reference internal" href="#worked-example-customizing-an-engine">4.8. Worked Example: Customizing an Engine</a></li>
+</ul>
+</li>
+</ul>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright 2026, Leonardo Di Caterina.</p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
+          </div>
         </div>
       </div>
-    </section>
+      
+      
+    </aside>
   </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
-
-</body>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    </body>
 </html>
