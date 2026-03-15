@@ -8,9 +8,11 @@ import types
 # prevent slow imports during autodoc
 # ---------------------------------------------------------------------------
 # When Sphinx imports the package to collect docstrings it may execute
-# expensive initialization code (JAX device discovery, etc.).  To keep the
-# build fast even if the real libraries are installed, insert lightweight
-# dummy modules into sys.modules before anything else happens.
+# expensive initialization code (JAX device discovery, etc.). If the real
+# libraries are installed, we want to import them normally so autodoc can
+# extract real API docs (rather than empty mocked stubs).
+#
+# If a dependency is missing, we fall back to a lightweight dummy module.
 for _m in (
     "jax",
     "jaxlib",
@@ -23,7 +25,10 @@ for _m in (
     "pandas",
     "evosax",
 ):
-    sys.modules[_m] = types.ModuleType(_m)
+    try:
+        __import__(_m)
+    except ImportError:
+        sys.modules[_m] = types.ModuleType(_m)
 
 sys.path.insert(0, os.path.abspath("../../src"))
 
@@ -44,19 +49,10 @@ extensions = [
     "myst_parser",
 ]
 
-# Mock optional / heavy C-extension dependencies so autodoc can import the
-# pure-Python source without having them installed.
+# Mock optional / heavy C-extension dependencies only when they are missing
+# at build time. When present, autodoc will import the real packages.
 autodoc_mock_imports = [
     "evosax",
-    "jax",
-    "jaxlib",
-    "flax",
-    "chex",
-    "optax",
-    "numpy",
-    "sklearn",
-    "scipy",
-    "pandas",
     "pytest",
 ]
 
