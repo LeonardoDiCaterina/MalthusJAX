@@ -50,7 +50,6 @@ def knapsack_data() -> tuple[jax.Array, jax.Array, float]:
     return weights, values, capacity
 
 
-
 @pytest.fixture
 def real_population(rng_key, real_genome_config) -> RealPopulation:
     """Typed RealPopulation fixture."""
@@ -122,20 +121,24 @@ def constrained_real_genome_config() -> RealGenomeConfig:
     """Real genome with tight bounds."""
     return RealGenomeConfig(shape=(3,), bounds=(-1.0, 1.0))
 
+
 @pytest.fixture
 def binary_genome(rng_key, binary_genome_config) -> BinaryGenome:
     """Sample binary genome for testing."""
     return BinaryGenome.random_init(rng_key, binary_genome_config)
+
 
 @pytest.fixture
 def real_genome(rng_key, real_genome_config) -> RealGenome:
     """Sample real genome for testing."""
     return RealGenome.random_init(rng_key, real_genome_config)
 
+
 @pytest.fixture
 def fitness_values() -> jax.Array:
     """Sample fitness values for selection testing."""
     return jnp.array([0.1, 0.8, 0.3, 0.9, 0.2, 0.7, 0.5, 0.6, 0.4, 0.95])
+
 
 @pytest.fixture
 def low_fitness_values() -> jax.Array:
@@ -165,7 +168,6 @@ def assert_valid_real_genome(genome: RealGenome, config: RealGenomeConfig) -> No
     assert genome.values.shape == (config.length,)
     assert jnp.all(genome.values >= config.bounds[0])
     assert jnp.all(genome.values <= config.bounds[1])
-
 
 
 def assert_valid_binary_genome_batch(genome_batch, config: BinaryGenomeConfig) -> None:
