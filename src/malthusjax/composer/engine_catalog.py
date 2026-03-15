@@ -144,9 +144,7 @@ class EngineRegistry:
 
         if engine_name not in self._registry:
             available = ", ".join(self.list_available())
-            raise KeyError(
-                f"Unknown engine '{engine_name}'. Available: [{available}]"
-            )
+            raise KeyError(f"Unknown engine '{engine_name}'. Available: [{available}]")
 
         factory, defaults = self._registry[engine_name]
         merged_params = {**defaults, **spec_params, **kwargs}
@@ -160,9 +158,7 @@ class EngineRegistry:
                 **merged_params,
             )
         except TypeError as e:
-            raise ValueError(
-                f"Invalid parameters for engine '{engine_name}': {e}"
-            ) from e
+            raise ValueError(f"Invalid parameters for engine '{engine_name}': {e}") from e
 
     def register(
         self,

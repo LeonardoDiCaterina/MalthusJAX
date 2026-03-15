@@ -33,6 +33,7 @@ def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
         raise KeyError(f"Pipeline '{pipeline_name}' not found in {path}")
     return cast(Dict[str, Any], pipeline)
 
+
 _EXPERIMENT_META_KEYS = {"name", "output_dir"}
 
 

@@ -63,9 +63,6 @@ class GeneticEngineAdapter:
         t_init_end = time.perf_counter()
 
         if self.initial_population is not None:
-
-
-
             arr = jnp.asarray(self.initial_population)
             pop = RealPopulation.from_array(arr, self.genome_config, axis=0)
             evaluated_pop = self.genetic_engine.evaluator.evaluate_population(pop)
@@ -104,9 +101,7 @@ class GeneticEngineAdapter:
         # execute the cached kernel (no re-compilation).
         # ------------------------------------------------------------------
         t_evo_start = time.perf_counter()
-        final_state, scan_history, _ = self.genetic_engine.run(
-            state, time_it=True, compile=True
-        )
+        final_state, scan_history, _ = self.genetic_engine.run(state, time_it=True, compile=True)
         t_evo_end = time.perf_counter()
 
         num_gens = int(self.genetic_engine.engine_params.num_generations)
@@ -181,6 +176,7 @@ def build_engine(
     OperatorCatalog: Any = None
     try:
         from .catalog import OperatorCatalog as _OperatorCatalog
+
         OperatorCatalog = _OperatorCatalog
     except Exception:
         OperatorCatalog = None
@@ -222,9 +218,7 @@ def build_engine(
         "final_strength",
         "track_best",
     ]
-    schedule_extra: Dict[str, Any] = {
-        k: v for k, v in kwargs.items() if k in _schedule_keys
-    }
+    schedule_extra: Dict[str, Any] = {k: v for k, v in kwargs.items() if k in _schedule_keys}
 
     if "track_best" not in schedule_extra:
         schedule_extra["track_best"] = TrackBest.NONE

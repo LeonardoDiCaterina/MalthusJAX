@@ -31,7 +31,77 @@ except ImportError:  # pragma: no cover - optional dependency
 
 @dataclass
 class Composer:
-    """Compose and run evolutionary experiments with sensible defaults."""
+    """High-level interface for running evolutionary algorithms.
+
+    The :class:`Composer` class provides three primary entry points for
+    running genetic algorithms with different levels of configuration:
+
+    1. **:meth:`quick_run` — Interactive exploration**
+       Use when exploring hyperparameters, testing fitness functions, or
+       learning MalthusJAX. Accepts programmatic operator specifications
+       (e.g., ``fitness="sphere:dim=10"``) and runs a full experiment with
+       multiple seeds, returning aggregated results immediately.
+
+    2. **:meth:`from_toml` — Reproducible declarative experiments**
+       Use when you want versioned, reproducible experiments for papers or
+       production benchmarking. Define pipelines in a TOML file; the method
+       loads, parses, and executes all pipelines automatically while
+       preserving shared configuration like seeds and population bounds.
+
+    3. **:meth:`compare` — Programmatic multi-pipeline benchmarking**
+       Use when comparing algorithm variants. Accepts a dict of pipeline
+       configurations (each a :meth:`quick_run` kwargs dict), shares initial
+       populations and seeds across pipelines for fair comparison, and returns
+       utilities for statistical summary and visualization.
+
+    All methods return result objects (:class:`ExperimentResult` from
+    :meth:`quick_run`, :class:`ComparisonResult` from :meth:`from_toml` and
+    :meth:`compare`) with aggregated metrics and convergence histories.
+
+    Examples
+    --------
+    Quick exploration::
+
+        composer = Composer.create_default()
+        result = composer.quick_run(
+            fitness="sphere:dim=5",
+            selection="tournament:num_selections=25,tournament_size=3",
+            crossover="blend:alpha=0.5",
+            mutation="gaussian:mutation_rate=0.1,mutation_strength=0.2",
+            pop_size=50,
+            generations=50,
+            seeds=(42, 43, 44),
+        )
+        print(result.aggregated_summary())
+
+    Reproducible TOML-based experiment::
+
+        result = Composer.from_toml(
+            "experiment.toml",
+            trace_dir="results/traces"
+        )
+        result.plot_convergence(seed_index=0)
+
+    Benchmarking multiple pipelines::
+
+        comparison = composer.compare(
+            pipelines={
+                "Blend+Gaussian": dict(
+                    crossover="blend:alpha=0.5",
+                    mutation="gaussian:mutation_rate=0.1",
+                ),
+                "SBX+Polynomial": dict(
+                    crossover="simulated_binary:eta=2",
+                    mutation="polynomial:mutation_rate=0.1",
+                ),
+            },
+            fitness="sphere:dim=10",
+            pop_size=50,
+            generations=100,
+        )
+        print(comparison.summary_table())
+        comparison.plot_convergence()
+    """
 
     registry: Optional[Any] = None
     config: Dict[str, Any] = field(default_factory=dict)
@@ -62,53 +132,215 @@ class Composer:
         trace_dir: Optional[Path | str] = Path("results/traces"),
         **kwargs: Any,
     ) -> ExperimentResult:
-        """Quick-run an experiment with sensible defaults.
+        """Run a full evolutionary experiment with programmatic operator specs.
 
-        This is the main product-first entry point for running experiments.
-        Supports two backends:
+        This is the main entry point for interactive exploration and benchmarking.
+        It accepts operator specifications as string specs (for the ``"malthusjax""
+        backend) or strategy names (for the ``"evosax"`` backend), orchestrates
+        multiple independent runs (one per seed), aggregates results, and returns
+        an :class:`ExperimentResult`.
 
-        - ``"malthusjax"`` (default): Uses MalthusJAX operators via string specs
-        - ``"evosax"``: Uses evosax population-based strategies (ask/tell)
+        Parameters
+        ----------
+        fitness : str, optional
+        Fitness function specification (MalthusJAX backend only).
+        Format: ``"name:key1=val,key2=val"``
 
-        When no operator specs are provided, falls back to StubEngine.
+        **Built-in fitness functions**:
 
-        This entry point accepts a wide array of configuration options
-        (seeds, engine selection, operators, population parameters, etc.) and
-        returns an :class:`ExperimentResult` containing individual run outputs
-        and summary metrics. Two backends are supported:
+        - ``"sphere:dim=INT"`` — Sphere function: $f(x) = \\sum_i x_i^2$
+        - ``"rastrigin:dim=INT"`` — Rastrigin: highly multimodal
+        - ``"griewank:dim=INT"`` — Griewank: multimodal with low local frequencies
+        - ``"bbob:fn=INT,dims=INT"`` — Black-Box Optimization Benchmarking
+          (BBOB) suite function (fn=1–24, dims=2–40)
+        - ``"knapsack:capacity=INT,num_items=INT"`` — 0/1 knapsack
+        - ``"binary_sum:length=INT"`` — Binary sum of bits (for binary genomes)
 
-        ``"malthusjax"`` (the default) interprets string specifications via
-        :class:`OperatorCatalog`, while ``"evosax"`` constructs an
-        :class:`EvosaxEngineAdapter` from an evosax strategy name. When no
-        operator specs are provided the method falls back to
-        :class:`~.benchmarking.StubEngine` so the caller can still exercise the
-        benchmarking pipeline.
+        Examples: ``"sphere:dim=10"``, ``"bbob:fn=3,dims=10"``,
+        ``"knapsack:capacity=100,num_items=20"``.
 
-        The *output_dir* argument is resolved against ``results/`` if not
-        supplied. All remaining keyword arguments are forwarded to the
-        underlying engine or the :class:`BenchmarkRunner`.
+        selection : str, optional
+        Selection operator specification.
+        Format: ``"name:key1=val,key2=val"``
 
-        Examples::
+        **Valid operators**:
 
-            # MalthusJAX backend (default)
-            result = composer.quick_run(
-                fitness="sphere:dim=5",
-                selection="tournament:num_selections=25,tournament_size=3",
-                crossover="blend:alpha=0.5",
-                mutation="gaussian:mutation_rate=0.1",
-            )
+        - ``"tournament:num_selections=INT,tournament_size=INT"``
+          Select via tournament competition (default: size=3).
+        - ``"roulette:num_selections=INT"``
+          Fitness-proportional selection (SUS-like).
+        - ``"elite_pool:num_selections=INT,elite_k=INT"``
+          Keep top-k individuals, select from them.
 
-            # Evosax backend
-            result = composer.quick_run(
-                backend="evosax",
-                evosax_strategy="SimpleGA",
-                fitness="sphere:dim=10",
-                pop_size=100,
-                generations=200,
-            )
+        Examples: ``"tournament:num_selections=25,tournament_size=3"``,
+        ``"roulette:num_selections=25"``.
 
-            # StubEngine fallback (no operators specified)
-            result = composer.quick_run()
+        crossover : str, optional
+        Crossover operator specification.
+        Format: ``"name:key1=val,key2=val"``
+
+        **For real genomes**:
+
+        - ``"uniform_real"`` — Uniform crossover (each gene has 50% chance).
+        - ``"blend:alpha=FLOAT"`` — Blend crossover with expansion factor.
+        - ``"simulated_binary:eta=FLOAT"`` — SBX (eta controls spread).
+        - ``"binomial:cr=FLOAT"`` — DE-style binomial crossover.
+
+        **For binary genomes**:
+
+        - ``"uniform_binary"`` — Uniform bit-wise crossover.
+        - ``"single_point"`` — Single-point crossover.
+
+        Examples: ``"blend:alpha=0.5"``, ``"simulated_binary:eta=20"``.
+
+        mutation : str, optional
+        Mutation operator specification.
+        Format: ``"name:key1=val,key2=val"``
+
+        **For real genomes**:
+
+        - ``"gaussian:mutation_rate=FLOAT,mutation_strength=FLOAT"``
+          Add Gaussian noise (mutation_strength = std dev).
+        - ``"ball:mutation_rate=FLOAT"``
+          Uniform ball (hypersphere) mutation.
+        - ``"polynomial:mutation_rate=FLOAT,eta=FLOAT"``
+          Polynomial mutation (eta controls distribution).
+
+        **For binary genomes**:
+
+        - ``"bitflip:mutation_rate=FLOAT"``
+          Flip each bit independently.
+        - ``"scramble"`` — Random reordering (order-based).
+        - ``"swap"`` — Random bit swap (order-based).
+
+        Examples:
+        ``"gaussian:mutation_rate=0.5,mutation_strength=0.1"``,
+        ``"polynomial:mutation_rate=0.1,eta=20"``,
+        ``"bitflip:mutation_rate=0.05"``.
+
+        seeds : Sequence[int], optional
+        Random seeds for independent runs. Each seed generates a fully
+        independent evolutionary run; results are then aggregated.
+        Default: ``(1, 2, 3)``.
+
+        generations : int, optional
+        Number of full generational cycles to evolve. Default: 100.
+        (Note: some backends may interpret this differently; see backend-specific
+        documentation.)
+
+        pop_size : int, optional
+        Population size (number of individuals per generation).
+        For GPU efficiency, powers of 2 (32, 64, 128, 256) are preferred.
+        Default: 50.
+
+        genome_length : int, optional
+        For continuous genomes: number of decision variables (dimension).
+        For discrete: number of bits or items. Default: 10.
+
+        bounds : Tuple[float, float], optional
+        Search space bounds ``(lower, upper)`` for real genomes.
+        Default: ``(-5.0, 5.0)``.
+
+        genome_type : str, optional
+        Genome representation: ``"real"`` or ``"binary"``.
+        Controls which operator specs are valid (real vs binary crossover/mutation).
+        Default: ``"real"``.
+
+        maximize : bool, optional
+        Optimization direction: ``True`` for maximization, ``False`` for
+        minimization. Default: ``False``.
+
+        backend : str, optional
+        Execution backend: ``"malthusjax"`` (default) or ``"evosax"``.
+        - ``"malthusjax"``: Uses MalthusJAX operators (requires
+          fitness/selection/crossover/mutation specs)
+        - ``"evosax"``: Uses evosax strategy (requires evosax_strategy; ignores
+          operator specs)
+
+        evosax_strategy : str, optional
+        Evosax strategy name (only if ``backend="evosax"``).
+        Examples: ``"SimpleGA"``, ``"OpenES"``, ``"CMA_ES"``, ``"DE"``.
+        Default: ``"SimpleGA"``.
+
+        engine_type : str, optional
+        MalthusJAX engine type (only if ``backend="malthusjax"``).
+        Currently supported: ``"ga"`` (generational GA). Default: ``"ga"``.
+
+        elitism : int, optional
+        Number of best individuals to carry forward without modification
+        (MalthusJAX backend only). Default: 2.
+
+        experiment_name : str, optional
+        Experiment identifier (used in output directory and logging).
+        Default: ``"quick_experiment"``.
+
+        output_dir : Path or str, optional
+        Output directory for results, artifacts, and logs.
+        If not provided, defaults to ``results/{experiment_name}/``.
+
+        engine : optional
+        A pre-configured engine object. If provided, all operator specs
+        (fitness, selection, crossover, mutation) are ignored; use a custom
+        engine to bypass automatic configuration.
+
+        prng_impl : str, optional
+        PRNG implementation for JAX key splitting (advanced).
+        Default: ``None`` (auto-select).
+
+        trace_dir : Path or str, optional
+        Directory to write Perfetto-compatible JAX profiler traces.
+        Default: ``Path("results/traces")``.
+
+        Returns
+        -------
+        ExperimentResult
+        Result object containing per-seed run records and aggregation methods:
+
+        - ``.runs`` : List[:class:`RunResult`] — Individual runs, one per seed
+        - ``.aggregated_summary()`` — Dict mapping metric names → (mean, median, stdev)
+        - ``.combined_history(seed_field="seed")`` — All generation records with seed labels
+        - ``.canonical_summary`` — Best-of metrics from first seed
+
+        Raises
+        ------
+        ValueError
+        If operator specs have invalid format or unknown operator names.
+        RuntimeError
+        If the underlying engine encounters a critical error during execution.
+
+        Examples
+        --------
+        MalthusJAX backend (default)::
+
+        composer = Composer.create_default()
+        result = composer.quick_run(
+            fitness="sphere:dim=25",
+            selection="tournament:num_selections=25,tournament_size=3",
+            crossover="blend:alpha=0.5",
+            mutation="gaussian:mutation_rate=0.5,mutation_strength=0.1",
+            pop_size=100,
+            generations=200,
+            seeds=(42, 43, 44),
+        )
+        print(result.aggregated_summary())
+
+        Evosax backend::
+
+        result = composer.quick_run(
+            backend="evosax",
+            evosax_strategy="OpenES",
+            fitness="sphere:dim=10",
+            pop_size=64,
+            generations=500,
+            seeds=(1, 2, 3),
+        )
+
+        No operator specs (uses StubEngine for testing the pipeline)::
+
+        result = composer.quick_run(
+            generations=50,
+            seeds=(1, 2),
+        )
         """
         if output_dir is None:
             output_dir = Path("results") / experiment_name
@@ -166,44 +398,139 @@ class Composer:
         pop_seed: int = 123,
         **shared_kwargs: Any,
     ) -> ComparisonResult:
-        """Run multiple experiment pipelines and return their comparison.
+        """Run multiple algorithm variants and return comparison results.
 
-        The *pipelines* argument maps short names to overrides that will be
-        merged with any supplied *shared_kwargs* and passed down to
-        :meth:`quick_run`. A fixed list of *seeds* is reused for every
-        pipeline; if *shared_initial_population* is True a single random
-        population (seeded by *pop_seed*) is generated once and injected into
-        each run so that results are directly comparable.
+        This method executes several experiment pipelines with identical seeding
+        and optional population initialization, enabling fair statistical
+        comparison of different evolutionary strategies.
 
-        Returns a :class:`ComparisonResult` holding one
-        :class:`ExperimentResult` per named pipeline along with helper
-        utilities for summarisation and plotting. Shared configuration values
-        and a flag map indicating whether the pipeline used the evosax backend
-        are also stored.
+        Parameters
+        ----------
+        pipelines : Dict[str, Dict[str, Any]]
+            Mapping of display names (pipeline identifiers) to kwarg dicts.
+            Each dict contains :meth:`quick_run` parameters (fitness, selection,
+            crossover, mutation, backend, evosax_strategy, etc.) that override
+            the shared configuration. Keys determine plot legend labels and table
+            headers in results.
 
-        Examples:
+            Example::
 
-            cmp = composer.compare(
                 pipelines={
                     "Blend+Gaussian": dict(
                         crossover="blend:alpha=0.5",
                         mutation="gaussian:mutation_rate=0.1",
                     ),
                     "SBX+Polynomial": dict(
-                        crossover="simulated_binary:eta=2",
-                        mutation="polynomial:mutation_rate=0.1",
+                        crossover="simulated_binary:eta=2.0",
+                        mutation="polynomial:mutation_rate=0.1,eta=20",
                     ),
-                    "Evosax SimpleGA": dict(
+                    "Evosax CMA-ES": dict(
                         backend="evosax",
-                        evosax_strategy="SimpleGA",
+                        evosax_strategy="CMA_ES",
+                    ),
+                }
+
+            Backend selection: Include ``backend`` and ``evosax_strategy`` in
+            each pipeline dict to mix MalthusJAX and Evosax strategies in one
+            comparison.
+
+        seeds : Sequence[int], optional
+            Random seeds shared across all pipelines. Using the same seeds
+            ensures statistically comparable runs. Default: ``(42, 43, 44)``.
+
+        shared_initial_population : bool, optional
+            If ``True``, generate a single random population and inject it into
+            every pipeline's first run. This isolates algorithmic differences
+            from initialization variance, enhancing fair comparison.
+            Default: ``True``.
+
+        pop_seed : int, optional
+            Random seed for generating the shared initial population.
+            Default: 123.
+            (Only used if ``shared_initial_population=True``.)
+
+        **shared_kwargs : Any
+            Default configuration applied to all pipelines (merged before
+            pipeline-specific overrides). Use for common settings like
+            ``fitness``, ``pop_size``, ``generations``, ``bounds``.
+
+            Example::
+
+                compare(
+                    pipelines={...},
+                    fitness="sphere:dim=10",  # shared
+                    pop_size=50,               # shared
+                    generations=100,           # shared
+                )
+
+        Returns
+        -------
+        ComparisonResult
+            Contains:
+
+            - ``.pipelines`` : Dict[str, :class:`ExperimentResult`]
+              Per-pipeline results with aggregation methods.
+            - ``.summary_table()`` : Dict[str, Dict[str, float]]
+              Per-pipeline aggregated metrics (mean across seeds).
+              Fitness is always normalized to "lower is better".
+            - ``.plot_convergence(seed_index=0, ax=None)`` -> matplotlib axis
+              Overlay convergence curves for all pipelines.
+            - ``.convergence_data(seed_index=0)`` : Dict[str, List[Dict]]
+              Raw per-pipeline generation histories for custom plotting.
+
+        Raises
+        ------
+        ValueError
+            If pipelines dict is empty or contains invalid operator specs.
+        KeyError
+            If required shared config keys (e.g., fitness, pop_size) are missing
+            from both shared and pipeline-specific settings.
+
+        Notes
+        -----
+        The method automatically handles backend normalization: Evosax pipelines
+        have their fitness values negated before display so that all pipelines
+        use a consistent "lower is better" convention. This behavior is
+        transparent to the user (controlled by ComparisonResult.negate_map).
+
+        Examples
+        --------
+        Three-way comparison with shared fitness::
+
+            composer = Composer.create_default()
+            comparison = composer.compare(
+                pipelines={
+                    "Blend+Gaussian": dict(
+                        crossover="blend:alpha=0.5",
+                        mutation="gaussian:mutation_rate=0.5,mutation_strength=0.1",
+                    ),
+                    "SBX+Polynomial": dict(
+                        crossover="simulated_binary:eta=20",
+                        mutation="polynomial:mutation_rate=0.1,eta=20",
+                    ),
+                    "Evosax OpenES": dict(
+                        backend="evosax",
+                        evosax_strategy="OpenES",
                     ),
                 },
-                fitness="sphere:dim=10",
-                pop_size=50,
-                generations=100,
-                seeds=(42, 43),
+                fitness="sphere:dim=10",           # shared across all
+                pop_size=100,                     # shared
+                generations=200,                  # shared
+                seeds=(42, 43, 44, 45),          # shared
             )
-            cmp.plot_convergence()
+            print(comparison.summary_table())
+            comparison.plot_convergence(seed_index=0)
+
+        Fair initialization (shared first population)::
+
+            comparison = composer.compare(
+                pipelines={...},
+                shared_initial_population=True,   # use same init pop
+                pop_seed=999,                     # populate seed
+                fitness="rastrigin:dim=10",
+                pop_size=50,
+            )
+            # All pipelines start from identical population
         """
         init_pop = None
         if shared_initial_population:
@@ -260,37 +587,136 @@ class Composer:
         pop_seed: int = 123,
         trace_dir: Optional[str | Path] = None,
     ) -> ComparisonResult:
-        """Load a TOML experiment file and run all pipelines.
+        """Load and execute a declarative TOML experiment specification.
 
-        This convenience wrapper reads *path* using
-        :func:`~.config.load_experiment_config`, optionally filtering to the
-        named *pipelines*. Shared metadata such as seeds and bounds are
-        preserved and forwarded to :meth:`compare`.  If
-        *shared_initial_population* is true a single random population is
-        generated once using *pop_seed* and recycled across every pipeline.
-        When *trace_dir* is provided a Perfetto-compatible JAX profiler trace
-        is written for the first seed of each run under
-        ``trace_dir/<pipeline_name>/``.
+        This classmethod provides a reproducible, version-controllable way to
+        define and run experiments. TOML files specify shared configuration,
+        pipeline-specific overrides, and seeds in a human-readable format.
+        The method parses the file, runs all pipelines with fair comparison
+        settings, and returns a :class:`ComparisonResult` with visualization
+        and summary utilities.
 
-        Returns a :class:`ComparisonResult` for the executed pipelines.  See
-        the examples below for TOML file structure and typical usage.
+        Parameters
+        ----------
+        path : str or pathlib.Path
+            Path to a TOML experiment configuration file. The file must contain
+            at least ``[experiment.shared]`` section with default settings and
+            one or more ``[pipelines.NAME]`` sections defining algorithm variants.
+            See Notes for full TOML schema.
+
+        pipelines : List[str], optional
+            If provided, only execute pipelines with these names. If ``None``,
+            all pipelines defined in the TOML file are executed.
+            Default: ``None``.
+
+        shared_initial_population : bool, optional
+            If ``True``, generate a single random population and inject it into
+            each pipeline's first run for fair initialization. Default: ``True``.
+
+        pop_seed : int, optional
+            Random seed for generating the shared initial population.
+            Default: 123.
+
+        trace_dir : str or pathlib.Path, optional
+            Directory for Perfetto JAX profiler traces. If provided, traces are
+            written to ``trace_dir/<pipeline_name>/`` for the first seed of each
+            run. Default: ``None`` (no traces).
+
+        Returns
+        -------
+        ComparisonResult
+            Multi-pipeline result object. Contains:
+            - ``.summary_table()`` : aggregated metrics per pipeline
+            - ``.plot_convergence()`` : matplotlib visualization
+            - ``.convergence_data()`` : raw history data
+            - ``.pipelines`` : dict of per-pipeline :class:`ExperimentResult`
+
+        Raises
+        ------
+        FileNotFoundError
+            If the specified TOML file does not exist.
+        ValueError
+            If TOML structure is invalid or required keys are missing.
+        KeyError
+            If a pipeline references undefined operators or configs.
+
+        Notes
+        -----
+        **TOML File Structure**:
+
+        The TOML file must follow this schema::
+
+            [experiment]
+            name = "my_experiment"           # optional
+
+            [experiment.shared]
+            fitness = "sphere:dim=10"
+            selection = "tournament:num_selections=25,tournament_size=3"
+            pop_size = 50
+            generations = 100
+            seeds = [42, 43, 44]             # list of seeds
+            bounds = [-5.0, 5.0]             # optional
+            maximize = false                 # optional
+
+            [pipelines.blend_gaussian]
+            crossover = "blend:alpha=0.5"
+            mutation = "gaussian:mutation_rate=0.5,mutation_strength=0.1"
+
+            [pipelines.sbx_polynomial]
+            crossover = "simulated_binary:eta=20"
+            mutation = "polynomial:mutation_rate=0.1,eta=20"
+
+            [pipelines.evosax_cmaes]
+            backend = "evosax"
+            evosax_strategy = "CMA_ES"
+
+        **Operator Spec Format**:
+
+        All operator specs (fitness, selection, crossover, mutation) use the
+        format: ``"operator_name:param1=val1,param2=val2"``.
+
+        Common parameters:
+        - Fitness dim/num_dims/fn: Problem dimension or function ID
+        - Selection num_selections: Number of individuals to select
+        - Mutation/crossover rates: Probability values (0.0-1.0)
+
+        **Inheritance and Override**:
+
+        Each pipeline inherits all keys from ``[experiment.shared]`` and can
+        override them. Pipeline-specific values take precedence.
 
         Examples
         --------
-        ::
+        Simple TOML-based experiment::
 
-            # experiment.toml
+            # experiment.toml content:
             # [experiment.shared]
             # fitness = "sphere:dim=10"
-            # pop_size = 50
-            # ...
-            # [pipelines.blend_ga]
+            # pop_size = 100
+            # generations = 200
+            # seeds = [42, 43, 44]
+            # [pipelines.ga_blend]
             # crossover = "blend:alpha=0.5"
-            # [pipelines.sbx_ga]
-            # crossover = "simulated_binary:eta=2.0"
+            # [pipelines.ga_sbx]
+            # crossover = "simulated_binary:eta=20"
 
             result = Composer.from_toml("experiment.toml")
+            print(result.summary_table())
             result.plot_convergence()
+
+        Execute selected pipelines::
+
+            result = Composer.from_toml(
+                "experiment.toml",
+                pipelines=["ga_blend", "ga_sbx"],  # skip others
+                trace_dir="results/traces",
+            )
+
+        Reproducible benchmark (same TOML used in paper)::
+
+            # experiment.toml is versioned in git
+            result = Composer.from_toml("experiment.toml")
+            result.summary_table()  # Reproducible: same config -> same results
         """
         experiment_meta, resolved = load_experiment_config(str(path), pipelines=pipelines)
         shared = experiment_meta.get("shared", {})
@@ -340,8 +766,7 @@ class Composer:
 
         resolved_evaluator = catalog.get(fitness or "sphere:dim=10")
         resolved_selection = catalog.get(
-            selection
-            or f"tournament:num_selections={config['pop_size'] // 2},tournament_size=3"
+            selection or f"tournament:num_selections={config['pop_size'] // 2},tournament_size=3"
         )
         resolved_crossover = catalog.get(crossover or "blend:alpha=0.5")
         resolved_mutation = catalog.get(mutation or "gaussian:mutation_rate=0.1")
@@ -369,8 +794,6 @@ class Composer:
         **kwargs: Any,
     ) -> Any:
         """Build EvosaxEngineAdapter from strategy name and config."""
-        # construct a BBOB evaluator according to the provided spec or
-        # fallback to explicit parameters
         if fitness_spec is not None:
             from .catalog import OperatorCatalog
 
@@ -415,5 +838,27 @@ class Composer:
 
     @classmethod
     def create_default(cls) -> "Composer":
-        """Create composer with default configuration."""
+        """Create a :class:`Composer` instance with default configuration.
+
+        This is a convenience factory method that initializes a :class:`Composer`
+        with empty registry and minimal default config. Equivalent to calling
+        ``Composer(config={"version": "0.1"})``. Most users should call this
+        before invoking :meth:`quick_run`, :meth:`compare`, or :meth:`from_toml`.
+
+        Returns
+        -------
+        Composer
+            A ready-to-use :class:`Composer` instance with defaults applied.
+
+        Examples
+        --------
+        Standard initialization::
+
+            composer = Composer.create_default()
+            result = composer.quick_run(
+                fitness="sphere:dim=10",
+                pop_size=50,
+                generations=100,
+            )
+        """
         return cls(config={"version": "0.1"})

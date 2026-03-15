@@ -44,6 +44,7 @@ def list_strategies() -> list[str]:
     """Return available evosax strategy names."""
     return sorted(EVOSAX_STRATEGIES.keys())
 
+
 class EvosaxEngineAdapter:
     """Adapter to make evosax strategies compatible with BenchmarkRunner.Engine protocol.
 
@@ -57,7 +58,7 @@ class EvosaxEngineAdapter:
         strategy: evosax.algorithms.population_based.PopulationBasedAlgorithm,
         params: Any,  # struct.dataclass with strategy hyper-parameters
         problem: evosax.problems.problem.Problem,
-        problem_state: Any, # struct.dataclass with problem state
+        problem_state: Any,  # struct.dataclass with problem state
         pop_size: int,
         num_generations: int,
         num_dims: int,
@@ -78,12 +79,9 @@ class EvosaxEngineAdapter:
         self.initial_population = initial_population
         self.prng_impl = prng_impl
 
-
-    def run_once(self,
-                 key: chex.Array,
-                 unroll_factor: int = 1,
-                 compile: bool = True
-                ) -> Dict[str, Any]:
+    def run_once(
+        self, key: chex.Array, unroll_factor: int = 1, compile: bool = True
+    ) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
 
         Returns
@@ -127,12 +125,9 @@ class EvosaxEngineAdapter:
 
             tell_fitness = -fitness if self.maximize else fitness
 
-            state, metrics = self.strategy.tell(key_tell,
-                                                population,
-                                                tell_fitness,
-                                                state,
-                                                self.params)
-
+            state, metrics = self.strategy.tell(
+                key_tell, population, tell_fitness, state, self.params
+            )
 
             metrics = dict(metrics)  # copy to allow mutation
             metrics["mean_fitness"] = mean_fit
@@ -140,19 +135,13 @@ class EvosaxEngineAdapter:
 
             return (rng, state, p_state), metrics
 
-        def run_loop(
-            rng: Any, pop_init: Any, fit_init: Any, p_state: Any
-        ) -> Tuple[Any, Any]:
+        def run_loop(rng: Any, pop_init: Any, fit_init: Any, p_state: Any) -> Tuple[Any, Any]:
             rng, key_init = jax.random.split(rng)
             state = self.strategy.init(key_init, pop_init, fit_init, self.params)
 
             carry = (rng, state, p_state)
             carry, metrics = jax.lax.scan(
-                scan_step,
-                carry,
-                None,
-                length=self.num_generations,
-                unroll=unroll_factor
+                scan_step, carry, None, length=self.num_generations, unroll=unroll_factor
             )
             return carry[1], metrics
 
@@ -161,9 +150,7 @@ class EvosaxEngineAdapter:
             run_loop = jax.jit(run_loop)
 
         compile_start = time.perf_counter()
-        final_state, metrics = run_loop(
-            key, population_init, tell_fitness_init, prob_state_init
-        )
+        final_state, metrics = run_loop(key, population_init, tell_fitness_init, prob_state_init)
 
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
         end_time = time.perf_counter()
@@ -177,8 +164,10 @@ class EvosaxEngineAdapter:
             print("DEBUG bf values before flip", metrics.get("best_fitness", None))
 
         if self.maximize:
+
             def flip(x: chex.Array) -> chex.Array:
                 return -x
+
             for key_name in ("best_fitness", "best_fitness_in_generation", "mean_fitness"):
                 if key_name in metrics:
                     metrics[key_name] = flip(metrics[key_name])
@@ -197,7 +186,6 @@ class EvosaxEngineAdapter:
                     gen_stats[k] = val.tolist()
             gen_stats.setdefault("generation", g + 1)
             history.append(gen_stats)
-
 
         if history:
             best_fitness_value = history[-1].get("best_fitness")
@@ -218,121 +206,118 @@ class EvosaxEngineAdapter:
             "total_time": end_time - start_time,
         }
 
-        return {
-            "history": history,
-            "summary": summary,
-            "timings": timings
-        }
+        return {"history": history, "summary": summary, "timings": timings}
+
+
 def build_evosax_engine(
-        strategy_name: str = "SimpleGA",
-        *,
-        evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
-        fitness_spec: Optional[str] = None,
-        pop_size: int = 50,
-        generations: int = 100,
-        bounds: Tuple[float, float] = (-5.0, 5.0),
-        maximize: bool = False,
-        seed: int = 42,
-        strategy_params: Optional[Dict[str, Any]] = None,
-        initial_population: Any = None,
-        prng_impl: Optional[str] = None,
-        **kwargs: Any,
-    ) -> EvosaxEngineAdapter:
-        """Build an :class:`EvosaxEngineAdapter` from high-level specs.
+    strategy_name: str = "SimpleGA",
+    *,
+    evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
+    fitness_spec: Optional[str] = None,
+    pop_size: int = 50,
+    generations: int = 100,
+    bounds: Tuple[float, float] = (-5.0, 5.0),
+    maximize: bool = False,
+    seed: int = 42,
+    strategy_params: Optional[Dict[str, Any]] = None,
+    initial_population: Any = None,
+    prng_impl: Optional[str] = None,
+    **kwargs: Any,
+) -> EvosaxEngineAdapter:
+    """Build an :class:`EvosaxEngineAdapter` from high-level specs.
 
-        Parameters
-        ----------
-        strategy_name
-            Name of the evosax strategy (``SimpleGA``, ``MR15_GA``,
-            ``DifferentialEvolution``).
-        evaluator
-            A MalthusJAX :class:`BaseEvaluator` instance describing the
-            fitness function.  If the object is a :class:`BBOBEvaluator` the
-            underlying evosax problem is unwrapped automatically.  Support for
-            other evaluator types is not yet implemented and will raise
-            ``NotImplementedError``.
-        fitness_spec
-            Optional catalog-style spec that may override the configuration of a
-            ``BBOBEvaluator`` when one is provided.  Has no effect for other
-            evaluator types.
-        pop_size
-            Population size.
-        generations
-            Number of generations.
-        bounds
-            Search domain as ``(min, max)``.
-        maximize
-            If ``True``, flip the sign so the adapter reports fitness in
-            maximisation convention (matching MalthusJAX default).
-        seed
-            Seed for the BBOB problem rotation/shift.
-        strategy_params
-            Optional dict of strategy-specific hyper-parameters that will be
-            merged into ``strategy.default_params`` via ``.replace()``.
+    Parameters
+    ----------
+    strategy_name
+        Name of the evosax strategy (``SimpleGA``, ``MR15_GA``,
+        ``DifferentialEvolution``).
+    evaluator
+        A MalthusJAX :class:`BaseEvaluator` instance describing the
+        fitness function.  If the object is a :class:`BBOBEvaluator` the
+        underlying evosax problem is unwrapped automatically.  Support for
+        other evaluator types is not yet implemented and will raise
+        ``NotImplementedError``.
+    fitness_spec
+        Optional catalog-style spec that may override the configuration of a
+        ``BBOBEvaluator`` when one is provided.  Has no effect for other
+        evaluator types.
+    pop_size
+        Population size.
+    generations
+        Number of generations.
+    bounds
+        Search domain as ``(min, max)``.
+    maximize
+        If ``True``, flip the sign so the adapter reports fitness in
+        maximisation convention (matching MalthusJAX default).
+    seed
+        Seed for the BBOB problem rotation/shift.
+    strategy_params
+        Optional dict of strategy-specific hyper-parameters that will be
+        merged into ``strategy.default_params`` via ``.replace()``.
 
-        Returns
-        -------
-        EvosaxEngineAdapter
-            Ready to call ``.run_once(key)``.
-        """
-        if "num_generations" in kwargs:
-            generations = int(kwargs.pop("num_generations"))
+    Returns
+    -------
+    EvosaxEngineAdapter
+        Ready to call ``.run_once(key)``.
+    """
+    if "num_generations" in kwargs:
+        generations = int(kwargs.pop("num_generations"))
 
-        if evaluator is None:
-            raise ValueError("build_evosax_engine requires an evaluator argument")
+    if evaluator is None:
+        raise ValueError("build_evosax_engine requires an evaluator argument")
 
-        if fitness_spec is not None and isinstance(evaluator, BBOBEvaluator):
-            from .catalog import OperatorCatalog
+    if fitness_spec is not None and isinstance(evaluator, BBOBEvaluator):
+        from .catalog import OperatorCatalog
 
-            cat = OperatorCatalog()
-            parsed_name, parsed_params = cat.parse_spec(fitness_spec)
-            fn = parsed_params.get("fn_name", parsed_name)
-            dims = parsed_params.get("dim", parsed_params.get("num_dims"))
-            if dims is None:
-                dims = evaluator.config.num_dims
-            if "seed" in parsed_params:
-                seed = parsed_params["seed"]
-            if "maximize" in parsed_params:
-                maximize = parsed_params["maximize"]
-            evaluator = BBOBEvaluator.create(
-                BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maximize)
-            )
-
-        if strategy_name not in EVOSAX_STRATEGIES:
-            raise KeyError(f"Unknown evosax strategy '{strategy_name}'."
-                           f" Available: {list_strategies()}")
-
-        rng = jr.PRNGKey(seed)
-
-        if isinstance(evaluator, BBOBEvaluator):
-            problem = evaluator.evosax_problem
-            problem_state = evaluator.problem_state
-            num_dims = evaluator.config.num_dims
-        else:
-            raise NotImplementedError(
-                "Only BBOBEvaluator instances are currently supported by the "
-                "evosax adapter; generic BaseEvaluator wrapping is TODO."
-            )
-
-        init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])
-
-        strategy_cls = EVOSAX_STRATEGIES[strategy_name]
-        strategy = strategy_cls(population_size=pop_size, solution=init_solution)
-
-        params = strategy.default_params
-        if strategy_params:
-            params = params.replace(**strategy_params)
-
-        return EvosaxEngineAdapter(
-            strategy=strategy,
-            params=params,
-            problem=problem,
-            problem_state=problem_state,
-            pop_size=pop_size,
-            num_generations=generations,
-            num_dims=num_dims,
-            bounds=bounds,
-            maximize=maximize,
-            initial_population=initial_population,
-            prng_impl=prng_impl,
+        cat = OperatorCatalog()
+        parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+        fn = parsed_params.get("fn_name", parsed_name)
+        dims = parsed_params.get("dim", parsed_params.get("num_dims"))
+        if dims is None:
+            dims = evaluator.config.num_dims
+        if "seed" in parsed_params:
+            seed = parsed_params["seed"]
+        if "maximize" in parsed_params:
+            maximize = parsed_params["maximize"]
+        evaluator = BBOBEvaluator.create(
+            BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maximize)
         )
+
+    if strategy_name not in EVOSAX_STRATEGIES:
+        raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
+
+    rng = jr.PRNGKey(seed)
+
+    if isinstance(evaluator, BBOBEvaluator):
+        problem = evaluator.evosax_problem
+        problem_state = evaluator.problem_state
+        num_dims = evaluator.config.num_dims
+    else:
+        raise NotImplementedError(
+            "Only BBOBEvaluator instances are currently supported by the "
+            "evosax adapter; generic BaseEvaluator wrapping is TODO."
+        )
+
+    init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])
+
+    strategy_cls = EVOSAX_STRATEGIES[strategy_name]
+    strategy = strategy_cls(population_size=pop_size, solution=init_solution)
+
+    params = strategy.default_params
+    if strategy_params:
+        params = params.replace(**strategy_params)
+
+    return EvosaxEngineAdapter(
+        strategy=strategy,
+        params=params,
+        problem=problem,
+        problem_state=problem_state,
+        pop_size=pop_size,
+        num_generations=generations,
+        num_dims=num_dims,
+        bounds=bounds,
+        maximize=maximize,
+        initial_population=initial_population,
+        prng_impl=prng_impl,
+    )
