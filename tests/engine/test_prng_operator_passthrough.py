@@ -42,6 +42,7 @@ def test_allocate_entropy_preserves_impl(prng_impl, small_engine):
     for k in [k_sel[0], k_cross[0], k_mut[0], k_next]:
         assert is_new_style_key(k)
 
+
 def test_selection_deterministic_given_key(small_engine):
     key = create_key(99)
     state = small_engine.init_state(key)

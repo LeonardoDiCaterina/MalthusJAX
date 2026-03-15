@@ -5,7 +5,6 @@ Covers:
   - JR-1: compute_unroll_num factory produces correct values.
 """
 
-
 from malthusjax.engine.base import AbstractEngineParams, compute_unroll_num
 from malthusjax.engine.genetic_fastengine import GeneticEngineParams
 

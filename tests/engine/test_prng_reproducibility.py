@@ -76,14 +76,10 @@ def test_reproducibility_across_key_derivation(prng_impl):
 
     e_split = make_engine()
     e_split = e_split.replace(
-        engine_params=e_split.engine_params.replace(
-            key_derivation=KeyDerivationStrategy.SPLIT
-        )
+        engine_params=e_split.engine_params.replace(key_derivation=KeyDerivationStrategy.SPLIT)
     )
     e_fold = e_split.replace(
-        engine_params=e_split.engine_params.replace(
-            key_derivation=KeyDerivationStrategy.FOLD
-        )
+        engine_params=e_split.engine_params.replace(key_derivation=KeyDerivationStrategy.FOLD)
     )
 
     f1, _, _ = e_split.run(e_split.init_state(k), compile=False)

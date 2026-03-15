@@ -169,5 +169,80 @@ class TestGeneticEngineCore(unittest.TestCase):
         self.assertFalse(jnp.any(jnp.isnan(fitness)), "Fitness contains NaN")
 
 
+class TestEngineInvariants(unittest.TestCase):
+    """Test engine dataclass contracts and edge cases like elitism=0.
+
+    Regression tests for foundational engine behavior that may be broken
+    by refactoring or changes to defaults.
+    """
+
+    def test_engine_dataclass_defaults_valid(self):
+        """Ensure dataclass fields for crossover/mutation are proper struct fields.
+
+        Dataclass defaults were wrong in earlier versions - ensure fields are
+        operator instances, not function objects.
+        """
+        from malthusjax.core.fitness.binary_evaluators import BinarySumConfig, BinarySumEvaluator
+        from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
+        from malthusjax.operators.crossover.binary import SinglePointCrossover
+        from malthusjax.operators.mutation.binary import BitFlipMutation
+        from malthusjax.operators.selection.tournament import TournamentSelection
+
+        genome_config = BinaryGenomeConfig(length=10)
+        evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=True))
+        engine_params = GeneticEngineParams(pop_size=20)
+
+        engine = GeneticEngine(
+            engine_params=engine_params,
+            genome_config=genome_config,
+            evaluator=evaluator,
+            selection=TournamentSelection(num_selections=20, tournament_size=3),
+            crossover=SinglePointCrossover(num_offspring=2),
+            mutation=BitFlipMutation(num_offspring=1, mutation_rate=0.1),
+        )
+
+        # Dataclass defaults were wrong before — ensure fields are operator instances
+        assert hasattr(engine, "crossover")
+        assert hasattr(engine, "mutation")
+        # Provided instances should be present
+        assert isinstance(engine.crossover, SinglePointCrossover)
+        assert isinstance(engine.mutation, BitFlipMutation)
+
+    def test_engine_elitism_zero_runs(self):
+        """Ensure engine runs correctly with elitism=0 without top_k errors.
+
+        Regression test for edge case where elitism=0 could cause issues
+        in elite pool selection logic.
+        """
+        from malthusjax.core.fitness.binary_evaluators import BinarySumConfig, BinarySumEvaluator
+        from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
+        from malthusjax.operators.crossover.binary import SinglePointCrossover
+        from malthusjax.operators.mutation.binary import BitFlipMutation
+        from malthusjax.operators.selection.tournament import TournamentSelection
+
+        genome_config = BinaryGenomeConfig(length=10)
+        evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=True))
+        engine_params = GeneticEngineParams(pop_size=17, elitism=0, num_generations=2)
+
+        engine = GeneticEngine(
+            engine_params=engine_params,
+            genome_config=genome_config,
+            evaluator=evaluator,
+            selection=TournamentSelection(num_selections=34, tournament_size=3),
+            crossover=SinglePointCrossover(num_offspring=2),
+            mutation=BitFlipMutation(num_offspring=1, mutation_rate=0.1),
+        )
+
+        state = engine.init_state(jar.PRNGKey(42))
+        new_state, metrics = engine.step(state)
+
+        # Verify population size is preserved
+        assert new_state.population.genes.values.shape[0] == 17
+        # Verify generation incremented
+        assert new_state.generation == 1
+        # Verify no NaN values in population (bits are int, but check anyway)
+        assert not jnp.any(jnp.isnan(new_state.population.fitness))
+
+
 if __name__ == "__main__":
     unittest.main()

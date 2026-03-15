@@ -152,9 +152,7 @@ class TestTrackBestFull(unittest.TestCase):
         # margin since stochastic search can occasionally produce a worse best
         # fitness than the starting population.
         tol = 100.0
-        self.assertGreaterEqual(
-            float(final.best_fitness), float(self.state.best_fitness) - tol
-        )
+        self.assertGreaterEqual(float(final.best_fitness), float(self.state.best_fitness) - tol)
 
     def test_best_genome_is_from_best_gen(self):
         """In FULL mode, best_genome in carry should be the actual best."""

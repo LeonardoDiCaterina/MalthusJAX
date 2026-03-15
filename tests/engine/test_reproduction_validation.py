@@ -33,7 +33,9 @@ class TestReproductionPhaseValidation(unittest.TestCase):
         evaluator = BBOBEvaluator.create(bbob_config)
 
         params = GeneticEngineParams(
-            pop_size=self.pop_size, elitism=2, num_generations=10,
+            pop_size=self.pop_size,
+            elitism=2,
+            num_generations=10,
         )
 
         self.engine = GeneticEngine(
@@ -55,21 +57,21 @@ class TestReproductionPhaseValidation(unittest.TestCase):
 
         # Correct parent_indices has shape (rmap.crossover.input_count,)
         # We deliberately provide the wrong shape
-        wrong_parent_indices = jnp.zeros(
-            rmap.crossover.input_count + 5, dtype=jnp.int32
-        )
+        wrong_parent_indices = jnp.zeros(rmap.crossover.input_count + 5, dtype=jnp.int32)
 
         # Allocate valid keys for the correct size
         num_pairs = rmap.crossover.input_count // 2
-        k_cross = jar.split(self.key, operators.crossover.num_keys(
-            input_shape=(num_pairs,)
-        ))
+        k_cross = jar.split(self.key, operators.crossover.num_keys(input_shape=(num_pairs,)))
         k_mut = jar.split(self.key, rmap.mutation.num_keys)
 
         with self.assertRaises(ValueError):
             self.engine._reproduction_phase(
-                k_cross, k_mut, wrong_parent_indices,
-                self.state.population, operators, rmap,
+                k_cross,
+                k_mut,
+                wrong_parent_indices,
+                self.state.population,
+                operators,
+                rmap,
             )
 
     def test_raises_value_error_on_wrong_crossover_keys(self):
@@ -86,8 +88,12 @@ class TestReproductionPhaseValidation(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.engine._reproduction_phase(
-                wrong_k_cross, k_mut, parent_indices,
-                self.state.population, operators, rmap,
+                wrong_k_cross,
+                k_mut,
+                parent_indices,
+                self.state.population,
+                operators,
+                rmap,
             )
 
     def test_no_assertion_error_type(self):
@@ -95,19 +101,19 @@ class TestReproductionPhaseValidation(unittest.TestCase):
         rmap = self.state.resource_map
         operators = self.state.operators
 
-        wrong_parent_indices = jnp.zeros(
-            rmap.crossover.input_count + 5, dtype=jnp.int32
-        )
+        wrong_parent_indices = jnp.zeros(rmap.crossover.input_count + 5, dtype=jnp.int32)
         num_pairs = rmap.crossover.input_count // 2
-        k_cross = jar.split(self.key, operators.crossover.num_keys(
-            input_shape=(num_pairs,)
-        ))
+        k_cross = jar.split(self.key, operators.crossover.num_keys(input_shape=(num_pairs,)))
         k_mut = jar.split(self.key, rmap.mutation.num_keys)
 
         try:
             self.engine._reproduction_phase(
-                k_cross, k_mut, wrong_parent_indices,
-                self.state.population, operators, rmap,
+                k_cross,
+                k_mut,
+                wrong_parent_indices,
+                self.state.population,
+                operators,
+                rmap,
             )
             self.fail("Expected ValueError to be raised")
         except ValueError:
@@ -119,12 +125,19 @@ class TestReproductionPhaseValidation(unittest.TestCase):
         """Normal execution should not raise any error."""
         k_sel, k_cross, k_mut, k_next = self.engine._allocate_entropy(self.state)
         elites, parent_indices = self.engine._selection_phase(
-            k_sel, self.state.population, self.state.operators, self.engine.engine_params,
+            k_sel,
+            self.state.population,
+            self.state.operators,
+            self.engine.engine_params,
         )
         # Should succeed without error
         mutants = self.engine._reproduction_phase(
-            k_cross, k_mut, parent_indices,
-            self.state.population, self.state.operators, self.state.resource_map,
+            k_cross,
+            k_mut,
+            parent_indices,
+            self.state.population,
+            self.state.operators,
+            self.state.resource_map,
         )
         self.assertIsNotNone(mutants)
 

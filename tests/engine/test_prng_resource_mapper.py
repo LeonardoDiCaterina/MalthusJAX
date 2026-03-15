@@ -67,6 +67,7 @@ def test_key_slices_are_distinct(prng_impl):
             assert i not in indices
             indices.add(i)
 
+
 @pytest.mark.parametrize("strategy", [KeyDerivationStrategy.SPLIT, KeyDerivationStrategy.FOLD])
 def test_all_impls_x_strategies(prng_impl, strategy):
     try:

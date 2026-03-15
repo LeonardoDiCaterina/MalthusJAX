@@ -58,59 +58,87 @@ class TestComputeScheduledStrength(unittest.TestCase):
 
     def test_linear_decay_endpoints(self):
         s0 = compute_scheduled_strength(
-            ScheduleType.LINEAR_DECAY, 0, 100,
-            initial_strength=1.0, final_strength=0.1,
+            ScheduleType.LINEAR_DECAY,
+            0,
+            100,
+            initial_strength=1.0,
+            final_strength=0.1,
         )
         self.assertAlmostEqual(float(s0), 1.0, places=5)
         s100 = compute_scheduled_strength(
-            ScheduleType.LINEAR_DECAY, 100, 100,
-            initial_strength=1.0, final_strength=0.1,
+            ScheduleType.LINEAR_DECAY,
+            100,
+            100,
+            initial_strength=1.0,
+            final_strength=0.1,
         )
         self.assertAlmostEqual(float(s100), 0.1, places=5)
 
     def test_linear_decay_midpoint(self):
         s50 = compute_scheduled_strength(
-            ScheduleType.LINEAR_DECAY, 50, 100,
-            initial_strength=1.0, final_strength=0.0,
+            ScheduleType.LINEAR_DECAY,
+            50,
+            100,
+            initial_strength=1.0,
+            final_strength=0.0,
         )
         self.assertAlmostEqual(float(s50), 0.5, places=5)
 
     def test_cosine_anneal_endpoints(self):
         s0 = compute_scheduled_strength(
-            ScheduleType.COSINE_ANNEAL, 0, 100,
-            initial_strength=1.0, final_strength=0.0,
+            ScheduleType.COSINE_ANNEAL,
+            0,
+            100,
+            initial_strength=1.0,
+            final_strength=0.0,
         )
         self.assertAlmostEqual(float(s0), 1.0, places=4)
         s100 = compute_scheduled_strength(
-            ScheduleType.COSINE_ANNEAL, 100, 100,
-            initial_strength=1.0, final_strength=0.0,
+            ScheduleType.COSINE_ANNEAL,
+            100,
+            100,
+            initial_strength=1.0,
+            final_strength=0.0,
         )
         self.assertAlmostEqual(float(s100), 0.0, places=4)
 
     def test_exponential_decay_at_start(self):
         s0 = compute_scheduled_strength(
-            ScheduleType.EXPONENTIAL_DECAY, 0, 100,
+            ScheduleType.EXPONENTIAL_DECAY,
+            0,
+            100,
             initial_strength=1.0,
         )
         self.assertAlmostEqual(float(s0), 1.0, places=5)
 
     def test_exponential_decay_decreases(self):
         s0 = compute_scheduled_strength(
-            ScheduleType.EXPONENTIAL_DECAY, 0, 100, initial_strength=1.0,
+            ScheduleType.EXPONENTIAL_DECAY,
+            0,
+            100,
+            initial_strength=1.0,
         )
         s50 = compute_scheduled_strength(
-            ScheduleType.EXPONENTIAL_DECAY, 50, 100, initial_strength=1.0,
+            ScheduleType.EXPONENTIAL_DECAY,
+            50,
+            100,
+            initial_strength=1.0,
         )
         self.assertGreater(float(s0), float(s50))
 
     def test_jit_safe(self):
         """compute_scheduled_strength works inside jax.jit."""
+
         @jax.jit
         def _compute(gen):
             return compute_scheduled_strength(
-                ScheduleType.LINEAR_DECAY, gen, 100,
-                initial_strength=1.0, final_strength=0.0,
+                ScheduleType.LINEAR_DECAY,
+                gen,
+                100,
+                initial_strength=1.0,
+                final_strength=0.0,
             )
+
         result = _compute(50)
         self.assertAlmostEqual(float(result), 0.5, places=5)
 
@@ -130,7 +158,9 @@ class TestMutationStrengthScheduling(unittest.TestCase):
         self.key = jar.PRNGKey(42)
         self.pop_size = 30
         self.base_params = GeneticEngineParams(
-            pop_size=self.pop_size, elitism=2, num_generations=10,
+            pop_size=self.pop_size,
+            elitism=2,
+            num_generations=10,
         )
 
     def test_default_is_constant(self):
@@ -215,7 +245,9 @@ class TestScheduleIntegrationWithEvolution(unittest.TestCase):
         self.key = jar.PRNGKey(42)
         self.pop_size = 25
         self.base_params = GeneticEngineParams(
-            pop_size=self.pop_size, elitism=2, num_generations=10,
+            pop_size=self.pop_size,
+            elitism=2,
+            num_generations=10,
         )
 
     def test_scheduling_does_not_break_evolution(self):

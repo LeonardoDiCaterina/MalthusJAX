@@ -15,7 +15,7 @@ from malthusjax.operators.selection.tournament import TournamentSelection
 def make_engine(debug: bool) -> GeneticEngine:
     cfg = RealGenomeConfig(shape=(2,), bounds=(-1.0, 1.0))
     # SphereEvaluator takes a config with maximize flag
-    eval_cfg = type('C', (), {'maximize': False})()
+    eval_cfg = type("C", (), {"maximize": False})()
     evaluator = SphereEvaluator(eval_cfg)
     sel = TournamentSelection(num_selections=4, tournament_size=2)
     cross = BlendCrossover(num_offspring=2)
