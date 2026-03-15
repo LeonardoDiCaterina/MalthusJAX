@@ -32,6 +32,7 @@ from malthusjax.operators.selection import ElitePoolSelection
 
 PRNG_CANDIDATES = [None, PRNGImpl.THREEFRY, PRNGImpl.PHILOX, PRNGImpl.RBG]
 
+
 def test_evosax_wrappers_with_typed_keys():
     """Ensure wrappers run under an engine when the PRNG key is "typed".
 
