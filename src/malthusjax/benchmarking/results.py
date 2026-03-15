@@ -89,11 +89,76 @@ class RunResult:
 
 @dataclass
 class ExperimentResult:
-    name: str
-    runs: List[RunResult] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    schema_version: str = "0.1"
+    """Result object from a single experiment run with multiple seeds.
+
+    Returned by :meth:`Composer.quick_run`, an :class:`ExperimentResult`
+    aggregates multiple independent evolutionary runs (one per seed) and
+    provides methods to extract summary statistics and convergence histories.
+
+    Attributes
+    ----------
+    name : str
+        Experiment identifier (usually the ``experiment_name`` param from
+        :meth:`Composer.quick_run`).
+    runs : List[RunResult]
+        Individual run records (one :class:`RunResult` per seed).
+    metadata : Dict[str, Any]
+        Arbitrary experiment metadata (e.g., config, timestamps).
+    created_at : datetime
+        UTC timestamp of result creation.
+    schema_version : str
+        Version string for serialization format (default: "0.1").
+
+    Notes
+    -----
+    **Typical Workflow**:
+
+    1. Call :meth:`Composer.quick_run(...) <Composer.quick_run>` -> returns
+       :class:`ExperimentResult`
+    2. Call :meth:`aggregated_summary` to get mean ± stdev fitness across seeds
+    3. Call :meth:`combined_history` to extract convergence histories for plotting
+    4. Iterate over ``.runs`` to inspect per-seed details (metrics, errors, artifacts)
+
+    **Attributes vs. Methods**:
+
+    - ``canonical_summary`` : metrics from the first seed (quick reference)
+    - ``aggregated_summary()`` : mean/median/stdev metrics across all seeds (recommended)
+    - ``combined_history()`` : flattened per-generation history with seed labels
+    - `.runs[n].history` : per-generation records for a specific seed
+
+    Examples
+    --------
+    Access aggregated fitness metrics::
+
+        result = composer.quick_run(
+            fitness="sphere:dim=10",
+            seeds=(42, 43, 44),
+        )
+        agg = result.aggregated_summary()
+        # agg = {
+        #   "best_fitness": {"mean": 0.5, "median": 0.48, "stdev": 0.05},
+        #   "mean_fitness": {"mean": 2.3, ...},
+        # }
+        print(
+            f"Best fitness: {agg['best_fitness']['mean']:.3f} "
+            f"± {agg['best_fitness']['stdev']:.3f}"
+        )
+
+    Inspect per-seed runs::
+
+        for i, run in enumerate(result.runs):
+            print(f"Seed {run.seed}: status={run.status}, duration={run.duration_seconds}s")
+            print(f"  Final best fitness: {run.metrics.get('best_fitness', 'N/A')}")
+            # run.history is a list of dicts, one per generation
+
+    Export convergence history to pandas::
+
+        import pandas as pd
+        history = result.combined_history(seed_field="seed_id")
+        df = pd.DataFrame(history)
+        print(df[['generation', 'best_fitness', 'seed_id']])
+        # Rows can now be grouped by seed_id and plotted
+    """
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -125,11 +190,42 @@ class ExperimentResult:
         )
 
     def combined_history(self, seed_field: str = "seed") -> List[Dict[str, Any]]:
-        """Concatenate all run histories into a single list.
+        """Flatten all run histories into a single list with seed labels.
 
-        Each row receives an extra key (default ``"seed"``) identifying the
-        originating seed.  This is convenient for writing CSV or pandas
-        tables.
+        Concatenates every generation record from every seed into one list,
+        adding a seed identifier to each row. Useful for exporting to pandas,
+        CSV, or custom plotting libraries.
+
+        Parameters
+        ----------
+        seed_field : str, optional
+            Name of the key to add to each row (default: ``"seed"``).
+            The value is ``run.seed`` from the originating :class:`RunResult`.
+
+        Returns
+        -------
+        List[Dict[str, Any]]
+            Flattened history with one dict per generation-per-seed.
+            Each dict includes original history keys plus the seed identifier.
+
+        Examples
+        --------
+        Export to pandas DataFrame::
+
+            import pandas as pd
+            history = result.combined_history()
+            df = pd.DataFrame(history)
+            # Columns: 'generation', 'best_fitness', 'seed', ...
+            per_seed = df.groupby('seed')['best_fitness'].apply(list)
+
+        Write to CSV::
+
+            import csv
+            history = result.combined_history(seed_field="run_seed")
+            with open("convergence.csv", "w") as f:
+                writer = csv.DictWriter(f, fieldnames=history[0].keys())
+                writer.writeheader()
+                writer.writerows(history)
         """
         rows: List[Dict[str, Any]] = []
         for run in self.runs:
@@ -145,11 +241,49 @@ class ExperimentResult:
         return self.runs[0].metrics
 
     def aggregated_summary(self) -> Dict[str, Dict[str, float]]:
-        """Compute mean/median/stddev for each metric across runs.
+        """Compute aggregated statistics for each metric across all seeds.
 
-        Non-numeric values are ignored.  The result maps each metric name to a
-        small dict containing ``mean``, ``median`` and ``stdev`` (zero when
-        only one value is available).
+        This is the primary method for summarizing multi-seed experimental
+        results. For each numeric metric (e.g., best_fitness, mean_fitness),
+        computes mean, median, and standard deviation across all runs.
+        Non-numeric values are silently ignored.
+
+        Returns
+        -------
+        Dict[str, Dict[str, float]]
+            Mapping of metric name to statistics dict. Each statistics dict
+            contains:
+
+            - ``"mean"`` : arithmetic mean across seeds
+            - ``"median"`` : median value across seeds
+            - ``"stdev"`` : standard deviation (0.0 if only one seed)
+
+        Notes
+        -----
+        Only numeric metric values are included. String or object-valued
+        metrics are silently skipped.
+
+        If only one seed was run, the standard deviation is 0.0 (by
+        definition). For robust statistics, use at least 3 seeds.
+
+        Examples
+        --------
+        Inspect fitness statistics::
+
+            result = composer.quick_run(..., seeds=(42, 43, 44))
+            agg = result.aggregated_summary()
+            # Returns: {
+            #   'best_fitness': {'mean': 0.123, 'median': 0.110, 'stdev': 0.045},
+            #   'mean_fitness': {'mean': 2.345, 'median': 2.310, 'stdev': 0.120},
+            # }
+
+        Report results::
+
+            agg = result.aggregated_summary()
+            for metric, stats in agg.items():
+                mean_val = stats['mean']
+                std_val = stats['stdev']
+                print(f"{metric}: {mean_val:.4f} ± {std_val:.4f}")
         """
         # Collect numeric metrics across runs
         agg: Dict[str, List[float]] = {}
@@ -171,6 +305,7 @@ class ExperimentResult:
             summary[k] = {"mean": mean, "median": med, "stdev": stdev}
         return summary
 
+
 # ---------------------------------------------------------------------------
 # ComparisonResult — aligned multi-pipeline results
 # ---------------------------------------------------------------------------
@@ -178,18 +313,80 @@ class ExperimentResult:
 
 @dataclass
 class ComparisonResult:
-    """Aligned results from multiple pipelines for direct comparison.
+    """Aligned results from multiple algorithm pipelines for direct comparison.
 
-    Returned by :meth:`Composer.compare` and :meth:`Composer.from_toml`.
+    Returned by :meth:`Composer.compare` and :meth:`Composer.from_toml`, a
+    :class:`ComparisonResult` contains multiple :class:`ExperimentResult`
+    objects (one per algorithm variant), with convenient methods to summarize,
+    visualize, and statistically compare the pipelines.
 
     Attributes
     ----------
     pipelines : Dict[str, ExperimentResult]
-        Mapping of pipeline name → :class:`ExperimentResult`.
+        Mapping of pipeline name (str) to its full :class:`ExperimentResult`.
+        Each pipeline contains multi-seed runs and aggregation methods.
     shared_config : Dict[str, Any]
-        The shared configuration that was common across all pipelines.
+        Configuration parameters that were applied to all pipelines
+        (passed as ``**shared_kwargs`` to :meth:`Composer.compare`).
     initial_population : optional
-        The shared initial population array, if one was generated.
+        Shared initial population array, if ``shared_initial_population=True``
+        was set during construction. If ``None``, each pipeline initialized
+        with its own random population.
+    negate_map : Dict[str, bool]
+        Per-pipeline fitness sign-flip flag. When ``True``, fitness values
+        are negated before display so all pipelines use "lower is better"
+        convention (e.g., for Evosax which uses positive fitness values).
+
+    Notes
+    -----
+    **Typical Workflow**:
+
+    1. Call :meth:`Composer.compare(...) <Composer.compare>` -> returns :class:`ComparisonResult`
+    2. Call :meth:`summary_table` to get a dataframe-ready dict of aggregated metrics
+    3. Call :meth:`plot_convergence` for matplotlib visualization
+    4. Iterate over ``.pipelines.items()`` to access individual :class:`ExperimentResult`
+
+    **Backend Normalization**:
+
+    The ``negate_map`` is automatically populated by :meth:`Composer.compare`
+    based on the backend used per pipeline (``"malthusjax"`` vs ``"evosax"``).
+    Users typically don't need to set this manually; it's applied transparently
+    in :meth:`summary_table` and :meth:`plot_convergence`.
+
+    Examples
+    --------
+    Compare two algorithms::
+
+        comparison = composer.compare(
+            pipelines={
+                "GA+Blend": dict(crossover="blend:alpha=0.5"),
+                "GA+SBX": dict(crossover="simulated_binary:eta=20"),
+            },
+            fitness="sphere:dim=10",
+            pop_size=50,
+            generations=200,
+            seeds=(42, 43, 44),
+        )
+
+    Extract summary statistics::
+
+        table = comparison.summary_table()
+        # table = {
+        #   "GA+Blend": {"best_fitness": 0.123, "mean_fitness": 2.345},
+        #   "GA+SBX": {"best_fitness": 0.089, "mean_fitness": 1.987},
+        # }
+        for pipeline_name, metrics in table.items():
+            print(f"{pipeline_name}: best={metrics['best_fitness']:.4f}")
+
+    Visualize convergence::
+
+        import matplotlib.pyplot as plt
+        fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+        for seed_idx, ax in enumerate(axes):
+            comparison.plot_convergence(seed_index=seed_idx, ax=ax)
+            ax.set_title(f"Seed {seed_idx + 1}")
+        plt.tight_layout()
+        plt.show()
     """
 
     pipelines: Dict[str, ExperimentResult]
@@ -224,12 +421,53 @@ class ComparisonResult:
         return list(self.pipelines.keys())
 
     def summary_table(self) -> Dict[str, Dict[str, float]]:
-        """Per-pipeline aggregated summary.
+        """Compute per-pipeline aggregated metrics across all seeds.
 
-        Returns ``{pipeline_name: {metric: value, ...}, ...}`` using the
-        mean across seeds for each metric.  Fitness values are
-        automatically sign-normalised so that **lower is better** across
-        all pipelines.
+        This is the main method for comparing algorithm performance. Returns
+        one row per pipeline, with columns for each metric (best_fitness,
+        mean_fitness, etc.). Fitness values are automatically sign-normalized
+        so that all pipelines use "lower is better" convention (controlled by
+        :attr:`negate_map`).
+
+        Returns
+        -------
+        Dict[str, Dict[str, float]]
+            Mapping of pipeline name -> metric dict.
+            Each metric dict contains:
+
+            - ``"best_fitness"`` : mean best fitness across seeds
+            - ``"mean_fitness"`` : mean population-average fitness
+            - (any other metrics reported by the engine)
+
+            Fitness values are automatically sign-normalized so that lower
+            fitness is "better" across all pipelines.
+
+        Notes
+        -----
+        The result is suitable for pandas DataFrame construction::
+
+            import pandas as pd
+            table = comparison.summary_table()
+            df = pd.DataFrame(table).T  # Transpose to get pipelines as rows
+
+        Examples
+        --------
+        View aggregated performance::
+
+            table = comparison.summary_table()
+            # table = {
+            #   "GA+Blend": {"best_fitness": 0.123, "mean_fitness": 2.34},
+            #   "GA+SBX": {"best_fitness": 0.089, "mean_fitness": 1.98},
+            #   "Evosax CMA-ES": {"best_fitness": 0.045, "mean_fitness": 1.23},
+            # }
+
+        Convert to pandas for ranking::
+
+            import pandas as pd
+            table = comparison.summary_table()
+            df = pd.DataFrame(table).T
+            df = df.sort_values("best_fitness")  # Rank by fitness
+            print(df)
         """
         table: Dict[str, Dict[str, float]] = {}
         for name, exp in self.pipelines.items():
@@ -237,23 +475,68 @@ class ComparisonResult:
             s = self._sign(name)
             # Flatten to the mean; negate fitness keys if needed
             table[name] = {
-                k: (v["mean"] * s if k in self._FITNESS_KEYS else v["mean"])
-                for k, v in agg.items()
+                k: (v["mean"] * s if k in self._FITNESS_KEYS else v["mean"]) for k, v in agg.items()
             }
         return table
 
-    def convergence_data(
-        self, seed_index: int = 0
-    ) -> Dict[str, List[Dict[str, Any]]]:
-        """Per-pipeline convergence history for a single seed.
+    def convergence_data(self, seed_index: int = 0) -> Dict[str, List[Dict[str, Any]]]:
+        """Extract per-pipeline convergence histories for a single seed.
 
-        Fitness values are sign-normalised so that **lower is better**
-        across all pipelines (controlled by :attr:`negate_map`).
+        Returns generation-by-generation records for the chosen seed across
+        all pipelines. Fitness values are automatically sign-normalized
+        (controlled by :attr:`negate_map`). Useful for custom plotting or
+        statistical analysis beyond built-in :meth:`plot_convergence`.
 
-        The *seed_index* argument selects which seed's history is extracted
-        (defaulting to the first).  The returned mapping contains one list of
-        generation/fitness dictionaries per pipeline, with fitness values
-        already adjusted according to ``negate_map``.
+        Parameters
+        ----------
+        seed_index : int, optional
+            Which seed's history to use (0-indexed). If ``seed_index`` exceeds
+            the number of available seeds for a pipeline, that pipeline receives
+            an empty list.
+            Default: 0 (first seed).
+
+        Returns
+        -------
+        Dict[str, List[Dict[str, Any]]]
+            Mapping of pipeline name -> list of generation dicts.
+            Each dict in the list contains:
+
+            - ``"generation"`` : generation number (0, 1, 2, ...)
+            - ``"best_fitness"`` : best fitness in population (sign-normalized)
+            - ``"mean_fitness"`` : mean population fitness
+            - (any other per-generation metrics)
+
+            Fitness values are already sign-normalized (via :attr:`negate_map`).
+
+        Notes
+        -----
+        Use ``seed_index`` to extract convergence curves for different seeds.
+        For example, plot seed 0, 1, 2 separately to inspect variance across
+        random initializations.
+
+        Examples
+        --------
+        Extract and plot custom graph::
+
+            import matplotlib.pyplot as plt
+            data = comparison.convergence_data(seed_index=0)
+            for pipeline_name, history in data.items():
+                gens = [h["generation"] for h in history]
+                fitness = [h["best_fitness"] for h in history]
+                plt.plot(gens, fitness, label=pipeline_name)
+            plt.xlabel("Generation")
+            plt.ylabel("Best Fitness")
+            plt.legend()
+            plt.show()
+
+        Export to pandas for analysis::
+
+            import pandas as pd
+            data = comparison.convergence_data(seed_index=0)
+            for pipeline_name, history in data.items():
+                df = pd.DataFrame(history)
+                print(f"{pipeline_name} convergence:")
+                print(df[["generation", "best_fitness"]].head(10))
         """
         data: Dict[str, List[Dict[str, Any]]] = {}
         for name, exp in self.pipelines.items():
@@ -262,10 +545,7 @@ class ComparisonResult:
                 s = self._sign(name)
                 if s < 0:
                     data[name] = [
-                        {
-                            k: (v * s if k in self._FITNESS_KEYS else v)
-                            for k, v in row.items()
-                        }
+                        {k: (v * s if k in self._FITNESS_KEYS else v) for k, v in row.items()}
                         for row in raw
                     ]
                 else:
@@ -281,21 +561,105 @@ class ComparisonResult:
         title: Optional[str] = None,
         negate: Optional[Dict[str, bool]] = None,
     ) -> Any:
-        """Overlay convergence curves on a matplotlib axis.
+        """Visualize convergence of all pipelines on a matplotlib axis.
 
-        Sign normalisation from :attr:`negate_map` is applied
-        **automatically** (via :meth:`convergence_data`).  The *negate*
-        parameter adds an **extra** per-pipeline flip on top, useful for
-        switching between "lower is better" and "higher is better"
-        display after the automatic normalisation.
+        Creates an overlaid line plot with one curve per pipeline, showing
+        best fitness vs. generation for the selected seed. Fitness values are
+        automatically sign-normalized (via :attr:`negate_map`) so that all
+        pipelines use "lower is better" convention.
 
-        Calling this method produces an overlaid convergence plot for the
-        chosen *seed_index* (first seed by default).  If *ax* is omitted a new
-        figure and axis are created.  The *title* parameter overrides the
-        default ``"Convergence comparison"`` string.  An additional *negate*
-        mapping may be supplied to flip any pipeline's curve after the built-in
-        normalisation.  The Matplotlib axis object containing the plot is
-        returned.
+        Parameters
+        ----------
+        seed_index : int, optional
+            Which seed's convergence history to plot (0-indexed).
+            Use ``seed_index=0, 1, 2, ...`` to inspect robustness across
+            different random initializations.
+            Default: 0 (first seed).
+
+        ax : matplotlib.axes.Axes, optional
+            Matplotlib axis to draw on. If ``None``, a new figure and axis
+            are created (figsize=(8, 4)).
+            Default: ``None``.
+
+        title : str, optional
+            Plot title. If ``None``, defaults to ``"Convergence comparison"``.
+            Default: ``None``.
+
+        negate : Dict[str, bool], optional
+            Additional per-pipeline sign-flip after automatic normalization.
+            Use this to switch between "lower is better" and "higher is better"
+            display. Example: ``negate={"Pipeline A": True}`` flips only
+            "Pipeline A"'s curve.
+            Default: ``None`` (no additional flips).
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The matplotlib axis object (for further customization).
+
+        Raises
+        ------
+        ImportError
+            If matplotlib is not installed.
+
+        Notes
+        -----
+        **Line Style**:
+        Each pipeline gets a different color (matplotlib auto-cycling).
+        Lines are 2 points wide for visibility.
+        Grid is enabled with alpha=0.3 for readability.
+
+        **Sign Normalization**:
+        Fitness values are automatically negated (if ``negate_map[pipeline]``,
+        which is ``True`` for Evosax backends) so that all pipelines use
+        "lower is better". This normalization is transparent to the user.
+
+        **Multiple Seeds**:
+        Call with different ``seed_index`` values to create a multi-panel
+        figure showing robustness across seeds.
+
+        Examples
+        --------
+        Simple convergence comparison::
+
+            comparison = composer.compare(
+                pipelines={
+                    "GA+Blend": {...},
+                    "GA+SBX": {...},
+                },
+                ...
+            )
+            comparison.plot_convergence(seed_index=0)
+            # Shows overlaid curves for both pipelines
+
+        Multi-panel figure (one per seed)::
+
+            import matplotlib.pyplot as plt
+            fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+            for seed_idx, ax in enumerate(axes):
+                comparison.plot_convergence(seed_index=seed_idx, ax=ax)
+                ax.set_title(f"Seed {seed_idx}")
+            plt.tight_layout()
+            plt.show()
+
+        Customize plot::
+
+            ax = comparison.plot_convergence(
+                seed_index=0,
+                title="GA Benchmark on Sphere Function",
+            )
+            ax.set_ylim(bottom=0)  # Force y-axis to start at 0
+            ax.set_yscale("log")    # Log scale for faster-converging algorithms
+            plt.show()
+
+        Switch to "higher is better" display (for maximization)::
+
+            # After automatic normalization, flip all curves
+            ax = comparison.plot_convergence(
+                seed_index=0,
+                negate={name: True for name in comparison.names},
+            )
+            ax.set_ylabel("Best Fitness (higher is better)")
         """
         try:
             import matplotlib.pyplot as plt

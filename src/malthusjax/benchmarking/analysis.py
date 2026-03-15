@@ -86,7 +86,7 @@ def compute_grouped_kpis(data: Dict[str, Any]) -> Dict[Tuple[str, str], Dict[str
         mean = sum(vals) / len(vals)
         # population stddev
         var = sum((v - mean) ** 2 for v in vals) / len(vals)
-        std = var ** 0.5
+        std = var**0.5
         kpis[cast(Tuple[str, str], key)] = {"mean": mean, "stddev": std, "count": len(vals)}
     return kpis
 
