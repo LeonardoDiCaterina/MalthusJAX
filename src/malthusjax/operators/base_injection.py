@@ -80,6 +80,7 @@ class BaseMutation_injection(BaseMutation[G, C, P]):
         noise = self._generate_noise(single_key, config, generation)  # leading dim: (N*K, ...)
 
         if self.num_offspring == 1:
+
             def _mutate_flat(n: chex.Array, g: G) -> G:
                 return self._mutate_one(g, n, config)
 

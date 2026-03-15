@@ -18,19 +18,81 @@ _field: Any = struct.field
 
 @struct.dataclass
 class ElitePoolSelection(BaseSelection[P, C]):
-    """
-    Elite Pool Selection (High Performance).
-    Strategy: Restrict selection to top elite_k individuals, sample uniformly from pool.
-    Shape contract: fitness (pop_size,) → selected_indices (num_selections,).
-    Key budget: 1 pre-allocated subkey (randint for pool sampling).
-    Performance: O(N) via jnp.argpartition for elite filtering; O(1) per sample.
-    Trade-off: High exploitation (best genes preserved) vs low diversity (limited gene pool).
-    Use when: Final refinement phase or small elite trusted pool (K << N).
+    """Elite Pool Selection (High Performance).
 
-    When ``n_elites > 0`` (set by the engine via ``set_n_elites``), ``__call__``
-    fuses parent pool construction and elite preservation into a single
-    ``argpartition`` pass, eliminating the redundant O(N) scan the engine would
-    otherwise perform.
+    In elite pool selection, the algorithm:
+    1. Identifies the top ``elite_k`` individuals by fitness
+    2. For each selection, uniformly randomly picks from this elite pool
+    3. Guarantees only the best genes are preserved and propagated
+
+    This provides maximum exploitation of high-fitness solutions but with limited
+    diversity (all selected parents come from a small elite pool).
+
+    **String Specification Format**::
+
+        "elite_pool:num_selections=INT[,elite_k=INT]"
+
+    Examples::
+
+        "elite_pool"  # Defaults (num_selections=4, elite_k=2)
+        "elite_pool:num_selections=50"  # Custom num_selections, default elite_k
+        "elite_pool:num_selections=50,elite_k=10"  # Both custom
+        "elite_pool:elite_k=5"  # Custom elite pool size, default num_selections
+
+    Parameters
+    ----------
+    elite_k : int, optional
+        Number of top individuals to include in the selection pool.
+        Valid range: 1 to population_size.
+        - elite_k=1: Only the single best individual is selected (very aggressive)
+        - elite_k=3-5: Small elite pool (typical for fine-tuning)
+        - elite_k = pop_size // 3: Moderate elite pool (1/3 of population)
+        - elite_k = pop_size // 2: Large elite pool (more diversity)
+        Default: 10.
+
+    num_selections : int
+        Number of individuals to select from the elite pool.
+        Set by the engine during :meth:`set_input_length`.
+        Note: All selections come from the ``elite_k`` best individuals.
+
+    Notes
+    -----
+    **Fitness Requirements**: Elite pool selection supports all fitness ranges
+    (positive, negative, zero, or mixed). The algorithm ranks individuals and
+    selects from the top-k, making it robust to any fitness function.
+
+    **Selection Pressure**: Very high—only the top ``elite_k`` individuals ever
+    contribute genes to the next generation. This maximizes exploitation but
+    minimizes diversity.
+
+    **Design Trade-offs**:
+    - **Pros**: Fast convergence, preserves best genes, O(N) complexity
+    - **Cons**: Very low diversity, risk of premature convergence,
+      limited exploration of search space
+
+    **When to Use**:
+    1. **Final refinement phase**: Late generations when you're optimizing near
+       a known good region
+    2. **High-dimensional problems with clear optima**: Problems where top-1%
+       solutions are significantly better than others
+    3. **Hybrid approaches**: Combine with tournament or roulette selection
+       (e.g., 30% elite pool selections, 70% tournament selections)
+    4. **Small elite pool (k ≤ 5)**: When you trust your problem has a clear gradient
+
+    **When NOT to Use**:
+    - Problem has many equally-good optima (high confusion)
+    - Early exploration phase is critical (use tournament instead)
+    - Diversity maintenance is important (use tournament or roulette)
+    - Problem landscape is multimodal (you may need to explore more)
+
+    **Computational Complexity**:
+    - Filtering elite: O(N) via ``jnp.argpartition`` (very fast)
+    - Sampling from pool: O(num_selections) with uniform random selection
+    - **Total: O(N + num_selections)** (efficient)
+
+    **Recommendation**: Start with :class:`TournamentSelection` (tournament_size=3)
+    for general problems. If convergence is too slow near the optimum, introduce
+    a small elite pool (5-10% of population) mixed with tournament selection.
     """
 
     elite_k: int = _field(pytree_node=False, default=10)

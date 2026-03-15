@@ -12,16 +12,65 @@ _field: Any = struct.field
 
 @struct.dataclass
 class TournamentSelection(BaseSelection[P, C]):
-    """
-    Tournament Selection (Balanced Exploitation & Exploration).
-    Strategy: Sample tournament_size random individuals, select winner (highest fitness).
-    Shape contract: fitness (pop_size,) → selected_indices (num_selections,).
-    Key budget: 1 pre-allocated subkey (randint for candidate generation).
-    Tournament dynamics: Larger tournament_size → stronger selection pressure (less diversity).
-    Performance: O(num_selections * tournament_size) for all selections.
-    Trade-off: Tournament selection offers middle ground between Elite (high exploitation)
-    and Roulette (fitness-weighted). Recommended: tournament_size ∈ [2, 7] for balance.
-    Use when: Need controlled selection pressure with maintained diversity.
+    """Tournament Selection (Balanced Exploitation & Exploration).
+
+    In tournament selection, the algorithm repeatedly:
+    1. Randomly sample ``tournament_size`` individuals from the population
+    2. Select the individual with the highest fitness
+    3. Repeat ``num_selections`` times (with replacement)
+
+    This provides a good middle ground between pure elite selection (high exploitation)
+    and fitness-proportional selection (fitness-weighted exploration).
+
+    **String Specification Format**::
+
+        "tournament:num_selections=INT,tournament_size=INT"
+
+    Examples::
+
+        "tournament"  # Use defaults (num_selections=4,
+                     #                tournament_size=3)
+        "tournament:num_selections=25"  # Custom num_selections, default tournament_size
+        "tournament:num_selections=50,tournament_size=5"  # Both custom
+        "tournament:tournament_size=7"  # Custom tournament size, default num_selections
+
+    Parameters
+    ----------
+    tournament_size : int, optional
+        Number of candidates sampled per tournament round.
+        Valid range: 2 to population_size.
+        - tournament_size=2: Mild selection pressure, high diversity
+        - tournament_size=3-5: Balanced (recommended for most problems)
+        - tournament_size=7+: Strong selection pressure, lower diversity
+        Default: 3 (recommended for general-purpose problems).
+
+    num_selections : int
+        Number of individuals to select (typically equals population size).
+        Set by the engine during :meth:`set_input_length`.
+
+    Notes
+    -----
+    **Fitness Requirements**: Tournament selection supports all fitness ranges
+    (positive, negative, zero, or mixed). The algorithm only compares relative
+    fitness values, making it robust to any fitness function.
+
+    **Selection Pressure**: The ``tournament_size`` parameter directly controls
+    selection pressure.
+    - Larger tournaments → stronger preference for high-fitness individuals
+    - Smaller tournaments → more uniform selection (higher diversity)
+
+    **Recommended Default**: ``tournament_size=3`` offers a good balance for
+    most optimization problems. Increase to 5-7 for harder landscapes or when
+    you want faster convergence. Use 2 for maintaining diversity.
+
+    **Computational Complexity**: O(num_selections × tournament_size) for one call.
+    Very efficient on GPUs due to vectorization of tournament sampling.
+
+    **Trade-offs**:
+    - Better diversity than elite selection alone
+    - Simpler than fitness-proportional selection (no averaging)
+    - Works with any fitness function (unlike roulette selection)
+    - Consistent selection pressure across generations
     """
 
     tournament_size: int = _field(pytree_node=False, default=3)

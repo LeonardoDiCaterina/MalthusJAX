@@ -120,15 +120,72 @@ class UniformCrossover_injection(
 
 @struct.dataclass
 class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
-    """
-    Blend Crossover (BLX-alpha) — Fused 3-Tier Paradigm.
-    Expands [min(p1,p2), max(p1,p2)] by ±alpha×|p1-p2|; samples uniformly within.
-    Tier 2: (decision: scalar bool, samples: (d,) uniform); Tier 1: fuses expansion,
-    sampling, clipping, and selection into single XLA kernel.
+    """Blend Crossover (BLX-α) — Adaptive Parent-Centered Exploration.
 
-    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)
-    Noise shape: (scalar bool, (d,) uniform)
-    Key budget: 2 subkeys (decision + sampling)
+    Blend crossover expands the interval [min(p1,p2), max(p1,p2)] by a factor proportional
+    to the parent distance, then uniformly samples offspring within this expanded range.
+    This encourages exploration beyond parent bounds while still exploiting the distance
+    between them.
+
+    **Algorithm**:
+    1. Compute interval [L, U] = [min(p1,p2), max(p1,p2)]
+    2. Expand interval by ±α × |p1-p2| → [L-α×diff, U+α×diff]
+    3. Sample offspring uniformly from expanded interval
+    4. Apply boundary clipping and optional crossover gating
+
+    **String Specification Format**::
+
+        "blend:alpha=FLOAT[,crossover_rate=FLOAT]"
+
+    Examples::
+
+        "blend"                                     # Defaults (alpha=0.5, crossover_rate=0.9)
+        "blend:alpha=0.5"                          # Classic BLX-0.5
+        "blend:alpha=0.0"                          # Uniform crossover (no expansion)
+        "blend:alpha=1.0"                          # Aggressive expansion (more exploration)
+        "blend:alpha=0.25,crossover_rate=0.8"      # Both custom
+
+    Parameters
+    ----------
+    alpha : float, optional
+        Extension factor controlling exploration magnitude.
+        Valid range: [0.0, ∞)
+        - alpha=0.0: Offspring uniform in [min(p1,p2), max(p1,p2)] (minimal exploration)
+        - alpha=0.5: Standard BLX-α (balanced exploration beyond parent range)
+        - alpha=1.0: Aggressive expansion (exploration emphasizes space beyond parents)
+        - alpha≥2.0: Very large intervals (high exploration, risk of escaping useful region)
+        Default: 0.5 (well-established as effective for most problems).
+
+    crossover_rate : float, optional
+        Probability that blend crossover is applied (vs returning parent unchanged).
+        Valid range: [0.0, 1.0]
+        Default: 0.9.
+
+    num_offspring : int, optional
+        Number of distinct offspring produced per parent pair.
+        Default: 1.
+
+    Notes
+    -----
+    **When to Use**:  Blend crossover is ideal for continuous optimization problems
+    where you want adaptive, distance-aware exploration. It naturally adjusts exploration
+    intensity based on parent proximity (nearby parents → small intervals, distant parents
+    → large intervals).
+
+    **Boundary Handling**: Offspring are clipped to the genome bounds [min_b, max_b]
+    after sampling, which may introduce slight bias toward boundaries for small intervals.
+    Larger alpha values mitigate this by expanding beyond parent range first.
+
+    **Computational Complexity**: O(num_offspring × genome_dimension) per parent pair.
+    Very efficient; no sorting or complex calculations.
+
+    **Comparison to SBX**:
+    - Blend: Simpler, faster, adaptive to parent distance, better for moderate exploration
+    - SBX: Distribution-aware (concentrated near parents), recommended for fine-grained control
+
+    **Trade-offs**:
+    - Pros: Simple, adaptive to parent distance, less bias than uniform crossover
+    - Cons: Less control over distribution shape compared to SBX
     """
 
     num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
@@ -261,15 +318,83 @@ class BlendCrossover_injection(
 
 @struct.dataclass
 class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
-    """
-    Simulated Binary Crossover (SBX) — Fused 3-Tier Paradigm.
-    Generates two symmetric candidate children (c1, c2) via spread factor β(u, η);
-    selects one per gene and applies boundary clipping. Per-offspring keys enable
-    distinct swap masks → different children when base class repeats kernel num_offspring times.
+    """Simulated Binary Crossover (SBX) — Distribution-Aware Recombination.
 
-    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,) (single per kernel call)
-    Noise shape: (scalar bool, (d,) uniform, (d,) bool)
-    Key budget: 3 subkeys (decision + spread + swap)
+    SBX simulates the behavior of single-point binary crossover on real-valued genomes.
+    It generates two candidate offspring (c1, c2) via a spread factor β that concentrates
+    probability near the parent values but allows distant exploration. The distribution
+    index η controls concentration strength.
+
+    **Algorithm**:
+    1. For each gene:
+       - Draw uniform random u ~ U[0,1]
+       - Compute spread factor β based on η and u
+       - Generate two candidates: c1 = 0.5×[(1+β)p1 + (1-β)p2], c2 = 0.5×[(1-β)p1 + (1+β)p2]
+       - Randomly select c1 or c2
+    2. Apply boundary clipping
+    3. Conditionally apply (based on crossover_rate)
+
+    **String Specification Format**::
+
+        "simulated_binary:eta=FLOAT[,crossover_rate=FLOAT]"
+
+    Examples::
+
+        "simulated_binary"                          # Defaults (eta=20.0, crossover_rate=0.9)
+        "simulated_binary:eta=10"                   # Less concentrated, more exploration
+        "simulated_binary:eta=20"                   # Standard (balanced exploitation/exploration)
+        "simulated_binary:eta=50"                   # Very concentrated near parents (exploitation)
+        "simulated_binary:eta=5,crossover_rate=1.0" # Always apply, explore more
+
+    Parameters
+    ----------
+    eta : float, optional
+        **Distribution index** controlling concentration of offspring around parent values.
+        Valid range: (0, ∞). Typical range: 2–30 for continuous optimization.
+        - eta=2: Low concentration, offspring far from parents (high exploration)
+        - eta=5: Balanced exploration
+        - eta=10: Balanced exploration/exploitation (recommended for general problems)
+        - eta=20: Strong concentration near parents (moderate exploration, fine-tuning)
+        - eta=50+: Very strong concentration (heavy exploitation, late stages)
+        Default: 20.0 (most commonly recommended value).
+
+    crossover_rate : float, optional
+        Probability that SBX is applied (vs returning parent unchanged).
+        Valid range: [0.0, 1.0]
+        Default: 0.9.
+
+    num_offspring : int, optional
+        Number of distinct offspring produced per parent pair.
+        Default: 2 (SBX naturally produces two offspring).
+
+    Notes
+    -----
+    **MOST RECOMMENDED for Continuous Optimization**: SBX is the industry standard
+    crossover operator for real-valued evolutionary algorithms due to its theoretical
+    foundation (simulates binary SPC), distribution-aware exploration, and proven performance
+    across diverse benchmark problems. If in doubt, use SBX with η=10-20.
+
+    **When to Use**:
+    - Continuous optimization problems (real-valued genomes)
+    - Need fine control over exploration vs exploitation balance via η
+    - Want distribution-aware offspring (concentrated near parents, not uniform)
+    - Solving challenging non-convex optimization problems (recommended default)
+
+    **Distribution Index Tuning**:
+    - **Early generations** (exploration): Use lower η (5-10) for more distant offspring
+    - **Late generations** (exploitation): Use higher η (20-50) for fine-tuning near parents
+    - **Adaptive approaches**: Reduce η over generations (rare, requires scheduler)
+
+    **Computational Complexity**: O(num_offspring × genome_dimension) per parent pair.
+    Slightly higher than Blend due to spread factor calculation, but still efficient.
+
+    **Comparison to Blend Crossover**:
+    - SBX: Distribution-aware (concentrated near parents), fine control via η, recommended
+    - Blend: Simpler, adaptive to parent distance, faster but less control
+
+    **Trade-offs**:
+    - Pros: Theoretically grounded, distribution-aware, proven track record
+    - Cons: Requires tuning η for different problems/phases
     """
 
     num_offspring: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]

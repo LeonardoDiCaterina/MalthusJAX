@@ -22,14 +22,99 @@ from malthusjax.operators.base_injection import BaseMutation_injection
 
 @struct.dataclass
 class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
-    """
-    Gaussian (Normal) Mutation (3-Tier Paradigm).
-    Tier 2: Bernoulli mask + Gaussian noise scaled by mutation_strength.
-    Tier 1: Masked addition (genome + noise*strength*mask) via FMA.
-    Shape contract: (d,) genome + (d,) noise → (d,) mutated genome.
-    Key budget: 2 pre-allocated subkeys (Bernoulli mask, Gaussian noise).
-    Optimization: Fused multiply-add avoids intermediate arrays; masked
-    arithmetic (multiplication by 0.0/1.0) beats jnp.where for XLA latency.
+    """Gaussian (Normal) Mutation — Independent Per-Gene Perturbation.
+
+    Gaussian mutation applies independent additive Gaussian noise to each gene,
+    with per-gene probability control. This is the most common mutation operator
+    in continuous-domain evolutionary algorithms.
+
+    **Algorithm**:
+    1. For each gene:
+       - Draw Bernoulli(mutation_rate) → gene i is mutated with probability mutation_rate
+       - If mutated, add N(0, mutation_strength) to gene i
+       - Optionally clip to bounds
+    2. Return mutated genome
+
+    **String Specification Format**::
+
+        "gaussian:mutation_rate=FLOAT[,mutation_strength=FLOAT]"
+
+    Examples::
+
+        "gaussian"                                              # Defaults (rate=0.1, strength=0.1)
+        "gaussian:mutation_rate=0.05"                         # Lower rate, less mutations
+        "gaussian:mutation_rate=0.2,mutation_strength=0.2"    # Both custom
+        "gaussian:mutation_strength=0.05"                     # Milder mutations
+        "gaussian:mutation_rate=1.0,mutation_strength=0.01"   # All genes affected, small noise
+
+    Parameters
+    ----------
+    mutation_rate : float, optional
+        **Per-gene mutation probability**: Fraction of genes affected per mutation event.
+        Valid range: [0.0, 1.0]
+        - mutation_rate=0.0: No mutation (disabled)
+        - mutation_rate=0.05: 5% of genes mutated (typical for large genomes, d≥100)
+        - mutation_rate=0.1: 10% mutated (common default, works well for d≈10-100)
+        - mutation_rate=1.0: All genes mutated every generation (strong perturbation)
+        Default: 0.1 (recommended starting point).
+
+        **Typical values by genome dimension**:
+        - d=1-10: mutation_rate ≈ 0.15-0.3 (higher, because fewer genes)
+        - d=10-100: mutation_rate ≈ 0.05-0.15 (moderate)
+        - d=100+: mutation_rate ≈ 0.01-0.05 (lower, to avoid excessive perturbation)
+
+    mutation_strength : float, optional
+        **Gaussian noise standard deviation**: Controls magnitude of per-gene perturbations.
+        Valid range: (0, ∞), but typically [0.01, 1.0]
+        - mutation_strength=0.01: Very small noise (fine-tuning near optima)
+        - mutation_strength=0.1: Moderate noise (balanced exploration/exploitation)
+        - mutation_strength=1.0: Large noise (aggressive exploration)
+        Default: 0.1 (works well when genome is roughly normalized to [-1, 1]).
+
+        **Interaction with genome bounds**: If your genome bounds are [low, high],
+        set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.
+
+    clip : bool, optional
+        If True, clip mutated values to genome bounds [min_b, max_b].
+        If False, allow violations (clipping happens at evaluation boundary).
+        Default: False (for compatibility with landscape exploration).
+
+    schedule_type : ScheduleType, optional
+        Mutation strength schedule across generations (CONSTANT, LINEAR_DECAY, etc.).
+        Default: ScheduleType.CONSTANT.
+
+    final_strength : float, optional
+        Target mutation strength at final generation (used if schedule_type != CONSTANT).
+        Default: 0.0 (decay to zero).
+
+    Notes
+    -----
+    **INTERACTION BETWEEN mutation_rate AND mutation_strength**:
+    These two parameters control different aspects of mutation:
+    - `mutation_rate`: **Which** genes are modified (controls sparsity)
+    - `mutation_strength`: **How much** each modified gene changes (controls perturbation scale)
+
+    **Example scenarios**:
+    1. **Exploration phase**: Higher mutation_rate (0.2) + higher mutation_strength (0.2)
+       → Many genes perturbed by large amounts
+    2. **Exploitation/fine-tuning**: Lower mutation_rate (0.05) + lower mutation_strength (0.05)
+       → Few genes, small noise
+    3. **Balanced default**: mutation_rate=0.1, mutation_strength=0.1
+       → ~10% of genes affected, each by ~0.1 std units
+
+    **When to Use**: Gaussian mutation is the recommended operator for continuous
+    optimization. It's simple, effective, and works well across nearly all problem types.
+    Use it unless you have a specific reason to prefer other mutations (e.g., Ball mutation
+    for constrained, high-dimensional problems).
+
+    **Computational Complexity**: O(genome_dimension) per individual.
+    Very efficient; no sorting or complex operations.
+
+    **Best Practices**:
+    - Start with mutation_rate=1.0/genome_dimension (standard recommendation)
+    - Tune mutation_strength based on your problem scale (not genome dimension)
+    - Use scheduling to decrease strength over generations for fine-tuning
+    - Monitor diversity and adjust rate if offspring differ too little from parents
     """
 
     mutation_rate: float = 0.1
