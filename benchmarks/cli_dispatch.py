@@ -16,29 +16,28 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Callable
 
 import jax
 import jax.numpy as jnp
 import jax.random as jr
 import tomli
 
+# Evosax imports
+from evosax.algorithms.population_based import MR15_GA, DifferentialEvolution, SimpleGA
+from evosax.problems import BBOBProblem
+
+from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+
 # MalthusJAX imports
-from malthusjax.core.genome import RealGenome, RealGenomeConfig, RealPopulation
-from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
+from malthusjax.core.genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.crossover import BlendCrossover
 from malthusjax.operators.mutation import GaussianMutation
 from malthusjax.operators.selection import TournamentSelection
-
-# Evosax imports
-from evosax.algorithms.population_based import SimpleGA, MR15_GA, DifferentialEvolution
-from evosax.problems import BBOBProblem
-
 
 # =============================================================================
 # Helper Functions
@@ -54,14 +53,14 @@ def create_bbob_evaluator(task: str, dim: int):
 def get_fitness_fn_from_evaluator(evaluator: BBOBEvaluator):
     """
     Extract a pure fitness function from a BBOBEvaluator.
-    
+
     Returns a function that takes a single genome array and returns fitness.
     """
     # Capture the evosax problem and state in a closure
     problem = evaluator.evosax_problem
     state = evaluator.evosax_state
     maximize = evaluator.config.maximize
-    
+
     def fitness_fn(genome_values: jnp.ndarray) -> jnp.ndarray:
         """Pure fitness function for single genome (values array)."""
         # Expand dims for evosax batch interface
@@ -72,7 +71,7 @@ def get_fitness_fn_from_evaluator(evaluator: BBOBEvaluator):
         if maximize:
             return -result
         return result
-    
+
     return fitness_fn
 
 
@@ -82,17 +81,20 @@ def create_evosax_strategy(strategy_name: str, pop_size: int, dim: int, seed: in
     rng = jr.PRNGKey(seed)
     problem = BBOBProblem("sphere", num_dims=dim, seed=seed)
     init_solution = problem.sample(rng)
-    
+
     # Map strategy names to classes
     strategy_map = {
         "SimpleGA": SimpleGA,
         "MR15_GA": MR15_GA,
         "DifferentialEvolution": DifferentialEvolution,
     }
-    
+
     if strategy_name not in strategy_map:
-        raise ValueError(f"Unknown strategy: {strategy_name}. Available: {list(strategy_map.keys())}")
-    
+        available = list(strategy_map.keys())
+        raise ValueError(
+            f"Unknown strategy: {strategy_name}. Available: {available}"
+        )
+
     strategy_class = strategy_map[strategy_name]
     strategy = strategy_class(population_size=pop_size, solution=init_solution)
     return strategy
@@ -242,7 +244,7 @@ def create_traced_evolution_step(
     def evolution_step(key, population, fitness_values):
         """
         Simplified evolution step for dispatch timing analysis.
-        
+
         Uses direct operations that exercise the same kernels as full GA,
         but with simpler logic to avoid shape mismatches.
         """
@@ -253,7 +255,7 @@ def create_traced_evolution_step(
 
         # Get selected individuals for breeding
         num_offspring = pop_size - num_elites
-        
+
         # Simple parent selection: use first N selected indices
         parent_indices = selected_indices[:num_offspring]
         parents = population[parent_indices]
@@ -262,12 +264,12 @@ def create_traced_evolution_step(
         # Generate mutation noise directly
         noise = jr.normal(k2, shape=parents.shape) * 0.1
         mutated = parents + noise
-        
+
         # Clip to bounds
         min_val, max_val = genome_config.bounds
         mutated = jnp.clip(mutated, min_val, max_val)
 
-        # Elitism - keep best individuals  
+        # Elitism - keep best individuals
         elite_indices = jnp.argsort(fitness_values)[-num_elites:]
         elites = population[elite_indices]
 
@@ -438,7 +440,7 @@ def analyze_operator_breakdown(
 ) -> dict:
     """
     Measure dispatch timing for fundamental operations used in evolution.
-    
+
     Instead of measuring the complex operator objects directly, we measure
     the underlying JAX operations that dominate dispatch timing.
     """
@@ -538,25 +540,25 @@ def analyze_operator_breakdown(
     def evolution_kernel(key, pop, fit):
         """One full evolution step."""
         k1, k2, k3, k4 = jr.split(key, 4)
-        
+
         # Selection
         selected_indices = selection_kernel(k1, fit)
         parents = pop[selected_indices]
-        
+
         # Mutation-based offspring
         offspring = mutation_kernel(k2, parents)
-        
+
         # Elitism (keep top 10%)
         num_elites = max(1, pop_size // 10)
         elite_indices = jnp.argsort(fit)[-num_elites:]
         elites = pop[elite_indices]
-        
+
         # Combine
         new_pop = jnp.concatenate([elites, offspring[:-num_elites]], axis=0)
-        
+
         # Evaluate
         new_fit = batch_fitness(new_pop)
-        
+
         return new_pop, new_fit
 
     key, evo_key = jr.split(key)
@@ -573,7 +575,7 @@ def analyze_operator_breakdown(
 
 
 # =============================================================================
-# Evosax Analysis Functions  
+# Evosax Analysis Functions
 # =============================================================================
 
 
@@ -596,21 +598,21 @@ def analyze_unroll_impact_evosax(
     # Create Evosax strategy and problem
     key, seed_key = jr.split(key)
     seed = int(seed_key[0])
-    
+
     strategy = create_evosax_strategy(strategy_name, pop_size, dim, seed)
     problem = create_evosax_fitness(task, dim, seed)
-    
+
     # Initialize strategy state
     key, init_key = jr.split(key)
     p_state = problem.init(init_key)
-    
+
     # Initialize population
     init_x = jr.uniform(init_key, (pop_size, dim), minval=-5.0, maxval=5.0)
     init_fit = jnp.full((pop_size,), jnp.inf)
-    
+
     # Get default params
     params = strategy.default_params
-    
+
     # Initialize strategy state
     state = strategy.init(init_key, init_x, init_fit, params)
 
@@ -675,21 +677,21 @@ def analyze_operator_breakdown_evosax(
     # Create Evosax strategy and problem
     key, seed_key = jr.split(key)
     seed = int(seed_key[0])
-    
+
     strategy = create_evosax_strategy(strategy_name, pop_size, dim, seed)
     problem = create_evosax_fitness(task, dim, seed)
-    
+
     # Initialize strategy state
     key, init_key = jr.split(key)
     p_state = problem.init(init_key)
-    
+
     # Initialize population
     init_x = jr.uniform(init_key, (pop_size, dim), minval=-5.0, maxval=5.0)
     init_fit = jnp.full((pop_size,), jnp.inf)
-    
+
     # Get default params
     params = strategy.default_params
-    
+
     # Initialize strategy state
     state = strategy.init(init_key, init_x, init_fit, params)
 
@@ -852,9 +854,12 @@ def generate_dispatch_report(
             else 0
         )
 
+        best_unroll = best['unroll_factor']
+        best_ms_per_step = best['ms_per_step']
+
         report_lines.extend(
             [
-                f"• Best unroll factor: {best['unroll_factor']} ({best['ms_per_step']:.3f} ms/step)",
+                f"• Best unroll factor: {best_unroll} ({best_ms_per_step:.3f} ms/step)",
                 f"• Speedup vs unroll=1: {speedup:.2f}x",
                 f"• Dispatch overhead reduction: {dispatch_reduction:.1f}%",
                 "",
@@ -943,7 +948,7 @@ def run_dispatch_analysis(config: dict, args: argparse.Namespace) -> None:
     unroll_factors = dispatch_config.get("unroll_factors", [1, 2, 4, 8, 16])
 
     hyperparam = config.get("hyperparam", {})
-    
+
     # Determine which frameworks to run
     framework = args.framework.lower()
     run_malthus = framework in ["malthus", "both"]
@@ -988,7 +993,7 @@ def run_dispatch_analysis(config: dict, args: argparse.Namespace) -> None:
                         print("\n" + "="*60)
                         print("MALTHUSJAX ANALYSIS")
                         print("="*60)
-                        
+
                         # Run unroll analysis
                         print("\n[1/3] Analyzing unroll factor impact (MalthusJAX)...")
                         key, analysis_key = jr.split(key)
@@ -1040,7 +1045,11 @@ def run_dispatch_analysis(config: dict, args: argparse.Namespace) -> None:
 
                             # Initialize and trace
                             key, init_key = jr.split(key)
-                            population = RealPopulation.init_random(init_key, genome_config, pop_size).genes.values
+                            population = (
+                                RealPopulation.init_random(init_key, genome_config, pop_size)
+                                .genes
+                                .values
+                            )
                             fitness = jax.vmap(fitness_fn)(population)
 
                             trace_path = run_with_perfetto_trace(
@@ -1058,40 +1067,70 @@ def run_dispatch_analysis(config: dict, args: argparse.Namespace) -> None:
                         run_dir = output_dir / f"{task}_d{dim}_p{pop_size}_s{seed}_malthus"
                         run_dir.mkdir(parents=True, exist_ok=True)
 
-                        save_results_csv(malthus_unroll_results, malthus_operator_results, run_dir, config_info)
+                        save_results_csv(
+                            malthus_unroll_results,
+                            malthus_operator_results,
+                            run_dir,
+                            config_info,
+                        )
                         generate_dispatch_report(
                             malthus_unroll_results,
                             malthus_operator_results,
                             run_dir / "dispatch_report.txt",
                             config_info,
                         )
-                    
+
                     # === Evosax Analysis ===
                     if run_evosax:
                         print("\n" + "="*60)
                         print("EVOSAX ANALYSIS")
                         print("="*60)
-                        
+
                         # Run unroll analysis
-                        print(f"\n[1/2] Analyzing unroll factor impact (Evosax {evosax_strategy})...")
+                        print(
+                            "\n[1/2] Analyzing unroll factor impact "
+                            f"(Evosax {evosax_strategy})..."
+                        )
                         key, analysis_key = jr.split(key)
                         evosax_unroll_results = analyze_unroll_impact_evosax(
-                            hyperparam, pop_size, dim, task, unroll_factors, analysis_key, evosax_strategy
+                            hyperparam,
+                            pop_size,
+                            dim,
+                            task,
+                            unroll_factors,
+                            analysis_key,
+                            evosax_strategy,
                         )
 
                         # Run operator breakdown
-                        print(f"\n[2/2] Measuring per-operator timing (Evosax {evosax_strategy})...")
+                        print(
+                            "\n[2/2] Measuring per-operator timing "
+                            f"(Evosax {evosax_strategy})..."
+                        )
                         key, op_key = jr.split(key)
                         evosax_operator_results = analyze_operator_breakdown_evosax(
-                            hyperparam, pop_size, dim, task, op_key, evosax_strategy
+                            hyperparam,
+                            pop_size,
+                            dim,
+                            task,
+                            op_key,
+                            evosax_strategy,
                         )
 
                         # Save Evosax results
-                        run_dir = output_dir / f"{task}_d{dim}_p{pop_size}_s{seed}_evosax_{evosax_strategy}"
+                        run_dir = (
+                            output_dir
+                            / f"{task}_d{dim}_p{pop_size}_s{seed}_evosax_{evosax_strategy}"
+                        )
                         run_dir.mkdir(parents=True, exist_ok=True)
 
                         evosax_config_info = {**config_info, "evosax_strategy": evosax_strategy}
-                        save_results_csv(evosax_unroll_results, evosax_operator_results, run_dir, evosax_config_info)
+                        save_results_csv(
+                            evosax_unroll_results,
+                            evosax_operator_results,
+                            run_dir,
+                            evosax_config_info,
+                        )
                         generate_dispatch_report(
                             evosax_unroll_results,
                             evosax_operator_results,
@@ -1112,16 +1151,16 @@ def main():
 Examples:
   # Run both frameworks
   python cli_dispatch.py config.toml --framework both
-  
+
   # MalthusJAX only
   python cli_dispatch.py config.toml --framework malthus
-  
+
   # Evosax only with specific strategy
   python cli_dispatch.py config.toml --framework evosax --evosax-strategy SimpleGA
-  
+
   # Quick smoke test
   python cli_dispatch.py config.toml --quick --framework both
-  
+
   # With Perfetto traces
   python cli_dispatch.py config.toml --framework malthus --trace
         """,

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """Analyze the performance gap between MalthusJAX and evosax."""
 
-from malthusjax.operators.selection import ElitePoolSelection  
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.engine.resource_mapper import compute_resource_map
 from malthusjax.operators.crossover import EvosaxUniformCrossoverWrapper
 from malthusjax.operators.mutation import EvosaxGaussianWrapper
-from malthusjax.engine.resource_mapper import compute_resource_map
-from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.operators.selection import ElitePoolSelection
 
 config = RealGenomeConfig(shape=(10,), bounds=(-5.0, 5.0))
 selection = ElitePoolSelection(elite_k=10, num_selections=500)

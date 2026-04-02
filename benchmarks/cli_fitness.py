@@ -4,23 +4,23 @@ Hyperparameter tuning CLI for MalthusJAX fitness optimization.
 This script performs a grid search over hyperparameters to find the best
 configuration for solution quality (fitness), independent of speed.
 """
-import time
-import os
 import argparse
-from pathlib import Path
 import itertools
-import numpy as np
+import os
+from pathlib import Path
+
 try:
     import pandas as pd
 except Exception as e:
     pd = None
     print(f"⚠️  Warning: pandas import failed: {e}. Result saving will use a simple CSV writer.")
-import jax
 from datetime import datetime
 
+import jax
+
+from benchmarks.framework.adapters import setup_bbob_instances
 from benchmarks.framework.registry import ComparisonRegistry
 from benchmarks.framework.runner import run_adapter_benchmark
-from benchmarks.framework.adapters import setup_bbob_instances
 
 try:
     import tomllib
@@ -44,15 +44,15 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
 
     grid = cfg['grid']
-    
+
     # Build hyperparameter sweep grid
     hyperparam_grid = cfg.get('hyperparam_sweep', {})
-    
+
     # Create all combinations of hyperparameters
     hyperparam_keys = list(hyperparam_grid.keys())
     hyperparam_values = [hyperparam_grid[k] for k in hyperparam_keys]
     hyperparam_combinations = list(itertools.product(*hyperparam_values))
-    
+
     # Build job queue: include seeds so we can repeat each config across multiple seeds
     job_queue = list(itertools.product(
         grid['algorithms'],
@@ -62,11 +62,11 @@ def main():
         grid.get('seeds', [42]),
         hyperparam_combinations
     ))
-    
+
     repeats = grid.get('repeats', 10)  # Fewer repeats for tuning
     seeds_list = grid.get('seeds', [42])
     generations = grid.get('generations', 500)  # More generations for convergence
-    
+
     print(f"🎯 Starting Fitness Tuning: {exp_name}")
     print(f"📋 Total Configurations: {len(job_queue)}")
     print(f"🔧 Hyperparameter combinations: {len(hyperparam_combinations)}")
@@ -78,11 +78,11 @@ def main():
     results = []
     best_fitness = float('inf')
     best_config = None
-    
+
     for i, (algo, task, dim, pop, seed, hyperparam_tuple) in enumerate(job_queue, 1):
         # Build hyperparameter dict from tuple
         hypers = dict(zip(hyperparam_keys, hyperparam_tuple))
-        
+
         print(f"\n[{i}/{len(job_queue)}] {algo} | {task} | D={dim} | N={pop}")
         print(f"   Hyperparams: {hypers}")
 
@@ -91,7 +91,7 @@ def main():
         print(f"   >>> Using factory: {spec.malthus_factory.__name__}")
         # Merge with algorithm defaults
         full_hypers = {**spec.default_hypers, **hypers}
-        
+
         # Setup problem (use job-specific seed derived from provided seed)
         job_seed = seed + i
         m_eval, es_problem = setup_bbob_instances(task, dim, job_seed)
@@ -109,14 +109,14 @@ def main():
 
         # Run MalthusJAX benchmark
         res_m = run_adapter_benchmark(
-            m_adapter, generations, job_seed, "MalthusJAX", pop, 
+            m_adapter, generations, job_seed, "MalthusJAX", pop,
             unroll_factor=1, repeats=repeats
         )
-        
+
         # Extract fitness (use absolute value for BBOB parity)
         mean_fitness_m = abs(res_m.best_fitness_final)
         fitness_std_m = res_m.fitness_std
-        
+
         print(f"   >>> MJX Mean Fitness: {mean_fitness_m:.4f} ± {fitness_std_m:.4f}")
         print(f"   >>> MJX Mean GPS: {res_m.mean_gps:.2f}")
 
@@ -206,7 +206,7 @@ def main():
 
             except Exception as e:
                 print(f"   >>> Evosax run failed: {e}")
-        
+
         # Save incrementally (in case of interruption)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = os.path.join(output_dir, f"fitness_tuning_{timestamp}.csv")
@@ -222,21 +222,21 @@ def main():
                     writer = csv.DictWriter(f, keys)
                     writer.writeheader()
                     writer.writerows(results)
-    
+
     # Final summary
     print("\n" + "=" * 80)
     print("🏆 TUNING COMPLETE")
     print("=" * 80)
-    print(f"\n📊 Best Configuration Found:")
+    print("\n📊 Best Configuration Found:")
     print(f"   Task: {best_config['task']}")
     print(f"   Dimension: {best_config['dim']}")
     print(f"   Population: {best_config['pop_size']}")
-    print(f"   Hyperparameters:")
+    print("   Hyperparameters:")
     for k, v in best_config['hyperparams'].items():
         print(f"      {k}: {v}")
     print(f"\n   Best Fitness: {best_config['fitness']:.6f} ± {best_config['fitness_std']:.6f}")
     print(f"   GPS: {best_config['gps']:.2f}")
-    
+
     # Save final results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = os.path.join(output_dir, f"fitness_tuning_final_{timestamp}.csv")
@@ -263,8 +263,8 @@ def main():
                 writer = csv.DictWriter(f, keys)
                 writer.writeheader()
                 writer.writerows(results[:10])
-    
-    print(f"\n✅ Results saved:")
+
+    print("\n✅ Results saved:")
     print(f"   Full results: {filename}")
     print(f"   Top 10 configs: {top10_file}")
 

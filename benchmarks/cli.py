@@ -1,20 +1,19 @@
-import time
-import os
 import argparse
 import itertools
-import numpy as np
-import pandas as pd
-import jax
+import os
 from datetime import datetime
 
+import jax
+import pandas as pd
+
+from benchmarks.framework.adapters import setup_bbob_instances
 from benchmarks.framework.registry import ComparisonRegistry
 from benchmarks.framework.runner import run_adapter_benchmark
-from benchmarks.framework.adapters import setup_bbob_instances
 
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib 
+    import tomli as tomllib
 
 def load_config(path):
     try:
@@ -22,8 +21,8 @@ def load_config(path):
             return tomllib.load(f)
     except PermissionError as exc:
         raise FileNotFoundError(f"Config file not found or inaccessible: {path}") from exc
-    
-    
+
+
 def run_single_benchmark(
     algo_name,
     spec,
@@ -43,13 +42,29 @@ def run_single_benchmark(
     m_eval, e_prob = setup_bbob_instances(task, dim, seed)
     m_adapter = spec.malthus_factory(pop_size, dim, seed, hypers, m_eval)
 
-    res_m = run_adapter_benchmark(m_adapter, generations, seed, "MalthusJAX", pop_size, unroll, repeats)
-    
+    res_m = run_adapter_benchmark(
+        m_adapter,
+        generations,
+        seed,
+        "MalthusJAX",
+        pop_size,
+        unroll,
+        repeats,
+    )
+
     # Only run Evosax if the spec includes it
     res_e = None
     if spec.evosax_factory is not None:
         e_adapter = spec.evosax_factory(pop_size, dim, seed, hypers, e_prob)
-        res_e = run_adapter_benchmark(e_adapter, generations, seed, "Evosax", pop_size, unroll, repeats)
+        res_e = run_adapter_benchmark(
+            e_adapter,
+            generations,
+            seed,
+            "Evosax",
+            pop_size,
+            unroll,
+            repeats,
+        )
 
     base = {
         "Algorithm": algo_name,
@@ -76,7 +91,7 @@ def run_single_benchmark(
     results = [package(res_m, "MalthusJAX")]
     if res_e is not None:
         results.append(package(res_e, "Evosax"))
-    
+
     return results
 
 def main():
@@ -88,15 +103,15 @@ def main():
     exp_name = cfg['experiment']['name']
     output_dir = cfg['experiment']['output_dir']
     os.makedirs(output_dir, exist_ok=True)
-    
+
     grid = cfg['grid']
     job_queue = list(itertools.product(
-        grid['algorithms'], grid['tasks'], grid['dimensions'], 
+        grid['algorithms'], grid['tasks'], grid['dimensions'],
         grid['pop_sizes'], grid.get('unroll_factors', [1])
     ))
     repeats = grid.get('repeats', 30)
     master_seed = grid['seeds'][0]
-    
+
     print(f"🚀 Starting Benchmark: {exp_name}")
     print(f"📋 Total Configurations: {len(job_queue)}")
     print(f"📊 Repeats per Config:   {repeats}")
@@ -105,24 +120,43 @@ def main():
     print("=" * 60)
 
     results = []
-    
+
     for i, (algo, task, dim, pop, unroll) in enumerate(job_queue, 1):
         print(f"\n[{i}/{len(job_queue)}] {algo} | {task} | D={dim} | N={pop} | Unroll={unroll}")
 
         spec = ComparisonRegistry.get(algo)
         hypers = {**spec.default_hypers, **grid.get('hyperparams', {})}
-        
+
         m_eval, e_prob = setup_bbob_instances(task, dim, master_seed)
         m_adapter = spec.malthus_factory(pop, dim, master_seed, hypers, m_eval)
 
-        res_m = run_adapter_benchmark(m_adapter, grid['generations'], master_seed, "MalthusJAX", pop, unroll, repeats)
-        
-        base = {"Algorithm": algo, "Task": task, "Dim": dim, "Pop_Size": pop, "Unroll": unroll, "Gens": grid['generations']}
-        
+        res_m = run_adapter_benchmark(
+            m_adapter,
+            grid['generations'],
+            master_seed,
+            "MalthusJAX",
+            pop,
+            unroll,
+            repeats,
+        )
+
+        base = {
+            "Algorithm": algo,
+            "Task": task,
+            "Dim": dim,
+            "Pop_Size": pop,
+            "Unroll": unroll,
+            "Gens": grid['generations'],
+        }
+
         def package(res):
             # Use absolute value for normalized fitness comparison
             # MalthusJAX uses maximization (positive), Evosax uses minimization (negative)
-            normalized_fitness = abs(res.best_fitness_final) if res.best_fitness_final is not None else None
+            normalized_fitness = (
+                abs(res.best_fitness_final)
+                if res.best_fitness_final is not None
+                else None
+            )
             return {
                 **base,
                 "Framework": res.framework,
@@ -136,23 +170,39 @@ def main():
             }
 
         results.append(package(res_m))
-        
+
         # Only run Evosax if spec has it
         if spec.evosax_factory is not None:
             e_adapter = spec.evosax_factory(pop, dim, master_seed, hypers, e_prob)
-            res_e = run_adapter_benchmark(e_adapter, grid['generations'], master_seed, "Evosax", pop, unroll, repeats)
-            
+            res_e = run_adapter_benchmark(
+                e_adapter,
+                grid['generations'],
+                master_seed,
+                "Evosax",
+                pop,
+                unroll,
+                repeats,
+            )
+
             # Log & Report (dual framework) - use relative tolerance for comparison
             speedup = res_m.mean_gps / res_e.mean_gps
             mjx_fit_norm = abs(res_m.best_fitness_final)
             evosax_fit_norm = abs(res_e.best_fitness_final)
             # Use relative tolerance (5%) instead of absolute tolerance
-            rel_diff = abs(mjx_fit_norm - evosax_fit_norm) / max(mjx_fit_norm, evosax_fit_norm, 1e-8)
+            rel_diff = abs(mjx_fit_norm - evosax_fit_norm) / max(
+                mjx_fit_norm,
+                evosax_fit_norm,
+                1e-8,
+            )
             fit_match = "✓" if rel_diff < 0.05 else "✗"
             print(f"   >>> MalthusJAX Mean GPS: {res_m.mean_gps:.2f}")
             print(f"   >>> Evosax Mean GPS:     {res_e.mean_gps:.2f}")
             print(f"   >>> Speedup: {speedup:.2f}x")
-            print(f"   >>> Fitness (|val|): MJX={mjx_fit_norm:.2e}±{res_m.fitness_std:.2e} | Evosax={evosax_fit_norm:.2e}±{res_e.fitness_std:.2e} {fit_match}")
+            fit_line = (
+                f"   >>> Fitness (|val|): MJX={mjx_fit_norm:.2e}±{res_m.fitness_std:.2e} "
+                f"| Evosax={evosax_fit_norm:.2e}±{res_e.fitness_std:.2e} {fit_match}"
+            )
+            print(fit_line)
             results.append(package(res_e))
         else:
             # Log & Report (Malthus-only)

@@ -17,7 +17,6 @@ exists you can diff it against the new copy to see if anything changed.
 """
 
 import importlib.util
-import inspect
 import os
 import sys
 

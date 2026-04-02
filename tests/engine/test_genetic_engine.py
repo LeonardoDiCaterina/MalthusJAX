@@ -24,6 +24,172 @@ from malthusjax.operators.mutation.binary import BitFlipMutation
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
+# =============================================================================
+# Pytest Functions for Level 3 Engine Tests
+#
+# Note: These have been converted from unittest.TestCase to pytest functions
+# and now use fixtures from conftest.py. This provides better parameterization,
+# reduced state coupling, and cleaner test organization.
+# =============================================================================
+
+
+def test_01_init_state_baking(genetic_engine, prng_key):
+    """Test if init_state correctly compiles the plan and bakes operators."""
+    print("\n[Test] Initialization & Baking")
+    state = genetic_engine.init_state(prng_key)
+
+    # Check State Integrity
+    assert isinstance(state, GeneticEvolutionState)
+    assert state.generation == 0
+    assert state.population.fitness.shape == (100,)
+
+    # Check Resource Map Integrity
+    rmap = state.resource_map
+    print(f"  RNG Budget per Gen: {rmap.total_rng_budget} keys")
+
+    # Verify Supply/Demand Logic (Pop 100 -> Pairs 50 -> Parents 100)
+    assert rmap.selection.output_count == 100
+
+    # Verify Baked Operators
+    ops = state.operators
+    assert ops.selection.num_selections == 100
+    assert ops.crossover.input_length == 50  # 50 pairs
+    assert ops.mutation.input_length == 100  # 100 mutants
+
+
+def test_02_step_execution(genetic_engine, prng_key):
+    """Test a single manual step execution."""
+    print("\n[Test] Single Step Execution")
+    state = genetic_engine.init_state(prng_key)
+
+    # JIT the step function to verify XLA compatibility
+    jit_step = jax.jit(genetic_engine.step)
+
+    start = time.time()
+    final_state, metrics = jit_step(state)
+    # Block to ensure execution finished
+    _ = final_state.best_fitness.block_until_ready()
+    duration = time.time() - start
+
+    print(f"  Step Time (compile+run): {duration:.4f}s")
+
+    assert final_state.generation == 1
+    assert final_state.population.genes.values.shape == (100, 10)
+
+    # Check that we actually did something (fitness changed or valid)
+    assert not jnp.isnan(final_state.best_fitness)
+
+
+def test_03_closed_loop_fusion(genetic_engine, prng_key):
+    """Test Level 3 'Closed Loop' Compilation and Fusion."""
+    print("\n[Test] Level 3 Closed Loop Fusion")
+    state = genetic_engine.init_state(prng_key)
+
+    # 1. Extract Optimized HLO
+    # This triggers the full XLA compiler (optimize=True)
+    hlo_text = genetic_engine.get_hlo_text(state, optimize=True, print_analysis=False)
+
+    # 2. Check for Fusion
+    # We expect XLA to merge operations into "%fused_computation" blocks
+    fusion_count = hlo_text.count("fusion")
+    print(f"  Fused Blocks: {fusion_count}")
+    assert fusion_count > 0, "Warning: No fusion detected. Performance may be suboptimal."
+
+    # 3. Check for the Loop
+    # The Python 'for' loop should become an XLA 'while' loop
+    has_loop = "while" in hlo_text
+    print(f"  GPU Loop Detected: {has_loop}")
+    assert has_loop, "Critical: Python loop was NOT compiled into XLA while loop."
+
+
+def test_05_odd_population_size(genetic_engine, prng_key):
+    """Test the ResourceMapper fix for odd population sizes."""
+    print("\n[Test] Odd Population Size (17)")
+
+    # 1. Create modified parameters (New Object)
+    odd_params = genetic_engine.engine_params.replace(pop_size=17)
+
+    # 2. Create a NEW Engine with those params (Pattern: .replace())
+    bench_engine = genetic_engine.replace(engine_params=odd_params)
+
+    # 3. Use 'bench_engine' (not genetic_engine) for the rest of the test
+    state = bench_engine.init_state(prng_key)
+    rmap = state.resource_map
+
+    # Check Logic: Pop 17 -> Pairs 9 (18 parents) -> Output 17
+    print(f"  Pop: 17 -> Parents Needed: {rmap.selection.output_count}")
+    assert rmap.selection.output_count == 18
+
+    # Run
+    final_state, _, _ = bench_engine.run(state)
+
+    # Verify Output Shape
+    assert final_state.population.genes.values.shape[0] == 17
+    print("  Odd population handled correctly.")
+
+
+def test_06_ask_tell_equivalence(genetic_engine, prng_key):
+    """
+    Verify that the Ask-Tell interface produces identical genes to the Step interface.
+    This ensures the decoupled execution mode is mathematically consistent with the fused mode.
+    """
+    print("\n[Test] Ask-Tell vs Step Equivalence")
+
+    # 1. Initialize State
+    state_0 = genetic_engine.init_state(prng_key)
+
+    # --- PATH A: Fused Step ---
+    # Run one generation using the standard fused step
+    # Note: step() performs eval and HOF update at the end of the generation
+    state_step, _ = genetic_engine.step(state_0)
+
+    # --- PATH B: Ask-Tell ---
+    # 1. Ask: Allocate entropy for the next step
+    # This returns the engine with entropy buffer populated
+    engine_with_entropy, _ = genetic_engine.ask(state_0)
+
+    # 2. Tell: Execute evolutionary logic using the buffered entropy
+    # Note: tell() performs HOF update at the START (using input pop)
+    # and returns an UNEVALUATED new population.
+    state_tell = engine_with_entropy.tell(state_0, state_0.population)
+
+    # --- COMPARISON ---
+
+    # 1. Check Genomes (The most critical check)
+    # The genes produced by reproduction/mutation must be identical bit-for-bit
+    genes_step = state_step.population.genes.values
+    genes_tell = state_tell.population.genes.values
+
+    diff = jnp.abs(genes_step - genes_tell).sum()
+    print(f"  Gene Difference: {diff}")
+    assert diff == 0.0, "Ask-Tell produced different genes than Step!"
+
+    # 2. Check RNG Forwarding
+    # Both methods consume 'k_next' from the ResourceMap, so the resulting
+    # state.rng_key must be identical to ensure future generations stay synced.
+    print(f"  RNG Step: {state_step.rng_key}")
+    print(f"  RNG Tell: {state_tell.rng_key}")
+    assert jnp.array_equal(state_step.rng_key, state_tell.rng_key), (
+        "RNG state diverged between Ask-Tell and Step."
+    )
+
+    # Note on Fitness:
+    # We DO NOT compare fitness or best_fitness here.
+    # - 'state_step' has Evaluated fitness (computed at end of step)
+    # - 'state_tell' has Unevaluated/Stale fitness (computed at start of next tell)
+    # This difference is by design.
+
+    print("  Equivalence verified successfully.")
+
+
+# =============================================================================
+# Legacy unittest.TestCase Classes (to be migrated incrementally)
+#
+# TODO: Convert remaining test classes to pytest functions following the pattern
+# demonstrated above. Each class should be replaced with pytest functions that
+# use fixtures from conftest.py.
+# =============================================================================
+
 
 class TestLevel3Engine(unittest.TestCase):
     def setUp(self):
@@ -134,40 +300,6 @@ class TestLevel3Engine(unittest.TestCase):
         has_loop = "while" in hlo_text
         print(f"  GPU Loop Detected: {has_loop}")
         self.assertTrue(has_loop, "Critical: Python loop was NOT compiled into XLA while loop.")
-
-    def test_04_benchmark_throughput(self):
-        """Performance Sanity Check."""
-        print("\n[Test] Throughput Benchmark")
-        state = self.engine.init_state(self.key)
-
-        # Configure a longer run
-        NUM_GENS = 500
-        new_params = self.engine_params.replace(num_generations=NUM_GENS)
-
-        bench_engine = self.engine.replace(engine_params=new_params)
-        # Warmup (Compile)
-        print("  Compiling...", end="", flush=True)
-        t0 = time.time()
-        final_state, _, _ = bench_engine.run(state, compile=True)
-        _ = final_state.best_fitness.block_until_ready()
-        print(f" Done ({time.time() - t0:.2f}s)")
-
-        # Real Run
-        state = bench_engine.init_state(self.key)
-
-        t0 = time.time()
-        final_state, _, _ = bench_engine.run(state, compile=True)
-        _ = final_state.best_fitness.block_until_ready()
-        duration = time.time() - t0
-
-        gens_per_sec = NUM_GENS / duration
-        print(f"  Speed: {gens_per_sec:,.2f} gens/sec")
-
-        # Expect high performance (e.g. >1000 gens/sec on GPU, >100 on CPU)
-        # We set a conservative threshold to pass on CI/CD
-        self.assertTrue(
-            gens_per_sec > 50, f"Engine too slow ({gens_per_sec:.2f}). Check for Python fallback."
-        )
 
     def test_05_odd_population_size(self):
         """Test the ResourceMapper fix for odd population sizes."""

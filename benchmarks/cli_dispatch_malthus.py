@@ -12,13 +12,13 @@ Usage:
     python profile_adapters.py --list-engines
 """
 
-import sys
 import argparse
 import csv
+import sys
 import time
-from pathlib import Path
+from dataclasses import dataclass
 from datetime import datetime
-from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Callable
 
 import jax
@@ -29,9 +29,8 @@ from scipy import stats
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).parent))
 
-from framework.registry import ComparisonRegistry
 from framework.adapters import setup_bbob_instances
-
+from framework.registry import ComparisonRegistry
 
 # =============================================================================
 # Data Classes
@@ -91,12 +90,12 @@ def measure_single_run(
 ) -> tuple[float, float, float]:
     """
     Measure timing for a single profiling run.
-    
+
     Returns:
         (cold_ms, warm_avg_ms, compile_ms)
     """
     jitted_fn = jax.jit(fn)
-    
+
     # Cold run (includes compilation)
     jax.block_until_ready(args)
     cold_start = time.perf_counter()
@@ -104,12 +103,12 @@ def measure_single_run(
     jax.block_until_ready(result)
     cold_end = time.perf_counter()
     cold_ms = (cold_end - cold_start) * 1000
-    
+
     # Warmup
     for _ in range(warmup_runs):
         result = jitted_fn(*args)
         jax.block_until_ready(result)
-    
+
     # Timed runs
     warm_times = []
     for _ in range(timed_runs):
@@ -118,10 +117,10 @@ def measure_single_run(
         jax.block_until_ready(result)
         end = time.perf_counter()
         warm_times.append((end - start) * 1000)
-    
+
     warm_avg = np.mean(warm_times)
     compile_ms = max(0, cold_ms - warm_avg)
-    
+
     return cold_ms, warm_avg, compile_ms
 
 
@@ -166,26 +165,26 @@ def profile_configuration(
     Profile a single engine/unroll configuration over multiple runs.
     """
     results = []
-    
+
     for run_id in range(n_runs):
         # Use same seed for algorithm, different key split for isolation
         adapter = build_adapter(engine_name, task, dim, pop_size, seed)
-        
+
         key = jr.PRNGKey(seed + run_id)  # Vary key per run for system variance
         init_state = adapter.init(key)
         step_fn = adapter.make_step_fn()
-        
+
         def evolution_loop(state):
             final, _ = jax.lax.scan(step_fn, state, None, length=num_gens, unroll=unroll)
             return final
-        
+
         cold_ms, warm_ms, compile_ms = measure_single_run(
             evolution_loop,
             init_state,
             warmup_runs=warmup_runs,
             timed_runs=timed_runs,
         )
-        
+
         results.append(RunResult(
             run_id=run_id,
             engine=engine_name,
@@ -199,9 +198,9 @@ def profile_configuration(
             compile_ms=compile_ms,
             ms_per_step=warm_ms / num_gens,
         ))
-        
-        print(f".", end="", flush=True)
-    
+
+        print(".", end="", flush=True)
+
     return results
 
 
@@ -209,14 +208,14 @@ def compute_statistics(results: list[RunResult]) -> StatsSummary:
     """Compute statistical summary from multiple runs."""
     if not results:
         raise ValueError("No results to summarize")
-    
+
     r0 = results[0]
     warm_times = [r.warm_ms for r in results]
     compile_times = [r.compile_ms for r in results]
-    
+
     warm_arr = np.array(warm_times)
     compile_arr = np.array(compile_times)
-    
+
     # 95% confidence interval
     ci = stats.t.interval(
         0.95,
@@ -224,7 +223,7 @@ def compute_statistics(results: list[RunResult]) -> StatsSummary:
         loc=np.mean(warm_arr),
         scale=stats.sem(warm_arr)
     ) if len(warm_arr) > 1 else (np.mean(warm_arr), np.mean(warm_arr))
-    
+
     return StatsSummary(
         engine=r0.engine,
         unroll=r0.unroll,
@@ -243,7 +242,13 @@ def compute_statistics(results: list[RunResult]) -> StatsSummary:
         warm_p95=np.percentile(warm_arr, 95),
         warm_ci_low=ci[0],
         warm_ci_high=ci[1],
-        warm_cv=(np.std(warm_arr, ddof=1) / np.mean(warm_arr) * 100) if np.mean(warm_arr) > 0 else 0,
+        warm_cv=(
+            np.std(warm_arr, ddof=1)
+            / np.mean(warm_arr)
+            * 100
+            if np.mean(warm_arr) > 0
+            else 0
+        ),
         # Compile stats
         compile_mean=np.mean(compile_arr),
         compile_std=np.std(compile_arr, ddof=1) if len(compile_arr) > 1 else 0,
@@ -266,31 +271,31 @@ def run_perfetto_trace(
 ) -> Path:
     """Run engine with Perfetto tracing enabled."""
     adapter = build_adapter(engine_name, task, dim, pop_size, seed)
-    
+
     key = jr.PRNGKey(seed)
     init_state = adapter.init(key)
     step_fn = adapter.make_step_fn()
-    
+
     def traced_loop(state):
         final, _ = jax.lax.scan(step_fn, state, None, length=num_gens, unroll=unroll)
         return final
-    
+
     # Compile first
     jit_loop = jax.jit(traced_loop)
     _ = jit_loop(init_state)
     jax.block_until_ready(_)
-    
+
     # Create trace directory
     trace_subdir = trace_dir / f"{engine_name}_unroll{unroll}"
     trace_subdir.mkdir(parents=True, exist_ok=True)
-    
+
     jax.profiler.start_trace(str(trace_subdir))
     try:
         result = jit_loop(init_state)
         jax.block_until_ready(result)
     finally:
         jax.profiler.stop_trace()
-    
+
     return trace_subdir
 
 
@@ -304,7 +309,7 @@ def save_raw_results(results: list[RunResult], output_path: Path):
         "run_id", "engine", "unroll", "task", "dim", "pop_size",
         "num_gens", "cold_ms", "warm_ms", "compile_ms", "ms_per_step"
     ]
-    
+
     with open(output_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -333,7 +338,7 @@ def save_statistics(stats_list: list[StatsSummary], output_path: Path):
         "warm_ci_low", "warm_ci_high", "warm_cv",
         "compile_mean", "compile_std"
     ]
-    
+
     with open(output_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -368,20 +373,29 @@ def print_statistics_report(stats_list: list[StatsSummary]):
     print("=" * 90)
     print(f"{'Engine':<22} {'Unroll':<8} {'Mean (ms)':<12} {'Std':<10} {'95% CI':<20} {'CV%':<8}")
     print("-" * 90)
-    
+
     for s in stats_list:
         ci_str = f"[{s.warm_ci_low:.2f}, {s.warm_ci_high:.2f}]"
-        print(f"{s.engine:<22} {s.unroll:<8} {s.warm_mean:<12.3f} {s.warm_std:<10.3f} {ci_str:<20} {s.warm_cv:<8.2f}")
-    
+        print(
+            f"{s.engine:<22} {s.unroll:<8} {s.warm_mean:<12.3f} "
+            f"{s.warm_std:<10.3f} {ci_str:<20} {s.warm_cv:<8.2f}"
+        )
+
     print("-" * 90)
-    
+
     # Find best configuration
     if stats_list:
         best = min(stats_list, key=lambda x: x.warm_mean)
         most_stable = min(stats_list, key=lambda x: x.warm_cv)
-        print(f"\nFastest: {best.engine} (unroll={best.unroll}) - {best.warm_mean:.3f} ms")
-        print(f"Most stable: {most_stable.engine} (unroll={most_stable.unroll}) - CV={most_stable.warm_cv:.2f}%")
-    
+        print(
+            f"\nFastest: {best.engine} (unroll={best.unroll}) - "
+            f"{best.warm_mean:.3f} ms"
+        )
+        print(
+            f"Most stable: {most_stable.engine} (unroll={most_stable.unroll}) - "
+            f"CV={most_stable.warm_cv:.2f}%"
+        )
+
     print("=" * 90)
 
 
@@ -402,29 +416,83 @@ Examples:
     python profile_adapters.py --task sphere --dim 10 --with-trace
         """
     )
-    
+
     parser.add_argument("--task", default="sphere", help="BBOB problem (default: sphere)")
     parser.add_argument("--dim", type=int, default=10, help="Dimension (default: 10)")
-    parser.add_argument("--pop-size", type=int, default=64, help="Population size (default: 64)")
-    parser.add_argument("--gens", type=int, default=50, help="Generations (default: 50)")
-    parser.add_argument("--unroll", type=int, nargs="+", default=[1, 4, 8], help="Unroll factors (default: 1 4 8)")
-    parser.add_argument("--runs", type=int, default=30, help="Number of runs for statistics (default: 30)")
-    parser.add_argument("--seed", type=int, default=42, help="Base seed (default: 42)")
-    parser.add_argument("--output-dir", type=Path, default=Path("results/profiler"), help="Output directory")
-    parser.add_argument("--engines", nargs="+", default=None, help="Engines to profile (default: all)")
-    parser.add_argument("--with-trace", action="store_true", help="Generate Perfetto traces")
-    parser.add_argument("--list-engines", action="store_true", help="List available engines")
-    parser.add_argument("--warmup", type=int, default=3, help="Warmup runs per measurement (default: 3)")
-    parser.add_argument("--timed", type=int, default=10, help="Timed runs per measurement (default: 10)")
-    
+    parser.add_argument(
+        "--pop-size",
+        type=int,
+        default=64,
+        help="Population size (default: 64)",
+    )
+    parser.add_argument(
+        "--gens",
+        type=int,
+        default=50,
+        help="Generations (default: 50)",
+    )
+    parser.add_argument(
+        "--unroll",
+        type=int,
+        nargs="+",
+        default=[1, 4, 8],
+        help="Unroll factors (default: 1 4 8)",
+    )
+    parser.add_argument(
+        "--runs",
+        type=int,
+        default=30,
+        help="Number of runs for statistics (default: 30)",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Base seed (default: 42)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("results/profiler"),
+        help="Output directory",
+    )
+    parser.add_argument(
+        "--engines",
+        nargs="+",
+        default=None,
+        help="Engines to profile (default: all)",
+    )
+    parser.add_argument(
+        "--with-trace",
+        action="store_true",
+        help="Generate Perfetto traces",
+    )
+    parser.add_argument(
+        "--list-engines",
+        action="store_true",
+        help="List available engines",
+    )
+    parser.add_argument(
+        "--warmup",
+        type=int,
+        default=3,
+        help="Warmup runs per measurement (default: 3)",
+    )
+    parser.add_argument(
+        "--timed",
+        type=int,
+        default=10,
+        help="Timed runs per measurement (default: 10)",
+    )
+
     args = parser.parse_args()
-    
+
     if args.list_engines:
         print("Available MalthusJAX engines:")
         for name in get_available_engines():
             print(f"  {name}")
         return
-    
+
     # Get engines
     available = get_available_engines()
     if args.engines:
@@ -434,12 +502,12 @@ Examples:
             return
     else:
         engines = available
-    
+
     # Setup output
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = args.output_dir / f"{args.task}_d{args.dim}_p{args.pop_size}_{timestamp}"
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     print("\n" + "=" * 60)
     print("MalthusJAX Adapter Profiler")
     print("=" * 60)
@@ -450,14 +518,14 @@ Examples:
     print(f"Engines: {engines}")
     print(f"Output: {output_dir}")
     print("=" * 60)
-    
+
     all_results = []
     all_stats = []
-    
+
     for engine_name in engines:
         for unroll in args.unroll:
             print(f"\n{engine_name} [unroll={unroll}]: ", end="", flush=True)
-            
+
             try:
                 # Run profiling
                 results = profile_configuration(
@@ -473,13 +541,17 @@ Examples:
                     timed_runs=args.timed,
                 )
                 all_results.extend(results)
-                
+
                 # Compute stats
                 stats_summary = compute_statistics(results)
                 all_stats.append(stats_summary)
-                
+
+                # Clear XLA trace caches to prevent unfair compilation hits
+                # from previous configurations skewing cold JIT timing
+                jax.clear_caches()
+
                 print(f" Mean: {stats_summary.warm_mean:.2f}ms ± {stats_summary.warm_std:.2f}ms")
-                
+
                 # Perfetto trace (optional)
                 if args.with_trace:
                     trace_dir = run_perfetto_trace(
@@ -487,22 +559,22 @@ Examples:
                         args.gens, unroll, args.seed, output_dir / "traces"
                     )
                     print(f"    Trace: {trace_dir}")
-                    
+
             except Exception as e:
                 print(f" ERROR: {e}")
-    
+
     # Save results
     save_raw_results(all_results, output_dir / "raw_results.csv")
     save_statistics(all_stats, output_dir / "statistics.csv")
-    
+
     # Print summary
     print_statistics_report(all_stats)
-    
+
     print(f"\nResults saved to: {output_dir}")
     print(f"  - raw_results.csv: {len(all_results)} individual measurements")
     print(f"  - statistics.csv: {len(all_stats)} configuration summaries")
     if args.with_trace:
-        print(f"  - traces/: Perfetto traces (view at https://ui.perfetto.dev)")
+        print("  - traces/: Perfetto traces (view at https://ui.perfetto.dev)")
 
 
 if __name__ == "__main__":
