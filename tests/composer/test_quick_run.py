@@ -103,15 +103,15 @@ class TestComposerRealEngines:
         composer = Composer.create_default()
 
         # No operators
-        assert not composer._has_real_operators(None, None, None, None)
+        assert not composer._has_real_operators(None, None, None, None, None)
 
         # Some operators
-        assert composer._has_real_operators("sphere", None, None, None)
-        assert composer._has_real_operators(None, "tournament", None, None)
-        assert composer._has_real_operators(None, None, None, "gaussian")
+        assert composer._has_real_operators(None, "sphere", None, None, None)
+        assert composer._has_real_operators(None, None, "tournament", None, None)
+        assert composer._has_real_operators(None, None, None, None, "gaussian")
 
         # All operators
-        assert composer._has_real_operators("sphere", "tournament", "blend", "gaussian")
+        assert composer._has_real_operators(None, "sphere", "tournament", "blend", "gaussian")
 
     def test_default_operator_construction(self):
         """Test that default operators are constructed properly."""

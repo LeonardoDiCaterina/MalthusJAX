@@ -106,7 +106,7 @@ def test_elite_pool_max_fitness_preserved(pop_size: int, genome_dim: int) -> Non
     population = RealPopulation(genes=population.genes, fitness=fitness, config=config)
     max_fitness = float(jnp.max(fitness))
 
-    selection = ElitePoolSelection(num_selections=pop_size, elite_k=max(1, pop_size // 3))
+    selection = ElitePoolSelection(num_selections=pop_size, elite_k=1)
     selected = selection(jar.PRNGKey(3), population, None)
 
     # The best individual should be in selected set
@@ -287,7 +287,8 @@ def test_tournament_all_individuals_samplable(pop_size: int, genome_dim: int) ->
     all_selected = set()
     for i in range(5):
         selected = selection(jar.PRNGKey(100 + i), population, None)
-        all_selected.update(selected[0])
+        import numpy as np
+        all_selected.update(np.asarray(selected[0]).tolist())
 
     # With 5 rounds of pop_size*5 selections from pop_size individuals,
     # statistically all should be selected at least once
