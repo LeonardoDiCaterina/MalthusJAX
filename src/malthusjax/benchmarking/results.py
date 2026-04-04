@@ -160,6 +160,12 @@ class ExperimentResult:
         # Rows can now be grouped by seed_id and plotted
     """
 
+    name: str
+    runs: List[RunResult]
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    schema_version: str = "0.1"
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,

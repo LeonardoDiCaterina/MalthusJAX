@@ -13,6 +13,10 @@ import json
 from pathlib import Path
 from typing import Dict
 
+import chex
+import jax.numpy as jnp
+import numpy as np
+
 from .results import ExperimentResult
 
 
@@ -131,3 +135,79 @@ def write_experiment_artifacts(
         written_paths[f"seed_{run.seed:04d}"] = seed_dir
 
     return written_paths
+
+
+
+class DataLoader:
+    """Universal data loader for various formats."""
+
+    @staticmethod
+    def load_csv(path: Path | str) -> chex.Array:
+        """Load CSV file into a JAX array."""
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(f"Missing data file: {path}")
+        try:
+            data = np.loadtxt(path, delimiter=",")
+            return jnp.asarray(data)
+        except Exception as e:
+            raise ValueError(f"Failed to load CSV {path}: {e}") from e
+
+    @staticmethod
+    def load_npz(path: Path | str) -> dict[str, chex.Array]:
+        """Load .npz archive into JAX arrays."""
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(f"Missing data file: {path}")
+        try:
+            with np.load(path) as data:
+                return {k: jnp.asarray(v) for k, v in data.items()}
+        except Exception as e:
+            raise ValueError(f"Failed to load NPZ {path}: {e}") from e
+
+    @staticmethod
+    def load_tsplib(path: Path | str) -> chex.Array:
+        """Load TSPLib distance matrix.
+
+        Currently supports EDGE_WEIGHT_TYPE=EUC_2D coordinate lists.
+        """
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(f"Missing data file: {path}")
+
+        coords = []
+        parsing_coords = False
+        with open(path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line == "NODE_COORD_SECTION":
+                    parsing_coords = True
+                    continue
+                if line == "EOF":
+                    break
+                if parsing_coords:
+                    parts = line.split()
+                    if len(parts) >= 3:
+                        coords.append([float(parts[1]), float(parts[2])])
+
+        if not coords:
+            raise ValueError(f"Could not parse valid coordinates from TSPLib file: {path}")
+
+        coords_arr = np.array(coords)
+        diff = coords_arr[:, np.newaxis, :] - coords_arr[np.newaxis, :, :]
+        dist_matrix = np.sqrt(np.sum(diff ** 2, axis=-1))
+
+        return jnp.asarray(dist_matrix)
+
+    @classmethod
+    def load_any(cls, path: Path | str) -> chex.Array | dict[str, chex.Array]:
+        """Auto-detect format and load."""
+        path_str = str(path).lower()
+        if path_str.endswith(".csv"):
+            return cls.load_csv(path)
+        elif path_str.endswith(".npz"):
+            return cls.load_npz(path)
+        elif path_str.endswith(".tsp") or path_str.endswith(".txt"):
+            return cls.load_tsplib(path)
+        else:
+            raise ValueError(f"Unsupported file extension: {path}")
