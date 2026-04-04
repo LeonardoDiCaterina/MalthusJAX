@@ -95,6 +95,7 @@ EXPECTED_FITNESS = {
     "griewank",
     "binary_sum",
     "knapsack",
+    "tsp",
 }
 EXPECTED_EVOSAX = {"evosax_simplega", "evosax_mr15", "evosax_de"}
 
@@ -409,3 +410,23 @@ def test_runtime_register(catalog: OperatorCatalog) -> None:
         assert key in catalog.list_available()
     finally:
         _OPERATOR_REGISTRY.pop(key, None)
+
+def test_catalog_get_with_data_registry():
+    """Test data_id resolution"""
+    catalog = OperatorCatalog()
+    data_reg = {"sphere_10": {"source": "synthetic", "dim": 10}}
+    evaluator = catalog.get("sphere:data_id=sphere_10", data_registry=data_reg)
+    assert evaluator is not None
+
+def test_catalog_get_backward_compat_no_registry():
+    """Test old behavior unchanged"""
+    catalog = OperatorCatalog()
+    evaluator = catalog.get("sphere:dim=10")
+    assert evaluator is not None
+
+def test_data_registry_missing_id_raises():
+    """Test error handling"""
+    catalog = OperatorCatalog()
+    data_reg = {}
+    with pytest.raises(KeyError, match="not in registry"):
+        catalog.get("sphere:data_id=missing", data_registry=data_reg)
