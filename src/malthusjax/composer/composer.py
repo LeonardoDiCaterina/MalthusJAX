@@ -117,19 +117,21 @@ class Composer:
         engine_type: str = "ga",
         evosax_strategy: str = "SimpleGA",
         # Real operator specifications (malthusjax backend)
+        genome: Optional[str] = None,
         fitness: Optional[str] = None,
         selection: Optional[str] = None,
         crossover: Optional[str] = None,
         mutation: Optional[str] = None,
-        genome_type: str = "real",
+        genome_type: Optional[str] = None,
         pop_size: int = 50,
         generations: int = 100,
-        genome_length: int = 10,
-        bounds: Tuple[float, float] = (-5.0, 5.0),
+        genome_length: Optional[int] = None,
+        bounds: Optional[Tuple[float, float]] = None,
         elitism: int = 2,
         maximize: bool = False,
         prng_impl: Optional[str] = None,
         trace_dir: Optional[Path | str] = Path("results/traces"),
+        data_config: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> ExperimentResult:
         """Run a full evolutionary experiment with programmatic operator specs.
@@ -246,6 +248,13 @@ class Composer:
         Controls which operator specs are valid (real vs binary crossover/mutation).
         Default: ``"real"``.
 
+        genome : str, optional
+        Declarative specification of the genome type, shape, and bounds.
+        Format: ``"type:key1=val,key2=val"``
+        Examples: ``"real:dim=10,bounds=(-5.0, 5.0)"``, ``"binary:length=20"``.
+        Explicit arguments (e.g., `genome_type`, `genome_length`) override the
+        values provided in this specification.
+
         maximize : bool, optional
         Optimization direction: ``True`` for maximization, ``False`` for
         minimization. Default: ``False``.
@@ -348,6 +357,35 @@ class Composer:
             output_dir = Path(output_dir)
 
         if engine is None:
+            # Resolve genome defaults and specification
+            if genome is not None:
+                from .genome_catalog import GenomeCatalog
+
+                cat = GenomeCatalog()
+                g_type, g_params = cat.parse_spec(genome)
+                if genome_type is None:
+                    genome_type = g_type
+                if genome_length is None:
+                    genome_length = g_params.get("dim", g_params.get("length", 10))
+                if bounds is None and "bounds" in g_params:
+                    b = g_params["bounds"]
+                    if isinstance(b, str):
+                        b_str = b.strip("()[]")
+                        parts = b_str.split(",")
+                        bounds = (float(parts[0]), float(parts[1]))
+                    else:
+                        bounds = tuple(b)
+                if genome_length is None and "shape" in g_params:
+                    shape_val = g_params["shape"]
+                    genome_length = shape_val[0] if hasattr(shape_val, "__len__") else shape_val
+
+            if genome_type is None:
+                genome_type = "real"
+            if genome_length is None:
+                genome_length = 10
+            if bounds is None:
+                bounds = (-5.0, 5.0)
+
             if backend == "evosax":
                 engine = self._build_evosax_engine(
                     strategy_name=evosax_strategy,
@@ -360,8 +398,9 @@ class Composer:
                     prng_impl=prng_impl,
                     **kwargs,
                 )
-            elif self._has_real_operators(fitness, selection, crossover, mutation):
+            elif self._has_real_operators(genome, fitness, selection, crossover, mutation):
                 engine = self._build_real_engine(
+                    genome=genome,
                     fitness=fitness,
                     selection=selection,
                     crossover=crossover,
@@ -373,7 +412,9 @@ class Composer:
                     genome_shape=genome_length,
                     bounds=bounds,
                     elitism=elitism,
+                    maximize=maximize,
                     prng_impl=prng_impl,
+                    data_config=data_config,
                     **kwargs,
                 )
             else:
@@ -566,10 +607,9 @@ class Composer:
 
             results[name] = self.quick_run(**merged)
             backend = merged.get("backend", "malthusjax")
-            # Evosax outputs raw fitness values where lower is better
-            # (positive values for minimisation). We negate those so all
-            # pipelines use a consistent "more negative is better" convention.
-            negate_map[name] = backend == "evosax"
+            # MalthusJAX (via BBOBEvaluator) negates for minimize, matches MalthusJAX convention
+            # Evosax adapts minimizes raw positive values, needs negation to match convention
+            negate_map[name] = (backend == "evosax")
 
         return ComparisonResult(
             pipelines=results,
@@ -744,13 +784,27 @@ class Composer:
 
     def _has_real_operators(
         self,
+        genome: Optional[str],
         fitness: Optional[str],
         selection: Optional[str],
         crossover: Optional[str],
         mutation: Optional[str],
     ) -> bool:
         """Check if any real operator specs are provided."""
-        return any([fitness, selection, crossover, mutation])
+        return any([genome, fitness, selection, crossover, mutation])
+
+    def _build_data_registry(self, data_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert a configuration of data sources into a resolved data registry."""
+        from malthusjax.benchmarking.registry import DataRegistry
+
+        reg = DataRegistry()
+        for data_id, data_spec in data_config.items():
+            reg.register(data_id, data_spec)
+
+        resolved: Dict[str, Any] = {}
+        for data_id in data_config.keys():
+            resolved[data_id] = reg.resolve(data_id)
+        return resolved
 
     def _build_real_engine(
         self,
@@ -759,17 +813,36 @@ class Composer:
         crossover: Optional[str],
         mutation: Optional[str],
         engine_type: str = "ga",
+        data_config: Optional[Dict[str, Any]] = None,
         **config: Any,
     ) -> Any:
         """Build engine from operator specs and config via EngineRegistry."""
+        from malthusjax.engine.schedules import TrackBest
+        
         catalog = OperatorCatalog()
 
-        resolved_evaluator = catalog.get(fitness or "sphere:dim=10")
+        data_registry = self._build_data_registry(data_config) if data_config else None
+
+        maximize_flag = config.get('maximize', False)
+        if fitness and "maximize=" not in fitness:
+            fitness = f"{fitness},maximize={maximize_flag}"
+            
+        resolved_evaluator = catalog.get(fitness or f"sphere:dim=10,maximize={maximize_flag}", data_registry=data_registry)
         resolved_selection = catalog.get(
-            selection or f"tournament:num_selections={config['pop_size'] // 2},tournament_size=3"
+            selection
+            or f"tournament:num_selections={config.get('pop_size', 50) // 2},tournament_size=3",
+            data_registry=data_registry,
         )
-        resolved_crossover = catalog.get(crossover or "blend:alpha=0.5")
-        resolved_mutation = catalog.get(mutation or "gaussian:mutation_rate=0.1")
+        resolved_crossover = catalog.get(
+            crossover or "blend:alpha=0.5", data_registry=data_registry
+        )
+        resolved_mutation = catalog.get(
+            mutation or "gaussian:mutation_rate=0.1", data_registry=data_registry
+        )
+
+        # Ensure we use LIGHT tracking for monotonic convergence curves
+        if 'track_best' not in config:
+            config['track_best'] = TrackBest.LIGHT
 
         engine_registry = EngineRegistry()
         return engine_registry.get(

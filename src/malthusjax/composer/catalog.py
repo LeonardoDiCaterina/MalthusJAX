@@ -27,7 +27,7 @@ Examples::
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from ._registry import get_registry
 from ._registry import register as _registry_register
@@ -175,13 +175,19 @@ class OperatorCatalog:
 
         return value_str
 
-    def get(self, spec: str) -> Any:
+    def get(self, spec: str, data_registry: Optional[Dict[str, Any]] = None) -> Any:
         """Resolve *spec* to a configured operator instance.  The
         spec string may include comma-separated parameter overrides.  A
         ``KeyError`` is raised for unknown operator types and a
         ``ValueError`` for invalid parameter combinations.
         """
         operator_type, user_params = self.parse_spec(spec)
+
+        if data_registry is not None and "data_id" in user_params:
+            data_id = user_params.pop("data_id")
+            if data_id not in data_registry:
+                raise KeyError(f"Data ID '{data_id}' not in registry")
+            user_params["_resolved_data"] = data_registry[data_id]
 
         if operator_type in self._evosax_strategies:
             return self._evosax_strategies[operator_type]

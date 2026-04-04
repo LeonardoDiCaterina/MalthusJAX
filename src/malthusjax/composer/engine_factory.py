@@ -40,11 +40,13 @@ class GeneticEngineAdapter:
         genome_config: Any,
         initial_population: Any = None,
         prng_impl: Optional[str] = None,
+        maximize: bool = False,
     ):
         self.genetic_engine = genetic_engine
         self.genome_config = genome_config
         self.initial_population = initial_population
         self.prng_impl = prng_impl
+        self.maximize = maximize
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
@@ -58,8 +60,6 @@ class GeneticEngineAdapter:
         state = self.genetic_engine.init_state(key)
         state.best_fitness.block_until_ready()
         initial_best = float(state.best_fitness)
-        if hasattr(self, "maximize") and self.maximize:
-            initial_best = -initial_best
         t_init_end = time.perf_counter()
 
         if self.initial_population is not None:
@@ -73,10 +73,12 @@ class GeneticEngineAdapter:
             best_genome = evaluated_pop.genes[best_idx]
 
             state = cast(Any, state).replace(
-                population=evaluated_pop,
+                population=evaluated_pop.replace(fitness=fitness),
                 best_genome=best_genome,
                 best_fitness=best_fitness,
             )
+            # Update initial_best if initial_population was provided
+            initial_best = float(best_fitness)
 
         # ------------------------------------------------------------------
         # Compile: warmup step + XLA compilation of the scan kernel.
@@ -163,6 +165,8 @@ def build_engine(
     genome_config: Union[RealGenomeConfig, BinaryGenomeConfig]
     if "genome_length" in kwargs:
         genome_shape = (int(kwargs.pop("genome_length")),)
+    if isinstance(genome_shape, int):
+        genome_shape = (genome_shape,)
 
     if genome_type == "real":
         genome_config = RealGenomeConfig(
@@ -243,12 +247,21 @@ def build_engine(
     )
 
     initial_population = kwargs.get("initial_population", None)
+    
+    # Get maximize flag from kwargs, or infer from fitness evaluator
+    if "maximize" in kwargs:
+        maximize_flag = kwargs["maximize"]
+    elif hasattr(fitness_evaluator, "config") and hasattr(fitness_evaluator.config, "maximize"):
+        maximize_flag = fitness_evaluator.config.maximize
+    else:
+        maximize_flag = False
 
     return GeneticEngineAdapter(
         genetic_engine,
         genome_config,
         initial_population=initial_population,
         prng_impl=prng_impl_str,
+        maximize=maximize_flag,
     )
 
 

@@ -8,7 +8,8 @@ performed at call sites.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple, cast
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, cast
 
 try:
     import tomllib as _toml
@@ -37,10 +38,42 @@ def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
 _EXPERIMENT_META_KEYS = {"name", "output_dir"}
 
 
+@dataclass
+class ExperimentLoadResult:
+    """Backward compatible config load result.
+
+    Can be unpacked as `meta, pipelines = result` to support
+    legacy code, or accessed directly via attributes for
+    `data_registry`.
+    """
+
+    meta: Dict[str, Any]
+    pipelines: Dict[str, Dict[str, Any]]
+    data_registry: Dict[str, Any] = field(default_factory=dict)
+
+    def __iter__(self) -> Any:
+        """Allow unpacking: meta, pipelines = result"""
+        yield self.meta
+        yield self.pipelines
+
+
+def _parse_data_section(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract [data.*] sections from TOML."""
+    data_registry: Dict[str, Any] = {}
+    data_section = cfg.get("data", {})
+    if not isinstance(data_section, dict):
+        return data_registry
+
+    for data_id, data_config in data_section.items():
+        if isinstance(data_config, dict):
+            data_registry[data_id] = data_config
+    return data_registry
+
+
 def load_experiment_config(
     path: str,
     pipelines: Optional[List[str]] = None,
-) -> Tuple[Dict[str, Any], Dict[str, Dict[str, Any]]]:
+) -> ExperimentLoadResult:
     """Load a Composer-style experiment TOML file.
 
     The configuration should define an ``[experiment]`` section with
@@ -97,4 +130,8 @@ def load_experiment_config(
         merged.setdefault("experiment_name", name)
         resolved[name] = merged
 
-    return experiment_meta, resolved
+    data_registry = _parse_data_section(cfg)
+
+    return ExperimentLoadResult(
+        meta=experiment_meta, pipelines=resolved, data_registry=data_registry
+    )
