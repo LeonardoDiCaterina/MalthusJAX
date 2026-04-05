@@ -76,13 +76,15 @@ def test_elite_pool_includes_best_individuals(
     selected = selection(jar.PRNGKey(2), population, None)
     selected_fitness = population.fitness[selected[0]]
 
-    # At minimum, population mean fitness should be reasonable
-    mean_selected = float(jnp.mean(selected_fitness))
-    mean_all = float(jnp.mean(population.fitness))
+    # The expected minimum fitness in the elite pool
+    # Since fitness values are 0, 1, ..., pop_size-1, the top elite_k individuals
+    # will have fitness values from (pop_size - elite_k) to (pop_size - 1).
+    expected_min_selected_fitness = float(pop_size - elite_k)
 
-    # Selected individuals should have mean fitness >= overall mean
-    assert mean_selected >= mean_all - 1e-5, (
-        f"Elite pool mean fitness {mean_selected} < overall mean {mean_all}"
+    min_selected = float(jnp.min(selected_fitness))
+
+    assert min_selected >= expected_min_selected_fitness - 1e-5, (
+        f"Selected minimum fitness {min_selected} < expected {expected_min_selected_fitness}"
     )
 
 
