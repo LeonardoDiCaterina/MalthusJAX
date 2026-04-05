@@ -247,7 +247,7 @@ def build_engine(
     )
 
     initial_population = kwargs.get("initial_population", None)
-    
+
     # Get maximize flag from kwargs, or infer from fitness evaluator
     if "maximize" in kwargs:
         maximize_flag = kwargs["maximize"]

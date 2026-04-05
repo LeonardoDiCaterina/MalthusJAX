@@ -821,16 +821,21 @@ class Composer:
     ) -> Any:
         """Build engine from operator specs and config via EngineRegistry."""
         from malthusjax.engine.schedules import TrackBest
-        
+
         catalog = OperatorCatalog()
 
         data_registry = self._build_data_registry(data_config) if data_config else None
 
         maximize_flag = config.get('maximize', False)
         if fitness and "maximize=" not in fitness:
-            fitness = f"{fitness},maximize={maximize_flag}"
-            
-        resolved_evaluator = catalog.get(fitness or f"sphere:dim=10,maximize={maximize_flag}", data_registry=data_registry)
+            fitness = (
+                f"{fitness},maximize={maximize_flag}"
+            )
+
+        resolved_evaluator = catalog.get(
+            fitness or f"sphere:dim=10,maximize={maximize_flag}",
+            data_registry=data_registry,
+        )
         resolved_selection = catalog.get(
             selection
             or f"tournament:num_selections={config.get('pop_size', 50) // 2},tournament_size=3",
