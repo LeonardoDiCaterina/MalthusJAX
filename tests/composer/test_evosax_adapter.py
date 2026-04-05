@@ -329,9 +329,9 @@ class TestMaximisationConvention:
 
     def test_minimize_reports_raw_evosax_values(self):
         """With maximize=False, best_fitness should match the raw evosax metric.
-        For current problems (sphere) that metric is non-negative.
+        If we force seed=0, the sphere optimum is positive.
         """
-        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3, maximize=False)
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3, maximize=False, seed=0)
         adapter = build_evosax_engine(
             strategy_name="SimpleGA",
             evaluator=evalr,

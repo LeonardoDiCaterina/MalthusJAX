@@ -35,7 +35,7 @@ def _run_evosax_raw(
 ):
     """Reproduce the exact logic of EvosaxEngineAdapter.run_once using raw evosax."""
     rng = jr.PRNGKey(seed)
-    problem = BBOBProblem(fn_name=problem_name.lower(), num_dims=num_dims)
+    problem = BBOBProblem(fn_name=problem_name.lower(), num_dims=num_dims, seed=seed)
     # adapter chooses a uniform initial solution; replicate that here
     init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])
 
@@ -305,7 +305,7 @@ def _run_evosax_raw_with_init_pop(
 ):
     """Same as _run_evosax_raw but with initial population injection."""
     rng = jr.PRNGKey(seed)
-    problem = BBOBProblem(fn_name=problem_name.lower(), num_dims=num_dims)
+    problem = BBOBProblem(fn_name=problem_name.lower(), num_dims=num_dims, seed=seed)
     # adapter chooses a uniform initial solution; replicate it
     init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])
 
