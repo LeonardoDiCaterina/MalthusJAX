@@ -39,7 +39,7 @@ def test_bbob_parity_across_functions(real_population, rng_key, fn_name):
     fn_name_normalized = BBOB_NAME_ALIASES.get(fn_name_lower, fn_name)
 
     # Direct evosax setup with BBOBProblem (evosax 0.2.0 API)
-    evosax_fitness = BBOBProblem(fn_name=fn_name_normalized, num_dims=num_dims)
+    evosax_fitness = BBOBProblem(fn_name=fn_name_normalized, num_dims=num_dims, seed=seed)
     p_state = evosax_fitness.init(rng_key)
 
     # MalthusJAX setup - Explicitly pass num_dims
@@ -56,7 +56,7 @@ def test_bbob_parity_across_functions(real_population, rng_key, fn_name):
     pop_result = evaluator.evaluate_population(real_population)
 
     # Use np.testing for JAX arrays
-    np.testing.assert_allclose(pop_result.fitness, expected_fitness, atol=1e-5)
+    np.testing.assert_allclose(pop_result.fitness, -expected_fitness, atol=1e-5)
 
 
 # --- 3. Maximization & JIT Stability ---
