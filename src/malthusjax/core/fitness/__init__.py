@@ -29,6 +29,7 @@ from .real_evaluators import (
     SphereConfig,
     SphereEvaluator,
 )
+from .tsp_evaluator import TSPConfig, TSPEvaluator
 
 __all__ = [
     # Base classes
@@ -51,6 +52,9 @@ __all__ = [
     "GriewankConfig",
     "BoxEvaluator",
     "BoxConfig",
+    # Combinatorial evaluators
+    "TSPEvaluator",
+    "TSPConfig",
 ]
 
 # ---------------------------------------------------------------------------
@@ -67,6 +71,8 @@ def _make_bbob_factory(fn_name: str, *, maximize: bool = True) -> _Callable[...,
     def _factory(**kwargs: _Any) -> "BBOBEvaluator":
         from .bbob_evaluator import BBOBConfig, BBOBEvaluator
 
+        _resolved_data = kwargs.pop("_resolved_data", None)
+
         config = BBOBConfig(
             fn_name=fn_name,
             num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
@@ -82,6 +88,8 @@ def _create_bbob_evaluator(**kwargs: _Any) -> "BBOBEvaluator":
     """General BBOB factory accepting fn_name as a kwarg."""
     from .bbob_evaluator import BBOBConfig, BBOBEvaluator
 
+    _resolved_data = kwargs.pop("_resolved_data", None)
+
     config = BBOBConfig(
         fn_name=kwargs.get("fn_name", "sphere"),
         num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
@@ -92,21 +100,48 @@ def _create_bbob_evaluator(**kwargs: _Any) -> "BBOBEvaluator":
 
 
 def _create_knapsack_evaluator(**kwargs: _Any) -> "KnapsackEvaluator":
+    _resolved_data = kwargs.pop("_resolved_data", None)
     kwargs.setdefault("maximize", True)
     config = KnapsackConfig(**kwargs)
     return KnapsackEvaluator(config)
 
 
 def _create_binary_sum_evaluator(**kwargs: _Any) -> "BinarySumEvaluator":
+    _resolved_data = kwargs.pop("_resolved_data", None)
     kwargs.setdefault("maximize", True)
     config = BinarySumConfig(**kwargs)
     return BinarySumEvaluator(config)
 
 
 def _create_griewank_evaluator(**kwargs: _Any) -> "GriewankEvaluator":
+    _resolved_data = kwargs.pop("_resolved_data", None)
     kwargs.setdefault("maximize", True)
     config = GriewankConfig(**kwargs)
     return GriewankEvaluator(config)
+
+
+def _create_tsp_evaluator(**kwargs: _Any) -> "TSPEvaluator":
+    from .tsp_evaluator import TSPEvaluator
+    
+    _resolved_data = kwargs.pop("_resolved_data", None)
+    
+    if _resolved_data is not None:
+        # If it's a dict holding data source specs (synthetic)
+        if isinstance(_resolved_data, dict) and _resolved_data.get("source") == "synthetic":
+            num_cities = _resolved_data.get("num_cities", kwargs.get("num_cities", 50))
+            seed = _resolved_data.get("random_seed", kwargs.get("seed", 42))
+            return TSPEvaluator.create_synthetic(num_cities=num_cities, seed=seed)
+        
+        # If it's an array (loaded from file)
+        distance_matrix = _resolved_data
+        if hasattr(distance_matrix, "distance_matrix"):
+            distance_matrix = distance_matrix.distance_matrix
+            
+        return TSPEvaluator.create_from_data(kwargs, distance_matrix)
+        
+    num_cities = kwargs.get("num_cities", 50)
+    seed = kwargs.get("seed", 42)
+    return TSPEvaluator.create_synthetic(num_cities=num_cities, seed=seed)
 
 
 def _register_fitness() -> None:
@@ -116,7 +151,7 @@ def _register_fitness() -> None:
     register_table(
         [
             # BBOB presets
-            ("sphere", _make_bbob_factory("sphere", maximize=True), {}),
+            ("sphere", _make_bbob_factory("sphere", maximize=False), {}),
             ("rastrigin", _make_bbob_factory("rastrigin", maximize=True), {}),
             ("sphere_minimize", _make_bbob_factory("sphere", maximize=False), {}),
             ("sphere_maximize", _make_bbob_factory("sphere", maximize=True), {}),
@@ -126,6 +161,7 @@ def _register_fitness() -> None:
             ("griewank", _create_griewank_evaluator, {}),
             ("binary_sum", _create_binary_sum_evaluator, {}),
             ("knapsack", _create_knapsack_evaluator, {}),
+            ("tsp", _create_tsp_evaluator, {}),
         ],
         override=True,
     )

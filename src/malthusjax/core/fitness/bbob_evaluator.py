@@ -68,7 +68,7 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         fn_name_lower = config.fn_name.lower()
         fn_name_normalized = BBOB_NAME_ALIASES.get(fn_name_lower, config.fn_name)
 
-        problem = BBOBProblem(fn_name=fn_name_normalized, num_dims=config.num_dims)
+        problem = BBOBProblem(fn_name=fn_name_normalized, num_dims=config.num_dims, seed=config.seed)
 
         rng = jax.random.PRNGKey(config.seed)
         problem_state = problem.init(rng)
@@ -87,9 +87,11 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         fitness_scores, _, _ = self.evosax_problem.eval(rng, x, self.problem_state)
         result = fitness_scores[0]
 
-        if self.config.maximize:
-            return -result
-        return result
+        # Evosax BBOB problems are minimization objectives by default.
+        # For maximize=True we keep the raw score as-is (higher is better).
+        # For maximize=False we negate the objective so the engine can
+        # maximize fitness internally.
+        return result if self.config.maximize else -result
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
@@ -105,7 +107,10 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
 
         fitness_scores, _, _ = self.evosax_problem.eval(rng, X, self.problem_state)
 
-        final_fitness = jax.lax.select(self.config.maximize, -fitness_scores, fitness_scores)
+        # Evosax BBOB problems are minimization objectives by default.
+        # When maximize=False we negate the raw scores so the genetic engine can
+        # always operate with maximization semantics internally.
+        final_fitness = jax.lax.select(self.config.maximize, fitness_scores, -fitness_scores)
 
         return cast(
             BasePopulation[RealGenome], cast(Any, population).replace(fitness=final_fitness)
