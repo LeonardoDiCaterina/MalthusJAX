@@ -68,7 +68,11 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         fn_name_lower = config.fn_name.lower()
         fn_name_normalized = BBOB_NAME_ALIASES.get(fn_name_lower, config.fn_name)
 
-        problem = BBOBProblem(fn_name=fn_name_normalized, num_dims=config.num_dims, seed=config.seed)
+        problem = BBOBProblem(
+            fn_name=fn_name_normalized,
+            num_dims=config.num_dims,
+            seed=config.seed,
+        )
 
         rng = jax.random.PRNGKey(config.seed)
         problem_state = problem.init(rng)

@@ -122,23 +122,23 @@ def _create_griewank_evaluator(**kwargs: _Any) -> "GriewankEvaluator":
 
 def _create_tsp_evaluator(**kwargs: _Any) -> "TSPEvaluator":
     from .tsp_evaluator import TSPEvaluator
-    
+
     _resolved_data = kwargs.pop("_resolved_data", None)
-    
+
     if _resolved_data is not None:
         # If it's a dict holding data source specs (synthetic)
         if isinstance(_resolved_data, dict) and _resolved_data.get("source") == "synthetic":
             num_cities = _resolved_data.get("num_cities", kwargs.get("num_cities", 50))
             seed = _resolved_data.get("random_seed", kwargs.get("seed", 42))
             return TSPEvaluator.create_synthetic(num_cities=num_cities, seed=seed)
-        
+
         # If it's an array (loaded from file)
         distance_matrix = _resolved_data
         if hasattr(distance_matrix, "distance_matrix"):
             distance_matrix = distance_matrix.distance_matrix
-            
+
         return TSPEvaluator.create_from_data(kwargs, distance_matrix)
-        
+
     num_cities = kwargs.get("num_cities", 50)
     seed = kwargs.get("seed", 42)
     return TSPEvaluator.create_synthetic(num_cities=num_cities, seed=seed)

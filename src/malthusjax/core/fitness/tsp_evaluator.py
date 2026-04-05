@@ -32,15 +32,15 @@ class TSPEvaluator(BaseEvaluator[RealGenome, TSPConfig, Any]):
     def create_synthetic(cls, num_cities: int = 50, seed: int = 42) -> "TSPEvaluator":
         """Create a synthetic TSP instance with random Euclidean points."""
         config = TSPConfig(num_cities=num_cities)
-        
+
         # Consistent synthetic generation
         key = jax.random.PRNGKey(seed)
         coords = jax.random.uniform(key, (num_cities, 2))
-        
+
         # Compute distance matrix
         diff = coords[:, jnp.newaxis, :] - coords[jnp.newaxis, :, :]
         distance_matrix = jnp.sqrt(jnp.sum(diff ** 2, axis=-1))
-        
+
         return cls(config=config, data=distance_matrix)
 
     @classmethod
@@ -51,21 +51,21 @@ class TSPEvaluator(BaseEvaluator[RealGenome, TSPConfig, Any]):
             # If a dictionary (e.g. from registry) was passed
             num_cities = distance_matrix.shape[0]
             config = TSPConfig(
-                num_cities=num_cities, 
+                num_cities=num_cities,
                 maximize=config.get("maximize", False) if isinstance(config, dict) else False
             )
-        
+
         return cls(config=config, data=distance_matrix)
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate a genome's fitness on TSP.
-        
+
         Uses Random Key encoding: the argsort of the real-valued array
         gives the permutation of cities.
         """
         # Decode real array to permutation
         tour = jnp.argsort(genome.values)
-        
+
         # Compute total distance
         # [city1, city2, ..., cityN, city1]
         tour_shifted = jnp.roll(tour, shift=-1)
@@ -74,5 +74,5 @@ class TSPEvaluator(BaseEvaluator[RealGenome, TSPConfig, Any]):
 
         if self.config.maximize:
             return -total_distance
-            
+
         return total_distance
