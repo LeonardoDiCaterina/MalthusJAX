@@ -13,6 +13,7 @@ spec = importlib.util.spec_from_file_location(
     "malthusjax.benchmarking.analysis",
     _Path("src/malthusjax/benchmarking/analysis.py"),
 )
+assert spec is not None
 analysis = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(analysis)
