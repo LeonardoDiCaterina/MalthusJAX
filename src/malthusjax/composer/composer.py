@@ -607,9 +607,12 @@ class Composer:
 
             results[name] = self.quick_run(**merged)
             backend = merged.get("backend", "malthusjax")
-            # MalthusJAX (via BBOBEvaluator) negates for minimize, matches MalthusJAX convention
-            # Evosax adapts minimizes raw positive values, needs negation to match convention
-            negate_map[name] = (backend == "evosax")
+            maximize_flag = bool(merged.get("maximize", False))
+
+            # MalthusJAX evaluators return higher-is-better fitness when
+            # maximize=False (minimization problems are internally negated).
+            # Evosax returns lower-is-better fitness when maximize=False.
+            negate_map[name] = (backend == "malthusjax") != maximize_flag
 
         return ComparisonResult(
             pipelines=results,

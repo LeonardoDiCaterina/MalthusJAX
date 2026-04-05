@@ -104,10 +104,12 @@ class EvosaxEngineAdapter:
             key_eval, population_init, self.problem_state
         )
 
-        initial_best_idx = jnp.argmin(fitness_init)
-        initial_best_fitness = fitness_init[initial_best_idx]
         if self.maximize:
-            initial_best_fitness = -initial_best_fitness
+            initial_best_idx = jnp.argmax(fitness_init)
+            initial_best_fitness = fitness_init[initial_best_idx]
+        else:
+            initial_best_idx = jnp.argmin(fitness_init)
+            initial_best_fitness = fitness_init[initial_best_idx]
 
         # Evosax algorithms natively minimize. If maximize is True, we must negate the fitness
         tell_fitness_init = -fitness_init if self.maximize else fitness_init
