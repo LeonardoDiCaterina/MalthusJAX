@@ -488,17 +488,23 @@ class MalthusJAXBenchEngine:
         t0 = time.time()
         final_state, stripped_history = self._jit_scan(state)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
+        # Ensure history is also ready before stopping the clock
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), stripped_history)
         t_evo = time.time() - t0
 
-        # Unpack the stripped dictionary
-        n_gens = int(stripped_history["generation"].shape[0])
+        # --- THE FIX: BULK TRANSFER TO CPU ---
+        # Pull the entire dictionary of arrays across the PCIe bus exactly once
+        local_history = jax.device_get(stripped_history)
+
+        # Unpack the local CPU dictionary
+        n_gens = int(local_history["generation"].shape[0])
         history: List[Dict[str, Any]] = []
         for g in range(n_gens):
             history.append(
                 {
-                    "generation": int(stripped_history["generation"][g]),
-                    "best_fitness": float(stripped_history["best_fitness"][g]),
-                    "mean_fitness": float(stripped_history["mean_fitness"][g]),
+                    "generation": int(local_history["generation"][g]),
+                    "best_fitness": float(local_history["best_fitness"][g]),
+                    "mean_fitness": float(local_history["mean_fitness"][g]),
                 }
             )
 
@@ -619,18 +625,24 @@ class EvosaxBenchEngine:
         t0 = time.time()
         final_carry, stripped_history = self._jit_scan(carry)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_carry)
+        # Ensure history is also ready before stopping the clock
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), stripped_history)
         t_evo = time.time() - t0
 
         final_es_state, _, _ = final_carry
 
-        n_gens = int(stripped_history["generation"].shape[0])
+        # --- THE FIX: BULK TRANSFER TO CPU ---
+        # Pull the entire dictionary of arrays across the PCIe bus exactly once
+        local_history = jax.device_get(stripped_history)
+
+        n_gens = int(local_history["generation"].shape[0])
         history: List[Dict[str, Any]] = []
         for g in range(n_gens):
             history.append(
                 {
-                    "generation": int(stripped_history["generation"][g]),
-                    "best_fitness": float(stripped_history["best_fitness"][g]),
-                    "mean_fitness": float(stripped_history["mean_fitness"][g]),
+                    "generation": int(local_history["generation"][g]),
+                    "best_fitness": float(local_history["best_fitness"][g]),
+                    "mean_fitness": float(local_history["mean_fitness"][g]),
                 }
             )
 
