@@ -160,7 +160,7 @@ def _build_malthusjax_engine(
     elite_ratio: float = 0.5,
     selection_type: str = "elite_pool",
     unroll_num: int = 1,
-    track_best: TrackBest = TrackBest.LIGHT,
+    track_best: TrackBest = TrackBest.NONE,
     use_evosax_ops: bool = False,
     crossover_type: str = "uniform",
     mutation_type: str = "gaussian",
