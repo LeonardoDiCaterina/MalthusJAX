@@ -206,10 +206,16 @@ def _build_malthusjax_engine(
         crossover = _build_crossover(crossover_type, use_injection_ops)
         mutation = _build_mutation(mutation_type, use_injection_ops)
 
+    # Fair Benchmark Hardware Parity:
+    # Evosax's SimpleGA selects parents from the elite pool, but mutates and 
+    # evaluates *all* generated offspring. MalthusJAX's EngineParams normally 
+    # preserves `elitism` exact copies, skipping those crossover/mutation ops.
+    # We must enforce `elitism=0` here so that both engines execute the exact
+    # same tensor manipulation loads per generation.
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
         num_generations=num_generations,
-        elitism=elite_count,
+        elitism=0,
         unroll_num=unroll_num,
         track_best=track_best,
         key_derivation=key_derivation,
