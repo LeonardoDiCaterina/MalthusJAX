@@ -419,19 +419,7 @@ class MalthusJAXBenchEngine:
     _engine: Optional[GeneticEngine] = None
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
-        engine = _build_malthusjax_engine(
-            self.pop_size,
-            self.dims,
-            problem=self.problem,
-            num_generations=self.num_generations,
-            elite_ratio=self.elite_ratio,
-            unroll_num=self.unroll_num,
-            use_evosax_ops=self.use_evosax_ops,
-            crossover_type=self.crossover_type,
-            mutation_type=self.mutation_type,
-            use_injection_ops=self.use_injection_ops,
-            key_derivation=self.key_derivation,
-        )
+        engine = self._get_engine()
 
         if self.canonical_init:
             # Derive (pop_key, evo_key) deterministically from the per-seed
@@ -520,8 +508,47 @@ class EvosaxBenchEngine:
     elite_ratio: float = 0.5
     canonical_init: bool = False
     canonical_bounds: Tuple[float, float] = (-5.0, 5.0)
+    
+    _strategy: Optional[Any] = None
+    _params: Optional[Any] = None
+    _es_problem: Optional[Any] = None
+    _jit_scan: Optional[Callable] = None
+
+    def _setup(self):
+        if self._strategy is not None:
+            return
+            
+        strategy, params, es_problem, _ = _build_evosax_ga(
+            self.pop_size,
+            self.dims,
+            self.problem,
+            self.elite_ratio,
+        )
+        
+        self._strategy = strategy
+        self._params = params
+        self._es_problem = es_problem
+
+        def step_with_output(carry, _):
+            state, problem_state, rng = carry
+            rng, rng_step = jax.random.split(rng)
+            x, state = self._strategy.ask(rng_step, state, self._params)
+            fitness, problem_state, _ = self._es_problem.eval(rng_step, x, problem_state)
+            state, _ = self._strategy.tell(rng_step, x, fitness, state, self._params)
+            new_carry = (state, problem_state, rng)
+            output = {
+                "best_fitness": state.best_fitness,
+                "mean_fitness": jnp.mean(fitness),
+            }
+            return new_carry, output
+
+        self._jit_scan = jax.jit(
+            lambda c: jax.lax.scan(step_with_output, c, None, length=self.num_generations)
+        )
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
+        self._setup()
+        
         if self.canonical_init:
             pop_key, evo_key = jr.split(key)
             shared_genes = _canonical_population(
@@ -530,41 +557,25 @@ class EvosaxBenchEngine:
                 self.dims,
                 bounds=self.canonical_bounds,
             )
-            strategy, params, es_problem, carry = _build_evosax_ga(
-                self.pop_size,
-                self.dims,
-                self.problem,
-                self.elite_ratio,
-                rng=evo_key,
-                init_x=shared_genes,
-            )
+            rng_key = evo_key
         else:
-            strategy, params, es_problem, carry = _build_evosax_ga(
-                self.pop_size,
-                self.dims,
-                self.problem,
-                self.elite_ratio,
-            )
-
-        def step_with_output(carry, _):
-            state, problem_state, rng = carry
-            rng, rng_step = jax.random.split(rng)
-            x, state = strategy.ask(rng_step, state, params)
-            fitness, problem_state, _ = es_problem.eval(rng_step, x, problem_state)
-            state, _ = strategy.tell(rng_step, x, fitness, state, params)
-            new_carry = (state, problem_state, rng)
-            output = {
-                "best_fitness": state.best_fitness,
-                "mean_fitness": jnp.mean(fitness),
-            }
-            return new_carry, output
-
-        jit_scan = jax.jit(
-            lambda c: jax.lax.scan(step_with_output, c, None, length=self.num_generations)
-        )
+            rng_key = key
+            
+        r_init, r_start = jax.random.split(rng_key)
+        p_state = self._es_problem.init(r_init)
+        
+        if self.canonical_init:
+            init_x = shared_genes
+        else:
+            init_x = jax.random.uniform(r_init, (self.pop_size, self.dims), minval=-5.0, maxval=5.0)
+            
+        init_fit = jnp.full((self.pop_size,), jnp.inf)
+        es_state = self._strategy.init(r_init, init_x, init_fit, self._params)
+        
+        carry = (es_state, p_state, r_start)
 
         t0 = time.time()
-        final_carry, gen_outputs = jit_scan(carry)
+        final_carry, gen_outputs = self._jit_scan(carry)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_carry)
         t_evo = time.time() - t0
 
