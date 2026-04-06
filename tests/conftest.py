@@ -5,6 +5,12 @@ This module provides common fixtures and utilities used across all tests,
 including random keys, genome configurations, and test data.
 """
 
+import os
+import sys
+
+# Ensure src/ is in PYTHONPATH for the remote benchmarking script
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+
 import jax
 import jax.numpy as jnp
 import jax.random as jr
