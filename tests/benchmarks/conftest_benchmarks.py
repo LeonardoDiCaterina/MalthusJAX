@@ -417,8 +417,31 @@ class MalthusJAXBenchEngine:
 
     # Internal cached engine for warmup/benchmark hooking
     _engine: Optional[GeneticEngine] = None
+    _jit_scan: Optional[Callable] = None  # NEW: Cache the pure JIT scan
+
+    def _setup(self):
+        """Pre-compile and warm up the pure JAX scan loop."""
+        if self._jit_scan is not None:
+            return
+        
+        engine = self._get_engine()
+        
+        # 1. Create a pure JIT-compiled scan loop (matching Evosax)
+        def scan_fn(state):
+            def scan_body(c, _):
+                new_c, hist = engine.step(c)
+                return new_c, hist
+            return jax.lax.scan(scan_body, state, None, length=self.num_generations)
+        
+        self._jit_scan = jax.jit(scan_fn)
+        
+        # 2. WARMUP: Force XLA compilation before timing starts
+        dummy_state = engine.init_state(jr.PRNGKey(0))
+        warmup_out = self._jit_scan(dummy_state)
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), warmup_out)
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
+        self._setup()
         engine = self._get_engine()
 
         if self.canonical_init:
@@ -455,8 +478,8 @@ class MalthusJAXBenchEngine:
             t_init = time.time() - t0
 
         t0 = time.time()
-        final_state, scan_history, _ = engine.run(state, compile=True)
-        final_state.best_fitness.block_until_ready()
+        final_state, scan_history = self._jit_scan(state)
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
         t_evo = time.time() - t0
 
         # Unpack stacked scan history arrays → list of dicts
@@ -545,6 +568,17 @@ class EvosaxBenchEngine:
         self._jit_scan = jax.jit(
             lambda c: jax.lax.scan(step_with_output, c, None, length=self.num_generations)
         )
+
+        # 2. WARMUP: Force XLA compilation before timing starts
+        r_init, r_start = jax.random.split(jr.PRNGKey(0))
+        p_state = self._es_problem.init(r_init)
+        init_x = jax.random.uniform(r_init, (self.pop_size, self.dims), minval=-5.0, maxval=5.0)
+        init_fit = jnp.full((self.pop_size,), jnp.inf)
+        es_state = self._strategy.init(r_init, init_x, init_fit, self._params)
+        
+        dummy_carry = (es_state, p_state, r_start)
+        warmup_out = self._jit_scan(dummy_carry)
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), warmup_out)
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
         self._setup()
