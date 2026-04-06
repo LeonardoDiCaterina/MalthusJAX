@@ -54,6 +54,7 @@ from malthusjax.operators.mutation.real import (
     PolynomialMutation,
     PolynomialMutation_injection,
 )
+from malthusjax.operators.selection.simplified_elite_pool import SimplifiedElitePoolSelection
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.selection.tournament import TournamentSelection
 
@@ -197,7 +198,9 @@ def _build_malthusjax_engine(
     if selection_type == "tournament":
         selection = TournamentSelection(num_selections=pop_size, tournament_size=3)
     else:
-        selection = ElitePoolSelection(num_selections=pop_size, elite_k=elite_count)
+        # Use SimplifiedElitePoolSelection for structurally consistent hardware parity 
+        # testing against Evosax, saving us the JAX argpartition cost!
+        selection = SimplifiedElitePoolSelection(num_selections=pop_size, elite_k=elite_count)
 
     if use_evosax_ops:
         crossover = EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=0.5)
