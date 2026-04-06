@@ -7,7 +7,7 @@ Contains classic combinatorial objectives like OneMax (binary sum) and
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, NamedTuple
 
 import chex
 import jax
@@ -18,6 +18,13 @@ from flax import struct
 from malthusjax.core.genome.binary_genome import BinaryGenome
 
 from .base import BaseEvaluator, BaseEvaluatorConfig
+
+
+class KnapsackData(NamedTuple):
+    """Container for knapsack problem data (weights and values)."""
+
+    weights: chex.Array  # Item weights, shape (n_items,)
+    values: chex.Array  # Item values, shape (n_items,)
 
 
 @struct.dataclass
@@ -49,28 +56,30 @@ class KnapsackConfig(BaseEvaluatorConfig):
     """Configuration for 0/1 Knapsack problem fitness evaluation.
 
     Attributes:
-        weights: Item weights, shape (n_items,).
-        values: Item values, shape (n_items,).
+        n_items: Number of items in the knapsack problem.
         capacity: Maximum weight capacity (scalar).
         penalty_factor: Linear constraint penalty coefficient (default 1000.0).
     """
 
-    weights: chex.Array  # Item weights, shape (n_items,)
-    values: chex.Array  # Item values, shape (n_items,)
-    capacity: chex.Numeric  # Maximum weight capacity
-    penalty_factor: float = 1000.0  # Penalty for exceeding capacity
+    n_items: int = struct.field(default=50)  # type: ignore[no-untyped-call]
+    capacity: chex.Numeric = struct.field(default=100.0)  # type: ignore[no-untyped-call]
+    penalty_factor: float = 1000.0
 
 
 @struct.dataclass
-class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
+class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, KnapsackData]):
     """Knapsack problem fitness evaluator with linear constraint penalties.
 
     Computes total value minus linear penalty for weight constraint violation.
     Penalty = excess_weight * penalty_factor (jax.lax.select, XLA-safe).
+
+    Data is stored as KnapsackData containing weights and values arrays.
+    Use create_synthetic() to generate random problems or create_from_data()
+    to load pre-computed weights/values (matching TSP interface).
     """
 
     config: KnapsackConfig
-    data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    data: KnapsackData = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
         """Evaluate a binary genome representing item selection.
@@ -79,8 +88,8 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
         any capacity violation. This method is JAX‑safe and avoids Python
         control flow.
         """
-        total_weight = jnp.sum(genome.values * self.config.weights)
-        total_value = jnp.sum(genome.values * self.config.values)
+        total_weight = jnp.sum(genome.values * self.data.weights)
+        total_value = jnp.sum(genome.values * self.data.values)
 
         # Penalize infeasibility via JAX arithmetic (no Python control flow)
         excess_weight = jnp.maximum(0.0, total_weight - self.config.capacity)
@@ -88,17 +97,13 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
 
         return total_value - penalty
 
-    @staticmethod
-    def create_random_problem(
-        key: chex.PRNGKey, n_items: int, capacity_ratio: float = 0.5, maximize: bool = True
-    ) -> KnapsackConfig:
-        """Factory: create random 0/1 knapsack instance.
+    @classmethod
+    def create_synthetic(cls, n_items: int = 50, capacity_ratio: float = 0.5, seed: int = 42, maximize: bool = True) -> "KnapsackEvaluator":
+        """Factory: create random 0/1 knapsack instance with synthetic data.
 
-        Random weights and values are sampled, then the capacity is set as a
-        fraction of the total weight. A fully‑initialized :class:`KnapsackConfig`
-        is returned.
+        Matches TSP interface: generates random weights and values procedurally.
         """
-        key1, key2 = jr.split(key, 2)
+        key1, key2 = jr.split(jr.PRNGKey(seed))
 
         weights = jr.uniform(key1, (n_items,), minval=1.0, maxval=20.0)
         values = jr.uniform(key2, (n_items,), minval=1.0, maxval=50.0)
@@ -106,4 +111,29 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Any]):
         total_weight = jnp.sum(weights)
         capacity = capacity_ratio * total_weight
 
-        return KnapsackConfig(maximize=maximize, weights=weights, values=values, capacity=capacity)
+        config = KnapsackConfig(n_items=n_items, capacity=capacity, maximize=maximize)
+        data = KnapsackData(weights=weights, values=values)
+
+        return cls(config=config, data=data)
+
+    @classmethod
+    def create_from_data(cls, weights: chex.Array, values: chex.Array, capacity: chex.Numeric, penalty_factor: float = 1000.0, maximize: bool = True) -> "KnapsackEvaluator":
+        """Factory: create knapsack evaluator from pre-loaded weights and values.
+
+        Matches TSP interface: accepts pre-computed problem data.
+
+        Args:
+            weights: Item weights array, shape (n_items,)
+            values: Item values array, shape (n_items,)
+            capacity: Maximum weight capacity
+            penalty_factor: Linear constraint penalty coefficient
+            maximize: Whether to maximize (default: True for compatibility)
+
+        Returns:
+            Initialized KnapsackEvaluator with loaded data.
+        """
+        n_items = weights.shape[0]
+        config = KnapsackConfig(n_items=n_items, capacity=capacity, penalty_factor=penalty_factor, maximize=maximize)
+        data = KnapsackData(weights=weights, values=values)
+
+        return cls(config=config, data=data)
