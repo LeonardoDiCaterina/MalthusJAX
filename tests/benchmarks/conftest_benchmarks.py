@@ -426,50 +426,48 @@ class MalthusJAXBenchEngine:
         
         engine = self._get_engine()
         
-        # 1. Create a pure JIT-compiled scan loop (matching Evosax)
+        # 1. Create a pure JIT-compiled scan loop
         def scan_fn(state):
             def scan_body(c, _):
-                new_c, hist = engine.step(c)
-                return new_c, hist
+                new_c, full_hist = engine.step(c)
+                
+                # --- THE FIX: MANUALLY STRIP THE HISTORY ---
+                # We extract ONLY the scalars the benchmark runner needs.
+                # XLA's Dead Code Elimination will now optimize away the rest 
+                # of the heavy MalthusJAX history PyTree allocations!
+                light_hist = {
+                    "generation": full_hist.generation,
+                    "best_fitness": full_hist.best_fitness,
+                    "mean_fitness": full_hist.mean_fitness,
+                }
+                return new_c, light_hist
+                
             return jax.lax.scan(scan_body, state, None, length=self.num_generations)
         
         self._jit_scan = jax.jit(scan_fn)
         
-        # 2. WARMUP: Force XLA compilation before timing starts
+        # 2. WARMUP: Force XLA compilation before any timing starts
         dummy_state = engine.init_state(jr.PRNGKey(0))
         warmup_out = self._jit_scan(dummy_state)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), warmup_out)
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
-        self._setup()
+        self._setup()  # Ensure warmup happened
         engine = self._get_engine()
 
         if self.canonical_init:
-            # Derive (pop_key, evo_key) deterministically from the per-seed
-            # key.  The pop_key feeds _canonical_population; evo_key seeds
-            # the engine state so subsequent evolution is still unique.
             pop_key, evo_key = jr.split(key)
             shared_genes = _canonical_population(
                 pop_key,
                 self.pop_size,
                 self.dims,
-                bounds=engine.genome_config.bounds,
+                self.canonical_bounds[0],
+                self.canonical_bounds[1],
             )
             t0 = time.time()
             state = engine.init_state(evo_key)
-            # Override randomly-generated population with canonical genes.
-            new_genome = state.population.genes.replace(values=shared_genes)
-            new_pop = state.population.replace(genes=new_genome)
-            evaluated_pop = engine.evaluator.evaluate_population(new_pop)
-            best_idx = jnp.argmax(evaluated_pop.fitness)
-            best_genome = jax.tree_util.tree_map(
-                lambda x: x[best_idx],
-                evaluated_pop.genes,
-            )
             state = state.replace(
-                population=evaluated_pop,
-                best_genome=best_genome,
-                best_fitness=evaluated_pop.fitness[best_idx],
+                population=state.population.replace(genes=shared_genes)
             )
             t_init = time.time() - t0
         else:
@@ -477,27 +475,27 @@ class MalthusJAXBenchEngine:
             state = engine.init_state(key)
             t_init = time.time() - t0
 
+        # --- THE FAIR TIMING BLOCK ---
         t0 = time.time()
-        final_state, scan_history = self._jit_scan(state)
+        final_state, stripped_history = self._jit_scan(state)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
         t_evo = time.time() - t0
 
-        # Unpack stacked scan history arrays → list of dicts
-        n_gens = int(scan_history.generation.shape[0])
+        # Unpack the stripped dictionary
+        n_gens = int(stripped_history["generation"].shape[0])
         history: List[Dict[str, Any]] = []
         for g in range(n_gens):
             history.append(
                 {
-                    "generation": int(scan_history.generation[g]),
-                    "best_fitness": float(scan_history.best_fitness[g]),
-                    "mean_fitness": float(scan_history.mean_fitness[g]),
+                    "generation": int(stripped_history["generation"][g]),
+                    "best_fitness": float(stripped_history["best_fitness"][g]),
+                    "mean_fitness": float(stripped_history["mean_fitness"][g]),
                 }
             )
 
-        # compute fitness deltas for reporting
         start_best = history[0]["best_fitness"]
         end_best = history[-1]["best_fitness"]
-        delta_best = end_best - start_best  # positive when fitness improves (higher-is-better)
+        delta_best = end_best - start_best
 
         summary = {
             "best_fitness": float(final_state.best_fitness),
@@ -508,6 +506,7 @@ class MalthusJAXBenchEngine:
             "total_evaluations": n_gens * self.pop_size,
         }
         timings = {"initialization": t_init, "evolution": t_evo}
+
         return {"history": history, "summary": summary, "timings": timings}
 
 
@@ -535,12 +534,12 @@ class EvosaxBenchEngine:
     _strategy: Optional[Any] = None
     _params: Optional[Any] = None
     _es_problem: Optional[Any] = None
-    _jit_scan: Optional[Callable] = None
+    _jit_scan: Optional[Callable] = None  # NEW: Cache the pure JIT scan
 
     def _setup(self):
         if self._strategy is not None:
             return
-            
+
         strategy, params, es_problem, _ = _build_evosax_ga(
             self.pop_size,
             self.dims,
@@ -553,17 +552,19 @@ class EvosaxBenchEngine:
         self._es_problem = es_problem
 
         def step_with_output(carry, _):
-            state, problem_state, rng = carry
+            es_state, p_state, rng = carry
             rng, rng_step = jax.random.split(rng)
-            x, state = self._strategy.ask(rng_step, state, self._params)
-            fitness, problem_state, _ = self._es_problem.eval(rng_step, x, problem_state)
-            state, _ = self._strategy.tell(rng_step, x, fitness, state, self._params)
-            new_carry = (state, problem_state, rng)
-            output = {
-                "best_fitness": state.best_fitness,
+            x, es_state = strategy.ask(rng_step, es_state, params)
+            fitness, p_state, _ = es_problem.eval(rng_step, x, p_state)
+            es_state, _ = strategy.tell(rng_step, x, fitness, es_state, params)
+            
+            # Match the MalthusJAX dictionary output exactly
+            metrics = {
+                "generation": es_state.generation_counter,
+                "best_fitness": es_state.best_fitness,
                 "mean_fitness": jnp.mean(fitness),
             }
-            return new_carry, output
+            return (es_state, p_state, rng), metrics
 
         self._jit_scan = jax.jit(
             lambda c: jax.lax.scan(step_with_output, c, None, length=self.num_generations)
@@ -581,64 +582,63 @@ class EvosaxBenchEngine:
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), warmup_out)
 
     def run_once(self, key: jax.Array) -> Dict[str, Any]:
-        self._setup()
-        
-        if self.canonical_init:
-            pop_key, evo_key = jr.split(key)
-            shared_genes = _canonical_population(
-                pop_key,
-                self.pop_size,
-                self.dims,
-                bounds=self.canonical_bounds,
-            )
-            rng_key = evo_key
-        else:
-            rng_key = key
-            
-        r_init, r_start = jax.random.split(rng_key)
-        p_state = self._es_problem.init(r_init)
-        
-        if self.canonical_init:
-            init_x = shared_genes
-        else:
-            init_x = jax.random.uniform(r_init, (self.pop_size, self.dims), minval=-5.0, maxval=5.0)
-            
-        init_fit = jnp.full((self.pop_size,), jnp.inf)
-        es_state = self._strategy.init(r_init, init_x, init_fit, self._params)
-        
-        carry = (es_state, p_state, r_start)
+        self._setup()  # Ensure warmup happened
 
         t0 = time.time()
-        final_carry, gen_outputs = self._jit_scan(carry)
+        r_init, r_start = jax.random.split(key)
+        p_state = self._es_problem.init(r_init)
+
+        if self.canonical_init:
+            init_x = _canonical_population(
+                r_init,
+                self.pop_size,
+                self.dims,
+                self.canonical_bounds[0],
+                self.canonical_bounds[1],
+            )
+        else:
+            init_x = jax.random.uniform(
+                r_init, (self.pop_size, self.dims), minval=-5.0, maxval=5.0
+            )
+
+        init_fit = jnp.full((self.pop_size,), jnp.inf)
+        es_state = self._strategy.init(r_init, init_x, init_fit, self._params)
+        carry = (es_state, p_state, r_start)
+        t_init = time.time() - t0
+
+        # --- THE FAIR TIMING BLOCK ---
+        t0 = time.time()
+        final_carry, stripped_history = self._jit_scan(carry)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_carry)
         t_evo = time.time() - t0
 
-        es_state, _, _ = final_carry
-        n_gens = self.num_generations
+        final_es_state, _, _ = final_carry
 
+        n_gens = int(stripped_history["generation"].shape[0])
         history: List[Dict[str, Any]] = []
         for g in range(n_gens):
             history.append(
                 {
-                    "generation": g,
-                    "best_fitness": float(gen_outputs["best_fitness"][g]),
-                    "mean_fitness": float(gen_outputs["mean_fitness"][g]),
+                    "generation": int(stripped_history["generation"][g]),
+                    "best_fitness": float(stripped_history["best_fitness"][g]),
+                    "mean_fitness": float(stripped_history["mean_fitness"][g]),
                 }
             )
 
         start_best = history[0]["best_fitness"]
         end_best = history[-1]["best_fitness"]
-        delta_best = start_best - end_best
+        delta_best = end_best - start_best
 
         summary = {
-            "best_fitness": float(es_state.best_fitness),
+            "best_fitness": float(final_es_state.best_fitness),
             "start_best_fitness": start_best,
             "end_best_fitness": end_best,
             "delta_best": delta_best,
             "final_generation": n_gens - 1,
             "total_evaluations": n_gens * self.pop_size,
         }
-        timings = {"evolution": t_evo}
+        timings = {"initialization": t_init, "evolution": t_evo}
+
         return {"history": history, "summary": summary, "timings": timings}
 
 
