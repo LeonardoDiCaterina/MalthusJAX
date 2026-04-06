@@ -91,10 +91,10 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         fitness_scores, _, _ = self.evosax_problem.eval(rng, x, self.problem_state)
         result = fitness_scores[0]
 
-        # Evosax BBOB problems are minimization objectives by default.
-        # For maximize=True we keep the raw score as-is (higher is better).
-        # For maximize=False we negate the objective so the engine can
-        # maximize fitness internally.
+        # MalthusJAX engines always maximize internally. Evosax BBOB returns
+        # minimization objectives (lower=better). To support both directions:
+        # - If maximize=True: return raw score (let engine maximize the minimization objective)
+        # - If maximize=False: negate score (minimizing X = maximizing -X)
         return result if self.config.maximize else -result
 
     def evaluate_population(

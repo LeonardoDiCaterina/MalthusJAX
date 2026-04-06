@@ -1,11 +1,11 @@
 """
 Fitness module for MalthusJAX.
 
-This module provides NEW paradigm fitness evaluators using @struct.dataclass
+This module provides fitness evaluators using @struct.dataclass
 for efficient batch evaluation using JAX JIT compilation.
 """
 
-# NEW architecture evaluators
+# Evaluators
 from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator
 
 from .base import BaseEvaluator, RegressionData
@@ -168,3 +168,4 @@ def _register_fitness() -> None:
 
 
 _register_fitness()
+

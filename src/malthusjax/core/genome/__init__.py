@@ -1,7 +1,7 @@
 """
 Genome module for MalthusJAX.
 
-This module provides NEW paradigm genome implementations using @struct.dataclass
+This module provides paradigm genome implementations using @struct.dataclass
 for evolutionary algorithms with JAX JIT compilation support.
 """
 

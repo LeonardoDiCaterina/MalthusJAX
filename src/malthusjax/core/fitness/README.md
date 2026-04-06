@@ -60,54 +60,30 @@ Reason: `jax.lax.select` composes into the single XLA graph, keeping JIT compila
 
 ---
 
-## 4) Tensor Interface (Batched JAX-friendly API)
+## 4) Static Configuration and Data Storage
 
-### Purpose
-- Provide a lightweight, JIT-friendly pathway for *batch* evaluation that works with raw arrays (tensors) rather than `Genome` objects.
-- Useful for high-performance adapters (e.g., BBOB), third-party libraries, or custom evaluators that are already written in a batched form.
+All evaluators follow a consistent pattern for handling configuration and problem-specific data:
 
-### Recommended signature
-- **Simple form:** `def f(genes: chex.Array) -> chex.Array`
-  - Input `genes`: shape `(N, *genome_shape)` (batch-first)
-  - Output: shape `(N,)` of fitness values (dtype: float)
-- **Optional extended form:** `def f(genes: chex.Array) -> Tuple[chex.Array, Any]` to return `(fitness, aux)` where `aux` is any PyTree (state, info, etc.).
+- **Config field (`C`)**: Stored as a `@struct.dataclass` with `pytree_node=False` to mark it as static. This prevents JAX from treating config as trainable state and avoids embedding it repeatedly into JIT traces.
+- **Data field (`D`)**: Stored with `pytree_node=False` annotation. This ensures large or immutable problem data (training sets, distance matrices, lookup tables) remains static across `vmap` and `jit` operations.
 
-### Integration patterns
-- **If you implement per-individual `evaluate(self, genome)`**: provide a batched wrapper with `get_tensor_fitness_function()`:
-
+Example pattern:
 ```py
-def get_tensor_fitness_function(self):
-    def f(genes: chex.Array) -> chex.Array:
-        # genes: (N, *genome_shape)
-        def per_ind(g):
-            g_obj = self.GENOME_CLS.from_tensor(g, self.config)
-            return self.evaluate(g_obj)
-        return jax.vmap(per_ind)(genes)
-    return jax.jit(f)
+@struct.dataclass
+class MyEvaluatorConfig(BaseEvaluatorConfig):
+    param1: int = struct.field(pytree_node=False)
+    param2: str = struct.field(pytree_node=False)
+
+@struct.dataclass
+class MyEvaluator(BaseEvaluator[G, MyEvaluatorConfig, D]):
+    config: MyEvaluatorConfig
+    data: D = struct.field(pytree_node=False)  # Mark large data as static
 ```
 
-- **If you can write a pure tensor implementation** (preferred when adapting third-party code): implement `get_tensor_fitness_function()` directly and ensure it is JIT-safe (avoid Python control flow on traced values).
-
-### Return contract & shapes
-- The primary return should be a 1D array of shape `(N,)` containing fitness scores.
-- If other outputs are required, return a tuple `(fitness, aux)` where `aux` is a PyTree; document the contents of `aux` clearly in your evaluator.
-
-### JIT & tracing tips
-- Mark static configuration or large constant data as `pytree_node=False` in your config to avoid embedding them into traced graphs.
-- Use `jax.lax.select` for maximize/minimize branching rather than Python `if` statements.
-- If your tensor function depends on static arguments (e.g., `config`), prefer closing over them or use `jax.jit(..., static_argnames=[...])`.
-
-### Example: Efficient adapter for a third-party batch API
-```py
-# Suppose `third_party_eval(keys, X)` returns (fitness, info)
-def get_tensor_fitness_function(self):
-    def f(genes: chex.Array) -> chex.Array:
-        fitness, _ = third_party_eval(self._internal_key, genes)
-        return fitness
-    return jax.jit(f)
-```
-
-> **Tip:** Keep the tensor-level API minimal and well-documented—the engine and selection layers expect a simple `(N,)` fitness result so that downstream code (sorting, selection) remains trivial.
+This pattern ensures:
+- Configuration changes don't require recompilation of JIT code
+- Large datasets aren't copied unnecessarily during vectorization
+- Evaluators remain pure functions from the JAX perspective
 
 ---
 
@@ -126,26 +102,28 @@ The repository includes several evaluator categories with canonical implementati
 
 - **BBOB Adapter** (`BBOBEvaluator`) — wrapping external packages (evosax)
   - Uses evosax `BBOBProblem` under the hood and leverages its high-performance (batch) API for population evaluation.
-  - Maintains internal type-safety and flips optimization direction as needed using `jax.lax.select`.
+  - Handles sign convention internally: MalthusJAX engines always maximize, so for `maximize=False` problems, the evaluator negates the raw evosax score (turning minimization into maximization of the negated objective).
+  - Stores problem instance and state as static (`pytree_node=False`) non-PyTree fields to avoid recompilation.
   - Example pattern: `fitness_scores, state, info = self.evosax_problem.eval(keys, X, self.evosax_state)` and then update population with `.replace(fitness=fitness_scores)`.
 
-- **Linear GP & Symbiotic Selection** (`LinearGPEvaluator`)
-  - Executes each program instruction as a candidate output and selects the best-performing instruction ("symbiotic selection").
-  - Uses `jax.lax.switch` to implement opcode dispatch (stable under JIT) and `jax.lax.scan` to simulate program execution across instructions.
-  - Stores training data as `RegressionData` and evaluates instructions across the dataset via batched predictions (`vmap` over X).
+- **TSP (Traveling Salesman Problem)** (`TSPEvaluator`)
+  - Solves the classic TSP using a distance matrix and a real-valued genome encoding (Random Key permutation).
+  - **Encoding**: Uses `RealGenome` values where `argsort(genome.values)` produces a city tour permutation. This "random key" encoding avoids explicit permutation genomes while leveraging continuous operators.
+  - **Distance matrix**: Stored as evaluator data; can be generated synthetically `create_synthetic(num_cities, seed)` or loaded from file `create_from_data(config, distance_matrix)`.
+  - **Computation**: Computes total tour distance via `distance_matrix[tour, roll(tour)]` and returns distance (for minimization) or negated distance (for maximization).
 
 ---
 
-## 5) Data Management (RegressionData)
+## 6) Data Management
 
+- Static problem data such as training sets, distance matrices, and lookup tables should be stored in the `data` field of your evaluator and marked with `pytree_node=False`.
 - `RegressionData` is a type alias: `RegressionData = Tuple[chex.Array, chex.Array]` representing `(X, y)`.
-- `BaseEvaluator.data` may hold static data (training sets, environment parameters) which are accessible in `evaluate` and should be structured as PyTree-friendly objects.
-- Example usage in `LinearGPEvaluator`: the evaluator stores `(X, y)` and uses `jax.vmap(self.predict_one, in_axes=(None, 0))(genome, X)` to produce predictions for every input row and then computes per-instruction MSE.
-- For deterministic or static datasets, store them as `chex.Array` and mark them as PyTree nodes to be carried in JIT traces.
+- For deterministic or static datasets, store them as `chex.Array` objects to be carried efficiently in JIT traces.
+- Example: `TSPEvaluator` stores a distance matrix; `BBOBEvaluator` stores the evosax problem state.
 
 ---
 
-## 6) Implementation Best Practices — Developer's Checklist
+## 7) Implementation Best Practices — Developer's Checklist
 
 When adding a new evaluator, follow this checklist to ensure compatibility with MalthusJAX engines and JAX tracing:
 
@@ -170,7 +148,7 @@ return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_sco
 
 ---
 
-## Quick Examples
+## 8) Quick Examples
 
 - Vectorized evaluation using an existing evaluator:
 
@@ -196,25 +174,23 @@ pop = ...  # some BasePopulation[BinaryGenome]
 pop = knapsack.evaluate_population(pop)
 ```
 
-- Regression data usage in GP
+- Creating and evaluating a TSP instance
 
 ```py
-from malthusjax.core.fitness.linear_gp_evaluator import LinearGPEvaluator, RegressionData
+from malthusjax.core.fitness.tsp_evaluator import TSPEvaluator
 
-X = jax.random.normal(jax.random.PRNGKey(0), (100, 5))
-y = jnp.sin(jnp.sum(X, axis=1))
-reg_data: RegressionData = (X, y)
+# create synthetic TSP with 50 cities
+tsp = TSPEvaluator.create_synthetic(num_cities=50, seed=42)
 
-config = LinearGPEvaluatorConfig(num_inputs=5, length=32, maximize=False)
-eval = LinearGPEvaluator(config=config, data=reg_data)
-
-# vectorized over population
-pop = eval.evaluate_population(population)
+# evaluate population
+pop = ...  # some BasePopulation[RealGenome] with 50 dimensions
+pop = tsp.evaluate_population(pop)
 ```
 
 ---
 
-## Final Notes
+## 9) Final Notes
 
 - The package emphasizes single-responsibility evaluator implementations (single-individual math) combined with the SoA structure and `vmap` for efficient batched execution.
 - Following the developer checklist will keep new evaluators robust, JIT-friendly, and consistent with engine semantics (maximize/minimize).
+
