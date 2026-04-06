@@ -10,12 +10,22 @@ import pytest
 
 from tests.benchmarks.conftest_benchmarks import (
     DIMENSIONS,
-    NUM_GENERATIONS_SHORT,
-    POP_SIZES,
     SEED,
     EvosaxBenchEngine,
     MalthusJAXBenchEngine,
 )
+
+def pytest_generate_tests(metafunc):
+    """Dynamically parameterize pop_size and num_gens from the CLI options."""
+    if "pop_size" in metafunc.fixturenames:
+        pop_sizes_str = metafunc.config.getoption("--pop-sizes")
+        pop_sizes = [int(p.strip()) for p in pop_sizes_str.split(",")]
+        metafunc.parametrize("pop_size", pop_sizes)
+        
+    if "num_gens" in metafunc.fixturenames:
+        num_gens_str = metafunc.config.getoption("--num-gens")
+        num_gens = [int(n.strip()) for n in num_gens_str.split(",")]
+        metafunc.parametrize("num_gens", num_gens)
 
 
 class TestMultiGenThroughput:
@@ -27,15 +37,14 @@ class TestMultiGenThroughput:
     executes.  pytest-benchmark still handles the wall-clock timing.
     """
 
-    @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
     @pytest.mark.parametrize("use_evosax_ops", [False, True])
-    def test_malthusjax_scan(self, benchmark, pop_size: int, dims: int, use_evosax_ops: bool):
-        """MalthusJAX: full scan loop for {NUM_GENERATIONS_SHORT} gens."""
+    def test_malthusjax_scan(self, benchmark, pop_size: int, num_gens: int, dims: int, use_evosax_ops: bool):
+        """MalthusJAX: full scan loop for {num_gens} gens."""
         bench_engine = MalthusJAXBenchEngine(
             pop_size=pop_size,
             dims=dims,
-            num_generations=NUM_GENERATIONS_SHORT,
+            num_generations=num_gens,
             use_evosax_ops=use_evosax_ops,
         )
         # Warm-up (compile)
@@ -45,18 +54,17 @@ class TestMultiGenThroughput:
             result = bench_engine.run_once(jr.PRNGKey(SEED))
             assert result["summary"]["best_fitness"] is not None
 
-        benchmark.group = f"scan_{NUM_GENERATIONS_SHORT}gen/pop{pop_size}_d{dims}"
+        benchmark.group = f"scan_{num_gens}gen/pop{pop_size}_d{dims}"
         benchmark.name = "malthusjax_evosaxops" if use_evosax_ops else "malthusjax"
         benchmark(_run)
 
-    @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
-    def test_evosax_scan(self, benchmark, pop_size: int, dims: int):
-        """Evosax SimpleGA: full scan loop for {NUM_GENERATIONS_SHORT} gens."""
+    def test_evosax_scan(self, benchmark, pop_size: int, num_gens: int, dims: int):
+        """Evosax SimpleGA: full scan loop for {num_gens} gens."""
         bench_engine = EvosaxBenchEngine(
             pop_size=pop_size,
             dims=dims,
-            num_generations=NUM_GENERATIONS_SHORT,
+            num_generations=num_gens,
         )
         # Warm-up (compile)
         bench_engine.run_once(jr.PRNGKey(0))
@@ -65,6 +73,6 @@ class TestMultiGenThroughput:
             result = bench_engine.run_once(jr.PRNGKey(SEED))
             assert result["summary"]["best_fitness"] is not None
 
-        benchmark.group = f"scan_{NUM_GENERATIONS_SHORT}gen/pop{pop_size}_d{dims}"
+        benchmark.group = f"scan_{num_gens}gen/pop{pop_size}_d{dims}"
         benchmark.name = "evosax"
         benchmark(_run)

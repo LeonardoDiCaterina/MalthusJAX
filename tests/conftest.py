@@ -10,6 +10,21 @@ import jax.numpy as jnp
 import jax.random as jr
 import pytest
 
+def pytest_addoption(parser):
+    """Register custom command-line arguments for benchmarks."""
+    parser.addoption(
+        "--pop-sizes",
+        action="store",
+        default="100,500,1024,1025",
+        help="Comma-separated list of population sizes (e.g. 100,500,1000)"
+    )
+    parser.addoption(
+        "--num-gens",
+        action="store",
+        default="50,100,1000",
+        help="Comma-separated list of generation counts (e.g. 50,100,1000)"
+    )
+
 from malthusjax.core.fitness.binary_evaluators import KnapsackConfig, KnapsackEvaluator
 
 # Import genome types and configurations
