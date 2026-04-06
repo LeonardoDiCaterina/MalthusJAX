@@ -26,10 +26,18 @@ This separation enables static resource budgeting, reproducibility, and XLA kern
   - Explicitly set dtype for numeric arrays (e.g., `dtype=config.dtype`) to avoid implicit type promotion.
   - Return a single offspring genome (not a tuple) — vectorization is handled by Tier 3.
 
-**Mask Convention**:
+**Mask Convention** (for Per-Element Selection Operators):
 - `mask=False` → select from Parent 1
 - `mask=True` → select from Parent 2
 - Example: `offspring = jnp.where(mask, p2.values, p1.values)`
+- Applies to: UniformCrossover, SinglePointCrossover
+
+**Gate-Based Selection** (Alternative Pattern for Adaptive Operators):
+- Some operators use masks/decisions as **gates**, not parent selectors
+- Pattern: `offspring = jnp.where(gate, computed_value, p1.values)`
+- True → use computed offspring; False → return parent 1 unchanged
+- Applies to: BlendCrossover, SimulatedBinaryCrossover, BinomialCrossover
+- Example: SBX applies `jnp.where(should_cross, sbx_child, p1.values)` where `should_cross` is a gating decision, not a per-gene mask
 
 ---
 
@@ -92,12 +100,38 @@ def flatten_fn(x: chex.Array) -> chex.Array:
 
 **Result**: All offspring for pair 0 come first, then all offspring for pair 1, etc. This is the **pair-major** order.
 
-> **Design note (FB-1)**: Earlier versions used an offspring-major ordering via
-> `jnp.transpose`. This forced XLA to materialize a physical data copy, creating
-> a fusion barrier between crossover and downstream mutation. Since the engine's
+> **Design Evolution (Phase 3 Optimization)**: Earlier versions used an offspring-major
+> ordering via `jnp.transpose`. This forced XLA to materialize a physical data copy,
+> creating a fusion barrier between crossover and downstream mutation. Since the engine's
 > merge phase treats all offspring identically (truncation via `[:num_mutants]`),
-> the ordering is semantically irrelevant. Removing the transpose eliminates the
-> copy and enables XLA to fuse crossover → mutation into a single kernel.
+> the ordering is semantically irrelevant. Removing the transpose eliminates the copy
+> and enables XLA to fuse crossover → mutation into a single kernel, improving throughput.
+
+---
+
+## Tier 3 Variants: Standard vs Injection Mode
+
+**Standard Mode** (`BaseCrossover` class):
+- Operator consumes pre-allocated keys from ResourceMapper
+- Keys reshaped to `(num_pairs, num_offspring, num_keys_per_atomic_operation, 2)`
+- Tier 2 (`_generate_noise`) called once per (pair, offspring) inside nested vmap
+- Lazy generation: noise generated on-demand per kernel call
+- Memory efficient: only stores keys, not all noise arrays
+- Best for: Most operators; memory-constrained scenarios
+
+**Injection Mode** (`BaseCrossover_injection` class):
+- Operator receives single key from engine
+- Internally splits key into `(n_pairs * n_offspring)` subkeys
+- Tier 2 (`_generate_noise`) materializes **all** noise upfront
+- Returns full array: shape `(n_pairs * n_offspring, ...)` or tuple thereof
+- Memory cost: O(n_pairs × n_offspring × noise_shape) upfront
+- Trade-off: More memory for full determinism + explicit noise control
+- Available variants: `UniformCrossover_injection`, `BlendCrossover_injection`, `SimulatedBinaryCrossover_injection`
+- Best for: Debugging; exact reproducibility requirements; ablation studies
+
+**When to Choose**:
+- **Standard (default)**: Production runs, large populations, memory-constrained hardware
+- **Injection**: Debugging, validation, small populations, when full noise materialization is beneficial
 
 ---
 
@@ -132,35 +166,46 @@ The `ResourceMap` (computed by `compute_resource_map()`) pre-calculates RNG budg
 
 ## Complete Example: UniformCrossover
 
-Assume: 4 parent pairs, 2 offspring per pair, crossover_rate=0.7, genome shape (5,).
+### User-Facing API Usage
 
-**Step 1: Resource Allocation**
 ```python
-op = UniformCrossover(num_offspring=2, crossover_rate=0.7).set_input_length(4)
-# ResourceMapper: total_keys = 4 * 2 * 1 = 8
-all_keys = jr.split(master_key, 8).reshape((4, 2, 1, 2))
-# Shape: (num_pairs=4, num_offspring=2, num_keys_per_atomic_operation=1, key_dim=2)
+import jax.random as jr
+from malthusjax.operators.crossover import RealUniformCrossover
+from malthusjax.core.genome import RealGenomeConfig, RealPopulation
+
+# Setup: 4 parent pairs, 2 offspring per pair, crossover_rate=0.7
+key = jr.PRNGKey(42)
+config = RealGenomeConfig(shape=(5,), bounds=(0.0, 1.0))
+
+# Create two parent populations
+p1_pop = RealPopulation.init_random(key, config, size=4)
+p2_pop = RealPopulation.init_random(jr.fold_in(key, 1), config, size=4)
+
+# Create and configure crossover operator
+crossover = RealUniformCrossover(num_offspring=2, crossover_rate=0.7)
+crossover = crossover.set_input_length(4)  # 4 parent pairs
+
+# Allocate PRNG keys
+num_keys = crossover.num_keys((4,))  # Returns: 4 * 2 * 1 = 8
+all_keys = jr.split(key, num_keys)
+
+# Perform crossover (Tier 3 handles internal vmap orchestration)
+offspring_pop = crossover(all_keys, p1_pop, p2_pop, config)
+# Result: offspring_pop has 8 individuals (4 pairs × 2 offspring each)
 ```
 
-**Step 2: Nested vmap (Tier 3)**
-```python
-keys_reshaped = all_keys.reshape((4, 2, 1, 2))
-nested_offspring = jax.vmap(
-    lambda k_block, g1, g2: jax.vmap(
-        lambda k: self._cross_fused(k, g1, g2, config)
-    )(k_block)
-)(keys_reshaped, p1_pop.genes, p2_pop.genes)
-# Output shape: (4, 2, 5) — 4 pairs × 2 offspring × 5 genes
-```
+### Internal Implementation Details (Developers Only)
 
-**Step 3: Tier 2 — Generate Bernoulli Mask**
+The above user call internally executes these Tier-3 (vmap) nested iterations:
+
+**Tier 2 — Generate Bernoulli Mask** (called per pair per offspring):
 ```python
 def _generate_noise(self, keys, config):
     return jax.random.bernoulli(keys[0], p=0.7, shape=(5,))
-    # Returns: boolean array shape (5,)
+    # Returns: boolean array shape (5,) per individual
 ```
 
-**Step 4: Tier 1 — Per-Gene Selection**
+**Tier 1 — Per-Gene Selection** (pure arithmetic):
 ```python
 def _recombine_one(self, p1, p2, noise_data, config):
     mask = noise_data  # Shape (5,), dtype bool
@@ -168,33 +213,49 @@ def _recombine_one(self, p1, p2, noise_data, config):
     return p1.replace(values=offspring)
 ```
 
-**Step 5: Pair-Major Flattening**
+**Pair-Major Flattening** (Tier 3 final reshape):
 ```python
-# nested shape: (4, 2, 5)
-flattened = nested_offspring.reshape((8, 5))  # -> (num_pairs * num_offspring, 5)
-# Result: [pair0_offspring0, pair0_offspring1,
-#          pair1_offspring0, pair1_offspring1,
-#          pair2_offspring0, pair2_offspring1,
-#          pair3_offspring0, pair3_offspring1]
+# Before flatten: shape (4, 2, 5) = (pairs, offspring_per_pair, genes)
+# After direct reshape: (8, 5) = (total_offspring, genes)
+# Result ordering: [pair0_offspring0, pair0_offspring1,
+#                   pair1_offspring0, pair1_offspring1,
+#                   pair2_offspring0, pair2_offspring1,
+#                   pair3_offspring0, pair3_offspring1]
 ```
 
 ---
 
-## Mask Semantics
+## Mask Semantics & Operator Patterns
 
-All crossover operators follow the convention:
+### Per-Element Selection (UniformCrossover, SinglePointCrossover)
+
+These operators use **per-gene mask selection**:
 - `mask=False` → inherit from Parent 1
 - `mask=True` → inherit from Parent 2
+- **Implementation pattern**:
+  ```python
+  offspring = jnp.where(mask, p2.values, p1.values)  # True -> p2, False -> p1
+  ```
+- **Tests verify**:
+  - All-False mask → offspring == p1
+  - All-True mask → offspring == p2
+  - Mixed mask → correct per-gene inheritance
 
-**Implementation pattern**:
-```python
-offspring = jnp.where(mask, p2.values, p1.values)  # True -> p2, False -> p1
-```
+### Gate-Based Selection (BlendCrossover, SBX, BinomialCrossover)
 
-**Tests verify**:
-- All-False mask → offspring == p1
-- All-True mask → offspring == p2
-- Mixed mask → correct per-gene inheritance
+These operators use **gating decisions**, not per-gene masks:
+- `decision=False` → return Parent 1 unchanged
+- `decision=True` → return computed/blended offspring
+- **Implementation pattern**:
+  ```python
+  offspring = jnp.where(decision, computed_values, p1.values)  # True -> computed, False -> p1
+  ```
+- **Key difference**: The mask is a 0-D boolean decision, not a per-gene selection vector
+- **Example (SBX)**: `jnp.where(should_cross, sbx_child, p1.values)` where `should_cross` is a scalar boolean
+- **Example (Blend)**: `jnp.where(should_cross, blended_values, p1.values)` where `should_cross` gates the blend operation
+- **Tests verify**:
+  - False gate → offspring == p1
+  - True gate → offspring == computed_values (not p2)
 
 ---
 
@@ -239,24 +300,58 @@ XLA merges RNG generation and arithmetic operations into single kernels:
 When implementing a new crossover operator:
 
 **Core Implementation**
-- [ ] Define `num_keys_per_atomic_operation` (e.g., 1 for Bernoulli, 2 for blend + decision).
+- [ ] Define `num_keys_per_atomic_operation` (e.g., 1 for Bernoulli, 2 for blend + decision, 3 for SBX).
 - [ ] Implement `_generate_noise(keys, config)`:
   - Extract individual keys: `k1, k2 = keys[0], keys[1]`.
-  - Return array shaped to `config.shape` with explicit dtype.
+  - Return array(s) shaped to `config.shape` with explicit dtype.
+  - For multi-element noise, return tuple: `(decision, values)` or `(decision, values, swap_mask)`
 - [ ] Implement `_recombine_one(p1, p2, noise_data, config)`:
   - Pure arithmetic only (no Python branching in hot path).
-  - Use `jnp.where(mask, p2.values, p1.values)` for mask semantics.
-  - Return single genome (not tuple).
+  - **Return single genome** (not tuple) — Tier 3 calls this `num_offspring` times
+  - Decide mask semantics: per-element selection OR gate-based (see below)
 
-**Inheritance** (Automatic)
-- [ ] Inherit from `BaseCrossover` to get Tier 3 vmap support automatically.
+**Mask Semantics (Choose One Pattern)**
+- [ ] **Per-Element Selection** (UniformCrossover, SinglePointCrossover pattern):
+  - Use `jnp.where(mask, p2.values, p1.values)` for per-gene parent selection
+  - Test: all-False mask → offspring==p1, all-True mask → offspring==p2
+- [ ] **Gate-Based Selection** (BlendCrossover, SBX, BinomialCrossover pattern):
+  - Use `jnp.where(gate, computed_values, p1.values)` where gate is 0-D boolean
+  - Test: gate=False → offspring==p1, gate=True → offspring==computed_values
+  - Document that this differs from per-element semantics
+
+**PRNG Handling**
+- [ ] Handle `typed_keys` parameter for PRNG format (engine sets based on backend):
+  - For key extraction inside `_generate_noise`: keys are already extracted by Tier 3
+  - For custom `_cross_fused` overrides (like EvosaxUniformCrossoverWrapper):
+    ```python
+    if self.typed_keys:
+        prng_key = keys.reshape(-1)[0]  # New-style: scalar
+    else:
+        prng_key = keys.reshape((-1, keys.shape[-1]))[0]  # Legacy: (2,) pair
+    ```
+
+**Offspring Semantics**
+- [ ] Understand `num_offspring` in Tier 3 context:
+  - Each `_recombine_one` call produces **one** offspring per parent pair
+  - Tier 3 calls `_recombine_one` `num_offspring` times (controlled by outer vmap)
+  - Keys are pre-allocated: `(num_pairs, num_offspring, num_keys_per_atomic, 2)`
+  - Each vmap iteration gets unique key block → reproducible but distinct offspring
+
+**Inheritance & Modes**
+- [ ] Inherit from `BaseCrossover` for standard mode (pre-allocated keys)
+- [ ] Optional: Inherit from `BaseCrossover_injection` for single-key injection mode
+  - Override `_generate_noise` to materialize all `(n_pairs * n_offspring)` noise upfront
+  - Trade-off: More memory for full determinism + replay capability
+- [ ] Consider custom `_cross_fused` override for special cases (e.g., EvosaxUniformCrossoverWrapper)
 
 **Testing**
 - [ ] Add tests in `tests/operators/crossover/`:
-  - Verify shape/dtype of `_generate_noise()`.
-  - Test all-False → p1, all-True → p2 mask cases.
-  - Verify crossover rate empirically.
-  - Check pair-major ordering.
+  - Test shape/dtype of `_generate_noise()`
+  - Test boundary conditions (all-False, all-True masks or gates)
+  - Verify crossover rate/parameters empirically
+  - Verify pair-major offspring ordering
+  - If supporting both standard + injection: test both code paths
+  - Test with both legacy (uint32[2]) and new-style (typed) PRNG keys
 
 ---
 
@@ -267,11 +362,15 @@ When implementing a new crossover operator:
 - **SinglePointCrossover**: Select random crossover point and swap segments.
 
 **Real-Valued Crossovers** (for RealGenome)
-- **UniformCrossover**: Independently select each gene from Parent 1 or Parent 2 with probability `crossover_rate`.
-- **BlendCrossover (BLX-α)**: Sample uniformly from extended interval around parents.
-- **SimulatedBinaryCrossover (SBX)**: Polynomial distribution-based crossover with parameter `eta`.
-- **BinomialCrossover**: Differential evolution style selection.
-- **EvosaxUniformCrossoverWrapper**: Wrapper around Evosax native uniform crossover.
+- **UniformCrossover** (+ `UniformCrossover_injection`): Independently select each gene from Parent 1 or Parent 2 with probability `crossover_rate`.
+- **BlendCrossover (BLX-α)** (+ `BlendCrossover_injection`): Sample uniformly from extended interval around parents.
+- **SimulatedBinaryCrossover (SBX)** (+ `SimulatedBinaryCrossover_injection`): Polynomial distribution-based crossover with parameter `eta`.
+- **BinomialCrossover** (+ `BinomialCrossover_injection`): Differential evolution style selection.
+- **EvosaxUniformCrossoverWrapper**: Direct wrapper around Evosax crossover with both standard and injection modes (see below).
+
+**Mode Availability**:
+- All real-valued operators have standard and injection variants (registered with `_injection` suffix)
+- EvosaxUniformCrossoverWrapper supports both modes via `injection_mode` parameter
 
 ---
 
@@ -283,8 +382,159 @@ When implementing a new crossover operator:
 | Binary / Building Blocks | Single-Point | default | Preserves adjacency |
 | Real / Independent Genes | Uniform Crossover | rate=0.6 | Simple per-gene mixing |
 | Real / Exploration | Blend (BLX-α) | α=0.5 | Explores outside parental range |
-| Real / Exploitation | SBX | η=20-30 | Parent-centric, adaptive |
+| Real / Exploitation | SBX | η=20-30, num_offspring≤2 | Parent-centric, distribution-aware (default 2 offspring, configurable) |
 | Differential Evolution | Binomial | rate=0.5 | Directional, mutant-biased |
+
+---
+
+## Evosax Integration
+
+MalthusJAX provides **EvosaxUniformCrossoverWrapper**, a high-compatibility wrapper around Evosax's crossover operators. This enables direct use of Evosax algorithms while leveraging MalthusJAX's infrastructure (xmap, state management, result tracking).
+
+### Compatibility Context
+
+**API Generations**:
+- **evosax 0.1.6** (PyPI, current stable): Lower-level fitness evaluation, no ask/tell algos
+- **evosax GitHub main**: Ask/tell algorithm interface, modern `BBOBProblem` API
+- **MalthusJAX 0.1.6+**: Dual-mode support via compatibility layer
+
+**Compatibility Layer** (`src/malthusjax/compat/evosax_mimic.py`):
+- Pure JAX implementation of Evosax mutation/crossover
+- Enables MalthusJAX to work with evosax 0.1.6 without external dependencies
+- Used internally by EvosaxUniformCrossoverWrapper for robust operation
+
+### EvosaxUniformCrossoverWrapper: Core Integration API
+
+**Purpose**: Direct wrapper enabling Evosax crossover functions within MalthusJAX workflows.
+
+**Invocation**:
+```python
+from malthusjax.operators.crossover import EvosaxUniformCrossoverWrapper
+
+wrapper = EvosaxUniformCrossoverWrapper(
+    evosax_crossover_fn=evosax.crossover,  # or your custom crossover function
+    crossover_rate=0.5,
+    injection_mode=False,   # True for injection-style semantics
+    dtype=jnp.float32
+)
+
+offspring = wrapper(keys, parents1, parents2, config)
+```
+
+**Modes**:
+
+1. **Standard Mode** (`injection_mode=False`):
+   - Standard Tier-1 semantics: pure deterministic selection using masks
+   - Contract: `offspring = jnp.where(mask, p2.values, p1.values)`
+   - Best for: Standard crossover or swapping with external EAs
+
+2. **Injection Mode** (`injection_mode=True`):
+   - Gate-based semantics: computed offspring OR parent unchanged
+   - Contract: `offspring = jnp.where(should_cross, computed, p1.values)`
+   - Best for: Adaptive operators (BlendCrossover, SBX) where not crossing is meaningful
+
+**Configuration**:
+```python
+# Both modes registered in MalthusJAX ecosystem
+config_standard = CrossoverConfig(
+    rate=YOUR_RATE,
+    injection_mode=False
+)
+
+config_injection = CrossoverConfig(
+    rate=YOUR_RATE,
+    injection_mode=True
+)
+```
+
+### Integration with Evosax Algorithms
+
+**Direct Composition**:
+```python
+from malthusjax.operators.crossover import EvosaxUniformCrossoverWrapper
+from malthusjax.operators.mutation import EvosaxMutationWrapper
+import evosax
+
+# Create wrappers
+crossover = EvosaxUniformCrossoverWrapper(
+    evosax_crossover_fn=evosax.crossover,
+    crossover_rate=0.7
+)
+mutation = EvosaxMutationWrapper(
+    evosax_mutation_fn=evosax.mutation,
+    std_dev=0.1
+)
+
+# Use in evolve loops (Tier 3 vmaps handle population aggregation)
+```
+
+**State Management Considerations**:
+- Evosax ask/tell algorithms maintain internal state (population, fitness cache)
+- MalthusJAX loops manage PRNG key streams explicitly
+- For bidirectional integration, use `EvosaxAdapter` (see `src/malthusjax/composer/evosax_adapter.py`)
+
+### Fitness Evaluators with Evosax
+
+**BBOBFitness Integration**:
+```python
+# 0.1.6 compatible
+from evosax.problems import BBOBFitness
+
+fitness = BBOBFitness(num_dims=10, function_id=1)
+R, Q = fitness.get_rotation_matrices(key)
+scores = fitness.rollout(key, solutions, R, Q)
+```
+
+See [core/fitness/bbob_evaluator.py](../../core/fitness/bbob_evaluator.py) for full integration pattern and `BBOB_NAME_ALIASES` normalization.
+
+### Architecture Pattern: Why Wrapping Works
+
+1. **Tier 1 Absorption**:
+   - Evosax crossover functions are already deterministic (no RNG inside)
+   - EvosaxUniformCrossoverWrapper absorbs them as pure Tier-1 logicCrossovers
+
+2. **Key Stream Management**:
+   - MalthusJAX provides PRNG keys via `_generate_noise()`
+   - Evosax operators consume keys internally or MalthusJAX provides randomness
+
+3. **Genome Type Translation**:
+   - Wrapper converts MalthusJAX genomes (`RealGenome`, etc.) to numpy arrays
+   - Applies Evosax operations
+   - Converts results back to MalthusJAX genome type
+
+### Troubleshooting Evosax Integration
+
+| Problem | Solution |
+|---------|----------|
+| `ImportError: 'evosax.algorithms'` | Ensure evosax ≥0.1.6 from PyPI; use compat layer |
+| `BBOBProblem not found` | Use `BBOBFitness` (0.1.6) or wrap GitHub evosax separately |
+| Dimension mismatch | Verify genome shape matches evosax expectation (flat arrays) |
+| Mode confusion | Standard = per-element selection; Injection = gate-based |
+| Key consumption mismatch | Check `num_keys_per_atomic_operation` alignment |
+
+### Extension: Adding New Evosax Operators
+
+**Recipe** (for adding future Evosax operators):
+
+1. **Wrapper class**:
+   ```python
+   class MyEvosaxCrossoverWrapper(BaseCrossover):
+       def __init__(self, evosax_fn, param1, ...):
+           self.evosax_fn = evosax_fn
+           ...
+       
+       def _recombine_one(self, p1, p2, noise_data, config):
+           # Convert to array, call evosax_fn, convert back
+           ...
+       
+       def _generate_noise(self, keys, config):
+           # Prepare parameters needed by evosax_fn
+           ...
+   ```
+
+2. **Register** in [__init__.py](.//__init__.py) export list
+
+3. **Test** against parity with direct Evosax calls (see `test_evosax_crossover_parity.py`)
 
 ---
 

@@ -280,6 +280,49 @@ dist_euclidean = genome1.distance(genome2, metric="euclidean")
 dist_manhattan = genome1.distance(genome2, metric="manhattan")
 ```
 
+### Population-Level Categorical Operations
+
+```py
+import jax
+import jax.numpy as jnp
+from malthusjax.core.genome.categorical_genome import (
+    CategoricalGenome, 
+    CategoricalGenomeConfig,
+    CategoricalPopulation,
+)
+
+# Create a population of 16 categorical genomes (e.g., TSP permutations)
+key = jax.random.PRNGKey(0)
+config = CategoricalGenomeConfig(num_categories=20, shape=(20,))
+pop = CategoricalPopulation.init_random(key, config, size=16)
+
+print(f"Population size: {len(pop)}")
+print(f"Genome shape: {pop.genes.values.shape}")  # (16, 20)
+
+# Convert all to valid permutations (deterministic, for TSP)
+perm_pop = pop.replace(genes=jax.vmap(lambda g: g.to_permutation(config))(pop.genes))
+
+# Check diversity via pairwise distances
+dist_matrix = pop.distance_matrix(metric="hamming")  # shape: (16, 16)
+print(f"Average Hamming distance: {jnp.mean(dist_matrix[jnp.triu_indices_from(dist_matrix, k=1)]):.2f}")
+
+# Apply mutation: swap random pairs
+def swap_mutation(key: jnp.ndarray, genome: CategoricalGenome) -> CategoricalGenome:
+    """Randomly swap two positions in the genome."""
+    k1, k2 = jax.random.split(key)
+    pos1 = jax.random.randint(k1, (), 0, genome.shape[0])
+    pos2 = jax.random.randint(k2, (), 0, genome.shape[0])
+    return genome.swap_positions(pos1, pos2)
+
+# Apply mutation to all genomes
+subkeys = jax.random.split(key, 16 + 1)[1:]
+mutated_genes = jax.vmap(swap_mutation)(subkeys, pop.genes)
+mutated_pop = pop.replace(genes=mutated_genes)
+
+# Verify mutation occurred
+print(f"First genome unchanged after mutation: {jnp.allclose(pop.genes.values[0], mutated_pop.genes.values[0])}")
+```
+
 ---
 
 ## `spawn_offspring` — Population Factory Method

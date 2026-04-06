@@ -187,6 +187,58 @@ pop = ...  # some BasePopulation[RealGenome] with 50 dimensions
 pop = tsp.evaluate_population(pop)
 ```
 
+- Setting up and evaluating a Linear Genetic Programming (Linear GP) evaluator
+
+```py
+import jax
+import jax.numpy as jnp
+from malthusjax.core.fitness.linear_gp_evaluator import (
+    LinearGPEvaluator,
+    LinearGPEvaluatorConfig,
+)
+from malthusjax.core.genome.linear_genome import LinearGenome
+
+# Create regression data (X, y tuple)
+X = jnp.array([
+    [1.0, 2.0, 3.0],
+    [4.0, 5.0, 6.0],
+    [7.0, 8.0, 9.0],
+])
+y = jnp.array([6.0, 15.0, 24.0])
+
+# Setup evaluator
+config = LinearGPEvaluatorConfig(
+    num_inputs=3,      # 3 input features
+    length=5,          # 5 instructions
+    maximize=False     # minimize MSE
+)
+evaluator = LinearGPEvaluator(config=config, data=(X, y))
+
+# Create a linear genome with 5 instructions
+ops = jnp.array([0, 1, 2, 3, 4])  # operation codes (ADD, SUB, MUL, DIV, ABS)
+args = jnp.array([
+    [0, 1, 2],  # Instruction 0: READ inputs 0,1,2
+    [0, 1, 2],  # Instruction 1
+    [1, 2, 0],  # Instruction 2
+    [2, 3, 1],  # Instruction 3
+    [3, 1, 2],  # Instruction 4
+])
+genome = LinearGenome(ops=ops, args=args)
+
+# Evaluate single genome: predict all instruction outputs on all data points
+all_predictions = jax.vmap(
+    evaluator.predict_one, in_axes=(None, 0)
+)(genome, X)
+print(f"Shape: {all_predictions.shape}")  # (num_samples, num_instructions)
+
+# Get fitness (negative MSE via symbiotic selection)
+fitness = evaluator.evaluate(genome)
+
+# Evaluate population
+pop = ...  # some BasePopulation[LinearGenome]
+pop = evaluator.evaluate_population(pop)
+```
+
 ---
 
 ## 9) Final Notes
