@@ -7,7 +7,7 @@ Contains classic combinatorial objectives like OneMax (binary sum) and
 
 from __future__ import annotations
 
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Optional
 
 import chex
 import jax
@@ -57,17 +57,21 @@ class KnapsackConfig(BaseEvaluatorConfig):
 
     Attributes:
         n_items: Number of items in the knapsack problem.
+        weights: Item weights array, shape (n_items,).
+        values: Item values array, shape (n_items,).
         capacity: Maximum weight capacity (scalar).
         penalty_factor: Linear constraint penalty coefficient (default 1000.0).
     """
 
     n_items: int = struct.field(default=50)  # type: ignore[no-untyped-call]
+    weights: chex.Array = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    values: chex.Array = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
     capacity: chex.Numeric = struct.field(default=100.0)  # type: ignore[no-untyped-call]
     penalty_factor: float = 1000.0
 
 
 @struct.dataclass
-class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, KnapsackData]):
+class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Optional[KnapsackData]]):
     """Knapsack problem fitness evaluator with linear constraint penalties.
 
     Computes total value minus linear penalty for weight constraint violation.
@@ -79,7 +83,7 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, KnapsackData
     """
 
     config: KnapsackConfig
-    data: KnapsackData = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
+    data: Optional[KnapsackData] = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
         """Evaluate a binary genome representing item selection.
@@ -88,8 +92,11 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, KnapsackData
         any capacity violation. This method is JAX‑safe and avoids Python
         control flow.
         """
-        total_weight = jnp.sum(genome.values * self.data.weights)
-        total_value = jnp.sum(genome.values * self.data.values)
+        weights = self.data.weights if self.data is not None else self.config.weights
+        values = self.data.values if self.data is not None else self.config.values
+
+        total_weight = jnp.sum(genome.values * weights)
+        total_value = jnp.sum(genome.values * values)
 
         # Penalize infeasibility via JAX arithmetic (no Python control flow)
         excess_weight = jnp.maximum(0.0, total_weight - self.config.capacity)
@@ -98,12 +105,9 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, KnapsackData
         return total_value - penalty
 
     @classmethod
-    def create_synthetic(cls, n_items: int = 50, capacity_ratio: float = 0.5, seed: int = 42, maximize: bool = True) -> "KnapsackEvaluator":
-        """Factory: create random 0/1 knapsack instance with synthetic data.
-
-        Matches TSP interface: generates random weights and values procedurally.
-        """
-        key1, key2 = jr.split(jr.PRNGKey(seed))
+    def create_random_problem(cls, rng_key: chex.Array, n_items: int = 50, capacity_ratio: float = 0.5, maximize: bool = True) -> KnapsackConfig:
+        """Create a random knapsack configuration with synthetic weights and values."""
+        key1, key2 = jr.split(rng_key)
 
         weights = jr.uniform(key1, (n_items,), minval=1.0, maxval=20.0)
         values = jr.uniform(key2, (n_items,), minval=1.0, maxval=50.0)
@@ -111,8 +115,23 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, KnapsackData
         total_weight = jnp.sum(weights)
         capacity = capacity_ratio * total_weight
 
-        config = KnapsackConfig(n_items=n_items, capacity=capacity, maximize=maximize)
-        data = KnapsackData(weights=weights, values=values)
+        return KnapsackConfig(
+            n_items=n_items,
+            weights=weights,
+            values=values,
+            capacity=capacity,
+            maximize=maximize,
+        )
+
+    @classmethod
+    def create_synthetic(cls, n_items: int = 50, capacity_ratio: float = 0.5, seed: int = 42, maximize: bool = True) -> "KnapsackEvaluator":
+        """Factory: create random 0/1 knapsack instance with synthetic data.
+
+        Matches TSP interface: generates random weights and values procedurally.
+        """
+        rng_key = jr.PRNGKey(seed)
+        config = cls.create_random_problem(rng_key, n_items=n_items, capacity_ratio=capacity_ratio, maximize=maximize)
+        data = KnapsackData(weights=config.weights, values=config.values)
 
         return cls(config=config, data=data)
 

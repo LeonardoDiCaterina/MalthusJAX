@@ -97,6 +97,7 @@ The repository includes several evaluator categories with canonical implementati
 
 - **Combinatorial Evaluators** (e.g., `KnapsackEvaluator`)
   - Work on discrete genomes like `BinaryGenome`.
+  - Accept either static problem data or a fully-specified `KnapsackConfig` with `weights`, `values`, and `capacity`.
   - Use vectorized linear algebra (dot products) and linear penalty terms for constraint violations:
     - Penalty is constructed using differentiable-friendly ops such as `jnp.maximum(0, excess)` so the evaluator remains JIT-friendly.
 
@@ -168,6 +169,10 @@ from malthusjax.core.fitness.binary_evaluators import KnapsackConfig
 # create problem
 config = KnapsackEvaluator.create_random_problem(jax.random.PRNGKey(0), n_items=20)
 knapsack = KnapsackEvaluator(config=config)
+
+# The evaluator may also be constructed with explicit `data` if desired:
+# weights = jnp.array([...]); values = jnp.array([...]); capacity = 10.0
+# knapsack = KnapsackEvaluator(config=config, data=KnapsackData(weights=weights, values=values))
 
 # evaluate population
 pop = ...  # some BasePopulation[BinaryGenome]
