@@ -16,6 +16,14 @@ import jax.numpy as jnp
 import jax.random as jr
 import pytest
 
+from malthusjax.core.fitness.binary_evaluators import KnapsackConfig, KnapsackEvaluator
+from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.random import PRNGImpl, create_key
+from malthusjax.engine.resource_mapper import KeyDerivationStrategy
+from tests.benchmarks.conftest_benchmarks import size_sweep_pop_sizes
+
+
 def pytest_addoption(parser):
     """Register custom command-line arguments for benchmarks."""
     parser.addoption(
@@ -31,14 +39,8 @@ def pytest_addoption(parser):
         help="Comma-separated list of generation counts (e.g. 50,100,1000)"
     )
 
-from malthusjax.core.fitness.binary_evaluators import KnapsackConfig, KnapsackEvaluator
 
 # Import genome types and configurations
-from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
-from malthusjax.core.random import PRNGImpl, create_key
-from malthusjax.engine.resource_mapper import KeyDerivationStrategy
-from tests.benchmarks.conftest_benchmarks import size_sweep_pop_sizes
 
 
 @pytest.fixture

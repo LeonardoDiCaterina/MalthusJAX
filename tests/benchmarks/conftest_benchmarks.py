@@ -200,7 +200,7 @@ def _build_malthusjax_engine(
     elif selection_type == "roulette":
         selection = RouletteSelection(num_selections=pop_size)
     else:
-        # Use ElitePoolSelection for structurally consistent hardware parity 
+        # Use ElitePoolSelection for structurally consistent hardware parity
         # testing against Evosax, saving us the JAX argpartition cost!
         selection = ElitePoolSelection(num_selections=pop_size, elite_k=elite_count)
 
@@ -212,8 +212,8 @@ def _build_malthusjax_engine(
         mutation = _build_mutation(mutation_type, use_injection_ops)
 
     # Fair Benchmark Hardware Parity:
-    # Evosax's SimpleGA selects parents from the elite pool, but mutates and 
-    # evaluates *all* generated offspring. MalthusJAX's EngineParams normally 
+    # Evosax's SimpleGA selects parents from the elite pool, but mutates and
+    # evaluates *all* generated offspring. MalthusJAX's EngineParams normally
     # preserves `elitism` exact copies, skipping those crossover/mutation ops.
     # We must enforce `elitism=0` here so that both engines execute the exact
     # same tensor manipulation loads per generation.

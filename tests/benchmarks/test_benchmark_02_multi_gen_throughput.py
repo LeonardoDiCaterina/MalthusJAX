@@ -15,13 +15,14 @@ from tests.benchmarks.conftest_benchmarks import (
     MalthusJAXBenchEngine,
 )
 
+
 def pytest_generate_tests(metafunc):
     """Dynamically parameterize pop_size and num_gens from the CLI options."""
     if "pop_size" in metafunc.fixturenames:
         pop_sizes_str = metafunc.config.getoption("--pop-sizes")
         pop_sizes = [int(p.strip()) for p in pop_sizes_str.split(",")]
         metafunc.parametrize("pop_size", pop_sizes)
-        
+
     if "num_gens" in metafunc.fixturenames:
         num_gens_str = metafunc.config.getoption("--num-gens")
         num_gens = [int(n.strip()) for n in num_gens_str.split(",")]
@@ -39,7 +40,14 @@ class TestMultiGenThroughput:
 
     @pytest.mark.parametrize("dims", DIMENSIONS)
     @pytest.mark.parametrize("use_evosax_ops", [False, True])
-    def test_malthusjax_scan(self, benchmark, pop_size: int, num_gens: int, dims: int, use_evosax_ops: bool):
+    def test_malthusjax_scan(
+        self,
+        benchmark,
+        pop_size: int,
+        num_gens: int,
+        dims: int,
+        use_evosax_ops: bool,
+    ):
         """MalthusJAX: full scan loop for {num_gens} gens."""
         bench_engine = MalthusJAXBenchEngine(
             pop_size=pop_size,
