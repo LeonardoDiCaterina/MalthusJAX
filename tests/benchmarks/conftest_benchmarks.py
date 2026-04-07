@@ -376,6 +376,7 @@ class MalthusJAXBenchEngine:
                 problem=self.problem,
                 num_generations=self.num_generations,
                 elite_ratio=self.elite_ratio,
+                selection_type=self.selection_type,
                 unroll_num=self.unroll_num,
                 use_evosax_ops=self.use_evosax_ops,
                 crossover_type=self.crossover_type,
@@ -418,6 +419,7 @@ class MalthusJAXBenchEngine:
     problem: str = "sphere"
     num_generations: int = NUM_GENERATIONS_LONG
     elite_ratio: float = 0.5
+    selection_type: str = "elite_pool"
     unroll_num: int = 1
     use_evosax_ops: bool = False
     crossover_type: str = "uniform"

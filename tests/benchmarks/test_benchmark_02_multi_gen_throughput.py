@@ -56,7 +56,51 @@ class TestMultiGenThroughput:
 
         benchmark.group = f"scan_{num_gens}gen/pop{pop_size}_d{dims}"
         benchmark.name = "malthusjax_evosaxops" if use_evosax_ops else "malthusjax"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+
+    @pytest.mark.parametrize("dims", DIMENSIONS)
+    def test_malthusjax_scan_roulette(self, benchmark, pop_size: int, num_gens: int, dims: int):
+        """MalthusJAX: full scan loop using roulette selection and Evosax ops."""
+        bench_engine = MalthusJAXBenchEngine(
+            pop_size=pop_size,
+            dims=dims,
+            num_generations=num_gens,
+            selection_type="roulette",
+            crossover_type="uniform",
+            mutation_type="gaussian",
+            use_evosax_ops=True,
+        )
+        bench_engine.run_once(jr.PRNGKey(0))
+
+        def _run():
+            result = bench_engine.run_once(jr.PRNGKey(SEED))
+            assert result["summary"]["best_fitness"] is not None
+
+        benchmark.group = f"scan_{num_gens}gen/pop{pop_size}_d{dims}"
+        benchmark.name = "malthusjax_roulette_evosaxops"
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+
+    @pytest.mark.parametrize("dims", DIMENSIONS)
+    def test_malthusjax_scan_tournament(self, benchmark, pop_size: int, num_gens: int, dims: int):
+        """MalthusJAX: full scan loop using tournament selection and Evosax ops."""
+        bench_engine = MalthusJAXBenchEngine(
+            pop_size=pop_size,
+            dims=dims,
+            num_generations=num_gens,
+            selection_type="tournament",
+            crossover_type="uniform",
+            mutation_type="gaussian",
+            use_evosax_ops=True,
+        )
+        bench_engine.run_once(jr.PRNGKey(0))
+
+        def _run():
+            result = bench_engine.run_once(jr.PRNGKey(SEED))
+            assert result["summary"]["best_fitness"] is not None
+
+        benchmark.group = f"scan_{num_gens}gen/pop{pop_size}_d{dims}"
+        benchmark.name = "malthusjax_tournament_evosaxops"
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
     @pytest.mark.parametrize("dims", DIMENSIONS)
     def test_evosax_scan(self, benchmark, pop_size: int, num_gens: int, dims: int):
@@ -75,4 +119,4 @@ class TestMultiGenThroughput:
 
         benchmark.group = f"scan_{num_gens}gen/pop{pop_size}_d{dims}"
         benchmark.name = "evosax"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
