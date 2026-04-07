@@ -105,7 +105,13 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Optional[Kna
         return total_value - penalty
 
     @classmethod
-    def create_random_problem(cls, rng_key: chex.Array, n_items: int = 50, capacity_ratio: float = 0.5, maximize: bool = True) -> KnapsackConfig:
+    def create_random_problem(
+        cls,
+        rng_key: chex.Array,
+        n_items: int = 50,
+        capacity_ratio: float = 0.5,
+        maximize: bool = True,
+    ) -> KnapsackConfig:
         """Create a random knapsack configuration with synthetic weights and values."""
         key1, key2 = jr.split(rng_key)
 
@@ -124,19 +130,37 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Optional[Kna
         )
 
     @classmethod
-    def create_synthetic(cls, n_items: int = 50, capacity_ratio: float = 0.5, seed: int = 42, maximize: bool = True) -> "KnapsackEvaluator":
+    def create_synthetic(
+        cls,
+        n_items: int = 50,
+        capacity_ratio: float = 0.5,
+        seed: int = 42,
+        maximize: bool = True,
+    ) -> "KnapsackEvaluator":
         """Factory: create random 0/1 knapsack instance with synthetic data.
 
         Matches TSP interface: generates random weights and values procedurally.
         """
         rng_key = jr.PRNGKey(seed)
-        config = cls.create_random_problem(rng_key, n_items=n_items, capacity_ratio=capacity_ratio, maximize=maximize)
+        config = cls.create_random_problem(
+            rng_key,
+            n_items=n_items,
+            capacity_ratio=capacity_ratio,
+            maximize=maximize,
+        )
         data = KnapsackData(weights=config.weights, values=config.values)
 
         return cls(config=config, data=data)
 
     @classmethod
-    def create_from_data(cls, weights: chex.Array, values: chex.Array, capacity: chex.Numeric, penalty_factor: float = 1000.0, maximize: bool = True) -> "KnapsackEvaluator":
+    def create_from_data(
+        cls,
+        weights: chex.Array,
+        values: chex.Array,
+        capacity: chex.Numeric,
+        penalty_factor: float = 1000.0,
+        maximize: bool = True,
+    ) -> "KnapsackEvaluator":
         """Factory: create knapsack evaluator from pre-loaded weights and values.
 
         Matches TSP interface: accepts pre-computed problem data.
@@ -152,7 +176,12 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Optional[Kna
             Initialized KnapsackEvaluator with loaded data.
         """
         n_items = weights.shape[0]
-        config = KnapsackConfig(n_items=n_items, capacity=capacity, penalty_factor=penalty_factor, maximize=maximize)
+        config = KnapsackConfig(
+            n_items=n_items,
+            capacity=capacity,
+            penalty_factor=penalty_factor,
+            maximize=maximize,
+        )
         data = KnapsackData(weights=weights, values=values)
 
         return cls(config=config, data=data)

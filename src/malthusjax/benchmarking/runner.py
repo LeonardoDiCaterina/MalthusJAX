@@ -165,7 +165,9 @@ class BenchmarkRunner:
             )
 
         except Exception as e:
-            import traceback; traceback.print_exc()
+            import traceback
+
+            traceback.print_exc()
             duration = time.time() - start_time
             return RunResult(
                 seed=seed,

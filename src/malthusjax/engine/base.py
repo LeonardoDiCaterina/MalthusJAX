@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import time
 from abc import ABC, abstractmethod
 from typing import Any, Generic, List, Optional, Tuple, TypeVar, Union, cast
@@ -250,8 +251,6 @@ class AbstractEngine(Generic[G, P], ABC):
 
         return hlo_text
 
-
-import functools
 
 @functools.lru_cache(maxsize=4)
 def _get_evolution_kernel(
