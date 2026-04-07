@@ -54,7 +54,7 @@ from malthusjax.operators.mutation.real import (
     PolynomialMutation,
     PolynomialMutation_injection,
 )
-from malthusjax.operators.selection.simplified_elite_pool import SimplifiedElitePoolSelection
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.selection.tournament import TournamentSelection
 
@@ -198,9 +198,9 @@ def _build_malthusjax_engine(
     if selection_type == "tournament":
         selection = TournamentSelection(num_selections=pop_size, tournament_size=3)
     else:
-        # Use SimplifiedElitePoolSelection for structurally consistent hardware parity 
+        # Use ElitePoolSelection for structurally consistent hardware parity 
         # testing against Evosax, saving us the JAX argpartition cost!
-        selection = SimplifiedElitePoolSelection(num_selections=pop_size, elite_k=elite_count)
+        selection = ElitePoolSelection(num_selections=pop_size, elite_k=elite_count)
 
     if use_evosax_ops:
         crossover = EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=0.5)
@@ -423,6 +423,7 @@ class MalthusJAXBenchEngine:
     use_injection_ops: bool = False
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT
     canonical_init: bool = False
+    canonical_bounds: Tuple[float, float] = (-5.0, 5.0)
 
     # Internal cached engine for warmup/benchmark hooking
     _engine: Optional[GeneticEngine] = None
@@ -432,17 +433,16 @@ class MalthusJAXBenchEngine:
         """Pre-compile and warm up the pure JAX scan loop."""
         if self._jit_scan is not None:
             return
-        
+
         engine = self._get_engine()
-        
+
         # 1. Create a pure JIT-compiled scan loop
         def scan_fn(state):
             def scan_body(c, _):
                 new_c, full_hist = engine.step(c)
-                
-                # --- THE FIX: MANUALLY STRIP THE HISTORY ---
+                # --- MANUALLY STRIP THE HISTORY ---
                 # We extract ONLY the scalars the benchmark runner needs.
-                # XLA's Dead Code Elimination will now optimize away the rest 
+                # XLA's Dead Code Elimination will now optimize away the rest
                 # of the heavy MalthusJAX history PyTree allocations!
                 light_hist = {
                     "generation": full_hist.generation,
@@ -450,11 +450,10 @@ class MalthusJAXBenchEngine:
                     "mean_fitness": full_hist.mean_fitness,
                 }
                 return new_c, light_hist
-                
             return jax.lax.scan(scan_body, state, None, length=self.num_generations)
-        
+
         self._jit_scan = jax.jit(scan_fn)
-        
+
         # 2. WARMUP: Force XLA compilation before any timing starts
         dummy_state = engine.init_state(jr.PRNGKey(0))
         warmup_out = self._jit_scan(dummy_state)
@@ -470,13 +469,15 @@ class MalthusJAXBenchEngine:
                 pop_key,
                 self.pop_size,
                 self.dims,
-                self.canonical_bounds[0],
-                self.canonical_bounds[1],
+                self.canonical_bounds,
             )
             t0 = time.time()
             state = engine.init_state(evo_key)
+            population_genes_cls = type(state.population.genes)
             state = state.replace(
-                population=state.population.replace(genes=shared_genes)
+                population=state.population.replace(
+                    genes=population_genes_cls.from_tensor(shared_genes)
+                )
             )
             t_init = time.time() - t0
         else:
@@ -545,7 +546,7 @@ class EvosaxBenchEngine:
     elite_ratio: float = 0.5
     canonical_init: bool = False
     canonical_bounds: Tuple[float, float] = (-5.0, 5.0)
-    
+
     _strategy: Optional[Any] = None
     _params: Optional[Any] = None
     _es_problem: Optional[Any] = None
@@ -561,7 +562,7 @@ class EvosaxBenchEngine:
             self.problem,
             self.elite_ratio,
         )
-        
+
         self._strategy = strategy
         self._params = params
         self._es_problem = es_problem
@@ -572,12 +573,14 @@ class EvosaxBenchEngine:
             x, es_state = strategy.ask(rng_step, es_state, params)
             fitness, p_state, _ = es_problem.eval(rng_step, x, p_state)
             es_state, _ = strategy.tell(rng_step, x, fitness, es_state, params)
-            
-            # Match the MalthusJAX dictionary output exactly
+
+            # Evosax BBOB returns raw minimization scores (lower is better).
+            # Convert to the same maximize-oriented fitness semantics used by
+            # MalthusJAX so comparison metrics are aligned.
             metrics = {
                 "generation": es_state.generation_counter,
-                "best_fitness": es_state.best_fitness,
-                "mean_fitness": jnp.mean(fitness),
+                "best_fitness": -es_state.best_fitness,
+                "mean_fitness": -jnp.mean(fitness),
             }
             return (es_state, p_state, rng), metrics
 
@@ -591,7 +594,7 @@ class EvosaxBenchEngine:
         init_x = jax.random.uniform(r_init, (self.pop_size, self.dims), minval=-5.0, maxval=5.0)
         init_fit = jnp.full((self.pop_size,), jnp.inf)
         es_state = self._strategy.init(r_init, init_x, init_fit, self._params)
-        
+
         dummy_carry = (es_state, p_state, r_start)
         warmup_out = self._jit_scan(dummy_carry)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), warmup_out)
@@ -608,8 +611,7 @@ class EvosaxBenchEngine:
                 r_init,
                 self.pop_size,
                 self.dims,
-                self.canonical_bounds[0],
-                self.canonical_bounds[1],
+                self.canonical_bounds,
             )
         else:
             init_x = jax.random.uniform(
@@ -651,7 +653,7 @@ class EvosaxBenchEngine:
         delta_best = end_best - start_best
 
         summary = {
-            "best_fitness": float(final_es_state.best_fitness),
+            "best_fitness": float(-final_es_state.best_fitness),
             "start_best_fitness": start_best,
             "end_best_fitness": end_best,
             "delta_best": delta_best,
@@ -784,6 +786,7 @@ def _run_parity_comparison(
     crossover_type: str = "uniform",
     mutation_type: str = "gaussian",
     use_injection_ops: bool = False,
+    use_evosax_ops: bool = False,
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
     output_dir: Optional[Path] = None,
 ) -> ComparisonResult:
@@ -795,6 +798,10 @@ def _run_parity_comparison(
     :func:`_canonical_population`, ensuring that any fitness difference is
     attributable to the evolutionary operators — not random initialisation.
 
+    If ``use_evosax_ops=True``, the MalthusJAX engine is constructed with the
+    Evosax compatibility wrappers ``EvosaxUniformCrossoverWrapper`` and
+    ``EvosaxGaussianWrapper`` for a closer operator-level parity comparison.
+
     If *output_dir* is given, artifacts for **both** pipelines are written.
     """
     suffix = (
@@ -803,6 +810,8 @@ def _run_parity_comparison(
         f"_{key_derivation.value}"
     )
     mjx_name = f"mjx_{problem}_p{pop_size}_d{dims}_{suffix}"
+    if use_evosax_ops:
+        mjx_name += "_evosaxops"
     esx_name = f"evosax_{problem}_p{pop_size}_d{dims}"
 
     bounds = (-5.0, 5.0)  # match RealGenomeConfig default for BBOB benchmarks
@@ -815,6 +824,7 @@ def _run_parity_comparison(
         crossover_type=crossover_type,
         mutation_type=mutation_type,
         use_injection_ops=use_injection_ops,
+        use_evosax_ops=use_evosax_ops,
         key_derivation=key_derivation,
         canonical_init=True,
     )
@@ -855,6 +865,7 @@ def _run_parity_comparison(
             "crossover_type": crossover_type,
             "mutation_type": mutation_type,
             "use_injection_ops": use_injection_ops,
+            "use_evosax_ops": use_evosax_ops,
             "key_derivation": key_derivation.value,
             "seeds": list(seeds),
             "canonical_init": True,
