@@ -4,7 +4,6 @@ Selection Operators Module.
 
 from .elite_pool import ElitePoolSelection
 from .roulette import RouletteSelection
-from .simplified_elite_pool import SimplifiedElitePoolSelection
 from .tournament import TournamentSelection
 
 __all__ = [
@@ -24,7 +23,6 @@ def _register_selection() -> None:
             ("tournament", TournamentSelection, {"num_selections": 4, "tournament_size": 3}),
             ("roulette", RouletteSelection, {"num_selections": 4}),
             ("elite_pool", ElitePoolSelection, {"num_selections": 4, "elite_k": 2}),
-            ("simplified_elite_pool", SimplifiedElitePoolSelection, {"num_selections": 4, "elite_k": 2}),
         ],
         override=True,
     )
