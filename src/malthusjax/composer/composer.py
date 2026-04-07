@@ -850,7 +850,7 @@ class Composer:
 
         # Ensure we use LIGHT tracking for monotonic convergence curves
         if 'track_best' not in config:
-            config['track_best'] = TrackBest.LIGHT
+            config['track_best'] = TrackBest.NONE
 
         engine_registry = EngineRegistry()
         return engine_registry.get(
