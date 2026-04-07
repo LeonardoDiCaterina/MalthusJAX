@@ -120,7 +120,7 @@ class ElitePoolSelection(BaseSelection[P, C]):
         if pool_k >= pop_size:
             best_k_indices = jnp.arange(pop_size)
         else:
-            best_k_indices = jnp.argpartition(-fitness, pool_k)[:pool_k]
+            best_k_indices = jnp.argsort(-fitness)[:pool_k]
 
         random_selections = jax.random.randint(
             rng, shape=(self.num_selections,), minval=0, maxval=pool_k
@@ -152,7 +152,7 @@ class ElitePoolSelection(BaseSelection[P, C]):
         if k >= pop_size:
             top_k_idx = jnp.arange(pop_size)
         else:
-            top_k_idx = jnp.argpartition(-fitness, k)[:k]
+            top_k_idx = jnp.argsort(-fitness)[:k]
 
         pool_k = min(self.elite_k, pop_size)
 
