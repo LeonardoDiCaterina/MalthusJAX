@@ -53,7 +53,7 @@ class TestKeyDerivationStrategy:
 
         benchmark.group = f"key_derivation/pop{self._POP}_d{self._DIMS}"
         benchmark.name = key_derivation.value
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
     @pytest.mark.parametrize(
         "key_derivation",
@@ -78,7 +78,7 @@ class TestKeyDerivationStrategy:
             f"key_derivation_scan_{NUM_GENERATIONS_SHORT}gen/pop{self._POP}_d{self._DIMS}"
         )
         benchmark.name = key_derivation.value
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
     @pytest.mark.parametrize("pop_size", [100, 500, 1024])
     @pytest.mark.parametrize(
@@ -98,4 +98,4 @@ class TestKeyDerivationStrategy:
 
         benchmark.group = "key_derivation_scaling_d10"
         benchmark.name = f"{key_derivation.value}_pop{pop_size}"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)

@@ -27,7 +27,7 @@ def test_malthusjax_scaling(benchmark, pop_size: int):
 
     benchmark.group = "scaling_d10"
     benchmark.name = f"malthusjax_pop{pop_size}"
-    benchmark(_run)
+    benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
 
 def test_evosax_scaling(benchmark, pop_size: int):
@@ -40,7 +40,7 @@ def test_evosax_scaling(benchmark, pop_size: int):
 
     benchmark.group = "scaling_d10"
     benchmark.name = f"evosax_pop{pop_size}"
-    benchmark(_run)
+    benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
 
 @pytest.mark.parametrize("pop_size", size_sweep_pop_sizes)

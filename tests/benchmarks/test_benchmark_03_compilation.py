@@ -39,7 +39,7 @@ class TestCompilationTime:
         benchmark.group = f"compile/pop{pop_size}_d{dims}"
         benchmark.name = "malthusjax"
         # Use 1 round for compilation benchmarks — they're expensive
-        benchmark.pedantic(_compile, rounds=3, warmup_rounds=0)
+        benchmark.pedantic(_compile, rounds=3, warmup_rounds=2)
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
@@ -55,4 +55,4 @@ class TestCompilationTime:
 
         benchmark.group = f"compile/pop{pop_size}_d{dims}"
         benchmark.name = "evosax"
-        benchmark.pedantic(_compile, rounds=3, warmup_rounds=0)
+        benchmark.pedantic(_compile, rounds=3, warmup_rounds=2)

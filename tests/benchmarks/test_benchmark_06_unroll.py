@@ -44,4 +44,4 @@ class TestUnrollSweep:
 
         benchmark.group = f"unroll_scan_{self._GENS}gen/pop{self._POP}_d{self._DIMS}"
         benchmark.name = f"unroll_{unroll}"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)

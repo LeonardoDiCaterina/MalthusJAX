@@ -45,7 +45,7 @@ class TestOperatorMicrobenchmarks:
 
         benchmark.group = f"operator_selection/pop{pop_size}"
         benchmark.name = "elite_pool"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     def test_tournament_selection(self, benchmark, pop_size: int):
@@ -65,7 +65,7 @@ class TestOperatorMicrobenchmarks:
 
         benchmark.group = f"operator_selection/pop{pop_size}"
         benchmark.name = "tournament"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
@@ -93,7 +93,7 @@ class TestOperatorMicrobenchmarks:
 
         benchmark.group = f"operator_crossover/pop{pop_size}_d{dims}"
         benchmark.name = "uniform_crossover"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
@@ -124,7 +124,7 @@ class TestOperatorMicrobenchmarks:
 
         benchmark.group = f"operator_mutation/pop{pop_size}_d{dims}"
         benchmark.name = "gaussian"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
@@ -145,4 +145,4 @@ class TestOperatorMicrobenchmarks:
 
         benchmark.group = f"operator_fitness/pop{pop_size}_d{dims}"
         benchmark.name = "bbob_sphere"
-        benchmark(_run)
+        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
