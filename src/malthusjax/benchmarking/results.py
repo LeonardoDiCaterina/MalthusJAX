@@ -13,7 +13,7 @@ import json
 import statistics
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 
 @dataclass
@@ -426,7 +426,7 @@ class ComparisonResult:
         """Pipeline names in insertion order."""
         return list(self.pipelines.keys())
 
-    def summary_table(self) -> Dict[str, Dict[str, float]]:
+    def summary_table(self, latex: bool = False) -> Union[Dict[str, Dict[str, float]], str]:
         """Compute per-pipeline aggregated metrics across all seeds.
 
         This is the main method for comparing algorithm performance. Returns
@@ -435,18 +435,17 @@ class ComparisonResult:
         so that all pipelines use "lower is better" convention (controlled by
         :attr:`negate_map`).
 
+        Parameters
+        ----------
+        latex : bool, optional
+            If ``True``, return the result as a LaTeX table string.
+            Otherwise, return the normal dictionary form.
+            Default: ``False``.
+
         Returns
         -------
-        Dict[str, Dict[str, float]]
-            Mapping of pipeline name -> metric dict.
-            Each metric dict contains:
-
-            - ``"best_fitness"`` : mean best fitness across seeds
-            - ``"mean_fitness"`` : mean population-average fitness
-            - (any other metrics reported by the engine)
-
-            Fitness values are automatically sign-normalized so that lower
-            fitness is "better" across all pipelines.
+        Dict[str, Dict[str, float]] or str
+            Either the aggregated metrics mapping or a LaTeX formatted table.
 
         Notes
         -----
@@ -474,6 +473,11 @@ class ComparisonResult:
             df = pd.DataFrame(table).T
             df = df.sort_values("best_fitness")  # Rank by fitness
             print(df)
+
+        Get a LaTeX table::
+
+            latex_code = comparison.summary_table(latex=True)
+            print(latex_code)
         """
         table: Dict[str, Dict[str, float]] = {}
         for name, exp in self.pipelines.items():
@@ -483,7 +487,232 @@ class ComparisonResult:
             table[name] = {
                 k: (v["mean"] * s if k in self._FITNESS_KEYS else v["mean"]) for k, v in agg.items()
             }
-        return table
+
+        if not latex:
+            return table
+
+        def _latex_escape(value: str) -> str:
+            return (
+                value.replace("\\", "\\textbackslash{}")
+                .replace("%", "\\%")
+                .replace("$", "\\$")
+                .replace("#", "\\#")
+                .replace("_", "\\_")
+                .replace("{", "\\{")
+                .replace("}", "\\}")
+                .replace("&", "\\&")
+                .replace("~", "\\textasciitilde{}")
+                .replace("^", "\\textasciicircum{}")
+            )
+
+        metric_names = []
+        for metrics in table.values():
+            for key in metrics.keys():
+                if key not in metric_names:
+                    metric_names.append(key)
+
+        header_cols = ["Pipeline"] + metric_names
+        lines = ["\\begin{tabular}{l" + "r" * len(metric_names) + "}", "\\hline"]
+        lines.append(" & ".join(_latex_escape(col) for col in header_cols) + r" \\")
+        lines.append("\\hline")
+
+        for pipeline_name, metrics in table.items():
+            row = [ _latex_escape(pipeline_name) ]
+            for metric in metric_names:
+                value = metrics.get(metric, float("nan"))
+                row.append(f"{value:.6g}")
+            lines.append(" & ".join(row) + r" \\")
+
+        lines.append("\\hline")
+        lines.append("\\end{tabular}")
+        return "\n".join(lines)
+
+    def timing_data(self, timing_key: str = "duration_seconds") -> Dict[str, List[float]]:
+        """Collect timing values for each pipeline across all seeds.
+
+        Parameters
+        ----------
+        timing_key : str, optional
+            Which timing channel to collect. ``"duration_seconds"`` gathers
+            the per-run wall-clock duration. Other keys may be taken from
+            ``RunResult.timings`` if present.
+            Default: ``"duration_seconds"``.
+
+        Returns
+        -------
+        Dict[str, List[float]]
+            Mapping of pipeline name to a list of timing values.
+        """
+        data: Dict[str, List[float]] = {}
+        for name, exp in self.pipelines.items():
+            values: List[float] = []
+            for run in exp.runs:
+                if timing_key == "duration_seconds":
+                    if run.duration_seconds is not None:
+                        values.append(run.duration_seconds)
+                else:
+                    if run.timings is None:
+                        continue
+                    if timing_key in run.timings:
+                        try:
+                            values.append(float(run.timings[timing_key]))
+                        except (TypeError, ValueError):
+                            continue
+            data[name] = values
+        return data
+
+    def plot_timing_boxplot(
+        self,
+        timing_key: str = "duration_seconds",
+        ax: Any = None,
+        title: Optional[str] = None,
+    ) -> Any:
+        """Draw a per-pipeline boxplot for timing values.
+
+        Parameters
+        ----------
+        timing_key : str, optional
+            Timing channel to plot. ``"duration_seconds"`` uses the per-run
+            wall-clock runtime. Other values may come from the
+            per-run ``RunResult.timings`` dictionary.
+            Default: ``"duration_seconds"``.
+
+        ax : matplotlib.axes.Axes, optional
+            Axis to draw on. If ``None``, a new figure and axis pair is created.
+
+        title : str, optional
+            Plot title. If ``None``, defaults to ``"Timing boxplot"``.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axis containing the boxplot.
+        """
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as e:
+            raise ImportError(
+                "matplotlib is required for plot_timing_boxplot(). "
+                "Install it with: pip install matplotlib"
+            ) from e
+
+        data = self.timing_data(timing_key=timing_key)
+        labels: List[str] = []
+        values: List[List[float]] = []
+        for name, timings in data.items():
+            if timings:
+                labels.append(name)
+                values.append(timings)
+
+        if not values:
+            raise ValueError(
+                f"No timing values available for timing_key='{timing_key}'"
+            )
+
+        if ax is None:
+            _, ax = plt.subplots(figsize=(max(6, len(labels) * 1.5), 5))
+
+        try:
+            ax.boxplot(values, tick_labels=labels, patch_artist=True)
+        except TypeError:
+            ax.boxplot(values, labels=labels, patch_artist=True)
+        ax.set_title(title or "Timing boxplot")
+        ax.set_ylabel(f"{timing_key} (seconds)")
+        ax.set_xlabel("Pipeline")
+        ax.grid(True, axis="y", alpha=0.3)
+        return ax
+
+    def final_metric_data(self, metric_key: str = "best_fitness") -> Dict[str, List[float]]:
+        """Collect final metric values for each pipeline across all seeds.
+
+        Parameters
+        ----------
+        metric_key : str, optional
+            Metric value to gather from each run's ``RunResult.metrics``.
+            Default: ``"best_fitness"``.
+
+        Returns
+        -------
+        Dict[str, List[float]]
+            Mapping of pipeline name to a list of final metric values.
+            Values are sign-normalized for pipelines marked in
+            ``negate_map``.
+        """
+        data: Dict[str, List[float]] = {}
+        for name, exp in self.pipelines.items():
+            values: List[float] = []
+            sign = self._sign(name)
+            for run in exp.runs:
+                if metric_key not in run.metrics:
+                    continue
+                try:
+                    value = float(run.metrics[metric_key])
+                except (TypeError, ValueError):
+                    continue
+                values.append(sign * value)
+            data[name] = values
+        return data
+
+    def plot_final_metric_boxplot(
+        self,
+        metric_key: str = "best_fitness",
+        ax: Any = None,
+        title: Optional[str] = None,
+    ) -> Any:
+        """Draw a per-pipeline boxplot for final run metric values.
+
+        Parameters
+        ----------
+        metric_key : str, optional
+            Metric to plot from the final results of each run. By default,
+            ``"best_fitness"`` is used.
+
+        ax : matplotlib.axes.Axes, optional
+            Axis to draw on. If ``None``, a new figure and axis pair is created.
+
+        title : str, optional
+            Plot title. If ``None``, defaults to
+            ``"Final {metric_key} distribution"``.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axis containing the boxplot.
+        """
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as e:
+            raise ImportError(
+                "matplotlib is required for plot_final_metric_boxplot(). "
+                "Install it with: pip install matplotlib"
+            ) from e
+
+        data = self.final_metric_data(metric_key=metric_key)
+        labels: List[str] = []
+        values: List[List[float]] = []
+        for name, metric_vals in data.items():
+            if metric_vals:
+                labels.append(name)
+                values.append(metric_vals)
+
+        if not values:
+            raise ValueError(
+                f"No metric values available for metric_key='{metric_key}'"
+            )
+
+        if ax is None:
+            _, ax = plt.subplots(figsize=(max(6, len(labels) * 1.5), 5))
+
+        try:
+            ax.boxplot(values, tick_labels=labels, patch_artist=True)
+        except TypeError:
+            ax.boxplot(values, labels=labels, patch_artist=True)
+
+        ax.set_title(title or f"Final {metric_key} distribution")
+        ax.set_ylabel(metric_key.replace("_", " ").title())
+        ax.set_xlabel("Pipeline")
+        ax.grid(True, axis="y", alpha=0.3)
+        return ax
 
     def convergence_data(self, seed_index: int = 0) -> Dict[str, List[Dict[str, Any]]]:
         """Extract per-pipeline convergence histories for a single seed.
@@ -562,7 +791,7 @@ class ComparisonResult:
 
     def plot_convergence(
         self,
-        seed_index: int = 0,
+        seed_index: Union[int, List[int]] = 0,
         ax: Any = None,
         title: Optional[str] = None,
         negate: Optional[Dict[str, bool]] = None,
@@ -576,19 +805,24 @@ class ComparisonResult:
 
         Parameters
         ----------
-        seed_index : int, optional
-            Which seed's convergence history to plot (0-indexed).
+        seed_index : int or list[int], optional
+            Which seed(s) convergence history to plot.
+            If an integer, draws a single plot. If a list, draws a subplot for
+            each seed in the list and returns a sequence of axes.
             Use ``seed_index=0, 1, 2, ...`` to inspect robustness across
             different random initializations.
             Default: 0 (first seed).
 
-        ax : matplotlib.axes.Axes, optional
-            Matplotlib axis to draw on. If ``None``, a new figure and axis
-            are created (figsize=(8, 4)).
+        ax : matplotlib.axes.Axes or sequence of Axes, optional
+            Matplotlib axis or axes to draw on. If ``None``, new figure and
+            axis/axes are created. When ``seed_index`` is a list, ``ax`` must
+            be an iterable of axes with the same length as the seed list.
             Default: ``None``.
 
         title : str, optional
             Plot title. If ``None``, defaults to ``"Convergence comparison"``.
+            When plotting multiple seeds, the seed number is appended to each
+            subplot title.
             Default: ``None``.
 
         negate : Dict[str, bool], optional
@@ -600,8 +834,9 @@ class ComparisonResult:
 
         Returns
         -------
-        matplotlib.axes.Axes
-            The matplotlib axis object (for further customization).
+        matplotlib.axes.Axes or list[matplotlib.axes.Axes]
+            The matplotlib axis object or list of axis objects for multiple
+            seed plots.
 
         Raises
         ------
@@ -674,6 +909,34 @@ class ComparisonResult:
                 "matplotlib is required for plot_convergence(). "
                 "Install it with: pip install matplotlib"
             ) from e
+
+        if isinstance(seed_index, (list, tuple)):
+            seed_list = list(seed_index)
+            if ax is None:
+                fig, axes = plt.subplots(
+                    1,
+                    len(seed_list),
+                    figsize=(5 * len(seed_list), 4),
+                    squeeze=False,
+                )
+                axes = list(axes[0])
+            elif hasattr(ax, "__iter__") and not isinstance(ax, (str, bytes)):
+                axes = list(ax)
+                if len(axes) != len(seed_list):
+                    raise ValueError(
+                        "When seed_index is a list, ax must contain one axis per seed."
+                    )
+            else:
+                raise ValueError(
+                    "When seed_index is a list, ax must be an iterable of axes."
+                )
+
+            for subplot_ax, seed in zip(axes, seed_list):
+                subplot_title = (
+                    f"{title} (seed {seed})" if title is not None else f"Seed {seed}"
+                )
+                self.plot_convergence(seed, ax=subplot_ax, title=subplot_title, negate=negate)
+            return axes
 
         if ax is None:
             _, ax = plt.subplots(figsize=(8, 4))
