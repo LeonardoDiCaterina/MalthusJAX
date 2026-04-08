@@ -141,7 +141,19 @@ cmp = composer.compare(
 )
 
 cmp.summary_table()      # Aggregated metrics per pipeline
+cmp.summary_table(latex=True)  # LaTeX-formatted summary table
 cmp.plot_convergence()   # Overlay convergence curves
+cmp.plot_convergence(seed_index=[0, 1])   # Multi-seed subplot comparison
+```
+
+You can also inspect the final run distribution across pipelines with the new results helpers:
+
+```python
+final_data = cmp.final_metric_data(metric_key="best_fitness")
+print(final_data)
+
+ax = cmp.plot_final_metric_boxplot(metric_key="best_fitness")
+ax.set_title("Final best fitness distribution")
 ```
 
 Cross-framework comparison with [evosax](https://github.com/RobertTLange/evosax) is built in -- just set `backend="evosax"`.
