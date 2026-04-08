@@ -146,11 +146,13 @@ cmp.plot_convergence()   # Overlay convergence curves
 
 Cross-framework comparison with [evosax](https://github.com/RobertTLange/evosax) is built in -- just set `backend="evosax"`.
 
+> Note: the current Evosax adapter only supports Evosax-compatible problem representations (primarily the BBOB-style problems exposed through the MalthusJAX fitness catalog). This was intentionally designed to give a reliable measurement of the Evosax architecture cost without also including the extra core-level infrastructure of MalthusJAX. Support for arbitrary evaluators and broader problem types will be added later, so you can use the full range of Evosax strategies with whatever problem comes to mind.
+
 ---
 
 ## Beyond Continuous Optimization: Flexible Solution Representations
 
-Unlike evosax (limited to real-valued vectors), MalthusJAX lets you choose the genome type that matches your problem:
+MalthusJAX lets you choose the genome type that matches your problem:
 
 - **Real-valued genomes** (`genome_type="real"`) — Continuous optimization (Sphere, Rastrigin, BBOB)
 - **Binary genomes** (`genome_type="binary"`) — Combinatorial problems (knapsack, satisfiability)
@@ -160,6 +162,7 @@ Each genome type gets **problem-specific operators**:
 - Real: Gaussian/polynomial mutation, blend/SBX crossover
 - Binary: Bit-flip mutation, uniform/single-point crossover
 - Categorical: Swap/scramble mutation, order-preserving crossover
+- Custom genomes can be implemented and plugged in easily, extending the BaseOperator class and the BasePopulation class, of course needing to implement the required operations for the new genome type.
 
 ### Example: 0/1 Knapsack (Binary Genome)
 
@@ -250,7 +253,7 @@ Each genome type gets **problem-specific operators**:
 
 ## Data-Driven Optimization: Load External Benchmarks
 
-MalthusJAX seamlessly integrates external data through the `data_config` parameter — pass problem-specific data directly into JIT-compiled optimization runs. Classic example: **Traveling Salesman Problem (TSP)**:
+MalthusJAX integrates external data through the `data_config` parameter — pass problem-specific data directly into JIT-compiled optimization runs. Classic example: **Traveling Salesman Problem (TSP)**:
 
 ```python
 from malthusjax.composer import Composer
@@ -464,25 +467,53 @@ Creating a custom operator is straightforward -- implement the core logic and ba
 ```python
 import jax
 from flax import struct
-from malthusjax.operators.mutation import BaseMutation
+from malthusjax.operators.base import BaseMutation
 
 @struct.dataclass
 class MyMutation(BaseMutation):
-    num_offspring: int = struct.field(pytree_node=False)
-    strength: float    = struct.field(pytree_node=False)
+    strength: float = struct.field(pytree_node=False, default=0.1)
+    num_offspring: int = struct.field(pytree_node=False, default=1)
 
     @property
     def num_keys_per_atomic_operation(self):
         return 1
 
-    def _generate_noise(self, keys, cfg):
+    def _generate_noise(self, keys, cfg, generation=0):
         return jax.random.normal(keys[0], shape=cfg.shape) * self.strength
 
-    def _mutate_one(self, genome, noise, cfg):
+    def _mutate_one(self, genome, noise, cfg, **kwargs):
         return genome.replace(values=genome.values + noise)
 ```
 
 Drop it into any pipeline -- the engine handles the rest.
+
+To use it via Composer string specs, register it with the operator catalog:
+
+```python
+from malthusjax.composer.catalog import OperatorCatalog
+
+OperatorCatalog().register(
+    "my_mutation",
+    lambda **kwargs: MyMutation(
+        num_offspring=int(kwargs.get("num_offspring", 1)),
+        strength=float(kwargs.get("strength", 0.1)),
+    ),
+)
+```
+
+Then you can use it in `quick_run()` or TOML as:
+
+```python
+result = composer.quick_run(
+    fitness="sphere:dim=10",
+    mutation="my_mutation:num_offspring=2,strength=0.2",
+    pop_size=100,
+    generations=100,
+    seeds=(42, 43, 44),
+)
+```
+
+If you want the operator available package-wide, add the registration to the Composer catalog initialization code in `src/malthusjax/composer/catalog.py` or a custom extension module that runs on import.
 
 ---
 
