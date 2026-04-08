@@ -9,6 +9,8 @@ pipelines.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import json
 import statistics
 from dataclasses import dataclass, field
@@ -566,6 +568,7 @@ class ComparisonResult:
         timing_key: str = "duration_seconds",
         ax: Any = None,
         title: Optional[str] = None,
+        save_path: Optional[Union[str, Path]] = None,
     ) -> Any:
         """Draw a per-pipeline boxplot for timing values.
 
@@ -582,6 +585,10 @@ class ComparisonResult:
 
         title : str, optional
             Plot title. If ``None``, defaults to ``"Timing boxplot"``.
+
+        save_path : str or pathlib.Path, optional
+            If provided, save the generated figure to this path.
+            The parent directory will be created if it does not exist.
 
         Returns
         -------
@@ -610,7 +617,9 @@ class ComparisonResult:
             )
 
         if ax is None:
-            _, ax = plt.subplots(figsize=(max(6, len(labels) * 1.5), 5))
+            fig, ax = plt.subplots(figsize=(max(6, len(labels) * 1.5), 5))
+        else:
+            fig = getattr(ax, "figure", None)
 
         try:
             ax.boxplot(values, tick_labels=labels, patch_artist=True)
@@ -620,6 +629,12 @@ class ComparisonResult:
         ax.set_ylabel(f"{timing_key} (seconds)")
         ax.set_xlabel("Pipeline")
         ax.grid(True, axis="y", alpha=0.3)
+
+        if save_path is not None and fig is not None:
+            out_path = Path(save_path)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(out_path, bbox_inches="tight")
+
         return ax
 
     def final_metric_data(self, metric_key: str = "best_fitness") -> Dict[str, List[float]]:
@@ -658,6 +673,7 @@ class ComparisonResult:
         metric_key: str = "best_fitness",
         ax: Any = None,
         title: Optional[str] = None,
+        save_path: Optional[Union[str, Path]] = None,
     ) -> Any:
         """Draw a per-pipeline boxplot for final run metric values.
 
@@ -673,6 +689,10 @@ class ComparisonResult:
         title : str, optional
             Plot title. If ``None``, defaults to
             ``"Final {metric_key} distribution"``.
+
+        save_path : str or pathlib.Path, optional
+            If provided, save the generated figure to this path.
+            The parent directory will be created if it does not exist.
 
         Returns
         -------
@@ -701,7 +721,9 @@ class ComparisonResult:
             )
 
         if ax is None:
-            _, ax = plt.subplots(figsize=(max(6, len(labels) * 1.5), 5))
+            fig, ax = plt.subplots(figsize=(max(6, len(labels) * 1.5), 5))
+        else:
+            fig = getattr(ax, "figure", None)
 
         try:
             ax.boxplot(values, tick_labels=labels, patch_artist=True)
@@ -712,6 +734,12 @@ class ComparisonResult:
         ax.set_ylabel(metric_key.replace("_", " ").title())
         ax.set_xlabel("Pipeline")
         ax.grid(True, axis="y", alpha=0.3)
+
+        if save_path is not None and fig is not None:
+            out_path = Path(save_path)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(out_path, bbox_inches="tight")
+
         return ax
 
     def convergence_data(self, seed_index: int = 0) -> Dict[str, List[Dict[str, Any]]]:
@@ -795,6 +823,7 @@ class ComparisonResult:
         ax: Any = None,
         title: Optional[str] = None,
         negate: Optional[Dict[str, bool]] = None,
+        save_path: Optional[Union[str, Path]] = None,
     ) -> Any:
         """Visualize convergence of all pipelines on a matplotlib axis.
 
@@ -831,6 +860,10 @@ class ComparisonResult:
             display. Example: ``negate={"Pipeline A": True}`` flips only
             "Pipeline A"'s curve.
             Default: ``None`` (no additional flips).
+
+        save_path : str or pathlib.Path, optional
+            If provided, save the generated figure to this path.
+            The parent directory will be created if it does not exist.
 
         Returns
         -------
@@ -926,6 +959,7 @@ class ComparisonResult:
                     raise ValueError(
                         "When seed_index is a list, ax must contain one axis per seed."
                     )
+                fig = getattr(axes[0], "figure", None)
             else:
                 raise ValueError(
                     "When seed_index is a list, ax must be an iterable of axes."
@@ -936,10 +970,17 @@ class ComparisonResult:
                     f"{title} (seed {seed})" if title is not None else f"Seed {seed}"
                 )
                 self.plot_convergence(seed, ax=subplot_ax, title=subplot_title, negate=negate)
+
+            if save_path is not None and fig is not None:
+                out_path = Path(save_path)
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                fig.savefig(out_path, bbox_inches="tight")
             return axes
 
         if ax is None:
-            _, ax = plt.subplots(figsize=(8, 4))
+            fig, ax = plt.subplots(figsize=(8, 4))
+        else:
+            fig = getattr(ax, "figure", None)
 
         extra_negate = negate or {}
         conv = self.convergence_data(seed_index)  # already sign-normalised
@@ -958,4 +999,9 @@ class ComparisonResult:
         ax.set_title(title or "Convergence comparison")
         ax.legend()
         ax.grid(True, alpha=0.3)
+
+        if save_path is not None and fig is not None:
+            out_path = Path(save_path)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(out_path, bbox_inches="tight")
         return ax
