@@ -628,12 +628,13 @@ class ComparisonResult:
         ax.set_title(title or "Timing boxplot")
         ax.set_ylabel(f"{timing_key} (seconds)")
         ax.set_xlabel("Pipeline")
+        ax.tick_params(axis="x", labelrotation=45)
         ax.grid(True, axis="y", alpha=0.3)
 
         if save_path is not None and fig is not None:
             out_path = Path(save_path)
             out_path.parent.mkdir(parents=True, exist_ok=True)
-            fig.savefig(out_path, bbox_inches="tight")
+            fig.savefig(out_path, bbox_inches="tight", dpi=300)
 
         return ax
 
@@ -733,12 +734,13 @@ class ComparisonResult:
         ax.set_title(title or f"Final {metric_key} distribution")
         ax.set_ylabel(metric_key.replace("_", " ").title())
         ax.set_xlabel("Pipeline")
+        ax.tick_params(axis="x", labelrotation=45)
         ax.grid(True, axis="y", alpha=0.3)
 
         if save_path is not None and fig is not None:
             out_path = Path(save_path)
             out_path.parent.mkdir(parents=True, exist_ok=True)
-            fig.savefig(out_path, bbox_inches="tight")
+            fig.savefig(out_path, bbox_inches="tight", dpi=300)
 
         return ax
 
