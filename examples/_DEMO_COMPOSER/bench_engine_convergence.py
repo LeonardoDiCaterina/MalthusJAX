@@ -46,21 +46,34 @@ def main() -> None:
     seed_count = min(4, len(seeds))
     seed_list = list(range(seed_count))
 
-    axes = comparison.plot_convergence(seed_index=seed_list)
+    plot_dir = project_dir / "results" / "bench_engine_convergence"
+    plot_dir.mkdir(parents=True, exist_ok=True)
+
+    axes = comparison.plot_convergence(
+        seed_index=seed_list,
+        save_path=plot_dir / "convergence.png",
+    )
     for ax in axes:
         ax.set_xlabel("Generation")
         ax.set_ylabel("Best Fitness")
 
     plt.suptitle("Convergence comparison across multiple shared-seed runs", fontsize=16)
+    plt.tight_layout()
     plt.show()
 
-    ax_box = comparison.plot_timing_boxplot(timing_key="duration_seconds")
+    ax_box = comparison.plot_timing_boxplot(
+        timing_key="duration_seconds",
+        save_path=plot_dir / "timing_boxplot.png",
+    )
     ax_box.set_title("Per-pipeline duration boxplot")
     ax_box.set_xticklabels(ax_box.get_xticklabels(), rotation=45, ha="right")
     plt.tight_layout()
     plt.show()
 
-    ax_final = comparison.plot_final_metric_boxplot(metric_key="best_fitness")
+    ax_final = comparison.plot_final_metric_boxplot(
+        metric_key="best_fitness",
+        save_path=plot_dir / "final_best_fitness_boxplot.png",
+    )
     ax_final.set_title("Final best_fitness distribution across runs")
     ax_final.set_xticklabels(ax_final.get_xticklabels(), rotation=45, ha="right")
     plt.tight_layout()
