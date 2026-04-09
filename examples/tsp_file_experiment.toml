@@ -1,0 +1,18 @@
+[experiment]
+name = "tsp_file_demo"
+
+[experiment.shared]
+fitness = "tsp:data_id=test_file"
+genome = "real:dim=3,bounds=(0,1)"
+pop_size = 10
+generations = 10
+seeds = [1]
+
+[data.test_file]
+source = "file"
+path = "data/tsp/test3.tsp"
+
+[pipelines.ga_baseline]
+selection = "tournament:tournament_size=3"
+crossover = "blend:alpha=0.5"
+mutation = "gaussian:mutation_rate=0.1"

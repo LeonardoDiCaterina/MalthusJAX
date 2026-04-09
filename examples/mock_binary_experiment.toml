@@ -1,0 +1,34 @@
+[experiment]
+name       = "mock_binary_test"
+output_dir = "results/mock_binary"
+
+[experiment.shared]
+genome        = "binary:length=50"
+fitness       = "binary_sum"
+pop_size      = 60
+generations   = 20
+seeds         = [42, 43, 44]
+
+[pipelines.ga_baseline]
+engine_type = "ga"
+selection   = "tournament:tournament_size=3"
+crossover   = "single_point"
+mutation    = "bitflip:mutation_rate=0.01"
+
+[pipelines.ga_high_mutation]
+engine_type = "ga"
+selection   = "tournament:tournament_size=3"
+crossover   = "single_point"
+mutation    = "bitflip:mutation_rate=0.15"
+
+[pipelines.ga_uniform_cross]
+engine_type = "ga"
+selection   = "tournament:tournament_size=3"
+crossover   = "uniform_binary"
+mutation    = "bitflip:mutation_rate=0.05"
+
+[pipelines.ga_large_tournament]
+engine_type = "ga"
+selection   = "tournament:tournament_size=7"
+crossover   = "single_point"
+mutation    = "bitflip:mutation_rate=0.05"
