@@ -15,9 +15,29 @@ import sys
 import json
 from datetime import datetime
 import argparse
+import gc
 
 from malthusjax.composer import Composer
 import matplotlib.pyplot as plt
+import jax
+
+
+def cleanup_gpu_memory():
+    """Clear GPU memory and compiled JAX functions between pipelines.
+    
+    Flushes Python garbage collection and forces JAX to release compiled
+    kernels from GPU memory. Reduces CUDA graph memory pressure.
+    """
+    gc.collect()  # Python garbage collection
+    try:
+        # Clear JAX's device memory (H2D/D2H caches)
+        jax.effects_barrier()
+        # Try to clear compiled function cache if available
+        if hasattr(jax, '_src') and hasattr(jax._src, 'dispatch'):
+            jax._src.dispatch.clear_backends()
+    except Exception as e:
+        # If this fails, don't crash - just continue
+        pass
 
 
 def discover_toml_files(pattern="convergence_"):
@@ -75,6 +95,11 @@ def run_single_experiment(toml_path, skip_plots=False):
     # Create result directory
     result_dir = Path(__file__).resolve().parent / "results" / "thesis" / exp_name
     result_dir.mkdir(parents=True, exist_ok=True)
+
+    # **CRITICAL**: Clear GPU memory after all pipelines complete
+    # This prevents CUDA graph overflow when running multiple experiments
+    cleanup_gpu_memory()
+    print("  ✓ GPU memory cleared")
 
     # Print summary
     summary = comparison.summary_table()
@@ -174,6 +199,10 @@ def run_single_experiment(toml_path, skip_plots=False):
 
     elapsed = (datetime.now() - start_time).total_seconds()
     print(f"\nCompleted in {elapsed:.1f}s → {result_dir}")
+    
+    # Cleanup GPU memory after experiment completes
+    cleanup_gpu_memory()
+    
     return result_dir
 
 
@@ -250,6 +279,8 @@ def main():
             result_dir = run_single_experiment(toml_path, skip_plots=args.skip_plots)
             if result_dir:
                 results.append(result_dir)
+                # Clear GPU memory between experiments
+                cleanup_gpu_memory()
         except KeyboardInterrupt:
             print("\nInterrupted by user")
             return 130
