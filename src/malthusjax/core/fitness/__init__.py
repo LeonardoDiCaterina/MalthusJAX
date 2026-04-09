@@ -150,12 +150,15 @@ def _register_fitness() -> None:
 
     register_table(
         [
-            # BBOB presets
+            # BBOB presets - Standard functions
             ("sphere", _make_bbob_factory("sphere", maximize=False), {}),
-            ("rastrigin", _make_bbob_factory("rastrigin", maximize=True), {}),
             ("sphere_minimize", _make_bbob_factory("sphere", maximize=False), {}),
             ("sphere_maximize", _make_bbob_factory("sphere", maximize=True), {}),
-            # General BBOB
+            ("rastrigin", _make_bbob_factory("rastrigin", maximize=False), {}),
+            ("griewank_rosenbrock", _make_bbob_factory("griewank_rosenbrock", maximize=False), {}),
+            ("rosenbrock", _make_bbob_factory("rosenbrock", maximize=False), {}),
+            ("ellipsoidal_rotated", _make_bbob_factory("ellipsoidal_rotated", maximize=False), {}),
+            # General BBOB for custom functions
             ("bbob", _create_bbob_evaluator, {}),
             # Classic evaluators
             ("griewank", _create_griewank_evaluator, {}),
