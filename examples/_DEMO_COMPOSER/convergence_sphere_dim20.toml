@@ -24,6 +24,11 @@ mutation = "gaussian:mutation_rate=0.1"
 [pipelines.malthusjax_default]
 backend = "malthusjax"
 
+[pipelines.malthusjax_default_evosaxops]
+backend = "malthusjax"
+crossover = "evosax_uniform_crossover"
+mutation = "evosax_gaussian"
+
 [pipelines.malthusjax_roulette]
 backend = "malthusjax"
 selection = "roulette:num_selections=100,temperature=1.0"
