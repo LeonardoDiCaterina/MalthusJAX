@@ -27,6 +27,28 @@ def discover_toml_files(pattern="convergence_"):
     return tomls
 
 
+def filter_completed_experiments(toml_files, results_dir="results/thesis"):
+    """Filter out TOMLs that already have completed result directories.
+
+    Returns (remaining_toml_files, completed_experiments)
+    """
+    results_path = Path(__file__).resolve().parent / results_dir
+
+    remaining = []
+    completed = []
+
+    for toml in toml_files:
+        exp_name = toml.stem  # e.g., "convergence_sphere_dim10"
+        result_dir = results_path / exp_name
+
+        if result_dir.exists() and (result_dir / "aggregated_summary.json").exists():
+            completed.append(exp_name)
+        else:
+            remaining.append(toml)
+
+    return remaining, completed
+
+
 def run_single_experiment(toml_path, skip_plots=False):
     """Run a single TOML experiment and generate results."""
     print(f"\n{'='*70}")
@@ -174,6 +196,17 @@ def main():
         default=None,
         help="Run only TOML file matching this name (e.g., sphere_dim10)",
     )
+    parser.add_argument(
+        "--skip-completed",
+        action="store_true",
+        default=True,
+        help="Skip experiments that already have results (default: True)",
+    )
+    parser.add_argument(
+        "--rerun-all",
+        action="store_true",
+        help="Rerun all experiments, even if results exist",
+    )
     args = parser.parse_args()
 
     # Discover TOML files
@@ -189,13 +222,30 @@ def main():
             print(f"No TOML files found matching: {args.single}")
             return 1
 
-    print(f"Discovered {len(tomls)} experiment(s)")
-    for toml in tomls:
-        print(f"  - {toml.name}")
+    # Filter out completed experiments (unless --rerun-all specified)
+    if args.rerun_all:
+        remaining_tomls = tomls
+        completed = []
+    else:
+        remaining_tomls, completed = filter_completed_experiments(tomls)
 
-    # Run each
+    print(f"Discovered {len(tomls)} experiment(s)")
+    if completed:
+        print(f"\n✓ Already completed ({len(completed)}):")
+        for exp_name in completed:
+            print(f"    - {exp_name}")
+    
+    if remaining_tomls:
+        print(f"\n⟳ To run ({len(remaining_tomls)}):")
+        for toml in remaining_tomls:
+            print(f"    - {toml.name}")
+    else:
+        print("\n✓ All experiments already completed! Use --rerun-all to re-run.")
+        return 0
+
+    # Run each remaining experiment
     results = []
-    for toml_path in tomls:
+    for toml_path in remaining_tomls:
         try:
             result_dir = run_single_experiment(toml_path, skip_plots=args.skip_plots)
             if result_dir:
@@ -211,11 +261,20 @@ def main():
 
     # Summary report
     print(f"\n{'='*70}")
-    print("ALL EXPERIMENTS COMPLETE")
+    print("EXPERIMENT RUN COMPLETE")
     print(f"{'='*70}")
-    print("Results saved to:")
-    for result_dir in results:
-        print(f"  {result_dir}")
+    if completed:
+        print(f"Previously completed ({len(completed)}):")
+        for exp_name in completed:
+            print(f"  ✓ {exp_name}")
+    if results:
+        print(f"Newly completed ({len(results)}):")
+        for result_dir in results:
+            print(f"  ✓ {result_dir.name}")
+    
+    total_completed = len(completed) + len(results)
+    total_experiments = len(tomls)
+    print(f"\nTotal: {total_completed}/{total_experiments} experiments completed")
 
     return 0
 
