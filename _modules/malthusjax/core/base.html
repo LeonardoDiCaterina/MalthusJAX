@@ -367,15 +367,43 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;len() is not supported for this genome (missing &#39;values&#39;).&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Index into the genome&#39;s primary values payload if enabled.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Index into the genome, returning a genome type when possible.</span>
 
-<span class="sd">        Subclasses enable this behavior by declaring a `subscriptable` field</span>
-<span class="sd">        if they want Pythonic indexing/iteration semantics.</span>
+<span class="sd">        Behavior depends on whether this is a batched genome or a single genome:</span>
+
+<span class="sd">        **Batched genome indexing** (all genome subtypes):</span>
+<span class="sd">            - Integer key: Extract individual genome and reconstruct via tree_map</span>
+<span class="sd">                pop.genes[0] → returns RealGenome / CategoricalGenome / etc.</span>
+<span class="sd">            - Slice/array key: Extract sub-population of genomes with same type</span>
+<span class="sd">                pop.genes[10:20] → returns batched genome with 10 individuals</span>
+
+<span class="sd">        **Single genome value indexing** (subscriptable=True only):</span>
+<span class="sd">            - scalar/array return from genome.values array directly</span>
+<span class="sd">                The genome must declare subscriptable=True to enable this.</span>
+
+<span class="sd">        Implementation leverages JAX PyTree structure: tree_map automatically</span>
+<span class="sd">        reconstructs the correct subclass type (RealGenome, CategoricalGenome, etc.)</span>
+<span class="sd">        based on the frozen dataclass wrapper, with no explicit dispatch needed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Determine if this is a batched genome by checking array leaf dimensions</span>
+        <span class="n">leaves</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_leaves</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">is_batched</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">leaves</span> <span class="ow">and</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span> <span class="ow">and</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">is_batched</span><span class="p">:</span>
+            <span class="c1"># Batched genome: use tree_map to extract and reconstruct individual/sub-genome</span>
+            <span class="c1"># This preserves the type:</span>
+            <span class="c1"># RealGenome → RealGenome, CategoricalGenome → CategoricalGenome, etc.</span>
+            <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># Single genome value indexing (subscriptable mode only)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;subscriptable&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> object is not subscriptable; &quot;</span>
-                <span class="s2">&quot;set subscriptable=True to enable indexing.&quot;</span>
+                <span class="s2">&quot;set subscriptable=True to enable value-level indexing.&quot;</span>
             <span class="p">)</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -384,14 +412,39 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Genome does not expose &#39;values&#39; for indexing.&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate over the genome&#39;s primary values payload if enabled.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;subscriptable&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> object is not iterable; &quot;</span>
-                <span class="s2">&quot;set subscriptable=True to enable iteration.&quot;</span>
-            <span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate over the genome, yielding genomes or values depending on type.</span>
+
+<span class="sd">        **Batched genome iteration**:</span>
+<span class="sd">            Yields individual reconstructed genomes for each population member.</span>
+<span class="sd">            Example: iterating batched RealGenome yields RealGenome individuals.</span>
+
+<span class="sd">        **Single genome iteration** (subscriptable=True only):</span>
+<span class="sd">            Yields values from the genome&#39;s values array.</span>
+<span class="sd">            Example: iterating subscriptable RealGenome yields scalars.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Determine if this is a batched genome</span>
+        <span class="n">leaves</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_leaves</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">is_batched</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">leaves</span> <span class="ow">and</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span> <span class="ow">and</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">is_batched</span><span class="p">:</span>
+            <span class="c1"># Batched genome: iterate and yield individual genomes</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="c1"># Uses __getitem__ to extract and reconstruct</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Single genome value iteration (subscriptable mode only)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;subscriptable&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> object is not iterable; &quot;</span>
+                    <span class="s2">&quot;set subscriptable=True to enable value-level iteration, &quot;</span>
+                    <span class="s2">&quot;or iterate a batched genome to yield individual genomes.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseGenome.random_init">
 <a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.core.base.BaseGenome.random_init">[docs]</a>
