@@ -50,15 +50,42 @@ class BaseGenome:
             raise TypeError("len() is not supported for this genome (missing 'values').") from e
 
     def __getitem__(self, key: Union[int, slice, chex.Array]) -> Any:
-        """Index into the genome's primary values payload if enabled.
+        """Index into the genome, returning a genome type when possible.
 
-        Subclasses enable this behavior by declaring a `subscriptable` field
-        if they want Pythonic indexing/iteration semantics.
+        Behavior depends on whether this is a batched genome or a single genome:
+
+        **Batched genome indexing** (all genome subtypes):
+            - Integer key: Extract individual genome and reconstruct via tree_map
+                pop.genes[0] → returns RealGenome / CategoricalGenome / etc.
+            - Slice/array key: Extract sub-population of genomes with same type
+                pop.genes[10:20] → returns batched genome with 10 individuals
+
+        **Single genome value indexing** (subscriptable=True only):
+            - scalar/array return from genome.values array directly
+                The genome must declare subscriptable=True to enable this.
+
+        Implementation leverages JAX PyTree structure: tree_map automatically
+        reconstructs the correct subclass type (RealGenome, CategoricalGenome, etc.)
+        based on the frozen dataclass wrapper, with no explicit dispatch needed.
         """
+        # Determine if this is a batched genome by checking array leaf dimensions
+        leaves = jax.tree_util.tree_leaves(self)
+        is_batched = (
+            leaves and 
+            hasattr(leaves[0], "shape") and 
+            len(leaves[0].shape) > 0
+        )
+
+        if is_batched:
+            # Batched genome: use tree_map to extract and reconstruct individual/sub-genome
+            # This preserves the type: RealGenome → RealGenome, CategoricalGenome → CategoricalGenome, etc.
+            return jax.tree_util.tree_map(lambda x: x[key], self)
+
+        # Single genome value indexing (subscriptable mode only)
         if not getattr(self, "subscriptable", False):
             msg = (
                 f"{self.__class__.__name__} object is not subscriptable; "
-                "set subscriptable=True to enable indexing."
+                "set subscriptable=True to enable value-level indexing."
             )
             raise TypeError(msg)
         try:
@@ -67,14 +94,39 @@ class BaseGenome:
             raise TypeError("Genome does not expose 'values' for indexing.") from e
 
     def __iter__(self) -> Iterator[Any]:
-        """Iterate over the genome's primary values payload if enabled."""
-        if not getattr(self, "subscriptable", False):
-            msg = (
-                f"{self.__class__.__name__} object is not iterable; "
-                "set subscriptable=True to enable iteration."
-            )
-            raise TypeError(msg)
-        return iter(cast(Any, self).values)
+        """Iterate over the genome, yielding genomes or values depending on type.
+
+        **Batched genome iteration**:
+            Yields individual reconstructed genomes for each population member.
+            Example: iterating batched RealGenome yields RealGenome individuals.
+
+        **Single genome iteration** (subscriptable=True only):
+            Yields values from the genome's values array.
+            Example: iterating subscriptable RealGenome yields scalars.
+        """
+        # Determine if this is a batched genome
+        leaves = jax.tree_util.tree_leaves(self)
+        is_batched = (
+            leaves and 
+            hasattr(leaves[0], "shape") and 
+            len(leaves[0].shape) > 0
+        )
+
+        if is_batched:
+            # Batched genome: iterate and yield individual genomes
+            n = int(leaves[0].shape[0])
+            for i in range(n):
+                yield self[i]  # Uses __getitem__ to extract and reconstruct
+        else:
+            # Single genome value iteration (subscriptable mode only)
+            if not getattr(self, "subscriptable", False):
+                msg = (
+                    f"{self.__class__.__name__} object is not iterable; "
+                    "set subscriptable=True to enable value-level iteration, "
+                    "or iterate a batched genome to yield individual genomes."
+                )
+                raise TypeError(msg)
+            return iter(cast(Any, self).values)
 
     @classmethod
     @abstractmethod
