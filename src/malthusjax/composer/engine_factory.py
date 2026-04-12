@@ -65,7 +65,10 @@ class GeneticEngineAdapter:
         if self.initial_population is not None:
             arr = jnp.asarray(self.initial_population)
             pop = RealPopulation.from_array(arr, self.genome_config, axis=0)
-            evaluated_pop = self.genetic_engine.evaluator.evaluate_population(pop)
+            evaluated_pop = cast(
+                RealPopulation,
+                self.genetic_engine.evaluator.evaluate_population(pop),
+            )
 
             fitness = evaluated_pop.fitness
             best_idx = int(jnp.argmax(fitness))

@@ -14,7 +14,10 @@ import statistics
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
 
 
 @dataclass
@@ -615,6 +618,7 @@ class ComparisonResult:
                 f"No timing values available for timing_key='{timing_key}'"
             )
 
+        fig: Figure | None = None
         if ax is None:
             fig, ax = plt.subplots(figsize=(max(6, len(labels) * 1.5), 5))
         else:
@@ -720,6 +724,7 @@ class ComparisonResult:
                 f"No metric values available for metric_key='{metric_key}'"
             )
 
+        fig: Figure | None = None
         if ax is None:
             fig, ax = plt.subplots(figsize=(max(6, len(labels) * 1.5), 5))
         else:
@@ -947,13 +952,13 @@ class ComparisonResult:
         if isinstance(seed_index, (list, tuple)):
             seed_list = list(seed_index)
             if ax is None:
-                fig, axes = plt.subplots(
+                fig, axes_array = plt.subplots(
                     1,
                     len(seed_list),
                     figsize=(5 * len(seed_list), 4),
                     squeeze=False,
                 )
-                axes = list(axes[0])
+                axes: list[Any] = list(axes_array[0])
             elif hasattr(ax, "__iter__") and not isinstance(ax, (str, bytes)):
                 axes = list(ax)
                 if len(axes) != len(seed_list):
@@ -978,6 +983,7 @@ class ComparisonResult:
                 fig.savefig(out_path, bbox_inches="tight")
             return axes
 
+        fig: Figure | None = None
         if ax is None:
             fig, ax = plt.subplots(figsize=(8, 4))
         else:
