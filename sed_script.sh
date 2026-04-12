@@ -1,3 +1,0 @@
-sed -i '' 's/sel = ElitePoolSelection(num_selections=engine_params.pop_size, elite_k=2)/sel = ElitePoolSelection(num_selections=engine_params.pop_size, elite_k=engine_params.pop_size \/\/ 2)/g' examples/_DEMO_LV_3/Level_3_Engine_Demo.ipynb
-sed -i '' 's/cross = UniformCrossover(num_offspring=1, crossover_rate=0.5)/cross = UniformCrossover(num_offspring=1, crossover_rate=0.0)/g' examples/_DEMO_LV_3/Level_3_Engine_Demo.ipynb
-sed -i '' 's/mut = GaussianMutation(num_offspring=1, mutation_strength=0.5)/mut = GaussianMutation(num_offspring=1, mutation_rate=1.0, mutation_strength=1.0)/g' examples/_DEMO_LV_3/Level_3_Engine_Demo.ipynb
