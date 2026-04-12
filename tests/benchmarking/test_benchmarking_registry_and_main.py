@@ -1,9 +1,9 @@
-import json
 import runpy
 import sys
 from pathlib import Path
 
 import pytest
+
 from malthusjax.benchmarking.cli import main
 from malthusjax.benchmarking.registry import DataRegistry
 
@@ -23,7 +23,12 @@ class DummyComposer:
         return cls()
 
     def quick_run(self, *args, **kwargs):
-        return DummyRunResult(runs=[1, 2, 3], metadata={"artifact_paths": {"summary_json": "results/summary.json"}})
+        return DummyRunResult(
+            runs=[1, 2, 3],
+            metadata={
+                "artifact_paths": {"summary_json": "results/summary.json"}
+            },
+        )
 
 
 def test_data_registry_synthetic_source():
@@ -68,7 +73,15 @@ def test_benchmarking_module_main_executes(monkeypatch):
     from malthusjax.benchmarking import cli
 
     monkeypatch.setattr(cli, "Composer", DummyComposer)
-    monkeypatch.setattr(sys, "argv", ["malthusjax.benchmarking", "--quiet", "--name", "module_test", "--generations", "1"])
+    argv = [
+        "malthusjax.benchmarking",
+        "--quiet",
+        "--name",
+        "module_test",
+        "--generations",
+        "1",
+    ]
+    monkeypatch.setattr(sys, "argv", argv)
 
     with pytest.raises(SystemExit) as exc:
         runpy.run_module("malthusjax.benchmarking.__main__", run_name="__main__")
