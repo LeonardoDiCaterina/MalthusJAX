@@ -231,7 +231,8 @@ class RealPopulation(BasePopulation[RealGenome]):
 
     GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
 
-    # TODO: implement a more broad verison where size is actually shape for multidimensional genomes
+    # TODO: support multidimensional genome populations by accepting `shape` tuples
+    #       instead of a scalar `size` for non-1D genomes.
     @classmethod
     def init_random(cls, key: chex.PRNGKey, config: RealGenomeConfig, size: int) -> RealPopulation:
         """

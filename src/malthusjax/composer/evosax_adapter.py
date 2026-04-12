@@ -298,7 +298,7 @@ def build_evosax_engine(
     else:
         raise NotImplementedError(
             "Only BBOBEvaluator instances are currently supported by the "
-            "evosax adapter; generic BaseEvaluator wrapping is TODO."
+            "evosax adapter. Generic BaseEvaluator support is not implemented yet."
         )
 
     init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])

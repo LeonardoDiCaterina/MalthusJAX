@@ -32,7 +32,7 @@ from .resource_mapper import (
 )
 from .schedules import ScheduleType, TrackBest
 
-# TODO: update selection doctring
+# TODO: update selection docstring with expected input/output contract details.
 
 T = TypeVar("T", bound=Callable[..., Any])
 _field: Any = struct.field  # Helper alias for typed dataclass fields
