@@ -71,14 +71,15 @@ class BaseGenome:
         # Determine if this is a batched genome by checking array leaf dimensions
         leaves = jax.tree_util.tree_leaves(self)
         is_batched = (
-            leaves and 
-            hasattr(leaves[0], "shape") and 
+            leaves and
+            hasattr(leaves[0], "shape") and
             len(leaves[0].shape) > 0
         )
 
         if is_batched:
             # Batched genome: use tree_map to extract and reconstruct individual/sub-genome
-            # This preserves the type: RealGenome → RealGenome, CategoricalGenome → CategoricalGenome, etc.
+            # This preserves the type:
+            # RealGenome → RealGenome, CategoricalGenome → CategoricalGenome, etc.
             return jax.tree_util.tree_map(lambda x: x[key], self)
 
         # Single genome value indexing (subscriptable mode only)
@@ -107,8 +108,8 @@ class BaseGenome:
         # Determine if this is a batched genome
         leaves = jax.tree_util.tree_leaves(self)
         is_batched = (
-            leaves and 
-            hasattr(leaves[0], "shape") and 
+            leaves and
+            hasattr(leaves[0], "shape") and
             len(leaves[0].shape) > 0
         )
 
