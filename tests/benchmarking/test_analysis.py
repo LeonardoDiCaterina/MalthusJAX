@@ -115,7 +115,7 @@ def test_to_dataframe_and_plot_group(tmp_path: Path):
     assert list(df["name"]) == ["a", "b"]
     assert list(df["mean"]) == [0.5, 0.2]
 
-    matplotlib = pytest.importorskip("matplotlib")
+    pytest.importorskip("matplotlib")
     ax = analysis.plot_group("grp", data)
     assert ax.get_title() == "grp"
     assert len(ax.patches) == 2
