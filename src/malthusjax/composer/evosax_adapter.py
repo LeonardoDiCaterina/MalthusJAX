@@ -28,16 +28,12 @@ import evosax
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-from evosax.algorithms import MR15_GA, DifferentialEvolution, SimpleGA
+from evosax.algorithms import population_based_algorithms
 
 from malthusjax.core.fitness.base import BaseEvaluator
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 
-EVOSAX_STRATEGIES: Dict[str, type] = {
-    "SimpleGA": SimpleGA,
-    "MR15_GA": MR15_GA,
-    "DifferentialEvolution": DifferentialEvolution,
-}
+EVOSAX_STRATEGIES: Dict[str, type] = population_based_algorithms
 
 
 def list_strategies() -> list[str]:
