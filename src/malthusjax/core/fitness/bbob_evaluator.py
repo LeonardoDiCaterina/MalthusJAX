@@ -20,18 +20,54 @@ from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.genome.real_genome import RealGenome
 
 BBOB_NAME_ALIASES = {
+    # Part 1: Separable functions
     "sphere": "sphere",
-    "rastrigin": "rastrigin",
-    "rastrigin_original": "rastrigin",
-    "rastrigin_rotated": "rastrigin_rotated",
     "ellipsoidal": "ellipsoidal",
-    "ellipsoidal_original": "ellipsoidal",
-    "ellipsoidal_rotated": "ellipsoidal_rotated",
+    "rastrigin": "rastrigin",
+    "bueche_rastrigin": "bueche_rastrigin",
+    "bueche-rastrigin": "bueche_rastrigin",
+    "linear_slope": "linear_slope",
+    "linear slope": "linear_slope",
+
+    # Part 2: Functions with low or moderate conditioning
+    "attractive_sector": "attractive_sector",
+    "attractive sector": "attractive_sector",
+    "step_ellipsoidal": "step_ellipsoidal",
+    "step ellipsoidal": "step_ellipsoidal",
     "rosenbrock": "rosenbrock",
     "rosenbrock_original": "rosenbrock",
     "rosenbrock_rotated": "rosenbrock_rotated",
-    "schwefel": "schwefel",
+
+    # Part 3: Functions with high conditioning and unimodal
+    "ellipsoidal_original": "ellipsoidal",
+    "ellipsoidal_rotated": "ellipsoidal_rotated",
+    "discus": "discus",
+    "bent_cigar": "bent_cigar",
+    "bent cigar": "bent_cigar",
+    "sharp_ridge": "sharp_ridge",
+    "sharp ridge": "sharp_ridge",
+    "different_powers": "different_powers",
+    "different powers": "different_powers",
+
+    # Part 4: Multi-modal functions with adequate global structure
+    "rastrigin_original": "rastrigin",
+    "rastrigin_rotated": "rastrigin_rotated",
+    "weierstrass": "weierstrass",
+    "schaffers_f7": "schaffers_f7",
+    "schaffers f7": "schaffers_f7",
+    "schaffers_f7_ill_cond": "schaffers_f7_ill_cond",
+    "schaffers f7 ill-cond": "schaffers_f7_ill_cond",
     "griewank_rosenbrock": "griewank_rosenbrock",
+    "griewank-rosenbrock": "griewank_rosenbrock",
+
+    # Part 5: Multi-modal functions with weak global structure
+    "schwefel": "schwefel",
+    "gallagher_101_me": "gallagher_101_me",
+    "gallagher 101-me": "gallagher_101_me",
+    "gallagher_21_hi": "gallagher_21_hi",
+    "gallagher 21-hi": "gallagher_21_hi",
+    "katsuura": "katsuura",
+    "lunacek": "lunacek",
 }
 
 
