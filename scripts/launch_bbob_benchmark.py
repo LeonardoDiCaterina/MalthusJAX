@@ -36,7 +36,7 @@ class BBOBLauncher:
     ):
         self.toml_dir = Path(toml_dir)
         self.max_parallel = max_parallel
-        self.cleanup_ram = cleanup_ram
+        self.should_cleanup_ram = cleanup_ram
         
         if output_dir is None:
             output_dir = self.toml_dir.parent
@@ -61,7 +61,7 @@ class BBOBLauncher:
     
     def cleanup_ram(self):
         """Attempt to clean up RAM (requires sudo for full effect)."""
-        if not self.cleanup_ram:
+        if not self.should_cleanup_ram:
             return
         
         try:
@@ -96,20 +96,29 @@ class BBOBLauncher:
         experiment_name = toml_file.stem
         nohup_file = self.nohup_dir / f"{experiment_name}.out"
         
-        # Python command to run Composer
+        # Python command to run Composer with proper error handling
         python_cmd = (
+            f"import sys; "
             f"from malthusjax.composer import Composer; "
-            f"result = Composer.from_toml('{toml_file.absolute()}'); "
-            f"print('✓ Experiment {experiment_name} completed'); "
+            f"try: "
+            f"    result = Composer.from_toml(r'{toml_file.absolute()}'); "
+            f"    print('✓ Experiment {experiment_name} completed'); "
+            f"    sys.exit(0); "
+            f"except Exception as e: "
+            f"    import traceback; "
+            f"    print(f'ERROR: {{type(e).__name__}}: {{e}}', file=sys.stderr); "
+            f"    traceback.print_exc(file=sys.stderr); "
+            f"    sys.exit(1);"
         )
         
-        # Launch in background
-        process = subprocess.Popen(
-            ["python", "-c", python_cmd],
-            stdout=open(nohup_file, "w"),
-            stderr=subprocess.STDOUT,
-            preexec_fn=os.setpgrp,  # Detach from parent process group
-        )
+        # Launch in background using nohup
+        with open(nohup_file, "w") as nohup_out:
+            process = subprocess.Popen(
+                ["nohup", "python", "-c", python_cmd],
+                stdout=nohup_out,
+                stderr=subprocess.STDOUT,
+                preexec_fn=os.setpgrp,  # Detach from parent process group
+            )
         
         return process
     
@@ -124,7 +133,7 @@ class BBOBLauncher:
         print(f"🚀 Starting BBOB benchmark suite")
         print(f"   TOML directory: {self.toml_dir}")
         print(f"   Max parallel runs: {self.max_parallel}")
-        print(f"   RAM cleanup: {self.cleanup_ram}")
+        print(f"   RAM cleanup: {self.should_cleanup_ram}")
         print()
         print(f"📊 Found {len(toml_files)} experiments")
         print()
@@ -171,6 +180,17 @@ class BBOBLauncher:
                         f"     {status} ({elapsed:.1f}s) [PID {proc_info['pid']}]"
                     )
                     
+                    # Show error output if failed
+                    if exit_code != 0:
+                        nohup_file = self.nohup_dir / f"{exp_name}.out"
+                        if nohup_file.exists():
+                            content = nohup_file.read_text()
+                            if content.strip():
+                                print(f"     Error output (last 500 chars):")
+                                for line in content[-500:].split('\n'):
+                                    if line.strip():
+                                        print(f"       {line}")
+                    
                     # Log completion
                     with open(self.status_log, "a") as f:
                         f.write(
@@ -178,7 +198,7 @@ class BBOBLauncher:
                         )
                     
                     # RAM cleanup
-                    if self.cleanup_ram:
+                    if self.should_cleanup_ram:
                         print(f"     🧹 Cleaning up RAM...")
                         self.cleanup_ram()
                         print(f"     Memory after cleanup: {self.get_memory_usage()}")
