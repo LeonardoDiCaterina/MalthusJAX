@@ -66,22 +66,28 @@ class BBOBLauncher:
         
         try:
             # Try to drop caches with sudo (may fail if not available)
+            # Use non-blocking subprocess call with short timeout
             subprocess.run(
                 "sync && echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null 2>&1",
                 shell=True,
-                timeout=10,
+                timeout=3,  # Reduced timeout
+                capture_output=True,
             )
+        except subprocess.TimeoutExpired:
+            # If sudo times out, just continue (not critical)
+            pass
         except Exception as e:
-            print(f"⚠ RAM cleanup (with sudo) failed: {e}")
+            # Silent fail for other errors
+            pass
         
         try:
-            # Python-level garbage collection
+            # Python-level garbage collection (always works)
             import gc
             gc.collect()
         except Exception:
             pass
         
-        time.sleep(1)
+        time.sleep(0.5)
     
     def get_memory_usage(self) -> str:
         """Get current memory usage."""
@@ -186,10 +192,14 @@ class BBOBLauncher:
                         if nohup_file.exists():
                             content = nohup_file.read_text()
                             if content.strip():
-                                print(f"     Error output (last 500 chars):")
-                                for line in content[-500:].split('\n'):
+                                print(f"     ⚠ Full output from {nohup_file}:")
+                                for line in content.split('\n'):
                                     if line.strip():
                                         print(f"       {line}")
+                            else:
+                                print(f"     ⚠ Nohup file is empty: {nohup_file}")
+                        else:
+                            print(f"     ⚠ No nohup file found: {nohup_file}")
                     
                     # Log completion
                     with open(self.status_log, "a") as f:
