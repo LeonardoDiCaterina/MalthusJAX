@@ -103,19 +103,19 @@ class BBOBLauncher:
         nohup_file = self.nohup_dir / f"{experiment_name}.out"
         
         # Python command to run Composer with proper error handling
-        python_cmd = (
-            f"import sys; "
-            f"from malthusjax.composer import Composer; "
-            f"try: "
-            f"    result = Composer.from_toml(r'{toml_file.absolute()}'); "
-            f"    print('✓ Experiment {experiment_name} completed'); "
-            f"    sys.exit(0); "
-            f"except Exception as e: "
-            f"    import traceback; "
-            f"    print(f'ERROR: {{type(e).__name__}}: {{e}}', file=sys.stderr); "
-            f"    traceback.print_exc(file=sys.stderr); "
-            f"    sys.exit(1);"
-        )
+        python_cmd = f"""
+import sys
+from malthusjax.composer import Composer
+try:
+    result = Composer.from_toml(r'{toml_file.absolute()}')
+    print('✓ Experiment {experiment_name} completed')
+    sys.exit(0)
+except Exception as e:
+    import traceback
+    print(f'ERROR: {{type(e).__name__}}: {{e}}', file=sys.stderr)
+    traceback.print_exc(file=sys.stderr)
+    sys.exit(1)
+"""
         
         # Launch in background using nohup
         with open(nohup_file, "w") as nohup_out:
