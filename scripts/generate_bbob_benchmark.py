@@ -35,11 +35,24 @@ def generate_toml_content(
     seeds_str = ", ".join(str(s) for s in seeds)
     dim_list = ", ".join(str(d) for d in dimensions)
     
+    # Map BBOB function number to name (for Evosax compatibility)
+    bbob_fn_names = {
+        1: "sphere", 2: "ellipsoid", 3: "rastrigin", 4: "bueche_rastrigin",
+        5: "linear_slope", 6: "attractive_sector", 7: "step_ellipsoid",
+        8: "rosenbrock", 9: "rosenbrock_rotated", 10: "ellipsoid",
+        11: "discus", 12: "bent_cigar", 13: "sharp_ridge", 14: "different_powers",
+        15: "rastrigin_rotated", 16: "weierstrass", 17: "schaffers_f7",
+        18: "schaffers_f7_moderately_ill_conditioned", 19: "composite_griewank_rosenbrock",
+        20: "schwefel", 21: "gallagher_peaks_1", 22: "gallagher_peaks_2",
+        23: "katsuura", 24: "lunacek_bi_rastrigin",
+    }
+    fn_name = bbob_fn_names.get(fn, f"f{fn}")
+    
     toml_lines = [
         "[experiment]",
         f'name = "bbob_fn{fn:02d}_sweep"',
         f'output_dir = "results/bbob_benchmark/fn{fn:02d}"',
-        f'description = "BBOB Function {fn}: sweep across dims={{{dim_list}}}, pop_sizes={{{pop_sizes[0]}-{pop_sizes[-1]}}}, strategies"',
+        f'description = "BBOB Function {fn} ({fn_name}): sweep across dims={{{dim_list}}}, pop_sizes={{{pop_sizes[0]}-{pop_sizes[-1]}}}, strategies"',
         "",
         "[experiment.shared]",
         f'fitness = "bbob:fn={fn}"',
@@ -63,6 +76,10 @@ def generate_toml_content(
                 toml_lines.append(f"[pipelines.{pipeline_name}]")
                 toml_lines.append(f"genome_length = {dim}")
                 toml_lines.append(f"pop_size = {pop_size}")
+                
+                # For evosax strategies, override fitness to use function name instead of number
+                if strat_name.startswith("evosax_"):
+                    toml_lines.append(f'fitness = "bbob:fn_name={fn_name},fn={fn}"')
                 
                 # Apply strategy-specific overrides
                 for key, value in strat_config.items():
