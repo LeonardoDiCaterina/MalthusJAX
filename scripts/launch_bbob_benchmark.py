@@ -157,7 +157,9 @@ class BBOBLauncher:
                 print(f"     Memory: {self.get_memory_usage()}")
                 
                 process = self.run_experiment(toml_file)
-                self.running_processes[toml_file.name] = {
+                # Use stem (filename without extension) as key for consistency
+                experiment_id = toml_file.stem
+                self.running_processes[experiment_id] = {
                     "process": process,
                     "pid": process.pid,
                     "start_time": time.time(),
