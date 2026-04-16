@@ -12,9 +12,8 @@ Usage:
 """
 
 import argparse
-import math
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 
 def generate_seeds(count: int = 100, start: int = 1) -> List[int]:
@@ -104,7 +103,7 @@ def generate_launcher_script(
     python_exec: str = "python",
 ) -> str:
     """Generate bash launcher script that runs all TOML files with RAM cleanup."""
-    
+
     bash_lines = [
         "#!/bin/bash",
         "# Auto-generated BBOB benchmark launcher",
@@ -113,7 +112,7 @@ def generate_launcher_script(
         f"TOML_DIR={toml_dir}",
         f"NOHUP_DIR={nohup_dir}",
         f"LOG_DIR={log_dir}",
-        "PYTHON_EXEC=" + python_exec,
+        f"PYTHON_EXEC={python_exec}",
         "",
         "mkdir -p \"$NOHUP_DIR\" \"$LOG_DIR\"",
         "",
@@ -124,51 +123,46 @@ def generate_launcher_script(
         "echo \"\"",
         "",
     ]
-    
+
+    num_toml_files = len(toml_files)
     for i, toml_file in enumerate(toml_files, 1):
         toml_path = toml_dir / toml_file
-        log_file = log_dir / f"{toml_file.replace('.toml', '')}.log"
         nohup_file = nohup_dir / f"{toml_file.replace('.toml', '')}.out"
-        
-        bash_lines.append(f"# Run {i}/{len(toml_files)}: {toml_file}")
+
+        bash_lines.append(f"# Run {i}/{num_toml_files}: {toml_file}")
         bash_lines.append("echo \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"")
-        bash_lines.append(f"echo \"[{i}/{len(toml_files)}] Starting: {toml_file}\"")
+        bash_lines.append(f"echo \"[{i}/{num_toml_files}] Starting: {toml_file}\"")
         bash_lines.append("echo \"Time: $(date)\"")
         bash_lines.append("echo \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"")
         bash_lines.append("")
-        
-        # Run in nohup with output logging
+
+        bash_lines.append(f"NOHUP_FILE=\"{nohup_file}\"")
         bash_lines.append(
-            f"nohup $PYTHON_EXEC -c "
-            f'"from malthusjax.composer import Composer; '
-            f'Composer.from_toml(\\"{toml_path}\\") '
-            f"\" > \\\"$NOHUP_FILE\\\" 2>&1 &"
+            f"nohup \"$PYTHON_EXEC\" -c \"from malthusjax.composer import Composer; Composer.from_toml(\\\"{toml_path}\\\")\" > \"$NOHUP_FILE\" 2>&1 &"
         )
         bash_lines.append("")
         bash_lines.append("NOHUP_PID=$!")
         bash_lines.append("echo \"Process PID: $NOHUP_PID\"")
         bash_lines.append("echo \"Nohup output: $NOHUP_FILE\"")
         bash_lines.append("")
-        
-        # Wait for process and log completion
+
         bash_lines.append("wait $NOHUP_PID")
         bash_lines.append("EXIT_CODE=$?")
-        bash_lines.append("echo \"[{i}/{len(toml_files)}] Completed: {toml_file} (exit code: $EXIT_CODE)\" | tee -a \"$LOG_DIR/completion.log\"")
+        bash_lines.append(f"echo \"[{i}/{num_toml_files}] Completed: {toml_file} (exit code: $EXIT_CODE)\" | tee -a \"$LOG_DIR/completion.log\"")
         bash_lines.append("")
-        
-        # RAM cleanup
+
         bash_lines.append("# Clean up RAM")
         bash_lines.append("echo \"Cleaning up RAM...\"")
         bash_lines.append("sync && echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null 2>&1 || true")
         bash_lines.append("sleep 2")
         bash_lines.append("echo \"\"")
         bash_lines.append("")
-    
+
     bash_lines.append("echo \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"")
     bash_lines.append("echo \"All experiments completed at $(date)\"")
     bash_lines.append("echo \"Check logs in: $LOG_DIR\"")
     bash_lines.append("")
-    
+
     return "\n".join(bash_lines)
 
 
