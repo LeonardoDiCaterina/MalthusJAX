@@ -2,7 +2,8 @@
         test-bench-group-01 test-bench-group-02 test-bench-group-03 test-bench-group-04 \
         test-bench-group-05 test-bench-group-06 test-bench-group-07 test-bench-group-08 \
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
-        lint format format-check type-check check-all docs docs-clean docs-open bench
+        lint format format-check type-check check-all docs docs-clean docs-open bench \
+        run-toml run-toml-nohup list-toml
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -41,6 +42,15 @@ help:
 	@echo "  make format-check       Ruff format check only (no mutations)"
 	@echo "  make type-check         mypy strict check on src/"
 	@echo "  make check-all          lint + format-check + type-check + test"
+	@echo ""
+	@echo "--- Experiment Execution (TOML-based) ---"
+	@echo "  make run-toml TOML=<file>           Run experiment from TOML file"
+	@echo "  make run-toml-nohup TOML=<file>     Run TOML experiment in background (logs to .log)"
+	@echo "  make list-toml                      List available TOML experiment files"
+	@echo ""
+	@echo "Example:"
+	@echo "  make run-toml TOML=examples/sphere_experiment.toml"
+	@echo "  make run-toml TOML=examples/mock_binary_experiment.toml --pipeline ga_baseline"
 	@echo ""
 	@echo "--- Documentation Workflow ---"
 	@echo "  make docs                    Build Sphinx HTML docs (picks up all changes)"
@@ -266,3 +276,24 @@ bench-nohup:
 
 test-bench-snapshot-nohup:
 	$(call run_nohup,test-bench-snapshot,python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v)
+
+# ============================================================================= #
+# TOML-Based Experiment Execution
+# ============================================================================= #
+
+run-toml:
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml TOML=examples/experiment.toml"; exit 1)
+	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
+	@echo "--- Running TOML experiment: $(TOML) ---"
+	python examples/run_toml_test.py --config $(TOML)
+
+run-toml-nohup:
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml-nohup TOML=examples/experiment.toml"; exit 1)
+	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
+	$(call run_nohup,toml_experiment,python examples/run_toml_test.py --config $(TOML))
+
+list-toml:
+	@echo "--- Available TOML experiment files ---"
+	@find examples -maxdepth 1 -name "*.toml" -type f | sort | while read f; do \
+		echo "  $$f"; \
+	done

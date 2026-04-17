@@ -828,9 +828,12 @@ class Composer:
 
         maximize_flag = config.get('maximize', False)
         if fitness and "maximize=" not in fitness:
-            fitness = (
-                f"{fitness},maximize={maximize_flag}"
-            )
+            # Append maximize param correctly: if fitness has params (contains :),
+            # use comma; if it's just a name, use colon to start params
+            if ":" in fitness:
+                fitness = f"{fitness},maximize={maximize_flag}"
+            else:
+                fitness = f"{fitness}:maximize={maximize_flag}"
 
         resolved_evaluator = catalog.get(
             fitness or f"sphere:dim=10,maximize={maximize_flag}",

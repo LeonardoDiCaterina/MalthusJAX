@@ -1,34 +1,43 @@
+# Binary genome optimization: comparing selection and mutation strategies on binary_sum
 [experiment]
-name       = "mock_binary_test"
-output_dir = "results/mock_binary"
+name        = "mock_binary_test"
+output_dir  = "results/mock_binary"
+description = "Benchmark binary GA operators: selection pressure and mutation rates"
 
 [experiment.shared]
-genome        = "binary:length=50"
-fitness       = "binary_sum"
-pop_size      = 60
-generations   = 20
-seeds         = [42, 43, 44]
+# Problem definition
+genome_type  = "binary"
+genome_length = 50
+fitness      = "binary_sum:maximize=true"
+maximize     = true
 
+# Population and evolution
+pop_size     = 60
+generations  = 20
+seeds        = [42, 43, 44]
+
+# Selection and crossover (fixed across pipelines)
+selection    = "tournament:num_selections=30,tournament_size=3"
+crossover    = "single_point"
+
+# Pipeline 1: Conservative mutation
 [pipelines.ga_baseline]
-engine_type = "ga"
-selection   = "tournament:tournament_size=3"
-crossover   = "single_point"
+description = "Baseline: low mutation rate (1% per bit)"
 mutation    = "bitflip:mutation_rate=0.01"
 
+# Pipeline 2: Aggressive mutation
 [pipelines.ga_high_mutation]
-engine_type = "ga"
-selection   = "tournament:tournament_size=3"
-crossover   = "single_point"
+description = "High mutation: increased exploration (15% per bit)"
 mutation    = "bitflip:mutation_rate=0.15"
 
+# Pipeline 3: Alternative crossover with moderate mutation
 [pipelines.ga_uniform_cross]
-engine_type = "ga"
-selection   = "tournament:tournament_size=3"
+description = "Uniform crossover with moderate mutation (5% per bit)"
 crossover   = "uniform_binary"
 mutation    = "bitflip:mutation_rate=0.05"
 
+# Pipeline 4: Larger tournament (higher selection pressure)
 [pipelines.ga_large_tournament]
-engine_type = "ga"
-selection   = "tournament:tournament_size=7"
-crossover   = "single_point"
+description = "Larger tournament (size=7) with moderate mutation"
+selection   = "tournament:num_selections=30,tournament_size=7"
 mutation    = "bitflip:mutation_rate=0.05"
