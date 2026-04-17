@@ -106,6 +106,24 @@ class Composer:
     registry: Optional[Any] = None
     config: Dict[str, Any] = field(default_factory=dict)
 
+    @staticmethod
+    def _normalize_seeds(seeds: Sequence[int] | int) -> Tuple[int, ...]:
+        """Normalize seed input into an explicit tuple of integers.
+
+        Accepts either:
+        - an iterable of seeds (e.g., ``[42, 43, 44]``), or
+        - an integer count (e.g., ``100`` -> ``(1, 2, ..., 100)``).
+        """
+        if isinstance(seeds, int):
+            if seeds <= 0:
+                raise ValueError("seeds must be > 0 when provided as an integer count")
+            return tuple(range(1, seeds + 1))
+
+        seeds_tuple = tuple(int(s) for s in seeds)
+        if not seeds_tuple:
+            raise ValueError("seeds must not be empty")
+        return seeds_tuple
+
     def quick_run(
         self,
         seeds: Sequence[int] = (1, 2, 3),
@@ -429,7 +447,8 @@ class Composer:
             trace_dir=Path(trace_dir) if trace_dir is not None else None,
         )
 
-        return runner.run(seeds)
+        normalized_seeds = self._normalize_seeds(seeds)
+        return runner.run(normalized_seeds)
 
     def compare(
         self,
@@ -764,7 +783,7 @@ class Composer:
         experiment_meta, resolved = load_experiment_config(str(path), pipelines=pipelines)
         shared = experiment_meta.get("shared", {})
 
-        seeds = tuple(shared.pop("seeds", (42, 43, 44)))
+        seeds = cls._normalize_seeds(shared.pop("seeds", (42, 43, 44)))
 
         pipeline_overrides: Dict[str, Dict[str, Any]] = {}
         for name, merged_cfg in resolved.items():
