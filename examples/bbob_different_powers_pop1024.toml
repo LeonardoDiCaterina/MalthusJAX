@@ -1,0 +1,51 @@
+# BBOB Backend Comparison Experiment - Different Powers Function (Population Size 1024)
+# Tests different_powers function across 6 backend configurations
+# Configuration: real genome (dim=50), 500 generations, 100 seeds, pop_size=1024
+
+[experiment]
+name = "BBOB Different Powers (pop=1024)"
+description = "Comprehensive comparison of MalthusJAX and EvoSAX backends on different_powers function"
+output_dir = "results/bbob_different_powers_pop1024"
+
+[experiment.shared]
+genome_type = "real"
+genome_length = 50
+bounds = [0.0, 1.0]
+generations = 500
+seeds = 100
+
+[pipelines.different_powers_malthusjax_default]
+fitness = "bbob:fn_name=different_powers,num_dims=50,maximize=false"
+backend = "malthusjax"
+description = "Different Powers function with MalthusJAX default operators (pop=1024)"
+
+[pipelines.different_powers_malthusjax_default_evosaxops]
+fitness = "bbob:fn_name=different_powers,num_dims=50,maximize=false"
+backend = "malthusjax"
+crossover = "evosax_uniform_crossover"
+mutation = "evosax_gaussian"
+description = "Different Powers function with MalthusJAX + EvoSAX operators (pop=1024)"
+
+[pipelines.different_powers_malthusjax_roulette]
+fitness = "bbob:fn_name=different_powers,num_dims=50,maximize=false"
+backend = "malthusjax"
+selection = "roulette:num_selections=512,temperature=1.0"
+description = "Different Powers function with MalthusJAX roulette selection (pop=1024)"
+
+[pipelines.different_powers_malthusjax_tournament]
+fitness = "bbob:fn_name=different_powers,num_dims=50,maximize=false"
+backend = "malthusjax"
+selection = "tournament:num_selections=512,tournament_size=3"
+description = "Different Powers function with MalthusJAX tournament selection (pop=1024)"
+
+[pipelines.different_powers_evosax_simplega]
+fitness = "bbob:fn_name=different_powers,num_dims=50,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+description = "Different Powers function with EvoSAX SimpleGA (pop=1024)"
+
+[pipelines.different_powers_evosax_differential_evolution]
+fitness = "bbob:fn_name=different_powers,num_dims=50,maximize=false"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+description = "Different Powers function with EvoSAX DifferentialEvolution (pop=1024)"

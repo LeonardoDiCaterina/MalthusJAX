@@ -1,0 +1,51 @@
+# BBOB Backend Comparison Experiment - Step Ellipsoidal Function (Population Size 1024)
+# Tests step_ellipsoidal function across 6 backend configurations
+# Configuration: real genome (dim=50), 500 generations, 100 seeds, pop_size=1024
+
+[experiment]
+name = "BBOB Step Ellipsoidal (pop=1024)"
+description = "Comprehensive comparison of MalthusJAX and EvoSAX backends on step_ellipsoidal function"
+output_dir = "results/bbob_step_ellipsoidal_pop1024"
+
+[experiment.shared]
+genome_type = "real"
+genome_length = 50
+bounds = [0.0, 1.0]
+generations = 500
+seeds = 100
+
+[pipelines.step_ellipsoidal_malthusjax_default]
+fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
+backend = "malthusjax"
+description = "Step Ellipsoidal function with MalthusJAX default operators (pop=1024)"
+
+[pipelines.step_ellipsoidal_malthusjax_default_evosaxops]
+fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
+backend = "malthusjax"
+crossover = "evosax_uniform_crossover"
+mutation = "evosax_gaussian"
+description = "Step Ellipsoidal function with MalthusJAX + EvoSAX operators (pop=1024)"
+
+[pipelines.step_ellipsoidal_malthusjax_roulette]
+fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
+backend = "malthusjax"
+selection = "roulette:num_selections=512,temperature=1.0"
+description = "Step Ellipsoidal function with MalthusJAX roulette selection (pop=1024)"
+
+[pipelines.step_ellipsoidal_malthusjax_tournament]
+fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
+backend = "malthusjax"
+selection = "tournament:num_selections=512,tournament_size=3"
+description = "Step Ellipsoidal function with MalthusJAX tournament selection (pop=1024)"
+
+[pipelines.step_ellipsoidal_evosax_simplega]
+fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+description = "Step Ellipsoidal function with EvoSAX SimpleGA (pop=1024)"
+
+[pipelines.step_ellipsoidal_evosax_differential_evolution]
+fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+description = "Step Ellipsoidal function with EvoSAX DifferentialEvolution (pop=1024)"
