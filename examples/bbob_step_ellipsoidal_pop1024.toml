@@ -29,13 +29,13 @@ description = "Step Ellipsoidal function with MalthusJAX + EvoSAX operators (pop
 [pipelines.step_ellipsoidal_malthusjax_roulette]
 fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Step Ellipsoidal function with MalthusJAX roulette selection (pop=1024)"
 
 [pipelines.step_ellipsoidal_malthusjax_tournament]
 fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Step Ellipsoidal function with MalthusJAX tournament selection (pop=1024)"
 
 [pipelines.step_ellipsoidal_evosax_simplega]

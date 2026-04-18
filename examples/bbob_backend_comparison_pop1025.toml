@@ -33,13 +33,13 @@ description = "Sphere function with MalthusJAX + EvoSAX operators (pop=1025)"
 [pipelines.sphere_malthusjax_roulette]
 fitness = "bbob:fn_name=sphere,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Sphere function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.sphere_malthusjax_tournament]
 fitness = "bbob:fn_name=sphere,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Sphere function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.sphere_evosax_simplega]
@@ -69,13 +69,13 @@ description = "Ellipsoidal function with MalthusJAX + EvoSAX operators (pop=1025
 [pipelines.ellipsoidal_malthusjax_roulette]
 fitness = "bbob:fn_name=ellipsoidal,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Ellipsoidal function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.ellipsoidal_malthusjax_tournament]
 fitness = "bbob:fn_name=ellipsoidal,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Ellipsoidal function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.ellipsoidal_evosax_simplega]
@@ -105,13 +105,13 @@ description = "Rastrigin function with MalthusJAX + EvoSAX operators (pop=1025)"
 [pipelines.rastrigin_malthusjax_roulette]
 fitness = "bbob:fn_name=rastrigin,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Rastrigin function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.rastrigin_malthusjax_tournament]
 fitness = "bbob:fn_name=rastrigin,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Rastrigin function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.rastrigin_evosax_simplega]
@@ -141,13 +141,13 @@ description = "Bueche Rastrigin function with MalthusJAX + EvoSAX operators (pop
 [pipelines.bueche_rastrigin_malthusjax_roulette]
 fitness = "bbob:fn_name=bueche_rastrigin,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Bueche Rastrigin function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.bueche_rastrigin_malthusjax_tournament]
 fitness = "bbob:fn_name=bueche_rastrigin,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Bueche Rastrigin function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.bueche_rastrigin_evosax_simplega]
@@ -177,13 +177,13 @@ description = "Linear Slope function with MalthusJAX + EvoSAX operators (pop=102
 [pipelines.linear_slope_malthusjax_roulette]
 fitness = "bbob:fn_name=linear_slope,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Linear Slope function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.linear_slope_malthusjax_tournament]
 fitness = "bbob:fn_name=linear_slope,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Linear Slope function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.linear_slope_evosax_simplega]
@@ -213,13 +213,13 @@ description = "Attractive Sector function with MalthusJAX + EvoSAX operators (po
 [pipelines.attractive_sector_malthusjax_roulette]
 fitness = "bbob:fn_name=attractive_sector,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Attractive Sector function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.attractive_sector_malthusjax_tournament]
 fitness = "bbob:fn_name=attractive_sector,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Attractive Sector function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.attractive_sector_evosax_simplega]
@@ -249,13 +249,13 @@ description = "Step Ellipsoidal function with MalthusJAX + EvoSAX operators (pop
 [pipelines.step_ellipsoidal_malthusjax_roulette]
 fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Step Ellipsoidal function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.step_ellipsoidal_malthusjax_tournament]
 fitness = "bbob:fn_name=step_ellipsoidal,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Step Ellipsoidal function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.step_ellipsoidal_evosax_simplega]
@@ -285,13 +285,13 @@ description = "Rosenbrock function with MalthusJAX + EvoSAX operators (pop=1025)
 [pipelines.rosenbrock_malthusjax_roulette]
 fitness = "bbob:fn_name=rosenbrock,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Rosenbrock function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.rosenbrock_malthusjax_tournament]
 fitness = "bbob:fn_name=rosenbrock,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Rosenbrock function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.rosenbrock_evosax_simplega]
@@ -321,13 +321,13 @@ description = "Rosenbrock Rotated function with MalthusJAX + EvoSAX operators (p
 [pipelines.rosenbrock_rotated_malthusjax_roulette]
 fitness = "bbob:fn_name=rosenbrock_rotated,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Rosenbrock Rotated function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.rosenbrock_rotated_malthusjax_tournament]
 fitness = "bbob:fn_name=rosenbrock_rotated,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Rosenbrock Rotated function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.rosenbrock_rotated_evosax_simplega]
@@ -357,13 +357,13 @@ description = "Ellipsoidal Rotated function with MalthusJAX + EvoSAX operators (
 [pipelines.ellipsoidal_rotated_malthusjax_roulette]
 fitness = "bbob:fn_name=ellipsoidal_rotated,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Ellipsoidal Rotated function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.ellipsoidal_rotated_malthusjax_tournament]
 fitness = "bbob:fn_name=ellipsoidal_rotated,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Ellipsoidal Rotated function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.ellipsoidal_rotated_evosax_simplega]
@@ -393,13 +393,13 @@ description = "Discus function with MalthusJAX + EvoSAX operators (pop=1025)"
 [pipelines.discus_malthusjax_roulette]
 fitness = "bbob:fn_name=discus,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Discus function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.discus_malthusjax_tournament]
 fitness = "bbob:fn_name=discus,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Discus function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.discus_evosax_simplega]
@@ -429,13 +429,13 @@ description = "Bent Cigar function with MalthusJAX + EvoSAX operators (pop=1025)
 [pipelines.bent_cigar_malthusjax_roulette]
 fitness = "bbob:fn_name=bent_cigar,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Bent Cigar function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.bent_cigar_malthusjax_tournament]
 fitness = "bbob:fn_name=bent_cigar,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Bent Cigar function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.bent_cigar_evosax_simplega]
@@ -465,13 +465,13 @@ description = "Sharp Ridge function with MalthusJAX + EvoSAX operators (pop=1025
 [pipelines.sharp_ridge_malthusjax_roulette]
 fitness = "bbob:fn_name=sharp_ridge,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Sharp Ridge function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.sharp_ridge_malthusjax_tournament]
 fitness = "bbob:fn_name=sharp_ridge,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Sharp Ridge function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.sharp_ridge_evosax_simplega]
@@ -501,13 +501,13 @@ description = "Different Powers function with MalthusJAX + EvoSAX operators (pop
 [pipelines.different_powers_malthusjax_roulette]
 fitness = "bbob:fn_name=different_powers,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Different Powers function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.different_powers_malthusjax_tournament]
 fitness = "bbob:fn_name=different_powers,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Different Powers function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.different_powers_evosax_simplega]
@@ -537,13 +537,13 @@ description = "Rastrigin Rotated function with MalthusJAX + EvoSAX operators (po
 [pipelines.rastrigin_rotated_malthusjax_roulette]
 fitness = "bbob:fn_name=rastrigin_rotated,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Rastrigin Rotated function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.rastrigin_rotated_malthusjax_tournament]
 fitness = "bbob:fn_name=rastrigin_rotated,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Rastrigin Rotated function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.rastrigin_rotated_evosax_simplega]
@@ -573,13 +573,13 @@ description = "Weierstrass function with MalthusJAX + EvoSAX operators (pop=1025
 [pipelines.weierstrass_malthusjax_roulette]
 fitness = "bbob:fn_name=weierstrass,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Weierstrass function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.weierstrass_malthusjax_tournament]
 fitness = "bbob:fn_name=weierstrass,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Weierstrass function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.weierstrass_evosax_simplega]
@@ -609,13 +609,13 @@ description = "Schaffers F7 function with MalthusJAX + EvoSAX operators (pop=102
 [pipelines.schaffers_f7_malthusjax_roulette]
 fitness = "bbob:fn_name=schaffers_f7,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Schaffers F7 function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.schaffers_f7_malthusjax_tournament]
 fitness = "bbob:fn_name=schaffers_f7,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Schaffers F7 function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.schaffers_f7_evosax_simplega]
@@ -645,13 +645,13 @@ description = "Schaffers F7 Ill-Cond function with MalthusJAX + EvoSAX operators
 [pipelines.schaffers_f7_ill_cond_malthusjax_roulette]
 fitness = "bbob:fn_name=schaffers_f7_ill_cond,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Schaffers F7 Ill-Cond function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.schaffers_f7_ill_cond_malthusjax_tournament]
 fitness = "bbob:fn_name=schaffers_f7_ill_cond,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Schaffers F7 Ill-Cond function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.schaffers_f7_ill_cond_evosax_simplega]
@@ -681,13 +681,13 @@ description = "Griewank Rosenbrock function with MalthusJAX + EvoSAX operators (
 [pipelines.griewank_rosenbrock_malthusjax_roulette]
 fitness = "bbob:fn_name=griewank_rosenbrock,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Griewank Rosenbrock function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.griewank_rosenbrock_malthusjax_tournament]
 fitness = "bbob:fn_name=griewank_rosenbrock,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Griewank Rosenbrock function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.griewank_rosenbrock_evosax_simplega]
@@ -717,13 +717,13 @@ description = "Schwefel function with MalthusJAX + EvoSAX operators (pop=1025)"
 [pipelines.schwefel_malthusjax_roulette]
 fitness = "bbob:fn_name=schwefel,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Schwefel function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.schwefel_malthusjax_tournament]
 fitness = "bbob:fn_name=schwefel,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Schwefel function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.schwefel_evosax_simplega]
@@ -753,13 +753,13 @@ description = "Gallagher 101-ME function with MalthusJAX + EvoSAX operators (pop
 [pipelines.gallagher_101_me_malthusjax_roulette]
 fitness = "bbob:fn_name=gallagher_101_me,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Gallagher 101-ME function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.gallagher_101_me_malthusjax_tournament]
 fitness = "bbob:fn_name=gallagher_101_me,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Gallagher 101-ME function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.gallagher_101_me_evosax_simplega]
@@ -789,13 +789,13 @@ description = "Gallagher 21-HI function with MalthusJAX + EvoSAX operators (pop=
 [pipelines.gallagher_21_hi_malthusjax_roulette]
 fitness = "bbob:fn_name=gallagher_21_hi,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Gallagher 21-HI function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.gallagher_21_hi_malthusjax_tournament]
 fitness = "bbob:fn_name=gallagher_21_hi,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Gallagher 21-HI function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.gallagher_21_hi_evosax_simplega]
@@ -825,13 +825,13 @@ description = "Katsuura function with MalthusJAX + EvoSAX operators (pop=1025)"
 [pipelines.katsuura_malthusjax_roulette]
 fitness = "bbob:fn_name=katsuura,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Katsuura function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.katsuura_malthusjax_tournament]
 fitness = "bbob:fn_name=katsuura,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Katsuura function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.katsuura_evosax_simplega]
@@ -861,13 +861,13 @@ description = "Lunacek function with MalthusJAX + EvoSAX operators (pop=1025)"
 [pipelines.lunacek_malthusjax_roulette]
 fitness = "bbob:fn_name=lunacek,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Lunacek function with MalthusJAX roulette selection (pop=1025)"
 
 [pipelines.lunacek_malthusjax_tournament]
 fitness = "bbob:fn_name=lunacek,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Lunacek function with MalthusJAX tournament selection (pop=1025)"
 
 [pipelines.lunacek_evosax_simplega]

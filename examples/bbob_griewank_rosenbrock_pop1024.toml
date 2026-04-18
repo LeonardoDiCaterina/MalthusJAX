@@ -29,13 +29,13 @@ description = "Griewank Rosenbrock function with MalthusJAX + EvoSAX operators (
 [pipelines.griewank_rosenbrock_malthusjax_roulette]
 fitness = "bbob:fn_name=griewank_rosenbrock,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "roulette:num_selections=512,temperature=1.0"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Griewank Rosenbrock function with MalthusJAX roulette selection (pop=1024)"
 
 [pipelines.griewank_rosenbrock_malthusjax_tournament]
 fitness = "bbob:fn_name=griewank_rosenbrock,num_dims=50,maximize=false"
 backend = "malthusjax"
-selection = "tournament:num_selections=512,tournament_size=3"
+selection = "elite_pool:num_selections=512,elite_k=512"
 description = "Griewank Rosenbrock function with MalthusJAX tournament selection (pop=1024)"
 
 [pipelines.griewank_rosenbrock_evosax_simplega]
