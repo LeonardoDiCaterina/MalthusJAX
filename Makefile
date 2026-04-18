@@ -300,7 +300,7 @@ run-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml TOML=examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	@echo "--- Running TOML experiment: $(TOML) ---"
-	$(PYTHON) examples/run_toml_test.py --config $(TOML)
+	PYTHONUNBUFFERED=1 $(PYTHON) examples/run_toml_test.py --config $(TOML)
 
 run-toml-with-artifacts: run-toml artifacts-toml
 	@echo "--- Completed TOML run and artifact generation for: $(TOML) ---"
@@ -308,7 +308,7 @@ run-toml-with-artifacts: run-toml artifacts-toml
 run-toml-nohup:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml-nohup TOML=examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
-	$(call run_nohup,toml_experiment,$(PYTHON) examples/run_toml_test.py --config $(TOML))
+	$(call run_nohup,toml_experiment,PYTHONUNBUFFERED=1 $(PYTHON) examples/run_toml_test.py --config $(TOML))
 
 artifacts-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make artifacts-toml TOML=examples/experiment.toml"; exit 1)

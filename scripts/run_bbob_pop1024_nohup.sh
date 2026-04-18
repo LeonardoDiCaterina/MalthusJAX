@@ -185,7 +185,7 @@ for idx in "${!files[@]}"; do
   echo
   echo "[$((idx + 1))/${#files[@]}] Running $file"
 
-  if JAX_PLATFORMS="$JAX_EFFECTIVE_PLATFORM" make run-toml-with-artifacts TOML="$file" PYTHON="$(command -v python)"; then
+  if JAX_PLATFORMS="$JAX_EFFECTIVE_PLATFORM" PYTHONUNBUFFERED=1 make run-toml-with-artifacts TOML="$file" PYTHON="$(command -v python)"; then
     echo "[ok] $file"
   else
     echo "[error] $file"
