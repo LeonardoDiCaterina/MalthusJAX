@@ -1,6 +1,7 @@
 import argparse
 import sys
 import time
+from pathlib import Path
 
 from malthusjax.composer import Composer
 from malthusjax.composer.config import load_experiment_config
@@ -53,10 +54,12 @@ def main() -> None:
         print(f"→ Pipeline: {pipeline_name}")
         start_t = time.time()
 
+        pipeline_output_dir = Path(meta.get("output_dir")) / pipeline_name
+
         # kwargs already has seeds, generations, operators, experiment_name from TOML
         try:
             result = composer.quick_run(
-                output_dir=meta.get("output_dir"),
+                output_dir=pipeline_output_dir,
                 data_config=data_registry,
                 **kwargs
             )
