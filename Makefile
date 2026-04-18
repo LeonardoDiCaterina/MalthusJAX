@@ -3,7 +3,8 @@
         test-bench-group-05 test-bench-group-06 test-bench-group-07 test-bench-group-08 \
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
         lint format format-check type-check check-all docs docs-clean docs-open bench \
-        run-toml run-toml-nohup list-toml
+	run-toml run-toml-nohup run-toml-with-artifacts list-toml \
+	artifacts-toml artifacts-dir artifacts-batch
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -45,8 +46,22 @@ help:
 	@echo ""
 	@echo "--- Experiment Execution (TOML-based) ---"
 	@echo "  make run-toml TOML=<file>           Run experiment from TOML file"
+	@echo "  make run-toml-with-artifacts TOML=<file>  Run TOML and auto-generate artifacts"
 	@echo "  make run-toml-nohup TOML=<file>     Run TOML experiment in background (logs to .log)"
+	@echo "  make artifacts-toml TOML=<file>     Generate artifacts for TOML output_dir"
+	@echo "  make artifacts-dir RESULTS_DIR=<dir>  Generate artifacts for one results dir"
+	@echo "  make artifacts-batch RESULTS_GLOB=<glob> Generate artifacts for matching dirs"
 	@echo "  make list-toml                      List available TOML experiment files"
+	@echo ""
+	@echo "--- Artifact Generation Details ---"
+	@echo "  Artifacts are written to: <results_dir>/artifacts/"
+	@echo "  For multi-pipeline runs, comparison artifacts are generated:" 
+	@echo "    - comparison_table.csv / comparison_table.md"
+	@echo "    - comparison_final_best_fitness_boxplot.png"
+	@echo "    - comparison_timing_boxplot.png"
+	@echo "    - comparison_convergence_best_fitness.png"
+	@echo "  Example batch command:"
+	@echo "    make artifacts-batch RESULTS_GLOB='results/bbob_*_pop1024'"
 	@echo ""
 	@echo "Example:"
 	@echo "  make run-toml TOML=examples/sphere_experiment.toml"
@@ -287,10 +302,31 @@ run-toml:
 	@echo "--- Running TOML experiment: $(TOML) ---"
 	python examples/run_toml_test.py --config $(TOML)
 
+run-toml-with-artifacts: run-toml artifacts-toml
+	@echo "--- Completed TOML run and artifact generation for: $(TOML) ---"
+
 run-toml-nohup:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml-nohup TOML=examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	$(call run_nohup,toml_experiment,python examples/run_toml_test.py --config $(TOML))
+
+artifacts-toml:
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make artifacts-toml TOML=examples/experiment.toml"; exit 1)
+	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
+	@results_dir=$$(python -c "import pathlib,tomllib; p=pathlib.Path('$(TOML)'); print(tomllib.loads(p.read_text())['experiment']['output_dir'])"); \
+	echo "--- Generating artifacts for $$results_dir (from $(TOML)) ---"; \
+	python scripts/generate_experiment_artifacts.py --results-dir "$$results_dir"
+
+artifacts-dir:
+	@test -n "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR variable not set"; echo "Usage: make artifacts-dir RESULTS_DIR=results/my_experiment"; exit 1)
+	@test -d "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR not found: $(RESULTS_DIR)"; exit 1)
+	@echo "--- Generating artifacts for $(RESULTS_DIR) ---"
+	python scripts/generate_experiment_artifacts.py --results-dir "$(RESULTS_DIR)"
+
+artifacts-batch:
+	@test -n "$(RESULTS_GLOB)" || (echo "Error: RESULTS_GLOB variable not set"; echo "Usage: make artifacts-batch RESULTS_GLOB='results/bbob_*_pop1024'"; exit 1)
+	@echo "--- Generating artifacts for directories matching: $(RESULTS_GLOB) ---"
+	python scripts/generate_experiment_artifacts.py --results-glob "$(RESULTS_GLOB)"
 
 list-toml:
 	@echo "--- Available TOML experiment files ---"
