@@ -1,4 +1,7 @@
 import argparse
+import faulthandler
+import os
+import signal
 import sys
 import time
 from pathlib import Path
@@ -29,6 +32,40 @@ def _start_heartbeat(pipeline_name: str, interval_s: float = 30.0) -> tuple[Even
     return stop_event, thread
 
 
+def _configure_runtime_diagnostics() -> None:
+    """Enable low-overhead runtime diagnostics for long nohup runs.
+
+    - `kill -USR1 <pid>` dumps Python stack traces into the active log stream.
+    - Set `MALTHUSJAX_STACK_DUMP_INTERVAL=<seconds>` to emit periodic stack dumps.
+    """
+    faulthandler.enable()
+
+    try:
+        faulthandler.register(signal.SIGUSR1, all_threads=True)
+        _log("Diagnostics: send SIGUSR1 to dump Python stack traces.")
+    except (AttributeError, OSError, RuntimeError):
+        _log("Diagnostics: SIGUSR1 stack-dump hook unavailable on this platform.")
+
+    interval_raw = os.environ.get("MALTHUSJAX_STACK_DUMP_INTERVAL", "").strip()
+    if not interval_raw:
+        return
+
+    try:
+        interval_s = float(interval_raw)
+    except ValueError:
+        _log(
+            "Diagnostics: ignoring invalid MALTHUSJAX_STACK_DUMP_INTERVAL "
+            f"value={interval_raw!r}."
+        )
+        return
+
+    if interval_s <= 0:
+        return
+
+    faulthandler.dump_traceback_later(interval_s, repeat=True)
+    _log(f"Diagnostics: periodic stack dump enabled every {interval_s:.1f}s.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Run MalthusJAX experiments from TOML configuration files"
@@ -46,6 +83,8 @@ def main() -> None:
         help="Run only a specific pipeline (optional; runs all if not specified)",
     )
     args = parser.parse_args()
+
+    _configure_runtime_diagnostics()
 
     _log(f"Loading TOML configuration: {args.config}")
     try:

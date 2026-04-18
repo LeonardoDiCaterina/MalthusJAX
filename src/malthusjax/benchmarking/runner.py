@@ -86,11 +86,19 @@ class BenchmarkRunner:
             iterable = tqdm(iterable, total=len(seeds), desc="seeds")
 
         for i, seed in iterable:
+            print(f"  - Seed {i + 1}/{len(seeds)} start (seed={seed})", flush=True)
             key = create_key(seed, impl=impl) if impl else jr.PRNGKey(seed)
             # Only trace the first seed
             trace_this = self.trace_dir if i == 0 else None
             run_result = self._run_single_seed(seed, key, timeout_seconds, trace_dir=trace_this)
             runs.append(run_result)
+            print(
+                "  - Seed "
+                f"{i + 1}/{len(seeds)} done "
+                f"status={run_result.status} "
+                f"duration={run_result.duration_seconds:.2f}s",
+                flush=True,
+            )
 
         # Create experiment result
         experiment = ExperimentResult(

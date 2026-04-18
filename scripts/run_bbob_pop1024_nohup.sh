@@ -103,6 +103,7 @@ if [[ "$FOREGROUND" -eq 0 ]]; then
   echo "PID: $pid"
   echo "Log: $log_file"
   echo "Monitor: tail -f $log_file"
+  echo "Debug stack dump: kill -USR1 $pid"
   exit 0
 fi
 
