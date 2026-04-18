@@ -102,6 +102,13 @@ if [[ "$FOREGROUND" -eq 0 ]]; then
   exit 0
 fi
 
+# Safer defaults for GPU runs to avoid aggressive preallocation and instability.
+# Users can still override these externally before launching.
+if [[ "$JAX_PLATFORM" == "gpu" ]]; then
+  export XLA_PYTHON_CLIENT_PREALLOCATE="${XLA_PYTHON_CLIENT_PREALLOCATE:-false}"
+  export XLA_PYTHON_CLIENT_MEM_FRACTION="${XLA_PYTHON_CLIENT_MEM_FRACTION:-0.70}"
+fi
+
 files=()
 if [[ "$SMOKE_RUN" -eq 1 ]]; then
   files+=("examples/bbob_weierstrass_pop1024.toml")
@@ -119,6 +126,10 @@ fi
 echo "Repo: $REPO_ROOT"
 echo "Mode: $( [[ "$SMOKE_RUN" -eq 1 ]] && echo smoke || echo full )"
 echo "JAX_PLATFORMS: $JAX_PLATFORM"
+if [[ "$JAX_PLATFORM" == "gpu" ]]; then
+  echo "XLA_PYTHON_CLIENT_PREALLOCATE: ${XLA_PYTHON_CLIENT_PREALLOCATE}"
+  echo "XLA_PYTHON_CLIENT_MEM_FRACTION: ${XLA_PYTHON_CLIENT_MEM_FRACTION}"
+fi
 echo "Total TOMLs: ${#files[@]}"
 
 fail_count=0
