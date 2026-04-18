@@ -49,6 +49,7 @@ def main() -> None:
 
     total_time = 0.0
     results_summary = []
+    had_errors = False
 
     for pipeline_name, kwargs in pipelines.items():
         print(f"→ Pipeline: {pipeline_name}")
@@ -66,6 +67,7 @@ def main() -> None:
         except Exception as e:
             print(f"  ✗ ERROR: {str(e)[:100]}")
             results_summary.append((pipeline_name, "ERROR", 0.0, str(e)[:50]))
+            had_errors = True
             continue
 
         end_t = time.time()
@@ -86,6 +88,7 @@ def main() -> None:
         print(f"  {status} Best: {best_fit_val:.6f} | Time: {elapsed:.2f}s")
         if result.runs[0].error:
             print(f"  Error: {result.runs[0].error}")
+            had_errors = True
 
     # Summary
     print("\n" + "=" * 70)
@@ -95,6 +98,9 @@ def main() -> None:
         fit_str = f"{fitness:.6f}" if isinstance(fitness, float) else str(fitness)
         print(f"{status} {name:30s} | Fitness: {fit_str:15s} | Time: {elapsed:7.2f}s")
     print(f"\nTotal time: {total_time:.2f}s")
+
+    if had_errors:
+        sys.exit(2)
 
 
 if __name__ == "__main__":

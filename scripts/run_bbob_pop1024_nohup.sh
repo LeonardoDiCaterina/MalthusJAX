@@ -11,7 +11,8 @@ set -euo pipefail
 #
 # Smoke mode:
 #   --smoke_run
-#   - Runs only examples/bbob_weierstrass_pop1024.toml
+#   - Runs only examples/bbob_weierstrass_pop1024_smoke100.toml (if present)
+#   - Falls back to examples/bbob_weierstrass_pop1024.toml
 #
 # Examples:
 #   scripts/run_bbob_pop1024_nohup.sh
@@ -26,13 +27,15 @@ SMOKE_RUN=0
 FOREGROUND=0
 JAX_PLATFORM="cpu"
 LOG_DIR="logs"
+SMOKE_TOML_DEFAULT="examples/bbob_weierstrass_pop1024_smoke100.toml"
+SMOKE_TOML_FALLBACK="examples/bbob_weierstrass_pop1024.toml"
 
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [options]
 
 Options:
-  --smoke_run           Run only examples/bbob_weierstrass_pop1024.toml
+  --smoke_run           Run only smoke TOML (prefers bbob_weierstrass_pop1024_smoke100.toml)
   --foreground          Run in current shell (no nohup/background)
   --jax-platform <val>  JAX_PLATFORMS value (default: cpu)
   --log-dir <dir>       Log directory for nohup mode (default: logs)
@@ -111,7 +114,14 @@ fi
 
 files=()
 if [[ "$SMOKE_RUN" -eq 1 ]]; then
-  files+=("examples/bbob_weierstrass_pop1024.toml")
+  if [[ -f "$SMOKE_TOML_DEFAULT" ]]; then
+    files+=("$SMOKE_TOML_DEFAULT")
+  elif [[ -f "$SMOKE_TOML_FALLBACK" ]]; then
+    files+=("$SMOKE_TOML_FALLBACK")
+  else
+    echo "No smoke TOML found. Checked: $SMOKE_TOML_DEFAULT and $SMOKE_TOML_FALLBACK"
+    exit 1
+  fi
 else
   while IFS= read -r f; do
     files+=("$f")
@@ -125,10 +135,27 @@ fi
 
 echo "Repo: $REPO_ROOT"
 echo "Mode: $( [[ "$SMOKE_RUN" -eq 1 ]] && echo smoke || echo full )"
+echo "Python executable: $(command -v python || true)"
+echo "Python version: $(python -V 2>&1 || true)"
 echo "JAX_PLATFORMS: $JAX_PLATFORM"
 if [[ "$JAX_PLATFORM" == "gpu" ]]; then
   echo "XLA_PYTHON_CLIENT_PREALLOCATE: ${XLA_PYTHON_CLIENT_PREALLOCATE}"
   echo "XLA_PYTHON_CLIENT_MEM_FRACTION: ${XLA_PYTHON_CLIENT_MEM_FRACTION}"
+  echo "Running JAX GPU preflight..."
+  if ! python - <<'PY'
+import jax
+import jaxlib
+print('jax:', jax.__version__)
+print('jaxlib:', jaxlib.__version__)
+devices = jax.devices()
+print('devices:', devices)
+if not any(getattr(d, 'platform', '') == 'gpu' for d in devices):
+    raise SystemExit('No GPU devices visible to JAX (gpu mode requested).')
+PY
+  then
+    echo "[fatal] JAX GPU preflight failed. Aborting before benchmark loop."
+    exit 1
+  fi
 fi
 echo "Total TOMLs: ${#files[@]}"
 
