@@ -26,6 +26,7 @@ cd "$REPO_ROOT"
 SMOKE_RUN=0
 FOREGROUND=0
 JAX_PLATFORM="cpu"
+JAX_EFFECTIVE_PLATFORM=""
 LOG_DIR="logs"
 SMOKE_TOML_DEFAULT="examples/bbob_weierstrass_pop1024_smoke100.toml"
 SMOKE_TOML_FALLBACK="examples/bbob_weierstrass_pop1024.toml"
@@ -105,6 +106,14 @@ if [[ "$FOREGROUND" -eq 0 ]]; then
   exit 0
 fi
 
+# Resolve runtime platform string passed to JAX.
+# "gpu" can trigger ROCm probing on some builds; prefer explicit CUDA.
+if [[ "$JAX_PLATFORM" == "gpu" ]]; then
+  JAX_EFFECTIVE_PLATFORM="cuda"
+else
+  JAX_EFFECTIVE_PLATFORM="$JAX_PLATFORM"
+fi
+
 # Safer defaults for GPU runs to avoid aggressive preallocation and instability.
 # Users can still override these externally before launching.
 if [[ "$JAX_PLATFORM" == "gpu" ]]; then
@@ -137,17 +146,26 @@ echo "Repo: $REPO_ROOT"
 echo "Mode: $( [[ "$SMOKE_RUN" -eq 1 ]] && echo smoke || echo full )"
 echo "Python executable: $(command -v python || true)"
 echo "Python version: $(python -V 2>&1 || true)"
-echo "JAX_PLATFORMS: $JAX_PLATFORM"
+echo "JAX_PLATFORMS (requested): $JAX_PLATFORM"
+echo "JAX_PLATFORMS (effective): $JAX_EFFECTIVE_PLATFORM"
 if [[ "$JAX_PLATFORM" == "gpu" ]]; then
   echo "XLA_PYTHON_CLIENT_PREALLOCATE: ${XLA_PYTHON_CLIENT_PREALLOCATE}"
   echo "XLA_PYTHON_CLIENT_MEM_FRACTION: ${XLA_PYTHON_CLIENT_MEM_FRACTION}"
   echo "Running JAX GPU preflight..."
-  if ! python - <<'PY'
+  if ! JAX_PLATFORMS="$JAX_EFFECTIVE_PLATFORM" python - <<'PY'
+import os
 import jax
 import jaxlib
 print('jax:', jax.__version__)
 print('jaxlib:', jaxlib.__version__)
-devices = jax.devices()
+try:
+    devices = jax.devices()
+except Exception as e:
+    raise SystemExit(
+    f"JAX backend initialization failed for JAX_PLATFORMS={os.environ.get('JAX_PLATFORMS')!r}: {e!r}"
+    )
+platforms = sorted({getattr(d, 'platform', 'unknown') for d in devices})
+print('platforms:', platforms)
 print('devices:', devices)
 if not any(getattr(d, 'platform', '') == 'gpu' for d in devices):
     raise SystemExit('No GPU devices visible to JAX (gpu mode requested).')
@@ -167,7 +185,7 @@ for idx in "${!files[@]}"; do
   echo
   echo "[$((idx + 1))/${#files[@]}] Running $file"
 
-  if JAX_PLATFORMS="$JAX_PLATFORM" make run-toml-with-artifacts TOML="$file"; then
+  if JAX_PLATFORMS="$JAX_EFFECTIVE_PLATFORM" make run-toml-with-artifacts TOML="$file" PYTHON="$(command -v python)"; then
     echo "[ok] $file"
   else
     echo "[error] $file"
