@@ -148,7 +148,7 @@ class Composer:
         elitism: int = 2,
         maximize: bool = False,
         prng_impl: Optional[str] = None,
-        trace_dir: Optional[Path | str] = Path("results/traces"),
+        trace_dir: Optional[Path | str] = None,
         data_config: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> ExperimentResult:
@@ -316,7 +316,7 @@ class Composer:
 
         trace_dir : Path or str, optional
         Directory to write Perfetto-compatible JAX profiler traces.
-        Default: ``Path("results/traces")``.
+        Default: ``None`` (disabled).
 
         Returns
         -------
