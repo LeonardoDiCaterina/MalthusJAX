@@ -304,7 +304,26 @@ def build_evosax_engine(
 
     params = strategy.default_params
     if strategy_params:
-        params = params.replace(**strategy_params)
+        params_kwargs: dict[str, Any] = {}
+        strategy_kwargs: dict[str, Any] = {}
+        params_fields = set(params.__dict__.keys()) if hasattr(params, "__dict__") else set()
+
+        for key, value in strategy_params.items():
+            if key in params_fields:
+                params_kwargs[key] = value
+            elif hasattr(strategy, key):
+                strategy_kwargs[key] = value
+            else:
+                raise KeyError(
+                    f"Unknown evosax strategy parameter '{key}'. "
+                    f"Valid parameter names are {sorted(params_fields)} or any "
+                    f"attribute on the {strategy_name} strategy."
+                )
+
+        if params_kwargs:
+            params = params.replace(**params_kwargs)
+        for key, value in strategy_kwargs.items():
+            setattr(strategy, key, value)
 
     return EvosaxEngineAdapter(
         strategy=strategy,
