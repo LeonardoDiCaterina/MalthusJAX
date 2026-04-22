@@ -531,6 +531,48 @@ class ComparisonResult:
         lines.append("\\end{tabular}")
         return "\n".join(lines)
 
+    def normalized_runs(self, pipeline_name: str) -> List[RunResult]:
+        """Return per-seed runs with sign-normalized fitness metrics.
+
+        When comparing pipelines from different backends, raw run metrics may
+        use different sign conventions for minimization or maximization.
+        This helper returns a copy of the selected pipeline's runs where all
+        fitness-related metrics and history entries are normalized according
+        to the comparison's ``negate_map``.
+        """
+        if pipeline_name not in self.pipelines:
+            raise KeyError(f"Unknown pipeline '{pipeline_name}'")
+
+        sign = self._sign(pipeline_name)
+        if sign == 1.0:
+            return self.pipelines[pipeline_name].runs
+
+        normalized_runs: List[RunResult] = []
+        for run in self.pipelines[pipeline_name].runs:
+            normalized_metrics = {
+                k: (v * sign if k in self._FITNESS_KEYS else v)
+                for k, v in run.metrics.items()
+            }
+            normalized_history = [
+                {k: (v * sign if k in self._FITNESS_KEYS else v) for k, v in row.items()}
+                for row in run.history
+            ]
+            normalized_runs.append(
+                RunResult(
+                    seed=run.seed,
+                    status=run.status,
+                    metrics=normalized_metrics,
+                    history=normalized_history,
+                    artifacts=run.artifacts,
+                    duration_seconds=run.duration_seconds,
+                    timings=run.timings,
+                    error=run.error,
+                    created_at=run.created_at,
+                )
+            )
+
+        return normalized_runs
+
     def timing_data(self, timing_key: str = "duration_seconds") -> Dict[str, List[float]]:
         """Collect timing values for each pipeline across all seeds.
 
@@ -890,9 +932,10 @@ class ComparisonResult:
         Grid is enabled with alpha=0.3 for readability.
 
         **Sign Normalization**:
-        Fitness values are automatically negated (if ``negate_map[pipeline]``,
-        which is ``True`` for Evosax backends) so that all pipelines use
-        "lower is better". This normalization is transparent to the user.
+        Fitness values are automatically negated (if ``negate_map[pipeline]``)
+        so that all pipelines use "lower is better". The sign map is set by
+        :meth:`Composer.compare` and :meth:`Composer.from_toml` based on backend
+        conventions.
 
         **Multiple Seeds**:
         Call with different ``seed_index`` values to create a multi-panel
