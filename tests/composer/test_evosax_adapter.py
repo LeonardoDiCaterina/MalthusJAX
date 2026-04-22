@@ -163,6 +163,34 @@ class TestBuildEvosaxEngine:
         )
         assert adapter.bounds == (-10.0, 10.0)
 
+    def test_strategy_params_updates_strategy_attributes(self):
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
+        adapter = build_evosax_engine(
+            strategy_name="SimpleGA",
+            evaluator=evalr,
+            pop_size=8,
+            generations=2,
+            strategy_params={
+                "crossover_rate": 0.5,
+                "elite_ratio": 0.1,
+                "std_schedule": lambda step: 0.1,
+            },
+        )
+        assert adapter.params.crossover_rate == 0.5
+        assert adapter.strategy.elite_ratio == 0.1
+        assert adapter.strategy.std_schedule(0) == 0.1
+
+    def test_unknown_strategy_param_raises(self):
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
+        with pytest.raises(KeyError, match="Unknown evosax strategy parameter"):
+            build_evosax_engine(
+                strategy_name="SimpleGA",
+                evaluator=evalr,
+                pop_size=8,
+                generations=2,
+                strategy_params={"nope": 123},
+            )
+
     def test_maximize_flag_stored(self):
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
         adapter = build_evosax_engine(

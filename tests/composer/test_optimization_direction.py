@@ -212,6 +212,29 @@ class TestOptimizationDirection:
                 fl = run.history[-1]["best_fitness"]
                 print(f"BBOB {expected_fn}: {f0} -> {fl}")
 
+    def test_evosax_bbob_fn_index_spec(self):
+        """Test that `bbob:fn=INT` works for the Evosax backend."""
+        composer = Composer.create_default()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            result = composer.quick_run(
+                backend='evosax',
+                evosax_strategy='SimpleGA',
+                fitness='bbob:fn=3,dims=4,seed=0',
+                pop_size=30,
+                generations=5,
+                genome_type='real',
+                genome_length=4,
+                bounds=(-5.0, 5.0),
+                seeds=[42],
+                strategy_params={'crossover_rate': 0.5},
+                experiment_name='bbob_fn_index',
+                output_dir=tmp_dir,
+            )
+
+        assert len(result.runs) == 1
+        assert isinstance(result.runs[0].metrics['best_fitness'], float)
+
     def test_bbob_maximize_parameter(self):
         """Test that the BBOB evaluator respects the maximize parameter."""
         composer = Composer.create_default()

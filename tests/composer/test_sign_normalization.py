@@ -194,6 +194,41 @@ evosax_strategy = "SimpleGA"
         finally:
             os.unlink(temp_path)
 
+    def test_normalized_runs_helper(self):
+        """Test that normalized_runs returns per-seed runs with sign-normalized fitness."""
+        composer = Composer.create_default()
+
+        pipelines = {
+            "malthusjax_ga": {
+                "backend": "malthusjax",
+                "crossover": "blend:alpha=0.5",
+                "selection": "tournament:num_selections=10,tournament_size=3",
+                "mutation": "gaussian:mutation_rate=0.1",
+            },
+            "evosax_ga": {"backend": "evosax", "evosax_strategy": "SimpleGA"},
+        }
+
+        result = composer.compare(
+            pipelines=pipelines,
+            seeds=(0,),
+            fitness="sphere:dim=5",
+            pop_size=20,
+            generations=5,
+            genome_length=5,
+            shared_initial_population=True,
+        )
+
+        normalized = result.normalized_runs("malthusjax_ga")
+        assert len(normalized) == 1
+        assert normalized[0].metrics["best_fitness"] < 0
+        assert normalized[0].metrics["best_fitness"] == result.summary_table()["malthusjax_ga"]["best_fitness"]
+
+        # Evosax is already lower-is-better in raw metrics, so normalized_runs
+        # should preserve the original values for that pipeline.
+        raw_evosax = result.pipelines["evosax_ga"].runs[0].metrics["best_fitness"]
+        normalized_evosax = result.normalized_runs("evosax_ga")[0].metrics["best_fitness"]
+        assert normalized_evosax == raw_evosax
+
     def test_manual_negate_on_top_of_auto(self):
         """Test that manual negate parameter works on top of automatic normalization."""
         try:
