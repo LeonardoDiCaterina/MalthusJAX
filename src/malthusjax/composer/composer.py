@@ -902,7 +902,27 @@ class Composer:
 
             cat = OperatorCatalog()
             parsed_name, parsed_params = cat.parse_spec(fitness_spec)
-            fn = parsed_params.get("fn_name", parsed_name)
+
+            if parsed_name == "bbob":
+                fn_param = parsed_params.get("fn_name", parsed_params.get("fn", None))
+                if isinstance(fn_param, int):
+                    import evosax.problems.bbob.meta_bbob as mb
+
+                    bbob_keys = list(mb.bbob_fns.keys())
+                    if fn_param < 1 or fn_param > len(bbob_keys):
+                        raise ValueError(
+                            f"BBOB function index {fn_param} is out of range (1-{len(bbob_keys)})"
+                        )
+                    fn = bbob_keys[fn_param - 1]
+                elif fn_param is None:
+                    raise ValueError(
+                        "BBOB fitness specification requires either fn_name or fn index"
+                    )
+                else:
+                    fn = fn_param
+            else:
+                fn = parsed_params.get("fn_name", parsed_name)
+
             dims = parsed_params.get("dim", parsed_params.get("num_dims", num_dims))
             seed = parsed_params.get("seed", kwargs.get("seed", 42))
             maxim = parsed_params.get("maximize", maximize)
