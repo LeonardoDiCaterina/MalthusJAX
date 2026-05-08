@@ -85,7 +85,25 @@ print(result.summary_table())
 result.plot_convergence()
 ```
 
-That's it -- multi-seed execution, result aggregation, and convergence plots handled automatically.
+For a full sweep over all 24 BBOB functions, use the built-in generator and launcher scripts:
+
+```bash
+python scripts/generate_bbob_benchmark.py \
+  --output-dir examples/_DEMO_COMPOSER/bbob_benchmark \
+  --fn-range 1 24 \
+  --dimensions 10 \
+  --pop-sizes 1024 \
+  --num-seeds 10 \
+  --generations 200 \
+  --create-launcher
+
+python scripts/launch_bbob_benchmark.py \
+  --toml-dir examples/_DEMO_COMPOSER/bbob_benchmark \
+  --max-parallel 2 \
+  --cleanup-ram
+```
+
+That generates per-function TOML files and runs them sequentially with RAM cleanup.
 
 ---
 
