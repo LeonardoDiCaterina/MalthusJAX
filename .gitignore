@@ -72,6 +72,9 @@ plots/
 benchmarks/results/
 Level3_Engine_Architecture_files/
 
+# Local script archives
+scripts/_archive/
+
 # miscellaneous temporary/generated data
 tmp/
 *.log

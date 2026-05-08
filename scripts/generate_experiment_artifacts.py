@@ -44,10 +44,17 @@ def _is_number(value: Any) -> bool:
 def _fitness_sign_for_name(name: str) -> float:
     """Return sign normalization for pipeline/result names.
 
-    Evosax backends report best fitness with opposite sign convention in this
-    project, so we flip those for comparison artifacts.
+    Evosax native backends report best fitness with the opposite sign
+    convention in this project, so we flip those for comparison artifacts.
+    The wrapper pipeline `evosax_operators_in_mj` is still executed via the
+    MalthusJAX engine and therefore should not be sign-flipped.
     """
-    return -1.0 if "evosax" in name.lower() else 1.0
+    nl = name.lower()
+    if "evosax_operators_in_mj" in nl:
+        return 1.0
+    if "evosax_native" in nl or "evosax_de" in nl or "evosax_simplega" in nl or "evosax_mr15" in nl:
+        return -1.0
+    return 1.0
 
 
 def _normalize_metric(metric_key: str, value: float, fitness_sign: float) -> float:
@@ -331,6 +338,101 @@ def _write_pipeline_comparison_tables(rows: Sequence[Dict[str, Any]], artifacts_
     return outputs
 
 
+def _write_gap_summary(rows: Sequence[Dict[str, Any]], artifacts_dir: Path) -> Dict[str, str]:
+    outputs: Dict[str, str] = {}
+    comparisons: Dict[str, Dict[str, Any]] = {}
+    target_suffixes = ["_evosax_simplega", "_mjx_evosax_exact"]
+
+    for row in rows:
+        pipeline = row["pipeline"]
+        for suffix in target_suffixes:
+            if pipeline.endswith(suffix):
+                problem = pipeline[: -len(suffix)]
+                comparisons.setdefault(problem, {})[suffix] = row
+                break
+
+    summary_rows: List[Dict[str, Any]] = []
+    for problem in sorted(comparisons):
+        data = comparisons[problem]
+        if not all(suffix in data for suffix in target_suffixes):
+            continue
+        a = data[target_suffixes[0]]
+        b = data[target_suffixes[1]]
+        n = min(a["num_runs"], b["num_runs"])
+        diff = a["best_fitness_mean"] - b["best_fitness_mean"]
+        var = (a["best_fitness_stdev"] ** 2 / a["num_runs"]) + (b["best_fitness_stdev"] ** 2 / b["num_runs"])
+        se = math.sqrt(var) if var >= 0 else float("nan")
+        pooled = math.sqrt(
+            ((a["num_runs"] - 1) * a["best_fitness_stdev"] ** 2
+             + (b["num_runs"] - 1) * b["best_fitness_stdev"] ** 2)
+            / (a["num_runs"] + b["num_runs"] - 2)
+        ) if a["num_runs"] > 1 and b["num_runs"] > 1 else float("nan")
+        t_stat = diff / pooled if pooled > 0 else float("nan")
+        rel_diff = abs(diff) / (abs(b["best_fitness_mean"]) if abs(b["best_fitness_mean"]) > 1e-9 else 1.0)
+        summary_rows.append(
+            {
+                "problem": problem,
+                "runs": n,
+                "evosax_simplega_mean": a["best_fitness_mean"],
+                "evosax_simplega_stdev": a["best_fitness_stdev"],
+                "mjx_evosax_exact_mean": b["best_fitness_mean"],
+                "mjx_evosax_exact_stdev": b["best_fitness_stdev"],
+                "mean_diff": diff,
+                "abs_diff": abs(diff),
+                "rel_diff": rel_diff,
+                "se_diff": se,
+                "pooled_stdev": pooled,
+                "t_stat": t_stat,
+            }
+        )
+
+    csv_path = artifacts_dir / "gap_summary.csv"
+    with csv_path.open("w", newline="") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "problem",
+                "runs",
+                "evosax_simplega_mean",
+                "evosax_simplega_stdev",
+                "mjx_evosax_exact_mean",
+                "mjx_evosax_exact_stdev",
+                "mean_diff",
+                "abs_diff",
+                "rel_diff",
+                "se_diff",
+                "pooled_stdev",
+                "t_stat",
+            ],
+        )
+        writer.writeheader()
+        for row in summary_rows:
+            writer.writerow(
+                {k: (f"{v:.12g}" if isinstance(v, float) else v) for k, v in row.items()}
+            )
+    outputs["gap_summary_csv"] = str(csv_path)
+
+    md_path = artifacts_dir / "gap_summary.md"
+    lines = [
+        "# Gap Summary: Evosax SimpleGA vs MalthusJAX Evosax Exact",
+        "",
+        "| Problem | Runs | Evosax SimpleGA Mean ± StdDev | MJX Evosax Exact Mean ± StdDev | Mean Diff | Abs Diff | Rel Diff | SE Diff | t-stat |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in summary_rows:
+        lines.append(
+            f"| {row['problem']} | {row['runs']} | "
+            f"{float(row['evosax_simplega_mean']):.6g} ± {float(row['evosax_simplega_stdev']):.6g} | "
+            f"{float(row['mjx_evosax_exact_mean']):.6g} ± {float(row['mjx_evosax_exact_stdev']):.6g} | "
+            f"{float(row['mean_diff']):.6g} | {float(row['abs_diff']):.6g} | {float(row['rel_diff']):.6g} | {float(row['se_diff']):.6g} | {float(row['t_stat']):.6g} |"
+        )
+    lines.append("")
+    md_path.write_text("\n".join(lines))
+    outputs["gap_summary_md"] = str(md_path)
+
+    return outputs
+
+
 def _plot_pipeline_comparison_boxplots(pipeline_dirs: Sequence[Path], artifacts_dir: Path) -> Dict[str, str]:
     try:
         import matplotlib.pyplot as plt
@@ -455,6 +557,7 @@ def generate_pipeline_comparison_artifacts(base_dir: Path) -> Dict[str, str]:
     outputs: Dict[str, str] = {}
     rows = _collect_pipeline_rows(pipeline_dirs)
     outputs.update(_write_pipeline_comparison_tables(rows, artifacts_dir))
+    outputs.update(_write_gap_summary(rows, artifacts_dir))
     outputs.update(_plot_pipeline_comparison_boxplots(pipeline_dirs, artifacts_dir))
     outputs.update(_plot_pipeline_convergence(pipeline_dirs, artifacts_dir))
     return outputs
