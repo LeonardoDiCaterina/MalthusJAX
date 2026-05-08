@@ -129,7 +129,6 @@ run_failing:
 test-fixes:
 	@echo "--- Running recently fixed tests ---"
 	python -m pytest --no-cov -v \
-	  tests/benchmarks/test_cli.py::TestLoadConfig::test_load_missing_file \
 	  tests/operators/mutation/test_real_mutation.py::TestRealMutationHarness::test_jit_reproducibility
 
 lint:
