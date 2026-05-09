@@ -62,6 +62,7 @@ benchmarks = [
     "pandas>=1.5.0",
     "scipy>=1.9.0",
     "evosax",
+    "bbobax",
     "tomli>=2.0.0; python_version < '3.11'",
 ]
 all = ["malthusjax[dev,docs,examples,benchmarks]"]
