@@ -71,5 +71,37 @@ class BaseEvaluator(Generic[G, C, D]):
         fitness_scores = jax.vmap(self.evaluate)(population.genes)
         return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
 
+    @property
+    def f_opt(self) -> chex.Numeric | None:
+        """Reference optimal fitness value (e.g., global minimum).
+
+        Returns None if the evaluator does not have a known reference optimum.
+        Concrete evaluators (e.g., BBOBEvaluator) override this property.
+        """
+        return None
+
+    @property
+    def x_opt(self) -> chex.Array | None:
+        """Reference optimal solution location.
+
+        Returns None if the evaluator does not have a known reference optimum.
+        Concrete evaluators (e.g., BBOBEvaluator) override this property.
+        """
+        return None
+
+    def get_gap_to_optimum(self, fitness_value: chex.Numeric) -> chex.Numeric | None:
+        """Compute gap between a fitness value and the known optimum.
+
+        Args:
+            fitness_value: The fitness value to compare.
+
+        Returns:
+            The absolute gap to the optimum, or None if no optimum reference exists.
+            A gap of 0 means the value is optimal.
+        """
+        if self.f_opt is None:
+            return None
+        return jax.numpy.abs(fitness_value - self.f_opt)
+
 
 RegressionData = Tuple[chex.Array, chex.Array]

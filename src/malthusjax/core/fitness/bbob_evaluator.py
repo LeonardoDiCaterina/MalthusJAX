@@ -5,6 +5,15 @@ BBOBProblem API for deterministic black‑box function evaluation. Plays
 nicely with our population and maximization conventions.
 """
 
+# TODO: stop relying on evosax's internal problem registry
+# use https://github.com/maxencefaldor/bbobax/tree/main/src/bbobax
+# keep the evosax wrapper though to benchmark evosax implementation
+# in their own benchmark suite
+
+# # TODO: wrap also https://github.com/RobertTLange/gymnax
+# in a different adapter for RL problems
+
+
 from __future__ import annotations
 
 from typing import Any, cast
@@ -155,3 +164,31 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         return cast(
             BasePopulation[RealGenome], cast(Any, population).replace(fitness=final_fitness)
         )
+
+    @property
+    def f_opt(self) -> chex.Numeric:
+        """Reference minimum value (optimal function value) for this problem.
+
+        This is the known global optimum from the BBOB benchmark suite.
+        """
+        return self.evosax_problem.f_opt
+
+    @property
+    def x_opt(self) -> chex.Array:
+        """Reference optimal solution location for this problem.
+
+        This is the known global optimum location from the BBOB benchmark suite.
+        """
+        return self.evosax_problem.x_opt
+
+    def get_gap_to_optimum(self, fitness_value: chex.Numeric) -> chex.Numeric:
+        """Compute gap between a fitness value and the known optimum.
+
+        Args:
+            fitness_value: The fitness value to compare (should be raw BBOB value,
+                          not considering maximize flag).
+
+        Returns:
+            The absolute gap to the optimum (always positive, 0 means optimal).
+        """
+        return jax.numpy.abs(fitness_value - self.f_opt)
