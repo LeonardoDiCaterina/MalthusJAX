@@ -18,6 +18,15 @@ Usage::
     result = adapter.run_once(jax.random.PRNGKey(42))
 """
 
+#TODO: introduce support for mjx evaluators with non-evosax problems
+# by writing a wrapper to translates the problem/eval interface to evosax's expected problem format.
+# This would allow us to use the adapter with any MalthusJAX evaluator, not just BBOB ones.
+
+#TODO: add support for passing distribution_based_algorithms as well,
+# which have a slightly different ask/tell interface
+# (they return a population distribution instead of a population,
+# and the tell() method takes the distribution as input instead of returning an updated state).
+# This would require writing some additional adapter code to handle the differences in interface.
 from __future__ import annotations
 
 import time
@@ -62,6 +71,7 @@ class EvosaxEngineAdapter:
         maximize: bool = False,
         initial_population: chex.Array = None,
         prng_impl: Optional[str] = None,
+        evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
     ) -> None:
         self.strategy = strategy
         self.params = params
@@ -74,6 +84,7 @@ class EvosaxEngineAdapter:
         self.maximize = maximize
         self.initial_population = initial_population
         self.prng_impl = prng_impl
+        self.evaluator = evaluator
 
     def run_once(
         self, key: chex.Array, unroll_factor: int = 1, compile: bool = True
@@ -190,6 +201,7 @@ class EvosaxEngineAdapter:
         else:
             best_fitness_value = float(initial_best_fitness)
         summary = {
+            "initial_fitness": float(initial_best_fitness),
             "best_fitness": best_fitness_value,
             "best_solution": self.strategy.get_best_solution(final_state).tolist(),
             "total_generations": self.num_generations,
@@ -197,6 +209,12 @@ class EvosaxEngineAdapter:
             "total_evaluations": self.num_generations * self.pop_size,
             "pop_size": self.pop_size,
         }
+        
+        # Add gap to optimum if available
+        if self.evaluator is not None:
+            gap = self.evaluator.get_gap_to_optimum(best_fitness_value)
+            if gap is not None:
+                summary["gap_to_optimum"] = float(gap)
 
         timings = {
             "initialization": compile_start - start_time,
@@ -337,4 +355,5 @@ def build_evosax_engine(
         maximize=maximize,
         initial_population=initial_population,
         prng_impl=prng_impl,
+        evaluator=evaluator,
     )

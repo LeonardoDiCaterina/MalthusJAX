@@ -80,6 +80,7 @@ def test_engine_adapter_run_once():
     assert "best_fitness" in summary
     assert "final_generation" in summary
     assert "total_evaluations" in summary
+    assert "gap_to_optimum" in summary
 
     # Running a second time should have lower compile cost (cache hit)
     key2 = jr.PRNGKey(123456)

@@ -127,6 +127,11 @@ class GeneticEngineAdapter:
             "final_generation": int(final_state.generation),
             "total_evaluations": total_evals,
         }
+        
+        # Add gap to optimum if available
+        gap = self.genetic_engine.evaluator.get_gap_to_optimum(final_state.best_fitness)
+        if gap is not None:
+            summary["gap_to_optimum"] = float(gap)
 
         timings = {
             "initialization": t_init_end - t_init_start,

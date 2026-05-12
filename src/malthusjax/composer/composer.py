@@ -397,6 +397,14 @@ class Composer:
                     shape_val = g_params["shape"]
                     genome_length = shape_val[0] if hasattr(shape_val, "__len__") else shape_val
 
+            # If genome length is still unset, infer from fitness spec (e.g. "sphere:dim=5").
+            if genome_length is None and isinstance(fitness, str):
+                parsed_name, parsed_params = OperatorCatalog().parse_spec(fitness)
+                _ = parsed_name  # parsed_name intentionally unused; kept for clarity.
+                dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
+                if dim_val is not None:
+                    genome_length = int(dim_val)
+
             if genome_type is None:
                 genome_type = "real"
             if genome_length is None:
@@ -592,10 +600,31 @@ class Composer:
             )
             # All pipelines start from identical population
         """
+        def _infer_genome_length(cfg: Dict[str, Any]) -> int:
+            """Infer genome length from config, preferring explicit values.
+
+            Priority:
+            1) ``genome_length`` kwarg
+            2) ``fitness`` spec params ``dim`` / ``num_dims``
+            3) default 10
+            """
+            if "genome_length" in cfg and cfg["genome_length"] is not None:
+                return int(cfg["genome_length"])
+
+            fitness_spec = cfg.get("fitness")
+            if isinstance(fitness_spec, str):
+                parsed_name, parsed_params = OperatorCatalog().parse_spec(fitness_spec)
+                _ = parsed_name  # parsed_name is intentionally unused here
+                dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
+                if dim_val is not None:
+                    return int(dim_val)
+
+            return 10
+
         init_pop = None
         if shared_initial_population:
             pop_size = int(shared_kwargs.get("pop_size", 50))
-            genome_length = int(shared_kwargs.get("genome_length", 10))
+            genome_length = _infer_genome_length(shared_kwargs)
             bounds = shared_kwargs.get("bounds", (-5.0, 5.0))
             init_pop = jr.uniform(
                 jr.PRNGKey(pop_seed),
@@ -622,6 +651,16 @@ class Composer:
                 merged["trace_dir"] = Path(trace_base) / name
 
             if init_pop is not None and "initial_population" not in merged:
+                expected_dim = _infer_genome_length(merged)
+                if int(init_pop.shape[1]) != expected_dim:
+                    raise ValueError(
+                        "Shared initial population dimension mismatch: "
+                        f"init_pop has dim={int(init_pop.shape[1])} but pipeline '{name}' "
+                        f"expects dim={expected_dim}. "
+                        "Ensure all pipelines share the same dimensionality when "
+                        "shared_initial_population=True, or pass per-pipeline "
+                        "initial_population explicitly."
+                    )
                 merged["initial_population"] = init_pop
 
             results[name] = self.quick_run(**merged)

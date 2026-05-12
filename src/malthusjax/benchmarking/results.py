@@ -59,6 +59,15 @@ class RunResult:
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
+    @property
+    def summary(self) -> Dict[str, float]:
+        """Backward-compatible accessor returning the numeric metrics.
+
+        Some callers expect a ``.summary`` attribute on run objects; expose
+        it as a simple mapping to the already-stored ``metrics`` dict.
+        """
+        return self.metrics
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RunResult":
         """Reconstruct a :class:`RunResult` from a dictionary produced by
@@ -314,6 +323,15 @@ class ExperimentResult:
             stdev = statistics.stdev(vals) if len(vals) > 1 else 0.0
             summary[k] = {"mean": mean, "median": med, "stdev": stdev}
         return summary
+
+    def gap_summary(self) -> Dict[str, float]:
+        """Convenience summary for the final gap-to-optimum metric.
+
+        This returns the aggregated statistics for ``gap_to_optimum`` when the
+        metric is present in one or more run summaries; otherwise it returns an
+        empty dictionary.
+        """
+        return self.aggregated_summary().get("gap_to_optimum", {})
 
 
 # ---------------------------------------------------------------------------
@@ -702,7 +720,7 @@ class ComparisonResult:
         data: Dict[str, List[float]] = {}
         for name, exp in self.pipelines.items():
             values: List[float] = []
-            sign = self._sign(name)
+            sign = self._sign(name) if metric_key in self._FITNESS_KEYS else 1.0
             for run in exp.runs:
                 if metric_key not in run.metrics:
                     continue

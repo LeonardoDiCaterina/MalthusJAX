@@ -29,14 +29,14 @@ def test_experiment_combined_history_and_aggregates():
     r1 = RunResult(
         seed=0,
         status="success",
-        metrics={"best_fitness": 1.0},
+        metrics={"best_fitness": 1.0, "gap_to_optimum": 1.0},
         history=[{"gen": 0, "best": 1}],
         artifacts={},
     )
     r2 = RunResult(
         seed=1,
         status="success",
-        metrics={"best_fitness": 0.5},
+        metrics={"best_fitness": 0.5, "gap_to_optimum": 0.5},
         history=[{"gen": 0, "best": 0.5}],
         artifacts={},
     )
@@ -51,6 +51,30 @@ def test_experiment_combined_history_and_aggregates():
     assert "best_fitness" in agg
     assert agg["best_fitness"]["mean"] == 0.75
     assert agg["best_fitness"]["median"] == 0.75
+
+
+def test_experiment_gap_summary():
+    r1 = RunResult(
+        seed=0,
+        status="success",
+        metrics={"best_fitness": 1.0, "gap_to_optimum": 1.0},
+        history=[],
+        artifacts={},
+    )
+    r2 = RunResult(
+        seed=1,
+        status="success",
+        metrics={"best_fitness": 0.5, "gap_to_optimum": 0.5},
+        history=[],
+        artifacts={},
+    )
+
+    exp = ExperimentResult(name="ex", runs=[r1, r2])
+
+    gap = exp.gap_summary()
+    assert gap["mean"] == 0.75
+    assert gap["median"] == 0.75
+    assert gap["stdev"] > 0.0
 
 
 def test_comparison_timing_data_and_boxplot():
@@ -99,19 +123,26 @@ def test_comparison_final_metric_data_and_boxplot_negation():
     r1 = RunResult(
         seed=0,
         status="success",
-        metrics={"best_fitness": 1.0},
+        metrics={"best_fitness": 1.0, "gap_to_optimum": 1.0},
         history=[{"gen": 0, "best": 1}],
         artifacts={},
     )
     r2 = RunResult(
         seed=1,
         status="success",
-        metrics={"best_fitness": 0.5},
+        metrics={"best_fitness": 0.5, "gap_to_optimum": 0.5},
         history=[{"gen": 0, "best": 0.5}],
         artifacts={},
     )
     exp = ExperimentResult(name="ex", runs=[r1, r2])
     comparison = ComparisonResult(pipelines={"Evosax": exp}, negate_map={"Evosax": True})
+
+    table = comparison.summary_table()
+    assert table["Evosax"]["best_fitness"] == -0.75
+    assert table["Evosax"]["gap_to_optimum"] == 0.75
+
+    gap_data = comparison.final_metric_data(metric_key="gap_to_optimum")
+    assert gap_data == {"Evosax": [1.0, 0.5]}
 
     final_data = comparison.final_metric_data()
     assert final_data == {"Evosax": [-1.0, -0.5]}
