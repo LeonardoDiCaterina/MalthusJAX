@@ -208,6 +208,40 @@ class AbstractEngine(Generic[G, P], ABC):
 
         return final_state, history, elapsed_time
 
+    def ask_with_key(
+        self, state: AbstractEvolutionState[G, P], rng_key: chex.Array
+    ) -> Tuple["AbstractEngine[G, P]", P]:
+        """Optional key-aware ask interface.
+
+        Default behavior delegates to ``ask(state)`` when implemented by the
+        concrete engine. Engines that need explicit key control can override
+        this method.
+        """
+        _ = rng_key
+        ask_fn = getattr(self, "ask", None)
+        if callable(ask_fn):
+            return cast(Tuple["AbstractEngine[G, P]", P], ask_fn(state))
+        raise NotImplementedError(
+            "ask_with_key() is not implemented for this engine and no ask() method is available."
+        )
+
+    def tell_with_key(
+        self, state: AbstractEvolutionState[G, P], population: P, rng_key: chex.Array
+    ) -> AbstractEvolutionState[G, P]:
+        """Optional key-aware tell interface.
+
+        Default behavior delegates to ``tell(state, population)`` when
+        implemented by the concrete engine. Engines that need explicit key
+        control can override this method.
+        """
+        _ = rng_key
+        tell_fn = getattr(self, "tell", None)
+        if callable(tell_fn):
+            return cast(AbstractEvolutionState[G, P], tell_fn(state, population))
+        raise NotImplementedError(
+            "tell_with_key() is not implemented for this engine and no tell() method is available."
+        )
+
     def get_hlo_text(
         self,
         initial_state: AbstractEvolutionState[G, P],

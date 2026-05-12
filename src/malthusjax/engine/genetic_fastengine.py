@@ -890,6 +890,17 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         engine_with_entropy = cast(GeneticEngine, cast(Any, self).replace(_entropy_buffer=entropy))
         return engine_with_entropy, state.population
 
+    def ask_with_key(
+        self, state: GeneticEvolutionState, rng_key: chex.Array
+    ) -> Tuple["GeneticEngine", BasePopulation[Any]]:
+        """Ask variant with explicit key override for parity adapters.
+
+        This mirrors ask/tell APIs that pass RNG at call time by temporarily
+        overriding ``state.rng_key`` for entropy allocation in this generation.
+        """
+        state_with_key = cast(GeneticEvolutionState, cast(Any, state).replace(rng_key=rng_key))
+        return self.ask(state_with_key)
+
     def tell(
         self, state: GeneticEvolutionState, population: BasePopulation[Any]
     ) -> GeneticEvolutionState:
@@ -1006,4 +1017,28 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             ),
         )
 
+        # Clear the engine-side entropy buffer to prevent accidental reuse of
+        # the same entropy for subsequent `tell()` calls. We attempt to clear
+        # the frozen flax.struct instance via object.__setattr__; if the
+        # underlying object forbids mutation this is non-fatal and we simply
+        # leave the buffer as-is (the ask/tell contract still enforces usage
+        # discipline via runtime checks above).
+        try:
+            object.__setattr__(self, "_entropy_buffer", ())
+        except Exception:
+            # Best-effort: if we cannot mutate, don't crash the evolution.
+            pass
+
         return final_state
+
+    def tell_with_key(
+        self, state: GeneticEvolutionState, population: BasePopulation[Any], rng_key: chex.Array
+    ) -> GeneticEvolutionState:
+        """Tell variant with explicit key override for parity adapters.
+
+        The current ask/tell implementation pre-allocates all entropy in
+        :meth:`ask`; therefore ``rng_key`` is accepted for interface parity and
+        intentionally not consumed here.
+        """
+        _ = rng_key
+        return self.tell(state, population)
