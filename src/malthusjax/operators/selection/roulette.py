@@ -100,6 +100,8 @@ class RouletteSelection(BaseSelection[P, C]):
     ) -> chex.Array:
         """Draw parents proportional to fitness using a softmax or Gumbel-Max.
 
+        In minimization convention (lower=better), fitness values are negated to create
+        a proper probability distribution where lower original fitness gets higher selection probability.
         When ``num_selections == pop_size`` and the Gumbel trick is enabled,
         a parallel variant computes all samples in one shot; otherwise a
         categorical draw is performed.
@@ -109,7 +111,8 @@ class RouletteSelection(BaseSelection[P, C]):
         else:
             rng = keys if keys.ndim <= 1 else keys[0]
         pop_size = fitness.shape[0]
-        logits = fitness / self.temperature
+        # Negate fitness for minimization: lower values become higher (better)
+        logits = -fitness / self.temperature
         if self.use_gumbel_trick and self.num_selections == pop_size:
             if pop_size <= self.chunk_size:
                 uniform_noise = jax.random.uniform(rng, shape=(self.num_selections, pop_size))

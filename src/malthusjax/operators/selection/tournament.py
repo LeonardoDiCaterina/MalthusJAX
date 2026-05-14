@@ -85,8 +85,8 @@ class TournamentSelection(BaseSelection[P, C]):
         """Select parents through competitive tournaments.
 
         Each of the ``num_selections`` tournaments samples ``tournament_size``
-        candidates and picks the fittest. The returned array contains the
-        winning indices.
+        candidates and picks the fittest (lowest fitness in minimization convention).
+        The returned array contains the winning indices.
         """
         if self.typed_keys:
             rng = keys if keys.ndim == 0 else keys[0]
@@ -97,5 +97,5 @@ class TournamentSelection(BaseSelection[P, C]):
             rng, shape=(self.num_selections, self.tournament_size), minval=0, maxval=pop_size
         )
         candidate_fitness = jnp.take(fitness, candidates, axis=0)
-        winner_local_indices = jnp.argmax(candidate_fitness, axis=1)
+        winner_local_indices = jnp.argmin(candidate_fitness, axis=1)
         return jnp.take_along_axis(candidates, winner_local_indices[:, None], axis=1).reshape(-1)
