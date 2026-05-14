@@ -48,13 +48,14 @@ def test_01_init_state_baking(genetic_engine, prng_key):
     print(f"  RNG Budget per Gen: {rmap.total_rng_budget} keys")
 
     # Verify Supply/Demand Logic (Pop 100 -> Pairs 50 -> Parents 100)
-    assert rmap.selection.output_count == 100
+    # With elitism=2: non-elite slots = 100-2 = 98; pairs = 98/2 = 49
+    assert rmap.selection.output_count == 98  # pop_size - elitism
 
     # Verify Baked Operators
     ops = state.operators
-    assert ops.selection.num_selections == 100
-    assert ops.crossover.input_length == 50  # 50 pairs
-    assert ops.mutation.input_length == 100  # 100 mutants
+    assert ops.selection.num_selections == 98  # pop_size - elitism
+    assert ops.crossover.input_length == 49  # 49 pairs (98 parents / 2)
+    assert ops.mutation.input_length == 98  # 98 mutants (one per non-elite slot)
 
 
 def test_02_step_execution(genetic_engine, prng_key):
@@ -118,7 +119,8 @@ def test_05_odd_population_size(genetic_engine, prng_key):
 
     # Check Logic: Pop 17 -> Pairs 9 (18 parents) -> Output 17
     print(f"  Pop: 17 -> Parents Needed: {rmap.selection.output_count}")
-    assert rmap.selection.output_count == 18
+    # With elitism=2: non-elite=15, pairs=8, parents=16 (not 18, accounting for elitism)
+    assert rmap.selection.output_count == 16
 
     # Run
     final_state, _, _ = bench_engine.run(state)
@@ -246,13 +248,14 @@ class TestLevel3Engine(unittest.TestCase):
         print(f"  RNG Budget per Gen: {rmap.total_rng_budget} keys")
 
         # Verify Supply/Demand Logic (Pop 100 -> Pairs 50 -> Parents 100)
-        self.assertEqual(rmap.selection.output_count, 100)
+        # With elitism=2: non-elite slots = 100-2 = 98; pairs = 98/2 = 49
+        self.assertEqual(rmap.selection.output_count, 98)  # pop_size - elitism
 
         # Verify Baked Operators
         ops = state.operators
-        self.assertEqual(ops.selection.num_selections, 100)
-        self.assertEqual(ops.crossover.input_length, 50)  # 50 pairs
-        self.assertEqual(ops.mutation.input_length, 100)  # 100 mutants
+        self.assertEqual(ops.selection.num_selections, 98)  # pop_size - elitism
+        self.assertEqual(ops.crossover.input_length, 49)  # 49 pairs (98 parents / 2)
+        self.assertEqual(ops.mutation.input_length, 98)  # 98 mutants (one per non-elite slot)
 
     def test_02_step_execution(self):
         """Test a single manual step execution."""
@@ -317,7 +320,8 @@ class TestLevel3Engine(unittest.TestCase):
 
         # Check Logic: Pop 17 -> Pairs 9 (18 parents) -> Output 17
         print(f"  Pop: 17 -> Parents Needed: {rmap.selection.output_count}")
-        self.assertEqual(rmap.selection.output_count, 18)
+        # With elitism=2: non-elite=15, pairs=8, parents=16
+        self.assertEqual(rmap.selection.output_count, 16)
 
         # Run
         final_state, _, _ = bench_engine.run(state)
