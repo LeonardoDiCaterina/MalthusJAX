@@ -497,11 +497,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         #
         # Python-level branching on ``track_best`` is safe because it is a
         # ``pytree_node=False`` field — only one branch is ever traced.
-        # Evaluators store fitness in "higher is better" convention (they
-        # negate for minimisation), so the engine always uses jnp.max /
-        # jnp.maximum / jnp.argmax uniformly.
+        # Evaluators now use minimization convention (lower=better), so the
+        # engine uses jnp.min / jnp.minimum / jnp.argmin uniformly.
         # ------------------------------------------------------------------
-        gen_best_fitness = jnp.max(new_pop.fitness)
+        gen_best_fitness = jnp.min(new_pop.fitness)
 
         if params.track_best == TrackBest.NONE:
             """No tracking: pass through unchanged, report per-gen best"""
@@ -509,14 +508,14 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             new_best_genome = state.best_genome
             metric_best = gen_best_fitness  # per-gen, NOT monotonic
         elif params.track_best == TrackBest.LIGHT:
-            """Running max only — no genome in carry """
-            new_best_fitness = jnp.maximum(gen_best_fitness, state.best_fitness)
+            """Running min only — no genome in carry """
+            new_best_fitness = jnp.minimum(gen_best_fitness, state.best_fitness)
             new_best_genome = state.best_genome
             metric_best = new_best_fitness  # monotonic
         else:
-            """Full tracking: argmax + Gather + element-wise jnp.where """
-            is_new = gen_best_fitness > state.best_fitness
-            best_idx = jnp.argmax(new_pop.fitness)
+            """Full tracking: argmin + Gather + element-wise jnp.where """
+            is_new = gen_best_fitness < state.best_fitness
+            best_idx = jnp.argmin(new_pop.fitness)
             new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
             best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], new_pop.genes)
             new_best_genome = jax.tree_util.tree_map(
@@ -738,6 +737,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             self.mutation,
             self.genome_config,
             self.engine_params.pop_size,
+            params.elitism,
             params.key_derivation,
         )
 
@@ -806,7 +806,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         population = population.replace(genes=sharded_genes, fitness=sharded_fitness)
 
         evaluated_pop = self.evaluator.evaluate_population(population)
-        best_idx = jnp.argmax(evaluated_pop.fitness)
+        best_idx = jnp.argmin(evaluated_pop.fitness)
 
         best_genome = jax.tree_util.tree_map(
             lambda x: jax.device_put(x[best_idx], sharding_mgr.replicated_sharding),
@@ -972,10 +972,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         k_sel, k_cross, k_mut, k_next = self._entropy_buffer
 
         state = cast(GeneticEvolutionState, cast(Any, state).replace(population=population))
-        gen_best_fitness = jnp.max(population.fitness)
-        is_new = gen_best_fitness > state.best_fitness
+        gen_best_fitness = jnp.min(population.fitness)
+        is_new = gen_best_fitness < state.best_fitness
         new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
-        best_idx = jnp.argmax(population.fitness)
+        best_idx = jnp.argmin(population.fitness)
         best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], population.genes)
         new_best_genome = jax.tree_util.tree_map(
             lambda n, o: jnp.where(is_new, n, o),

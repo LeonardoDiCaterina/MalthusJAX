@@ -150,6 +150,7 @@ def compute_resource_map(
     mutation: BaseMutation[Any, Any, Any],
     genome_config: Any,
     pop_size: int,
+    elitism: int = 0,
     key_derivation: KeyDerivationStrategy = KeyDerivationStrategy.SPLIT,
 ) -> ResourceMap:
     """Calculate RNG budget and data-flow allocations for one generation.
@@ -193,8 +194,13 @@ def compute_resource_map(
     else:
         genome_shape = cast(Tuple[int, ...], ())
 
+    # Plan offspring only for slots not occupied by elites.
+    # If callers do not provide `elitism`, fallback to selection.n_elites.
+    effective_elitism = int(elitism if elitism is not None else getattr(selection, "n_elites", 0))
+    target_offspring = pop_size - max(0, effective_elitism)
+
     offspring_per_pair = getattr(crossover, "num_offspring", 2)
-    pairs_needed = (pop_size + offspring_per_pair - 1) // offspring_per_pair
+    pairs_needed = (target_offspring + offspring_per_pair - 1) // offspring_per_pair
     parents_needed = pairs_needed * 2
 
     sel_input_count = pop_size
@@ -222,14 +228,14 @@ def compute_resource_map(
     crossover = crossover.set_input_length(num_pairs)
     cross_output_count = num_pairs * crossover.num_offspring
 
-    overproduction = cross_output_count - pop_size
-    if overproduction > 0 and overproduction / pop_size > 0.10:
+    overproduction = cross_output_count - target_offspring
+    if overproduction > 0 and target_offspring > 0 and overproduction / target_offspring > 0.10:
         _logger.warning(
-            "Crossover overproduction ratio %.1f%% (producing %d offspring for pop_size=%d). "
+            "Crossover overproduction ratio %.1f%% (producing %d offspring for target_offspring=%d). "
             "Consider adjusting pop_size or num_offspring to reduce waste.",
-            100.0 * overproduction / pop_size,
+            100.0 * overproduction / target_offspring,
             cross_output_count,
-            pop_size,
+            target_offspring,
         )
 
     cross_keys_needed = crossover.num_keys(input_shape=(num_pairs,))
