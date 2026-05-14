@@ -111,6 +111,7 @@ class EvosaxEngineAdapter:
             key_eval, population_init, self.problem_state
         )
 
+
         if self.maximize:
             initial_best_idx = jnp.argmax(fitness_init)
             initial_best_fitness = fitness_init[initial_best_idx]
@@ -118,7 +119,9 @@ class EvosaxEngineAdapter:
             initial_best_idx = jnp.argmin(fitness_init)
             initial_best_fitness = fitness_init[initial_best_idx]
 
-        # Evosax algorithms natively minimize. If maximize is True, we must negate the fitness
+        # Evosax algorithms natively minimize.
+        # For minimize problems: pass fitness directly
+        # For maximize problems: negate so evosax minimizes the negative
         tell_fitness_init = -fitness_init if self.maximize else fitness_init
 
         def scan_step(carry: Tuple[Any, Any, Any], _: Any) -> Tuple[Tuple[Any, Any, Any], Any]:
@@ -173,7 +176,8 @@ class EvosaxEngineAdapter:
             print("DEBUG bf values before flip", metrics.get("best_fitness", None))
 
         if self.maximize:
-
+            # For maximize, we negated fitness before passing to evosax (which minimizes)
+            # Now flip back to get original fitness values
             def flip(x: chex.Array) -> chex.Array:
                 return -x
 
@@ -182,7 +186,8 @@ class EvosaxEngineAdapter:
                     metrics[key_name] = flip(metrics[key_name])
 
         if False:
-            print("DEBUG after flip best_fitness", metrics.get("best_fitness", None))
+            if "best_fitness" in metrics and len(metrics["best_fitness"]) > 0:
+                print("DEBUG after flip best_fitness", metrics["best_fitness"][-1])
 
         history = []
         for g in range(self.num_generations):
@@ -327,7 +332,11 @@ def build_evosax_engine(
         params_fields = set(params.__dict__.keys()) if hasattr(params, "__dict__") else set()
 
         for key, value in strategy_params.items():
-            if key in params_fields:
+            # Handle mutation_std as a numeric alias for std_schedule
+            if key == "mutation_std" and isinstance(value, (int, float)):
+                import optax
+                strategy_kwargs["std_schedule"] = optax.constant_schedule(value)
+            elif key in params_fields:
                 params_kwargs[key] = value
             elif hasattr(strategy, key):
                 strategy_kwargs[key] = value

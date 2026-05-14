@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+import jax
 import jax.random as jr
 
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
@@ -148,6 +149,7 @@ class Composer:
         elitism: int = 2,
         maximize: bool = False,
         prng_impl: Optional[str] = None,
+        use_history_for_final: bool = False,
         trace_dir: Optional[Path | str] = None,
         data_config: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
@@ -456,7 +458,60 @@ class Composer:
         )
 
         normalized_seeds = self._normalize_seeds(seeds)
-        return runner.run(normalized_seeds)
+        experiment = runner.run(normalized_seeds)
+
+        # Composer-level postprocessing: when engines run with
+        # TrackBest.NONE for speed they may omit or produce an
+        # invalid `summary['best_fitness']`. Allow callers to request
+        # that the final best is derived from the last history entry
+        # (history[-1]) instead. We also auto-fix non-finite summaries.
+        self._postprocess_experiment_final_from_history(experiment, use_history_for_final)
+
+        return experiment
+
+    def _postprocess_experiment_final_from_history(self, experiment, force: bool = False) -> None:
+        """Ensure per-run summary best_fitness is consistent with history.
+
+        When engines disable internal best-tracking (for speed), the
+        returned ``summary`` may be missing or invalid. This helper will
+        copy the final generation's best metrics from ``run.history[-1]``
+        into ``run.metrics['best_fitness']`` (and ``final_generation``)
+        when either *force* is True or when the existing metric is
+        absent/non-finite.
+        """
+        import math
+
+        for run in experiment.runs:
+            # skip errored runs
+            if run.status != "success":
+                continue
+
+            # determine whether we should replace the summary
+            best_val = run.metrics.get("best_fitness")
+            need_replace = force or (
+                best_val is None
+                or (isinstance(best_val, (int, float)) and (math.isnan(best_val) or math.isinf(best_val)))
+            )
+
+            if not need_replace:
+                continue
+
+            if not run.history:
+                # nothing to do
+                continue
+
+            last = run.history[-1]
+            if "best_fitness" in last:
+                try:
+                    run.metrics["best_fitness"] = float(last["best_fitness"])
+                except Exception:
+                    pass
+
+            if "generation" in last:
+                try:
+                    run.metrics.setdefault("final_generation", int(last["generation"]))
+                except Exception:
+                    pass
 
     def compare(
         self,
@@ -626,12 +681,41 @@ class Composer:
             pop_size = int(shared_kwargs.get("pop_size", 50))
             genome_length = _infer_genome_length(shared_kwargs)
             bounds = shared_kwargs.get("bounds", (-5.0, 5.0))
-            init_pop = jr.uniform(
-                jr.PRNGKey(pop_seed),
-                (pop_size, genome_length),
-                minval=float(bounds[0]),
-                maxval=float(bounds[1]),
-            )
+
+            # Prefer a shared fitness spec, but fall back to the first pipeline's
+            # fitness when parity TOMLs keep fitness under each pipeline section.
+            fitness_spec = shared_kwargs.get("fitness")
+            if fitness_spec is None and pipelines:
+                first_pipeline = next(iter(pipelines.values()))
+                fitness_spec = first_pipeline.get("fitness")
+
+            # Check if using BBOB - if so, use its sample() method for consistency
+            if fitness_spec and isinstance(fitness_spec, str) and "bbob" in fitness_spec.lower():
+                # Parse BBOB spec to create evaluator for sampling
+                from .catalog import OperatorCatalog
+                cat = OperatorCatalog()
+                parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+                if parsed_name == "bbob":
+                    fn = parsed_params.get("fn_name", parsed_params.get("fn", "rosenbrock"))
+                    dims = parsed_params.get("dim", parsed_params.get("num_dims", genome_length))
+                    # Use BBOB seed from fitness spec, not from population seed
+                    bbob_seed = parsed_params.get("seed", 0)
+                    bbob_eval = BBOBEvaluator.create(
+                        BBOBConfig(fn_name=fn, num_dims=dims, seed=bbob_seed, maximize=shared_kwargs.get("maximize", False))
+                    )
+                    # Generate initial population using BBOB's sample method
+                    pop_key = jr.PRNGKey(pop_seed)
+                    sample_keys = jr.split(pop_key, pop_size)
+                    init_pop = jax.vmap(bbob_eval.evosax_problem.sample)(sample_keys)
+
+            # Fall back to uniform sampling if not BBOB
+            if init_pop is None:
+                init_pop = jr.uniform(
+                    jr.PRNGKey(pop_seed),
+                    (pop_size, genome_length),
+                    minval=float(bounds[0]),
+                    maxval=float(bounds[1]),
+                )
 
         trace_base = shared_kwargs.pop("trace_dir", None)
 
@@ -664,13 +748,19 @@ class Composer:
                 merged["initial_population"] = init_pop
 
             results[name] = self.quick_run(**merged)
-            backend = merged.get("backend", "malthusjax")
             maximize_flag = bool(merged.get("maximize", False))
 
-            # MalthusJAX evaluators return higher-is-better fitness when
-            # maximize=False (minimization problems are internally negated).
-            # Evosax returns lower-is-better fitness when maximize=False.
-            negate_map[name] = (backend == "malthusjax") != maximize_flag
+            # Normalize displayed metrics/history to the canonical
+            # "lower-is-better" convention used by ComparisonResult.
+            #
+            # Current adapters for both MalthusJAX and Evosax return metrics
+            # in the objective's natural direction:
+            #   - maximize=False -> lower is better (no sign flip needed)
+            #   - maximize=True  -> higher is better (flip sign for display)
+            #
+            # Keep normalization objective-driven (not backend-driven) to
+            # avoid regressions when backend internals change.
+            negate_map[name] = maximize_flag
 
         return ComparisonResult(
             pipelines=results,
@@ -911,7 +1001,7 @@ class Composer:
 
         # Ensure we use LIGHT tracking for monotonic convergence curves
         if 'track_best' not in config:
-            config['track_best'] = TrackBest.NONE
+            config['track_best'] = TrackBest.LIGHT
 
         engine_registry = EngineRegistry()
         return engine_registry.get(
@@ -975,6 +1065,15 @@ class Composer:
             BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maxim)
         )
 
+        # If no initial_population provided and evaluator has sample() method,
+        # use it for consistent initialization across backends
+        init_pop = kwargs.get("initial_population")
+        if init_pop is None and hasattr(evalr, "evosax_problem"):
+            # Use same seed as BBOB problem for consistent initialization
+            pop_key = jr.PRNGKey(seed)
+            sample_keys = jr.split(pop_key, pop_size)
+            init_pop = jax.vmap(evalr.evosax_problem.sample)(sample_keys)
+
         return build_evosax_engine(
             strategy_name=strategy_name,
             evaluator=evalr,
@@ -983,7 +1082,7 @@ class Composer:
             bounds=bounds,
             maximize=maxim,
             strategy_params=kwargs.get("strategy_params"),
-            initial_population=kwargs.get("initial_population"),
+            initial_population=init_pop,
             prng_impl=prng_impl,
         )
 

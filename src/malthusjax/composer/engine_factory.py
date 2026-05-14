@@ -71,7 +71,7 @@ class GeneticEngineAdapter:
             )
 
             fitness = evaluated_pop.fitness
-            best_idx = int(jnp.argmax(fitness))
+            best_idx = int(jnp.argmax(fitness) if self.maximize else jnp.argmin(fitness))
             best_fitness = fitness[best_idx]
             best_genome = evaluated_pop.genes[best_idx]
 
@@ -233,7 +233,7 @@ def build_engine(
     schedule_extra: Dict[str, Any] = {k: v for k, v in kwargs.items() if k in _schedule_keys}
 
     if "track_best" not in schedule_extra:
-        schedule_extra["track_best"] = TrackBest.NONE
+        schedule_extra["track_best"] = TrackBest.LIGHT
 
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
