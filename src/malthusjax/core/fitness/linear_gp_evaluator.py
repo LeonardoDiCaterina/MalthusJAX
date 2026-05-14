@@ -266,8 +266,8 @@ TENSORGP_NAMES: List[str] = [
 class LinearGPEvaluatorConfig(BaseEvaluatorConfig):
     """Configuration for Linear GP Evaluator."""
 
-    num_inputs: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-    length: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
+    num_inputs: int = struct.field(pytree_node=False, default=10)  # type: ignore[no-untyped-call]
+    length: int = struct.field(pytree_node=False, default=100)  # type: ignore[no-untyped-call]
 
 
 @struct.dataclass
@@ -300,7 +300,10 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
         return instruction_outputs
 
     def evaluate(self, genome: LinearGenome) -> chex.Numeric:
-        """Returns the negative MSE of the best instruction (Symbiotic Selection)."""
+        """Returns the MSE of the best instruction (Symbiotic Selection).
+        
+        Minimization convention: lower fitness is better (lower MSE = better fit).
+        """
         X, y = self.data
         all_preds = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, X)
 
@@ -309,7 +312,7 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
         mse_per_tree = jnp.mean(squared_errors, axis=0)
         best_mse = jnp.min(mse_per_tree)
 
-        return jax.lax.select(self.config.maximize, -best_mse, best_mse)
+        return best_mse
 
     def get_best_instruction_fitness(self, fitness: chex.Array) -> chex.Numeric:
         """Returns scalar fitness of the best performing instruction."""

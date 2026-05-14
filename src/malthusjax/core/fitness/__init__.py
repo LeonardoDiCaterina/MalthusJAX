@@ -65,8 +65,8 @@ from typing import Any as _Any
 from typing import Callable as _Callable
 
 
-def _make_bbob_factory(fn_name: str, *, maximize: bool = True) -> _Callable[..., "BBOBEvaluator"]:
-    """Return a factory function for a specific BBOB function preset."""
+def _make_bbob_factory(fn_name: str, *, maximize: bool = False) -> _Callable[..., "BBOBEvaluator"]:
+    """Return a factory function for a specific BBOB function preset (minimization by default)."""
 
     def _factory(**kwargs: _Any) -> "BBOBEvaluator":
         from .bbob_evaluator import BBOBConfig, BBOBEvaluator
@@ -85,7 +85,7 @@ def _make_bbob_factory(fn_name: str, *, maximize: bool = True) -> _Callable[...,
 
 
 def _create_bbob_evaluator(**kwargs: _Any) -> "BBOBEvaluator":
-    """General BBOB factory accepting fn_name as a kwarg."""
+    """General BBOB factory accepting fn_name as a kwarg (minimization by default)."""
     from .bbob_evaluator import BBOBConfig, BBOBEvaluator
 
     _resolved_data = kwargs.pop("_resolved_data", None)
@@ -93,7 +93,7 @@ def _create_bbob_evaluator(**kwargs: _Any) -> "BBOBEvaluator":
     config = BBOBConfig(
         fn_name=kwargs.get("fn_name", "sphere"),
         num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-        maximize=kwargs.get("maximize", True),
+        maximize=kwargs.get("maximize", False),
         seed=kwargs.get("seed", 42),
     )
     return BBOBEvaluator.create(config)
@@ -101,21 +101,21 @@ def _create_bbob_evaluator(**kwargs: _Any) -> "BBOBEvaluator":
 
 def _create_knapsack_evaluator(**kwargs: _Any) -> "KnapsackEvaluator":
     _resolved_data = kwargs.pop("_resolved_data", None)
-    kwargs.setdefault("maximize", True)
+    kwargs.setdefault("maximize", False)
     config = KnapsackConfig(**kwargs)
     return KnapsackEvaluator(config)
 
 
 def _create_binary_sum_evaluator(**kwargs: _Any) -> "BinarySumEvaluator":
     _resolved_data = kwargs.pop("_resolved_data", None)
-    kwargs.setdefault("maximize", True)
+    kwargs.setdefault("maximize", False)
     config = BinarySumConfig(**kwargs)
     return BinarySumEvaluator(config)
 
 
 def _create_griewank_evaluator(**kwargs: _Any) -> "GriewankEvaluator":
     _resolved_data = kwargs.pop("_resolved_data", None)
-    kwargs.setdefault("maximize", True)
+    kwargs.setdefault("maximize", False)
     config = GriewankConfig(**kwargs)
     return GriewankEvaluator(config)
 

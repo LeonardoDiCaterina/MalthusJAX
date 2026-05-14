@@ -26,11 +26,12 @@ class BaseEvaluatorConfig:
 
     Attributes:
         maximize: Optimization direction. If True, higher fitness is better;
-            otherwise, lower is better. Controls jax.lax.select branching in
-            single and batch evaluators.
+            otherwise, lower is better (default). Follows evosax convention:
+            lower-is-better (minimize) is the default. Controls jax.lax.select
+            branching in single and batch evaluators.
     """
 
-    maximize: bool = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
+    maximize: bool = struct.field(pytree_node=False, default=False)  # type: ignore[no-untyped-call]
 
 
 @struct.dataclass

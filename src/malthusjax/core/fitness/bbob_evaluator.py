@@ -128,7 +128,7 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         """Single genome evaluation via the evosax fitness function.
 
         The input vector is reshaped to match evosax expectations and evaluated
-        deterministically. Output sign is flipped when minimizing.
+        deterministically. Returns raw minimization objective (lower=better).
         """
         x = genome.values[None, :]
         rng = jax.random.PRNGKey(0)
@@ -136,11 +136,9 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         fitness_scores, _, _ = self.evosax_problem.eval(rng, x, self.problem_state)
         result = fitness_scores[0]
 
-        # MalthusJAX engines always maximize internally. Evosax BBOB returns
-        # minimization objectives (lower=better). To support both directions:
-        # - If maximize=True: return raw score (let engine maximize the minimization objective)
-        # - If maximize=False: negate score (minimizing X = maximizing -X)
-        return result if self.config.maximize else -result
+        # Evosax BBOB returns minimization objectives (lower=better).
+        # Framework now uses minimization convention by default, so return as-is.
+        return result
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
@@ -148,7 +146,7 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         """Vectorized batch evaluation using evosax native evaluation.
 
         The population genes array is fed directly into the fitness function with
-        deterministic evaluation. The resulting fitness vector respects the maximize flag.
+        deterministic evaluation. Returns raw minimization objectives (lower=better).
         """
         X = population.genes.values
 
@@ -156,10 +154,9 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
 
         fitness_scores, _, _ = self.evosax_problem.eval(rng, X, self.problem_state)
 
-        # Evosax BBOB problems are minimization objectives by default.
-        # When maximize=False we negate the raw scores so the genetic engine can
-        # always operate with maximization semantics internally.
-        final_fitness = jax.lax.select(self.config.maximize, fitness_scores, -fitness_scores)
+        # Evosax BBOB problems are minimization objectives (lower=better).
+        # Framework now uses minimization convention by default, so return as-is.
+        final_fitness = fitness_scores
 
         return cast(
             BasePopulation[RealGenome], cast(Any, population).replace(fitness=final_fitness)

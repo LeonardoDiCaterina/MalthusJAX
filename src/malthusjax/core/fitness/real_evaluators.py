@@ -39,11 +39,11 @@ class SphereEvaluator(BaseEvaluator[RealGenome, SphereConfig, Any]):
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate sphere function on real genome.
 
-        The value returned respects the maximization flag by optionally
-        negating the standard sum-of-squares objective.
+        Returns the sum-of-squares value directly (minimization convention).
+        Lower values are better.
         """
         sphere_value = jnp.sum(jnp.square(genome.values))
-        return jax.lax.select(self.config.maximize, sphere_value, -sphere_value)
+        return sphere_value
 
 
 @struct.dataclass
@@ -66,8 +66,8 @@ class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate Griewank function on real genome.
 
-        Combines quadratic and cosine components; result sign is flipped when
-        minimizing.
+        Combines quadratic and cosine components. Returns value directly
+        (minimization convention). Lower values are better.
         """
         x = genome.values
         quad_term = jnp.sum(jnp.square(x)) / 4000.0
@@ -75,7 +75,7 @@ class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
         cos_term = jnp.prod(jnp.cos(x / jnp.sqrt(indices)))
 
         griewank_value = 1.0 + quad_term - cos_term
-        return jax.lax.select(self.config.maximize, griewank_value, -griewank_value)
+        return griewank_value
 
 
 @struct.dataclass
@@ -89,8 +89,8 @@ class BoxConfig(BaseEvaluatorConfig):
         objective_type: 'distance' (L2) or 'sphere' (sum of squares).
     """
 
-    target_point: chex.Array
-    box_bounds: Tuple[chex.Array, chex.Array]
+    target_point: chex.Array = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    box_bounds: Tuple[chex.Array, chex.Array] = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
     penalty_factor: float = 1000.0
     objective_type: str = struct.field(pytree_node=False, default="distance")  # type: ignore[no-untyped-call]
 
@@ -110,9 +110,8 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate box-constrained problem on real genome.
 
-        Computes the selected objective and subtracts a linear penalty for any
-        constraint violations. The result is negated to convert the minimization
-        formulation into the standard XLA-safe convention.
+        Computes the selected objective and adds a linear penalty for any
+        constraint violations (minimization convention). Lower values are better.
 
         Note:
             Objective type is chosen by string; both branches are traced. An
@@ -135,7 +134,7 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
         total_violation = jnp.sum(lower_violations) + jnp.sum(upper_violations)
 
         penalty = total_violation * self.config.penalty_factor
-        return -objective - penalty
+        return objective + penalty
 
     @staticmethod
     def create_random_problem(

@@ -38,17 +38,21 @@ class BinarySumConfig(BaseEvaluatorConfig):
 class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
     """OneMax fitness evaluator: count set bits (binary sum).
 
-    Returns count of 1s for maximize=True, count of 0s for maximize=False.
+    Minimizes the count of 0s (equivalently, maximizes the count of 1s).
+    Using minimization convention: lower fitness is better.
     """
 
     config: BinarySumConfig
     data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
-        """Evaluate a single binary genome by counting set values."""
+        """Evaluate a single binary genome by counting zeros.
+        
+        Minimization convention: fewer zeros = better fitness (lower value).
+        """
         ones_count = jnp.sum(genome.values)
         zeros_count = genome.size - ones_count
-        return jax.lax.select(self.config.maximize, ones_count, zeros_count)
+        return zeros_count
 
 
 @struct.dataclass
