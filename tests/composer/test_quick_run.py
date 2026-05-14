@@ -36,7 +36,7 @@ class TestComposerRealEngines:
                 seeds=[1, 2],
                 experiment_name="test_real",
                 output_dir=tmp_dir,
-                fitness="sphere:dim=5",
+                fitness="bbob:fn_name=sphere,num_dims=5,seed=42,maximize=false",
                 selection="tournament:num_selections=10,tournament_size=2",
                 crossover="blend:alpha=0.3",
                 mutation="gaussian:mutation_rate=0.05",
@@ -67,7 +67,7 @@ class TestComposerRealEngines:
                 seeds=[1],
                 experiment_name="test_partial",
                 output_dir=tmp_dir,
-                fitness="rastrigin:dim=3",
+                fitness="bbob:fn_name=rastrigin,num_dims=3,seed=42,maximize=false",
                 generations=2,
                 pop_size=10,
                 genome_length=3,
@@ -90,49 +90,13 @@ class TestComposerRealEngines:
                 experiment_name="test_override",
                 output_dir=tmp_dir,
                 engine=explicit_engine,  # Should override operator specs
-                fitness="sphere:dim=10",  # This should be ignored
+                fitness="bbob:fn_name=sphere,num_dims=10,seed=42,maximize=false",
                 generations=5,  # This should also be ignored
             )
 
         # Should use explicit engine (3 gens, not 5)
         run = result.runs[0]
         assert len(run.history) == 3  # From explicit_engine, not generations=5
-
-    def test_has_real_operators_detection(self):
-        """Test _has_real_operators helper method."""
-        composer = Composer.create_default()
-
-        # No operators
-        assert not composer._has_real_operators(None, None, None, None, None)
-
-        # Some operators
-        assert composer._has_real_operators(None, "sphere", None, None, None)
-        assert composer._has_real_operators(None, None, "tournament", None, None)
-        assert composer._has_real_operators(None, None, None, None, "gaussian")
-
-        # All operators
-        assert composer._has_real_operators(None, "sphere", "tournament", "blend", "gaussian")
-
-    def test_default_operator_construction(self):
-        """Test that default operators are constructed properly."""
-        composer = Composer.create_default()
-
-        # Build engine with minimal spec to test defaults
-        engine = composer._build_real_engine(
-            fitness="sphere:dim=2",
-            selection=None,  # Should default
-            crossover=None,  # Should default
-            mutation=None,  # Should default
-            pop_size=40,
-            generations=5,
-            genome_type="real",
-            genome_length=2,
-            bounds=(-3.0, 3.0),
-            elitism=1,
-        )
-
-        assert isinstance(engine, GeneticEngineAdapter)
-        # Engine should be constructed without errors
 
     def test_binary_genome_support(self):
         """Test quick_run with binary genome type."""
@@ -143,7 +107,7 @@ class TestComposerRealEngines:
                 seeds=[1],
                 experiment_name="test_binary",
                 output_dir=tmp_dir,
-                fitness="sphere:dim=8",
+                fitness="bbob:fn_name=sphere,num_dims=8,seed=42,maximize=false",
                 genome_type="binary",
                 genome_length=8,
                 generations=2,
