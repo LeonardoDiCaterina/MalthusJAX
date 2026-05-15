@@ -104,10 +104,10 @@ class TestTrackBestLight(unittest.TestCase):
         self.assertEqual(final.generation, 10)
 
     def test_history_is_monotonic(self):
-        """In LIGHT mode, history.best_fitness should be non-decreasing."""
+        """In LIGHT mode, history.best_fitness should be non-increasing (minimization)."""
         _, history, _ = self.engine.run(self.state, compile=False)
         diffs = jnp.diff(history.best_fitness)
-        self.assertTrue(jnp.all(diffs >= -1e-7))
+        self.assertTrue(jnp.all(diffs <= 1e-7))
 
     def test_final_state_has_valid_best_genome(self):
         """Post-scan finalization populates best_genome from final pop."""
@@ -140,10 +140,10 @@ class TestTrackBestFull(unittest.TestCase):
         self.assertEqual(final.generation, 10)
 
     def test_history_is_monotonic(self):
-        """In FULL mode, history.best_fitness should be non-decreasing."""
+        """In FULL mode, history.best_fitness should be non-increasing (minimization)."""
         _, history, _ = self.engine.run(self.state, compile=False)
         diffs = jnp.diff(history.best_fitness)
-        self.assertTrue(jnp.all(diffs >= -1e-7))
+        self.assertTrue(jnp.all(diffs <= 1e-7))
 
     def test_best_fitness_tracks_global_best(self):
         """Final best_fitness should be >= initial best_fitness."""
