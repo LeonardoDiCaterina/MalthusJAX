@@ -454,7 +454,7 @@ class Composer:
             output_dir=output_dir,
             write_artifacts=True,
             prng_impl=prng_impl,
-            trace_dir=Path(trace_dir) if trace_dir is not None else None,
+            trace_dir=Path(trace_dir) if trace_dir is not None else Path("results/traces"),
         )
 
         normalized_seeds = self._normalize_seeds(seeds)
@@ -692,7 +692,6 @@ class Composer:
             # Check if using BBOB - if so, use its sample() method for consistency
             if fitness_spec and isinstance(fitness_spec, str) and "bbob" in fitness_spec.lower():
                 # Parse BBOB spec to create evaluator for sampling
-                from .catalog import OperatorCatalog
                 cat = OperatorCatalog()
                 parsed_name, parsed_params = cat.parse_spec(fitness_spec)
                 if parsed_name == "bbob":
