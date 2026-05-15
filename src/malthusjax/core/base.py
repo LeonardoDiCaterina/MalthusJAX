@@ -73,7 +73,7 @@ class BaseGenome:
         is_batched = (
             leaves and
             hasattr(leaves[0], "shape") and
-            len(leaves[0].shape) > 0
+            len(leaves[0].shape) > 1
         )
 
         if is_batched:
@@ -110,7 +110,7 @@ class BaseGenome:
         is_batched = (
             leaves and
             hasattr(leaves[0], "shape") and
-            len(leaves[0].shape) > 0
+            len(leaves[0].shape) > 1
         )
 
         if is_batched:
@@ -127,7 +127,8 @@ class BaseGenome:
                     "or iterate a batched genome to yield individual genomes."
                 )
                 raise TypeError(msg)
-            return iter(cast(Any, self).values)
+            for val in cast(Any, self).values:
+                yield val
 
     @classmethod
     @abstractmethod
