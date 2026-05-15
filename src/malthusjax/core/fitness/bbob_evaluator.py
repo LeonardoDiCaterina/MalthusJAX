@@ -136,9 +136,7 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         fitness_scores, _, _ = self.evosax_problem.eval(rng, x, self.problem_state)
         result = fitness_scores[0]
 
-        # Evosax BBOB returns minimization objectives (lower=better).
-        # Framework now uses minimization convention by default, so return as-is.
-        return result
+        return result if self.config.maximize else -result
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
@@ -154,9 +152,7 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
 
         fitness_scores, _, _ = self.evosax_problem.eval(rng, X, self.problem_state)
 
-        # Evosax BBOB problems are minimization objectives (lower=better).
-        # Framework now uses minimization convention by default, so return as-is.
-        final_fitness = fitness_scores
+        final_fitness = fitness_scores if self.config.maximize else -fitness_scores
 
         return cast(
             BasePopulation[RealGenome], cast(Any, population).replace(fitness=final_fitness)

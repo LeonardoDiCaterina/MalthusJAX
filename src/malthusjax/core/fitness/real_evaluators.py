@@ -43,7 +43,7 @@ class SphereEvaluator(BaseEvaluator[RealGenome, SphereConfig, Any]):
         Lower values are better.
         """
         sphere_value = jnp.sum(jnp.square(genome.values))
-        return sphere_value
+        return sphere_value if self.config.maximize else -sphere_value
 
 
 @struct.dataclass
@@ -75,7 +75,7 @@ class GriewankEvaluator(BaseEvaluator[RealGenome, GriewankConfig, Any]):
         cos_term = jnp.prod(jnp.cos(x / jnp.sqrt(indices)))
 
         griewank_value = 1.0 + quad_term - cos_term
-        return griewank_value
+        return griewank_value if self.config.maximize else -griewank_value
 
 
 @struct.dataclass
@@ -134,7 +134,8 @@ class BoxEvaluator(BaseEvaluator[RealGenome, BoxConfig, Any]):
         total_violation = jnp.sum(lower_violations) + jnp.sum(upper_violations)
 
         penalty = total_violation * self.config.penalty_factor
-        return objective + penalty
+        value = objective + penalty
+        return value if self.config.maximize else -value
 
     @staticmethod
     def create_random_problem(

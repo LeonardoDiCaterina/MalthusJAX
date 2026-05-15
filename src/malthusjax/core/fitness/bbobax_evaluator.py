@@ -27,8 +27,8 @@ class BBOBAXConfig(BaseEvaluatorConfig):
         seed: Seed for sampling instance parameters (shifts/rotations).
         max_dims: The fixed-size dimension for JIT (defaults to num_dims).
     """
-    fn_name: str = struct.field(pytree_node=False)
-    num_dims: int = struct.field(pytree_node=False)
+    fn_name: str = struct.field(pytree_node=False, default="sphere")
+    num_dims: int = struct.field(pytree_node=False, default=2)
     seed: int = 0
     max_dims: int = struct.field(pytree_node=False, default=None)
 

@@ -52,7 +52,7 @@ class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
         """
         ones_count = jnp.sum(genome.values)
         zeros_count = genome.size - ones_count
-        return zeros_count
+        return ones_count if self.config.maximize else zeros_count
 
 
 @struct.dataclass
@@ -106,7 +106,8 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Optional[Kna
         excess_weight = jnp.maximum(0.0, total_weight - self.config.capacity)
         penalty = excess_weight * self.config.penalty_factor
 
-        return total_value - penalty
+        value = total_value - penalty
+        return value if self.config.maximize else -value
 
     @classmethod
     def create_random_problem(
