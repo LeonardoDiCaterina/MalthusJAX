@@ -96,6 +96,9 @@ EXPECTED_FITNESS = {
     "binary_sum",
     "knapsack",
     "tsp",
+    "griewank_rosenbrock",
+    "rosenbrock",
+    "ellipsoidal_rotated",
 }
 EXPECTED_EVOSAX = {"evosax_simplega", "evosax_mr15", "evosax_de"}
 

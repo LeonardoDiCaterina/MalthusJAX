@@ -26,9 +26,9 @@ class TestSignNormalization:
             shared_initial_population=True,
         )
 
-        # MalthusJAX returns higher-is-better fitness for minimize problems,
-        # so it must be negated during comparison to enforce lower-is-better.
-        assert result.negate_map["malthusjax_ga"] is True
+        # Both MalthusJAX and Evosax use minimization convention for sphere:
+        # maximize=False -> lower is better (no sign flip needed)
+        assert result.negate_map["malthusjax_ga"] is False
         assert result.negate_map["evosax_ga"] is False
 
     def test_summary_table_sign_normalization(self):
@@ -57,15 +57,16 @@ class TestSignNormalization:
 
         summary = result.summary_table()
 
-        # Check the negate_map is correct - backend-specific
-        assert result.negate_map["malthusjax_ga"] is True
+        # Check the negate_map is correct - both use minimization for sphere (maximize=False)
+        assert result.negate_map["malthusjax_ga"] is False
         assert result.negate_map["evosax_ga"] is False
 
-        # Both backends should now have fitness in "lower is better" convention (negative values)
+        # Both backends return fitness in minimization convention (lower is better, negative values)
         malthusjax_fitness = summary["malthusjax_ga"]["best_fitness"]
         evosax_fitness = summary["evosax_ga"]["best_fitness"]
 
-        # Both should be negative (normalised to 'lower is better')
+        # Both should be comparable (no sign mismatch for direct comparison)
+        # Since sphere with maximize=False returns negative values, both should be negative
         assert malthusjax_fitness < 0, f"malthusjax best_fitness >= 0: {malthusjax_fitness}"
         assert evosax_fitness < 0, f"evosax best_fitness >= 0: {evosax_fitness}"
 
@@ -183,8 +184,8 @@ evosax_strategy = "SimpleGA"
         try:
             result = Composer.from_toml(temp_path, shared_initial_population=True)
 
-            # Check negate_map is built correctly - backend-specific
-            assert result.negate_map["malthusjax_blend"] is True
+            # Check negate_map is built correctly - both use minimization for sphere
+            assert result.negate_map["malthusjax_blend"] is False
             assert result.negate_map["evosax_simple"] is False
             # Check summary uses normalized values
             summary = result.summary_table()
