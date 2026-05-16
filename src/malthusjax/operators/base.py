@@ -368,7 +368,9 @@ class BaseSelection(Generic[P, C]):
         pop_size = fitness.shape[0]
         if self.n_elites >= pop_size:
             return jnp.arange(pop_size, dtype=jnp.int32)
-        return jnp.argpartition(-fitness, self.n_elites)[: self.n_elites]
+        # Project convention: lower fitness is better (minimization).
+        # Select the indices of the smallest `n_elites` values.
+        return jnp.argpartition(fitness, self.n_elites)[: self.n_elites]
 
     def __call__(
         self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any

@@ -163,8 +163,10 @@ class ElitePoolSelection(BaseSelection[P, C]):
             pool = top_k_idx[:pool_k]
             elite_idx = top_k_idx[: self.n_elites]
         else:
-            sorted_within = jnp.argsort(-fitness[top_k_idx])
-            sorted_top_k = top_k_idx[sorted_within]
+            # `top_k_idx` is already ordered best->worst for minimization
+            # (jnp.argsort returns ascending indices). Keep that ordering
+            # so that slicing `[:n_elites]` selects the true best members.
+            sorted_top_k = top_k_idx
             pool = sorted_top_k[:pool_k]
             elite_idx = sorted_top_k[: self.n_elites]
 
