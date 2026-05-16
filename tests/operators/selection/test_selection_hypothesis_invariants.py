@@ -76,15 +76,13 @@ def test_elite_pool_includes_best_individuals(
     selected = selection(jar.PRNGKey(2), population, None)
     selected_fitness = population.fitness[selected[0]]
 
-    # The expected minimum fitness in the elite pool
-    # Since fitness values are 0, 1, ..., pop_size-1, the top elite_k individuals
-    # will have fitness values from (pop_size - elite_k) to (pop_size - 1).
-    expected_min_selected_fitness = float(pop_size - elite_k)
+    # For minimization, the elite_k best individuals are indices 0..elite_k-1
+    expected_max_selected_fitness = float(elite_k - 1)
 
-    min_selected = float(jnp.min(selected_fitness))
+    max_selected = float(jnp.max(selected_fitness))
 
-    assert min_selected >= expected_min_selected_fitness - 1e-5, (
-        f"Selected minimum fitness {min_selected} < expected {expected_min_selected_fitness}"
+    assert max_selected <= expected_max_selected_fitness + 1e-5, (
+        f"Selected maximum fitness {max_selected} > expected {expected_max_selected_fitness}"
     )
 
 
@@ -103,18 +101,18 @@ def test_elite_pool_max_fitness_preserved(pop_size: int, genome_dim: int) -> Non
     rng = jar.PRNGKey(111)
     population = RealPopulation.init_random(rng, config, size=pop_size)
 
-    # Create with known fitness with clear maximum
+    # Create with known fitness with clear minimum (best) for minimization
     fitness = jnp.arange(pop_size, dtype=jnp.float32)
     population = RealPopulation(genes=population.genes, fitness=fitness, config=config)
-    max_fitness = float(jnp.max(fitness))
+    min_fitness = float(jnp.min(fitness))
 
     selection = ElitePoolSelection(num_selections=pop_size, elite_k=1)
     selected = selection(jar.PRNGKey(3), population, None)
 
-    # The best individual should be in selected set
+    # The best (minimum) individual should be in selected set
     selected_fitness = population.fitness[selected[0]]
-    assert float(jnp.max(selected_fitness)) == max_fitness, (
-        "Elite pool failed to preserve global best individual"
+    assert float(jnp.min(selected_fitness)) == min_fitness, (
+        "Elite pool failed to preserve global best individual (min)"
     )
 
 
@@ -198,7 +196,7 @@ def test_tournament_favors_higher_fitness(pop_size: int, genome_dim: int) -> Non
     rng = jar.PRNGKey(444)
     population = RealPopulation.init_random(rng, config, size=pop_size)
 
-    # Create with known fitness: 0 to pop_size-1
+    # Create with known fitness: 0 to pop_size-1 (minimization: lower is better)
     fitness = jnp.arange(pop_size, dtype=jnp.float32)
     population = RealPopulation(genes=population.genes, fitness=fitness, config=config)
 
@@ -213,9 +211,9 @@ def test_tournament_favors_higher_fitness(pop_size: int, genome_dim: int) -> Non
     mean_selected = float(jnp.mean(selected_fitness))
     mean_all = float(jnp.mean(population.fitness))
 
-    # Tournament selection should prefer higher fitness on average
-    assert mean_selected >= mean_all - 1e-5, (
-        f"Tournament selection mean {mean_selected} not favoring higher fitness (mean={mean_all})"
+    # Tournament selection should prefer lower fitness (minimization) on average
+    assert mean_selected <= mean_all + 1e-5, (
+        f"Tournament selection mean {mean_selected} not favoring lower fitness (mean={mean_all})"
     )
 
 
@@ -252,14 +250,12 @@ def test_tournament_larger_size_stronger_selection(pop_size: int, tournament_siz
     selected_large = selection_large(jar.PRNGKey(8), population, None)
     fitness_large = fitness[selected_large[0]]
 
-    # Larger tournament should have higher mean fitness
-    # (though with randomness, we use a lenient check)
+    # Larger tournament should prefer lower fitness (stronger selection -> lower mean)
     mean_small = float(jnp.mean(fitness_small))
     mean_large = float(jnp.mean(fitness_large))
 
-    # We expect larger tournament to produce >= mean fitness, but don't enforce strict >
-    # due to randomness. Just verify it's at least reasonable.
-    assert mean_large >= mean_small * 0.9, (
+    # Allow leniency due to randomness: expect mean_large to be not substantially higher
+    assert mean_large <= mean_small * 1.05, (
         f"Larger tournament ({tournament_size}) produced mean {mean_large}, "
         f"smaller produced {mean_small}"
     )

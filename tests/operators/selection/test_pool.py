@@ -11,9 +11,9 @@ from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 def setup_elite_pop():
     key = jr.PRNGKey(42)
     config = RealGenomeConfig(shape=(5,), bounds=(-10.0, 10.0), dtype=jnp.float32)
-    # Create 10 individuals with linear fitness 0-9
+    # Create 10 individuals with linear fitness 0-9 (minimization: indices 0 and 1 are best)
     pop = RealPopulation.init_random(key, config, 10)
-    fitness = jnp.arange(10.0)  # Indices 8 and 9 are the best
+    fitness = jnp.arange(10.0)  # Indices 0 and 1 are the best for minimization
     pop = pop.replace(fitness=fitness)
     return pop, key
 
@@ -27,9 +27,9 @@ class TestElitePoolSelection:
         sel = ElitePoolSelection(num_selections=num_selections, elite_k=elite_k)
 
         parent_idx, elite_idx = sel(key, pop)
-        # With elite_k=2 and fitness 0-9, only indices 8 and 9 should be picked
+        # With elite_k=2 and fitness 0-9 (minimization), only indices 0 and 1 should be picked
         unique_indices = jnp.unique(parent_idx)
-        assert jnp.all(jnp.isin(unique_indices, jnp.array([8, 9])))
+        assert jnp.all(jnp.isin(unique_indices, jnp.array([0, 1])))
         # n_elites defaults to 0 → empty elite_idx
         assert elite_idx.shape == (0,)
 
@@ -56,10 +56,10 @@ class TestElitePoolSelection:
         parent_idx, elite_idx = sel(key, pop)
         assert parent_idx.shape == (50,)
         assert elite_idx.shape == (2,)
-        # Elites must be the top-2 fitness individuals (indices 8 and 9)
-        assert jnp.all(jnp.isin(elite_idx, jnp.array([8, 9])))
-        # Parents must come from top-3 pool (indices 7, 8, 9)
-        assert jnp.all(jnp.isin(jnp.unique(parent_idx), jnp.array([7, 8, 9])))
+        # Elites must be the top-2 fitness individuals (indices 0 and 1 for minimization)
+        assert jnp.all(jnp.isin(elite_idx, jnp.array([0, 1])))
+        # Parents must come from top-3 pool (indices 0, 1, 2)
+        assert jnp.all(jnp.isin(jnp.unique(parent_idx), jnp.array([0, 1, 2])))
 
     def test_fused_same_k(self, setup_elite_pop):
         """When elite_k == n_elites, no secondary sort needed."""
@@ -69,8 +69,8 @@ class TestElitePoolSelection:
         parent_idx, elite_idx = sel(key, pop)
         assert parent_idx.shape == (20,)
         assert elite_idx.shape == (3,)
-        # Both parent pool and elites are the top-3
-        assert jnp.all(jnp.isin(elite_idx, jnp.array([7, 8, 9])))
+        # Both parent pool and elites are the top-3 (minimization -> indices 0,1,2)
+        assert jnp.all(jnp.isin(elite_idx, jnp.array([0, 1, 2])))
 
     def test_resource_mapper_integration(self):
         """Tests the set_input_length hook used by the ResourceMapper."""

@@ -8,7 +8,8 @@ from malthusjax.operators.selection.roulette import RouletteSelection
 @pytest.fixture
 def setup_roulette_data():
     key = jr.PRNGKey(123)
-    fitness = jnp.array([0.1, 0.1, 0.1, 0.1, 0.1, 50.0, 0.1, 0.1])
+    # For minimization semantics make index 5 the best (lowest) value
+    fitness = jnp.array([5.0, 5.0, 5.0, 5.0, 5.0, 0.1, 5.0, 5.0])
 
     class MockPop:
         def __init__(self, f):
@@ -62,8 +63,9 @@ class TestRouletteSelection:
         parent_idx, elite_idx = sel(key, pop)
         assert parent_idx.shape == (5,)
         assert elite_idx.shape == (2,)
-        # Top-2 should include index 5 (fitness 50.0)
-        assert 5 in elite_idx
+        # Elite indices must include the overall minimum fitness entry
+        elite_fitness = pop.fitness[elite_idx]
+        assert float(jnp.min(elite_fitness)) == float(jnp.min(pop.fitness))
 
     def test_large_population_safety(self):
         """Tests that the operator can be reconfigured for large populations."""

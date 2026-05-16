@@ -15,8 +15,8 @@ def setup_tournament_pop():
     config = RealGenomeConfig(shape=(5,), bounds=(-10.0, 10.0), dtype=jnp.float32)
     pop_size = 10
     pop = RealPopulation.init_random(key, config, pop_size)
-    # Fitness: Index 3 is best (100.0), others are low.
-    fitness = jnp.array([1.0, 2.0, 1.5, 100.0, 0.5, 1.2, 0.8, 2.1, 1.1, 0.9])
+    # Fitness: Index 3 is best (lowest) for minimization; others are higher.
+    fitness = jnp.array([1.0, 2.0, 1.5, -100.0, 0.5, 1.2, 0.8, 2.1, 1.1, 0.9])
     pop = pop.replace(fitness=fitness)
     return pop, key
 
@@ -64,12 +64,13 @@ class TestTournamentSelection:
 
         # Case A: Low Pressure (Tournament Size = 1, should be Random Selection)
         sel_low = TournamentSelection(num_selections=num_trials, tournament_size=1)
-        idx_low = sel_low._select(key, pop.fitness)
+        k_low, k_high = jr.split(key)
+        idx_low = sel_low._select(k_low, pop.fitness)
         count_low = jnp.sum(idx_low == best_idx)
 
         # Case B: High Pressure (Tournament Size = 5)
         sel_high = TournamentSelection(num_selections=num_trials, tournament_size=5)
-        idx_high = sel_high._select(key, pop.fitness)
+        idx_high = sel_high._select(k_high, pop.fitness)
         count_high = jnp.sum(idx_high == best_idx)
 
         # Statistical check: High pressure should pick the best significantly more often
@@ -113,8 +114,9 @@ class TestTournamentSelection:
         sel_small = TournamentSelection(num_selections=100, tournament_size=2)
         sel_large = TournamentSelection(num_selections=100, tournament_size=8)
 
-        indices_small = sel_small._select(key, pop.fitness)
-        indices_large = sel_large._select(key, pop.fitness)
+        k1, k2 = jr.split(key)
+        indices_small = sel_small._select(k1, pop.fitness)
+        indices_large = sel_large._select(k2, pop.fitness)
 
         small_best_frac = float(jnp.sum(indices_small == best_idx)) / 100
         large_best_frac = float(jnp.sum(indices_large == best_idx)) / 100
@@ -137,7 +139,8 @@ class TestTournamentSelection:
 
         for t_size in sizes:
             sel = TournamentSelection(num_selections=num_trials, tournament_size=t_size)
-            indices = sel._select(key, pop.fitness)
+            key, subkey = jr.split(key)
+            indices = sel._select(subkey, pop.fitness)
             pick_rate = float(jnp.sum(indices == best_idx)) / num_trials
             pick_rates.append(pick_rate)
 
