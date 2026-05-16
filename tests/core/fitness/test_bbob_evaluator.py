@@ -56,7 +56,8 @@ def test_bbob_parity_across_functions(real_population, rng_key, fn_name):
     pop_result = evaluator.evaluate_population(real_population)
 
     # Use np.testing for JAX arrays
-    np.testing.assert_allclose(pop_result.fitness, -expected_fitness, atol=1e-5)
+    # For minimize=False, evaluator returns raw minimization fitness (no negation)
+    np.testing.assert_allclose(pop_result.fitness, expected_fitness, atol=1e-5)
 
 
 # --- 3. Maximization & JIT Stability ---
