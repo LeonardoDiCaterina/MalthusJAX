@@ -136,7 +136,10 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
         fitness_scores, _, _ = self.evosax_problem.eval(rng, x, self.problem_state)
         result = fitness_scores[0]
 
-        return result if self.config.maximize else -result
+        # Repository convention is minimization by default (maximize=False):
+        # return the raw BBOB objective (lower is better). When maximize=True,
+        # flip sign so larger returned fitness is better.
+        return -result if self.config.maximize else result
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
@@ -152,7 +155,9 @@ class BBOBEvaluator(BaseEvaluator[RealGenome, BBOBConfig, Any]):
 
         fitness_scores, _, _ = self.evosax_problem.eval(rng, X, self.problem_state)
 
-        final_fitness = fitness_scores if self.config.maximize else -fitness_scores
+        # Keep raw minimization objectives for maximize=False and only flip
+        # sign for explicit maximize=True workflows.
+        final_fitness = -fitness_scores if self.config.maximize else fitness_scores
 
         return cast(
             BasePopulation[RealGenome], cast(Any, population).replace(fitness=final_fitness)
