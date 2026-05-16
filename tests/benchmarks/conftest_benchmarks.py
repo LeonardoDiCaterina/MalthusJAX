@@ -515,7 +515,10 @@ class MalthusJAXBenchEngine:
 
         start_best = history[0]["best_fitness"]
         end_best = history[-1]["best_fitness"]
-        delta_best = end_best - start_best
+        # Repository convention: lower is better (minimization).
+        # Compute positive improvement as start - end so that improving runs
+        # yield a non-negative ``delta_best`` value.
+        delta_best = start_best - end_best
 
         summary = {
             "best_fitness": float(final_state.best_fitness),
@@ -579,12 +582,12 @@ class EvosaxBenchEngine:
             es_state, _ = strategy.tell(rng_step, x, fitness, es_state, params)
 
             # Evosax BBOB returns raw minimization scores (lower is better).
-            # Convert to the same maximize-oriented fitness semantics used by
-            # MalthusJAX so comparison metrics are aligned.
+            # Keep the raw sign so all benchmark paths follow the repository
+            # minimization convention consistently.
             metrics = {
                 "generation": es_state.generation_counter,
-                "best_fitness": -es_state.best_fitness,
-                "mean_fitness": -jnp.mean(fitness),
+                "best_fitness": es_state.best_fitness,
+                "mean_fitness": jnp.mean(fitness),
             }
             return (es_state, p_state, rng), metrics
 
@@ -654,10 +657,13 @@ class EvosaxBenchEngine:
 
         start_best = history[0]["best_fitness"]
         end_best = history[-1]["best_fitness"]
-        delta_best = end_best - start_best
+        # Repository convention: lower is better (minimization).
+        # Compute positive improvement as start - end so that improving runs
+        # yield a non-negative ``delta_best`` value.
+        delta_best = start_best - end_best
 
         summary = {
-            "best_fitness": float(-final_es_state.best_fitness),
+            "best_fitness": float(final_es_state.best_fitness),
             "start_best_fitness": start_best,
             "end_best_fitness": end_best,
             "delta_best": delta_best,
