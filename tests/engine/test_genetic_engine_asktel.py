@@ -133,7 +133,7 @@ class TestAskTellInterface(unittest.TestCase):
         updated_state = engine_with_entropy.tell(self.state, better_pop)
 
         # Best genome should be updated
-        best_idx = jnp.argmax(better_pop.fitness)
+        best_idx = jnp.argmin(better_pop.fitness)
         expected_genome = better_pop[best_idx].genes
 
         actual_genome = updated_state.best_genome

@@ -126,8 +126,9 @@ class TestSelectionPhase(unittest.TestCase):
         elite_leaves = jax.tree_util.tree_leaves(elites)
         self.assertEqual(elite_leaves[0].shape[0], self.engine_params.elitism)
 
-        # Parent indices should have shape (num_selections,)
-        self.assertEqual(parent_indices.shape[0], self.engine_params.pop_size)
+        # Parent indices are rounded up to an even count so crossover can form pairs.
+        expected_parents = 2 * ((self.engine_params.pop_size - self.engine_params.elitism + 1) // 2)
+        self.assertEqual(parent_indices.shape[0], expected_parents)
 
     def test_selection_indices_are_valid(self):
         """Test that selected indices are within population bounds."""
@@ -147,12 +148,10 @@ class TestSelectionPhase(unittest.TestCase):
             key_sel, self.state.population, self.state.operators, self.engine_params
         )
 
-        # Get top-k fitness values
-        top_k_fitness, top_k_indices = jax.lax.top_k(
-            self.state.population.fitness, self.engine_params.elitism
-        )
+        # Get the lowest-fitness individuals under minimization.
+        top_k_indices = jnp.argsort(self.state.population.fitness)[: self.engine_params.elitism]
 
-        # Elite genes should match top-k individuals
+        # Elite genes should match the best individuals.
         top_k_genes = self.state.population[top_k_indices].genes
         elite_leaves = jax.tree_util.tree_leaves(elites)
         top_k_leaves = jax.tree_util.tree_leaves(top_k_genes)
@@ -478,10 +477,10 @@ class TestHOFUpdatePhase(unittest.TestCase):
         # Run one step to get a baseline
         state_after_step, _ = self.engine.step(self.state)
 
-        # Run another step — best_fitness should be >= previous (LIGHT mode: monotonic)
+        # Run another step — best_fitness should be <= previous under minimization.
         state_after_two, _ = self.engine.step(state_after_step)
 
-        self.assertGreaterEqual(
+        self.assertLessEqual(
             float(state_after_two.best_fitness),
             float(state_after_step.best_fitness),
         )
