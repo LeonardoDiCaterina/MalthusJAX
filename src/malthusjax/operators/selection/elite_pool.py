@@ -115,7 +115,12 @@ class ElitePoolSelection(BaseSelection[P, C]):
             rng = keys if keys.ndim <= 1 else keys[0]
 
         pop_size = fitness.shape[0]
-        pool_k = min(self.elite_k, pop_size)
+        # Ensure the pool used for random parent draws always contains
+        # the preserved elites. If `n_elites` (set by engine) is larger
+        # than `elite_k` the pool must be expanded to include those
+        # elite indices; otherwise some elites would not be part of the
+        # sampling pool.
+        pool_k = min(max(self.elite_k, getattr(self, "n_elites", 0)), pop_size)
 
         if pool_k >= pop_size:
             best_k_indices = jnp.arange(pop_size)
@@ -154,7 +159,11 @@ class ElitePoolSelection(BaseSelection[P, C]):
         else:
             top_k_idx = jnp.argsort(fitness)[:k]
 
-        pool_k = min(self.elite_k, pop_size)
+        # Make sure the sampling pool at least covers the elites that the
+        # engine asked to preserve (`n_elites`). This keeps `pool` and
+        # `elite_idx` consistent (i.e. every preserved elite is drawn from
+        # the pool).
+        pool_k = min(max(self.elite_k, self.n_elites), pop_size)
 
         if self.n_elites == 0:
             pool = top_k_idx[:pool_k]

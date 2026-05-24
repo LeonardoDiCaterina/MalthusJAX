@@ -125,9 +125,24 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         if not self.injection_mode:
             return super().__call__(all_keys, p1_pop, p2_pop, config, generation=generation)
 
-        key = all_keys[0]
         num_pairs = p1_pop.values.shape[0]
-        keys = jax.random.split(key, num_pairs * self.num_offspring)
+
+        # Support two injection-mode calling conventions:
+        # 1) Single-origin key (legacy): ResourceMapper gives a single key
+        #    slice (shape (1,) or (1,2)); we split it internally.
+        # 2) Pre-split keys: caller supplies per-pair (or per-pair-per-offspring)
+        #    subkeys. Detect by checking the leading axis length of `all_keys`.
+        if all_keys.shape[0] == 1:
+            key = all_keys[0]
+            keys = jax.random.split(key, num_pairs * self.num_offspring)
+        else:
+            # Caller provided subkeys directly. Flatten to a 2D list of
+            # subkeys with length `num_pairs * num_offspring` for downstream
+            # vmap usage. Preserve typed/untyped shapes.
+            if self.typed_keys:
+                keys = all_keys.reshape(-1)
+            else:
+                keys = all_keys.reshape(num_pairs * self.num_offspring, all_keys.shape[-1])
 
         def _cross_one(k: chex.Array, p1_vals: chex.Array, p2_vals: chex.Array) -> chex.Array:
             return evosax_crossover(k, p1_vals, p2_vals, self.crossover_rate)
@@ -138,7 +153,7 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
             if self.typed_keys:
                 keys_reshaped = keys.reshape(num_pairs, self.num_offspring)
             else:
-                keys_reshaped = keys.reshape(num_pairs, self.num_offspring, 2)
+                keys_reshaped = keys.reshape(num_pairs, self.num_offspring, keys.shape[-1])
             p1_vals_rep = jnp.repeat(p1_pop.values[:, None, :], self.num_offspring, axis=1)
             p2_vals_rep = jnp.repeat(p2_pop.values[:, None, :], self.num_offspring, axis=1)
 

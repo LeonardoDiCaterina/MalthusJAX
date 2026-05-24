@@ -110,13 +110,22 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
         if not self.injection_mode:
             return super().__call__(all_keys, population, config, generation=generation)
 
-        # all_keys is the ResourceMapper slice for this operator.
-        # Shape: (1, 2) for legacy uint32 keys, (1,) for new-style typed keys.
-        # Extract the single key so jax.random.split receives a valid PRNGKey.
-        key = all_keys[0]  # (1,2)→(2,) for legacy; (1,)→scalar for typed
-        n = population.values.shape[0]  # JAX static shape; avoids host-device sync
-        total_offspring = n * self.num_offspring
-        subkeys = jax.random.split(key, total_offspring)
+        # all_keys may be either a single origin key slice (shape (1,) or
+        # (1,2)) which we must split internally, or it may already contain
+        # per-individual/per-offspring subkeys provided by the caller.
+        if all_keys.shape[0] == 1:
+            key = all_keys[0]  # (1,2)→(2,) for legacy; (1,)→scalar for typed
+            n = population.values.shape[0]
+            total_offspring = n * self.num_offspring
+            subkeys = jax.random.split(key, total_offspring)
+        else:
+            # Caller provided subkeys directly. Flatten to a list of length
+            # `n * num_offspring`. Preserve typed/untyped formats.
+            n = population.values.shape[0]
+            if self.typed_keys:
+                subkeys = all_keys.reshape(-1)
+            else:
+                subkeys = all_keys.reshape(n * self.num_offspring, all_keys.shape[-1])
 
         def _call_evosax(k: Any, sol: Any) -> Any:
             # evosax library is untyped; keep helper untyped to match
