@@ -162,6 +162,27 @@ class AbstractEngine(Generic[G, P], ABC):
         """
         raise NotImplementedError
 
+    def debug_step(
+        self, state: AbstractEvolutionState[G, P]
+    ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput]:
+        """Run one step and print the resulting population length."""
+        new_state, output = self.step(state)
+        population = getattr(new_state, "population", None)
+        if population is not None:
+            print(f"population len: {len(population)}")
+        return new_state, output
+
+    def debug_run(
+        self, initial_state: AbstractEvolutionState[G, P]
+    ) -> Tuple[AbstractEvolutionState[G, P], List[AbstractGenerationOutput]]:
+        """Run the engine in a Python loop using `debug_step`."""
+        state = initial_state
+        history: List[AbstractGenerationOutput] = []
+        for _ in range(self.engine_params.num_generations):
+            state, output = self.debug_step(state)
+            history.append(output)
+        return state, history
+
     def run(
         self,
         initial_state: AbstractEvolutionState[G, P],

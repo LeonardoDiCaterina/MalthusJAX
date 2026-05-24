@@ -7,6 +7,7 @@ to enable static allocation and precise "cascade" data flow.
 """
 
 import logging
+import math
 from enum import Enum
 from typing import Any, NamedTuple, Tuple, cast
 
@@ -314,5 +315,64 @@ def get_resource_summary(rmap: ResourceMap) -> str:
         "  [4. NEXT GENERATION KEY]",
         f"     Keys: {rmap.next_key.num_keys} "
         f"(Slice {rmap.next_key.start_idx}:{rmap.next_key.end_idx})",
+    ]
+    return "\n".join(lines)
+
+
+def get_step_dimension_flow(
+    rmap: ResourceMap,
+    elitism: int = 0,
+    pop_symbol: str = "n",
+    genome_symbol: str = "d",
+    genome_width: int | None = None,
+) -> str:
+    """Generate an exact phase-by-phase dimension flow for one step.
+
+    The flow is symbolic in the population size ``n`` and genome width ``d``.
+    It uses the concrete allocations in ``rmap`` to parameterize the pair count
+    and offspring sizes used by the engine.
+    """
+    n = pop_symbol
+    d = genome_symbol
+    d_exact = str(genome_width) if genome_width is not None else d
+    e = max(0, int(elitism))
+    p = int(rmap.num_pairs)
+    offspring_per_pair = int(rmap.crossover.output_count // max(1, p))
+    mutation_per_item = int(rmap.mutation.output_count // max(1, rmap.mutation.input_count))
+    target_keep = max(0, rmap.pop_size - e)
+    pair_formula = f"p = ceil(({n} - {e}) / {offspring_per_pair}) = {p}"
+
+    lines = [
+        "Step Dimension Flow:",
+        f"  Let n = pop size, d = genome width, e = elitism.",
+        f"  {pair_formula}",
+        "",
+        "  [0. ENTROPY ALLOCATION]",
+        "     master key -> 4 sub-buffers",
+        f"     selection keys: (1, 2)",
+        f"     crossover keys: (1, 2)",
+        f"     mutation keys:   (1, 2)",
+        f"     next key:        (2,)",
+        "",
+        "  [1. SELECTION]",
+        f"     fitness:        ({n},)",
+        f"     parent_idx:      (2p,) = ({2 * p},)",
+        f"     elite_idx:       (e,) = ({e},)",
+        f"     elites_genes:    (e, d) = ({e}, {d_exact})",
+        "",
+        "  [2. REPRODUCTION]",
+        f"     p1_idx/p2_idx:   (p,) = ({p},)",
+        f"     p1_pop/p2_pop:   (p, d) = ({p}, {d_exact})",
+        f"     crossover in:    (p, d) -> out: (p * {offspring_per_pair}, d)",
+        f"     mutation in:     (p * {offspring_per_pair}, d) -> out: (p * {offspring_per_pair} * {mutation_per_item}, d)",
+        "",
+        "  [3a. MERGE]",
+        f"     keep elites:     (e, d) = ({e}, {d_exact})",
+        f"     keep mutants:    (n - e, d) = ({target_keep}, {d_exact})",
+        f"     next_genes:      (n, d) = ({n}, {d_exact})",
+        "",
+        "  [3b. EVALUATE]",
+        f"     genes:           (n, d) = ({n}, {d_exact})",
+        f"     fitness:         (n,) = ({n},)",
     ]
     return "\n".join(lines)

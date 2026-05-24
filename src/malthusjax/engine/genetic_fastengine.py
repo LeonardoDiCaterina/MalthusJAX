@@ -545,6 +545,98 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         return final_state, metrics
 
+    def debug_step(
+        self, state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]]
+    ) -> Tuple[GeneticEvolutionState, GeneticGenerationOutput]:
+        """Run one generation phase-by-phase and print intermediate summaries."""
+        state = cast(GeneticEvolutionState, state)
+        params = cast(GeneticEngineParams, self.engine_params)
+
+        def _first_leaf_shape(tree: Any) -> tuple[int, ...]:
+            leaves = jax.tree_util.tree_leaves(tree)
+            return leaves[0].shape if leaves else ()
+
+        k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
+        print(
+            "phase 0 allocate entropy: "
+            f"selection={k_sel.shape}, crossover={k_cross.shape}, "
+            f"mutation={k_mut.shape}, next={k_next.shape}"
+        )
+
+        elites, parent_indices = self._selection_phase(
+            k_sel, state.population, state.operators, self.engine_params
+        )
+        elite_shape = _first_leaf_shape(elites)
+        print(
+            "phase 1 selection: "
+            f"elites={elite_shape}, parents={parent_indices.shape}"
+        )
+
+        mutants = self._reproduction_phase(
+            k_cross,
+            k_mut,
+            parent_indices,
+            state.population,
+            state.operators,
+            state.resource_map,
+            generation=state.generation,
+        )
+        mutant_shape = _first_leaf_shape(mutants.genes)
+        print(f"phase 2 reproduction: mutants={mutant_shape}")
+
+        next_genes = self._merge(elites, mutants.genes, state)
+        next_shape = _first_leaf_shape(next_genes)
+        print(f"phase 3a merge: next_genes={next_shape}")
+
+        new_pop = self._evaluate(next_genes, state)
+        print(
+            "phase 3b evaluate: "
+            f"population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
+        )
+
+        params = cast(GeneticEngineParams, self.engine_params)
+        gen_best_fitness = jnp.min(new_pop.fitness)
+
+        if params.track_best == TrackBest.NONE:
+            new_best_fitness = state.best_fitness
+            new_best_genome = state.best_genome
+            metric_best = gen_best_fitness
+        elif params.track_best == TrackBest.LIGHT:
+            new_best_fitness = jnp.minimum(gen_best_fitness, state.best_fitness)
+            new_best_genome = state.best_genome
+            metric_best = new_best_fitness
+        else:
+            is_new = gen_best_fitness < state.best_fitness
+            best_idx = jnp.argmin(new_pop.fitness)
+            new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
+            best_candidate = jax.tree_util.tree_map(lambda x: x[best_idx], new_pop.genes)
+            new_best_genome = jax.tree_util.tree_map(
+                lambda n, o: jnp.where(is_new, n, o),
+                best_candidate,
+                state.best_genome,
+            )
+            metric_best = new_best_fitness
+
+        final_state = cast(
+            GeneticEvolutionState,
+            cast(Any, state).replace(
+                population=new_pop,
+                best_genome=new_best_genome,
+                best_fitness=new_best_fitness,
+                generation=state.generation + 1,
+                rng_key=k_next,
+            ),
+        )
+
+        metrics = GeneticGenerationOutput(
+            best_fitness=metric_best,
+            mean_fitness=jnp.mean(new_pop.fitness),
+            generation=final_state.generation,
+            random_key=final_state.rng_key,
+        )
+
+        return final_state, metrics
+
     def run(
         self,
         initial_state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]],
