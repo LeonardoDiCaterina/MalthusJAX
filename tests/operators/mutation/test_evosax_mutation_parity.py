@@ -54,3 +54,26 @@ def test_mutation_matches_evosax_direct():
         expected = jax.vmap(_evosax_call)(subkeys, genes_to_use)
 
         assert jnp.allclose(offspring_wrapper.genes.values, expected)
+
+
+    def test_mutation_matches_with_presplit_keys():
+        key = jar.PRNGKey(999)
+        cfg = RealGenomeConfig(shape=(6,), bounds=(-1.0, 1.0))
+        pop_size = 4
+
+        k1, _ = jar.split(key)
+        parents = RealPopulation.init_random(k1, cfg, pop_size)
+
+        wrapper = EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=True).set_input_length(pop_size)
+
+        base_key, _ = jar.split(key)
+        subkeys = jar.split(base_key, pop_size * wrapper.num_offspring)
+
+        offspring_wrapper = jax.jit(wrapper)(subkeys, parents, cfg)
+
+        # expected via evosax per genome
+        def _ev(k, g):
+            return evosax_mutation(k, g, jnp.array(wrapper.mutation_strength, dtype=cfg.dtype))
+
+        expected = jax.vmap(_ev)(subkeys, parents.genes.values)
+        assert jnp.allclose(offspring_wrapper.genes.values, expected)
