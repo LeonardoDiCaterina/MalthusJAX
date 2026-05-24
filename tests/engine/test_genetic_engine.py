@@ -81,6 +81,18 @@ def test_02_step_execution(genetic_engine, prng_key):
     assert not jnp.isnan(final_state.best_fitness)
 
 
+def test_02b_debug_step_execution(genetic_engine, prng_key):
+    """Test the debug step helper on the fast engine."""
+    print("\n[Test] Debug Step Execution")
+    state = genetic_engine.init_state(prng_key)
+
+    final_state, metrics = genetic_engine.debug_step(state)
+
+    assert final_state.generation == 1
+    assert final_state.population.genes.values.shape == (100, 10)
+    assert metrics.generation == 1
+
+
 def test_03_closed_loop_fusion(genetic_engine, prng_key):
     """Test Level 3 'Closed Loop' Compilation and Fusion."""
     print("\n[Test] Level 3 Closed Loop Fusion")
