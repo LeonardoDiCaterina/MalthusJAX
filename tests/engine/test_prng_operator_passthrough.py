@@ -83,3 +83,33 @@ def test_crossover_mutation_keys_reshape_and_usage(small_engine):
         state.resource_map,
     )
     assert mutants.genes is not None
+
+
+def test_reproduction_with_forwarded_presplit_keys():
+    # Construct engine that forwards presplit keys to operators
+    params = GeneticEngineParams(pop_size=16, elitism=1, num_generations=1, forward_presplit_keys=True)
+    genome_config = RealGenomeConfig(shape=(5,), bounds=(-5.0, 5.0))
+    bbob = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=5, maximize=False))
+
+    engine = GeneticEngine(
+        engine_params=params,
+        genome_config=genome_config,
+        evaluator=bbob,
+        selection=ElitePoolSelection(num_selections=16, elite_k=2),
+        crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
+        mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1),
+    )
+
+    key = create_key(11)
+    state = engine.init_state(key)
+    k_sel, k_cross, k_mut, k_next = engine._allocate_entropy(state)
+
+    elites, selected_idx = engine._selection_phase(
+        k_sel, state.population, state.operators, engine.engine_params
+    )
+
+    mutants = engine._reproduction_phase(
+        k_cross, k_mut, selected_idx, state.population, state.operators, state.resource_map
+    )
+
+    assert mutants.genes is not None

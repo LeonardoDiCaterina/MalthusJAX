@@ -24,7 +24,7 @@ def _make_stub_quick_run(self, **kwargs):
 
 
 def test_compare_shared_initial_population_matches_toy(monkeypatch):
-    args = SimpleNamespace(pop_size=12, dimensions=3, seed=0)
+    args = SimpleNamespace(pop_size=12, dimensions=3, seed=0, function="rosenbrock")
 
     # Toy initial population
     toy_pop = _shared_initial_population(args)
@@ -235,7 +235,7 @@ crossover = "blend:alpha=0.5"
     toml_path = tmp_path / "minimal_experiment.toml"
     toml_path.write_text(toml_content)
 
-    args = SimpleNamespace(pop_size=12, dimensions=3, seed=0)
+    args = SimpleNamespace(pop_size=12, dimensions=3, seed=0, function="rosenbrock")
     toy_pop = _shared_initial_population(args)
 
     # Patch Composer.quick_run to avoid heavy runs
