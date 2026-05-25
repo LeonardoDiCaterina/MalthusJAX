@@ -22,7 +22,7 @@ def _register_selection() -> None:
         [
             ("tournament", TournamentSelection, {"num_selections": 4, "tournament_size": 3}),
             ("roulette", RouletteSelection, {"num_selections": 4}),
-            ("elite_pool", ElitePoolSelection, {"num_selections": 4, "elite_k": 2}),
+            ("elite_pool", ElitePoolSelection, {"num_selections": 4, "elite_k": 2, "sampling_method": "choice"}),
         ],
         override=True,
     )

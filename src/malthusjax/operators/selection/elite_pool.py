@@ -96,6 +96,7 @@ class ElitePoolSelection(BaseSelection[P, C]):
     """
 
     elite_k: int = _field(pytree_node=False, default=10)
+    sampling_method: str = _field(pytree_node=False, default="choice")
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
@@ -126,11 +127,19 @@ class ElitePoolSelection(BaseSelection[P, C]):
             best_k_indices = jnp.arange(pop_size)
         else:
             best_k_indices = jnp.argsort(fitness)[:pool_k]
+        if getattr(self, "sampling_method", "choice") == "randint":
+            # draw integer indexes into the pool, then index into best_k_indices
+            # rng consumes same amount as a single randint call per selection
+            sel_idx = jax.random.randint(rng, shape=(self.num_selections,), minval=0, maxval=pool_k)
+            return best_k_indices[sel_idx]
 
-        random_selections = jax.random.randint(
-            rng, shape=(self.num_selections,), minval=0, maxval=pool_k
+        # default: use jax.random.choice sampling directly from the pool
+        return jax.random.choice(
+            rng,
+            best_k_indices,
+            shape=(self.num_selections,),
+            replace=True,
         )
-        return best_k_indices[random_selections]
 
     def __call__(
         self,
@@ -179,9 +188,15 @@ class ElitePoolSelection(BaseSelection[P, C]):
             pool = sorted_top_k[:pool_k]
             elite_idx = sorted_top_k[: self.n_elites]
 
-        random_selections = jax.random.randint(
-            rng, shape=(self.num_selections,), minval=0, maxval=pool_k
+        parent_idx = jax.random.choice(
+            rng,
+            pool,
+            shape=(self.num_selections,),
+            replace=True,
         )
-        parent_idx = pool[random_selections]
+        if getattr(self, "sampling_method", "choice") == "randint":
+            # sample indices into `pool` then index
+            sel_idx = jax.random.randint(rng, shape=(self.num_selections,), minval=0, maxval=pool.shape[0])
+            parent_idx = pool[sel_idx]
 
         return parent_idx, elite_idx
