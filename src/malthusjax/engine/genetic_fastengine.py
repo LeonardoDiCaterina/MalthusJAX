@@ -11,6 +11,7 @@ import chex
 import jax
 import jax.numpy as jnp
 import jax.random as jar
+import numpy as np
 from flax import struct
 
 from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, validate_key
@@ -166,6 +167,10 @@ class GeneticEngineParams(AbstractEngineParams):
     initial_strength: float = 0.1
     final_strength: float = 0.0
     debug_tracing: bool = _field(pytree_node=False, default=False)
+    # When True, engine will split single-origin operator keys into per-pair
+    # / per-offspring subkeys and forward them to operators that accept
+    # pre-split caller-supplied keys (useful for evosax parity).
+    forward_presplit_keys: bool = _field(pytree_node=False, default=False)
     """Enable jax.named_call phase labels for HLO profiling (default: False).
 
     When False (default) the traceable decorators are no-ops, allowing XLA to
@@ -345,12 +350,50 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         and elite indices in one pass. The method then optionally slices the
         current population to extract elite genomes for preservation.
         """
+        # Default single-call selection
         parent_idx, elite_idx = operators.selection(key_selection, population.fitness)
 
+        # Extract elites genes for preservation
         if params.elitism > 0:
             elites_genes = jax.tree_util.tree_map(lambda x: x[elite_idx], population.genes)
         else:
             elites_genes = jax.tree_util.tree_map(lambda x: x[:0], population.genes)
+
+        # Parity path: allow forwarding of presplit selection keys when
+        # requested by the caller (e.g., replay harnesses that captured the
+        # two independent draw keys used by Evosax). If `forward_presplit_keys`
+        # is enabled and the incoming selection key slice contains two keys,
+        # treat them as the two independent draw keys and call the selection
+        # operator twice (once per draw) to reproduce pairwise sampling.
+        try:
+            pop_size = population.fitness.shape[0]
+            sel_expected = operators.selection.num_selections
+            params = cast(GeneticEngineParams, self.engine_params)
+
+            if params.forward_presplit_keys and operators.selection.num_keys_per_atomic_operation > 0:
+                # If the caller provided exactly two keys, use them as the two
+                # independent selection draws (common parity trace format).
+                if getattr(key_selection, "shape", ()) and int(key_selection.shape[0]) == 2:
+                    k1 = key_selection[0]
+                    k2 = key_selection[1]
+                    sel_op = operators.selection.replace(num_selections=pop_size)
+                    p1_idx, _ = sel_op(jnp.expand_dims(k1, 0), population)
+                    p2_idx, _ = sel_op(jnp.expand_dims(k2, 0), population)
+                    parent_idx = jnp.concatenate([p1_idx, p2_idx], axis=0)
+                else:
+                    # Fallback: if the operator expects 2*pop_size selections,
+                    # emulate two independent draws by splitting the provided
+                    # single-origin key into two subkeys.
+                    if int(sel_expected) == 2 * int(pop_size):
+                        key_base = key_selection if getattr(key_selection, "ndim", 1) == 0 else key_selection[0]
+                        k1, k2 = jax.random.split(key_base, 2)
+                        sel_op = operators.selection.replace(num_selections=pop_size)
+                        p1_idx, _ = sel_op(jnp.expand_dims(k1, 0), population)
+                        p2_idx, _ = sel_op(jnp.expand_dims(k2, 0), population)
+                        parent_idx = jnp.concatenate([p1_idx, p2_idx], axis=0)
+        except Exception:
+            # Any failure: keep original single-call result
+            pass
 
         return elites_genes, parent_idx
 
@@ -383,12 +426,47 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
 
         expected_cross_keys = operators.crossover.num_keys(input_shape=(num_pairs,))
-        if keys_crossover.shape[0] != expected_cross_keys:
-            raise ValueError(
-                "Crossover keys length mismatch: "
-                f"got {keys_crossover.shape[0]}, expected {expected_cross_keys} "
-                f"(num_pairs={num_pairs})"
-            )
+        params = cast(GeneticEngineParams, self.engine_params)
+
+        # Key validation/forwarding policy:
+        # - Default behavior: require keys_crossover length to equal expected_cross_keys.
+        # - If `forward_presplit_keys` is enabled and the operator reports a
+        #   single-key budget (expected_cross_keys==1), accept a single-origin
+        #   slice and split it into per-pair/per-offspring subkeys here, or
+        #   accept a caller-provided presplit array whose length matches the
+        #   flattened offspring count.
+        if not params.forward_presplit_keys:
+            if keys_crossover.shape[0] != expected_cross_keys:
+                raise ValueError(
+                    "Crossover keys length mismatch: "
+                    f"got {keys_crossover.shape[0]}, expected {expected_cross_keys} "
+                    f"(num_pairs={num_pairs})"
+                )
+            keys_to_pass = keys_crossover
+        else:
+            # permissive mode
+            if keys_crossover.shape[0] == expected_cross_keys:
+                keys_to_pass = keys_crossover
+            else:
+                # If operator expects single-origin (typical for injection-mode)
+                # and we received that single slice, expand it to per-pair subkeys
+                if expected_cross_keys == 1 and keys_crossover.shape[0] == 1:
+                    num_subkeys = num_pairs * operators.crossover.num_offspring
+                    key = keys_crossover[0]
+                    keys_to_pass = jax.random.split(key, num_subkeys)
+                else:
+                    # Otherwise, accept presplit arrays that match the flattened
+                    # offspring count (num_pairs * num_offspring)
+                    num_subkeys = num_pairs * operators.crossover.num_offspring
+                    if keys_crossover.shape[0] == num_subkeys:
+                        keys_to_pass = keys_crossover
+                    else:
+                        raise ValueError(
+                            "Crossover keys length mismatch (forward_presplit_keys mode): "
+                            f"got {keys_crossover.shape[0]}, expected "
+                            f"{expected_cross_keys} or {num_subkeys} "
+                            f"(num_pairs={num_pairs})"
+                        )
         p1_genes = jax.tree_util.tree_map(lambda x: x[p1_idx], population.genes)
         p2_genes = jax.tree_util.tree_map(lambda x: x[p2_idx], population.genes)
         dummy_fitness = jnp.zeros(num_pairs)
@@ -398,7 +476,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         offspring_pop = cast(
             BasePopulation[Any],
             operators.crossover(
-                keys_crossover, p1_pop, p2_pop, self.genome_config, generation=generation
+                keys_to_pass, p1_pop, p2_pop, self.genome_config, generation=generation
             ),
         )
         produced_offspring = jax.tree_util.tree_leaves(offspring_pop.genes)[0].shape[0]
@@ -409,10 +487,39 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                 f"matches the length of the tuple returned by `_recombine_one`."
             )
 
+        # Allow forwarding/splitting of mutation keys similarly when requested.
+        expected_mut_keys = operators.mutation.num_keys(
+            input_shape=(offspring_pop.genes.values.shape[0],)
+        )
+        if not params.forward_presplit_keys:
+            if keys_mutation.shape[0] != expected_mut_keys:
+                raise ValueError(
+                    "Mutation keys length mismatch: "
+                    f"got {keys_mutation.shape[0]}, expected {expected_mut_keys} "
+                )
+            mut_keys_to_pass = keys_mutation
+        else:
+            if keys_mutation.shape[0] == expected_mut_keys:
+                mut_keys_to_pass = keys_mutation
+            else:
+                if expected_mut_keys == 1 and keys_mutation.shape[0] == 1:
+                    total_offspring = offspring_pop.genes.values.shape[0]
+                    mut_keys_to_pass = jax.random.split(keys_mutation[0], total_offspring)
+                else:
+                    total_offspring = offspring_pop.genes.values.shape[0]
+                    if keys_mutation.shape[0] == total_offspring:
+                        mut_keys_to_pass = keys_mutation
+                    else:
+                        raise ValueError(
+                            "Mutation keys length mismatch (forward_presplit_keys mode): "
+                            f"got {keys_mutation.shape[0]}, expected "
+                            f"{expected_mut_keys} or {total_offspring} "
+                        )
+
         final_pop = cast(
             BasePopulation[Any],
             operators.mutation(
-                keys_mutation, offspring_pop, self.genome_config, generation=generation
+                mut_keys_to_pass, offspring_pop, self.genome_config, generation=generation
             ),
         )
 
@@ -556,11 +663,57 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             leaves = jax.tree_util.tree_leaves(tree)
             return leaves[0].shape if leaves else ()
 
+        def _preview_leaf(tree: Any, limit: int = 3) -> list[Any]:
+            leaves = jax.tree_util.tree_leaves(tree)
+            if not leaves:
+                return []
+            arr = np.asarray(leaves[0])
+            if arr.ndim == 0:
+                return [arr.item()]
+            return arr[: min(limit, arr.shape[0])].tolist()
+
+        num_pairs = state.resource_map.crossover.input_count // 2
+        expected_cross_keys = state.operators.crossover.num_keys(input_shape=(num_pairs,))
+        expected_mut_keys = state.operators.mutation.num_keys(
+            input_shape=(state.resource_map.crossover.output_count,)
+        )
+        selection_io = (
+            f"{state.resource_map.selection.input_count}/"
+            f"{state.resource_map.selection.output_count}"
+        )
+        crossover_io = (
+            f"{state.resource_map.crossover.input_count}/"
+            f"{state.resource_map.crossover.output_count}"
+        )
+        mutation_io = (
+            f"{state.resource_map.mutation.input_count}/"
+            f"{state.resource_map.mutation.output_count}"
+        )
+
+        print(
+            "debug_step context: "
+            f"generation={state.generation}, population={len(state.population)}, "
+            f"best_fitness={state.best_fitness}, "
+            f"forward_presplit_keys={params.forward_presplit_keys}"
+        )
+        print(
+            "debug_step resource map: "
+            f"selection(in/out)={selection_io}, "
+            f"crossover(in/out)={crossover_io}, "
+            f"mutation(in/out)={mutation_io}, "
+            f"num_pairs={num_pairs}"
+        )
+
         k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
         print(
             "phase 0 allocate entropy: "
             f"selection={k_sel.shape}, crossover={k_cross.shape}, "
             f"mutation={k_mut.shape}, next={k_next.shape}"
+        )
+        print(
+            "phase 0 key budget: "
+            f"expected_cross_keys={expected_cross_keys}, expected_mut_keys={expected_mut_keys}, "
+            f"k_cross_preview={_preview_leaf(k_cross)}, k_mut_preview={_preview_leaf(k_mut)}"
         )
 
         elites, parent_indices = self._selection_phase(
@@ -570,6 +723,31 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         print(
             "phase 1 selection: "
             f"elites={elite_shape}, parents={parent_indices.shape}"
+        )
+        parent_preview = np.asarray(parent_indices)[:8].tolist()
+        print(
+            "phase 1 selection preview: "
+            f"parent_idx[:{min(8, parent_indices.shape[0])}]={parent_preview}"
+        )
+
+        p1_idx = parent_indices[:num_pairs]
+        p2_idx = parent_indices[num_pairs : num_pairs * 2]
+        p1_preview = np.asarray(p1_idx)[:8].tolist()
+        p2_preview = np.asarray(p2_idx)[:8].tolist()
+        print(
+            "phase 1 pair split: "
+            f"p1_idx[:{min(8, p1_idx.shape[0])}]={p1_preview}, "
+            f"p2_idx[:{min(8, p2_idx.shape[0])}]={p2_preview}"
+        )
+
+        p1_genes = jax.tree_util.tree_map(lambda x: x[p1_idx], state.population.genes)
+        p2_genes = jax.tree_util.tree_map(lambda x: x[p2_idx], state.population.genes)
+        dummy_fitness = jnp.zeros(num_pairs)
+        p1_pop = state.population.spawn_offspring(p1_genes, fitness=dummy_fitness)
+        p2_pop = state.population.spawn_offspring(p2_genes, fitness=dummy_fitness)
+        print(
+            "phase 1 parent previews: "
+            f"p1_first={_preview_leaf(p1_pop.genes)}, p2_first={_preview_leaf(p2_pop.genes)}"
         )
 
         mutants = self._reproduction_phase(
@@ -583,15 +761,22 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
         mutant_shape = _first_leaf_shape(mutants.genes)
         print(f"phase 2 reproduction: mutants={mutant_shape}")
+        print(f"phase 2 offspring preview: first_child={_preview_leaf(mutants.genes)}")
 
         next_genes = self._merge(elites, mutants.genes, state)
         next_shape = _first_leaf_shape(next_genes)
         print(f"phase 3a merge: next_genes={next_shape}")
+        print(f"phase 3a merge preview: first_gene={_preview_leaf(next_genes)}")
 
         new_pop = self._evaluate(next_genes, state)
         print(
             "phase 3b evaluate: "
             f"population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
+        )
+        print(
+            "phase 3b evaluate preview: "
+            f"fitness[:{min(3, len(new_pop))}]="
+            f"{np.asarray(new_pop.fitness)[:3].tolist()}"
         )
 
         params = cast(GeneticEngineParams, self.engine_params)
