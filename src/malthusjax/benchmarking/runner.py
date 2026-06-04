@@ -142,7 +142,16 @@ class BenchmarkRunner:
             if trace_dir is not None:
                 trace_path = Path(trace_dir)
                 trace_path.mkdir(parents=True, exist_ok=True)
-                with jax.profiler.trace(str(trace_path)):
+                try:
+                    # Try to capture a JAX profiler trace for this seed. If the
+                    # global profiler has already been started (e.g. by another
+                    # concurrent test or process), JAX will raise a RuntimeError.
+                    # In that case we fall back to running the engine without
+                    # tracing to avoid failing the whole benchmark run.
+                    with jax.profiler.trace(str(trace_path)):
+                        engine_result = self.engine.run_once(key)
+                except RuntimeError:
+                    print("running without JAX trace due to profiler conflict", flush=True)
                     engine_result = self.engine.run_once(key)
             else:
                 engine_result = self.engine.run_once(key)
