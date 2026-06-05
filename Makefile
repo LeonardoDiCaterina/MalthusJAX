@@ -5,7 +5,8 @@
 	lint format format-check type-check check-all docs docs-clean docs-open \
 	run-toml run-toml-nohup run-toml-with-artifacts list-toml \
 	parity-toml \
-	artifacts-toml artifacts-dir artifacts-batch
+	artifacts-toml artifacts-dir artifacts-batch \
+	toy-100seeds toy-100seeds-sphere-d5
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -49,10 +50,14 @@ help:
 	@echo "  make run-toml-with-artifacts TOML=<file>  Run TOML and auto-generate artifacts"
 	@echo "  make run-toml-nohup TOML=<file>     Run TOML experiment in background (logs to .log)"
 	@echo "  make parity-toml TOML=<file>        Run two-pipeline statistical parity from TOML"
+	@echo "    + PLOT=1 to generate default parity plots"
+	@echo "    + PLOT_EXTRA=1 to add delta + Bland-Altman diagnostics"
 	@echo "  make artifacts-toml TOML=<file>     Generate artifacts for TOML output_dir"
 	@echo "  make artifacts-dir RESULTS_DIR=<dir>  Generate artifacts for one results dir"
 	@echo "  make artifacts-batch RESULTS_GLOB=<glob> Generate artifacts for matching dirs"
 	@echo "  make list-toml                      List available TOML experiment files"
+	@echo "  make toy-100seeds                  Run legacy 100-seed toy matrix (d=3)"
+	@echo "  make toy-100seeds-sphere-d5        Run legacy 100-seed toy matrix (sphere d=5)"
 	@echo ""
 	@echo "--- Artifact Generation Details ---"
 	@echo "  Artifacts are written to: <results_dir>/artifacts/"
@@ -85,6 +90,10 @@ help:
 	@echo "Built site output in:         docs/build/html/"
 
 PYTHON ?= python
+TOY_SEED_START ?= 0
+TOY_SEED_END ?= 99
+TOY_POP_SIZE ?= 12
+TOY_GENERATIONS ?= 20
 
 install-dev:
 	@echo "--- Installing dev dependencies (Detected Backend: $(JAX_EXTRA)) ---"
@@ -306,7 +315,7 @@ parity-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make parity-toml TOML=examples/parity_sphere_d5_combo1.toml [LEFT=name] [RIGHT=name]"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	@echo "--- Running statistical parity for $(TOML) ---"
-	PYTHONUNBUFFERED=1 $(PYTHON) scripts/run_toml_statistical_parity.py $(TOML) $(if $(LEFT),--left $(LEFT),) $(if $(RIGHT),--right $(RIGHT),) $(if $(INCLUDE_VALUE_LISTS),--include-value-lists,) $(if $(NO_TIMING_STATS),--no-timing-stats,) $(if $(INCLUDE_MEAN_SUMMARY),--include-mean-summary,)
+	PYTHONUNBUFFERED=1 $(PYTHON) scripts/run_toml_statistical_parity.py $(TOML) $(if $(LEFT),--left $(LEFT),) $(if $(RIGHT),--right $(RIGHT),) $(if $(INCLUDE_VALUE_LISTS),--include-value-lists,) $(if $(NO_TIMING_STATS),--no-timing-stats,) $(if $(INCLUDE_MEAN_SUMMARY),--include-mean-summary,) $(if $(PLOT),--plot,) $(if $(PLOT_EXTRA),--plot-extra,)
 
 artifacts-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make artifacts-toml TOML=examples/experiment.toml"; exit 1)
@@ -332,5 +341,27 @@ list-toml:
 		echo "  $$f"; \
 	done
 
+toy-100seeds:
+	@echo "--- Running toy 100-seed matrix (d=3) ---"
+	PYTHON_BIN=$(PYTHON) bash scripts/run_toy_100seeds_matrix.sh \
+	  --output-dir results/toy_100seeds \
+	  --dimensions 3 \
+	  --pop-size $(TOY_POP_SIZE) \
+	  --generations $(TOY_GENERATIONS) \
+	  --seed-start $(TOY_SEED_START) \
+	  --seed-end $(TOY_SEED_END)
+
+toy-100seeds-sphere-d5:
+	@echo "--- Running toy 100-seed matrix (sphere d=5) ---"
+	PYTHON_BIN=$(PYTHON) bash scripts/run_toy_100seeds_matrix.sh \
+	  --output-dir results/toy_100seeds_sphere_d5 \
+	  --function sphere \
+	  --dimensions 5 \
+	  --pop-size $(TOY_POP_SIZE) \
+	  --generations $(TOY_GENERATIONS) \
+	  --seed-start $(TOY_SEED_START) \
+	  --seed-end $(TOY_SEED_END)
+
 # Include experiment helper targets (kept modular for clarity)
+INCLUDE_FROM_ROOT := 1
 include Makefile.experiments
