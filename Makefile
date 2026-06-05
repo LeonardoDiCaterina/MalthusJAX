@@ -2,8 +2,9 @@
         test-bench-group-01 test-bench-group-02 test-bench-group-03 test-bench-group-04 \
         test-bench-group-05 test-bench-group-06 test-bench-group-07 test-bench-group-08 \
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
-        lint format format-check type-check check-all docs docs-clean docs-open bench \
+	lint format format-check type-check check-all docs docs-clean docs-open \
 	run-toml run-toml-nohup run-toml-with-artifacts list-toml \
+	parity-toml \
 	artifacts-toml artifacts-dir artifacts-batch
 
 # --- Auto-Detect CUDA Version ---
@@ -36,7 +37,6 @@ help:
 	@echo "  make test-fixes         Re-run the two most-recently fixed tests (cli + bfloat16)"
 	@echo "  make test-bench         Run functional tests in tests/benchmarks/ (no timing)"
 	@echo "  make test-bench-snapshot  Run pytest-benchmark snapshot suite"
-	@echo "  make bench              Run TOML-driven dispatch timing CLI benchmark"
 	@echo "  make *-nohup           Run the same command under nohup and log output to a timestamped file"
 	@echo "  make lint               Ruff lint check (no fixes)"
 	@echo "  make format             Ruff auto-format (mutates files)"
@@ -48,6 +48,7 @@ help:
 	@echo "  make run-toml TOML=<file>           Run experiment from TOML file"
 	@echo "  make run-toml-with-artifacts TOML=<file>  Run TOML and auto-generate artifacts"
 	@echo "  make run-toml-nohup TOML=<file>     Run TOML experiment in background (logs to .log)"
+	@echo "  make parity-toml TOML=<file>        Run two-pipeline statistical parity from TOML"
 	@echo "  make artifacts-toml TOML=<file>     Generate artifacts for TOML output_dir"
 	@echo "  make artifacts-dir RESULTS_DIR=<dir>  Generate artifacts for one results dir"
 	@echo "  make artifacts-batch RESULTS_GLOB=<glob> Generate artifacts for matching dirs"
@@ -149,10 +150,6 @@ type-check:
 
 check-all: lint format-check type-check test
 	@echo "--- All checks passed! ---"
-
-bench:
-	@echo "--- Running dispatch timing benchmark ---"
-	python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --quick
 
 test-bench:
 	@echo "--- Running benchmark unit tests (functional, no timing harness) ---"
@@ -284,10 +281,6 @@ test-fast-nohup:
 test-bench-nohup:
 	$(call run_nohup,test-bench,python -m pytest tests/benchmarks/ --no-cov -v --tb=short --ignore=tests/benchmarks/test_snapshot_benchmark.py)
 
-bench-nohup:
-	$(call run_nohup,bench,python benchmarks/cli_dispatch.py benchmarks/dispatch_timing.toml --quick)
-
-
 test-bench-snapshot-nohup:
 	$(call run_nohup,test-bench-snapshot,python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v)
 
@@ -308,6 +301,12 @@ run-toml-nohup:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml-nohup TOML=examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	$(call run_nohup,toml_experiment,PYTHONUNBUFFERED=1 $(PYTHON) examples/run_toml_test.py --config $(TOML))
+
+parity-toml:
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make parity-toml TOML=examples/parity_sphere_d5_combo1.toml [LEFT=name] [RIGHT=name]"; exit 1)
+	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
+	@echo "--- Running statistical parity for $(TOML) ---"
+	PYTHONUNBUFFERED=1 $(PYTHON) scripts/run_toml_statistical_parity.py $(TOML) $(if $(LEFT),--left $(LEFT),) $(if $(RIGHT),--right $(RIGHT),) $(if $(INCLUDE_VALUE_LISTS),--include-value-lists,) $(if $(NO_TIMING_STATS),--no-timing-stats,) $(if $(INCLUDE_MEAN_SUMMARY),--include-mean-summary,)
 
 artifacts-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make artifacts-toml TOML=examples/experiment.toml"; exit 1)
@@ -332,3 +331,6 @@ list-toml:
 	@find examples -maxdepth 1 -name "*.toml" -type f | sort | while read f; do \
 		echo "  $$f"; \
 	done
+
+# Include experiment helper targets (kept modular for clarity)
+include Makefile.experiments
