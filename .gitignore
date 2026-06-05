@@ -895,3 +895,6 @@ tests/benchmarks/test_snapshot_benchmark.py.bak
 .github/copilot-instructions.md
 docs/build/
 docs/source/api/ # if you never want the stubs tracked
+.skills/debrief-session.md
+.skills/map-codebase.md
+.skills/sync-docs.md
