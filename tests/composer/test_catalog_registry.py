@@ -41,6 +41,7 @@ from malthusjax.operators.mutation import (
 )
 from malthusjax.operators.selection import (
     ElitePoolSelection,
+    EvoSaxMimicSelection,
     RouletteSelection,
     TournamentSelection,
 )
@@ -59,8 +60,8 @@ def catalog() -> OperatorCatalog:
 # 1. Completeness — every expected key is registered
 # ---------------------------------------------------------------------------
 
-# 3 selection + 11 crossover + 10 mutation + 8 fitness + 3 evosax strategies = 35
-EXPECTED_SELECTION = {"tournament", "roulette", "elite_pool"}
+# 4 selection + 11 crossover + 10 mutation + 8 fitness + 3 evosax strategies = 36
+EXPECTED_SELECTION = {"tournament", "roulette", "elite_pool", "evosax_mimic_selection"}
 EXPECTED_CROSSOVER = {
     "uniform_real",
     "uniform_real_injection",
@@ -144,6 +145,7 @@ def test_expected_count(catalog: OperatorCatalog) -> None:
         ("tournament", TournamentSelection),
         ("roulette", RouletteSelection),
         ("elite_pool", ElitePoolSelection),
+        ("evosax_mimic_selection", EvoSaxMimicSelection),
     ],
 )
 def test_selection_roundtrip(catalog: OperatorCatalog, key: str, cls: type) -> None:
