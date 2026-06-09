@@ -193,4 +193,4 @@ clean = "bash -lc 'rm -rf my_local_results/* results/*.csv'"
 
 
 [project.scripts]
-malthusjax-benchmark = "malthusjax.benchmarking.cli:main"
+mjax = "malthusjax.benchmarking.cli:main"
