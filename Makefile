@@ -70,8 +70,8 @@ help:
 	@echo "    make artifacts-batch RESULTS_GLOB='results/bbob_*_pop1024'"
 	@echo ""
 	@echo "Example:"
-	@echo "  make run-toml TOML=examples/sphere_experiment.toml"
-	@echo "  make run-toml TOML=examples/mock_binary_experiment.toml --pipeline ga_baseline"
+	@echo "  make run-toml TOML=configs/examples/sphere_experiment.toml"
+	@echo "  make run-toml TOML=configs/tests/mock_binary_experiment.toml --pipeline ga_baseline"
 	@echo ""
 	@echo "--- Documentation Workflow ---"
 	@echo "  make docs                    Build Sphinx HTML docs (picks up all changes)"
@@ -298,69 +298,33 @@ test-bench-snapshot-nohup:
 # ============================================================================= #
 
 run-toml:
-	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml TOML=examples/experiment.toml"; exit 1)
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml TOML=configs/examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	@echo "--- Running TOML experiment: $(TOML) ---"
-	PYTHONUNBUFFERED=1 $(PYTHON) examples/run_toml_test.py --config $(TOML)
-
-run-toml-with-artifacts: run-toml artifacts-toml
-	@echo "--- Completed TOML run and artifact generation for: $(TOML) ---"
+	mjax run $(TOML)
 
 run-toml-nohup:
-	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml-nohup TOML=examples/experiment.toml"; exit 1)
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml-nohup TOML=configs/examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
-	$(call run_nohup,toml_experiment,PYTHONUNBUFFERED=1 $(PYTHON) examples/run_toml_test.py --config $(TOML))
+	$(call run_nohup,toml_experiment,mjax run $(TOML))
 
 parity-toml:
-	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make parity-toml TOML=examples/parity_sphere_d5_combo1.toml [LEFT=name] [RIGHT=name]"; exit 1)
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make parity-toml TOML=configs/parity/parity.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	@echo "--- Running statistical parity for $(TOML) ---"
-	PYTHONUNBUFFERED=1 $(PYTHON) scripts/run_toml_statistical_parity.py $(TOML) $(if $(LEFT),--left $(LEFT),) $(if $(RIGHT),--right $(RIGHT),) $(if $(INCLUDE_VALUE_LISTS),--include-value-lists,) $(if $(NO_TIMING_STATS),--no-timing-stats,) $(if $(INCLUDE_MEAN_SUMMARY),--include-mean-summary,) $(if $(PLOT),--plot,) $(if $(PLOT_EXTRA),--plot-extra,)
-
-artifacts-toml:
-	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make artifacts-toml TOML=examples/experiment.toml"; exit 1)
-	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
-	@results_dir=$$($(PYTHON) -c "import pathlib,tomllib; p=pathlib.Path('$(TOML)'); print(tomllib.loads(p.read_text())['experiment']['output_dir'])"); \
-	echo "--- Generating artifacts for $$results_dir (from $(TOML)) ---"; \
-	$(PYTHON) scripts/generate_experiment_artifacts.py --results-dir "$$results_dir"
+	mjax parity $(TOML)
 
 artifacts-dir:
 	@test -n "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR variable not set"; echo "Usage: make artifacts-dir RESULTS_DIR=results/my_experiment"; exit 1)
 	@test -d "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR not found: $(RESULTS_DIR)"; exit 1)
 	@echo "--- Generating artifacts for $(RESULTS_DIR) ---"
-	$(PYTHON) scripts/generate_experiment_artifacts.py --results-dir "$(RESULTS_DIR)"
-
-artifacts-batch:
-	@test -n "$(RESULTS_GLOB)" || (echo "Error: RESULTS_GLOB variable not set"; echo "Usage: make artifacts-batch RESULTS_GLOB='results/bbob_*_pop1024'"; exit 1)
-	@echo "--- Generating artifacts for directories matching: $(RESULTS_GLOB) ---"
-	$(PYTHON) scripts/generate_experiment_artifacts.py --results-glob "$(RESULTS_GLOB)"
+	mjax report $(RESULTS_DIR)
 
 list-toml:
 	@echo "--- Available TOML experiment files ---"
-	@find examples -maxdepth 1 -name "*.toml" -type f | sort | while read f; do \
+	@find configs -type f -name "*.toml" | sort | while read f; do \
 		echo "  $$f"; \
 	done
-
-toy-100seeds:
-	@echo "--- Running toy 100-seed matrix (d=3) ---"
-	PYTHON_BIN=$(PYTHON) bash scripts/run_toy_100seeds_matrix.sh \
-	  --output-dir results/toy_100seeds \
-	  --dimensions 3 \
-	  --pop-size $(TOY_POP_SIZE) \
-	  --generations $(TOY_GENERATIONS) \
-	  --seed-start $(TOY_SEED_START) \
-	  --seed-end $(TOY_SEED_END)
-
-toy-100seeds-sphere-d5:
-	@echo "--- Running toy 100-seed matrix (sphere d=5) ---"
-	PYTHON_BIN=$(PYTHON) bash scripts/run_toy_100seeds_matrix.sh \
-	  --output-dir results/toy_100seeds_sphere_d5 \
-	  --function sphere \
-	  --dimensions 5 \
-	  --pop-size $(TOY_POP_SIZE) \
-	  --generations $(TOY_GENERATIONS) \
-	  --seed-start $(TOY_SEED_START) \
-	  --seed-end $(TOY_SEED_END)
 
 # Include experiment helper targets (kept modular for clarity)
 INCLUDE_FROM_ROOT := 1
