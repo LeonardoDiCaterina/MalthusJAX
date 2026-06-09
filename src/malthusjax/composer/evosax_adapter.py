@@ -134,7 +134,8 @@ class EvosaxEngineAdapter:
             metrics = dict(metrics)  # copy to allow mutation
             # Normalize adapter outputs to objective space regardless of how a
             # specific evosax strategy reports internal metrics.
-            metrics["best_fitness"] = best_fit_obj
+            best_running_fit = -state.best_fitness if maximize else state.best_fitness
+            metrics["best_fitness"] = best_running_fit
             metrics["best_fitness_in_generation"] = best_fit_obj
             metrics["mean_fitness"] = mean_fit
             metrics["std_fitness"] = std_fit
@@ -246,7 +247,7 @@ class EvosaxEngineAdapter:
         summary = {
             "initial_fitness": float(initial_best_fitness),
             "best_fitness": best_fitness_value,
-            "best_solution": self.strategy.get_best_solution(final_state).tolist(),
+            "best_solution": self.strategy._unravel_solution(final_state.best_solution).tolist(),
             "total_generations": self.num_generations,
             "final_generation": self.num_generations,
             "total_evaluations": self.num_generations * self.pop_size,
