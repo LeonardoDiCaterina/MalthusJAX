@@ -240,8 +240,9 @@ class StubEngine:
         }
 
         timings = {
-            "initialization": 0.01,
-            "evolution": 0.05 * self.generations,
+            "warmup": 0.01,
+            "execution": 0.05 * self.generations,
+            "total": 0.01 + 0.05 * self.generations,
         }
 
         return {

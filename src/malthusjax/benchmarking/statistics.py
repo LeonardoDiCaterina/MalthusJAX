@@ -1040,7 +1040,12 @@ def paired_dataset_from_experiments(
     right_component_timing: dict[str, list[float]] = {}
 
     if spec.include_timing_stats:
-        for seed in common:
+        # Exclude seed 0 (or the first seed if 0 is missing) from timing statistics
+        # to avoid process-level cold start JIT tracing overhead. N becomes N - 1.
+        timing_seeds = [s for s in common if s != 0]
+        if 0 not in common and common:
+            timing_seeds = common[1:]
+        for seed in timing_seeds:
             lrun = left_by_seed[seed]
             rrun = right_by_seed[seed]
 
@@ -1322,7 +1327,12 @@ def paired_dataset_from_artifacts(
         left_component_timing: dict[str, list[float]] = {}
         right_component_timing: dict[str, list[float]] = {}
 
-        for seed in seeds:
+        # Exclude seed 0 (or the first seed if 0 is missing) from timing statistics
+        # to avoid process-level cold start JIT tracing overhead. N becomes N - 1.
+        timing_seeds = [s for s in seeds if s != 0]
+        if 0 not in seeds and seeds:
+            timing_seeds = seeds[1:]
+        for seed in timing_seeds:
             lt = left_timings.get(seed)
             rt = right_timings.get(seed)
             if not lt or not rt:
