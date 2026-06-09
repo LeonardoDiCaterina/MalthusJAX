@@ -898,3 +898,6 @@ docs/source/api/ # if you never want the stubs tracked
 .skills/debrief-session.md
 .skills/map-codebase.md
 .skills/sync-docs.md
+
+# Deprecated legacy scripts
+scripts/.deprecated/
