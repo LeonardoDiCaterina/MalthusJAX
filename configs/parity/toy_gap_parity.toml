@@ -1,0 +1,34 @@
+# Parity reproducer: EvoSAX SimpleGA vs MalthusJAX (Rosenbrock, 3D)
+# Designed to mirror examples/toy_gap_convergence_debug.py with shared initial population.
+
+[experiment]
+name = "toy_gap_parity_rosenbrock"
+output_dir = "results/toy_gap_parity_4056"
+description = "Parity test: EvoSAX SimpleGA vs MalthusJAX on Rosenbrock (3D, pop=12, gens=20)"
+
+[experiment.shared]
+genome_type = "real"
+genome_length = 3
+bounds = [-5.0, 5.0]
+pop_size = 12
+generations = 20
+seeds = [4056]
+track_best = "NONE"
+use_history_for_final = true
+
+# EvoSAX pipeline (SimpleGA)
+[pipelines.evosax_simplega]
+fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=4056,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.1, elite_ratio = 0.5, mutation_std = 0.0 }
+description = "EvoSAX SimpleGA (cr=0.1, ms=0.0, elite_ratio=0.5)"
+
+# MalthusJAX pipeline with matching EvoSAX operators
+[pipelines.malthusjax_evosaxops]
+fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=4056,maximize=false"
+backend = "malthusjax"
+selection = "elite_pool:num_selections=12,elite_k=6"
+crossover = "evosax_uniform_crossover:crossover_rate=0.1"
+mutation = "evosax_gaussian:mutation_strength=0.0"
+description = "MalthusJAX using EvoSAX operators (cr=0.1, ms=0.0, elite_k=6)"

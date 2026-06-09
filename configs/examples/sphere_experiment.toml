@@ -1,0 +1,37 @@
+# Sphere function benchmark: comparing crossover operators
+[experiment]
+name        = "sphere_ga_comparison"
+output_dir  = "results/sphere_bench"
+description = "Benchmark real-valued GA operators on 25D sphere (minimization)"
+
+[experiment.shared]
+# Problem definition
+fitness       = "sphere:dim=25,maximize=false"
+genome_type   = "real"
+genome_length = 25
+bounds        = [-5.0, 5.0]
+maximize      = false
+
+# Population and evolution
+pop_size      = 100
+generations   = 50
+seeds         = [42, 43, 44]
+
+# Selection and mutation (fixed across pipelines)
+selection     = "tournament:num_selections=50,tournament_size=3"
+mutation      = "gaussian:mutation_rate=0.1,mutation_strength=0.2"
+
+# Pipeline 1: Uniform real crossover
+[pipelines.uniform_crossover]
+description = "Uniform real-valued crossover (50% from each parent)"
+crossover   = "uniform_real"
+
+# Pipeline 2: Blend-alpha crossover
+[pipelines.blend_crossover]
+description = "BLX-α crossover with α=0.5 (expanded search)"
+crossover   = "blend:alpha=0.5"
+
+# Pipeline 3: Simulated binary crossover
+[pipelines.sbx_crossover]
+description = "SBX crossover with η=20 (distribution shape)"
+crossover   = "simulated_binary:eta=20"

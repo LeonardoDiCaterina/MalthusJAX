@@ -1,0 +1,168 @@
+# Ten-problem parity suite for thesis-grade comparison
+#
+# Problems:
+# sphere, ellipsoidal, linear_slope, rosenbrock, discus,
+# different_powers, rastrigin_rotated, griewank_rosenbrock,
+# weierstrass, lunacek
+
+[experiment]
+name = "Ten-Problem Parity Suite"
+description = "Compare MalthusJAX vs EvoSAX across 10 BBOB landscapes"
+output_dir = "results/parity_suite_10problems"
+
+[experiment.shared]
+genome_type = "real"
+genome_length = 3
+bounds = [-5.0, 5.0]
+pop_size = 15
+generations = 15
+track_best = "NONE"
+use_history_for_final = true
+seeds = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+  10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+  20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+  30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+  40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+  50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+]
+
+[pipelines.sphere_malthusjax]
+fitness = "bbob:fn_name=sphere,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.sphere_evosax]
+fitness = "bbob:fn_name=sphere,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.ellipsoidal_malthusjax]
+fitness = "bbob:fn_name=ellipsoidal,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.ellipsoidal_evosax]
+fitness = "bbob:fn_name=ellipsoidal,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.linear_slope_malthusjax]
+fitness = "bbob:fn_name=linear_slope,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.linear_slope_evosax]
+fitness = "bbob:fn_name=linear_slope,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.rosenbrock_malthusjax]
+fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.rosenbrock_evosax]
+fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.discus_malthusjax]
+fitness = "bbob:fn_name=discus,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.discus_evosax]
+fitness = "bbob:fn_name=discus,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.different_powers_malthusjax]
+fitness = "bbob:fn_name=different_powers,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.different_powers_evosax]
+fitness = "bbob:fn_name=different_powers,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.rastrigin_rotated_malthusjax]
+fitness = "bbob:fn_name=rastrigin_rotated,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.rastrigin_rotated_evosax]
+fitness = "bbob:fn_name=rastrigin_rotated,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.griewank_rosenbrock_malthusjax]
+fitness = "bbob:fn_name=griewank_rosenbrock,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.griewank_rosenbrock_evosax]
+fitness = "bbob:fn_name=griewank_rosenbrock,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.weierstrass_malthusjax]
+fitness = "bbob:fn_name=weierstrass,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.weierstrass_evosax]
+fitness = "bbob:fn_name=weierstrass,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+
+[pipelines.lunacek_malthusjax]
+fitness = "bbob:fn_name=lunacek,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "elite_pool:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.lunacek_evosax]
+fitness = "bbob:fn_name=lunacek,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }

@@ -1,0 +1,40 @@
+# Traveling Salesman Problem: comparing blend crossover variants
+[experiment]
+name        = "tsp_demo"
+output_dir  = "results/tsp_demo"
+description = "Benchmark GA on 52-city TSP with blend crossover variants"
+
+[experiment.shared]
+# Problem definition
+fitness       = "tsp:data_id=berlin52_synthetic,maximize=false"
+genome_type   = "real"
+genome_length = 52
+bounds        = [0.0, 1.0]
+maximize      = false
+
+# Population and evolution
+pop_size      = 100
+generations   = 50
+seeds         = [1, 2, 3]
+
+# Selection and mutation (fixed across pipelines)
+selection     = "tournament:num_selections=50,tournament_size=3"
+mutation      = "gaussian:mutation_rate=0.1,mutation_strength=0.2"
+
+# Data source: synthetic Berlin52 TSP
+[data.berlin52_synthetic]
+source        = "synthetic"
+type          = "tsp"
+num_cities    = 52
+random_seed   = 42
+description   = "Synthetic 52-city TSP instance (mimics Berlin52)"
+
+# Pipeline 1: Modest blend expansion
+[pipelines.ga_baseline]
+description = "BLX-α with α=0.5 (moderate exploration)"
+crossover   = "blend:alpha=0.5"
+
+# Pipeline 2: Aggressive blend expansion
+[pipelines.ga_blend]
+description = "BLX-α with α=0.8 (increased exploration)"
+crossover   = "blend:alpha=0.8"
