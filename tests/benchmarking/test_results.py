@@ -87,7 +87,7 @@ def test_comparison_timing_data_and_boxplot():
         history=[{"gen": 0, "best": 1}],
         artifacts={},
         duration_seconds=1.2,
-        timings={"initialization": 0.1, "evolution": 1.1},
+        timings={"warmup": 0.1, "execution": 1.1, "total": 1.2},
     )
     r2 = RunResult(
         seed=1,
@@ -96,7 +96,7 @@ def test_comparison_timing_data_and_boxplot():
         history=[{"gen": 0, "best": 0.5}],
         artifacts={},
         duration_seconds=1.4,
-        timings={"initialization": 0.2, "evolution": 1.2},
+        timings={"warmup": 0.2, "execution": 1.2, "total": 1.4},
     )
     exp = ExperimentResult(name="ex", runs=[r1, r2])
     comparison = ComparisonResult(pipelines={"GA": exp})
@@ -104,7 +104,7 @@ def test_comparison_timing_data_and_boxplot():
     duration_data = comparison.timing_data()
     assert duration_data == {"GA": [1.2, 1.4]}
 
-    init_data = comparison.timing_data(timing_key="initialization")
+    init_data = comparison.timing_data(timing_key="warmup")
     assert init_data == {"GA": [0.1, 0.2]}
 
     try:

@@ -360,9 +360,94 @@ def test_paired_dataset_from_artifacts(tmp_path):
     (left_dir / "histories_combined.csv").write_text(left_csv)
     (right_dir / "histories_combined.csv").write_text(right_csv)
 
-    spec = StatisticalComparisonSpec(metric_name="best_fitness", min_paired_seeds=2)
+    import json
+    left_summary = {
+        "runs": [
+            {"seed": 0, "timings": {"warmup": 4.0, "execution": 0.01}},
+            {"seed": 1, "timings": {"warmup": 0.1, "execution": 0.01}}
+        ]
+    }
+    right_summary = {
+        "runs": [
+            {"seed": 0, "timings": {"warmup": 2.0, "execution": 0.01}},
+            {"seed": 1, "timings": {"warmup": 0.1, "execution": 0.01}}
+        ]
+    }
+    (left_dir / "summary.json").write_text(json.dumps(left_summary))
+    (right_dir / "summary.json").write_text(json.dumps(right_summary))
+
+    spec = StatisticalComparisonSpec(
+        metric_name="best_fitness",
+        min_paired_seeds=2,
+        include_timing_stats=True
+    )
     ds = paired_dataset_from_artifacts(left_dir, right_dir, "L", "R", spec)
 
     assert ds.seeds == [0, 1]
     assert np.allclose(ds.left_values, [0.8, 0.7])
     assert np.allclose(ds.right_values, [1.0, 0.95])
+
+    # Timing summary should have N=1 because seed 0 is excluded
+    timing_summary = ds.metadata["timing_summary"]
+    # Only seed 1 total duration should be included: sum of timings: 0.1 + 0.01 = 0.11
+    assert timing_summary["duration_seconds"]["left_mean"] == pytest.approx(0.11)
+    assert timing_summary["duration_seconds"]["right_mean"] == pytest.approx(0.11)
+    assert timing_summary["components"]["warmup"]["left_mean"] == pytest.approx(0.1)
+
+
+def test_paired_dataset_from_experiments_excludes_seed_0_for_timing():
+    left_runs = [
+        RunResult(
+            seed=0,
+            status="success",
+            metrics={"best_fitness": 1.0, "initial_fitness": 2.0},
+            history=[{"best_fitness": 2.0}, {"best_fitness": 1.0}],
+            duration_seconds=4.01,
+            timings={"warmup": 4.0, "execution": 0.01}
+        ),
+        RunResult(
+            seed=1,
+            status="success",
+            metrics={"best_fitness": 0.8, "initial_fitness": 1.8},
+            history=[{"best_fitness": 1.8}, {"best_fitness": 0.8}],
+            duration_seconds=0.11,
+            timings={"warmup": 0.1, "execution": 0.01}
+        ),
+    ]
+    right_runs = [
+        RunResult(
+            seed=0,
+            status="success",
+            metrics={"best_fitness": 1.2, "initial_fitness": 2.2},
+            history=[{"best_fitness": 2.2}, {"best_fitness": 1.2}],
+            duration_seconds=2.01,
+            timings={"warmup": 2.0, "execution": 0.01}
+        ),
+        RunResult(
+            seed=1,
+            status="success",
+            metrics={"best_fitness": 0.9, "initial_fitness": 1.9},
+            history=[{"best_fitness": 1.9}, {"best_fitness": 0.9}],
+            duration_seconds=0.11,
+            timings={"warmup": 0.1, "execution": 0.01}
+        ),
+    ]
+    left = ExperimentResult(name="left_exp", runs=left_runs)
+    right = ExperimentResult(name="right_exp", runs=right_runs)
+
+    spec = StatisticalComparisonSpec(
+        metric_name="best_fitness",
+        min_paired_seeds=2,
+        include_timing_stats=True
+    )
+    ds = paired_dataset_from_experiments(left, right, "left", "right", spec)
+
+    # Fitness/normality uses all seeds
+    assert ds.seeds == [0, 1]
+
+    # Timing excludes seed 0
+    timing_summary = ds.metadata["timing_summary"]
+    assert timing_summary["duration_seconds"]["left_mean"] == pytest.approx(0.11)
+    assert timing_summary["duration_seconds"]["right_mean"] == pytest.approx(0.11)
+    assert timing_summary["components"]["warmup"]["left_mean"] == pytest.approx(0.1)
+
