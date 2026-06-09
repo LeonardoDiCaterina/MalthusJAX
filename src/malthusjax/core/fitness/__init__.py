@@ -100,10 +100,28 @@ def _create_bbob_evaluator(**kwargs: _Any) -> "BBOBEvaluator":
 
 
 def _create_knapsack_evaluator(**kwargs: _Any) -> "KnapsackEvaluator":
+    from .binary_evaluators import KnapsackEvaluator, KnapsackConfig
+
     _resolved_data = kwargs.pop("_resolved_data", None)
+    kwargs.pop("data_id", None)
+    maximize = kwargs.get("maximize", False)
+
+    if _resolved_data is not None:
+        if isinstance(_resolved_data, dict) and _resolved_data.get("source") == "synthetic":
+            n_items = _resolved_data.get("num_items", _resolved_data.get("n_items", kwargs.get("n_items", 50)))
+            capacity_ratio = _resolved_data.get("capacity_ratio", kwargs.get("capacity_ratio", 0.5))
+            seed = _resolved_data.get("random_seed", _resolved_data.get("seed", kwargs.get("seed", 42)))
+            return KnapsackEvaluator.create_synthetic(
+                n_items=n_items,
+                capacity_ratio=capacity_ratio,
+                seed=seed,
+                maximize=maximize,
+            )
+
     kwargs.setdefault("maximize", False)
     config = KnapsackConfig(**kwargs)
     return KnapsackEvaluator(config)
+
 
 
 def _create_binary_sum_evaluator(**kwargs: _Any) -> "BinarySumEvaluator":

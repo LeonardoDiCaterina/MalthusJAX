@@ -68,8 +68,8 @@ class KnapsackConfig(BaseEvaluatorConfig):
     """
 
     n_items: int = struct.field(default=50)  # type: ignore[no-untyped-call]
-    weights: chex.Array = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
-    values: chex.Array = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    weights: chex.Array = struct.field(default=None)  # type: ignore[no-untyped-call]
+    values: chex.Array = struct.field(default=None)  # type: ignore[no-untyped-call]
     capacity: chex.Numeric = struct.field(default=100.0)  # type: ignore[no-untyped-call]
     penalty_factor: float = 1000.0
 
@@ -87,7 +87,8 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Optional[Kna
     """
 
     config: KnapsackConfig
-    data: Optional[KnapsackData] = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    data: Optional[KnapsackData] = struct.field(default=None)  # type: ignore[no-untyped-call]
+
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
         """Evaluate a binary genome representing item selection.
