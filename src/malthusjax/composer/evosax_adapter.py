@@ -85,19 +85,100 @@ class EvosaxEngineAdapter:
         self.initial_population = initial_population
         self.prng_impl = prng_impl
         self.evaluator = evaluator
+        self._jit_run_loop = None  # Cached JIT-compiled evolution loop
+
+    def _build_jit_loop(self):
+        """Build and cache the JIT-compiled evolution loop.
+
+        Moving closure construction out of ``run_once`` ensures the same
+        JIT-compiled function is reused across seeds, avoiding repeated
+        JAX tracing overhead.  The resulting function has signature::
+
+            (rng, pop_init, fit_init, p_state) -> (final_state, metrics)
+
+        Returns
+        -------
+        Callable
+            A ``jax.jit``-compiled function implementing the full
+            ask/tell scan loop.
+        """
+        if self._jit_run_loop is not None:
+            return self._jit_run_loop
+
+        # Capture references for the closure — these do not change between
+        # seeds, so the same compiled kernel can be reused.
+        strategy = self.strategy
+        params = self.params
+        problem = self.problem
+        maximize = self.maximize
+        num_generations = self.num_generations
+
+        def scan_step(carry: Tuple[Any, Any, Any], _: Any) -> Tuple[Tuple[Any, Any, Any], Any]:
+            rng, state, p_state = carry
+            rng, key_ask, key_eval_step, key_tell = jax.random.split(rng, 4)
+
+            population, state = strategy.ask(key_ask, state, params)
+
+            fitness, p_state, _ = problem.eval(key_eval_step, population, p_state)
+
+            mean_fit = jnp.mean(fitness)
+            std_fit = jnp.std(fitness)
+            best_fit_obj = jnp.max(fitness) if maximize else jnp.min(fitness)
+
+            tell_fitness = -fitness if maximize else fitness
+
+            state, metrics = strategy.tell(
+                key_tell, population, tell_fitness, state, params
+            )
+
+            metrics = dict(metrics)  # copy to allow mutation
+            # Normalize adapter outputs to objective space regardless of how a
+            # specific evosax strategy reports internal metrics.
+            metrics["best_fitness"] = best_fit_obj
+            metrics["best_fitness_in_generation"] = best_fit_obj
+            metrics["mean_fitness"] = mean_fit
+            metrics["std_fitness"] = std_fit
+
+            return (rng, state, p_state), metrics
+
+        def run_loop(rng: Any, pop_init: Any, fit_init: Any, p_state: Any) -> Tuple[Any, Any]:
+            rng, key_init = jax.random.split(rng)
+            state = strategy.init(key_init, pop_init, fit_init, params)
+
+            carry = (rng, state, p_state)
+            carry, metrics = jax.lax.scan(
+                scan_step, carry, None, length=num_generations, unroll=1
+            )
+            return carry[1], metrics
+
+        self._jit_run_loop = jax.jit(run_loop)
+        return self._jit_run_loop
 
     def run_once(
         self, key: chex.Array, unroll_factor: int = 1, compile: bool = True
     ) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
 
+        Timing methodology
+        ------------------
+        The method separates JIT compilation cost ("warmup") from pure
+        evolution execution time, matching the methodology used by
+        :class:`~malthusjax.composer.engine_factory.GeneticEngineAdapter`.
+        A throwaway warmup call triggers JAX tracing and XLA compilation
+        before the execution timer starts, ensuring symmetric timing
+        across backends.  Both adapters now report identical timing keys:
+        ``warmup``, ``execution``, and ``total``.
+
         Returns
         -------
         dict
             ``history`` : List[Dict] - per-generation stats
             ``summary`` : Dict       - final summary metrics
-            ``timings`` : Dict       - wall-clock timing breakdown
+            ``timings`` : Dict       - wall-clock timing breakdown with keys
+                ``warmup``, ``execution``, ``total``
         """
+        # ---- Warmup phase: setup + JIT compilation ----
+        t_warmup_start = time.perf_counter()
 
         key, key_pop, key_eval = jax.random.split(key, 3)
 
@@ -111,7 +192,6 @@ class EvosaxEngineAdapter:
             key_eval, population_init, self.problem_state
         )
 
-
         if self.maximize:
             initial_best_idx = jnp.argmax(fitness_init)
             initial_best_fitness = fitness_init[initial_best_idx]
@@ -124,71 +204,29 @@ class EvosaxEngineAdapter:
         # For maximize problems: negate so evosax minimizes the negative
         tell_fitness_init = -fitness_init if self.maximize else fitness_init
 
-        def scan_step(carry: Tuple[Any, Any, Any], _: Any) -> Tuple[Tuple[Any, Any, Any], Any]:
-            rng, state, p_state = carry
-            rng, key_ask, key_eval_step, key_tell = jax.random.split(rng, 4)
+        # Get or build the cached JIT-compiled evolution loop.
+        run_fn = self._build_jit_loop()
 
-            population, state = self.strategy.ask(key_ask, state, self.params)
+        # Trigger JIT compilation with a throwaway key so the cost is
+        # captured in the "warmup" bucket, not in "execution".
+        key_warmup = jr.PRNGKey(0xDEAD)
+        _ws, _wm = run_fn(
+            key_warmup, population_init, tell_fitness_init, prob_state_init
+        )
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), _ws)
+        del _ws, _wm
 
-            fitness, p_state, _ = self.problem.eval(key_eval_step, population, p_state)
+        t_warmup_end = time.perf_counter()
 
-            mean_fit = jnp.mean(fitness)
-            std_fit = jnp.std(fitness)
-
-            tell_fitness = -fitness if self.maximize else fitness
-
-            state, metrics = self.strategy.tell(
-                key_tell, population, tell_fitness, state, self.params
-            )
-
-            metrics = dict(metrics)  # copy to allow mutation
-            metrics["mean_fitness"] = mean_fit
-            metrics["std_fitness"] = std_fit
-
-            return (rng, state, p_state), metrics
-
-        def run_loop(rng: Any, pop_init: Any, fit_init: Any, p_state: Any) -> Tuple[Any, Any]:
-            rng, key_init = jax.random.split(rng)
-            state = self.strategy.init(key_init, pop_init, fit_init, self.params)
-
-            carry = (rng, state, p_state)
-            carry, metrics = jax.lax.scan(
-                scan_step, carry, None, length=self.num_generations, unroll=unroll_factor
-            )
-            return carry[1], metrics
-
-        start_time = time.perf_counter()
-        if compile:
-            run_loop = jax.jit(run_loop)
-
-        compile_start = time.perf_counter()
-        final_state, metrics = run_loop(key, population_init, tell_fitness_init, prob_state_init)
-
+        # ---- Execution phase: run with the real key on a warm JIT cache ----
+        t_exec_start = time.perf_counter()
+        final_state, metrics = run_fn(
+            key, population_init, tell_fitness_init, prob_state_init
+        )
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
-        end_time = time.perf_counter()
+        t_exec_end = time.perf_counter()
 
-        if False:
-            print("DEBUG before flip metrics type", type(metrics))
-            try:
-                print("DEBUG keys", list(metrics.keys()))
-            except Exception as e:
-                print("DEBUG keys error", e)
-            print("DEBUG bf values before flip", metrics.get("best_fitness", None))
-
-        if self.maximize:
-            # For maximize, we negated fitness before passing to evosax (which minimizes)
-            # Now flip back to get original fitness values
-            def flip(x: chex.Array) -> chex.Array:
-                return -x
-
-            for key_name in ("best_fitness", "best_fitness_in_generation", "mean_fitness"):
-                if key_name in metrics:
-                    metrics[key_name] = flip(metrics[key_name])
-
-        if False:
-            if "best_fitness" in metrics and len(metrics["best_fitness"]) > 0:
-                print("DEBUG after flip best_fitness", metrics["best_fitness"][-1])
-
+        # ---- Post-processing: extract history and summary ----
         history = []
         for g in range(self.num_generations):
             gen_stats = {}
@@ -222,9 +260,9 @@ class EvosaxEngineAdapter:
                 summary["gap_to_optimum"] = float(gap)
 
         timings = {
-            "initialization": compile_start - start_time,
-            "evolution": end_time - compile_start,
-            "total_time": end_time - start_time,
+            "warmup": t_warmup_end - t_warmup_start,
+            "execution": t_exec_end - t_exec_start,
+            "total": t_exec_end - t_warmup_start,
         }
 
         return {"history": history, "summary": summary, "timings": timings}

@@ -51,16 +51,20 @@ class GeneticEngineAdapter:
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
 
-        The returned dictionary contains three entries:
-        ``'history'`` (list of per-generation statistics), ``'summary'``
-        (final metrics), and ``'timings'`` (initialization/compile/evolution
-        durations).
+        Timing methodology
+        ------------------
+        The method separates JIT compilation cost ("warmup") from pure
+        evolution execution time.  The warmup phase includes state
+        initialization, population setup, and explicit JIT compilation.
+        The execution phase times only the pre-compiled scan loop,
+        matching the EvoSAX adapter's identical timing structure.
+        Both adapters report ``warmup``, ``execution``, and ``total``.
         """
-        t_init_start = time.perf_counter()
+        # ---- Warmup phase: state init + JIT compilation ----
+        t_warmup_start = time.perf_counter()
         state = self.genetic_engine.init_state(key)
         state.best_fitness.block_until_ready()
         initial_best = float(state.best_fitness)
-        t_init_end = time.perf_counter()
 
         if self.initial_population is not None:
             arr = jnp.asarray(self.initial_population)
@@ -71,7 +75,9 @@ class GeneticEngineAdapter:
             )
 
             fitness = evaluated_pop.fitness
-            best_idx = int(jnp.argmax(fitness) if self.maximize else jnp.argmin(fitness))
+            # Engine internals are minimization-based; evaluator-level maximize
+            # handling is already encoded in the fitness values.
+            best_idx = int(jnp.argmin(fitness))
             best_fitness = fitness[best_idx]
             best_genome = evaluated_pop.genes[best_idx]
 
@@ -83,60 +89,52 @@ class GeneticEngineAdapter:
             # Update initial_best if initial_population was provided
             initial_best = float(best_fitness)
 
-        # ------------------------------------------------------------------
-        # Compile: warmup step + XLA compilation of the scan kernel.
-        # The eager step triggers JAX tracing / dispatch warmup, then
-        # lower().compile() forces full XLA optimisation.  Both costs are
-        # captured in the ``compile`` timing bucket — matching the evosax
-        # adapter which runs a 1-iteration warmup scan in the same bucket.
-        # ------------------------------------------------------------------
-        t_compile_start = time.perf_counter()
-
+        # JIT compilation warmup — trigger tracing + XLA optimisation so
+        # the cost is captured in the "warmup" bucket, not "execution".
         _ws, _ = self.genetic_engine.step(state)
         _ws.best_fitness.block_until_ready()
 
         ep = self.genetic_engine.engine_params
         jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
         _ = jit_fn.lower(self.genetic_engine, state).compile()
-        t_compile_end = time.perf_counter()
+        t_warmup_end = time.perf_counter()
 
-        # ------------------------------------------------------------------
-        # Evolution: run the pre-compiled scan.  Since we already warmed up
-        # and compiled above, `compile=True` will hit JAX's JIT cache and
-        # execute the cached kernel (no re-compilation).
-        # ------------------------------------------------------------------
-        t_evo_start = time.perf_counter()
+        # ---- Execution phase: run the pre-compiled scan (JIT cache warm) ----
+        t_exec_start = time.perf_counter()
         final_state, scan_history, _ = self.genetic_engine.run(state, time_it=True, compile=True)
-        t_evo_end = time.perf_counter()
+        t_exec_end = time.perf_counter()
 
         num_gens = int(self.genetic_engine.engine_params.num_generations)
         history = []
+        sign = -1.0 if self.maximize else 1.0
         for g in range(num_gens):
             history.append(
                 {
                     "generation": g + 1,
-                    "best_fitness": float(scan_history.best_fitness[g]),
-                    "mean_fitness": float(scan_history.mean_fitness[g]),
+                    "best_fitness": float(sign * scan_history.best_fitness[g]),
+                    "mean_fitness": float(sign * scan_history.mean_fitness[g]),
                 }
             )
 
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
+        report_initial = float(sign * initial_best)
+        report_best = float(sign * final_state.best_fitness)
         summary = {
-            "initial_fitness": initial_best,
-            "best_fitness": float(final_state.best_fitness),
+            "initial_fitness": report_initial,
+            "best_fitness": report_best,
             "final_generation": int(final_state.generation),
             "total_evaluations": total_evals,
         }
-        
+
         # Add gap to optimum if available
-        gap = self.genetic_engine.evaluator.get_gap_to_optimum(final_state.best_fitness)
+        gap = self.genetic_engine.evaluator.get_gap_to_optimum(report_best)
         if gap is not None:
             summary["gap_to_optimum"] = float(gap)
 
         timings = {
-            "initialization": t_init_end - t_init_start,
-            "compile": t_compile_end - t_compile_start,
-            "evolution": t_evo_end - t_evo_start,
+            "warmup": t_warmup_end - t_warmup_start,
+            "execution": t_exec_end - t_exec_start,
+            "total": t_exec_end - t_warmup_start,
         }
 
         return {

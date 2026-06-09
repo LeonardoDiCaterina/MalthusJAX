@@ -908,10 +908,18 @@ class Composer:
             result = Composer.from_toml("experiment.toml")
             result.summary_table()  # Reproducible: same config -> same results
         """
-        experiment_meta, resolved = load_experiment_config(str(path), pipelines=pipelines)
+        config_res = load_experiment_config(str(path), pipelines=pipelines)
+        experiment_meta = config_res.meta
+        resolved = config_res.pipelines
+        data_registry = config_res.data_registry
         shared = experiment_meta.get("shared", {})
+        
+        output_dir = experiment_meta.get("output_dir")
+        if output_dir:
+            shared.setdefault("output_dir", output_dir)
 
         seeds = cls._normalize_seeds(shared.pop("seeds", (42, 43, 44)))
+
 
         pipeline_overrides: Dict[str, Dict[str, Any]] = {}
         for name, merged_cfg in resolved.items():
@@ -929,8 +937,10 @@ class Composer:
             shared_initial_population=shared_initial_population,
             pop_seed=pop_seed,
             trace_dir=trace_dir,
+            data_config=data_registry,
             **shared,
         )
+
 
     def _has_real_operators(
         self,
