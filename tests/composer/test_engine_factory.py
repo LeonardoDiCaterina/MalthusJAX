@@ -61,9 +61,10 @@ def test_engine_adapter_run_once():
     assert "summary" in result
     assert "timings" in result
 
-    # compile timing should be reported
-    assert "compile" in result["timings"]
-    assert "evolution" in result["timings"]
+    # timing should report the new symmetric keys
+    assert "warmup" in result["timings"]
+    assert "execution" in result["timings"]
+    assert "total" in result["timings"]
 
     # Check history format
     history = result["history"]
@@ -85,9 +86,9 @@ def test_engine_adapter_run_once():
     # Running a second time should have lower compile cost (cache hit)
     key2 = jr.PRNGKey(123456)
     result2 = adapter.run_once(key2)
-    assert result2["timings"]["compile"] <= result["timings"]["compile"]
+    assert result2["timings"]["warmup"] <= result["timings"]["warmup"]
     # ideally much smaller
-    assert result2["timings"]["compile"] < result["timings"]["compile"] * 0.5
+    assert result2["timings"]["warmup"] < result["timings"]["warmup"] * 0.5
 
 
 def test_build_engine_from_catalog():

@@ -278,3 +278,53 @@ evosax_strategy = "SimpleGA"
             assert abs(auto_y[i] + manual_y[i]) < 1e-10, f"not negated at idx {i}"
 
         plt.close(fig)
+
+    def test_maximize_cross_backend_raw_and_normalized_signs(self):
+        """Maximize mode should have consistent raw and normalized sign behavior.
+
+        Raw run metrics should be objective-native (higher-is-better) for both
+        backends; normalized summary should be lower-is-better for both.
+        """
+        composer = Composer.create_default()
+
+        pipelines = {
+            "malthusjax_ga": {
+                "backend": "malthusjax",
+                "crossover": "blend:alpha=0.5",
+                "selection": "tournament:num_selections=10,tournament_size=3",
+                "mutation": "gaussian:mutation_rate=0.1",
+                "maximize": True,
+            },
+            "evosax_ga": {
+                "backend": "evosax",
+                "evosax_strategy": "SimpleGA",
+                "maximize": True,
+            },
+        }
+
+        result = composer.compare(
+            pipelines=pipelines,
+            seeds=(0,),
+            fitness="sphere:dim=5",
+            pop_size=20,
+            generations=8,
+            genome_length=5,
+            shared_initial_population=True,
+        )
+
+        # Compare-level normalization is objective-driven in maximize mode.
+        assert result.negate_map["malthusjax_ga"] is True
+        assert result.negate_map["evosax_ga"] is True
+
+        # Raw adapter outputs should both be objective-native (higher is better here).
+        raw_mjx = float(result.pipelines["malthusjax_ga"].runs[0].metrics["best_fitness"])
+        raw_evx = float(result.pipelines["evosax_ga"].runs[0].metrics["best_fitness"])
+        assert raw_mjx >= 0.0, f"Expected non-negative raw malthusjax fitness, got {raw_mjx}"
+        assert raw_evx >= 0.0, f"Expected non-negative raw evosax fitness, got {raw_evx}"
+
+        # After ComparisonResult normalization, both are lower-is-better values.
+        summary = result.summary_table()
+        norm_mjx = float(summary["malthusjax_ga"]["best_fitness"])
+        norm_evx = float(summary["evosax_ga"]["best_fitness"])
+        assert norm_mjx <= 0.0
+        assert norm_evx <= 0.0

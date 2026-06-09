@@ -287,10 +287,12 @@ class TestEvosaxAdapterRunOnce:
         result = small_adapter.run_once(jr.PRNGKey(0))
         timings = result["timings"]
 
-        assert "initialization" in timings
-        assert "evolution" in timings
-        assert timings["initialization"] > 0
-        assert timings["evolution"] > 0
+        assert "warmup" in timings
+        assert "execution" in timings
+        assert "total" in timings
+        assert timings["warmup"] > 0
+        assert timings["execution"] > 0
+        assert timings["total"] > 0
 
     def test_fitness_values_are_finite(self, small_adapter):
         result = small_adapter.run_once(jr.PRNGKey(42))
@@ -451,6 +453,24 @@ class TestMaximisationConvention:
         # after sign flipping the value should be positive (raw metrics were
         # negative in this configuration)
         assert bf > 0
+
+    def test_maximize_preserves_objective_space_mean(self):
+        """mean_fitness should be emitted as a finite objective-space signal."""
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
+        adapter = build_evosax_engine(
+            strategy_name="SimpleGA",
+            evaluator=evalr,
+            pop_size=10,
+            generations=5,
+            maximize=True,
+        )
+
+        result = adapter.run_once(jr.PRNGKey(42))
+        # Keep this robust across evosax/BBOB variants: require finite outputs
+        # and presence in every history row.
+        for row in result["history"]:
+            assert "mean_fitness" in row
+            assert jnp.isfinite(row["mean_fitness"]), row
 
 
 # ---------------------------------------------------------------------------
