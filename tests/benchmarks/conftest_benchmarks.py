@@ -528,7 +528,7 @@ class MalthusJAXBenchEngine:
             "final_generation": n_gens - 1,
             "total_evaluations": n_gens * self.pop_size,
         }
-        timings = {"initialization": t_init, "evolution": t_evo}
+        timings = {"warmup": t_init, "execution": t_evo, "total": t_init + t_evo}
 
         return {"history": history, "summary": summary, "timings": timings}
 
@@ -670,7 +670,7 @@ class EvosaxBenchEngine:
             "final_generation": n_gens - 1,
             "total_evaluations": n_gens * self.pop_size,
         }
-        timings = {"initialization": t_init, "evolution": t_evo}
+        timings = {"warmup": t_init, "execution": t_evo, "total": t_init + t_evo}
 
         return {"history": history, "summary": summary, "timings": timings}
 
