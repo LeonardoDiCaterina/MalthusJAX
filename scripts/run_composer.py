@@ -44,11 +44,18 @@ def main() -> None:
             "Default is results/traces."
         ),
     )
+    parser.add_argument(
+        "--pop-seed",
+        type=int,
+        default=123,
+        metavar="SEED",
+        help="Seed for initial population generation. Default: 123.",
+    )
     args = parser.parse_args()
 
     # load and execute the experiment
     try:
-        result = Composer.from_toml(args.config, trace_dir=args.trace)
+        result = Composer.from_toml(args.config, trace_dir=args.trace, pop_seed=args.pop_seed)
     except Exception as exc:  # pragma: no cover - user script
         print(f"Failed to load/execute experiment: {exc}")
         sys.exit(1)
@@ -80,15 +87,15 @@ def main() -> None:
             avg = sum(durations) / len(durations)
             print(f"{label}average duration per run: {avg:.3f} s (n={len(durations)})")
         # also show aggregated timing metrics if present
-        # "compile" is shown separately with a note: it is paid at most once
-        # per process (JAX caches compiled kernels), so it inflates only the
-        # first seed.  Subsequent seeds see near-zero compile time.
+        # "warmup" includes state init + JIT compilation; it is paid at most
+        # once per process (JAX caches compiled kernels), so it inflates only
+        # the first seed.  Subsequent seeds see near-zero warmup time.
         timing_keys = set()
         for r in res_obj.runs:
             if r.timings:
                 timing_keys.update(r.timings.keys())
         if timing_keys:
-            ORDERED = ["initialization", "compile", "evolution"]
+            ORDERED = ["warmup", "execution", "total"]
             ordered = [k for k in ORDERED if k in timing_keys]
             ordered += sorted(k for k in timing_keys if k not in ORDERED)
             print(f"{label}average timings (averages over all seeds):")
@@ -97,7 +104,7 @@ def main() -> None:
                 if vals:
                     first = res_obj.runs[0].timings.get(key, 0.0) if res_obj.runs[0].timings else 0.0
                     avg_v = sum(vals) / len(vals)
-                    note = " ← includes 1st-compile" if key == "compile" and first > 0.05 else ""
+                    note = " ← includes JIT compilation" if key == "warmup" and first > 0.05 else ""
                     print(f"  {key}: {avg_v:.3f} s  (seed[0]={first:.3f} s){note}")
 
     if hasattr(result, "pipelines"):
