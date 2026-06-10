@@ -154,10 +154,7 @@ def handle_plot(args: argparse.Namespace) -> int:
     
     # Try to generate the combined convergence plot
     try:
-        import matplotlib.pyplot as plt
-        fig = comparison.plot_convergence()
-        fig.savefig(plot_dir / "convergence.png", dpi=150)
-        plt.close(fig)
+        comparison.plot_convergence(save_path=plot_dir / "convergence.png")
         print("Generated plots/convergence.png")
     except Exception as e:
         print(f"Could not generate convergence plot: {e}")
