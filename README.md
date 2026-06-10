@@ -29,32 +29,27 @@ MalthusJAX is structured hierarchically. Higher levels consume lower levels via 
 
 ```mermaid
 graph TD
-    subgraph Composer Layer
-        CLI[Unified mjax CLI] --> Config[TOML Configs]
-        Config --> Comp[Composer]
-        Decorators[@register_* Decorators] --> Reg[Catalog Registry]
-        Comp --> Reg
+    subgraph composer_layer[Composer Layer]
+        cli["Unified mjax CLI"] --> config["TOML Configs"]
+        config --> composer["Composer"]
+        decorators["@register_* Decorators"] --> registry["Catalog Registry"]
+        composer --> registry
     end
 
-    subgraph Engine Layer
-        Comp --> Engine[GeneticEngine / Evosax Adapter]
+    subgraph engine_layer[Engine Layer]
+        composer --> engine["GeneticEngine / Evosax Adapter"]
     end
 
-    subgraph Operators Layer
-        Engine --> Sel[Selection]
-        Engine --> Xover[Crossover]
-        Engine --> Mut[Mutation]
+    subgraph operators_layer[Operators Layer]
+        engine --> selection["Selection"]
+        engine --> crossover["Crossover"]
+        engine --> mutation["Mutation"]
     end
 
-    subgraph Core Layer
-        Engine --> Genomes[Genomes: Real, Binary, Categorical]
-        Engine --> Eval[Evaluators: Sphere, BBOB, TSP, Knapsack]
+    subgraph core_layer[Core Layer]
+        engine --> genomes["Genomes: Real, Binary, Categorical"]
+        engine --> evaluators["Evaluators: Sphere, BBOB, TSP, Knapsack"]
     end
-    
-    style Composer Layer fill:#1f2937,stroke:#3b82f6,stroke-width:2px,color:#fff
-    style Engine Layer fill:#111827,stroke:#10b981,stroke-width:2px,color:#fff
-    style Operators Layer fill:#111827,stroke:#f59e0b,stroke-width:2px,color:#fff
-    style Core Layer fill:#111827,stroke:#ec4899,stroke-width:2px,color:#fff
 ```
 
 ---
