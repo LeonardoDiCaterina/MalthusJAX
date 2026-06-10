@@ -6,115 +6,161 @@
 [![Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg)](https://github.com/LeonardoDiCaterina/MalthusJAX)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**Evolve solutions at GPU speed.** MalthusJAX is a JAX-powered evolutionary computation framework -- define your experiment in a TOML file, and run multi-seed, hardware-accelerated benchmarks with a single function call.
+**Evolve solutions at GPU speed.** MalthusJAX is a JAX-powered evolutionary computation framework. Define your experiments declaratively in TOML files, and run multi-seed, hardware-accelerated pipelines with a single command. 
 
-📖 **[Read the full documentation](https://malthusjax.readthedocs.io/)** for architecture details, API reference, and tutorials.
-
-No boilerplate. No recompilation between generations. Just fast evolution.
+*No boilerplate. No recompilation between generations. Just fast, scalable evolution.*
 
 ---
 
-### Data-Driven Evaluators (v3.0+)
+## Key Features
 
-MalthusJAX now safely handles external data files directly interacting with JIT-compiled optimization runs.
+- **JIT-Compiled Engines**: Entire generation loops are fused into single JAX kernels executing on GPUs/TPUs.
+- **Unified CLI (`mjax`)**: Clean separation of execution (`run`, `parity`), analysis (`analyze`), plotting (`plot`), and reports (`report`).
+- **Decorators for Custom Extensions**: Zero-boilerplate registry decorators (`@register_selection`, `@register_mutation`, etc.) for seamless Jupyter Notebook and script integration.
+- **Multi-Genome Encoding**: Native support for **Real-valued** (continuous), **Binary** (combinatorial), and **Categorical** (permutations) genomes.
+- **Statistical Parity Suite**: Direct seed-aligned comparison with [evosax](https://github.com/RobertTLange/evosax) including automatic hypothesis testing (t-test, Wilcoxon, sign test).
+- **Ask/Tell Interface**: Standard stateful API for custom external evaluation loops (e.g. physics simulations or API-bound calls).
 
-```toml
-[experiment.shared]
-fitness = "tsp:data_id=benchmark_52"
+---
 
-[data.benchmark_52]
-source = "file"
-path = "data/tsp/berlin52.tsp"  # TSPLIB benchmark instance
+## Architecture
+
+MalthusJAX is structured hierarchically. Higher levels consume lower levels via a registry catalog.
+
+```mermaid
+graph TD
+    subgraph Composer Layer
+        CLI[Unified mjax CLI] --> Config[TOML Configs]
+        Config --> Comp[Composer]
+        Decorators[@register_* Decorators] --> Reg[Catalog Registry]
+        Comp --> Reg
+    end
+
+    subgraph Engine Layer
+        Comp --> Engine[GeneticEngine / Evosax Adapter]
+    end
+
+    subgraph Operators Layer
+        Engine --> Sel[Selection]
+        Engine --> Xover[Crossover]
+        Engine --> Mut[Mutation]
+    end
+
+    subgraph Core Layer
+        Engine --> Genomes[Genomes: Real, Binary, Categorical]
+        Engine --> Eval[Evaluators: Sphere, BBOB, TSP, Knapsack]
+    end
+    
+    style Composer Layer fill:#1f2937,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style Engine Layer fill:#111827,stroke:#10b981,stroke-width:2px,color:#fff
+    style Operators Layer fill:#111827,stroke:#f59e0b,stroke-width:2px,color:#fff
+    style Core Layer fill:#111827,stroke:#ec4899,stroke-width:2px,color:#fff
 ```
-```python
-result = load_experiment_config("config.toml")
-composer = Composer()
-exec_result = composer.quick_run(data_config=result.data_registry, **result.pipelines['ga_baseline'])
-```
-See the [Option C Guide](OPTION_C_GUIDE.md) for more details.
+
+---
 
 ## Installation
 
-```sh
-# Install directly from GitHub
-pip install git+https://github.com/LeonardoDiCaterina/MalthusJAX.git
-
-# Or clone & install in development mode
+```bash
+# Clone the repository
 git clone https://github.com/LeonardoDiCaterina/MalthusJAX.git
 cd MalthusJAX
+
+# Install in development mode with all dependencies
 make install-dev
 ```
 
-Python 3.8+ required.
+*Python 3.8+ and JAX 0.4+ required.*
 
 ---
 
-## The Fastest Way: TOML + 3 Lines of Python
+## Quick Start (CLI & TOML)
 
-Describe your experiment in a simple config file:
+Describe your evolutionary runs in a simple TOML configuration:
 
 ```toml
-# experiment.toml
+# configs/examples/composer/experiment.toml
 [experiment]
-name       = "sphere_test"
-output_dir = "results/sphere"
+name = "crossover_comparison"
+output_dir = "results/crossover_comparison"
 
 [experiment.shared]
 fitness       = "sphere:dim=10"
-genome_type   = "real"
+selection     = "tournament:num_selections=25,tournament_size=3"
+mutation      = "gaussian:mutation_rate=0.1"
+engine_type   = "ga"
+pop_size      = 50
+generations   = 100
 genome_length = 10
 bounds        = [-5.0, 5.0]
-pop_size      = 64
-generations   = 100
 seeds         = [42, 43, 44]
 
-[pipelines.ga]
-engine_type = "ga"
-selection   = "tournament:num_selections=64,tournament_size=3"
-crossover   = "simulated_binary:eta=15"
-mutation    = "gaussian:mutation_rate=0.1"
+[pipelines.blend_ga]
+backend   = "malthusjax"
+crossover = "blend:alpha=0.5"
+
+[pipelines.sbx_ga]
+backend   = "malthusjax"
+crossover = "simulated_binary:eta=2.0"
 ```
 
-Then run it:
-
-```python
-from malthusjax.composer import Composer
-
-result = Composer.from_toml("experiment.toml")
-print(result.summary_table())
-result.plot_convergence()
-```
-
-For a full sweep over all 24 BBOB functions, use the built-in generator and launcher scripts:
+Then run, analyze, and plot the results using the `mjax` CLI:
 
 ```bash
-python scripts/generate_bbob_benchmark.py \
-  --output-dir examples/_DEMO_COMPOSER/bbob_benchmark \
-  --fn-range 1 24 \
-  --dimensions 10 \
-  --pop-sizes 1024 \
-  --num-seeds 10 \
-  --generations 200 \
-  --create-launcher
+# 1. Run the experiment sweep across all pipelines and seeds
+mjax run configs/examples/composer/experiment.toml
 
-python scripts/launch_bbob_benchmark.py \
-  --toml-dir examples/_DEMO_COMPOSER/bbob_benchmark \
-  --max-parallel 2 \
-  --cleanup-ram
+# 2. Analyze the raw metrics and export statistical tables
+mjax analyze results/crossover_comparison
+
+# 3. Generate convergence and performance plots
+mjax plot results/crossover_comparison
 ```
 
-That generates per-function TOML files and runs them sequentially with RAM cleanup.
+The execution produces a structured results folder:
+```text
+results/crossover_comparison/
+├── metadata/
+│   └── config_snapshot.toml       # Snapshot of the experiment setup
+├── data/
+│   ├── pipeline_blend_ga/         # Raw seed metrics
+│   │   ├── seed_42.json
+│   │   └── ...
+│   └── pipeline_sbx_ga/
+└── analysis/
+│   └── blend_ga_summary.json      # Aggregated mean/std metrics
+└── plots/
+    └── convergence.png            # Convergence overlay plot
+```
 
 ---
 
-## Quick Experiment in Pure Python
-Don't want a config file? Use `quick_run()` to launch an experiment in one call:
+## Unified CLI Command Reference
+
+The `mjax` CLI provides an clean, offline-friendly workflow to run simulations on a GPU server, export results, and analyze/plot them locally:
+
+| Command | Arguments | Description |
+| :--- | :--- | :--- |
+| `mjax run` | `<config_path>` | Runs the specified TOML experiment sweep. |
+| `mjax parity` | `<config_path>` | Runs a seed-aligned parity execution (enforcing shared initial populations). |
+| `mjax analyze` | `<results_dir>` | Computes summary statistics or statistical parity comparisons. |
+| `mjax plot` | `<results_dir>` | Generates diagnostic and convergence plots. |
+| `mjax report` | `<results_dir>` | Automatically chains `analyze` and `plot` together. |
+| `mjax catalog` | — | Lists all registered framework operators. |
+
+---
+
+## Quick Experiment in Python
+
+You can also run experiments directly in Python:
 
 ```python
 from malthusjax.composer import Composer
 
+# Create default composer
 composer = Composer.create_default()
 
+# Run a quick single-pipeline experiment
 result = composer.quick_run(
     fitness="sphere:dim=10",
     selection="tournament:num_selections=64,tournament_size=3",
@@ -125,31 +171,22 @@ result = composer.quick_run(
     seeds=(42, 43, 44),
 )
 
+# Print metrics summary
 print(result.aggregated_summary())
 ```
 
-Operators are specified as readable strings like `"gaussian:mutation_rate=0.1"` -- no need to import individual classes.
-
----
-
-## Compare Algorithms Side-by-Side
-
-Want to know which crossover strategy works best? Compare them with aligned seeds for a fair test:
+### Comparing Algorithms Side-by-Side
 
 ```python
-cmp = composer.compare(
+comparison = composer.compare(
     pipelines={
         "Blend + Gaussian": dict(
             crossover="blend:alpha=0.5",
             mutation="gaussian:mutation_rate=0.1",
         ),
         "SBX + Polynomial": dict(
-            crossover="simulated_binary:eta=2",
+            crossover="simulated_binary:eta=2.0",
             mutation="polynomial:mutation_rate=0.1",
-        ),
-        "Evosax SimpleGA": dict(
-            backend="evosax",
-            evosax_strategy="SimpleGA",
         ),
     },
     fitness="sphere:dim=10",
@@ -158,409 +195,162 @@ cmp = composer.compare(
     seeds=(42, 43),
 )
 
-cmp.summary_table()      # Aggregated metrics per pipeline
-cmp.summary_table(latex=True)  # LaTeX-formatted summary table
-cmp.plot_convergence()   # Overlay convergence curves
-cmp.plot_convergence(seed_index=[0, 1])   # Multi-seed subplot comparison
+# Output LaTeX or Markdown summary tables
+print(comparison.summary_table())
 ```
-
-You can also inspect the final run distribution across pipelines with the new results helpers:
-
-```python
-final_data = cmp.final_metric_data(metric_key="best_fitness")
-print(final_data)
-
-ax = cmp.plot_final_metric_boxplot(metric_key="best_fitness")
-ax.set_title("Final best fitness distribution")
-```
-
-Cross-framework comparison with [evosax](https://github.com/RobertTLange/evosax) is built in -- just set `backend="evosax"`.
-
-> Note: the current Evosax adapter only supports Evosax-compatible problem representations (primarily the BBOB-style problems exposed through the MalthusJAX fitness catalog). This was intentionally designed to give a reliable measurement of the Evosax architecture cost without also including the extra core-level infrastructure of MalthusJAX. Support for arbitrary evaluators and broader problem types will be added later, so you can use the full range of Evosax strategies with whatever problem comes to mind.
 
 ---
 
-## Beyond Continuous Optimization: Flexible Solution Representations
+## Extending MalthusJAX with Decorators
 
-MalthusJAX lets you choose the genome type that matches your problem:
+MalthusJAX provides registry decorators so you can define and register custom operators, engines, or evaluators directly in Jupyter Notebooks or scripts. Registered components are immediately accessible via string specs in TOML configurations and Python APIs.
 
-- **Real-valued genomes** (`genome_type="real"`) — Continuous optimization (Sphere, Rastrigin, BBOB)
-- **Binary genomes** (`genome_type="binary"`) — Combinatorial problems (knapsack, satisfiability)
-- **Categorical genomes** (`genome_type="categorical"`) — Permutation problems (TSP, scheduling)
+*Note: Decorators default to `override=True` to allow safe, repeated cell execution in notebooks.*
 
-Each genome type gets **problem-specific operators**:
-- Real: Gaussian/polynomial mutation, blend/SBX crossover
-- Binary: Bit-flip mutation, uniform/single-point crossover
-- Categorical: Swap/scramble mutation, order-preserving crossover
-- Custom genomes can be implemented and plugged in easily, extending the BaseOperator class and the BasePopulation class, of course needing to implement the required operations for the new genome type.
-
-### Example: 0/1 Knapsack (Binary Genome)
-
-Solve a combinatorial optimization problem with a **binary genome**. The Knapsack evaluator uses the same **unified data interface as TSP** — either generate random instances with `create_synthetic()` or load pre-computed weights/values:
-
-**Option 1: Generate random knapsack instances (synthetic data)**
 ```python
-import jax.random as jar
+from malthusjax.composer import register_mutation, register_fitness, Composer
+import jax
+
+# 1. Register a custom mutation operator
+@register_mutation("my_offset_mutation")
+def custom_mutation(genome, rng_key, strength=0.1, **kwargs):
+    noise = jax.random.normal(rng_key, shape=genome.values.shape) * strength
+    return genome.replace(values=genome.values + noise)
+
+# 2. Register a custom fitness evaluator
+@register_fitness("my_custom_sphere")
+def custom_sphere(values, **kwargs):
+    return jax.numpy.sum(jax.numpy.square(values))
+
+# 3. Launch using your custom components instantly!
+composer = Composer.create_default()
+result = composer.quick_run(
+    fitness="my_custom_sphere",
+    mutation="my_offset_mutation:strength=0.2",
+    crossover="blend:alpha=0.5",
+    selection="elite_pool:num_selections=10",
+    pop_size=32,
+    generations=50,
+    seeds=(42,),
+)
+```
+
+Available decorators:
+- `@register_selection(name="...")`
+- `@register_crossover(name="...")`
+- `@register_mutation(name="...")`
+- `@register_fitness(name="...")`
+- `@register_engine(name="...")`
+- `@register_genome(name="...")`
+
+---
+
+## Beyond Continuous Optimization: Multi-Genome Support
+
+MalthusJAX lets you select the encoding best suited for your problem:
+
+| Genome Type | Encoding | Use Cases | Operator Catalog |
+| :--- | :--- | :--- | :--- |
+| `real` | Continuous values in `[bounds]` | Continuous optimization | Gaussian/Polynomial Mutation, Blend/SBX Crossover |
+| `binary` | Bit strings (`0` / `1`) | Combinatorial selections | Bit-flip Mutation, Uniform/Single-Point Crossover |
+| `categorical` | Integer permutations | Sequence / Ordering | Swap/Scramble Mutation, Order-preserving Crossover |
+
+### Combinatorial Optimization Example (0/1 Knapsack)
+
+```python
 from malthusjax.core.fitness.binary_evaluators import KnapsackEvaluator
 from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
 from malthusjax.operators.selection import ElitePoolSelection
 from malthusjax.operators.crossover import UniformCrossover
 from malthusjax.operators.mutation import BitFlipMutation
 from malthusjax.engine import GeneticEngine, GeneticEngineParams
+import jax.random as jar
 
-# Create a random knapsack problem with synthetic data
+# Create a random knapsack problem with synthetic weights and values
 evaluator = KnapsackEvaluator.create_synthetic(
-    n_items=20,
-    capacity_ratio=0.5,
-    seed=42,
-    maximize=True  # Maximize total value
+    n_items=20, capacity_ratio=0.5, seed=42, maximize=True
 )
 
-# Set up the engine
-genome_config = BinaryGenomeConfig(length=20)  # 20-bit binary string
+# Set up binary engine configuration
 engine = GeneticEngine(
     engine_params=GeneticEngineParams(pop_size=64, elitism=2, num_generations=100),
-    genome_config=genome_config,
+    genome_config=BinaryGenomeConfig(length=20),
     evaluator=evaluator,
     selection=ElitePoolSelection(num_selections=32, elite_k=2),
     crossover=UniformCrossover(num_offspring=2),
     mutation=BitFlipMutation(mutation_rate=0.05),
 )
 
-# Run optimization
-key = jar.PRNGKey(42)
-state = engine.init_state(rng_key=key)
+# Run optimization on GPU
+state = engine.init_state(rng_key=jar.PRNGKey(42))
 final_state, history, elapsed = engine.run(state, time_it=True)
-
-print(f"Best value: {final_state.best_fitness:.2f}")
-```
-
-**Option 2: Load pre-computed weights and values**
-```python
-import jax.numpy as jnp
-from malthusjax.core.fitness.binary_evaluators import KnapsackEvaluator
-
-# Pre-computed item data
-weights = jnp.array([5.0, 3.0, 7.0, 2.0, 4.0])
-values = jnp.array([12.0, 8.0, 20.0, 5.0, 10.0])
-capacity = 12.0  # Max weight
-
-# Load evaluator with your data
-evaluator = KnapsackEvaluator.create_from_data(
-    weights=weights,
-    values=values,
-    capacity=capacity,
-    maximize=True
-)
-
-# Then use with GeneticEngine (same as above)
-```
-
-**Unified Data Interface:**
-Both TSP and Knapsack now follow the same pattern:
-- `create_synthetic()` — Generate random instances procedurally
-- `create_from_data()` — Load pre-computed problem data
-
-| Problem | Synthetic Method | Data Container |
-|---------|------------------|-----------------|
-| **TSP** | `TSPEvaluator.create_synthetic(num_cities=50, seed=42)` | distance_matrix |
-| **Knapsack** | `KnapsackEvaluator.create_synthetic(n_items=50, seed=42)` | KnapsackData(weights, values) |
-
-**Genome Types in MalthusJAX:**
-
-| Type | Encoding | Used For | Examples |
-|------|----------|----------|----------|
-| `real` | Continuous values in [bounds] | Continuous optimization, TSP (Random Key) | Sphere, Rastrigin, TSP, BBOB |
-| `binary` | Bit strings (0/1 decisions) | Combinatorial selection | Knapsack, feature selection, SAT |
-| `categorical` | Permutations/discrete choices | Ordering problems | (Planned: scheduling, task assignment) |
-
-Each genome type gets **problem-specific operators**:
-- **Real**: Gaussian/polynomial mutation, blend/SBX crossover
-- **Binary**: Bit-flip mutation, uniform/single-point crossover
-- **Categorical**: Swap/scramble mutation (planned)
-
----
-
-## Data-Driven Optimization: Load External Benchmarks
-
-MalthusJAX integrates external data through the `data_config` parameter — pass problem-specific data directly into JIT-compiled optimization runs. Classic example: **Traveling Salesman Problem (TSP)**:
-
-```python
-from malthusjax.composer import Composer
-
-composer = Composer.create_default()
-
-result = composer.quick_run(
-    fitness="tsp:data_id=berlin52",
-    data_config={
-        "berlin52": {
-            "source": "synthetic",
-            "num_cities": 50,
-            "random_seed": 42,
-        },
-    },
-    selection="tournament:num_selections=25,tournament_size=3",
-    crossover="blend:alpha=0.5",
-    mutation="gaussian:mutation_rate=0.1,mutation_strength=0.1",
-    pop_size=50,
-    generations=100,
-    seeds=(42, 43, 44),
-    genome_type="real",  # TSP uses Real-valued encoding (Random Key)
-)
-
-summary = result.aggregated_summary()
-print(f"Best tour: {summary['best_fitness']['mean']:.2f} units")
-```
-
-For TOML-based reproducible experiments with external data:
-
-```toml
-[experiment.shared]
-fitness = "tsp:data_id=berlin52"
-genome_type = "real"
-pop_size = 64
-generations = 200
-seeds = [42, 43, 44]
-
-[data.berlin52]
-source = "file"
-path = "data/tsp/berlin52.tsp"
-
-[pipelines.ga]
-selection = "tournament:num_selections=25"
-crossover = "blend:alpha=0.5"
-mutation = "gaussian:mutation_rate=0.1"
-```
-
-Data sources supported:
-- **Files** — Load pre-computed TSP instances (`.tsp` files from [TSPLIB](http://www.math.uwaterloo.ca/tsp/)), distance matrices, or other benchmarks
-- **Synthetic** — Procedurally generate random problem instances (TSP with random coordinates, BBOB functions, etc.)
-
-**Note on `.tsp` files:** These are standard problem files from the TSPLIB benchmark suite. They contain city coordinates or distance matrices in plain text. Classic instances include `berlin52`, `bier127`, `ch130`, and many others. Free instances are available at http://www.math.uwaterloo.ca/tsp/
-
----
-
-## Analysis & Results: From Runs to Insights
-
-Every experiment automatically aggregates results across seeds and computes statistics:
-
-```python
-# Multi-seed aggregation
-summary = result.aggregated_summary()
-print(f"Best:  {summary['best_fitness']['mean']:.4f} ± {summary['best_fitness']['stdev']:.4f}")
-print(f"Final: {summary['mean_fitness']['mean']:.4f} ± {summary['mean_fitness']['stdev']:.4f}")
-
-# Export convergence history to pandas for analysis
-import pandas as pd
-history = result.combined_history()
-df = pd.DataFrame(history)
-
-# Analyze per-seed behavior
-by_seed = df.groupby('seed')['best_fitness'].describe()
-print(by_seed)
-
-# Plot convergence across all runs
-import matplotlib.pyplot as plt
-for seed in df['seed'].unique():
-    seed_data = df[df['seed'] == seed]
-    plt.plot(seed_data['generation'], seed_data['best_fitness'], label=f"Seed {seed}", alpha=0.7)
-plt.xlabel("Generation")
-plt.ylabel("Best Fitness")
-plt.legend()
-plt.show()
-```
-
-For multi-algorithm comparison:
-
-```python
-# Overlay convergence curves for fair comparison
-comparison = composer.compare(
-    pipelines={
-        "GA+Blend": {...},
-        "GA+SBX": {...},
-    },
-    fitness="sphere:dim=10",
-    seeds=(42, 43, 44),
-)
-
-# Side-by-side metrics
-print(comparison.summary_table())
-
-# Plot overlaid convergence (one per seed)
-for i in range(3):
-    comparison.plot_convergence(seed_index=i)
+print(f"Best value found: {final_state.best_fitness:.2f}")
 ```
 
 ---
 
-## Full Control: Build Your Own Engine
+## Statistical Parity Benchmarking
 
-For researchers who want to control every component:
+To ensure implementation validity, MalthusJAX includes a dedicated statistical parity system that runs seed-aligned optimizations alongside `evosax` baseline implementations.
 
-```python
-import jax.random as jar
-from malthusjax.core.genome.real_genome import RealGenomeConfig
-from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
-from malthusjax.operators.selection import ElitePoolSelection
-from malthusjax.operators.crossover import SimulatedBinaryCrossover
-from malthusjax.operators.mutation import GaussianMutation
-from malthusjax.engine import GeneticEngine, GeneticEngineParams
+### Operator Equivalency Mapping
 
-# Define the problem
-genome_config = RealGenomeConfig(shape=(10,), bounds=(-5.0, 5.0))
-evaluator = BBOBEvaluator.create(
-    BBOBConfig(fn_name="sphere", num_dims=10, maximize=False)
-)
+For apples-to-apples comparisons, map roles to their equivalents:
 
-# Pick your operators
-selection = ElitePoolSelection(num_selections=20, elite_k=2)
-crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)
-mutation  = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5)
+| Role | MalthusJAX Operator Spec | evosax Equivalence |
+| :--- | :--- | :--- |
+| **Selection** | `elite_pool` | `SimpleGA` built-in elite selection |
+| **Crossover** | `evosax_uniform_crossover` | `SimpleGA` built-in uniform crossover |
+| **Mutation** | `evosax_gaussian` | `SimpleGA` built-in Gaussian mutation |
 
-# Assemble and run
-engine = GeneticEngine(
-    engine_params=GeneticEngineParams(pop_size=32, elitism=2, num_generations=100),
-    genome_config=genome_config,
-    evaluator=evaluator,
-    selection=selection,
-    crossover=crossover,
-    mutation=mutation,
-)
+### Running Statistical Parity Verification
 
-key = jar.PRNGKey(42)
-state = engine.init_state(rng_key=key)
-final_state, history, elapsed_time = engine.run(state, time_it=True)
+```bash
+# Execute parity using seed-aligned initial populations
+mjax parity configs/parity/toy_gap_parity.toml
 
-print(f"Best fitness: {final_state.best_fitness:.6f}")
-print(f"Elapsed time: {elapsed_time:.6f} seconds")
+# Analyze parity statistics (compares distributions, runs Wilcoxon/t-tests)
+mjax analyze results/toy_gap_parity
 ```
-
-Every operator is a JIT-compilable callable -- swap any component and the engine recompiles once, then runs at full speed.
 
 ---
 
-## Ask/Tell: Plug In External Evaluators
+## Ask/Tell API for Custom Loops
 
-Need to evaluate fitness outside JAX (physics simulators, cloud services, human-in-the-loop)?
+For loops requiring evaluations outside of JAX (such as physics simulators, third-party APIs, or human-in-the-loop steps):
 
 ```python
-state = engine.init_state(key)
+# Initialize engine state
+state = engine.init_state(rng_key)
 
-for i in range(100):
-    # ASK for the current population
+for generation in range(generations):
+    # 1. Ask for the current population candidate proposals
     engine_with_entropy, population = engine.ask(state)
+    
+    # 2. Evaluate fitness using external CPU/API simulators
+    fitness_values = my_external_simulator(population.values)
+    
+    # 3. Tell the engine the evaluated fitness results
+    state = engine_with_entropy.tell(state, population.replace(fitness=fitness_values))
 
-    # Evaluate however you want
-    evaluated_pop = my_external_simulator(population)
-
-    # TELL the engine the results
-    state = engine_with_entropy.tell(state, evaluated_pop)
-
-print(f"Final: {state.best_fitness:.6f}")
+print(f"Optimal fitness found: {state.best_fitness:.6f}")
 ```
-
----
-
-## Available Operators
-
-Mix and match from the built-in catalog:
-
-| Category | Operators |
-|----------|-----------|
-| **Selection** | `tournament`, `roulette`, `elite_pool` |
-| **Real Crossover** | `uniform_real`, `blend` (BLX-alpha), `simulated_binary` (SBX), `binomial` |
-| **Binary Crossover** | `uniform_binary`, `single_point` |
-| **Real Mutation** | `gaussian`, `ball`, `polynomial` |
-| **Binary Mutation** | `bitflip`, `scramble`, `swap` |
-| **Fitness Functions** | `sphere`, `rastrigin`, `griewank`, `bbob` (24 BBOB functions), `knapsack`, `binary_sum` |
-
-All operators support string specs: `"tournament:num_selections=50,tournament_size=3"`.
-
----
-
-## How It Works
-
-MalthusJAX is built in three layers you can use independently:
-
-1. **Core** -- Genomes (real, binary, categorical) and fitness evaluators. These are the building blocks.
-2. **Operators** -- Selection, crossover, and mutation. Each is a pure function that JIT-compiles cleanly.
-3. **Engine** -- Wires everything together into an evolution loop. Compiles once, then runs every generation as a single fused GPU kernel.
-
-The **Composer** sits on top and lets you skip the wiring -- describe what you want in strings or TOML and it builds the engine for you.
-
----
-
-## Extending MalthusJAX
-
-Creating a custom operator is straightforward -- implement the core logic and batching + JIT compilation are inherited automatically:
-
-```python
-import jax
-from flax import struct
-from malthusjax.operators.base import BaseMutation
-
-@struct.dataclass
-class MyMutation(BaseMutation):
-    strength: float = struct.field(pytree_node=False, default=0.1)
-    num_offspring: int = struct.field(pytree_node=False, default=1)
-
-    @property
-    def num_keys_per_atomic_operation(self):
-        return 1
-
-    def _generate_noise(self, keys, cfg, generation=0):
-        return jax.random.normal(keys[0], shape=cfg.shape) * self.strength
-
-    def _mutate_one(self, genome, noise, cfg, **kwargs):
-        return genome.replace(values=genome.values + noise)
-```
-
-Drop it into any pipeline -- the engine handles the rest.
-
-To use it via Composer string specs, register it with the operator catalog:
-
-```python
-from malthusjax.composer.catalog import OperatorCatalog
-
-OperatorCatalog().register(
-    "my_mutation",
-    lambda **kwargs: MyMutation(
-        num_offspring=int(kwargs.get("num_offspring", 1)),
-        strength=float(kwargs.get("strength", 0.1)),
-    ),
-)
-```
-
-Then you can use it in `quick_run()` or TOML as:
-
-```python
-result = composer.quick_run(
-    fitness="sphere:dim=10",
-    mutation="my_mutation:num_offspring=2,strength=0.2",
-    pop_size=100,
-    generations=100,
-    seeds=(42, 43, 44),
-)
-```
-
-If you want the operator available package-wide, add the registration to the Composer catalog initialization code in `src/malthusjax/composer/catalog.py` or a custom extension module that runs on import.
 
 ---
 
 ## Development
 
-```bash
-make check-all    # Lint + format + type-check + test (80% coverage minimum)
-make test         # Run tests only
-# Ensure 80% test coverage is maintained across the codebase
-make lint         # Ruff linting
-make docs         # Build Sphinx documentation
-```
+Use the provided `Makefile` targets to lint, check types, format, and run tests:
 
----
+```bash
+make check-all    # Format, lint, typecheck, and test (enforces >=80% coverage)
+make test         # Execute test suite
+make lint         # Run Ruff formatting and linting
+make docs         # Generate local Sphinx documentation
+```
 
 ---
 
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
