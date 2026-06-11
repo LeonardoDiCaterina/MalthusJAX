@@ -52,6 +52,7 @@ help:
 	@echo "  make parity-toml TOML=<file>        Run two-pipeline statistical parity from TOML"
 	@echo "    + PLOT=1 to generate default parity plots"
 	@echo "    + PLOT_EXTRA=1 to add delta + Bland-Altman diagnostics"
+	@echo "  make suite-parity CONFIG_DIR=<dir> OUT_DIR=<dir>  Run parity on a folder of TOMLs and aggregate"
 	@echo "  make artifacts-toml TOML=<file>     Generate artifacts for TOML output_dir"
 	@echo "  make artifacts-dir RESULTS_DIR=<dir>  Generate artifacts for one results dir"
 	@echo "  make artifacts-batch RESULTS_GLOB=<glob> Generate artifacts for matching dirs"
@@ -71,7 +72,7 @@ help:
 	@echo ""
 	@echo "Example:"
 	@echo "  make run-toml TOML=configs/examples/sphere_experiment.toml"
-	@echo "  make run-toml TOML=configs/tests/mock_binary_experiment.toml --pipeline ga_baseline"
+	@echo "  make suite-parity CONFIG_DIR=configs/thesis/ OUT_DIR=results/thesis_suite"
 	@echo ""
 	@echo "--- Documentation Workflow ---"
 	@echo "  make docs                    Build Sphinx HTML docs (picks up all changes)"
@@ -325,6 +326,28 @@ list-toml:
 	@find configs -type f -name "*.toml" | sort | while read f; do \
 		echo "  $$f"; \
 	done
+
+suite-parity:
+	@test -n "$(CONFIG_DIR)" || (echo "Error: CONFIG_DIR variable not set"; echo "Usage: make suite-parity CONFIG_DIR=configs/thesis/ OUT_DIR=results/my_suite"; exit 1)
+	@test -n "$(OUT_DIR)" || (echo "Error: OUT_DIR variable not set"; echo "Usage: make suite-parity CONFIG_DIR=configs/thesis/ OUT_DIR=results/my_suite"; exit 1)
+	@test -d "$(CONFIG_DIR)" || (echo "Error: CONFIG_DIR not found: $(CONFIG_DIR)"; exit 1)
+	@echo "--- Running statistical parity suite from $(CONFIG_DIR) ---"
+	@for toml in $(CONFIG_DIR)/*.toml; do \
+		if [ -f "$$toml" ]; then \
+			$(PYTHON) -m malthusjax.benchmarking.cli parity $$toml; \
+		fi \
+	done
+	@echo "--- Aggregating results into $(OUT_DIR) ---"
+	@DIRS=""; \
+	for toml in $(CONFIG_DIR)/*.toml; do \
+		if [ -f "$$toml" ]; then \
+			name=$$(basename $$toml .toml); \
+			DIRS="$$DIRS results/$$name"; \
+		fi \
+	done; \
+	$(PYTHON) -m malthusjax.benchmarking.cli aggregate --out_dir $(OUT_DIR) $$DIRS
+	@echo "--- Generating LaTeX table ---"
+	@$(PYTHON) scripts/generate_parity_latex.py --suite_dir $(OUT_DIR) --out $(OUT_DIR)/parity_table.tex
 
 # Include experiment helper targets (kept modular for clarity)
 INCLUDE_FROM_ROOT := 1
