@@ -646,6 +646,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         metrics = GeneticGenerationOutput(
             best_fitness=metric_best,
             mean_fitness=jnp.mean(new_pop.fitness),
+            std_fitness=jnp.std(new_pop.fitness),
             generation=final_state.generation,
             random_key=final_state.rng_key,
         )
@@ -816,6 +817,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         metrics = GeneticGenerationOutput(
             best_fitness=metric_best,
             mean_fitness=jnp.mean(new_pop.fitness),
+            std_fitness=jnp.std(new_pop.fitness),
             generation=final_state.generation,
             random_key=final_state.rng_key,
         )

@@ -108,6 +108,7 @@ class AbstractGenerationOutput:
 
     best_fitness: chex.Array
     mean_fitness: chex.Array
+    std_fitness: chex.Array
     generation: chex.Array
 
     @classmethod
