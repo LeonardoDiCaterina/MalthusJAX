@@ -72,7 +72,7 @@ def handle_parity(args: argparse.Namespace) -> int:
 
 import glob
 
-from malthusjax.benchmarking.results import ExperimentResult, RunResult, ComparisonResult
+from malthusjax.benchmarking.results import ExperimentResult, RunResult, ComparisonResult, MetaComparison
 from malthusjax.benchmarking.statistics import (
     HypothesisKind,
     Sidedness,
@@ -159,6 +159,20 @@ def handle_plot(args: argparse.Namespace) -> int:
     except Exception as e:
         print(f"Could not generate convergence plot: {e}")
         
+    # Try to generate the boxplot comparison
+    try:
+        comparison.plot_boxplots(save_path=plot_dir / "fitness_distribution.png")
+        print("Generated plots/fitness_distribution.png")
+    except Exception as e:
+        print(f"Could not generate boxplots: {e}")
+        
+    # Try to generate the timings boxplot
+    try:
+        comparison.plot_boxplots(metric_key="duration_seconds", save_path=plot_dir / "timings.png")
+        print("Generated plots/timings.png")
+    except Exception as e:
+        print(f"Could not generate timings boxplot: {e}")
+        
     return 0
 
 
@@ -170,6 +184,48 @@ def handle_report(args: argparse.Namespace) -> int:
     handle_plot(args)
     return 0
 
+def handle_aggregate(args: argparse.Namespace) -> int:
+    """Handle `mjax aggregate`."""
+    out_dir = args.out_dir
+    results_dirs = args.results_dirs
+    
+    print(f"Aggregating {len(results_dirs)} experiments into {out_dir}...")
+    
+    comparisons = {}
+    for d in results_dirs:
+        print(f"  Loading {d}...")
+        try:
+            comp = _load_comparison(d)
+            comparisons[d.name] = comp
+        except Exception as e:
+            print(f"  Failed to load {d}: {e}")
+            
+    if not comparisons:
+        print("No valid experiments loaded.")
+        return 1
+        
+    meta = MetaComparison(comparisons)
+    
+    out_dir.mkdir(parents=True, exist_ok=True)
+    plot_dir = out_dir / "plots"
+    plot_dir.mkdir(exist_ok=True)
+    
+    print("Generating aggregate convergence grid...")
+    meta.plot_convergence_grid(save_path=plot_dir / "convergence_grid.png")
+    
+    print("Generating aggregate boxplot grid...")
+    meta.plot_boxplot_grid(save_path=plot_dir / "fitness_distribution_grid.png")
+    
+    print("Generating aggregate timings grid...")
+    meta.plot_boxplot_grid(metric_key="duration_seconds", save_path=plot_dir / "timings_grid.png")
+    
+    print("Generating aggregate summary JSON...")
+    summary = meta.summary_table()
+    with open(out_dir / "aggregate_summary.json", "w") as f:
+        json.dump(summary, f, indent=2)
+        
+    print(f"Aggregate report complete. Results saved in {out_dir}")
+    return 0
 
 def handle_catalog(args: argparse.Namespace) -> int:
     """Handle `mjax catalog`."""
@@ -221,7 +277,15 @@ def main(args: Optional[List[str]] = None) -> int:
     parser_report.add_argument("results_dir", type=Path, help="Directory containing raw JSON data")
     parser_report.set_defaults(func=handle_report)
 
-    # 6. CATALOG
+    # 6. AGGREGATE
+    parser_aggregate = subparsers.add_parser(
+        "aggregate", help="Aggregate multiple experiments into a suite report"
+    )
+    parser_aggregate.add_argument("--out_dir", type=Path, required=True, help="Output directory for the aggregate suite")
+    parser_aggregate.add_argument("results_dirs", type=Path, nargs="+", help="One or more experiment result directories")
+    parser_aggregate.set_defaults(func=handle_aggregate)
+
+    # 7. CATALOG
     parser_catalog = subparsers.add_parser("catalog", help="List registered framework operators")
     parser_catalog.set_defaults(func=handle_catalog)
 

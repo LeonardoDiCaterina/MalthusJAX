@@ -721,14 +721,31 @@ class ComparisonResult:
         for name, exp in self.pipelines.items():
             values: List[float] = []
             sign = self._sign(name) if metric_key in self._FITNESS_KEYS else 1.0
-            for run in exp.runs:
-                if metric_key not in run.metrics:
+            
+            # Sort chronologically so index 0 is the true first run (warmup)
+            sorted_runs = sorted(exp.runs, key=lambda r: r.created_at)
+            
+            for run in sorted_runs:
+                raw_val = None
+                if metric_key == "duration_seconds":
+                    raw_val = run.duration_seconds
+                elif run.timings and metric_key in run.timings:
+                    raw_val = run.timings[metric_key]
+                elif metric_key in run.metrics:
+                    raw_val = run.metrics[metric_key]
+
+                if raw_val is None:
                     continue
+
                 try:
-                    value = float(run.metrics[metric_key])
+                    value = float(raw_val)
                 except (TypeError, ValueError):
                     continue
-                values.append(sign * value)
+                values.append(value * sign)
+                
+            if metric_key in ("duration_seconds", "execution", "total", "warmup") and len(values) > 1:
+                values = values[1:]
+                
             data[name] = values
         return data
 
@@ -1073,3 +1090,135 @@ class ComparisonResult:
             out_path.parent.mkdir(parents=True, exist_ok=True)
             fig.savefig(out_path, bbox_inches="tight")
         return ax
+
+    def plot_boxplots(
+        self,
+        metric_key: str = "best_fitness",
+        ax: Any = None,
+        title: Optional[str] = None,
+        save_path: Optional[Union[str, Path]] = None,
+    ) -> Any:
+        """Visualize the distribution of final metrics as side-by-side boxplots.
+
+        Parameters
+        ----------
+        metric_key : str, optional
+            The metric to plot. Default: ``"best_fitness"``.
+        ax : matplotlib.axes.Axes, optional
+            An existing matplotlib axes to plot on.
+        title : str, optional
+            Custom title for the plot.
+        save_path : str or Path, optional
+            If provided, saves the plot to this location.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes containing the plot.
+        """
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as e:
+            raise ImportError(
+                "matplotlib is required for plot_boxplots(). "
+                "Install it with: pip install matplotlib"
+            ) from e
+
+        fig = getattr(ax, "figure", None)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(6, 4))
+
+        data = self.final_metric_data(metric_key=metric_key)
+        
+        # Sort by median for better visualization
+        names = list(data.keys())
+        # Provide fallback if empty
+        if not names:
+            return ax
+            
+        values = [data[name] for name in names]
+        
+        bplot = ax.boxplot(values, patch_artist=True, tick_labels=names)
+        
+        # Add colors if possible
+        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+        for i, patch in enumerate(bplot['boxes']):
+            patch.set_facecolor(colors[i % len(colors)])
+            patch.set_alpha(0.7)
+            
+        for median in bplot['medians']:
+            median.set_color('black')
+            median.set_linewidth(1.5)
+
+        ax.set_title(title or f"{metric_key} Distribution Over Seeds")
+        ax.set_ylabel(metric_key)
+        ax.grid(True, alpha=0.3, axis='y')
+
+        if save_path is not None and fig is not None:
+            out_path = Path(save_path)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(out_path, bbox_inches="tight")
+        return ax
+
+class MetaComparison:
+    """Aggregate suite for comparing multiple experiments natively."""
+
+    def __init__(self, comparisons: Dict[str, ComparisonResult]):
+        self.comparisons = comparisons
+
+    def plot_convergence_grid(self, save_path: Optional[Union[str, Path]] = None, **kwargs) -> Any:
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as e:
+            raise ImportError("matplotlib is required. Install it with: pip install matplotlib") from e
+
+        n = len(self.comparisons)
+        if n == 0:
+            return None
+        
+        fig, axes = plt.subplots(1, n, figsize=(5 * n, 4))
+        if n == 1:
+            axes = [axes]
+        
+        for ax, (exp_name, comp) in zip(axes, self.comparisons.items()):
+            comp.plot_convergence(ax=ax, title=exp_name, **kwargs)
+            # Handle sphere log scaling if needed or keep default behavior
+        
+        fig.suptitle("Convergence Parity Suite", fontsize=16, y=1.05)
+        plt.tight_layout()
+        if save_path:
+            out_path = Path(save_path)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(out_path, bbox_inches="tight")
+        return axes
+
+    def plot_boxplot_grid(self, save_path: Optional[Union[str, Path]] = None, metric_key: str = "best_fitness", **kwargs) -> Any:
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as e:
+            raise ImportError("matplotlib is required.") from e
+
+        n = len(self.comparisons)
+        if n == 0:
+            return None
+        
+        fig, axes = plt.subplots(1, n, figsize=(5 * n, 4))
+        if n == 1:
+            axes = [axes]
+            
+        for ax, (exp_name, comp) in zip(axes, self.comparisons.items()):
+            comp.plot_boxplots(metric_key=metric_key, ax=ax, title=exp_name, **kwargs)
+            
+        fig.suptitle(f"{metric_key.capitalize()} Distribution Suite", fontsize=16, y=1.05)
+        plt.tight_layout()
+        if save_path:
+            out_path = Path(save_path)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(out_path, bbox_inches="tight")
+        return axes
+
+    def summary_table(self) -> Dict[str, Any]:
+        result = {}
+        for exp_name, comp in self.comparisons.items():
+            result[exp_name] = comp.summary_table()
+        return result
