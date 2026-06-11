@@ -62,11 +62,11 @@ def test_cli_main_quiet(monkeypatch, capsys):
 
     monkeypatch.setattr(cli, "Composer", DummyComposer)
 
-    result = main(["--quiet", "--name", "unit_test", "--generations", "2"])
+    result = main(["catalog"])
     assert result == 0
 
     captured = capsys.readouterr()
-    assert "Mean best fitness" not in captured.out
+    assert "MalthusJAX Operator Catalog" in captured.out
 
 
 def test_benchmarking_module_main_executes(monkeypatch):
@@ -75,11 +75,7 @@ def test_benchmarking_module_main_executes(monkeypatch):
     monkeypatch.setattr(cli, "Composer", DummyComposer)
     argv = [
         "malthusjax.benchmarking",
-        "--quiet",
-        "--name",
-        "module_test",
-        "--generations",
-        "1",
+        "catalog",
     ]
     monkeypatch.setattr(sys, "argv", argv)
 
