@@ -7,8 +7,8 @@ computes Wilcoxon signed-rank tests, win-loss splits, and timing averages.
 
 import json
 import os
-import sys
 from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -16,9 +16,9 @@ from scipy import stats
 
 from malthusjax.benchmarking.statistics import (
     HypothesisKind,
+    Sidedness,
     StatisticalComparator,
     StatisticalComparisonSpec,
-    Sidedness,
     paired_dataset_from_comparison,
 )
 from malthusjax.composer import Composer
@@ -66,7 +66,7 @@ def run_precision_experiment(toml_path: Path, spec: StatisticalComparisonSpec, o
 
     print(f"[{toml_path.stem}] Running optimization runs...", flush=True)
     comparison = Composer.from_toml(toml_path, pop_seed=42, shared_initial_population=False)
-    
+
     print(f"[{toml_path.stem}] Extracting aligned paired datasets...", flush=True)
     dataset = paired_dataset_from_comparison(
         comparison=comparison,
@@ -74,27 +74,27 @@ def run_precision_experiment(toml_path: Path, spec: StatisticalComparisonSpec, o
         right_pipeline="mjx_float16",
         spec=spec,
     )
-    
+
     print(f"[{toml_path.stem}] Executing statistical hypothesis tests...", flush=True)
     comparator = StatisticalComparator()
     suite = comparator.compare_suite([dataset], spec)
     result = suite.results[0]
-    
+
     # Calculate Shapiro-Wilk for normality of differences
     diffs = dataset.left_values - dataset.right_values
     if diffs.size >= 3:
         _, shapiro_p = stats.shapiro(diffs)
     else:
         shapiro_p = np.nan
-        
+
     # Extract timing details (excluding seed 0 warmup)
     f32_runs = comparison.pipelines["mjx_float32"].runs
     f16_runs = comparison.pipelines["mjx_float16"].runs
-    
+
     # Exclude seed 0 from execution timing
     f32_exec_times = [run.timings.get("execution", 0.0) for run in f32_runs[1:]]
     f16_exec_times = [run.timings.get("execution", 0.0) for run in f16_runs[1:]]
-    
+
     left_evo_mean = np.mean(f32_exec_times)
     right_evo_mean = np.mean(f16_exec_times)
     evo_speedup = left_evo_mean / right_evo_mean if right_evo_mean > 0 else 1.0
@@ -120,13 +120,13 @@ def run_precision_experiment(toml_path: Path, spec: StatisticalComparisonSpec, o
     # Save Markdown and JSON reports
     out_subdir.mkdir(parents=True, exist_ok=True)
     (out_subdir / "precision_summary.md").write_text(suite.to_markdown())
-    
+
     save_data = {
         "suite": suite.to_dict(),
         "summary_row": row
     }
     (out_subdir / "precision_summary.json").write_text(json.dumps(save_data, indent=2))
-    
+
     # Save a boxplot comparing the final fitness distributions
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.boxplot([dataset.left_values, dataset.right_values], labels=["float32", "float16"])
@@ -145,7 +145,7 @@ def main():
     print("===================================================", flush=True)
     print("=== STARTING PRECISION IMPACT SWEEP (F32 vs F16) ===", flush=True)
     print("===================================================", flush=True)
-    
+
     spec_precision = StatisticalComparisonSpec(
         metric_name="best_fitness",
         hypothesis_kind=HypothesisKind.LOCATION_SHIFT,
@@ -161,13 +161,13 @@ def main():
     }
 
     for name, params in configs_to_run.items():
-        print(f"\n===================================================", flush=True)
+        print("\n===================================================", flush=True)
         print(f"=== RUNNING CONFIGURATION: {name.upper()} ===", flush=True)
-        print(f"===================================================", flush=True)
-        
+        print("===================================================", flush=True)
+
         master_rows = []
         total_fns = len(BBOB_FUNCTIONS)
-        
+
         for idx, fn in enumerate(BBOB_FUNCTIONS, 1):
             print(f"\n[PROGRESS] Config={name} | {idx}/{total_fns}: Function={fn}...", flush=True)
             toml_content = f"""# Auto-generated precision sweep TOML
@@ -205,7 +205,7 @@ dtype = "float16"
 """
             toml_path = CONFIG_DIR / f"{fn}_precision_{name}.toml"
             toml_path.write_text(toml_content)
-            
+
             out_subdir = POST_DIR / f"{fn}_precision_{name}"
             row = run_precision_experiment(toml_path, spec_precision, out_subdir)
             row["function"] = fn

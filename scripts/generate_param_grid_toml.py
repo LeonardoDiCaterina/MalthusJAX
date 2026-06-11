@@ -88,7 +88,7 @@ def main(argv: list[str] | None = None) -> int:
         lines.append(f"[pipelines.{p['name']}]")
         for k, v in p["config"].items():
             # strategy_params and similar are passed as plain strings here
-            if isinstance(v, str) and not v.startswith("\["):
+            if isinstance(v, str) and not v.startswith(r"\["):
                 lines.append(f'{k} = "{v}"')
             else:
                 lines.append(f"{k} = {v}")

@@ -7,18 +7,16 @@ computing Wilcoxon signed-rank tests, win-loss splits, and printing the results.
 
 import json
 import os
-import sys
 from pathlib import Path
+
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-from scipy import stats
 
 from malthusjax.benchmarking.statistics import (
     HypothesisKind,
+    Sidedness,
     StatisticalComparator,
     StatisticalComparisonSpec,
-    Sidedness,
     paired_dataset_from_comparison,
 )
 from malthusjax.composer import Composer
@@ -62,7 +60,7 @@ def run_validation_experiment(toml_path: Path, spec: StatisticalComparisonSpec, 
 
     print(f"[{toml_path.stem}] Running optimization runs...", flush=True)
     comparison = Composer.from_toml(toml_path, pop_seed=42, shared_initial_population=True)
-    
+
     print(f"[{toml_path.stem}] Extracting aligned paired datasets...", flush=True)
     dataset = paired_dataset_from_comparison(
         comparison=comparison,
@@ -70,12 +68,12 @@ def run_validation_experiment(toml_path: Path, spec: StatisticalComparisonSpec, 
         right_pipeline="evosax",
         spec=spec,
     )
-    
+
     print(f"[{toml_path.stem}] Executing statistical hypothesis tests...", flush=True)
     comparator = StatisticalComparator()
     suite = comparator.compare_suite([dataset], spec)
     result = suite.results[0]
-    
+
     primary_p = result.tests.get("wilcoxon", {}).p_value if "wilcoxon" in result.tests else None
 
     row = {
@@ -93,13 +91,13 @@ def run_validation_experiment(toml_path: Path, spec: StatisticalComparisonSpec, 
     # Save Markdown and JSON reports
     out_subdir.mkdir(parents=True, exist_ok=True)
     (out_subdir / "validation_summary.md").write_text(suite.to_markdown())
-    
+
     save_data = {
         "suite": suite.to_dict(),
         "summary_row": row
     }
     (out_subdir / "validation_summary.json").write_text(json.dumps(save_data, indent=2))
-    
+
     print(f"[{toml_path.stem}] Wilcoxon p={row['primary_p']:.4g}, Wins: MJX_Mimic={row['wins_left']} vs EvoSAX={row['wins_right']}", flush=True)
     return row
 
@@ -108,7 +106,7 @@ def main():
     print("===================================================", flush=True)
     print("=== STARTING SELECTION VALIDATION SWEEP (COMBO3) ===", flush=True)
     print("===================================================", flush=True)
-    
+
     spec_validation = StatisticalComparisonSpec(
         metric_name="best_fitness",
         hypothesis_kind=HypothesisKind.LOCATION_SHIFT,
@@ -119,7 +117,7 @@ def main():
 
     master_rows = []
     total_fns = len(BBOB_FUNCTIONS)
-    
+
     for idx, fn in enumerate(BBOB_FUNCTIONS, 1):
         print(f"\n[PROGRESS] {idx}/{total_fns}: Function={fn}...", flush=True)
         toml_content = f"""# Auto-generated validation sweep TOML
@@ -153,7 +151,7 @@ strategy_params = {{ crossover_rate = {COMBO3['cr']}, elite_ratio = {COMBO3['eli
 """
         toml_path = CONFIG_DIR / f"{fn}_validation.toml"
         toml_path.write_text(toml_content)
-        
+
         out_subdir = POST_DIR / f"{fn}_validation"
         row = run_validation_experiment(toml_path, spec_validation, out_subdir)
         row["function"] = fn

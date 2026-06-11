@@ -7,17 +7,15 @@ saves raw outputs and postprocessed reports/plots, and compiles a master report.
 
 import json
 import shutil
-import sys
 from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy import stats
 
 from malthusjax.benchmarking.statistics import (
-    ExpectedDirection,
     HypothesisKind,
-    MultipleTestingPolicy,
     Sidedness,
     StatisticalComparator,
     StatisticalComparisonSpec,
@@ -71,20 +69,20 @@ def run_experiment(toml_path: Path, left_name: str, right_name: str, spec: Stati
             with open(cached_json, "r") as f:
                 cached_data = json.load(f)
             result_entry = cached_data["results"][0]
-            
+
             # Extract timing details
             timing_summary = result_entry.get("metadata", {}).get("timing_summary", {})
             duration = timing_summary.get("duration_seconds", {})
             left_time_mean = duration.get("left_mean", 0.0)
             right_time_mean = duration.get("right_mean", 0.0)
             total_speedup = right_time_mean / left_time_mean if left_time_mean > 0 else 1.0
-            
+
             _comps = timing_summary.get("components", {})
             evolution_timing = _comps.get("execution", _comps.get("evolution", {}))
             left_evo_mean = evolution_timing.get("left_mean", 0.0)
             right_evo_mean = evolution_timing.get("right_mean", 0.0)
             evo_speedup = right_evo_mean / left_evo_mean if left_evo_mean > 0 else 1.0
-            
+
             # Primary p-value and basis
             primary_p = None
             decision_basis = result_entry.get("decision_basis", "")
@@ -96,9 +94,9 @@ def run_experiment(toml_path: Path, left_name: str, right_name: str, spec: Stati
                 primary_p = result_entry["tests"]["paired_t"]["p_value"]
             elif "wilcoxon" in result_entry.get("tests", {}):
                 primary_p = result_entry["tests"]["wilcoxon"]["p_value"]
-                
+
             shapiro_p = np.nan
-            
+
             row = {
                 "label": result_entry["label"],
                 "n_paired": result_entry["n_paired"],
@@ -117,7 +115,7 @@ def run_experiment(toml_path: Path, left_name: str, right_name: str, spec: Stati
                 "right_evo_mean": right_evo_mean,
                 "evo_speedup": evo_speedup
             }
-            
+
             # Print brief summary matching the regular printout
             p_str = f"{row['primary_p']:.4g}" if row['primary_p'] is not None else "NaN"
             shap_str = f"{row['shapiro_p']:.4g}" if not np.isnan(row['shapiro_p']) else "NaN"
@@ -129,11 +127,11 @@ def run_experiment(toml_path: Path, left_name: str, right_name: str, spec: Stati
             print(f"[{toml_path.stem}] Error loading cached results: {e}. Running optimization runs...", flush=True)
 
     print(f"[{toml_path.stem}] Starting optimization runs for {left_name} and {right_name}...", flush=True)
-    
+
     # Run optimization runs
     comparison = Composer.from_toml(toml_path, pop_seed=42)
     print(f"[{toml_path.stem}] Runs completed. Extracting aligned paired datasets...", flush=True)
-    
+
     # Extract paired dataset
     dataset = paired_dataset_from_comparison(
         comparison=comparison,
@@ -141,13 +139,13 @@ def run_experiment(toml_path: Path, left_name: str, right_name: str, spec: Stati
         right_pipeline=right_name,
         spec=spec,
     )
-    
+
     # Run statistical comparison suite
     print(f"[{toml_path.stem}] Executing statistical hypothesis tests...", flush=True)
     comparator = StatisticalComparator()
     suite = comparator.compare_suite([dataset], spec)
     result = suite.results[0]
-    
+
     # Check normality of paired differences
     diffs = dataset.left_values - dataset.right_values
     if diffs.size >= 3:
@@ -159,7 +157,7 @@ def run_experiment(toml_path: Path, left_name: str, right_name: str, spec: Stati
     out_subdir.mkdir(parents=True, exist_ok=True)
     (out_subdir / "parity_summary.md").write_text(suite.to_markdown())
     (out_subdir / "parity_summary.json").write_text(json.dumps(suite.to_dict(), indent=2))
-    
+
     # Generate Plots
     # 1) Paired Scatter
     fig, ax = plt.subplots(figsize=(6, 6))
@@ -190,7 +188,7 @@ def run_experiment(toml_path: Path, left_name: str, right_name: str, spec: Stati
     ly = np.arange(1, lx.size + 1, dtype=float) / lx.size
     rx = np.sort(dataset.right_values)
     ry = np.arange(1, rx.size + 1, dtype=float) / rx.size
-    
+
     fig, ax = plt.subplots(figsize=(7, 4))
     ax.step(lx, ly, where="post", label=left_name)
     ax.step(rx, ry, where="post", label=right_name)
@@ -201,14 +199,14 @@ def run_experiment(toml_path: Path, left_name: str, right_name: str, spec: Stati
     fig.tight_layout()
     fig.savefig(out_subdir / "plot_end_ecdf.png", dpi=150)
     plt.close(fig)
-    
+
     # Extract timing details
     timing_summary = result.metadata.get("timing_summary", {})
     duration = timing_summary.get("duration_seconds", {})
     left_time_mean = duration.get("left_mean", 0.0)
     right_time_mean = duration.get("right_mean", 0.0)
     total_speedup = right_time_mean / left_time_mean if left_time_mean > 0 else 1.0
-    
+
     _comps = timing_summary.get("components", {})
     evolution_timing = _comps.get("execution", _comps.get("evolution", {}))
     left_evo_mean = evolution_timing.get("left_mean", 0.0)
@@ -254,7 +252,7 @@ def main():
     print("===================================================", flush=True)
     print("=== STARTING MASTER THESIS EXPERIMENTS SUITE ===", flush=True)
     print("===================================================", flush=True)
-    
+
     master_rows = []
 
     # ==========================================
@@ -305,7 +303,7 @@ strategy_params = {{ crossover_rate = {combo['cr']}, elite_ratio = {combo['elite
 """
             toml_path = CONFIG_DIR / f"{fn}_{name}.toml"
             toml_path.write_text(toml_content)
-            
+
             out_subdir = POST_DIR / f"{fn}_{name}"
             row = run_experiment(toml_path, "malthusjax", "evosax", spec_parity, out_subdir)
             row["scope"] = "BBOB Parity"
@@ -368,10 +366,10 @@ mutation = "evosax_gaussian:mutation_strength=0.1"
 
     toml_path = CONFIG_DIR / "sphere_ablation.toml"
     toml_path.write_text(ablation_toml)
-    
+
     print("[Ablation] Executing pipeline runs for all four variants...", flush=True)
     comp_ablation = Composer.from_toml(toml_path, pop_seed=42)
-    
+
     # Plotting convergence for the 4 pipelines
     print("[Ablation] Processing history and generating convergence plots...", flush=True)
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -387,7 +385,7 @@ mutation = "evosax_gaussian:mutation_strength=0.1"
     ax.set_title("Ablation Study: Sphere 5D Convergence Trajectories")
     ax.legend()
     fig.tight_layout()
-    
+
     ablation_out = POST_DIR / "ablation"
     ablation_out.mkdir(parents=True, exist_ok=True)
     fig.savefig(ablation_out / "plot_ablation_convergence.png", dpi=150)
@@ -436,7 +434,7 @@ mutation = "polynomial:mutation_rate=0.1,eta=20.0"
     toml_path = CONFIG_DIR / "rastrigin_operators.toml"
     toml_path.write_text(operators_toml)
     comp_ops = Composer.from_toml(toml_path, pop_seed=42)
-    
+
     # Plot convergence comparison
     fig, ax = plt.subplots(figsize=(8, 5))
     for name in ["standard_ga", "advanced_ga"]:
@@ -450,7 +448,7 @@ mutation = "polynomial:mutation_rate=0.1,eta=20.0"
     ax.set_title("Operator Comparison on Rastrigin Rotated 5D")
     ax.legend()
     fig.tight_layout()
-    
+
     ops_out = POST_DIR / "rastrigin_operators"
     ops_out.mkdir(parents=True, exist_ok=True)
     fig.savefig(ops_out / "plot_operators_convergence.png", dpi=150)
@@ -515,7 +513,7 @@ mutation = "swap:mutation_rate=0.05"
     toml_path = CONFIG_DIR / "knapsack.toml"
     toml_path.write_text(knapsack_toml)
     comp_ks = Composer.from_toml(toml_path, pop_seed=42)
-    
+
     # Plot convergence
     fig, ax = plt.subplots(figsize=(8, 5))
     for name in ["knapsack_single_point", "knapsack_uniform"]:
@@ -528,7 +526,7 @@ mutation = "swap:mutation_rate=0.05"
     ax.set_title("Combinatorial 0/1 Knapsack Convergence")
     ax.legend()
     fig.tight_layout()
-    
+
     ks_out = POST_DIR / "knapsack"
     ks_out.mkdir(parents=True, exist_ok=True)
     fig.savefig(ks_out / "plot_knapsack_convergence.png", dpi=150)
@@ -591,7 +589,7 @@ mutation = "gaussian:mutation_rate=0.2,mutation_strength=0.2"
     toml_path = CONFIG_DIR / "tsp.toml"
     toml_path.write_text(tsp_toml)
     comp_tsp = Composer.from_toml(toml_path, pop_seed=42)
-    
+
     # Plot convergence
     fig, ax = plt.subplots(figsize=(8, 5))
     for name in ["tsp_malthusjax", "tsp_random"]:
@@ -605,7 +603,7 @@ mutation = "gaussian:mutation_rate=0.2,mutation_strength=0.2"
     ax.set_title("TSP Berlin52 (50 Cities) Convergence")
     ax.legend()
     fig.tight_layout()
-    
+
     tsp_out = POST_DIR / "tsp"
     tsp_out.mkdir(parents=True, exist_ok=True)
     fig.savefig(tsp_out / "plot_tsp_convergence.png", dpi=150)
@@ -655,7 +653,7 @@ mutation = "gaussian:mutation_rate=0.2,mutation_strength=0.2"
     if sphere_combo2_dir.exists():
         for filename in ["plot_end_scatter.png", "plot_end_ecdf.png", "plot_diff_hist.png"]:
             shutil.copy(sphere_combo2_dir / filename, IMAGE_DIR / filename)
-            
+
     print("===================================================", flush=True)
     print("=== THESIS SUITE COMPLETED SUCCESSFULLY ===", flush=True)
     print("===================================================", flush=True)

@@ -5,11 +5,8 @@ Compares final gap for both backends on one seed and prints results.
 """
 from __future__ import annotations
 
-import subprocess
 import json
-from pathlib import Path
-
-import jax.random as jr
+import subprocess
 
 from malthusjax.composer import Composer
 
@@ -45,7 +42,7 @@ def run_composer_compare(seed: int):
     }
 
     print("Running Composer.compare(...) with shared_initial_population=True")
-    comp = composer.compare(pipelines=pipelines, seeds=(seed,), shared_initial_population=True, pop_seed=seed, fitness=f"bbob:fn_name=sphere,num_dims=5,maximize=false", pop_size=12, generations=20)
+    comp = composer.compare(pipelines=pipelines, seeds=(seed,), shared_initial_population=True, pop_seed=seed, fitness="bbob:fn_name=sphere,num_dims=5,maximize=false", pop_size=12, generations=20)
 
     results = {}
     for name, exp in comp.pipelines.items():
