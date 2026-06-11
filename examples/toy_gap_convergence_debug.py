@@ -18,8 +18,8 @@ import dataclasses
 from pathlib import Path
 
 import jax
-import jax.random as jr
 import jax.numpy as jnp
+import jax.random as jr
 import numpy as np
 import optax
 

@@ -10,16 +10,16 @@ Usage:
     nohup python run_all_thesis_experiments.py > thesis_bench.log 2>&1 &
 """
 
-from pathlib import Path
-import sys
-import json
-from datetime import datetime
 import argparse
 import gc
+import sys
+from datetime import datetime
+from pathlib import Path
+
+import jax
+import matplotlib.pyplot as plt
 
 from malthusjax.composer import Composer
-import matplotlib.pyplot as plt
-import jax
 
 
 def cleanup_gpu_memory():
@@ -35,7 +35,7 @@ def cleanup_gpu_memory():
         # Try to clear compiled function cache if available
         if hasattr(jax, '_src') and hasattr(jax._src, 'dispatch'):
             jax._src.dispatch.clear_backends()
-    except Exception as e:
+    except Exception:
         # If this fails, don't crash - just continue
         pass
 
@@ -199,10 +199,10 @@ def run_single_experiment(toml_path, skip_plots=False):
 
     elapsed = (datetime.now() - start_time).total_seconds()
     print(f"\nCompleted in {elapsed:.1f}s → {result_dir}")
-    
+
     # Cleanup GPU memory after experiment completes
     cleanup_gpu_memory()
-    
+
     return result_dir
 
 
@@ -263,7 +263,7 @@ def main():
         print(f"\n✓ Already completed ({len(completed)}):")
         for exp_name in completed:
             print(f"    - {exp_name}")
-    
+
     if remaining_tomls:
         print(f"\n⟳ To run ({len(remaining_tomls)}):")
         for toml in remaining_tomls:
@@ -302,7 +302,7 @@ def main():
         print(f"Newly completed ({len(results)}):")
         for result_dir in results:
             print(f"  ✓ {result_dir.name}")
-    
+
     total_completed = len(completed) + len(results)
     total_experiments = len(tomls)
     print(f"\nTotal: {total_completed}/{total_experiments} experiments completed")
