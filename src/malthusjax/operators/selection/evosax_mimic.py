@@ -1,9 +1,12 @@
+from typing import Any, Optional, Tuple
+
 import chex
 import jax
 import jax.numpy as jnp
 from flax import struct
-from typing import Any, Tuple, Optional
+
 from malthusjax.operators.base import BaseSelection, C, P
+
 
 @struct.dataclass
 class EvoSaxMimicSelection(BaseSelection[P, C]):
@@ -24,12 +27,12 @@ class EvoSaxMimicSelection(BaseSelection[P, C]):
     def __call__(self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any) -> Tuple[chex.Array, chex.Array]:
         fitness = jnp.asarray(getattr(population, "fitness", population))
         rng = keys if keys.ndim <= 1 else keys[0]
-        
+
         # Select parents
         parent_idx = self._select(rng, fitness)
-        
+
         # Elites to preserve (for SimpleGA, this matches n_elites)
         idx = jnp.argsort(fitness)
         elite_idx = idx[:self.n_elites]
-        
+
         return parent_idx, elite_idx

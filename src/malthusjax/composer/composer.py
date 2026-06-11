@@ -544,7 +544,7 @@ class Composer:
         """
         import jax
         import jax.random as jr
-        
+
         pop_size = int(config.get("pop_size", 50))
         genome_length = self._infer_genome_length(config)
         bounds = config.get("bounds", (-5.0, 5.0))
@@ -736,7 +736,7 @@ class Composer:
             if shared_initial_population and "initial_population" not in merged:
                 pipeline_init_pop = self._generate_initial_population(merged, pop_seed)
                 p_genome_length = self._infer_genome_length(merged)
-                
+
                 if int(pipeline_init_pop.shape[1]) != p_genome_length:
                     raise ValueError(
                         "Shared initial population dimension mismatch: "
@@ -912,7 +912,7 @@ class Composer:
         resolved = config_res.pipelines
         data_registry = config_res.data_registry
         shared = experiment_meta.get("shared", {})
-        
+
         output_dir = experiment_meta.get("output_dir")
         if output_dir:
             shared.setdefault("output_dir", output_dir)

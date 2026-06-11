@@ -7,7 +7,6 @@ to enable static allocation and precise "cascade" data flow.
 """
 
 import logging
-import math
 from enum import Enum
 from typing import Any, NamedTuple, Tuple, cast
 
@@ -344,15 +343,15 @@ def get_step_dimension_flow(
 
     lines = [
         "Step Dimension Flow:",
-        f"  Let n = pop size, d = genome width, e = elitism.",
+        "  Let n = pop size, d = genome width, e = elitism.",
         f"  {pair_formula}",
         "",
         "  [0. ENTROPY ALLOCATION]",
         "     master key -> 4 sub-buffers",
-        f"     selection keys: (1, 2)",
-        f"     crossover keys: (1, 2)",
-        f"     mutation keys:   (1, 2)",
-        f"     next key:        (2,)",
+        "     selection keys: (1, 2)",
+        "     crossover keys: (1, 2)",
+        "     mutation keys:   (1, 2)",
+        "     next key:        (2,)",
         "",
         "  [1. SELECTION]",
         f"     fitness:        ({n},)",

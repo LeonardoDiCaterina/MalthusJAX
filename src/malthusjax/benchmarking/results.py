@@ -721,10 +721,10 @@ class ComparisonResult:
         for name, exp in self.pipelines.items():
             values: List[float] = []
             sign = self._sign(name) if metric_key in self._FITNESS_KEYS else 1.0
-            
+
             # Sort chronologically so index 0 is the true first run (warmup)
             sorted_runs = sorted(exp.runs, key=lambda r: r.created_at)
-            
+
             for run in sorted_runs:
                 raw_val = None
                 if metric_key == "duration_seconds":
@@ -742,10 +742,10 @@ class ComparisonResult:
                 except (TypeError, ValueError):
                     continue
                 values.append(value * sign)
-                
+
             if metric_key in ("duration_seconds", "execution", "total", "warmup") and len(values) > 1:
                 values = values[1:]
-                
+
             data[name] = values
         return data
 
@@ -1129,23 +1129,23 @@ class ComparisonResult:
             fig, ax = plt.subplots(figsize=(6, 4))
 
         data = self.final_metric_data(metric_key=metric_key)
-        
+
         # Sort by median for better visualization
         names = list(data.keys())
         # Provide fallback if empty
         if not names:
             return ax
-            
+
         values = [data[name] for name in names]
-        
+
         bplot = ax.boxplot(values, patch_artist=True, tick_labels=names)
-        
+
         # Add colors if possible
         colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
         for i, patch in enumerate(bplot['boxes']):
             patch.set_facecolor(colors[i % len(colors)])
             patch.set_alpha(0.7)
-            
+
         for median in bplot['medians']:
             median.set_color('black')
             median.set_linewidth(1.5)
@@ -1175,15 +1175,15 @@ class MetaComparison:
         n = len(self.comparisons)
         if n == 0:
             return None
-        
+
         fig, axes = plt.subplots(1, n, figsize=(5 * n, 4))
         if n == 1:
             axes = [axes]
-        
+
         for ax, (exp_name, comp) in zip(axes, self.comparisons.items()):
             comp.plot_convergence(ax=ax, title=exp_name, **kwargs)
             # Handle sphere log scaling if needed or keep default behavior
-        
+
         fig.suptitle("Convergence Parity Suite", fontsize=16, y=1.05)
         plt.tight_layout()
         if save_path:
@@ -1201,14 +1201,14 @@ class MetaComparison:
         n = len(self.comparisons)
         if n == 0:
             return None
-        
+
         fig, axes = plt.subplots(1, n, figsize=(5 * n, 4))
         if n == 1:
             axes = [axes]
-            
+
         for ax, (exp_name, comp) in zip(axes, self.comparisons.items()):
             comp.plot_boxplots(metric_key=metric_key, ax=ax, title=exp_name, **kwargs)
-            
+
         fig.suptitle(f"{metric_key.capitalize()} Distribution Suite", fontsize=16, y=1.05)
         plt.tight_layout()
         if save_path:

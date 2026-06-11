@@ -232,7 +232,7 @@ class EvosaxEngineAdapter:
         # ---- Post-processing: extract history and summary ----
         history = []
         track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
-        
+
         for g in range(self.num_generations):
             gen_stats: Dict[str, Any] = {"generation": g + 1}
             for k in track_keys:
@@ -254,7 +254,7 @@ class EvosaxEngineAdapter:
             "total_evaluations": self.num_generations * self.pop_size,
             "pop_size": self.pop_size,
         }
-        
+
         # Add gap to optimum if available
         if self.evaluator is not None:
             gap = self.evaluator.get_gap_to_optimum(best_fitness_value)

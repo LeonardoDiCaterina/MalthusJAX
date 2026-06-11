@@ -3,9 +3,9 @@ Selection Operators Module.
 """
 
 from .elite_pool import ElitePoolSelection
+from .evosax_mimic import EvoSaxMimicSelection
 from .roulette import RouletteSelection
 from .tournament import TournamentSelection
-from .evosax_mimic import EvoSaxMimicSelection
 
 __all__ = [
     "TournamentSelection",

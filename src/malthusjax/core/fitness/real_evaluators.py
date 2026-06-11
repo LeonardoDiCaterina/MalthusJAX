@@ -10,7 +10,6 @@ from __future__ import annotations
 from typing import Any, Tuple
 
 import chex
-import jax
 import jax.numpy as jnp
 import jax.random as jr
 from flax import struct

@@ -109,9 +109,9 @@ class GeneticEngineAdapter:
         num_gens = int(self.genetic_engine.engine_params.num_generations)
         history = []
         sign = -1.0 if self.maximize else 1.0
-        
+
         track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
-        
+
         for g in range(num_gens):
             gen_stats: Dict[str, Any] = {"generation": g + 1}
             for k in track_keys:

@@ -5,16 +5,16 @@ with sensible defaults and declarative configuration.
 """
 
 from .composer import Composer
+from .decorators import (
+    register_crossover,
+    register_engine,
+    register_fitness,
+    register_genome,
+    register_mutation,
+    register_selection,
+)
 from .engine_catalog import EngineRegistry
 from .evosax_adapter import EvosaxEngineAdapter, build_evosax_engine, list_strategies
-from .decorators import (
-    register_selection,
-    register_mutation,
-    register_crossover,
-    register_fitness,
-    register_engine,
-    register_genome,
-)
 
 __all__ = [
     "Composer",

@@ -1,33 +1,30 @@
 """Unified CLI interface for MalthusJAX benchmarking and analysis."""
 
 import argparse
+import json
+import shutil
 import sys
+import time
 from pathlib import Path
 from typing import List, Optional
 
-from malthusjax.composer.catalog import OperatorCatalog
-
-
-import json
-import shutil
-import time
-
 from malthusjax.composer import Composer
+from malthusjax.composer.catalog import OperatorCatalog
 
 
 def _dump_results(comparison, out_dir: Path, config_path: Path) -> None:
     """Helper to save results conforming to the strict CLI structure."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Metadata
     meta_dir = out_dir / "metadata"
     meta_dir.mkdir(exist_ok=True)
     shutil.copy2(config_path, meta_dir / "config_snapshot.toml")
-    
+
     # Data
     data_dir = out_dir / "data"
     data_dir.mkdir(exist_ok=True)
-    
+
     for pipe_name, exp_result in comparison.pipelines.items():
         pipe_dir = data_dir / f"pipeline_{pipe_name}"
         pipe_dir.mkdir(exist_ok=True)
@@ -44,10 +41,10 @@ def handle_run(args: argparse.Namespace) -> int:
     t0 = time.time()
     comparison = Composer.from_toml(config_path, shared_initial_population=True)
     dur = time.time() - t0
-    
+
     out_dir = Path("results") / config_path.stem
     _dump_results(comparison, out_dir, config_path)
-    
+
     print(f"Experiment complete in {dur:.2f}s.")
     print(f"Raw data saved to {out_dir}/data")
     return 0
@@ -61,27 +58,32 @@ def handle_parity(args: argparse.Namespace) -> int:
     # parity implies enforcing a shared initial pop for exact alignment
     comparison = Composer.from_toml(config_path, shared_initial_population=True)
     dur = time.time() - t0
-    
+
     out_dir = Path("results") / config_path.stem
     _dump_results(comparison, out_dir, config_path)
-    
+
     print(f"Parity execution complete in {dur:.2f}s.")
     print(f"Raw data saved to {out_dir}/data")
     return 0
 
 
-import glob
 
-from malthusjax.benchmarking.results import ExperimentResult, RunResult, ComparisonResult, MetaComparison
+from malthusjax.benchmarking.results import (
+    ComparisonResult,
+    ExperimentResult,
+    MetaComparison,
+    RunResult,
+)
 from malthusjax.benchmarking.statistics import (
-    HypothesisKind,
-    Sidedness,
     ExpectedDirection,
+    HypothesisKind,
     MultipleTestingPolicy,
+    Sidedness,
+    StatisticalComparator,
     StatisticalComparisonSpec,
     paired_dataset_from_comparison,
-    StatisticalComparator,
 )
+
 
 def _load_comparison(results_dir: Path) -> ComparisonResult:
     """Rebuild a ComparisonResult from the disk schema."""
@@ -104,12 +106,12 @@ def handle_analyze(args: argparse.Namespace) -> int:
     results_dir = args.results_dir
     print(f"Analyzing results in {results_dir}...")
     comparison = _load_comparison(results_dir)
-    
+
     pipe_names = list(comparison.pipelines.keys())
-    
+
     analysis_dir = results_dir / "analysis"
     analysis_dir.mkdir(exist_ok=True)
-    
+
     if len(pipe_names) == 2:
         left, right = pipe_names[0], pipe_names[1]
         print(f"Running statistical parity analysis for {left} vs {right}...")
@@ -124,13 +126,13 @@ def handle_analyze(args: argparse.Namespace) -> int:
         dataset = paired_dataset_from_comparison(comparison, left, right, spec)
         comparator = StatisticalComparator()
         suite = comparator.compare_suite([dataset], spec)
-        
+
         with open(analysis_dir / "parity_summary.json", "w") as f:
             json.dump(suite.to_dict(), f, indent=2)
-            
+
         with open(analysis_dir / "parity_summary.md", "w") as f:
             f.write(suite.to_markdown())
-        
+
         print("Analysis generated in analysis/")
     else:
         # Just standard mean/std dumps
@@ -139,7 +141,7 @@ def handle_analyze(args: argparse.Namespace) -> int:
             summary = exp.aggregated_summary()
             with open(analysis_dir / f"{name}_summary.json", "w") as f:
                 json.dump(summary, f, indent=2)
-                
+
     return 0
 
 
@@ -147,32 +149,32 @@ def handle_plot(args: argparse.Namespace) -> int:
     """Handle `mjax plot`."""
     results_dir = args.results_dir
     print(f"Plotting results for {results_dir}...")
-    
+
     comparison = _load_comparison(results_dir)
     plot_dir = results_dir / "plots"
     plot_dir.mkdir(exist_ok=True)
-    
+
     # Try to generate the combined convergence plot
     try:
         comparison.plot_convergence(save_path=plot_dir / "convergence.png")
         print("Generated plots/convergence.png")
     except Exception as e:
         print(f"Could not generate convergence plot: {e}")
-        
+
     # Try to generate the boxplot comparison
     try:
         comparison.plot_boxplots(save_path=plot_dir / "fitness_distribution.png")
         print("Generated plots/fitness_distribution.png")
     except Exception as e:
         print(f"Could not generate boxplots: {e}")
-        
+
     # Try to generate the timings boxplot
     try:
         comparison.plot_boxplots(metric_key="duration_seconds", save_path=plot_dir / "timings.png")
         print("Generated plots/timings.png")
     except Exception as e:
         print(f"Could not generate timings boxplot: {e}")
-        
+
     return 0
 
 
@@ -188,9 +190,9 @@ def handle_aggregate(args: argparse.Namespace) -> int:
     """Handle `mjax aggregate`."""
     out_dir = args.out_dir
     results_dirs = args.results_dirs
-    
+
     print(f"Aggregating {len(results_dirs)} experiments into {out_dir}...")
-    
+
     comparisons = {}
     for d in results_dirs:
         print(f"  Loading {d}...")
@@ -199,31 +201,31 @@ def handle_aggregate(args: argparse.Namespace) -> int:
             comparisons[d.name] = comp
         except Exception as e:
             print(f"  Failed to load {d}: {e}")
-            
+
     if not comparisons:
         print("No valid experiments loaded.")
         return 1
-        
+
     meta = MetaComparison(comparisons)
-    
+
     out_dir.mkdir(parents=True, exist_ok=True)
     plot_dir = out_dir / "plots"
     plot_dir.mkdir(exist_ok=True)
-    
+
     print("Generating aggregate convergence grid...")
     meta.plot_convergence_grid(save_path=plot_dir / "convergence_grid.png")
-    
+
     print("Generating aggregate boxplot grid...")
     meta.plot_boxplot_grid(save_path=plot_dir / "fitness_distribution_grid.png")
-    
+
     print("Generating aggregate timings grid...")
     meta.plot_boxplot_grid(metric_key="duration_seconds", save_path=plot_dir / "timings_grid.png")
-    
+
     print("Generating aggregate summary JSON...")
     summary = meta.summary_table()
     with open(out_dir / "aggregate_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
-        
+
     print(f"Aggregate report complete. Results saved in {out_dir}")
     return 0
 

@@ -100,7 +100,7 @@ def _create_bbob_evaluator(**kwargs: _Any) -> "BBOBEvaluator":
 
 
 def _create_knapsack_evaluator(**kwargs: _Any) -> "KnapsackEvaluator":
-    from .binary_evaluators import KnapsackEvaluator, KnapsackConfig
+    from .binary_evaluators import KnapsackConfig, KnapsackEvaluator
 
     _resolved_data = kwargs.pop("_resolved_data", None)
     kwargs.pop("data_id", None)
