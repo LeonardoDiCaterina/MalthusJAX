@@ -1,6 +1,5 @@
 """Tests for the decorator-based registration API."""
 
-import pytest
 
 from malthusjax.composer import (
     register_crossover,

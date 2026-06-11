@@ -1,6 +1,5 @@
 """Tests for the unified mjax benchmarking CLI."""
 
-import json
 from pathlib import Path
 
 from malthusjax.benchmarking.cli import main
@@ -89,11 +88,11 @@ def test_cli_parity_and_analyze(tmp_path: Path):
         # 2. Run offline analysis
         analyze_result = main(["analyze", str(out_dir)])
         assert analyze_result == 0
-        
+
         # Check that parity JSON and MD were generated
         analysis_dir = out_dir / "analysis"
         assert (analysis_dir / "parity_summary.json").exists()
         assert (analysis_dir / "parity_summary.md").exists()
-        
+
     finally:
         os.chdir(original_cwd)

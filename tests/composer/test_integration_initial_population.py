@@ -1,21 +1,20 @@
-import types
 from types import SimpleNamespace
 
+import jax
+import jax.random as jr
 import numpy as np
 import pytest
 
 from examples.toy_gap_convergence import _shared_initial_population
-from malthusjax.composer.composer import Composer
 from malthusjax.benchmarking.results import ExperimentResult
+from malthusjax.composer.composer import Composer
+from malthusjax.composer.evosax_adapter import build_evosax_engine
+from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
 from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-from malthusjax.composer.evosax_adapter import build_evosax_engine
-import jax.random as jr
-import jax
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
 
 def _make_stub_quick_run(self, **kwargs):

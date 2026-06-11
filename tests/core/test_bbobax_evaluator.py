@@ -28,7 +28,7 @@ def test_bbobax_evaluate_population_shapes_and_finite():
     key = random.PRNGKey(0)
     pop = RealPopulation.init_random(
         key,
-        RealGenomeConfig(shape=(4,), bounds=(-5.0, 5.0)), 
+        RealGenomeConfig(shape=(4,), bounds=(-5.0, 5.0)),
         size=5
     )
 

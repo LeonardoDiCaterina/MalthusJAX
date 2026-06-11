@@ -1,8 +1,8 @@
 import jax
 import pytest
 
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 from malthusjax.composer.evosax_adapter import build_evosax_engine
+from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 
 
 @pytest.mark.parametrize("pop_size,generations", [(8, 2), (16, 3)])

@@ -6,7 +6,6 @@ import pytest
 
 from malthusjax.benchmarking import StubEngine
 from malthusjax.composer import Composer
-from malthusjax.composer.engine_factory import GeneticEngineAdapter
 
 
 class TestComposerRealEngines:
