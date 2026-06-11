@@ -42,7 +42,7 @@ def handle_run(args: argparse.Namespace) -> int:
     config_path = args.config
     print(f"Running experiment from {config_path}...")
     t0 = time.time()
-    comparison = Composer.from_toml(config_path)
+    comparison = Composer.from_toml(config_path, shared_initial_population=True)
     dur = time.time() - t0
     
     out_dir = Path("results") / config_path.stem
