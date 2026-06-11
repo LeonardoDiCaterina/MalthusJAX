@@ -12,7 +12,7 @@ produce a :class:`GeneticEngineAdapter` conforming to the
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional, Tuple, Union, cast
+from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
 
 import chex
 import jax.numpy as jnp
@@ -41,12 +41,14 @@ class GeneticEngineAdapter:
         initial_population: Any = None,
         prng_impl: Optional[str] = None,
         maximize: bool = False,
+        history_metrics: Optional[Sequence[str]] = None,
     ):
         self.genetic_engine = genetic_engine
         self.genome_config = genome_config
         self.initial_population = initial_population
         self.prng_impl = prng_impl
         self.maximize = maximize
+        self.history_metrics = history_metrics
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
@@ -107,21 +109,28 @@ class GeneticEngineAdapter:
         num_gens = int(self.genetic_engine.engine_params.num_generations)
         history = []
         sign = -1.0 if self.maximize else 1.0
+        
+        track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
+        
         for g in range(num_gens):
-            history.append(
-                {
-                    "generation": g + 1,
-                    "best_fitness": float(sign * scan_history.best_fitness[g]),
-                    "mean_fitness": float(sign * scan_history.mean_fitness[g]),
-                }
-            )
+            gen_stats: Dict[str, Any] = {"generation": g + 1}
+            for k in track_keys:
+                if hasattr(scan_history, k):
+                    val = getattr(scan_history, k)[g]
+                    if k in ("best_fitness", "mean_fitness", "std_fitness"):
+                        val = val * sign
+                    gen_stats[k] = float(val)
+            history.append(gen_stats)
 
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
         report_initial = float(sign * initial_best)
         report_best = float(sign * final_state.best_fitness)
+        import jax
+        best_genome_flat, _ = jax.flatten_util.ravel_pytree(final_state.best_genome)
         summary = {
             "initial_fitness": report_initial,
             "best_fitness": report_best,
+            "best_solution": best_genome_flat.tolist(),
             "final_generation": int(final_state.generation),
             "total_evaluations": total_evals,
         }
@@ -156,6 +165,7 @@ def build_engine(
     genome_shape: Tuple[int, ...] = (10,),
     bounds: Tuple[float, float] = (-5.0, 5.0),
     unroll_factor: int = 1,
+    history_metrics: Optional[Sequence[str]] = None,
     **kwargs: Any,
 ) -> GeneticEngineAdapter:
     """Build a :class:`GeneticEngine` from concrete operator instances.
@@ -268,6 +278,7 @@ def build_engine(
         initial_population=initial_population,
         prng_impl=prng_impl_str,
         maximize=maximize_flag,
+        history_metrics=history_metrics,
     )
 
 

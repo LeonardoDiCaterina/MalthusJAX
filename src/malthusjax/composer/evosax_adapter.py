@@ -30,7 +30,7 @@ Usage::
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple
 
 import chex
 import evosax
@@ -72,6 +72,7 @@ class EvosaxEngineAdapter:
         initial_population: chex.Array = None,
         prng_impl: Optional[str] = None,
         evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
+        history_metrics: Optional[Sequence[str]] = None,
     ) -> None:
         self.strategy = strategy
         self.params = params
@@ -85,6 +86,7 @@ class EvosaxEngineAdapter:
         self.initial_population = initial_population
         self.prng_impl = prng_impl
         self.evaluator = evaluator
+        self.history_metrics = history_metrics
         self._jit_run_loop = None  # Cached JIT-compiled evolution loop
 
     def _build_jit_loop(self):
@@ -229,15 +231,14 @@ class EvosaxEngineAdapter:
 
         # ---- Post-processing: extract history and summary ----
         history = []
+        track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
+        
         for g in range(self.num_generations):
-            gen_stats = {}
-            for k, v in metrics.items():
-                val = v[g]
-                if val.ndim == 0:
-                    gen_stats[k] = val.item()
-                else:
-                    gen_stats[k] = val.tolist()
-            gen_stats.setdefault("generation", g + 1)
+            gen_stats: Dict[str, Any] = {"generation": g + 1}
+            for k in track_keys:
+                if k in metrics:
+                    val = metrics[k][g]
+                    gen_stats[k] = val.item() if val.ndim == 0 else val.tolist()
             history.append(gen_stats)
 
         if history:
@@ -282,6 +283,7 @@ def build_evosax_engine(
     strategy_params: Optional[Dict[str, Any]] = None,
     initial_population: Any = None,
     prng_impl: Optional[str] = None,
+    history_metrics: Optional[Sequence[str]] = None,
     **kwargs: Any,
 ) -> EvosaxEngineAdapter:
     """Build an :class:`EvosaxEngineAdapter` from high-level specs.
@@ -404,4 +406,5 @@ def build_evosax_engine(
         initial_population=initial_population,
         prng_impl=prng_impl,
         evaluator=evaluator,
+        history_metrics=history_metrics,
     )

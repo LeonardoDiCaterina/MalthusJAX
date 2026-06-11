@@ -152,6 +152,7 @@ class Composer:
         use_history_for_final: bool = False,
         trace_dir: Optional[Path | str] = None,
         data_config: Optional[Dict[str, Any]] = None,
+        history_metrics: Optional[Sequence[str]] = None,
         **kwargs: Any,
     ) -> ExperimentResult:
         """Run a full evolutionary experiment with programmatic operator specs.
@@ -424,6 +425,7 @@ class Composer:
                     bounds=bounds,
                     maximize=maximize,
                     prng_impl=prng_impl,
+                    history_metrics=history_metrics,
                     **kwargs,
                 )
             elif self._has_real_operators(genome, fitness, selection, crossover, mutation):
@@ -443,6 +445,7 @@ class Composer:
                     maximize=maximize,
                     prng_impl=prng_impl,
                     data_config=data_config,
+                    history_metrics=history_metrics,
                     **kwargs,
                 )
             else:
@@ -512,6 +515,61 @@ class Composer:
                     run.metrics.setdefault("final_generation", int(last["generation"]))
                 except Exception:
                     pass
+
+    def _infer_genome_length(self, cfg: Dict[str, Any]) -> int:
+        """Infer genome length from config, preferring explicit values.
+
+        Priority:
+        1) ``genome_length`` kwarg
+        2) ``fitness`` spec params ``dim`` / ``num_dims``
+        3) default 10
+        """
+        if "genome_length" in cfg and cfg["genome_length"] is not None:
+            return int(cfg["genome_length"])
+
+        fitness_spec = cfg.get("fitness")
+        if isinstance(fitness_spec, str):
+            parsed_name, parsed_params = OperatorCatalog().parse_spec(fitness_spec)
+            dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
+            if dim_val is not None:
+                return int(dim_val)
+
+        return 10
+
+    def _generate_initial_population(self, config: Dict[str, Any], pop_seed: int) -> Any:
+        """Deterministically generate a shared initial population matrix for a given pipeline config.
+        
+        Ensures that pipelines with identical bounds, population sizes, and dimensionality 
+        receive the exact same starting points, while dynamically scaling to the requested pop_size.
+        """
+        import jax
+        import jax.random as jr
+        
+        pop_size = int(config.get("pop_size", 50))
+        genome_length = self._infer_genome_length(config)
+        bounds = config.get("bounds", (-5.0, 5.0))
+        fitness_spec = config.get("fitness")
+
+        if fitness_spec and isinstance(fitness_spec, str) and "bbob" in fitness_spec.lower():
+            cat = OperatorCatalog()
+            parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+            if parsed_name == "bbob":
+                fn = parsed_params.get("fn_name", parsed_params.get("fn", "rosenbrock"))
+                dims = parsed_params.get("dim", parsed_params.get("num_dims", genome_length))
+                bbob_seed = parsed_params.get("seed", 0)
+                bbob_eval = BBOBEvaluator.create(
+                    BBOBConfig(fn_name=fn, num_dims=dims, seed=bbob_seed, maximize=config.get("maximize", False))
+                )
+                pop_key = jr.PRNGKey(pop_seed)
+                sample_keys = jr.split(pop_key, pop_size)
+                return jax.vmap(bbob_eval.evosax_problem.sample)(sample_keys)
+
+        return jr.uniform(
+            jr.PRNGKey(pop_seed),
+            (pop_size, genome_length),
+            minval=float(bounds[0]),
+            maxval=float(bounds[1]),
+        )
 
     def compare(
         self,
@@ -655,71 +713,13 @@ class Composer:
             )
             # All pipelines start from identical population
         """
-        def _infer_genome_length(cfg: Dict[str, Any]) -> int:
-            """Infer genome length from config, preferring explicit values.
 
-            Priority:
-            1) ``genome_length`` kwarg
-            2) ``fitness`` spec params ``dim`` / ``num_dims``
-            3) default 10
-            """
-            if "genome_length" in cfg and cfg["genome_length"] is not None:
-                return int(cfg["genome_length"])
-
-            fitness_spec = cfg.get("fitness")
-            if isinstance(fitness_spec, str):
-                parsed_name, parsed_params = OperatorCatalog().parse_spec(fitness_spec)
-                _ = parsed_name  # parsed_name is intentionally unused here
-                dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
-                if dim_val is not None:
-                    return int(dim_val)
-
-            return 10
-
-        init_pop = None
-        if shared_initial_population:
-            pop_size = int(shared_kwargs.get("pop_size", 50))
-            genome_length = _infer_genome_length(shared_kwargs)
-            bounds = shared_kwargs.get("bounds", (-5.0, 5.0))
-
-            # Prefer a shared fitness spec, but fall back to the first pipeline's
-            # fitness when parity TOMLs keep fitness under each pipeline section.
-            fitness_spec = shared_kwargs.get("fitness")
-            if fitness_spec is None and pipelines:
-                first_pipeline = next(iter(pipelines.values()))
-                fitness_spec = first_pipeline.get("fitness")
-
-            # Check if using BBOB - if so, use its sample() method for consistency
-            if fitness_spec and isinstance(fitness_spec, str) and "bbob" in fitness_spec.lower():
-                # Parse BBOB spec to create evaluator for sampling
-                cat = OperatorCatalog()
-                parsed_name, parsed_params = cat.parse_spec(fitness_spec)
-                if parsed_name == "bbob":
-                    fn = parsed_params.get("fn_name", parsed_params.get("fn", "rosenbrock"))
-                    dims = parsed_params.get("dim", parsed_params.get("num_dims", genome_length))
-                    # Use BBOB seed from fitness spec, not from population seed
-                    bbob_seed = parsed_params.get("seed", 0)
-                    bbob_eval = BBOBEvaluator.create(
-                        BBOBConfig(fn_name=fn, num_dims=dims, seed=bbob_seed, maximize=shared_kwargs.get("maximize", False))
-                    )
-                    # Generate initial population using BBOB's sample method
-                    pop_key = jr.PRNGKey(pop_seed)
-                    sample_keys = jr.split(pop_key, pop_size)
-                    init_pop = jax.vmap(bbob_eval.evosax_problem.sample)(sample_keys)
-
-            # Fall back to uniform sampling if not BBOB
-            if init_pop is None:
-                init_pop = jr.uniform(
-                    jr.PRNGKey(pop_seed),
-                    (pop_size, genome_length),
-                    minval=float(bounds[0]),
-                    maxval=float(bounds[1]),
-                )
 
         trace_base = shared_kwargs.pop("trace_dir", None)
 
         results: Dict[str, ExperimentResult] = {}
         negate_map: Dict[str, bool] = {}
+        last_init_pop = None
 
         iterable = pipelines.items()
         if tqdm is not None:
@@ -733,18 +733,17 @@ class Composer:
             if trace_base is not None:
                 merged["trace_dir"] = Path(trace_base) / name
 
-            if init_pop is not None and "initial_population" not in merged:
-                expected_dim = _infer_genome_length(merged)
-                if int(init_pop.shape[1]) != expected_dim:
+            if shared_initial_population and "initial_population" not in merged:
+                pipeline_init_pop = self._generate_initial_population(merged, pop_seed)
+                p_genome_length = self._infer_genome_length(merged)
+                
+                if int(pipeline_init_pop.shape[1]) != p_genome_length:
                     raise ValueError(
                         "Shared initial population dimension mismatch: "
-                        f"init_pop has dim={int(init_pop.shape[1])} but pipeline '{name}' "
-                        f"expects dim={expected_dim}. "
-                        "Ensure all pipelines share the same dimensionality when "
-                        "shared_initial_population=True, or pass per-pipeline "
-                        "initial_population explicitly."
+                        f"expected {p_genome_length}, got {pipeline_init_pop.shape[1]}"
                     )
-                merged["initial_population"] = init_pop
+                merged["initial_population"] = pipeline_init_pop
+                last_init_pop = pipeline_init_pop
 
             results[name] = self.quick_run(**merged)
             maximize_flag = bool(merged.get("maximize", False))
@@ -764,7 +763,7 @@ class Composer:
         return ComparisonResult(
             pipelines=results,
             shared_config=dict(shared_kwargs),
-            initial_population=init_pop,
+            initial_population=last_init_pop,
             negate_map=negate_map,
         )
 
