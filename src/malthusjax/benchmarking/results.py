@@ -11,6 +11,12 @@ from __future__ import annotations
 
 import json
 import statistics
+import math
+
+try:
+    from scipy import stats as sp_stats
+except ImportError:
+    sp_stats = None
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -259,7 +265,7 @@ class ExperimentResult:
             return {}
         return self.runs[0].metrics
 
-    def aggregated_summary(self) -> Dict[str, Dict[str, float]]:
+    def aggregated_summary(self, optimum: Optional[float] = None) -> Dict[str, Dict[str, float]]:
         """Compute aggregated statistics for each metric across all seeds.
 
         This is the primary method for summarizing multi-seed experimental
@@ -312,6 +318,8 @@ class ExperimentResult:
                     val = float(v)
                 except Exception:
                     continue
+                if optimum is not None and "fitness" in k:
+                    val = abs(val - optimum)
                 agg.setdefault(k, []).append(val)
 
         summary: Dict[str, Dict[str, float]] = {}
@@ -321,7 +329,24 @@ class ExperimentResult:
             mean = statistics.mean(vals)
             med = statistics.median(vals)
             stdev = statistics.stdev(vals) if len(vals) > 1 else 0.0
-            summary[k] = {"mean": mean, "median": med, "stdev": stdev}
+            
+            ci_lower = mean
+            ci_upper = mean
+            ci_margin = 0.0
+            if len(vals) > 1 and sp_stats is not None:
+                sem = stdev / math.sqrt(len(vals))
+                ci_margin = sp_stats.t.ppf(0.975, df=len(vals)-1) * sem
+                ci_lower = mean - ci_margin
+                ci_upper = mean + ci_margin
+
+            summary[k] = {
+                "mean": mean, 
+                "median": med, 
+                "stdev": stdev,
+                "ci_lower": ci_lower,
+                "ci_upper": ci_upper,
+                "ci_margin": ci_margin
+            }
         return summary
 
     def gap_summary(self) -> Dict[str, float]:
@@ -448,7 +473,7 @@ class ComparisonResult:
         """Pipeline names in insertion order."""
         return list(self.pipelines.keys())
 
-    def summary_table(self, latex: bool = False) -> Union[Dict[str, Dict[str, float]], str]:
+    def summary_table(self, latex: bool = False, optimum: Optional[float] = None) -> Union[Dict[str, Dict[str, float]], str]:
         """Compute per-pipeline aggregated metrics across all seeds.
 
         This is the main method for comparing algorithm performance. Returns
@@ -503,12 +528,19 @@ class ComparisonResult:
         """
         table: Dict[str, Dict[str, float]] = {}
         for name, exp in self.pipelines.items():
-            agg = exp.aggregated_summary()
+            agg = exp.aggregated_summary(optimum=optimum)
             s = self._sign(name)
             # Flatten to the mean; negate fitness keys if needed
-            table[name] = {
-                k: (v["mean"] * s if k in self._FITNESS_KEYS else v["mean"]) for k, v in agg.items()
-            }
+            table_row = {}
+            for k, v in agg.items():
+                mean_val = v["mean"] * s if k in self._FITNESS_KEYS and optimum is None else v["mean"]
+                table_row[k] = {
+                    "mean": mean_val,
+                    "ci_margin": v.get("ci_margin", 0.0),
+                    "ci_lower": v.get("ci_lower", mean_val),
+                    "ci_upper": v.get("ci_upper", mean_val)
+                }
+            table[name] = table_row
 
         if not latex:
             return table
@@ -541,8 +573,24 @@ class ComparisonResult:
         for pipeline_name, metrics in table.items():
             row = [ _latex_escape(pipeline_name) ]
             for metric in metric_names:
-                value = metrics.get(metric, float("nan"))
-                row.append(f"{value:.6g}")
+                val = metrics.get(metric)
+                if val is None:
+                    row.append("NaN")
+                    continue
+                
+                # If the metric is a dict (like from our new summary_table), try to format it
+                if isinstance(val, dict) and "mean" in val:
+                    mean_val = val["mean"]
+                    margin = val.get("ci_margin", 0.0)
+                    if margin > 0.0:
+                        row.append(f"{mean_val:.4g} $\\pm$ {margin:.4g}")
+                    else:
+                        row.append(f"{mean_val:.4g}")
+                else:
+                    try:
+                        row.append(f"{float(val):.6g}")
+                    except (ValueError, TypeError):
+                        row.append("NaN")
             lines.append(" & ".join(row) + r" \\")
 
         lines.append("\\hline")
@@ -590,6 +638,95 @@ class ComparisonResult:
             )
 
         return normalized_runs
+
+
+    def statistical_speedup(self, base_pipeline: str, target_pipeline: str, conf_level: float = 0.95) -> Dict[str, float]:
+        """Compute paired speedup (Base / Target) across seeds with confidence intervals."""
+        if sp_stats is None:
+            raise ImportError("scipy is required for statistical tests.")
+            
+        base_exp = self.pipelines[base_pipeline]
+        target_exp = self.pipelines[target_pipeline]
+        
+        base_runs = {r.seed: r for r in base_exp.runs if r.duration_seconds is not None}
+        target_runs = {r.seed: r for r in target_exp.runs if r.duration_seconds is not None}
+        
+        common_seeds = set(base_runs.keys()).intersection(target_runs.keys())
+        if not common_seeds:
+            raise ValueError("No common seeds with duration data found.")
+            
+        speedups = []
+        for seed in common_seeds:
+            # Drop warmup (highest duration in both, wait, we do this by just removing max if we had lists. 
+            # If we want to be safe, we just use the raw durations here. Actually it's better to just do pairing. 
+            # Or we can remove the maximum duration seed from the paired list.)
+            speedups.append(base_runs[seed].duration_seconds / target_runs[seed].duration_seconds)
+            
+        # Optional: remove the pair with the highest base_duration (warmup)
+        if len(speedups) > 3:
+            max_idx = speedups.index(max(speedups))
+            # Wait, warmup means highest time, not necessarily highest speedup. Let's find highest base time.
+            base_times = [base_runs[s].duration_seconds for s in common_seeds]
+            warmup_idx = base_times.index(max(base_times))
+            speedups.pop(warmup_idx)
+            
+        n = len(speedups)
+        mean_speedup = statistics.mean(speedups)
+        stdev = statistics.stdev(speedups) if n > 1 else 0.0
+        
+        ci_margin = 0.0
+        if n > 1:
+            sem = stdev / math.sqrt(n)
+            alpha = 1.0 - conf_level
+            ci_margin = sp_stats.t.ppf(1 - alpha/2, df=n-1) * sem
+            
+        return {
+            "mean_speedup": mean_speedup,
+            "ci_lower": mean_speedup - ci_margin,
+            "ci_upper": mean_speedup + ci_margin,
+            "stdev": stdev,
+            "n_samples": n
+        }
+
+    def statistical_fitness_delta(self, base_pipeline: str, target_pipeline: str, metric_key: str = "best_fitness", conf_level: float = 0.95, optimum: Optional[float] = None) -> Dict[str, float]:
+        """Compute paired fitness delta (Target - Base) across seeds with confidence intervals."""
+        if sp_stats is None:
+            raise ImportError("scipy is required for statistical tests.")
+            
+        base_runs = {r.seed: r for r in self.normalized_runs(base_pipeline) if metric_key in r.metrics}
+        target_runs = {r.seed: r for r in self.normalized_runs(target_pipeline) if metric_key in r.metrics}
+        
+        common_seeds = set(base_runs.keys()).intersection(target_runs.keys())
+        if not common_seeds:
+            raise ValueError(f"No common seeds with metric '{metric_key}' found.")
+            
+        deltas = []
+        for seed in common_seeds:
+            b_val = float(base_runs[seed].metrics[metric_key])
+            t_val = float(target_runs[seed].metrics[metric_key])
+            if optimum is not None:
+                b_val = abs(b_val - optimum)
+                t_val = abs(t_val - optimum)
+                
+            deltas.append(t_val - b_val)
+            
+        n = len(deltas)
+        mean_delta = statistics.mean(deltas)
+        stdev = statistics.stdev(deltas) if n > 1 else 0.0
+        
+        ci_margin = 0.0
+        if n > 1:
+            sem = stdev / math.sqrt(n)
+            alpha = 1.0 - conf_level
+            ci_margin = sp_stats.t.ppf(1 - alpha/2, df=n-1) * sem
+            
+        return {
+            "mean_delta": mean_delta,
+            "ci_lower": mean_delta - ci_margin,
+            "ci_upper": mean_delta + ci_margin,
+            "stdev": stdev,
+            "n_samples": n
+        }
 
     def timing_data(self, timing_key: str = "duration_seconds") -> Dict[str, List[float]]:
         """Collect timing values for each pipeline across all seeds.
@@ -701,7 +838,7 @@ class ComparisonResult:
 
         return ax
 
-    def final_metric_data(self, metric_key: str = "best_fitness") -> Dict[str, List[float]]:
+    def final_metric_data(self, metric_key: str = "best_fitness", optimum: Optional[float] = None) -> Dict[str, List[float]]:
         """Collect final metric values for each pipeline across all seeds.
 
         Parameters
@@ -741,7 +878,11 @@ class ComparisonResult:
                     value = float(raw_val)
                 except (TypeError, ValueError):
                     continue
-                values.append(value * sign)
+                if optimum is not None and metric_key in self._FITNESS_KEYS:
+                    value = abs(value - optimum)
+                else:
+                    value = value * sign
+                values.append(value)
 
             if metric_key in ("duration_seconds", "execution", "total", "warmup") and len(values) > 1:
                 values = values[1:]
@@ -788,7 +929,7 @@ class ComparisonResult:
                 "Install it with: pip install matplotlib"
             ) from e
 
-        data = self.final_metric_data(metric_key=metric_key)
+        data = self.final_metric_data(metric_key=metric_key, optimum=optimum)
         labels: List[str] = []
         values: List[List[float]] = []
         for name, metric_vals in data.items():
@@ -825,7 +966,7 @@ class ComparisonResult:
 
         return ax
 
-    def convergence_data(self, seed_index: int = 0) -> Dict[str, List[Dict[str, Any]]]:
+    def convergence_data(self, seed_index: int = 0, optimum: Optional[float] = None) -> Dict[str, List[Dict[str, Any]]]:
         """Extract per-pipeline convergence histories for a single seed.
 
         Returns generation-by-generation records for the chosen seed across
@@ -889,13 +1030,16 @@ class ComparisonResult:
             if seed_index < len(exp.runs):
                 raw = exp.runs[seed_index].history
                 s = self._sign(name)
-                if s < 0:
-                    data[name] = [
-                        {k: (v * s if k in self._FITNESS_KEYS else v) for k, v in row.items()}
-                        for row in raw
-                    ]
-                else:
-                    data[name] = raw
+                data[name] = []
+                for row in raw:
+                    new_row = dict(row)
+                    for k, v in new_row.items():
+                        if k in self._FITNESS_KEYS:
+                            if optimum is not None:
+                                new_row[k] = abs(v - optimum)
+                            else:
+                                new_row[k] = v * s
+                    data[name].append(new_row)
             else:
                 data[name] = []
         return data
@@ -907,6 +1051,7 @@ class ComparisonResult:
         title: Optional[str] = None,
         negate: Optional[Dict[str, bool]] = None,
         save_path: Optional[Union[str, Path]] = None,
+        optimum: Optional[float] = None,
     ) -> Any:
         """Visualize convergence of all pipelines on a matplotlib axis.
 
@@ -1053,7 +1198,7 @@ class ComparisonResult:
                 subplot_title = (
                     f"{title} (seed {seed})" if title is not None else f"Seed {seed}"
                 )
-                self.plot_convergence(seed, ax=subplot_ax, title=subplot_title, negate=negate)
+                self.plot_convergence(seed, ax=subplot_ax, title=subplot_title, negate=negate, optimum=optimum)
 
             if save_path is not None and fig is not None:
                 out_path = Path(save_path)
@@ -1068,7 +1213,7 @@ class ComparisonResult:
             fig = getattr(ax, "figure", None)
 
         extra_negate = negate or {}
-        conv = self.convergence_data(seed_index)  # already sign-normalised
+        conv = self.convergence_data(seed_index, optimum=optimum)  # already sign-normalised or gap
 
         for name, history in conv.items():
             if not history:
@@ -1097,6 +1242,7 @@ class ComparisonResult:
         ax: Any = None,
         title: Optional[str] = None,
         save_path: Optional[Union[str, Path]] = None,
+        optimum: Optional[float] = None,
     ) -> Any:
         """Visualize the distribution of final metrics as side-by-side boxplots.
 
@@ -1128,7 +1274,7 @@ class ComparisonResult:
         if ax is None:
             fig, ax = plt.subplots(figsize=(6, 4))
 
-        data = self.final_metric_data(metric_key=metric_key)
+        data = self.final_metric_data(metric_key=metric_key, optimum=optimum)
 
         # Sort by median for better visualization
         names = list(data.keys())
