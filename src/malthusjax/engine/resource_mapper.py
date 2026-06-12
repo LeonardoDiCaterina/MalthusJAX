@@ -231,8 +231,8 @@ def compute_resource_map(
     overproduction = cross_output_count - target_offspring
     if overproduction > 0 and target_offspring > 0 and overproduction / target_offspring > 0.10:
         _logger.warning(
-            "Crossover overproduction ratio %.1f%% (producing %d offspring for target_offspring=%d). "
-            "Consider adjusting pop_size or num_offspring to reduce waste.",
+            "Crossover overproduction ratio %.1f%% (producing %d offspring for target_offspring=%d)"
+            " Consider adjusting pop_size or num_offspring to reduce waste.",
             100.0 * overproduction / target_offspring,
             cross_output_count,
             target_offspring,
@@ -363,7 +363,10 @@ def get_step_dimension_flow(
         f"     p1_idx/p2_idx:   (p,) = ({p},)",
         f"     p1_pop/p2_pop:   (p, d) = ({p}, {d_exact})",
         f"     crossover in:    (p, d) -> out: (p * {offspring_per_pair}, d)",
-        f"     mutation in:     (p * {offspring_per_pair}, d) -> out: (p * {offspring_per_pair} * {mutation_per_item}, d)",
+        (
+            f"     mutation in:     (p * {offspring_per_pair}, d) -> out: "
+            f"(p * {offspring_per_pair} * {mutation_per_item}, d)"
+        ),
         "",
         "  [3a. MERGE]",
         f"     keep elites:     (e, d) = ({e}, {d_exact})",

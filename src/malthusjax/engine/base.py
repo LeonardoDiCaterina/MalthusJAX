@@ -10,7 +10,6 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-# Import for generic typing - ensure these exist in your project
 from malthusjax.core.base import BaseGenome, BasePopulation
 
 """
@@ -20,7 +19,6 @@ This module defines the core abstractions that all Level 3 engines must follow.
 Provides type safety, JIT compatibility, and universal visualization support.
 """
 
-# Type variables for generics
 G = TypeVar("G", bound=BaseGenome)  # Genome type
 P = TypeVar("P", bound=BasePopulation[Any])  # Population type (parameterized with Any)
 

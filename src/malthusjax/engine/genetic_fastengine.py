@@ -370,7 +370,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             sel_expected = operators.selection.num_selections
             params = cast(GeneticEngineParams, self.engine_params)
 
-            if params.forward_presplit_keys and operators.selection.num_keys_per_atomic_operation > 0:
+            if (
+                params.forward_presplit_keys
+                and operators.selection.num_keys_per_atomic_operation > 0
+            ):
                 # If the caller provided exactly two keys, use them as the two
                 # independent selection draws (common parity trace format).
                 if getattr(key_selection, "shape", ()) and int(key_selection.shape[0]) == 2:
@@ -385,7 +388,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                     # emulate two independent draws by splitting the provided
                     # single-origin key into two subkeys.
                     if int(sel_expected) == 2 * int(pop_size):
-                        key_base = key_selection if getattr(key_selection, "ndim", 1) == 0 else key_selection[0]
+                        key_base = (
+                            key_selection
+                            if getattr(key_selection, "ndim", 1) == 0
+                            else key_selection[0]
+                        )
                         k1, k2 = jax.random.split(key_base, 2)
                         sel_op = operators.selection.replace(num_selections=pop_size)
                         p1_idx, _ = sel_op(jnp.expand_dims(k1, 0), population)
