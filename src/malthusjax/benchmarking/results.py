@@ -10,8 +10,8 @@ pipelines.
 from __future__ import annotations
 
 import json
-import statistics
 import math
+import statistics
 
 try:
     from scipy import stats as sp_stats
@@ -533,7 +533,11 @@ class ComparisonResult:
             # Flatten to the mean; negate fitness keys if needed
             table_row = {}
             for k, v in agg.items():
-                mean_val = v["mean"] * s if k in self._FITNESS_KEYS and optimum is None else v["mean"]
+                mean_val = (
+                    v["mean"] * s
+                    if k in self._FITNESS_KEYS and optimum is None
+                    else v["mean"]
+                )
                 table_row[k] = {
                     "mean": mean_val,
                     "ci_margin": v.get("ci_margin", 0.0),
@@ -577,7 +581,7 @@ class ComparisonResult:
                 if val is None:
                     row.append("NaN")
                     continue
-                
+
                 # If the metric is a dict (like from our new summary_table), try to format it
                 if isinstance(val, dict) and "mean" in val:
                     mean_val = val["mean"]
@@ -644,42 +648,42 @@ class ComparisonResult:
         """Compute paired speedup (Base / Target) across seeds with confidence intervals."""
         if sp_stats is None:
             raise ImportError("scipy is required for statistical tests.")
-            
+
         base_exp = self.pipelines[base_pipeline]
         target_exp = self.pipelines[target_pipeline]
-        
+
         base_runs = {r.seed: r for r in base_exp.runs if r.duration_seconds is not None}
         target_runs = {r.seed: r for r in target_exp.runs if r.duration_seconds is not None}
-        
+
         common_seeds = set(base_runs.keys()).intersection(target_runs.keys())
         if not common_seeds:
             raise ValueError("No common seeds with duration data found.")
-            
+
         speedups = []
         for seed in common_seeds:
             # Drop warmup (highest duration in both, wait, we do this by just removing max if we had lists. 
             # If we want to be safe, we just use the raw durations here. Actually it's better to just do pairing. 
             # Or we can remove the maximum duration seed from the paired list.)
             speedups.append(base_runs[seed].duration_seconds / target_runs[seed].duration_seconds)
-            
+
         # Optional: remove the pair with the highest base_duration (warmup)
         if len(speedups) > 3:
-            max_idx = speedups.index(max(speedups))
+            _ = speedups.index(max(speedups))
             # Wait, warmup means highest time, not necessarily highest speedup. Let's find highest base time.
             base_times = [base_runs[s].duration_seconds for s in common_seeds]
             warmup_idx = base_times.index(max(base_times))
             speedups.pop(warmup_idx)
-            
+
         n = len(speedups)
         mean_speedup = statistics.mean(speedups)
         stdev = statistics.stdev(speedups) if n > 1 else 0.0
-        
+
         ci_margin = 0.0
         if n > 1:
             sem = stdev / math.sqrt(n)
             alpha = 1.0 - conf_level
             ci_margin = sp_stats.t.ppf(1 - alpha/2, df=n-1) * sem
-            
+
         return {
             "mean_speedup": mean_speedup,
             "ci_lower": mean_speedup - ci_margin,
@@ -692,14 +696,13 @@ class ComparisonResult:
         """Compute paired fitness delta (Target - Base) across seeds with confidence intervals."""
         if sp_stats is None:
             raise ImportError("scipy is required for statistical tests.")
-            
+
         base_runs = {r.seed: r for r in self.normalized_runs(base_pipeline) if metric_key in r.metrics}
         target_runs = {r.seed: r for r in self.normalized_runs(target_pipeline) if metric_key in r.metrics}
-        
+
         common_seeds = set(base_runs.keys()).intersection(target_runs.keys())
         if not common_seeds:
             raise ValueError(f"No common seeds with metric '{metric_key}' found.")
-            
         deltas = []
         for seed in common_seeds:
             b_val = float(base_runs[seed].metrics[metric_key])
@@ -707,19 +710,19 @@ class ComparisonResult:
             if optimum is not None:
                 b_val = abs(b_val - optimum)
                 t_val = abs(t_val - optimum)
-                
+
             deltas.append(t_val - b_val)
-            
+
         n = len(deltas)
         mean_delta = statistics.mean(deltas)
         stdev = statistics.stdev(deltas) if n > 1 else 0.0
-        
+
         ci_margin = 0.0
         if n > 1:
             sem = stdev / math.sqrt(n)
             alpha = 1.0 - conf_level
             ci_margin = sp_stats.t.ppf(1 - alpha/2, df=n-1) * sem
-            
+
         return {
             "mean_delta": mean_delta,
             "ci_lower": mean_delta - ci_margin,
@@ -893,6 +896,7 @@ class ComparisonResult:
     def plot_final_metric_boxplot(
         self,
         metric_key: str = "best_fitness",
+        optimum: Optional[float] = None,
         ax: Any = None,
         title: Optional[str] = None,
         save_path: Optional[Union[str, Path]] = None,
@@ -966,7 +970,11 @@ class ComparisonResult:
 
         return ax
 
-    def convergence_data(self, seed_index: int = 0, optimum: Optional[float] = None) -> Dict[str, List[Dict[str, Any]]]:
+    def convergence_data(
+        self,
+        seed_index: int = 0,
+        optimum: Optional[float] = None,
+    ) -> Dict[str, List[Dict[str, Any]]]:
         """Extract per-pipeline convergence histories for a single seed.
 
         Returns generation-by-generation records for the chosen seed across
@@ -1287,7 +1295,10 @@ class ComparisonResult:
         bplot = ax.boxplot(values, patch_artist=True, tick_labels=names)
 
         # Add colors if possible
-        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+        colors = [
+            '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+            '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+        ]
         for i, patch in enumerate(bplot['boxes']):
             patch.set_facecolor(colors[i % len(colors)])
             patch.set_alpha(0.7)
@@ -1353,9 +1364,16 @@ class MetaComparison:
             axes = [axes]
 
         for ax, (exp_name, comp) in zip(axes, self.comparisons.items()):
-            comp.plot_boxplots(metric_key=metric_key, ax=ax, title=exp_name, **kwargs)
+            comp.plot_boxplots(
+                metric_key=metric_key,
+                ax=ax,
+                title=exp_name,
+                **kwargs
+            )
 
-        fig.suptitle(f"{metric_key.capitalize()} Distribution Suite", fontsize=16, y=1.05)
+        fig.suptitle(
+            f"{metric_key.capitalize()} Distribution Suite", fontsize=16, y=1.05
+        )
         plt.tight_layout()
         if save_path:
             out_path = Path(save_path)
