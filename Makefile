@@ -352,3 +352,19 @@ suite-parity:
 # Include experiment helper targets (kept modular for clarity)
 INCLUDE_FROM_ROOT := 1
 include Makefile.experiments
+
+# ============================================================================= #
+# Thesis Experiments Execution
+# ============================================================================= #
+thesis-experiments:
+	@echo "--- Running Full Thesis Experiment Suite ---"
+	$(PYTHON) scripts/run_thesis_experiments.py
+	@echo "--- Thesis experiments completed successfully. ---"
+
+thesis-experiments-nohup:
+	$(call run_nohup,thesis-experiments,make thesis-experiments)
+
+thesis-experiments-smoke:
+	@echo "--- Running SMOKE TEST Thesis Experiment Suite ---"
+	SMOKE_TEST=1 $(PYTHON) scripts/run_thesis_experiments.py
+	@echo "--- Smoke test completed successfully. ---"
