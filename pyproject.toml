@@ -59,11 +59,12 @@ examples = [
     "jupyter>=1.0.0",
 ]
 benchmarks = [
-    "pandas>=1.5.0",
+    "pandas>=2.0.0",
     "scipy>=1.9.0",
     "evosax",
     "bbobax",
     "tomli>=2.0.0; python_version < '3.11'",
+    "statsmodels>=0.14.0",
 ]
 all = ["malthusjax[dev,docs,examples,benchmarks]"]
 
