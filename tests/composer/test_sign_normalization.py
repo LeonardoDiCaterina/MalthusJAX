@@ -62,8 +62,8 @@ class TestSignNormalization:
         assert result.negate_map["evosax_ga"] is False
 
         # Both backends return fitness in minimization convention (lower is better, negative values)
-        malthusjax_fitness = summary["malthusjax_ga"]["best_fitness"]
-        evosax_fitness = summary["evosax_ga"]["best_fitness"]
+        malthusjax_fitness = summary["malthusjax_ga"]["best_fitness"]["mean"]
+        evosax_fitness = summary["evosax_ga"]["best_fitness"]["mean"]
 
         # Both should be comparable (no sign mismatch for direct comparison)
         # Since sphere with maximize=False returns negative values, both should be negative
@@ -189,8 +189,8 @@ evosax_strategy = "SimpleGA"
             assert result.negate_map["evosax_simple"] is False
             # Check summary uses normalized values
             summary = result.summary_table()
-            assert summary["malthusjax_blend"]["best_fitness"] < 0
-            assert summary["evosax_simple"]["best_fitness"] < 0
+            assert summary["malthusjax_blend"]["best_fitness"]["mean"] < 0
+            assert summary["evosax_simple"]["best_fitness"]["mean"] < 0
 
         finally:
             os.unlink(temp_path)
@@ -222,7 +222,7 @@ evosax_strategy = "SimpleGA"
         normalized = result.normalized_runs("malthusjax_ga")
         assert len(normalized) == 1
         assert normalized[0].metrics["best_fitness"] < 0
-        assert normalized[0].metrics["best_fitness"] == result.summary_table()["malthusjax_ga"]["best_fitness"]
+        assert normalized[0].metrics["best_fitness"] == result.summary_table()["malthusjax_ga"]["best_fitness"]["mean"]
 
         # Evosax is already lower-is-better in raw metrics, so normalized_runs
         # should preserve the original values for that pipeline.
@@ -324,7 +324,7 @@ evosax_strategy = "SimpleGA"
 
         # After ComparisonResult normalization, both are lower-is-better values.
         summary = result.summary_table()
-        norm_mjx = float(summary["malthusjax_ga"]["best_fitness"])
-        norm_evx = float(summary["evosax_ga"]["best_fitness"])
+        norm_mjx = float(summary["malthusjax_ga"]["best_fitness"]["mean"])
+        norm_evx = float(summary["evosax_ga"]["best_fitness"]["mean"])
         assert norm_mjx <= 0.0
         assert norm_evx <= 0.0
