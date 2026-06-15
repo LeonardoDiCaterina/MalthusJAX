@@ -204,27 +204,38 @@ def run_single_ablation(
         }
 
         for run in exp_result.runs:
+            # Cast JAX arrays to native Python types to free GPU buffers
+            best_fit = run.metrics.get("best_fitness")
+            final_gen = run.metrics.get("final_generation")
+            tot_evals = run.metrics.get("total_evaluations")
+            
             seed_data = {
                 "seed": run.seed,
                 "status": run.status,
                 "duration_seconds": run.duration_seconds,
-                "best_fitness": run.metrics.get("best_fitness"),
-                "final_generation": run.metrics.get("final_generation"),
-                "total_evaluations": run.metrics.get("total_evaluations"),
+                "best_fitness": float(best_fit) if best_fit is not None else None,
+                "final_generation": int(final_gen) if final_gen is not None else None,
+                "total_evaluations": int(tot_evals) if tot_evals is not None else None,
             }
             if run.timings:
                 seed_data["timings"] = run.timings
             if run.history:
                 seed_data["convergence"] = [
                     {
-                        "generation": h.get("generation"),
-                        "best_fitness": h.get("best_fitness"),
+                        "generation": int(h.get("generation")) if h.get("generation") is not None else None,
+                        "best_fitness": float(h.get("best_fitness")) if h.get("best_fitness") is not None else None,
                     }
                     for h in run.history
                 ]
             pipeline_data["per_seed"].append(seed_data)
 
         result_summary["pipelines"][name] = pipeline_data
+
+    # Clear JAX caches and force garbage collection to prevent OOM across many experiments
+    import jax
+    import gc
+    jax.clear_caches()
+    gc.collect()
 
     # Save JSON
     result_file = exp_output / "ablation_results.json"
