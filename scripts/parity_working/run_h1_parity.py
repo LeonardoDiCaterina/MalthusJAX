@@ -111,7 +111,7 @@ def run_single_parity(
             "backend": "malthusjax",
             "selection": f"evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}",
             "crossover": "evosax_uniform_crossover:crossover_rate=0.3",
-            "mutation": "evosax_gaussian:mutation_strength=0.05",
+            "mutation": "evosax_gaussian:mutation_strength=1.0",
             "elitism": 0,
         },
     }
