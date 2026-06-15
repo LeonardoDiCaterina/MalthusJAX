@@ -60,6 +60,7 @@ class BenchmarkRunner:
     write_artifacts: bool = True
     prng_impl: Optional[str] = None
     trace_dir: Optional[Path] = None  # If set, capture JAX trace for seed[0]
+    serialize_history: bool = True    # If False, drops generation history to save disk space
 
     def run(
         self,
@@ -108,6 +109,7 @@ class BenchmarkRunner:
                 "seeds": list(seeds),
                 "total_runs": len(runs),
                 "successful_runs": len([r for r in runs if r.status == "success"]),
+                "serialize_history": self.serialize_history,
             },
         )
 
@@ -170,7 +172,22 @@ class BenchmarkRunner:
                     # Skip non-numeric metrics or log warning
                     pass
 
+            import math
+            # Fallback: if engine disabled summary tracking for speed, pull from the final generation
+            best_val = metrics.get("best_fitness")
+            missing_best = best_val is None or (isinstance(best_val, (int, float)) and (math.isnan(best_val) or math.isinf(best_val)))
+            if missing_best and history:
+                last = history[-1]
+                if "best_fitness" in last:
+                    metrics["best_fitness"] = float(last["best_fitness"])
+                if "generation" in last:
+                    metrics["final_generation"] = float(last["generation"])
+
             duration = time.time() - start_time
+            
+            # Discard massive history arrays if Lightweight Mode is enabled
+            if not self.serialize_history:
+                history = []
 
             return RunResult(
                 seed=seed,

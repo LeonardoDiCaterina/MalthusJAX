@@ -460,7 +460,7 @@ class ComparisonResult:
 
     # -- internal helper ---------------------------------------------------
 
-    _FITNESS_KEYS = frozenset({"best_fitness", "mean_fitness"})
+    _FITNESS_KEYS = frozenset({"best_fitness", "mean_fitness", "fitness_auc"})
 
     def _sign(self, pipeline_name: str) -> float:
         """Return ``-1.0`` if *pipeline_name* should be negated, else ``1.0``."""
