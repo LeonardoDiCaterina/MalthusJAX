@@ -389,5 +389,10 @@ thesis-lhs-regression:
 	@echo "--- Running LHS regression diagnostics ---"
 	$(PYTHON) scripts/thesis_reproducibility/analyze_lhs_regression.py
 
-thesis-master-run: thesis-lhs-configs thesis-lhs-run thesis-lhs-regression
+thesis-master-run: thesis-lhs-configs thesis-lhs-run thesis-lhs-regression thesis-chapter-compile
+
+
+thesis-chapter-compile:
+	@echo "--- Compiling final Markdown chapter ---"
+	$(PYTHON) scripts/thesis_reproducibility/compile_markdown_chapter.py
 
