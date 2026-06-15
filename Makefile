@@ -7,7 +7,8 @@
 	parity-toml \
 	artifacts-toml artifacts-dir artifacts-batch \
 	toy-100seeds toy-100seeds-sphere-d5 \
-	h1-parity-smoke h1-parity-smoke-nohup h1-parity-full h1-parity-full-nohup
+	h1-parity-smoke h1-parity-smoke-nohup h1-parity-full h1-parity-full-nohup \
+	h2-ablation-smoke h2-ablation-smoke-nohup h2-ablation-full h2-ablation-full-nohup
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -372,6 +373,21 @@ h1-parity-full:
 
 h1-parity-full-nohup:
 	$(call run_nohup,h1-parity-full,$(PYTHON) scripts/parity_working/run_h1_parity.py)
+
+# H2: Ablation (Structural Dissection)
+h2-ablation-smoke:
+	@echo "--- H2 ABLATION: Smoke Test ---"
+	$(PYTHON) scripts/parity_working/run_h2_ablation.py --smoke
+
+h2-ablation-smoke-nohup:
+	$(call run_nohup,h2-ablation-smoke,$(PYTHON) scripts/parity_working/run_h2_ablation.py --smoke)
+
+h2-ablation-full:
+	@echo "--- H2 ABLATION: Full Run ---"
+	$(PYTHON) scripts/parity_working/run_h2_ablation.py
+
+h2-ablation-full-nohup:
+	$(call run_nohup,h2-ablation-full,$(PYTHON) scripts/parity_working/run_h2_ablation.py)
 
 # ============================================================================= #
 # ARCHIVED: Old thesis experiment targets (broken — do not use)
