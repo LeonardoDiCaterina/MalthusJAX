@@ -397,3 +397,25 @@ h3-representation-full:
 h3-representation-full-nohup:
 	$(call run_nohup,h3-representation-full,$(PYTHON) scripts/parity_working/run_h3_representation.py)
 
+# ==============================================================================
+# UNIFIED TOML BENCHMARKING ENGINE
+# ==============================================================================
+
+# Example: make benchmark-run TOML=configs/h1_parity_lhs.toml
+benchmark-run:
+	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file (e.g., make benchmark-run TOML=configs/h1_parity_lhs.toml)"; exit 1; fi
+	@echo "--- RUNNING BENCHMARK: $(TOML) ---"
+	$(PYTHON) scripts/benchmark_runner.py --toml $(TOML)
+
+benchmark-run-smoke:
+	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
+	$(PYTHON) scripts/benchmark_runner.py --toml $(TOML) --smoke
+
+benchmark-run-nohup:
+	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
+	$(call run_nohup,benchmark_$(shell basename $(TOML) .toml),$(PYTHON) scripts/benchmark_runner.py --toml $(TOML))
+
+benchmark-analyze:
+	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
+	@echo "--- ANALYZING BENCHMARK: $(TOML) ---"
+	$(PYTHON) scripts/benchmark_analyzer.py --toml $(TOML)

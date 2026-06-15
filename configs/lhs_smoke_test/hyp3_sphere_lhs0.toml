@@ -1,0 +1,23 @@
+[experiment]
+name = "hyp3_sphere_lhs0"
+output_dir = "results/thesis_lhs/hyp3/sphere/hyp3_sphere_lhs0"
+
+[experiment.shared]
+fitness = "bbob:fn_name=sphere,num_dims=24,maximize=false"
+selection = "evosax_mimic_selection:num_selections=566,elite_k=94"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "gaussian:mutation_strength=0.05"
+pop_size = 566
+generations = 150
+genome_length = 24
+bounds = [ -5.0, 5.0,]
+seeds = [ 1, 2,]
+backend = "malthusjax"
+elitism = 0
+serialize_history = false
+
+[pipelines.malthusjax_fp16]
+dtype = "float16"
+
+[pipelines.malthusjax_bf16]
+dtype = "bfloat16"
