@@ -347,10 +347,6 @@ suite-parity:
 	@echo "--- Generating LaTeX table ---"
 	@$(PYTHON) scripts/generate_parity_latex.py --suite_dir $(OUT_DIR) --out $(OUT_DIR)/parity_table.tex
 
-# Include experiment helper targets (kept modular for clarity)
-INCLUDE_FROM_ROOT := 1
-include Makefile.experiments
-
 # ============================================================================= #
 # Thesis Parity Pipeline (Clean — scripts/parity_working/)
 # ============================================================================= #
