@@ -3,10 +3,6 @@
         test-bench-group-05 test-bench-group-06 test-bench-group-07 test-bench-group-08 \
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
 	lint format format-check type-check check-all docs docs-clean docs-open \
-	run-toml run-toml-nohup run-toml-with-artifacts list-toml \
-	parity-toml \
-	artifacts-toml artifacts-dir artifacts-batch \
-	toy-100seeds toy-100seeds-sphere-d5 \
 	h1-parity-smoke h1-parity-smoke-nohup h1-parity-full h1-parity-full-nohup \
 	h2-ablation-smoke h2-ablation-smoke-nohup h2-ablation-full h2-ablation-full-nohup
 
@@ -388,23 +384,4 @@ h2-ablation-full:
 
 h2-ablation-full-nohup:
 	$(call run_nohup,h2-ablation-full,$(PYTHON) scripts/parity_working/run_h2_ablation.py)
-
-# ============================================================================= #
-# ARCHIVED: Old thesis experiment targets (broken — do not use)
-# ============================================================================= #
-# thesis-experiments:
-# 	$(PYTHON) scripts/run_thesis_experiments.py
-# thesis-experiments-smoke:
-# 	SMOKE_TEST=1 $(PYTHON) scripts/run_thesis_experiments.py
-# thesis-lhs-configs:
-# 	$(PYTHON) scripts/thesis_reproducibility/generate_lhs_configs.py
-# thesis-lhs-run:
-# 	@for toml in configs/lhs_experiments/*.toml; do ...
-# thesis-lhs-smoke:
-# 	$(PYTHON) scripts/thesis_reproducibility/generate_lhs_configs.py --k-samples 1 ...
-# thesis-lhs-regression:
-# 	$(PYTHON) scripts/thesis_reproducibility/analyze_lhs_regression.py
-# thesis-master-run: thesis-lhs-configs thesis-lhs-run thesis-lhs-regression thesis-chapter-compile
-# thesis-chapter-compile:
-# 	$(PYTHON) scripts/thesis_reproducibility/compile_markdown_chapter.py
 
