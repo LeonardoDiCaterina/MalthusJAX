@@ -233,12 +233,16 @@ class EvosaxEngineAdapter:
         history = []
         track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
 
+        fitness_auc = 0.0
         for g in range(self.num_generations):
             gen_stats: Dict[str, Any] = {"generation": g + 1}
             for k in track_keys:
                 if k in metrics:
                     val = metrics[k][g]
-                    gen_stats[k] = val.item() if val.ndim == 0 else val.tolist()
+                    val_scalar = val.item() if val.ndim == 0 else val.tolist()
+                    gen_stats[k] = val_scalar
+                    if k == "best_fitness":
+                        fitness_auc += val_scalar
             history.append(gen_stats)
 
         if history:
@@ -248,6 +252,7 @@ class EvosaxEngineAdapter:
         summary = {
             "initial_fitness": float(initial_best_fitness),
             "best_fitness": best_fitness_value,
+            "fitness_auc": fitness_auc,
             "best_solution": self.strategy._unravel_solution(final_state.best_solution).tolist(),
             "total_generations": self.num_generations,
             "final_generation": self.num_generations,

@@ -458,6 +458,7 @@ class Composer:
             write_artifacts=True,
             prng_impl=prng_impl,
             trace_dir=Path(trace_dir) if trace_dir is not None else Path("results/traces"),
+            serialize_history=kwargs.get("serialize_history", True),
         )
 
         normalized_seeds = self._normalize_seeds(seeds)

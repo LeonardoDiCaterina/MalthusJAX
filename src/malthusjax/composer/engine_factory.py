@@ -112,6 +112,7 @@ class GeneticEngineAdapter:
 
         track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
 
+        fitness_auc = 0.0
         for g in range(num_gens):
             gen_stats: Dict[str, Any] = {"generation": g + 1}
             for k in track_keys:
@@ -120,6 +121,8 @@ class GeneticEngineAdapter:
                     if k in ("best_fitness", "mean_fitness", "std_fitness"):
                         val = val * sign
                     gen_stats[k] = float(val)
+                    if k == "best_fitness":
+                        fitness_auc += float(val)
             history.append(gen_stats)
 
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
@@ -130,6 +133,7 @@ class GeneticEngineAdapter:
         summary = {
             "initial_fitness": report_initial,
             "best_fitness": report_best,
+            "fitness_auc": fitness_auc,
             "best_solution": best_genome_flat.tolist(),
             "final_generation": int(final_state.generation),
             "total_evaluations": total_evals,
