@@ -31,8 +31,14 @@ import time
 import os
 from dataclasses import asdict, dataclass
 
-# Prevent JAX NCCL multi-device rendezvous deadlocks on cluster
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# Prevent JAX NCCL multi-device rendezvous deadlocks on cluster by restricting to 1 GPU
+if "CUDA_VISIBLE_DEVICES" in os.environ:
+    # If the cluster gave us multiple GPUs, just take the first one
+    devices = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+    os.environ["CUDA_VISIBLE_DEVICES"] = devices[0].strip()
+else:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 # Prevent cuSolver OOM errors by disabling aggressive memory preallocation
 os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
 os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
