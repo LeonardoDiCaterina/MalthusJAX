@@ -76,3 +76,24 @@ def test_runner_handles_engine_errors():
     assert len(result.runs) == 1
     assert result.runs[0].status == "error"
     assert "Simulated engine failure" in result.runs[0].error
+
+
+def test_runner_serialize_history():
+    """Test that serialize_history=False drops the history array."""
+    engine = StubEngine(generations=2)
+    runner = BenchmarkRunner(
+        engine=engine,
+        write_artifacts=False,
+        serialize_history=False,
+    )
+
+    result = runner.run([1])
+    assert len(result.runs) == 1
+    
+    run = result.runs[0]
+    # The history should be empty
+    assert len(run.history) == 0
+    import pytest
+    assert run.metrics["best_fitness"] == pytest.approx(0.85)
+    # The summary from the engine should still have total_evaluations
+    assert run.metrics["total_evaluations"] == 2 * 50

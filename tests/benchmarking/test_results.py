@@ -138,8 +138,8 @@ def test_comparison_final_metric_data_and_boxplot_negation():
     comparison = ComparisonResult(pipelines={"Evosax": exp}, negate_map={"Evosax": True})
 
     table = comparison.summary_table()
-    assert table["Evosax"]["best_fitness"] == -0.75
-    assert table["Evosax"]["gap_to_optimum"] == 0.75
+    assert table["Evosax"]["best_fitness"]["mean"] == -0.75
+    assert table["Evosax"]["gap_to_optimum"]["mean"] == 0.75
 
     gap_data = comparison.final_metric_data(metric_key="gap_to_optimum")
     assert gap_data == {"Evosax": [1.0, 0.5]}
