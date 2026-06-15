@@ -49,6 +49,7 @@ class GeneticEngineAdapter:
         self.prng_impl = prng_impl
         self.maximize = maximize
         self.history_metrics = history_metrics
+        self._jit_compiled = False
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
@@ -96,9 +97,12 @@ class GeneticEngineAdapter:
         _ws, _ = self.genetic_engine.step(state)
         _ws.best_fitness.block_until_ready()
 
-        ep = self.genetic_engine.engine_params
-        jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
-        _ = jit_fn.lower(self.genetic_engine, state).compile()
+        if not self._jit_compiled:
+            ep = self.genetic_engine.engine_params
+            jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
+            _ = jit_fn.lower(self.genetic_engine, state).compile()
+            self._jit_compiled = True
+            
         t_warmup_end = time.perf_counter()
 
         # ---- Execution phase: run the pre-compiled scan (JIT cache warm) ----
