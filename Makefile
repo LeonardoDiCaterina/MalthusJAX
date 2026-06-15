@@ -368,3 +368,26 @@ thesis-experiments-smoke:
 	@echo "--- Running SMOKE TEST Thesis Experiment Suite ---"
 	SMOKE_TEST=1 $(PYTHON) scripts/run_thesis_experiments.py
 	@echo "--- Smoke test completed successfully. ---"
+
+# ============================================================================= #
+# Thesis LHS & Diagnostics Master Pipeline
+# ============================================================================= #
+
+thesis-lhs-configs:
+	@echo "--- Generating LHS configurations ---"
+	$(PYTHON) scripts/thesis_reproducibility/generate_lhs_configs.py
+
+thesis-lhs-run:
+	@echo "--- Running all LHS thesis experiments ---"
+	@for toml in configs/lhs_experiments/*.toml; do \
+		if [ -f "$$toml" ]; then \
+			$(PYTHON) -m malthusjax.benchmarking.cli run "$$toml"; \
+		fi \
+	done
+
+thesis-lhs-regression:
+	@echo "--- Running LHS regression diagnostics ---"
+	$(PYTHON) scripts/thesis_reproducibility/analyze_lhs_regression.py
+
+thesis-master-run: thesis-lhs-configs thesis-lhs-run thesis-lhs-regression
+
