@@ -32,16 +32,23 @@ def format_diagnostics(row: pd.Series) -> str:
     return ", ".join(warnings) if warnings else "Pass"
 
 def build_pivot_table(pivot_df: pd.DataFrame) -> str:
-    md = "| Hypothesis | Benchmark | Metric | $R^2$ | `is_mjx` Effect | Interaction `is_mjx:log(D)` | Diagnostics |\n"
-    md += "|------------|-----------|--------|-------|-----------------|-----------------------------|-------------|\n"
+    md = "| Hypothesis | Target Pipeline | Benchmark | Metric | $R^2$ | Base Effect ($\\beta_1$) | Interaction $\\beta_3$ | Diagnostics |\n"
+    md += "|------------|-----------------|-----------|--------|-------|------------------------|------------------------|-------------|\n"
     
     for _, row in pivot_df.iterrows():
-        mjx_effect = format_coef(row["is_mjx_coef"], row["is_mjx_pval"])
+        treatment_effect = format_coef(row["is_treatment_coef"], row["is_treatment_pval"])
         interaction = format_coef(row["interaction_coef"], row["interaction_pval"])
         r2 = f"{row['R2']:.3f}" if pd.notna(row['R2']) else "-"
-        diag = format_diagnostics(row)
+        # Mardia might not exist anymore
+        mardia_pval = row.get("Mardia_hz_pval", np.nan)
+        warnings = []
+        if row.get("BP_pval", 1.0) < 0.05: warnings.append("Het")
+        if row.get("SW_pval", 1.0) < 0.05: warnings.append("NonNorm")
+        if pd.notna(mardia_pval) and mardia_pval < 0.05:
+            warnings.append("MultiNorm")
+        diag = ", ".join(warnings) if warnings else "Pass"
         
-        md += f"| {row['Hypothesis']} | {row['Benchmark']} | {row['Dependent_Var']} | {r2} | {mjx_effect} | {interaction} | {diag} |\n"
+        md += f"| {row['Hypothesis']} | {row.get('Target_Pipeline', 'target')} | {row['Benchmark']} | {row['Dependent_Var']} | {r2} | {treatment_effect} | {interaction} | {diag} |\n"
         
     return md
 
@@ -50,59 +57,35 @@ def generate_interaction_plots(raw_df: pd.DataFrame, out_dir: Path):
     
     # Precompute log mappings
     raw_df["log_D"] = np.log(raw_df["D"])
-    # Clean zeros for log
     raw_df["log_execution_time"] = np.log(raw_df["execution_time"] + 1e-9)
-    # Fitness might have negatives if maximize=True wasn't handled right, 
-    # but we assume objective natively here (>=0)
-    raw_df["log_best_fitness"] = np.log(raw_df["best_fitness"] + 1e-9)
+    # Fitness might have negatives, but we plot raw fitness
     
     sns.set_theme(style="whitegrid")
     
-    for hyp in ["hyp1", "hyp2", "hyp3"]:
-        df_hyp = raw_df[raw_df["hypothesis"] == hyp]
-        if df_hyp.empty:
-            continue
-            
-        plot_paths[hyp] = []
-        for fn_name in df_hyp["fn_name"].unique():
-            df_plot = df_hyp[df_hyp["fn_name"] == fn_name]
-            
-            # 1. Execution Time Plot
-            plt.figure()
-            g = sns.lmplot(
-                data=df_plot, 
-                x="log_D", 
-                y="log_execution_time", 
-                hue="is_mjx",
-                scatter_kws={'alpha':0.5},
-                height=5, 
-                aspect=1.2
-            )
-            g.set_axis_labels("log(Genome Size D)", "log(Execution Time)")
-            plt.title(f"{hyp.upper()} - {fn_name.capitalize()}: Execution Time Scaling")
-            time_path = out_dir / f"{hyp}_{fn_name}_time_lmplot.png"
-            plt.savefig(time_path, bbox_inches='tight', dpi=150)
-            plt.close('all')
-            plot_paths[hyp].append(time_path)
-            
-            # 2. Fitness Plot
-            plt.figure()
-            g = sns.lmplot(
-                data=df_plot, 
-                x="log_D", 
-                y="log_best_fitness", 
-                hue="is_mjx",
-                scatter_kws={'alpha':0.5},
-                height=5, 
-                aspect=1.2
-            )
-            g.set_axis_labels("log(Genome Size D)", "log(Best Fitness)")
-            plt.title(f"{hyp.upper()} - {fn_name.capitalize()}: Fitness Scaling")
-            fit_path = out_dir / f"{hyp}_{fn_name}_fitness_lmplot.png"
-            plt.savefig(fit_path, bbox_inches='tight', dpi=150)
-            plt.close('all')
-            plot_paths[hyp].append(fit_path)
-            
+    # We want to plot pipelines for each function
+    for fn_name in raw_df["fn_name"].unique():
+        df_fn = raw_df[raw_df["fn_name"] == fn_name]
+        
+        # 1. Execution Time Plot
+        plt.figure()
+        g = sns.lmplot(
+            data=df_fn, 
+            x="log_D", 
+            y="log_execution_time", 
+            hue="pipeline",
+            scatter_kws={'alpha':0.5},
+            height=5, 
+            aspect=1.2
+        )
+        g.set_axis_labels("log(Genome Size D)", "log(Execution Time)")
+        plt.title(f"{fn_name.capitalize()}: Execution Time Scaling")
+        time_path = out_dir / f"{fn_name}_time_lmplot.png"
+        plt.savefig(time_path, bbox_inches='tight', dpi=150)
+        plt.close('all')
+        
+        if "all" not in plot_paths: plot_paths["all"] = []
+        plot_paths["all"].append(time_path)
+        
     return plot_paths
 
 def main():
@@ -110,8 +93,8 @@ def main():
     plots_dir = Path("results/thesis_plots")
     plots_dir.mkdir(parents=True, exist_ok=True)
     
-    pivot_csv = diagnostics_dir / "grand_pivot_table.csv"
-    raw_csv = diagnostics_dir / "lhs_raw_data.csv"
+    pivot_csv = diagnostics_dir / "regression_pivot_table.csv"
+    raw_csv = diagnostics_dir / "lhs_global_raw_data.csv"
     
     if not pivot_csv.exists() or not raw_csv.exists():
         print("Required CSV files not found. Please run thesis-lhs-regression first.")

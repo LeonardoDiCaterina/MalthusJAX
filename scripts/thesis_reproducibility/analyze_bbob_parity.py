@@ -6,65 +6,79 @@ import numpy as np
 from pathlib import Path
 
 def parse_parity_results(results_dir: Path) -> pd.DataFrame:
-    """Parse all JSON results from the BBOB static grid experiments."""
+    """Parse all JSON results from the BBOB static grid summary.json files."""
     records = []
     
-    # Iterate over all experiment subdirectories (e.g. sphere_D10, rosenbrock_D100)
-    for exp_dir in results_dir.iterdir():
-        if not exp_dir.is_dir() or exp_dir.name in ["metadata", "diagnostics"]:
+    for summary_file in results_dir.rglob("summary.json"):
+        if "metadata" in summary_file.parts or "diagnostics" in summary_file.parts:
             continue
             
-        data_dir = exp_dir / "data"
-        if not data_dir.exists():
-            continue
-            
-        # Typically we expect two pipelines: evosax_baseline and malthusjax_wrapper
-        pipelines = [p for p in data_dir.iterdir() if p.is_dir()]
-        if len(pipelines) < 2:
-            continue
-            
-        # Parse function name and dimension from exp_dir.name, e.g. "sphere_D10"
-        parts = exp_dir.name.split("_D")
-        if len(parts) == 2:
-            fn_name = parts[0]
-            D = parts[1]
-        else:
-            fn_name = exp_dir.name
-            D = "Unknown"
-            
-        for pipeline_dir in pipelines:
-            pipeline_name = pipeline_dir.name
-            is_mjx = 1 if "malthusjax" in pipeline_name else 0
-            
-            for seed_file in pipeline_dir.glob("*.json"):
-                seed = seed_file.stem.split("_")[-1]
+        exp_dir = summary_file.parent
+        name = exp_dir.name
+        
+        # Extract fn_name and pipeline from directory name (e.g. sphere_mjx_evosax_exact)
+        fn_name = "unknown"
+        pipeline_name = name
+        for split_token in ["_mjx", "_evosax", "_malthusjax"]:
+            if split_token in name:
+                parts = name.split(split_token)
+                fn_name = parts[0]
+                pipeline_name = split_token[1:] + split_token.join(parts[1:])
+                break
                 
-                with open(seed_file, "r") as f:
-                    data = json.load(f)
+        is_mjx = 1 if ("malthusjax" in pipeline_name or "mjx" in pipeline_name) else 0
+        
+        try:
+            with open(summary_file, "r") as f:
+                data = json.load(f)
+        except Exception:
+            continue
+            
+        # summary.json contains a 'runs' array
+        runs = data.get("runs", [])
+        for run in runs:
+            seed = run.get("seed", -1)
+            
+            best_fitness = np.nan
+            if "history" in run and len(run["history"]) > 0:
+                best_fitness = run["history"][-1].get("best_fitness", np.nan)
+            elif "metrics" in run and "best_fitness" in run["metrics"]:
+                bf = run["metrics"]["best_fitness"]
+                if isinstance(bf, dict):
+                    best_fitness = bf.get("mean", np.nan)
+                else:
+                    best_fitness = float(bf)
                     
-                # Extract best fitness and execution time
-                best_fitness = data.get("best_fitness", np.nan)
-                exec_time = data.get("execution_time", np.nan)
+            exec_time = run.get("duration_seconds", np.nan)
+            if "timings" in run and "total" in run["timings"]:
+                exec_time = run["timings"]["total"]
                 
-                records.append({
-                    "experiment_name": exp_dir.name,
-                    "fn_name": fn_name,
-                    "D": D,
-                    "pipeline": pipeline_name,
-                    "is_mjx": is_mjx,
-                    "seed": seed,
-                    "best_fitness": best_fitness,
-                    "execution_time": exec_time
-                })
+            records.append({
+                "experiment_name": f"{fn_name}_comparison",
+                "fn_name": fn_name,
+                "D": 10, # Assuming static D=10 for these grids based on previous scripts
+                "pipeline": pipeline_name,
+                "is_mjx": is_mjx,
+                "seed": seed,
+                "best_fitness": best_fitness,
+                "execution_time": exec_time
+            })
                 
+    if len(records) == 0:
+        print(f"[DEBUG] Searched inside {results_dir}. Found 0 valid summary records.")
+            
     return pd.DataFrame(records)
 
 def run_tost_parity_suite(df: pd.DataFrame, delta: float = 1e-4) -> pd.DataFrame:
     """Run Pingouin TOST and Wilcoxon on the parsed data to prove pragmatic equivalence."""
     results = []
     
-    for exp_name in df['experiment_name'].unique():
-        df_exp = df[df['experiment_name'] == exp_name]
+    # Filter only the exactly matched pipelines for the parity comparison!
+    parity_pipelines = ["mjx_evosax_exact", "evosax_simplega"]
+    df_filtered = df[df['pipeline'].isin(parity_pipelines)].copy()
+    
+    for exp_name in df_filtered['experiment_name'].unique():
+        df_exp = df_filtered[df_filtered['experiment_name'] == exp_name]
         
         mjx_data = df_exp[df_exp['is_mjx'] == 1].sort_values("seed")['best_fitness'].values
         evo_data = df_exp[df_exp['is_mjx'] == 0].sort_values("seed")['best_fitness'].values
@@ -73,7 +87,7 @@ def run_tost_parity_suite(df: pd.DataFrame, delta: float = 1e-4) -> pd.DataFrame
             continue
             
         if len(mjx_data) != len(evo_data):
-            print(f"[{exp_name}] Mismatch in seeds: MJX={len(mjx_data)}, Evo={len(evo_data)}")
+            print(f"[{exp_name}] Mismatch in seeds: MJX={len(mjx_data)} vs Evo={len(evo_data)}. Found pipelines: {df_exp['pipeline'].unique()}")
             continue
             
         # 1. Non-parametric Wilcoxon signed-rank test
