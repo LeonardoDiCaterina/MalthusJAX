@@ -4,7 +4,8 @@
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
 	lint format format-check type-check check-all docs docs-clean docs-open \
 	h1-parity-smoke h1-parity-smoke-nohup h1-parity-full h1-parity-full-nohup \
-	h2-ablation-smoke h2-ablation-smoke-nohup h2-ablation-full h2-ablation-full-nohup
+	h2-ablation-smoke h2-ablation-smoke-nohup h2-ablation-full h2-ablation-full-nohup \
+	h3-representation-smoke h3-representation-smoke-nohup h3-representation-full h3-representation-full-nohup
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -380,4 +381,19 @@ h2-ablation-full:
 
 h2-ablation-full-nohup:
 	$(call run_nohup,h2-ablation-full,$(PYTHON) scripts/parity_working/run_h2_ablation.py)
+
+# H3: Representation (Precision Scaling)
+h3-representation-smoke:
+	@echo "--- H3 REPRESENTATION: Smoke Test ---"
+	$(PYTHON) scripts/parity_working/run_h3_representation.py --smoke
+
+h3-representation-smoke-nohup:
+	$(call run_nohup,h3-representation-smoke,$(PYTHON) scripts/parity_working/run_h3_representation.py --smoke)
+
+h3-representation-full:
+	@echo "--- H3 REPRESENTATION: Full Run ---"
+	$(PYTHON) scripts/parity_working/run_h3_representation.py
+
+h3-representation-full-nohup:
+	$(call run_nohup,h3-representation-full,$(PYTHON) scripts/parity_working/run_h3_representation.py)
 
