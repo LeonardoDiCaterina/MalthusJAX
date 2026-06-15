@@ -6,7 +6,8 @@
 	run-toml run-toml-nohup run-toml-with-artifacts list-toml \
 	parity-toml \
 	artifacts-toml artifacts-dir artifacts-batch \
-	toy-100seeds toy-100seeds-sphere-d5
+	toy-100seeds toy-100seeds-sphere-d5 \
+	h1-parity-smoke h1-parity-smoke-nohup h1-parity-full h1-parity-full-nohup
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -354,58 +355,40 @@ INCLUDE_FROM_ROOT := 1
 include Makefile.experiments
 
 # ============================================================================= #
-# Thesis Experiments Execution
-# ============================================================================= #
-thesis-experiments:
-	@echo "--- Running Full Thesis Experiment Suite ---"
-	$(PYTHON) scripts/run_thesis_experiments.py
-	@echo "--- Thesis experiments completed successfully. ---"
-
-thesis-experiments-nohup:
-	$(call run_nohup,thesis-experiments,make thesis-experiments)
-
-thesis-experiments-smoke:
-	@echo "--- Running SMOKE TEST Thesis Experiment Suite ---"
-	SMOKE_TEST=1 $(PYTHON) scripts/run_thesis_experiments.py
-	@echo "--- Smoke test completed successfully. ---"
-
-# ============================================================================= #
-# Thesis LHS & Diagnostics Master Pipeline
+# Thesis Parity Pipeline (Clean — scripts/parity_working/)
 # ============================================================================= #
 
-thesis-lhs-configs:
-	@echo "--- Generating LHS configurations ---"
-	$(PYTHON) scripts/thesis_reproducibility/generate_lhs_configs.py
+# H1: MalthusJAX wrapper vs EvoSAX SimpleGA
+h1-parity-smoke:
+	@echo "--- H1 PARITY: Smoke Test ---"
+	$(PYTHON) scripts/parity_working/run_h1_parity.py --smoke
 
-thesis-lhs-run:
-	@echo "--- Running all LHS thesis experiments ---"
-	@for toml in configs/lhs_experiments/*.toml; do \
-		if [ -f "$$toml" ]; then \
-			$(PYTHON) -m malthusjax.benchmarking.cli run "$$toml"; \
-		fi \
-	done
+h1-parity-smoke-nohup:
+	$(call run_nohup,h1-parity-smoke,$(PYTHON) scripts/parity_working/run_h1_parity.py --smoke)
 
-thesis-lhs-run-nohup:
-	$(call run_nohup,thesis-lhs-run,make thesis-lhs-run)
+h1-parity-full:
+	@echo "--- H1 PARITY: Full Run ---"
+	$(PYTHON) scripts/parity_working/run_h1_parity.py
 
-thesis-lhs-smoke:
-	@echo "--- Generating LHS configurations (Smoke Test) ---"
-	$(PYTHON) scripts/thesis_reproducibility/generate_lhs_configs.py --k-samples 1 --num-seeds 2 --out-dir configs/lhs_smoke_test
-	@echo "--- Running LHS smoke test experiments ---"
-	@for toml in configs/lhs_smoke_test/*.toml; do \
-		if [ -f "$$toml" ]; then \
-			$(PYTHON) -m malthusjax.benchmarking.cli run "$$toml"; \
-		fi \
-	done
+h1-parity-full-nohup:
+	$(call run_nohup,h1-parity-full,$(PYTHON) scripts/parity_working/run_h1_parity.py)
 
-thesis-lhs-regression:
-	@echo "--- Running LHS regression diagnostics ---"
-	$(PYTHON) scripts/thesis_reproducibility/analyze_lhs_regression.py
-
-thesis-master-run: thesis-lhs-configs thesis-lhs-run thesis-lhs-regression thesis-chapter-compile
-
-
-thesis-chapter-compile:
-	@echo "--- Compiling final Markdown chapter ---"
-	$(PYTHON) scripts/thesis_reproducibility/compile_markdown_chapter.py
+# ============================================================================= #
+# ARCHIVED: Old thesis experiment targets (broken — do not use)
+# ============================================================================= #
+# thesis-experiments:
+# 	$(PYTHON) scripts/run_thesis_experiments.py
+# thesis-experiments-smoke:
+# 	SMOKE_TEST=1 $(PYTHON) scripts/run_thesis_experiments.py
+# thesis-lhs-configs:
+# 	$(PYTHON) scripts/thesis_reproducibility/generate_lhs_configs.py
+# thesis-lhs-run:
+# 	@for toml in configs/lhs_experiments/*.toml; do ...
+# thesis-lhs-smoke:
+# 	$(PYTHON) scripts/thesis_reproducibility/generate_lhs_configs.py --k-samples 1 ...
+# thesis-lhs-regression:
+# 	$(PYTHON) scripts/thesis_reproducibility/analyze_lhs_regression.py
+# thesis-master-run: thesis-lhs-configs thesis-lhs-run thesis-lhs-regression thesis-chapter-compile
+# thesis-chapter-compile:
+# 	$(PYTHON) scripts/thesis_reproducibility/compile_markdown_chapter.py
 
