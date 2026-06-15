@@ -22,24 +22,27 @@ from scipy import stats
 from statsmodels.stats.diagnostic import het_breuschpagan
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
+import toml
+
 def parse_lhs_results(results_dir: str) -> pd.DataFrame:
     """Walk through the results directory and compile a DataFrame of runs."""
     records = []
     base_path = Path(results_dir)
     
-    for json_path in base_path.rglob("*.json"):
-        with open(json_path, "r") as f:
-            try:
-                data = json.load(f)
-            except json.JSONDecodeError:
-                continue
-                
-        # Extract metadata
-        config = data.get("experiment_config", {})
-        shared = config.get("shared", {})
+    # Iterate through all experiment directories that contain metadata/config_snapshot.toml
+    for config_path in base_path.rglob("metadata/config_snapshot.toml"):
+        exp_dir = config_path.parent.parent
+        try:
+            with open(config_path, "r") as f:
+                config_data = toml.load(f)
+        except Exception as e:
+            print(f"Failed to parse {config_path}: {e}")
+            continue
+            
+        experiment = config_data.get("experiment", {})
+        shared = experiment.get("shared", {})
         
-        # Determine hypothesis category based on path or config name
-        exp_name = config.get("name", "")
+        exp_name = experiment.get("name", exp_dir.name)
         hyp = "unknown"
         if "hyp1" in exp_name:
             hyp = "hyp1"
@@ -56,43 +59,63 @@ def parse_lhs_results(results_dir: str) -> pd.DataFrame:
         fn_name = "unknown"
         if "fn_name=" in fitness_str:
             fn_name = fitness_str.split("fn_name=")[1].split(",")[0]
-        
-        # MalthusJAX vs Evosax (or others based on hypothesis)
-        for pipeline_name, result in data.get("pipelines", {}).items():
-            metrics = result.get("metrics", {})
-            timings = result.get("timings", {})
             
-            # The JSON might store metrics differently depending on exact run state.
-            # Usually result.metrics.best_fitness has a mean or raw value.
-            best_fitness = np.nan
-            if "best_fitness" in metrics:
-                if isinstance(metrics["best_fitness"], dict):
-                    best_fitness = metrics["best_fitness"].get("mean", np.nan)
-                else:
-                    best_fitness = metrics["best_fitness"]
-                    
-            exec_time = np.nan
-            if "execution" in timings:
-                if isinstance(timings["execution"], dict):
-                    exec_time = timings["execution"].get("mean", np.nan)
-                else:
-                    exec_time = timings["execution"]
-                    
+        # Parse data JSONs
+        data_dir = exp_dir / "data"
+        if not data_dir.exists():
+            continue
+            
+        for pipeline_dir in data_dir.iterdir():
+            if not pipeline_dir.is_dir():
+                continue
+                
+            pipeline_name = pipeline_dir.name
             is_mjx = 1 if "malthusjax" in pipeline_name or "mjx" in pipeline_name else 0
             
-            records.append({
-                "hypothesis": hyp,
-                "fn_name": fn_name,
-                "experiment_name": exp_name,
-                "pipeline": pipeline_name,
-                "is_mjx": is_mjx,
-                "D": D,
-                "P": P,
-                "G": G,
-                "best_fitness": best_fitness,
-                "execution_time": exec_time
-            })
-            
+            for json_path in pipeline_dir.glob("*.json"):
+                try:
+                    with open(json_path, "r") as f:
+                        run_data = json.load(f)
+                except Exception:
+                    continue
+                    
+                metrics = run_data.get("metrics", {})
+                timings = run_data.get("timings", {})
+                
+                best_fitness = np.nan
+                if "best_fitness" in metrics:
+                    if isinstance(metrics["best_fitness"], dict):
+                        best_fitness = metrics["best_fitness"].get("mean", np.nan)
+                    else:
+                        best_fitness = metrics["best_fitness"]
+                        
+                exec_time = np.nan
+                if "execution" in timings:
+                    if isinstance(timings["execution"], dict):
+                        exec_time = timings["execution"].get("mean", np.nan)
+                    else:
+                        exec_time = timings["execution"]
+                        
+                # Ensure values are float
+                try:
+                    best_fitness = float(best_fitness)
+                    exec_time = float(exec_time)
+                except (ValueError, TypeError):
+                    pass
+                
+                records.append({
+                    "hypothesis": hyp,
+                    "fn_name": fn_name,
+                    "experiment_name": exp_name,
+                    "pipeline": pipeline_name,
+                    "is_mjx": is_mjx,
+                    "D": float(D),
+                    "P": float(P),
+                    "G": float(G),
+                    "best_fitness": best_fitness,
+                    "execution_time": exec_time
+                })
+                
     return pd.DataFrame(records)
 
 def run_diagnostics(df: pd.DataFrame, dependent_var: str, output_dir: Path, prefix: str):

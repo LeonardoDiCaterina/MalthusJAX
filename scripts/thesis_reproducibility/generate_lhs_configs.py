@@ -67,7 +67,7 @@ def create_hyp2_config(name: str, out_dir: str, fn_name: str, D: int, P: int, G:
                 "seeds": seeds,
                 "backend": "malthusjax",
                 "elitism": 0,
-                "crossover": "uniform_crossover:crossover_rate=0.3",
+                "crossover": "uniform_real:crossover_rate=0.3",
                 "serialize_history": False
             }
         },
@@ -90,7 +90,7 @@ def create_hyp3_config(name: str, out_dir: str, fn_name: str, D: int, P: int, G:
                 "fitness": f"bbob:fn_name={fn_name},num_dims={D},maximize=false",
                 "selection": f"tournament:num_selections={P},tournament_size=4",
                 "mutation": "gaussian:sigma=0.1",
-                "crossover": "uniform_crossover:crossover_rate=0.5",
+                "crossover": "uniform_real:crossover_rate=0.5",
                 "pop_size": P,
                 "generations": G,
                 "genome_length": D,
