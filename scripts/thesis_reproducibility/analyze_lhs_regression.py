@@ -258,7 +258,7 @@ def main():
         print(f"\nSynthesizing {analysis['hyp']}: {target_name} vs {analysis['ref_pipeline']}")
         
         df_paired = synthesize_regression_dataset(
-            df_global, 
+            raw_df, 
             analysis["hyp"], analysis["target"], 
             analysis["ref_hyp"], analysis["ref_pipeline"]
         )
