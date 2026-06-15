@@ -24,7 +24,7 @@ def create_hyp1_config(name: str, out_dir: str, fn_name: str, D: int, P: int, G:
             "output_dir": out_dir,
             "shared": {
                 "fitness": f"bbob:fn_name={fn_name},num_dims={D},maximize=false",
-                "selection": f"elite_pool:num_selections={P},elite_k={elite_k}",
+                "selection": f"evosax_mimic_selection:num_selections={P},elite_k={elite_k}",
                 "pop_size": P,
                 "generations": G,
                 "genome_length": D,
@@ -59,7 +59,6 @@ def create_hyp2_config(name: str, out_dir: str, fn_name: str, D: int, P: int, G:
             "output_dir": out_dir,
             "shared": {
                 "fitness": f"bbob:fn_name={fn_name},num_dims={D},maximize=false",
-                "selection": f"elite_pool:num_selections={P},elite_k={elite_k}",
                 "pop_size": P,
                 "generations": G,
                 "genome_length": D,
@@ -67,30 +66,44 @@ def create_hyp2_config(name: str, out_dir: str, fn_name: str, D: int, P: int, G:
                 "seeds": seeds,
                 "backend": "malthusjax",
                 "elitism": 0,
-                "crossover": "uniform_real:crossover_rate=0.3",
                 "serialize_history": False
             }
         },
         "pipelines": {
             "mjx_native_mutation": {
-                "mutation": "gaussian:sigma=0.05"
+                "selection": f"evosax_mimic_selection:num_selections={P},elite_k={elite_k}",
+                "crossover": "evosax_uniform_crossover:crossover_rate=0.3",
+                "mutation": "gaussian:mutation_strength=0.05"
             },
-            "mjx_evosax_mutation_wrapper": {
+            "mjx_native_crossover": {
+                "selection": f"evosax_mimic_selection:num_selections={P},elite_k={elite_k}",
+                "crossover": "uniform_real:crossover_rate=0.3",
+                "mutation": "evosax_gaussian:mutation_strength=0.05"
+            },
+            "mjx_native_selection_elite": {
+                "selection": f"elite_pool:num_selections={P},elite_k={elite_k}",
+                "crossover": "evosax_uniform_crossover:crossover_rate=0.3",
+                "mutation": "evosax_gaussian:mutation_strength=0.05"
+            },
+            "mjx_native_selection_tournament": {
+                "selection": f"tournament:num_selections={P},tournament_size=3",
+                "crossover": "evosax_uniform_crossover:crossover_rate=0.3",
                 "mutation": "evosax_gaussian:mutation_strength=0.05"
             }
         }
     }
 
 def create_hyp3_config(name: str, out_dir: str, fn_name: str, D: int, P: int, G: int, seeds: list[int]) -> dict:
+    elite_k = max(2, int(P * 0.16666666666666666))
     return {
         "experiment": {
             "name": name,
             "output_dir": out_dir,
             "shared": {
                 "fitness": f"bbob:fn_name={fn_name},num_dims={D},maximize=false",
-                "selection": f"tournament:num_selections={P},tournament_size=4",
-                "mutation": "gaussian:sigma=0.1",
-                "crossover": "uniform_real:crossover_rate=0.5",
+                "selection": f"evosax_mimic_selection:num_selections={P},elite_k={elite_k}",
+                "crossover": "evosax_uniform_crossover:crossover_rate=0.3",
+                "mutation": "gaussian:mutation_strength=0.05",
                 "pop_size": P,
                 "generations": G,
                 "genome_length": D,
@@ -102,8 +115,8 @@ def create_hyp3_config(name: str, out_dir: str, fn_name: str, D: int, P: int, G:
             }
         },
         "pipelines": {
-            "malthusjax_fp32": {
-                "dtype": "float32"
+            "malthusjax_fp16": {
+                "dtype": "float16"
             },
             "malthusjax_bf16": {
                 "dtype": "bfloat16"
