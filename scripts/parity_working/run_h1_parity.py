@@ -28,7 +28,11 @@ import argparse
 import json
 import sys
 import time
+import os
 from dataclasses import asdict, dataclass
+
+# Force single GPU to prevent JAX NCCL multi-device rendezvous deadlocks on cluster
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 from pathlib import Path
 from typing import Any
 
