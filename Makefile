@@ -385,6 +385,19 @@ thesis-lhs-run:
 		fi \
 	done
 
+thesis-lhs-run-nohup:
+	$(call run_nohup,thesis-lhs-run,make thesis-lhs-run)
+
+thesis-lhs-smoke:
+	@echo "--- Generating LHS configurations (Smoke Test) ---"
+	$(PYTHON) scripts/thesis_reproducibility/generate_lhs_configs.py --k-samples 1 --num-seeds 2 --out-dir configs/lhs_smoke_test
+	@echo "--- Running LHS smoke test experiments ---"
+	@for toml in configs/lhs_smoke_test/*.toml; do \
+		if [ -f "$$toml" ]; then \
+			$(PYTHON) -m malthusjax.benchmarking.cli run "$$toml"; \
+		fi \
+	done
+
 thesis-lhs-regression:
 	@echo "--- Running LHS regression diagnostics ---"
 	$(PYTHON) scripts/thesis_reproducibility/analyze_lhs_regression.py
