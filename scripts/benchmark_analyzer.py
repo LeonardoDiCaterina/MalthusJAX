@@ -50,6 +50,19 @@ def parse_global_data(results_dir: Path) -> pd.DataFrame:
             P = config.get("P", config.get("population_size", np.nan))
             G = config.get("G", config.get("generations", np.nan))
             
+            # Legacy Fallback: Extract from experiment string if missing
+            if pd.isna(D) or pd.isna(P):
+                import re
+                if pd.isna(D):
+                    m = re.search(r'_d(\d+)_', exp_name)
+                    if m: D = float(m.group(1))
+                if pd.isna(P):
+                    m = re.search(r'_p(\d+)_', exp_name)
+                    if m: P = float(m.group(1))
+                if pd.isna(G):
+                    m = re.search(r'_g(\d+)', exp_name)
+                    if m: G = float(m.group(1))
+            
             pipelines = data.get("pipelines", {})
             for p_name, p_data in pipelines.items():
                 
