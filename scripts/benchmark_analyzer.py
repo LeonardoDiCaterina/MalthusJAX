@@ -213,6 +213,28 @@ def generate_scaling_plots(df: pd.DataFrame, dependent_var: str, output_dir: Pat
     plt.close("all")
 
 
+def export_latex_safe(df: pd.DataFrame, filepath: Path):
+    """Safely export a DataFrame to LaTeX, falling back to manual string building if jinja2 is missing."""
+    try:
+        df.to_latex(filepath, index=False, float_format="%.4e")
+    except ImportError:
+        # Fallback manual LaTeX generator for clusters without jinja2
+        with open(filepath, "w") as f:
+            f.write("\\begin{tabular}{" + "l" * len(df.columns) + "}\n")
+            f.write("\\toprule\n")
+            f.write(" & ".join([str(c).replace('_', '\\_') for c in df.columns]) + " \\\\\n")
+            f.write("\\midrule\n")
+            for _, row in df.iterrows():
+                formatted = []
+                for val in row:
+                    if isinstance(val, float):
+                        formatted.append(f"{val:.4e}")
+                    else:
+                        formatted.append(str(val).replace('_', '\\_'))
+                f.write(" & ".join(formatted) + " \\\\\n")
+            f.write("\\bottomrule\n")
+            f.write("\\end{tabular}\n")
+
 def analyze_suite(toml_path: str, data_dir_override: str = None):
     config = BenchmarkConfig.from_toml(toml_path)
     
@@ -323,7 +345,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
         print(f"\nOLS Regression Pivot Table saved to {pivot_file}")
         
         tex_file = analysis_dir / "ols_regression_table.tex"
-        pivot_df.to_latex(tex_file, index=False, float_format="%.4e")
+        export_latex_safe(pivot_df, tex_file)
         print(f"LaTeX Table exported to {tex_file}")
 
     if parity_rows:
@@ -336,7 +358,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
         print(f"\nNon-Parametric Parity Table saved to {parity_file}")
         
         tex_file = analysis_dir / "parity_wilcoxon_table.tex"
-        parity_df.to_latex(tex_file, index=False, float_format="%.4e")
+        export_latex_safe(parity_df, tex_file)
         print(f"LaTeX Table exported to {tex_file}")
 
     print(f"\nAnalysis complete! Artifacts dumped to {analysis_dir}")
