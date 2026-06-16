@@ -419,3 +419,30 @@ benchmark-analyze:
 	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
 	@echo "--- ANALYZING BENCHMARK: $(TOML) ---"
 	$(PYTHON) scripts/benchmark_analyzer.py --toml $(TOML)
+
+# ==============================================================================
+# CLUSTER AUTOMATION (Run Locally on Mac)
+# ==============================================================================
+
+CLUSTER_USER ?= 20240485
+CLUSTER_IP ?= 10.10.80.4
+CLUSTER_DIR ?= ~/test_mjx/MalthusJAX
+ENV_CMD ?= conda run -n GP_env_2
+
+# Launch a background run on the cluster directly from your Mac
+cluster-launch:
+	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
+	@echo "🚀 Launching $(TOML) on cluster..."
+	ssh $(CLUSTER_USER)@$(CLUSTER_IP) 'cd $(CLUSTER_DIR) && git pull && make benchmark-run-nohup TOML=$(TOML)'
+	@echo "✅ Task is now running in the background on the cluster!"
+
+# Instantly run the analyzer on the cluster and download the results to your Mac
+cluster-fetch:
+	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
+	@if [ -z "$(OUT)" ]; then echo "ERROR: Must provide OUT dir (e.g. OUT=results/h1_parity)"; exit 1; fi
+	@echo "🧠 1. Running analyzer on cluster..."
+	ssh $(CLUSTER_USER)@$(CLUSTER_IP) 'cd $(CLUSTER_DIR) && git pull && $(ENV_CMD) python scripts/benchmark_analyzer.py --toml $(TOML) --data_dir $(OUT)'
+	@echo "📥 2. Downloading results to local machine..."
+	mkdir -p $(OUT)
+	scp -r $(CLUSTER_USER)@$(CLUSTER_IP):$(CLUSTER_DIR)/$(OUT)/analysis $(OUT)/
+	@echo "✅ Done! Analysis files are in $(OUT)/analysis/"
