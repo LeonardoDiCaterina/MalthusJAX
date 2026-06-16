@@ -232,6 +232,11 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
         sys.exit(1)
         
     print(f"Loaded {len(df_global)} individual traces.")
+    
+    # CRITICAL: Deduplicate to prevent pd.merge Cartesian explosion if the user ran the same config multiple times
+    df_global = df_global.drop_duplicates(subset=["fn_name", "D", "P", "G", "pipeline", "seed"], keep="last")
+    print(f"Deduplicated to {len(df_global)} unique traces.")
+    
     df_global.to_csv(analysis_dir / "unpivoted_raw_data.csv", index=False)
     
     ref_pipeline = config.analysis.reference_pipeline
@@ -242,6 +247,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
         return
 
     pivot_rows = []
+    parity_rows = []
     
     for target in target_pipelines:
         print(f"\nAnalyzing: {target} vs {ref_pipeline}")
@@ -251,7 +257,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
             print("  -> No strictly paired traces found. Skipping.")
             continue
             
-        print(f"  -> Synthesized {len(df_paired)//2} paired coordinate traces.")
+        print(f"  -> Synthesized {len(df_paired)//2} strictly paired coordinate traces.")
         
         for fn_name in df_paired["fn_name"].unique():
             df_fn = df_paired[df_paired["fn_name"] == fn_name]
@@ -259,11 +265,12 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
             
             # Generate Visuals
             generate_boxplots(df_fn, analysis_dir, prefix)
-            generate_scaling_plots(df_fn, "execution_time", analysis_dir, prefix)
-            generate_scaling_plots(df_fn, "best_fitness", analysis_dir, prefix)
             
-            # Run OLS if LHS (or Cartesian with enough D variance)
+            # Run OLS Scaling if we have multidimensional data
             if len(df_fn["D"].unique()) > 1:
+                generate_scaling_plots(df_fn, "execution_time", analysis_dir, prefix)
+                generate_scaling_plots(df_fn, "best_fitness", analysis_dir, prefix)
+                
                 res_time = run_ols_diagnostics(df_fn, "execution_time", analysis_dir, prefix)
                 res_fit = run_ols_diagnostics(df_fn, "best_fitness", analysis_dir, prefix)
                 
@@ -273,10 +280,41 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                 if res_fit:
                     res_fit.update({"Target": target, "Benchmark": fn_name})
                     pivot_rows.append(res_fit)
+            else:
+                # If we only have 1 dimension (Cartesian Parity Control), run Non-Parametric Parity Tests
+                print(f"  -> {fn_name}: Only 1 dimension detected. Skipping OLS Scaling, running Wilcoxon Parity Tests.")
+                df_target = df_fn[df_fn["is_treatment"] == 1].sort_values("seed")
+                df_ref = df_fn[df_fn["is_treatment"] == 0].sort_values("seed")
+                
+                for var in ["execution_time", "best_fitness"]:
+                    target_vals = df_target[var].values
+                    ref_vals = df_ref[var].values
+                    
+                    if len(target_vals) > 0 and len(target_vals) == len(ref_vals):
+                        try:
+                            # Wilcoxon Signed-Rank Test (Non-Parametric Location Shift)
+                            _, wilcox_pval = stats.wilcoxon(target_vals, ref_vals)
+                            # Cohen's dz (Effect Size)
+                            diffs = target_vals - ref_vals
+                            dz = np.mean(diffs) / (np.std(diffs, ddof=1) + 1e-9)
+                        except Exception:
+                            wilcox_pval, dz = np.nan, np.nan
+                            
+                        parity_rows.append({
+                            "Target": target,
+                            "Benchmark": fn_name,
+                            "Metric": var,
+                            "D": df_fn["D"].iloc[0],
+                            "Target_Mean": np.mean(target_vals),
+                            "Target_Std": np.std(target_vals),
+                            "Ref_Mean": np.mean(ref_vals),
+                            "Ref_Std": np.std(ref_vals),
+                            "Wilcoxon_pval": wilcox_pval,
+                            "Cohen_dz": dz
+                        })
 
     if pivot_rows:
         pivot_df = pd.DataFrame(pivot_rows)
-        # Move target and benchmark to front
         cols = ["Target", "Benchmark", "Dependent_Var"] + [c for c in pivot_df.columns if c not in ["Target", "Benchmark", "Dependent_Var"]]
         pivot_df = pivot_df[cols]
         
@@ -284,9 +322,21 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
         pivot_df.to_csv(pivot_file, index=False)
         print(f"\nOLS Regression Pivot Table saved to {pivot_file}")
         
-        # Export to LaTeX
         tex_file = analysis_dir / "ols_regression_table.tex"
         pivot_df.to_latex(tex_file, index=False, float_format="%.4e")
+        print(f"LaTeX Table exported to {tex_file}")
+
+    if parity_rows:
+        parity_df = pd.DataFrame(parity_rows)
+        cols = ["Target", "Benchmark", "Metric", "D"] + [c for c in parity_df.columns if c not in ["Target", "Benchmark", "Metric", "D"]]
+        parity_df = parity_df[cols]
+        
+        parity_file = analysis_dir / "parity_wilcoxon_table.csv"
+        parity_df.to_csv(parity_file, index=False)
+        print(f"\nNon-Parametric Parity Table saved to {parity_file}")
+        
+        tex_file = analysis_dir / "parity_wilcoxon_table.tex"
+        parity_df.to_latex(tex_file, index=False, float_format="%.4e")
         print(f"LaTeX Table exported to {tex_file}")
 
     print(f"\nAnalysis complete! Artifacts dumped to {analysis_dir}")
