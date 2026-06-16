@@ -12,6 +12,8 @@ plots (Convergence, Scaling Laws, Boxplots).
 
 import argparse
 import json
+import re
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
