@@ -41,7 +41,7 @@ elitism = 0
 
 [pipelines.mjx_ablate_sel_tournament]
 backend = "malthusjax"
-selection = "tournament:num_selections={pop_size},tournament_size=3"
+selection = "tournament:num_selections={pop_size},tournament_size=6"
 crossover = "evosax_uniform_crossover:crossover_rate=0.3"
 mutation = "evosax_gaussian:mutation_strength=1.0"
 elitism = 0

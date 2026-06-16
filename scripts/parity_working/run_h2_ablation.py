@@ -137,7 +137,7 @@ def run_single_ablation(
         # 4. Ablate Selection: Native Tournament
         "mjx_ablate_sel_tournament": {
             "backend": "malthusjax",
-            "selection": f"tournament:num_selections={pop_size},tournament_size=3",
+            "selection": f"tournament:num_selections={pop_size},tournament_size=6",
             "crossover": baseline_crossover,
             "mutation": baseline_mutation,
             "elitism": 0,
