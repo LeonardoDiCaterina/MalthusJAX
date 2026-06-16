@@ -52,34 +52,40 @@ def parse_global_data(results_dir: Path) -> pd.DataFrame:
             
             pipelines = data.get("pipelines", {})
             for p_name, p_data in pipelines.items():
-            for run in p_data.get("per_seed", []):
-                seed = run.get("seed", -1)
-                best_fit = run.get("best_fitness", np.nan)
-                exec_time = run.get("duration_seconds", np.nan)
                 
-                if "timings" in run and "total" in run["timings"]:
-                    exec_time = run["timings"]["total"]
-                
-                try:
-                    best_fit = float(best_fit) if best_fit is not None else np.nan
-                    exec_time = float(exec_time) if exec_time is not None else np.nan
-                except (ValueError, TypeError):
-                    best_fit, exec_time = np.nan, np.nan
-                
-                if np.isnan(best_fit) or np.isnan(exec_time):
-                    continue
+                # Support old legacy format where runs were directly in a list instead of nested under "per_seed"
+                runs = p_data.get("per_seed", p_data)
+                if not isinstance(runs, list):
+                    runs = [runs]
                     
-                records.append({
-                    "experiment": exp_name,
-                    "fn_name": fn_name,
-                    "D": D,
-                    "P": P,
-                    "G": G,
-                    "pipeline": p_name,
-                    "seed": seed,
-                    "best_fitness": best_fit,
-                    "execution_time": exec_time,
-                })
+                for run in runs:
+                    seed = run.get("seed", -1)
+                    best_fit = run.get("best_fitness", np.nan)
+                    exec_time = run.get("duration_seconds", np.nan)
+                    
+                    if "timings" in run and "total" in run["timings"]:
+                        exec_time = run["timings"]["total"]
+                    
+                    try:
+                        best_fit = float(best_fit) if best_fit is not None else np.nan
+                        exec_time = float(exec_time) if exec_time is not None else np.nan
+                    except (ValueError, TypeError):
+                        best_fit, exec_time = np.nan, np.nan
+                    
+                    if np.isnan(best_fit) or np.isnan(exec_time):
+                        continue
+                        
+                    records.append({
+                        "experiment": exp_name,
+                        "fn_name": fn_name,
+                        "D": D,
+                        "P": P,
+                        "G": G,
+                        "pipeline": p_name,
+                        "seed": seed,
+                        "best_fitness": best_fit,
+                        "execution_time": exec_time,
+                    })
                 
     return pd.DataFrame(records)
 
