@@ -20,7 +20,7 @@ Because execution times and fitness landscapes are heavily skewed at varying dim
     \label{tab:wilcoxon_parity}
     \resizebox{\textwidth}{!}{
         % INJECT PARITY TABLE ARTIFACT
-        \input{results/h1_parity_lhs/analysis/parity_wilcoxon_table.tex}
+        \input{results/h1_parity_lhs_smoke/analysis/ols_regression_table.tex}
     }
 \end{table}
 
@@ -40,13 +40,13 @@ Table \ref{tab:ols_parity} proves that the interaction coefficient ($\beta_3$) i
     \label{tab:ols_parity}
     \resizebox{\textwidth}{!}{
         % INJECT OLS TABLE ARTIFACT
-        \input{results/h1_parity_lhs/analysis/ols_regression_table.tex}
+        \input{results/h1_parity_lhs_smoke/analysis/ols_regression_table.tex}
     }
 \end{table}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{results/h1_parity_lhs/analysis/malthusjax_wrapper_vs_evosax_baseline_sphere_execution_time_scaling.png}
+    \includegraphics[width=0.8\textwidth]{results/h1_parity_lhs_smoke/analysis/malthusjax_wrapper_vs_evosax_baseline_sphere_execution_time_scaling.png}
     \caption{Log-Log scaling of Execution Time vs Dimensionality ($D$) on the Sphere function.}
     \label{fig:parity_sphere_scaling}
 \end{figure}
@@ -65,13 +65,13 @@ Having established baseline parity, we now dissect the specific computational ov
     \label{tab:ols_ablation}
     \resizebox{\textwidth}{!}{
         % WILL INJECT ABLATION TABLE ARTIFACT ONCE RUN IS COMPLETE
-        \input{results/h2_ablation_lhs/analysis/ols_regression_table.tex}
+        \input{results/h2_ablation_smoke/analysis/ols_regression_table.tex}
     }
 \end{table}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{results/h2_ablation_lhs/analysis/mjx_ablate_mutation_vs_mjx_baseline_sphere_execution_time_scaling.png}
+    \includegraphics[width=0.8\textwidth]{results/h2_ablation_smoke/analysis/mjx_ablate_mutation_vs_mjx_baseline_sphere_execution_time_scaling.png}
     \caption{Scaling impact of native Sparse Gaussian Mutation.}
     \label{fig:ablation_mutation}
 \end{figure}
@@ -90,13 +90,13 @@ Finally, we evaluate the system's ability to maintain solver convergence fidelit
     \label{tab:wilcoxon_representation}
     \resizebox{\textwidth}{!}{
         % WILL INJECT REPRESENTATION TABLE ARTIFACT ONCE RUN IS COMPLETE
-        \input{results/h3_representation_lhs/analysis/parity_wilcoxon_table.tex}
+        \input{results/h3_representation_smoke/analysis/ols_regression_table.tex}
     }
 \end{table}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{results/h3_representation_lhs/analysis/mjx_bf16_vs_mjx_f32_rosenbrock_boxplots.png}
+    \includegraphics[width=0.8\textwidth]{results/h3_representation_smoke/analysis/mjx_bf16_vs_mjx_f32_sphere_boxplots.png}
     \caption{Location shifts comparing f32 and bf16 on Rosenbrock.}
     \label{fig:representation_bf16_box}
 \end{figure}
