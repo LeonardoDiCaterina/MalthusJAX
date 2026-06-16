@@ -29,23 +29,29 @@ def parse_global_data(results_dir: Path) -> pd.DataFrame:
     """Parse all JSON artifacts into a single unpivoted dataframe."""
     records = []
     
-    for json_path in results_dir.rglob("benchmark_results.json"):
-        try:
-            with open(json_path, "r") as f:
-                data = json.load(f)
-        except Exception:
-            continue
+    # Support both new TOML engine and legacy hardcoded script outputs
+    search_patterns = ["benchmark_results.json", "parity_results.json", "ablation_results.json", "representation_results.json"]
+    
+    for pattern in search_patterns:
+        for json_path in results_dir.rglob(pattern):
+            try:
+                with open(json_path, "r") as f:
+                    data = json.load(f)
+            except Exception:
+                continue
+                
+            exp_name = data.get("experiment", "unknown")
             
-        exp_name = data.get("experiment", "unknown")
-        config = data.get("config", {})
-        
-        fn_name = config.get("fn_name", "unknown")
-        D = config.get("D", np.nan)
-        P = config.get("P", np.nan)
-        G = config.get("G", np.nan)
-        
-        pipelines = data.get("pipelines", {})
-        for p_name, p_data in pipelines.items():
+            # Support both new TOML format (in `config`) and legacy format (top-level)
+            config = data.get("config", data)
+            
+            fn_name = config.get("fn_name", config.get("function", "unknown"))
+            D = config.get("D", config.get("dimensions", np.nan))
+            P = config.get("P", config.get("population_size", np.nan))
+            G = config.get("G", config.get("generations", np.nan))
+            
+            pipelines = data.get("pipelines", {})
+            for p_name, p_data in pipelines.items():
             for run in p_data.get("per_seed", []):
                 seed = run.get("seed", -1)
                 best_fit = run.get("best_fitness", np.nan)
