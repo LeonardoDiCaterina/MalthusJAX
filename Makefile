@@ -454,3 +454,6 @@ run-hard-all:
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_hard_lhs.toml
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_hard_lhs.toml
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_hard_lhs.toml
+
+run-hard-all-nohup:
+	$(call run_nohup,run-hard-all,make run-hard-all)
