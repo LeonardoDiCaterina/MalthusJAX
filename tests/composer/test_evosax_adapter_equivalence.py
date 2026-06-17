@@ -32,6 +32,7 @@ def _run_evosax_raw(
     bounds: tuple[float, float],
     key,
     seed: int = 42,
+    maximize: bool = False,
 ):
     """Reproduce the exact logic of EvosaxEngineAdapter.run_once using raw evosax."""
     rng = jr.PRNGKey(seed)
@@ -57,10 +58,10 @@ def _run_evosax_raw(
     init_x = jax.vmap(problem.sample)(pop_keys)
     # compute initial fitness using key_eval (no sign flip here)
     init_fit_raw, _, _ = problem.eval(k_eval, init_x, p_state)
-    init_fit = init_fit_raw
+    init_fit = -init_fit_raw if maximize else init_fit_raw
 
     # adapter will inside run_loop split k_main to get key_init and key_run
-    key_init, k_run = jr.split(k_main)
+    k_run, key_init = jr.split(k_main)
     state = strategy.init(key_init, init_x, init_fit, params)
 
     # --- Evolution loop matching adapter's rng chain ---
@@ -70,7 +71,8 @@ def _run_evosax_raw(
         rng, k_ask, k_eval_step, k_tell = jr.split(rng, 4)
         x, new_state = strategy.ask(k_ask, state, params)
         fitness, _, _ = problem.eval(k_eval_step, x, p_state)
-        new_state, metrics = strategy.tell(k_tell, x, fitness, new_state, params)
+        tell_fitness = -fitness if maximize else fitness
+        new_state, metrics = strategy.tell(k_tell, x, tell_fitness, new_state, params)
         return (rng, new_state, p_state), (metrics, fitness)
 
     # run the generational scan, capturing metrics from each tell
@@ -111,7 +113,6 @@ def _run_evosax_raw(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip("equality with raw evosax is unreliable; metrics differ")
 class TestEvosaxAdapterMatchesRaw:
     """Adapter output must be bit-identical to a vanilla evosax run."""
 
@@ -174,7 +175,7 @@ class TestEvosaxAdapterMatchesRaw:
         """With maximize=True, adapter negates fitness; verify correspondence."""
         key = jr.PRNGKey(7)
 
-        raw = _run_evosax_raw(key=key, **common_params)
+        raw = _run_evosax_raw(key=key, maximize=True, **common_params)
 
         evalr = BBOBEvaluator.create(
             BBOBConfig(
@@ -199,7 +200,7 @@ class TestEvosaxAdapterMatchesRaw:
             assert jnp.isclose(-raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6), (
                 f"gen {gen_idx}: -raw={-raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
             )
-            assert jnp.isclose(-raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6), (
+            assert jnp.isclose(raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6), (
                 f"gen {gen_idx}: mean mismatch"
             )
 
@@ -313,36 +314,42 @@ def _run_evosax_raw_with_init_pop(
     strategy = strategy_cls(population_size=pop_size, solution=init_solution)
     params = strategy.default_params
 
-    k_init, k_run = jr.split(key)
+    k_main, k_pop, k_eval = jr.split(key, 3)
+    k_run, k_init = jr.split(k_main)
     # static state created from seed, not run key
     p_state = problem.init(jr.PRNGKey(seed))
 
     init_x = jnp.asarray(initial_population)
-    init_fit = jnp.full((pop_size,), jnp.inf)
-    state = strategy.init(k_init, init_x, init_fit, params)
+    
+    # Evaluate initial population
+    init_fit_raw, _, _ = problem.eval(k_eval, init_x, p_state)
 
-    # Evaluate initial population and tell the strategy
-    fitness, _, _ = problem.eval(k_init, init_x, p_state)
-    state, _ = strategy.tell(k_init, init_x, fitness, state, params)
+    state = strategy.init(k_init, init_x, init_fit_raw, params)
 
-    gen_keys = jr.split(k_run, generations)
-
-    def scan_step(state, rng_step):
-        k_ask, k_eval, k_tell = jr.split(rng_step, 3)
+    def scan_step(carry, _):
+        rng, state, p_state = carry
+        rng, k_ask, k_eval_step, k_tell = jr.split(rng, 4)
         x, new_state = strategy.ask(k_ask, state, params)
-        fitness, _, _ = problem.eval(k_eval, x, p_state)
-        new_state, _ = strategy.tell(k_tell, x, fitness, new_state, params)
-        return new_state, (new_state.best_fitness, fitness)
+        fitness, _, _ = problem.eval(k_eval_step, x, p_state)
+        new_state, metrics = strategy.tell(k_tell, x, fitness, new_state, params)
+        return (rng, new_state, p_state), (metrics, fitness)
 
-    state, (all_best, all_fitness) = jax.lax.scan(scan_step, state, gen_keys)
+    (rng_final, state, p_state), (all_best, all_fitness) = jax.lax.scan(
+        scan_step,
+        (k_run, state, p_state),
+        None,
+        length=generations,
+    )
 
+    metrics = all_best
+    best_arr = metrics.get("best_fitness")
     mean_fitness = jnp.mean(all_fitness, axis=1)
     std_fitness = jnp.std(all_fitness, axis=1)
 
     history = [
         {
             "generation": gen + 1,
-            "best_fitness": float(all_best[gen]),
+            "best_fitness": float(best_arr[gen]),
             "mean_fitness": float(mean_fitness[gen]),
             "std_fitness": float(std_fitness[gen]),
         }
@@ -351,5 +358,5 @@ def _run_evosax_raw_with_init_pop(
 
     return {
         "history": history,
-        "best_fitness": float(state.best_fitness),
+        "best_fitness": float(best_arr[-1]) if best_arr is not None else float(state.best_fitness),
     }
