@@ -2,7 +2,7 @@
 name = "h1_parity_hard_lhs"
 mode = "lhs"
 output_dir = "results/h1_parity_hard_lhs"
-num_seeds = 100
+num_seeds = 30
 aggregation_level = "summary_only"
 
 [grid]

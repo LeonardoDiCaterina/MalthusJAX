@@ -434,3 +434,23 @@ benchmark-analyze:
 	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
 	@echo "--- ANALYZING BENCHMARK: $(TOML) ---"
 	$(PYTHON) scripts/benchmark_analyzer.py --toml $(TOML)
+
+smoke-hard:
+	@echo "\n=== H1 Parity Hard Smoke ==="
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_hard_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h1_parity_hard_lhs.toml --data_dir results/h1_parity_hard_lhs_smoke
+	
+	@echo "\n=== H2 Ablation Hard Smoke ==="
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_hard_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_ablation_hard_lhs.toml --data_dir results/h2_ablation_hard_smoke
+	
+	@echo "\n=== H3 Representation Hard Smoke ==="
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_hard_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h3_representation_hard_lhs.toml --data_dir results/h3_representation_hard_smoke
+	@echo "\n=== ALL HARD SMOKE PROXIES GENERATED IN results/ ==="
+
+run-hard-all:
+	@echo "\n=== Running All Hard Benchmarks ==="
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_hard_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_hard_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_hard_lhs.toml
