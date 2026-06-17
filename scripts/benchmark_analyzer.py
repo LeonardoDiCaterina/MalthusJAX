@@ -23,6 +23,7 @@ import seaborn as sns
 import statsmodels.api as sm
 from scipy import stats
 from statsmodels.stats.diagnostic import het_breuschpagan
+from statsmodels.stats.multitest import multipletests
 
 from malthusjax.benchmarking.config import BenchmarkConfig
 
@@ -147,6 +148,9 @@ def run_ols_diagnostics(df: pd.DataFrame, dependent_var: str, output_dir: Path, 
     y = df_clean["log_Y"]
     
     model = sm.OLS(y, X).fit()
+    model_hc0 = sm.OLS(y, X).fit(cov_type='HC0')
+    model_hc1 = sm.OLS(y, X).fit(cov_type='HC1')
+    model_hc3 = sm.OLS(y, X).fit(cov_type='HC3')
     
     bp_pval = np.nan
     try:
@@ -167,6 +171,11 @@ def run_ols_diagnostics(df: pd.DataFrame, dependent_var: str, output_dir: Path, 
         f.write(f"\n\n--- Diagnostics ---\n")
         f.write(f"Breusch-Pagan p-value (Heteroskedasticity): {bp_pval:.4e}\n")
         f.write(f"Shapiro-Wilk p-value (Normality): {sw_pval:.4e}\n")
+        f.write(f"\n--- Robust Standard Errors (Interaction Term) ---\n")
+        f.write(f"Standard p-value: {model.pvalues.get('interaction_term', np.nan):.4e}\n")
+        f.write(f"HC0 p-value:      {model_hc0.pvalues.get('interaction_term', np.nan):.4e}\n")
+        f.write(f"HC1 p-value:      {model_hc1.pvalues.get('interaction_term', np.nan):.4e}\n")
+        f.write(f"HC3 p-value:      {model_hc3.pvalues.get('interaction_term', np.nan):.4e}\n")
         
     return {
         "Dependent_Var": dependent_var,
@@ -175,6 +184,9 @@ def run_ols_diagnostics(df: pd.DataFrame, dependent_var: str, output_dir: Path, 
         "beta_1_pval": model.pvalues.get("is_treatment", np.nan),
         "beta_3 (Interaction)": model.params.get("interaction_term", np.nan),
         "beta_3_pval": model.pvalues.get("interaction_term", np.nan),
+        "beta_3_pval_HC0": model_hc0.pvalues.get("interaction_term", np.nan),
+        "beta_3_pval_HC1": model_hc1.pvalues.get("interaction_term", np.nan),
+        "beta_3_pval_HC3": model_hc3.pvalues.get("interaction_term", np.nan),
         "BP_pval": bp_pval,
         "SW_pval": sw_pval,
     }
@@ -333,9 +345,16 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                             _, wilcox_pval = stats.wilcoxon(target_vals, ref_vals)
                             # Cohen's dz (Effect Size)
                             diffs = target_vals - ref_vals
+                            ref_std = np.std(ref_vals, ddof=1)
                             dz = np.mean(diffs) / (np.std(diffs, ddof=1) + 1e-9)
+                            
+                            # TOST Equivalence Test (Delta = 0.2 * SD_ref)
+                            delta = 0.2 * ref_std
+                            _, p_upper = stats.ttest_1samp(diffs, popmean=delta, alternative='less')
+                            _, p_lower = stats.ttest_1samp(diffs, popmean=-delta, alternative='greater')
+                            tost_pval = max(p_upper, p_lower)
                         except Exception:
-                            wilcox_pval, dz = np.nan, np.nan
+                            wilcox_pval, dz, delta, tost_pval = np.nan, np.nan, np.nan, np.nan
                             
                         parity_rows.append({
                             "Target": target,
@@ -347,11 +366,22 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                             "Ref_Mean": np.mean(ref_vals),
                             "Ref_Std": np.std(ref_vals),
                             "Wilcoxon_pval": wilcox_pval,
+                            "TOST_pval": tost_pval,
+                            "TOST_Delta": delta,
                             "Cohen_dz": dz
                         })
 
     if pivot_rows:
         pivot_df = pd.DataFrame(pivot_rows)
+        
+        # Apply Holm-Bonferroni correction
+        for pval_col in ["beta_3_pval", "beta_3_pval_HC0", "beta_3_pval_HC1", "beta_3_pval_HC3"]:
+            if pval_col in pivot_df.columns:
+                valid_idx = pivot_df[pval_col].notna()
+                if valid_idx.any():
+                    _, corrected, _, _ = multipletests(pivot_df.loc[valid_idx, pval_col], method='holm')
+                    pivot_df.loc[valid_idx, f"{pval_col}_holm"] = corrected
+
         cols = ["Target", "Benchmark", "Dependent_Var"] + [c for c in pivot_df.columns if c not in ["Target", "Benchmark", "Dependent_Var"]]
         pivot_df = pivot_df[cols]
         
@@ -365,6 +395,15 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
 
     if parity_rows:
         parity_df = pd.DataFrame(parity_rows)
+        
+        # Apply Holm-Bonferroni correction
+        for pval_col in ["Wilcoxon_pval", "TOST_pval"]:
+            if pval_col in parity_df.columns:
+                valid_idx = parity_df[pval_col].notna()
+                if valid_idx.any():
+                    _, corrected, _, _ = multipletests(parity_df.loc[valid_idx, pval_col], method='holm')
+                    parity_df.loc[valid_idx, f"{pval_col}_holm"] = corrected
+
         cols = ["Target", "Benchmark", "Metric", "D"] + [c for c in parity_df.columns if c not in ["Target", "Benchmark", "Metric", "D"]]
         parity_df = parity_df[cols]
         
