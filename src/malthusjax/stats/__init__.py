@@ -1,19 +1,4 @@
-"""Statistical comparison layer for parity and benchmark analysis.
-
-DEPRECATED: This module has been refactored into the `malthusjax.stats` package.
-Please update your imports.
-"""
-
-import warnings
-
-warnings.warn(
-    "Importing from malthusjax.benchmarking.statistics is deprecated. "
-    "Please import from malthusjax.stats instead.",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-from malthusjax.stats import (
+from malthusjax.stats.core import (
     MetricVector,
     PairedSample,
     RegressionDataset,
@@ -33,19 +18,11 @@ from malthusjax.stats import (
     StatisticalSuiteResult,
     validate_spec,
     infer_scipy_alternative,
-    wilcoxon,
-    paired_t,
-    sign_test,
-    tost,
-    compute_standard_tests,
-    compute_tost_paired,
-    cohens_dz,
-    rank_biserial,
-    glass_delta,
-    compute_effect_sizes,
-    holm_bonferroni,
-    fdr_bh,
-    adjust_pvalues,
+)
+from malthusjax.stats.tests import wilcoxon, paired_t, sign_test, tost, compute_standard_tests, compute_tost_paired
+from malthusjax.stats.effects import cohens_dz, rank_biserial, glass_delta, compute_effect_sizes
+from malthusjax.stats.correction import holm_bonferroni, fdr_bh, adjust_pvalues
+from malthusjax.stats.comparator import (
     apply_decision_rule,
     compare_paired_arrays,
     StatisticalComparator,
@@ -54,6 +31,8 @@ from malthusjax.stats import (
     paired_dataset_from_comparison,
     paired_dataset_from_artifacts,
 )
+from malthusjax.stats.regression import fit_ols
+from malthusjax.stats.diagnostics import breusch_pagan, shapiro_wilk
 
 __all__ = [
     "MetricVector",
@@ -95,4 +74,7 @@ __all__ = [
     "paired_dataset_from_experiments",
     "paired_dataset_from_comparison",
     "paired_dataset_from_artifacts",
+    "fit_ols",
+    "breusch_pagan",
+    "shapiro_wilk",
 ]
