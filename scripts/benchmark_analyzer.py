@@ -248,7 +248,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
             
             generate_boxplots(df_fn, analysis_dir, prefix)
             
-            if len(df_fn["D"].unique()) > 1:
+            if config.suite.mode == "lhs" or len(df_fn["D"].unique()) > 1 and config.suite.mode != "cartesian":
                 # OLS Scaling Regressions using malthusjax.stats
                 generate_scaling_plots(df_fn, "execution_time", analysis_dir, prefix)
                 generate_scaling_plots(df_fn, "best_fitness", analysis_dir, prefix)
@@ -318,80 +318,86 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
             else:
                 # Cartesian Parity using malthusjax.stats
                 print(f"  -> {fn_name}: Cartesian run detected. Using malthusjax.stats.comparator for TOST and Wilcoxon.")
-                df_target = df_fn[df_fn["is_treatment"] == 1].sort_values("seed")
-                df_ref = df_fn[df_fn["is_treatment"] == 0].sort_values("seed")
                 
-                datasets = []
-                for var in ["execution_time", "best_fitness"]:
-                    target_vals = df_target[var].values
-                    ref_vals = df_ref[var].values
+                # Split and test per Dimensionality
+                for D_val in df_fn["D"].unique():
+                    df_D = df_fn[df_fn["D"] == D_val]
+                    df_target = df_D[df_D["is_treatment"] == 1].sort_values("seed")
+                    df_ref = df_D[df_D["is_treatment"] == 0].sort_values("seed")
                     
-                    if len(target_vals) > 0 and len(target_vals) == len(ref_vals):
-                        datasets.append(PairedMetricDataset(
-                            label=f"{prefix}_{var}",
-                            left_name=target,
-                            right_name=ref_pipeline,
-                            seeds=df_target["seed"].tolist(),
-                            left_values=target_vals,
-                            right_values=ref_vals,
-                            metric_name=var,
-                            metric_source="summary",
-                            metadata={"D": float(df_fn["D"].iloc[0])}
-                        ))
-                
-                if datasets:
-                    for ds in datasets:
-                        # Configure spec dynamically based on metric
-                        if ds.metric_name == "best_fitness":
-                            ref_std = np.std(ds.right_values, ddof=1)
-                            delta = max(1e-9, 0.2 * ref_std)
-                            spec = StatisticalComparisonSpec(
-                                metric_name="best_fitness",
-                                hypothesis_kind=HypothesisKind.EQUIVALENCE,
-                                equivalence_margin=delta,
-                                multiple_testing=MultipleTestingPolicy.NONE,
-                                include_tests=("wilcoxon", "paired_t"),
-                                include_mean_summary=True
-                            )
-                        else:
-                            spec = StatisticalComparisonSpec(
-                                metric_name="execution_time",
-                                hypothesis_kind=HypothesisKind.LOCATION_SHIFT,
-                                sidedness=Sidedness.TWO_SIDED,
-                                multiple_testing=MultipleTestingPolicy.NONE,
-                                include_tests=("wilcoxon", "paired_t"),
-                                include_mean_summary=True
-                            )
-                            
-                        # Compare single dataset directly to allow per-metric specs
-                        suite_res = comparator.compare_suite([ds], spec)
+                    prefix_D = f"{prefix}_d{int(D_val)}"
+                    
+                    datasets = []
+                    for var in ["execution_time", "best_fitness"]:
+                        target_vals = df_target[var].values
+                        ref_vals = df_ref[var].values
                         
-                        # Export JSON and Markdown for the metric suite
-                        with open(analysis_dir / f"{prefix}_{ds.metric_name}_suite.json", "w") as f:
-                            json.dump(suite_to_dict(suite_res), f, indent=2)
-                        with open(analysis_dir / f"{prefix}_{ds.metric_name}_suite.md", "w") as f:
-                            f.write(suite_to_markdown(suite_res))
+                        if len(target_vals) > 0 and len(target_vals) == len(ref_vals):
+                            datasets.append(PairedMetricDataset(
+                                label=f"{prefix_D}_{var}",
+                                left_name=target,
+                                right_name=ref_pipeline,
+                                seeds=df_target["seed"].tolist(),
+                                left_values=target_vals,
+                                right_values=ref_vals,
+                                metric_name=var,
+                                metric_source="summary",
+                                metadata={"D": float(D_val)}
+                            ))
+                    
+                    if datasets:
+                        for ds in datasets:
+                            # Configure spec dynamically based on metric
+                            if ds.metric_name == "best_fitness":
+                                ref_std = np.std(ds.right_values, ddof=1)
+                                delta = max(1e-9, 0.2 * ref_std)
+                                spec = StatisticalComparisonSpec(
+                                    metric_name="best_fitness",
+                                    hypothesis_kind=HypothesisKind.EQUIVALENCE,
+                                    equivalence_margin=delta,
+                                    multiple_testing=MultipleTestingPolicy.NONE,
+                                    include_tests=("wilcoxon", "paired_t"),
+                                    include_mean_summary=True
+                                )
+                            else:
+                                spec = StatisticalComparisonSpec(
+                                    metric_name="execution_time",
+                                    hypothesis_kind=HypothesisKind.LOCATION_SHIFT,
+                                    sidedness=Sidedness.TWO_SIDED,
+                                    multiple_testing=MultipleTestingPolicy.NONE,
+                                    include_tests=("wilcoxon", "paired_t"),
+                                    include_mean_summary=True
+                                )
+                                
+                            # Compare single dataset directly to allow per-metric specs
+                            suite_res = comparator.compare_suite([ds], spec)
                             
-                        # Extract metrics for the legacy aggregated CSV table
-                        res = suite_res.results[0]
-                        wilcox_pval = res.tests["wilcoxon"].p_value if "wilcoxon" in res.tests else np.nan
-                        tost_pval = res.tost.p_value_max if res.tost else np.nan
-                        tost_delta = res.tost.margin if res.tost else np.nan
-                        
-                        parity_rows.append({
-                            "Target": target,
-                            "Benchmark": fn_name,
-                            "Metric": ds.metric_name,
-                            "D": ds.metadata.get("D", np.nan),
-                            "Target_Mean": res.left_mean,
-                            "Target_Std": np.std(ds.left_values, ddof=1),
-                            "Ref_Mean": res.right_mean,
-                            "Ref_Std": np.std(ds.right_values, ddof=1),
-                            "Wilcoxon_pval": wilcox_pval,
-                            "TOST_pval": tost_pval,
-                            "TOST_Delta": tost_delta,
-                            "Cohen_dz": res.effects.cohen_dz
-                        })
+                            # Export JSON and Markdown for the metric suite
+                            with open(analysis_dir / f"{prefix_D}_{ds.metric_name}_suite.json", "w") as f:
+                                json.dump(suite_to_dict(suite_res), f, indent=2)
+                            with open(analysis_dir / f"{prefix_D}_{ds.metric_name}_suite.md", "w") as f:
+                                f.write(suite_to_markdown(suite_res))
+                                
+                            # Extract metrics for the legacy aggregated CSV table
+                            res = suite_res.results[0]
+                            wilcox_pval = res.tests["wilcoxon"].p_value if "wilcoxon" in res.tests else np.nan
+                            tost_pval = res.tost.p_value_max if res.tost else np.nan
+                            tost_delta = res.tost.margin if res.tost else np.nan
+                            
+                            parity_rows.append({
+                                "Target": target,
+                                "Benchmark": fn_name,
+                                "Metric": ds.metric_name,
+                                "D": ds.metadata.get("D", np.nan),
+                                "Target_Mean": res.left_mean,
+                                "Target_Std": np.std(ds.left_values, ddof=1),
+                                "Ref_Mean": res.right_mean,
+                                "Ref_Std": np.std(ds.right_values, ddof=1),
+                                "Wilcoxon_pval": wilcox_pval,
+                                "TOST_pval": tost_pval,
+                                "TOST_Delta": tost_delta,
+                                "Cohen_dz": res.effects.cohen_dz
+                            })
 
     if pivot_rows:
         pivot_df = pd.DataFrame(pivot_rows)
