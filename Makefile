@@ -282,7 +282,7 @@ docs-open:
 define run_nohup
 	@logfile=$$(date +%Y%m%d_%H%M%S)_$1__nohup.log; \
 	echo "--- Running $1 (nohup) output -> $$logfile ---"; \
-	nohup $(2) > $$logfile 2>&1 &
+	$(JAX_ENV_VARS) nohup $(2) > $$logfile 2>&1 &
 endef
 
 test-nohup:
