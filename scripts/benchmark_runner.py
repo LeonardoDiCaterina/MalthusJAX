@@ -96,12 +96,13 @@ def run_suite(toml_path: str, force_smoke: bool = False) -> None:
             formatted_kwargs = {}
             for k, v in p_kwargs.items():
                 if isinstance(v, str):
-                    formatted_kwargs[k] = v.format(
+                    formatted_val = v.format(
                         pop_size=P, 
                         genome_length=D, 
                         generations=G, 
                         elite_k=max(2, int(P / 6))
                     )
+                    formatted_kwargs[k] = int(formatted_val) if formatted_val.isdigit() else formatted_val
                 else:
                     formatted_kwargs[k] = v
             formatted_pipelines[p_name] = formatted_kwargs
