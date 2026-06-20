@@ -3,14 +3,17 @@ name = "h2_ablation_lhs"
 mode = "lhs"
 output_dir = "results/h2_ablation_lhs"
 num_seeds = 100
-num_samples = 20
 aggregation_level = "summary_only"
 
 [grid]
 functions = ["lunacek_bi_rastrigin", "schwefel", "gallagher_21_hi"]
-dims = [10, 50, 100]
-pops = [256, 1024]
-gens = [200]
+dims_min = 10
+dims_max = 100
+pops_min = 64
+pops_max = 1024
+gens_min = 50
+gens_max = 200
+num_samples = 20
 
 [analysis]
 reference_pipeline = "malthusjax_baseline"
