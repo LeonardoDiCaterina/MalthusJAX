@@ -1,7 +1,7 @@
 [suite]
-name = "h2_ablation_lhs"
+name = "h3_precision_lhs"
 mode = "lhs"
-output_dir = "results/h2_ablation_lhs"
+output_dir = "results/h3_precision_lhs"
 num_seeds = 100
 num_samples = 20
 aggregation_level = "summary_only"
@@ -13,25 +13,28 @@ pops = [256, 1024]
 gens = [200]
 
 [analysis]
-reference_pipeline = "malthusjax_baseline"
+reference_pipeline = "mjx_f32"
 
-[pipelines.malthusjax_baseline]
+[pipelines.mjx_f32]
 backend = "malthusjax"
 selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
 crossover = "evosax_uniform_crossover:crossover_rate=0.3"
 mutation = "evosax_gaussian:mutation_strength=1.0"
 elitism = 0
+dtype = "float32"
 
-[pipelines.mjx_ablate_sel_tournament]
-backend = "malthusjax"
-selection = "tournament:num_selections={pop_size},tournament_size=3"
-crossover = "evosax_uniform_crossover:crossover_rate=0.3"
-mutation = "evosax_gaussian:mutation_strength=1.0"
-elitism = 0
-
-[pipelines.mjx_ablate_mutation]
+[pipelines.mjx_bf16]
 backend = "malthusjax"
 selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
 crossover = "evosax_uniform_crossover:crossover_rate=0.3"
-mutation = "gaussian:mutation_rate=0.1,mutation_strength=1.0"
+mutation = "evosax_gaussian:mutation_strength=1.0"
 elitism = 0
+dtype = "bfloat16"
+
+[pipelines.mjx_f16]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+dtype = "float16"

@@ -6,10 +6,10 @@ num_seeds = 100
 aggregation_level = "summary_only"
 
 [grid]
-functions = ["sphere", "rosenbrock"]
-dims = [5, 10]
-pops = [64, 256]
-gens = [50]
+functions = ["sphere", "rosenbrock", "rastrigin", "lunacek_bi_rastrigin", "schwefel", "gallagher_21_hi"]
+dims = [5, 10, 50, 100]
+pops = [64, 256, 1024]
+gens = [50, 200]
 
 [analysis]
 reference_pipeline = "evosax_baseline"
