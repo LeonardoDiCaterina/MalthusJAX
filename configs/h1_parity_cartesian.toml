@@ -18,9 +18,13 @@ reference_pipeline = "evosax_baseline"
 backend = "evosax"
 evosax_strategy = "SimpleGA"
 
+[pipelines.evosax_baseline.strategy_params]
+crossover_rate = 0.5
+mutation_std = 0.5
+
 [pipelines.malthusjax_wrapper]
 backend = "malthusjax"
-selection = "evosax_mimic_selection:num_selections={pop_size}"
-crossover = "evosax_uniform_crossover:crossover_rate=0.3"
-mutation = "evosax_gaussian:mutation_strength=1.0"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5,num_offspring=1"
+mutation = "evosax_gaussian:mutation_strength=0.5"
 elitism = 0
