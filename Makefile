@@ -22,8 +22,13 @@ ifdef HAS_NVIDIA
     else
         JAX_EXTRA := cpu
     endif
+    
+    # Auto-detect the GPU with the most free memory
+    FREE_GPU := $(shell nvidia-smi --query-gpu=memory.free,index --format=csv,nounits,noheader | sort -nr | head -n 1 | awk '{print $$2}')
+    JAX_ENV_VARS := CUDA_VISIBLE_DEVICES=$(FREE_GPU) XLA_PYTHON_CLIENT_PREALLOCATE=false XLA_PYTHON_CLIENT_ALLOCATOR=platform
 else
     JAX_EXTRA := cpu
+    JAX_ENV_VARS := XLA_PYTHON_CLIENT_PREALLOCATE=false XLA_PYTHON_CLIENT_ALLOCATOR=platform
 endif
 # --------------------------------
 
@@ -301,18 +306,18 @@ run-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml TOML=configs/examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	@echo "--- Running TOML experiment: $(TOML) ---"
-	mjax run $(TOML)
+	$(JAX_ENV_VARS) mjax run $(TOML)
 
 run-toml-nohup:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml-nohup TOML=configs/examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
-	$(call run_nohup,toml_experiment,mjax run $(TOML))
+	$(call run_nohup,toml_experiment,$(JAX_ENV_VARS) mjax run $(TOML))
 
 parity-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make parity-toml TOML=configs/parity/parity.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	@echo "--- Running statistical parity for $(TOML) ---"
-	mjax parity $(TOML)
+	$(JAX_ENV_VARS) mjax parity $(TOML)
 
 artifacts-dir:
 	@test -n "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR variable not set"; echo "Usage: make artifacts-dir RESULTS_DIR=results/my_experiment"; exit 1)
