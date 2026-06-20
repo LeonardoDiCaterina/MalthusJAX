@@ -308,6 +308,17 @@ run-toml-nohup:
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	$(call run_nohup,toml_experiment,mjax run $(TOML))
 
+run-benchmark:
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-benchmark TOML=configs/h1_parity_cartesian.toml"; exit 1)
+	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
+	@echo "--- Running Benchmark Suite: $(TOML) ---"
+	python scripts/benchmark_runner.py --toml $(TOML)
+
+run-benchmark-nohup:
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-benchmark-nohup TOML=configs/h1_parity_cartesian.toml"; exit 1)
+	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
+	$(call run_nohup,benchmark_suite,python scripts/benchmark_runner.py --toml $(TOML))
+
 parity-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make parity-toml TOML=configs/parity/parity.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
