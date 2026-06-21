@@ -45,7 +45,14 @@ def parse_global_data(results_dir: Path) -> pd.DataFrame:
     records = []
     
     # Support both new TOML engine and legacy hardcoded script outputs
-    search_patterns = ["benchmark_results.json", "parity_results.json", "ablation_results.json", "representation_results.json"]
+    search_patterns = [
+        "benchmark_results.json", 
+        "parity_results.json", 
+        "ablation_results.json", 
+        "representation_results.json",
+        "summary.json",
+        "suite_summary.json"
+    ]
     
     for pattern in search_patterns:
         for json_path in results_dir.rglob(pattern):
