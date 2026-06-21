@@ -36,6 +36,8 @@ from malthusjax.stats.core import (
 from malthusjax.stats.regression import fit_ols
 from malthusjax.stats.comparator import StatisticalComparator
 from malthusjax.stats.io import suite_to_markdown, suite_to_dict, regression_to_markdown
+from malthusjax.stats.dataset_builder import synthesize_regression_dataset
+from malthusjax.stats.regression_analyzer import RegressionSpec, OLSRegressionAnalyzer
 
 
 def parse_global_data(results_dir: Path) -> pd.DataFrame:
@@ -112,21 +114,7 @@ def parse_global_data(results_dir: Path) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
-def synthesize_regression_dataset(df_global: pd.DataFrame, target_pipeline: str, ref_pipeline: str) -> pd.DataFrame:
-    """Join target pipeline data with the reference pipeline to calculate relative effect."""
-    df_target = df_global[df_global["pipeline"] == target_pipeline].copy()
-    df_ref = df_global[df_global["pipeline"] == ref_pipeline].copy()
-    
-    df_target["is_treatment"] = 1
-    df_ref["is_treatment"] = 0
-    
-    common_keys = ["fn_name", "seed", "D", "P", "G"]
-    merged = pd.merge(df_target[common_keys], df_ref[common_keys], on=common_keys, how="inner")
-    
-    df_target_paired = pd.merge(df_target, merged, on=common_keys, how="inner")
-    df_ref_paired = pd.merge(df_ref, merged, on=common_keys, how="inner")
-    
-    return pd.concat([df_ref_paired, df_target_paired], ignore_index=True)
+# synthesize_regression_dataset has been moved to malthusjax.stats.dataset_builder
 
 
 def generate_boxplots(df: pd.DataFrame, output_dir: Path, prefix: str):
@@ -253,68 +241,9 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                 generate_scaling_plots(df_fn, "execution_time", analysis_dir, prefix)
                 generate_scaling_plots(df_fn, "best_fitness", analysis_dir, prefix)
                 
-                for var in ["execution_time", "best_fitness"]:
-                    df_clean = df_fn.copy()
-                    if var == "execution_time":
-                        y = np.log(df_clean[var] + 1e-9)
-                    else:
-                        min_y = df_clean[var].min()
-                        shift = abs(min_y) + 1 if min_y <= 0 else 0
-                        y = np.log(df_clean[var] + shift)
-                    
-                    log_D = np.log(df_clean["D"])
-                    log_P = np.log(df_clean["P"])
-                    log_G = np.log(df_clean["G"])
-                    is_treatment = df_clean["is_treatment"]
-                    interaction = is_treatment * log_D
-                    
-                    dataset = RegressionDataset(
-                        y=y.values,
-                        X={
-                            "is_treatment": is_treatment.values,
-                            "log_D": log_D.values,
-                            "log_P": log_P.values,
-                            "log_G": log_G.values,
-                            "interaction_term": interaction.values,
-                        },
-                        label=f"{prefix}_{var}"
-                    )
-                    
-                    # Convert to OLSResult wrapper via new package
-                    try:
-                        ols_res = fit_ols(dataset)
-                        
-                        # Generate markdown diagnostic output
-                        ols_res.target_name = dataset.label
-                        ols_res.n_observations = len(y)
-                        ols_res.adjusted_r_squared = ols_res.r_squared
-                        ols_res.features = list(dataset.X.keys())
-                        ols_res.standard_errors = {}
-                        ols_res.t_values = {}
-                        
-                        with open(analysis_dir / f"{prefix}_{var}_ols_summary.md", "w") as f:
-                            f.write(regression_to_markdown(ols_res))
-                        
-                        bp_pval = next((d.p_value for d in ols_res.diagnostics if d.name == "Breusch-Pagan"), np.nan)
-                        sw_pval = next((d.p_value for d in ols_res.diagnostics if d.name == "Shapiro-Wilk"), np.nan)
-                        
-                        pivot_rows.append({
-                            "Target": target,
-                            "Benchmark": fn_name,
-                            "Dependent_Var": var,
-                            "R2": ols_res.r_squared,
-                            "beta_1 (Treatment)": ols_res.coefficients.get("is_treatment", np.nan),
-                            "beta_1_pval": ols_res.p_values.get("is_treatment", np.nan),
-                            "beta_3 (Interaction)": ols_res.coefficients.get("interaction_term", np.nan),
-                            "beta_3_pval": ols_res.p_values.get("interaction_term", np.nan),
-                            "beta_3_pval_HC0": ols_res.robust_p_values.get("interaction_term", {}).get("HC0", np.nan),
-                            "beta_3_pval_HC1": ols_res.robust_p_values.get("interaction_term", {}).get("HC1", np.nan),
-                            "beta_3_pval_HC3": ols_res.robust_p_values.get("interaction_term", {}).get("HC3", np.nan),
-                            "BP_pval": bp_pval,
-                            "SW_pval": sw_pval,
-                        })
-                    except Exception as e:
-                        print(f"Warning: Failed to run OLS for {prefix}_{var}: {e}")
+                # The OLS Regressions are now handled globally via the OLSRegressionAnalyzer
+                # Scaling plots are still generated per benchmark fn_name.
+                pass
             else:
                 # Cartesian Parity using malthusjax.stats
                 print(f"  -> {fn_name}: Cartesian run detected. Using malthusjax.stats.comparator for TOST and Wilcoxon.")
@@ -399,22 +328,25 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                                 "Cohen_dz": res.effects.cohen_dz
                             })
 
-    if pivot_rows:
-        pivot_df = pd.DataFrame(pivot_rows)
-        for pval_col in ["beta_3_pval", "beta_3_pval_HC0", "beta_3_pval_HC1", "beta_3_pval_HC3"]:
-            if pval_col in pivot_df.columns:
-                valid_idx = pivot_df[pval_col].notna()
-                if valid_idx.any():
-                    _, corrected, _, _ = multipletests(pivot_df.loc[valid_idx, pval_col], method='holm')
-                    pivot_df.loc[valid_idx, f"{pval_col}_holm"] = corrected
-
-        cols = ["Target", "Benchmark", "Dependent_Var"] + [c for c in pivot_df.columns if c not in ["Target", "Benchmark", "Dependent_Var"]]
-        pivot_df = pivot_df[cols]
+    if config.suite.mode == "lhs" or len(df_global["D"].unique()) > 1 and config.suite.mode != "cartesian":
+        print("\nRunning Global OLS Regression Analysis...")
+        ols_spec = RegressionSpec(
+            dependent_vars=["execution_time", "best_fitness"],
+            apply_multiple_testing=True
+        )
+        ols_analyzer = OLSRegressionAnalyzer(spec=ols_spec)
+        pivot_df = ols_analyzer.analyze_suite(
+            df_global=df_global,
+            ref_pipeline=ref_pipeline,
+            target_pipelines=target_pipelines,
+            analysis_dir=analysis_dir
+        )
         
-        pivot_file = analysis_dir / "ols_regression_table.csv"
-        pivot_df.to_csv(pivot_file, index=False)
-        export_latex_safe(pivot_df, analysis_dir / "ols_regression_table.tex")
-        print(f"\nOLS Regression Pivot Table saved to {pivot_file}")
+        if not pivot_df.empty:
+            pivot_file = analysis_dir / "ols_regression_table.csv"
+            pivot_df.to_csv(pivot_file, index=False)
+            export_latex_safe(pivot_df, analysis_dir / "ols_regression_table.tex")
+            print(f"OLS Regression Pivot Table saved to {pivot_file}")
 
     if parity_rows:
         parity_df = pd.DataFrame(parity_rows)

@@ -32,6 +32,7 @@ from malthusjax.stats.comparator import (
     paired_dataset_from_artifacts,
 )
 from malthusjax.stats.regression import fit_ols
+from malthusjax.stats.regression_analyzer import RegressionSpec, OLSRegressionAnalyzer
 from malthusjax.stats.diagnostics import breusch_pagan, shapiro_wilk
 
 __all__ = [
@@ -75,6 +76,8 @@ __all__ = [
     "paired_dataset_from_comparison",
     "paired_dataset_from_artifacts",
     "fit_ols",
+    "RegressionSpec",
+    "OLSRegressionAnalyzer",
     "breusch_pagan",
     "shapiro_wilk",
 ]
