@@ -984,6 +984,7 @@ class Composer:
         data_registry = self._build_data_registry(data_config) if data_config else None
 
         maximize_flag = config.get('maximize', False)
+        seed_val = config.get('seed', 42)
         if fitness and "maximize=" not in fitness:
             # Append maximize param correctly: if fitness has params (contains :),
             # use comma; if it's just a name, use colon to start params
@@ -991,9 +992,14 @@ class Composer:
                 fitness = f"{fitness},maximize={maximize_flag}"
             else:
                 fitness = f"{fitness}:maximize={maximize_flag}"
+        if fitness and "seed=" not in fitness:
+            if ":" in fitness:
+                fitness = f"{fitness},seed={seed_val}"
+            else:
+                fitness = f"{fitness}:seed={seed_val}"
 
         resolved_evaluator = catalog.get(
-            fitness or f"sphere:dim=10,maximize={maximize_flag}",
+            fitness or f"sphere:dim=10,maximize={maximize_flag},seed={seed_val}",
             data_registry=data_registry,
         )
         resolved_selection = catalog.get(

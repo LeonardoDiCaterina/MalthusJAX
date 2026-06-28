@@ -20,7 +20,7 @@ import jax.numpy as jnp
 from ..core.genome.binary_genome import BinaryGenomeConfig
 
 # for now it only supports real genomes but it will be extended in the future
-from ..core.genome.real_genome import RealGenomeConfig, RealPopulation
+from ..core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from ..core.random import resolve_prng_impl
 from ..engine.base import _get_evolution_kernel
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
@@ -70,7 +70,7 @@ class GeneticEngineAdapter:
 
         if self.initial_population is not None:
             arr = jnp.asarray(self.initial_population)
-            pop = RealPopulation.from_array(arr, self.genome_config, axis=0)
+            pop = RealPopulation.from_array(arr, self.genome_config, RealGenome, axis=0)
             evaluated_pop = cast(
                 RealPopulation,
                 self.genetic_engine.evaluator.evaluate_population(pop),

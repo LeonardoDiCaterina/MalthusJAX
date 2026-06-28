@@ -146,8 +146,8 @@ class ResourceMap:
 
 def compute_resource_map(
     selection: BaseSelection[Any, Any],
-    crossover: BaseCrossover[Any, Any, Any],
-    mutation: BaseMutation[Any, Any, Any],
+    crossover: BaseCrossover[Any, Any],
+    mutation: BaseMutation[Any, Any],
     genome_config: Any,
     pop_size: int,
     elitism: int = 0,

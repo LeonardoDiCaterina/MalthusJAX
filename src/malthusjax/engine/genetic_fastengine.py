@@ -194,8 +194,8 @@ class OperatorState:
     """
 
     selection: BaseSelection[Any, Any] = _field(pytree_node=False)
-    crossover: BaseCrossover[Any, Any, Any] = _field(pytree_node=False)
-    mutation: BaseMutation[Any, Any, Any] = _field(pytree_node=False)
+    crossover: BaseCrossover[Any, Any] = _field(pytree_node=False)
+    mutation: BaseMutation[Any, Any] = _field(pytree_node=False)
 
 
 @struct.dataclass
@@ -298,8 +298,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     genome_config: Any = _field(pytree_node=False)
     evaluator: BaseEvaluator[Any, Any, Any] = _field(pytree_node=False)
     selection: BaseSelection[Any, Any] = _field(pytree_node=False)
-    crossover: BaseCrossover[Any, Any, Any] = _field(pytree_node=False)
-    mutation: BaseMutation[Any, Any, Any] = _field(pytree_node=False)
+    crossover: BaseCrossover[Any, Any] = _field(pytree_node=False)
+    mutation: BaseMutation[Any, Any] = _field(pytree_node=False)
     # Hooks & Config
     # hooks: Tuple[AbstractHook] (placeholder for future hook support)
 
@@ -496,7 +496,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         # Allow forwarding/splitting of mutation keys similarly when requested.
         expected_mut_keys = operators.mutation.num_keys(
-            input_shape=(offspring_pop.genes.values.shape[0],)
+            input_shape=(len(offspring_pop),)
         )
         if not params.forward_presplit_keys:
             if keys_mutation.shape[0] != expected_mut_keys:
@@ -510,10 +510,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                 mut_keys_to_pass = keys_mutation
             else:
                 if expected_mut_keys == 1 and keys_mutation.shape[0] == 1:
-                    total_offspring = offspring_pop.genes.values.shape[0]
+                    total_offspring = len(offspring_pop)
                     mut_keys_to_pass = jax.random.split(keys_mutation[0], total_offspring)
                 else:
-                    total_offspring = offspring_pop.genes.values.shape[0]
+                    total_offspring = len(offspring_pop)
                     if keys_mutation.shape[0] == total_offspring:
                         mut_keys_to_pass = keys_mutation
                     else:
