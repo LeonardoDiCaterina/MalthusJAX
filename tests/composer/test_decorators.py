@@ -1,6 +1,5 @@
 """Tests for the decorator-based registration API."""
 
-
 from malthusjax.composer import (
     register_crossover,
     register_engine,
@@ -75,6 +74,7 @@ def test_decorators_allow_override():
     """Ensure that running the decorator twice on the same key doesn't crash.
     This is essential for Jupyter Notebook iterative development.
     """
+
     @register_selection("test_override_op")
     class FirstVersion:
         pass

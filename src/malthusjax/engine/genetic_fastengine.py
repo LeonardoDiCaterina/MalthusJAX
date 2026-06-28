@@ -495,9 +495,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
 
         # Allow forwarding/splitting of mutation keys similarly when requested.
-        expected_mut_keys = operators.mutation.num_keys(
-            input_shape=(len(offspring_pop),)
-        )
+        expected_mut_keys = operators.mutation.num_keys(input_shape=(len(offspring_pop),))
         if not params.forward_presplit_keys:
             if keys_mutation.shape[0] != expected_mut_keys:
                 raise ValueError(
@@ -694,8 +692,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             f"{state.resource_map.crossover.output_count}"
         )
         mutation_io = (
-            f"{state.resource_map.mutation.input_count}/"
-            f"{state.resource_map.mutation.output_count}"
+            f"{state.resource_map.mutation.input_count}/{state.resource_map.mutation.output_count}"
         )
 
         print(
@@ -728,10 +725,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             k_sel, state.population, state.operators, self.engine_params
         )
         elite_shape = _first_leaf_shape(elites)
-        print(
-            "phase 1 selection: "
-            f"elites={elite_shape}, parents={parent_indices.shape}"
-        )
+        print(f"phase 1 selection: elites={elite_shape}, parents={parent_indices.shape}")
         parent_preview = np.asarray(parent_indices)[:8].tolist()
         print(
             "phase 1 selection preview: "
@@ -778,8 +772,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         new_pop = self._evaluate(next_genes, state)
         print(
-            "phase 3b evaluate: "
-            f"population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
+            f"phase 3b evaluate: population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
         )
         print(
             "phase 3b evaluate preview: "

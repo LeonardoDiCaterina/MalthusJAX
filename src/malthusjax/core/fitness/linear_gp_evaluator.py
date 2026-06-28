@@ -301,7 +301,7 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
 
     def evaluate(self, genome: LinearGenome) -> chex.Numeric:
         """Returns the MSE of the best instruction (Symbiotic Selection).
-        
+
         Minimization convention: lower fitness is better (lower MSE = better fit).
         """
         X, y = self.data

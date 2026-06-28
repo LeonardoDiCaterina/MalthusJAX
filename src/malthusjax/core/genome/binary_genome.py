@@ -7,7 +7,7 @@ corresponding population container and random initialization logic.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Tuple, Type, cast
+from typing import Any, Tuple, cast
 
 import chex
 import jax
@@ -229,8 +229,6 @@ class BinaryPopulation(BasePopulation[BinaryGenome]):
     genes: BinaryGenome
     fitness: chex.Array
     config: BinaryGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-
-
 
     @classmethod
     def init_random(

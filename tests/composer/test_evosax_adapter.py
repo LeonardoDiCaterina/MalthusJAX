@@ -113,7 +113,7 @@ class TestBuildEvosaxEngine:
 
     def test_all_strategies_construct(self):
         """Every registered strategy should be constructable.
-        
+
         Note: LGA is skipped due to JAX version compatibility issues with
         evosax's pickled parameter loading.
         """

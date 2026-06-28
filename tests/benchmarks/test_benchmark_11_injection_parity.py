@@ -54,7 +54,7 @@ def _assert_parity_comparison(
         _assert_experiment_result(result, f"{label}/{name}", seeds)
 
     table = comparison.summary_table()
-    
+
     def _get_mean(val):
         return val["mean"] if isinstance(val, dict) else val
 

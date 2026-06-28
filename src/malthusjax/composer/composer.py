@@ -494,7 +494,10 @@ class Composer:
             best_val = run.metrics.get("best_fitness")
             need_replace = force or (
                 best_val is None
-                or (isinstance(best_val, (int, float)) and (math.isnan(best_val) or math.isinf(best_val)))
+                or (
+                    isinstance(best_val, (int, float))
+                    and (math.isnan(best_val) or math.isinf(best_val))
+                )
             )
 
             if not need_replace:
@@ -539,8 +542,8 @@ class Composer:
 
     def _generate_initial_population(self, config: Dict[str, Any], pop_seed: int) -> Any:
         """Deterministically generate a shared initial population matrix for a given pipeline config.
-        
-        Ensures that pipelines with identical bounds, population sizes, and dimensionality 
+
+        Ensures that pipelines with identical bounds, population sizes, and dimensionality
         receive the exact same starting points, while dynamically scaling to the requested pop_size.
         """
         import jax
@@ -559,7 +562,12 @@ class Composer:
                 dims = parsed_params.get("dim", parsed_params.get("num_dims", genome_length))
                 bbob_seed = parsed_params.get("seed", 0)
                 bbob_eval = BBOBEvaluator.create(
-                    BBOBConfig(fn_name=fn, num_dims=dims, seed=bbob_seed, maximize=config.get("maximize", False))
+                    BBOBConfig(
+                        fn_name=fn,
+                        num_dims=dims,
+                        seed=bbob_seed,
+                        maximize=config.get("maximize", False),
+                    )
                 )
                 pop_key = jr.PRNGKey(pop_seed)
                 sample_keys = jr.split(pop_key, pop_size)
@@ -714,7 +722,6 @@ class Composer:
             )
             # All pipelines start from identical population
         """
-
 
         trace_base = shared_kwargs.pop("trace_dir", None)
 
@@ -920,7 +927,6 @@ class Composer:
 
         seeds = cls._normalize_seeds(shared.pop("seeds", (42, 43, 44)))
 
-
         pipeline_overrides: Dict[str, Dict[str, Any]] = {}
         for name, merged_cfg in resolved.items():
             overrides = {
@@ -940,7 +946,6 @@ class Composer:
             data_config=data_registry,
             **shared,
         )
-
 
     def _has_real_operators(
         self,
@@ -983,8 +988,8 @@ class Composer:
 
         data_registry = self._build_data_registry(data_config) if data_config else None
 
-        maximize_flag = config.get('maximize', False)
-        seed_val = config.get('seed', 42)
+        maximize_flag = config.get("maximize", False)
+        seed_val = config.get("seed", 42)
         if fitness and "maximize=" not in fitness:
             # Append maximize param correctly: if fitness has params (contains :),
             # use comma; if it's just a name, use colon to start params
@@ -1015,8 +1020,8 @@ class Composer:
         )
 
         # Ensure we use LIGHT tracking for monotonic convergence curves
-        if 'track_best' not in config:
-            config['track_best'] = TrackBest.LIGHT
+        if "track_best" not in config:
+            config["track_best"] = TrackBest.LIGHT
 
         engine_registry = EngineRegistry()
         return engine_registry.get(

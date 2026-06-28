@@ -24,7 +24,7 @@ from malthusjax.composer import Composer
 
 def cleanup_gpu_memory():
     """Clear GPU memory and compiled JAX functions between pipelines.
-    
+
     Flushes Python garbage collection and forces JAX to release compiled
     kernels from GPU memory. Reduces CUDA graph memory pressure.
     """
@@ -33,7 +33,7 @@ def cleanup_gpu_memory():
         # Clear JAX's device memory (H2D/D2H caches)
         jax.effects_barrier()
         # Try to clear compiled function cache if available
-        if hasattr(jax, '_src') and hasattr(jax._src, 'dispatch'):
+        if hasattr(jax, "_src") and hasattr(jax._src, "dispatch"):
             jax._src.dispatch.clear_backends()
     except Exception:
         # If this fails, don't crash - just continue
@@ -71,9 +71,9 @@ def filter_completed_experiments(toml_files, results_dir="results/thesis"):
 
 def run_single_experiment(toml_path, skip_plots=False):
     """Run a single TOML experiment and generate results."""
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"Running: {toml_path.name}")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     start_time = datetime.now()
 
     # Load and run with Composer
@@ -176,6 +176,7 @@ def run_single_experiment(toml_path, skip_plots=False):
     try:
         conv_data = comparison.convergence_data(seed_index=0)
         import json
+
         conv_export = {}
         for pipeline_name, history in conv_data.items():
             conv_export[pipeline_name] = history
@@ -207,9 +208,7 @@ def run_single_experiment(toml_path, skip_plots=False):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Run all thesis benchmarking experiments"
-    )
+    parser = argparse.ArgumentParser(description="Run all thesis benchmarking experiments")
     parser.add_argument(
         "--pattern",
         default="convergence_",
@@ -287,13 +286,14 @@ def main():
         except Exception as e:
             print(f"FATAL error: {e}")
             import traceback
+
             traceback.print_exc()
             continue
 
     # Summary report
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("EXPERIMENT RUN COMPLETE")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     if completed:
         print(f"Previously completed ({len(completed)}):")
         for exp_name in completed:

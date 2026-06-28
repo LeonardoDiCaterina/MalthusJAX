@@ -7,7 +7,7 @@ operations and initialization.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Tuple, Type, cast
+from typing import Any, Tuple, cast
 
 import chex
 import jax
@@ -144,8 +144,6 @@ class CategoricalPopulation(BasePopulation[CategoricalGenome]):
     genes: CategoricalGenome
     fitness: chex.Array
     config: CategoricalGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-
-
 
     @classmethod
     def init_random(

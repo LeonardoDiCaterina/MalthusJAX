@@ -53,16 +53,17 @@ class BaseMutation(Generic[G, C]):
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         # Detect old-style 3-arg Generic usage in class bases.
-        for base in getattr(cls, '__orig_bases__', ()):
-            args = getattr(base, '__args__', None)
+        for base in getattr(cls, "__orig_bases__", ()):
+            args = getattr(base, "__args__", None)
             if args is not None and len(args) == 3:
-                origin = getattr(base, '__origin__', None)
+                origin = getattr(base, "__origin__", None)
                 if origin is BaseMutation:
                     warnings.warn(
                         f"{cls.__qualname__} uses BaseMutation[G, C, P] which is "
                         "deprecated. Use BaseMutation[G, C] instead — the population "
                         "type P is now inferred from G.",
-                        DeprecationWarning, stacklevel=2
+                        DeprecationWarning,
+                        stacklevel=2,
                     )
                     break
 
@@ -123,7 +124,9 @@ class BaseMutation(Generic[G, C]):
         noise = self._generate_noise(keys, config, generation)
         return self._mutate_one(genome, noise, config)
 
-    def __call__(self, all_keys: chex.Array, population: BasePopulation[G], config: C, generation: int = 0) -> BasePopulation[G]:
+    def __call__(
+        self, all_keys: chex.Array, population: BasePopulation[G], config: C, generation: int = 0
+    ) -> BasePopulation[G]:
         """Tier 3 — Population-level mutation using JAX vmaps.
 
         This method orchestrates either a flat or nested vmap over the provided
@@ -209,16 +212,17 @@ class BaseCrossover(Generic[G, C]):
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
-        for base in getattr(cls, '__orig_bases__', ()):
-            args = getattr(base, '__args__', None)
+        for base in getattr(cls, "__orig_bases__", ()):
+            args = getattr(base, "__args__", None)
             if args is not None and len(args) == 3:
-                origin = getattr(base, '__origin__', None)
+                origin = getattr(base, "__origin__", None)
                 if origin is BaseCrossover:
                     warnings.warn(
                         f"{cls.__qualname__} uses BaseCrossover[G, C, P] which is "
                         "deprecated. Use BaseCrossover[G, C] instead — the population "
                         "type P is now inferred from G.",
-                        DeprecationWarning, stacklevel=2
+                        DeprecationWarning,
+                        stacklevel=2,
                     )
                     break
 
@@ -302,7 +306,12 @@ class BaseCrossover(Generic[G, C]):
         return cast(G, offspring)
 
     def __call__(
-        self, all_keys: chex.Array, p1_pop: BasePopulation[G], p2_pop: BasePopulation[G], config: C, generation: int = 0
+        self,
+        all_keys: chex.Array,
+        p1_pop: BasePopulation[G],
+        p2_pop: BasePopulation[G],
+        config: C,
+        generation: int = 0,
     ) -> BasePopulation[G]:
         """Tier 3 — Population-level crossover executed via JAX vmaps.
 

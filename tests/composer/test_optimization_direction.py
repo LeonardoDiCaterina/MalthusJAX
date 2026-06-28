@@ -133,8 +133,6 @@ class TestOptimizationDirection:
         max_improvement = max_last - max_first  # Should be positive (fitness increased)
 
         # Both should show improvement (positive change), but for different reasons
-        min_improv_str = f"Minimization improvement: {min_improvement}"
-        max_improv_str = f"Maximization improvement: {max_improvement}"
         # improvement may be zero if initial population already optimal;
         # we only require non-negative change.
         # With stochastic optimization, fitness may improve or worsen slightly
@@ -220,22 +218,22 @@ class TestOptimizationDirection:
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             result = composer.quick_run(
-                backend='evosax',
-                evosax_strategy='SimpleGA',
-                fitness='bbob:fn=3,dims=4,seed=0',
+                backend="evosax",
+                evosax_strategy="SimpleGA",
+                fitness="bbob:fn=3,dims=4,seed=0",
                 pop_size=30,
                 generations=5,
-                genome_type='real',
+                genome_type="real",
                 genome_length=4,
                 bounds=(-5.0, 5.0),
                 seeds=[42],
-                strategy_params={'crossover_rate': 0.5},
-                experiment_name='bbob_fn_index',
+                strategy_params={"crossover_rate": 0.5},
+                experiment_name="bbob_fn_index",
                 output_dir=tmp_dir,
             )
 
         assert len(result.runs) == 1
-        assert isinstance(result.runs[0].metrics['best_fitness'], float)
+        assert isinstance(result.runs[0].metrics["best_fitness"], float)
 
     def test_bbob_maximize_parameter(self):
         """Test that the BBOB evaluator respects the maximize parameter."""

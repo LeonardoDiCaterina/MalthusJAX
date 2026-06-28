@@ -1,39 +1,46 @@
+from malthusjax.stats.comparator import (
+    StatisticalComparator,
+    apply_decision_rule,
+    attach_adjusted_pvalues,
+    compare_paired_arrays,
+    paired_dataset_from_artifacts,
+    paired_dataset_from_comparison,
+    paired_dataset_from_experiments,
+)
 from malthusjax.stats.core import (
+    DiagnosticResult,
+    EffectSizeResult,
+    ExpectedDirection,
+    HypothesisKind,
     MetricVector,
+    MultipleTestingPolicy,
+    OLSResult,
+    PairedMetricDataset,
     PairedSample,
     RegressionDataset,
-    StatisticalSpecError,
-    HypothesisKind,
     Sidedness,
-    ExpectedDirection,
-    MultipleTestingPolicy,
+    StatisticalComparisonResult,
     StatisticalComparisonSpec,
-    PairedMetricDataset,
+    StatisticalSpecError,
+    StatisticalSuiteResult,
     TestResult,
     TOSTResult,
-    EffectSizeResult,
-    DiagnosticResult,
-    OLSResult,
-    StatisticalComparisonResult,
-    StatisticalSuiteResult,
-    validate_spec,
     infer_scipy_alternative,
+    validate_spec,
 )
-from malthusjax.stats.tests import wilcoxon, paired_t, sign_test, tost, compute_standard_tests, compute_tost_paired
-from malthusjax.stats.effects import cohens_dz, rank_biserial, glass_delta, compute_effect_sizes
-from malthusjax.stats.correction import holm_bonferroni, fdr_bh, adjust_pvalues
-from malthusjax.stats.comparator import (
-    apply_decision_rule,
-    compare_paired_arrays,
-    StatisticalComparator,
-    attach_adjusted_pvalues,
-    paired_dataset_from_experiments,
-    paired_dataset_from_comparison,
-    paired_dataset_from_artifacts,
-)
-from malthusjax.stats.regression import fit_ols
-from malthusjax.stats.regression_analyzer import RegressionSpec, OLSRegressionAnalyzer
+from malthusjax.stats.correction import adjust_pvalues, fdr_bh, holm_bonferroni
 from malthusjax.stats.diagnostics import breusch_pagan, shapiro_wilk
+from malthusjax.stats.effects import cohens_dz, compute_effect_sizes, glass_delta, rank_biserial
+from malthusjax.stats.regression import fit_ols
+from malthusjax.stats.regression_analyzer import OLSRegressionAnalyzer, RegressionSpec
+from malthusjax.stats.tests import (
+    compute_standard_tests,
+    compute_tost_paired,
+    paired_t,
+    sign_test,
+    tost,
+    wilcoxon,
+)
 
 __all__ = [
     "MetricVector",

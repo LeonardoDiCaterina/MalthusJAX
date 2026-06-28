@@ -24,7 +24,11 @@ def _register_selection() -> None:
         [
             ("tournament", TournamentSelection, {"num_selections": 4, "tournament_size": 3}),
             ("roulette", RouletteSelection, {"num_selections": 4}),
-            ("elite_pool", ElitePoolSelection, {"num_selections": 4, "elite_k": 2, "sampling_method": "choice"}),
+            (
+                "elite_pool",
+                ElitePoolSelection,
+                {"num_selections": 4, "elite_k": 2, "sampling_method": "choice"},
+            ),
             ("evosax_mimic_selection", EvoSaxMimicSelection, {"num_selections": 4, "elite_k": 2}),
         ],
         override=True,

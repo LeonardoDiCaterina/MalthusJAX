@@ -39,7 +39,7 @@ class TSPEvaluator(BaseEvaluator[RealGenome, TSPConfig, Any]):
 
         # Compute distance matrix
         diff = coords[:, jnp.newaxis, :] - coords[jnp.newaxis, :, :]
-        distance_matrix = jnp.sqrt(jnp.sum(diff ** 2, axis=-1))
+        distance_matrix = jnp.sqrt(jnp.sum(diff**2, axis=-1))
 
         return cls(config=config, data=distance_matrix)
 
@@ -52,7 +52,7 @@ class TSPEvaluator(BaseEvaluator[RealGenome, TSPConfig, Any]):
             num_cities = distance_matrix.shape[0]
             config = TSPConfig(
                 num_cities=num_cities,
-                maximize=config.get("maximize", False) if isinstance(config, dict) else False
+                maximize=config.get("maximize", False) if isinstance(config, dict) else False,
             )
 
         return cls(config=config, data=distance_matrix)

@@ -22,10 +22,7 @@ def _start_heartbeat(pipeline_name: str, interval_s: float = 30.0) -> tuple[Even
     def _heartbeat() -> None:
         while not stop_event.wait(interval_s):
             elapsed = time.time() - start_time
-            _log(
-                f"  ... still running pipeline '{pipeline_name}' "
-                f"(elapsed {elapsed:.1f}s)"
-            )
+            _log(f"  ... still running pipeline '{pipeline_name}' (elapsed {elapsed:.1f}s)")
 
     thread = Thread(target=_heartbeat, daemon=True)
     thread.start()
@@ -54,8 +51,7 @@ def _configure_runtime_diagnostics() -> None:
         interval_s = float(interval_raw)
     except ValueError:
         _log(
-            "Diagnostics: ignoring invalid MALTHUSJAX_STACK_DUMP_INTERVAL "
-            f"value={interval_raw!r}."
+            f"Diagnostics: ignoring invalid MALTHUSJAX_STACK_DUMP_INTERVAL value={interval_raw!r}."
         )
         return
 
@@ -122,9 +118,7 @@ def main() -> None:
         heartbeat_stop, heartbeat_thread = _start_heartbeat(pipeline_name)
         try:
             result = composer.quick_run(
-                output_dir=pipeline_output_dir,
-                data_config=data_registry,
-                **kwargs
+                output_dir=pipeline_output_dir, data_config=data_registry, **kwargs
             )
         except Exception as e:
             heartbeat_stop.set()

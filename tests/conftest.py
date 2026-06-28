@@ -30,13 +30,13 @@ def pytest_addoption(parser):
         "--pop-sizes",
         action="store",
         default="100,500,1024,1025",
-        help="Comma-separated list of population sizes (e.g. 100,500,1000)"
+        help="Comma-separated list of population sizes (e.g. 100,500,1000)",
     )
     parser.addoption(
         "--num-gens",
         action="store",
         default="50,100,1000",
-        help="Comma-separated list of generation counts (e.g. 50,100,1000)"
+        help="Comma-separated list of generation counts (e.g. 50,100,1000)",
     )
 
 

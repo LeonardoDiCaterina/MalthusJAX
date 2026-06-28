@@ -14,7 +14,7 @@ import jax.numpy as jnp
 import jax.random
 from flax import struct
 
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.engine.schedules import ScheduleType, compute_scheduled_strength
 from malthusjax.operators.base import BaseMutation, _field
 from malthusjax.operators.base_injection import BaseMutation_injection
@@ -169,9 +169,7 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
 
 
 @struct.dataclass
-class GaussianMutation_injection(
-    BaseMutation_injection[RealGenome, RealGenomeConfig]
-):
+class GaussianMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Gaussian Mutation (single-key variant).
     Splits single key to (n*K) subkeys, reshaped (n, K, -1) for vmap.
@@ -445,9 +443,7 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
 
 
 @struct.dataclass
-class PolynomialMutation_injection(
-    BaseMutation_injection[RealGenome, RealGenomeConfig]
-):
+class PolynomialMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Polynomial Mutation (single-key variant).
     Splits single key to (n*2) subkeys, reshaped (n, 2, -1) for vmap.

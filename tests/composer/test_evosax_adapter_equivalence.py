@@ -320,7 +320,7 @@ def _run_evosax_raw_with_init_pop(
     p_state = problem.init(jr.PRNGKey(seed))
 
     init_x = jnp.asarray(initial_population)
-    
+
     # Evaluate initial population
     init_fit_raw, _, _ = problem.eval(k_eval, init_x, p_state)
 

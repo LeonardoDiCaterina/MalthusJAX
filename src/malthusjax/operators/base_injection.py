@@ -64,7 +64,9 @@ class BaseMutation_injection(BaseMutation[G, C]):
         """Tier 2 implementation unsupported in injection mode; use _generate_noise."""
         raise NotImplementedError("Injection mode: override _generate_noise instead")
 
-    def __call__(self, all_keys: chex.Array, population: BasePopulation[G], config: C, generation: int = 0) -> BasePopulation[G]:
+    def __call__(
+        self, all_keys: chex.Array, population: BasePopulation[G], config: C, generation: int = 0
+    ) -> BasePopulation[G]:
         """Tier 3 — Vectorized bulk mutation via vmap.
 
         Input: Single key (flattened to shape (2,)).
@@ -149,9 +151,7 @@ class BaseCrossover_injection(Generic[G, C]):
 
     def set_input_length(self, length: int) -> "BaseCrossover_injection[G, C]":
         """Locks pair count for static budgeting."""
-        return cast(
-            "BaseCrossover_injection[G, C]", cast(Any, self).replace(input_length=length)
-        )
+        return cast("BaseCrossover_injection[G, C]", cast(Any, self).replace(input_length=length))
 
     def set_max_generations(self, n: int) -> "BaseCrossover_injection[G, C]":
         """Set total generation count for operator-level scheduling."""
@@ -181,7 +181,12 @@ class BaseCrossover_injection(Generic[G, C]):
         raise NotImplementedError("Injection mode: override _generate_noise instead")
 
     def __call__(
-        self, all_keys: chex.Array, p1_pop: BasePopulation[G], p2_pop: BasePopulation[G], config: C, generation: int = 0
+        self,
+        all_keys: chex.Array,
+        p1_pop: BasePopulation[G],
+        p2_pop: BasePopulation[G],
+        config: C,
+        generation: int = 0,
     ) -> BasePopulation[G]:
         """Tier 3 — Vectorized bulk crossover via vmap.
 

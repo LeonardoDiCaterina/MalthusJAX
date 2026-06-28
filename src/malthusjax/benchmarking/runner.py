@@ -60,7 +60,7 @@ class BenchmarkRunner:
     write_artifacts: bool = True
     prng_impl: Optional[str] = None
     trace_dir: Optional[Path] = None  # If set, capture JAX trace for seed[0]
-    serialize_history: bool = True    # If False, drops generation history to save disk space
+    serialize_history: bool = True  # If False, drops generation history to save disk space
 
     def run(
         self,
@@ -135,7 +135,6 @@ class BenchmarkRunner:
         floats.  Any exceptions raised by the engine are caught and recorded in
         the resulting :class:`RunResult` with ``status="error"``.
         """
-        import jax
 
         start_time = time.time()
 
@@ -144,7 +143,7 @@ class BenchmarkRunner:
                 # Tracing during compilation corrupts the XLA executable for subsequent
                 # seeds that run without tracing, causing CUDA_ERROR_LAUNCH_FAILED.
                 # Bypassing the profiler to preserve executable portability across seeds.
-                # 
+                #
                 # trace_path = Path(trace_dir)
                 # trace_path.mkdir(parents=True, exist_ok=True)
                 # try:
@@ -172,9 +171,13 @@ class BenchmarkRunner:
                     pass
 
             import math
+
             # Fallback: if engine disabled summary tracking for speed, pull from the final generation
             best_val = metrics.get("best_fitness")
-            missing_best = best_val is None or (isinstance(best_val, (int, float)) and (math.isnan(best_val) or math.isinf(best_val)))
+            missing_best = best_val is None or (
+                isinstance(best_val, (int, float))
+                and (math.isnan(best_val) or math.isinf(best_val))
+            )
             if missing_best and history:
                 last = history[-1]
                 if "best_fitness" in last:
@@ -183,7 +186,7 @@ class BenchmarkRunner:
                     metrics["final_generation"] = float(last["generation"])
 
             duration = time.time() - start_time
-            
+
             # Discard massive history arrays if Lightweight Mode is enabled
             if not self.serialize_history:
                 history = []

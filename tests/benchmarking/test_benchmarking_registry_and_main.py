@@ -25,9 +25,7 @@ class DummyComposer:
     def quick_run(self, *args, **kwargs):
         return DummyRunResult(
             runs=[1, 2, 3],
-            metadata={
-                "artifact_paths": {"summary_json": "results/summary.json"}
-            },
+            metadata={"artifact_paths": {"summary_json": "results/summary.json"}},
         )
 
 

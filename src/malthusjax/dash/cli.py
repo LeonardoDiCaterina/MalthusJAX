@@ -1,5 +1,4 @@
 import argparse
-from pathlib import Path
 import sys
 
 from malthusjax.dash.config import load_config
@@ -13,7 +12,9 @@ def main():
     # Command: run
     parser_run = subparsers.add_parser("run", help="Run a MalthusDash analysis plan.")
     parser_run.add_argument("config", type=str, help="Path to the TOML configuration file.")
-    parser_run.add_argument("-o", "--output", type=str, default="./dash_output", help="Output directory path.")
+    parser_run.add_argument(
+        "-o", "--output", type=str, default="./dash_output", help="Output directory path."
+    )
 
     args = parser.parse_args()
 

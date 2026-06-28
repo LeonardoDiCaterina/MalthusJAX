@@ -15,7 +15,7 @@ except ImportError:
 
 def load_config(file_path: str | Path) -> dict[str, Any]:
     """Load a TOML configuration file and recursively resolve includes.
-    
+
     The `includes` key can be a list of relative paths. Included files are
     loaded first, and the current file overrides any identical keys.
     """

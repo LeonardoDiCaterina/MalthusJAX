@@ -7,7 +7,7 @@ population container specialized for real vectors.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Tuple, Type, cast
+from typing import Any, Tuple, cast
 
 import chex
 import jax
@@ -228,8 +228,6 @@ class RealPopulation(BasePopulation[RealGenome]):
     genes: RealGenome
     fitness: chex.Array
     config: RealGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-
-
 
     # TODO: support multidimensional genome populations by accepting `shape` tuples
     #       instead of a scalar `size` for non-1D genomes.

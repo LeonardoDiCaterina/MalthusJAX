@@ -46,7 +46,7 @@ class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
         """Evaluate a single binary genome by counting zeros.
-        
+
         Minimization convention: fewer zeros = better fitness (lower value).
         """
         ones_count = jnp.sum(genome.values)
@@ -87,7 +87,6 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Optional[Kna
 
     config: KnapsackConfig
     data: Optional[KnapsackData] = struct.field(default=None)  # type: ignore[no-untyped-call]
-
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
         """Evaluate a binary genome representing item selection.

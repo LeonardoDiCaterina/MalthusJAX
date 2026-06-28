@@ -10,7 +10,7 @@ jit/vmap patterns.
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, ClassVar, Generic, Iterator, Optional, Type, TypeVar, Union, cast
+from typing import Any, Generic, Iterator, Optional, Type, TypeVar, Union, cast
 
 import chex
 import jax
@@ -70,11 +70,7 @@ class BaseGenome:
         """
         # Determine if this is a batched genome by checking array leaf dimensions
         leaves = jax.tree_util.tree_leaves(self)
-        is_batched = (
-            leaves and
-            hasattr(leaves[0], "shape") and
-            len(leaves[0].shape) > 1
-        )
+        is_batched = leaves and hasattr(leaves[0], "shape") and len(leaves[0].shape) > 1
 
         if is_batched:
             # Batched genome: use tree_map to extract and reconstruct individual/sub-genome
@@ -107,11 +103,7 @@ class BaseGenome:
         """
         # Determine if this is a batched genome
         leaves = jax.tree_util.tree_leaves(self)
-        is_batched = (
-            leaves and
-            hasattr(leaves[0], "shape") and
-            len(leaves[0].shape) > 1
-        )
+        is_batched = leaves and hasattr(leaves[0], "shape") and len(leaves[0].shape) > 1
 
         if is_batched:
             # Batched genome: iterate and yield individual genomes
@@ -218,7 +210,9 @@ class BasePopulation(Generic[G]):
     config: Any = _field(pytree_node=False)
 
     @classmethod
-    def from_array(cls, arr: chex.Array, config: Any, genome_cls: Type[G], axis: int = 0) -> BasePopulation[G]:
+    def from_array(
+        cls, arr: chex.Array, config: Any, genome_cls: Type[G], axis: int = 0
+    ) -> BasePopulation[G]:
         """Build a population by interpreting one axis of *arr* as individuals.
 
         The method moves *axis* to the front and delegates to

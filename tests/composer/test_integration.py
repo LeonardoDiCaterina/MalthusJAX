@@ -19,7 +19,7 @@ class TestComposerIntegration:
                 experiment_name="e2e_sphere",
                 output_dir=tmp_dir,
                 # Real operators via string specs
-                    fitness="bbob:fn_name=sphere,num_dims=5,seed=42,maximize=false",
+                fitness="bbob:fn_name=sphere,num_dims=5,seed=42,maximize=false",
                 selection="elite_pool:num_selections=15",
                 crossover="blend:alpha=0.5",
                 mutation="gaussian:mutation_rate=0.1",
@@ -145,7 +145,9 @@ class TestComposerIntegration:
         for i, operator_spec in enumerate(test_cases):
             with tempfile.TemporaryDirectory() as tmp_dir:
                 # Extract dimension properly
-                fitness_spec = operator_spec.get("fitness", "bbob:fn_name=sphere,num_dims=2,seed=42,maximize=false")
+                fitness_spec = operator_spec.get(
+                    "fitness", "bbob:fn_name=sphere,num_dims=2,seed=42,maximize=false"
+                )
                 if ":" in fitness_spec and "num_dims=" in fitness_spec:
                     dim = int(fitness_spec.split("num_dims=")[1].split(",")[0].split(")")[0])
                 else:

@@ -9,23 +9,24 @@ import numpy as np
 
 from malthusjax.stats.core import (
     HypothesisKind,
+    MultipleTestingPolicy,
     PairedMetricDataset,
     StatisticalComparisonResult,
     StatisticalComparisonSpec,
     StatisticalSpecError,
     StatisticalSuiteResult,
-    MultipleTestingPolicy,
     TestResult,
     TOSTResult,
-    validate_spec,
     infer_scipy_alternative,
+    validate_spec,
 )
-from malthusjax.stats.tests import compute_standard_tests, compute_tost_paired
-from malthusjax.stats.effects import compute_effect_sizes
 from malthusjax.stats.correction import adjust_pvalues
+from malthusjax.stats.effects import compute_effect_sizes
+from malthusjax.stats.tests import compute_standard_tests, compute_tost_paired
 
 if TYPE_CHECKING:
     from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult, RunResult
+
 
 def apply_decision_rule(
     *,
@@ -214,6 +215,7 @@ def compare_paired_arrays(
         metadata=out_metadata,
     )
 
+
 class StatisticalComparator:
     """High-level interface for paired and suite-level statistical comparison."""
 
@@ -281,6 +283,7 @@ class StatisticalComparator:
         }
         return suite
 
+
 def attach_adjusted_pvalues(
     results: list[StatisticalComparisonResult],
     adjusted: list[float],
@@ -300,6 +303,7 @@ def attach_adjusted_pvalues(
 # We need to port the `_extract_*` and `paired_dataset_from_*` from benchmarking.statistics
 # over here since they are tightly coupled to PairedMetricDataset creation from results
 
+
 def _describe_values(values: list[float]) -> dict[str, float | None]:
     arr = np.asarray(values, dtype=float)
     if arr.size == 0:
@@ -318,8 +322,10 @@ def _describe_values(values: list[float]) -> dict[str, float | None]:
         "std": float(np.std(arr, ddof=1)) if arr.size > 1 else 0.0,
     }
 
+
 def _paired_timing_stats(left: list[float], right: list[float]) -> dict[str, float | None]:
     import scipy.stats as stats
+
     left_arr = np.asarray(left, dtype=float)
     right_arr = np.asarray(right, dtype=float)
     if left_arr.size == 0 or right_arr.size == 0 or left_arr.size != right_arr.size:
@@ -354,6 +360,7 @@ def _paired_timing_stats(left: list[float], right: list[float]) -> dict[str, flo
         "paired_cohen_dz": cohen_dz,
         "paired_wilcoxon_p_value": w_p,
     }
+
 
 def _build_timing_summary(
     left_total: list[float],
@@ -395,12 +402,14 @@ def _build_timing_summary(
         "components": components,
     }
 
+
 def _extract_metric_from_run(run: "RunResult", metric_name: str) -> float:
     if metric_name in run.metrics:
         return float(run.metrics[metric_name])
     if run.history and metric_name in run.history[-1]:
         return float(run.history[-1][metric_name])
     raise StatisticalSpecError(f"metric '{metric_name}' not found for seed {run.seed}")
+
 
 def _extract_initial_metric_from_run(run: "RunResult", metric_name: str) -> float | None:
     if metric_name == "best_fitness":
@@ -411,11 +420,13 @@ def _extract_initial_metric_from_run(run: "RunResult", metric_name: str) -> floa
         return float(run.history[0][metric_name])
     return None
 
+
 def _mean_or_none(values: list[float | None]) -> float | None:
     valid = [float(v) for v in values if v is not None and np.isfinite(v)]
     if not valid:
         return None
     return float(np.mean(np.asarray(valid, dtype=float)))
+
 
 def paired_dataset_from_experiments(
     left: "ExperimentResult",
@@ -555,6 +566,7 @@ def paired_dataset_from_experiments(
         metadata=metadata,
     )
 
+
 def paired_dataset_from_comparison(
     comparison: "ComparisonResult",
     left_pipeline: str,
@@ -574,13 +586,18 @@ def paired_dataset_from_comparison(
         spec=spec,
     )
 
+
 def _load_start_and_final_by_seed_from_histories(
     csv_path: Path,
     metric_name: str,
 ) -> tuple[dict[int, float], dict[int, float]]:
     with csv_path.open("r", newline="") as f:
         reader = csv.DictReader(f)
-        if not reader.fieldnames or "seed" not in reader.fieldnames or metric_name not in reader.fieldnames:
+        if (
+            not reader.fieldnames
+            or "seed" not in reader.fieldnames
+            or metric_name not in reader.fieldnames
+        ):
             raise StatisticalSpecError(
                 f"{csv_path} missing required columns: seed and {metric_name}"
             )
@@ -619,6 +636,7 @@ def _load_start_and_final_by_seed_from_histories(
     last = {seed: val for seed, (_, val) in by_seed_last.items()}
     return first, last
 
+
 def _load_gap_by_seed_from_summary(summary_path: Path) -> dict[int, float]:
     if not summary_path.exists():
         return {}
@@ -636,6 +654,7 @@ def _load_gap_by_seed_from_summary(summary_path: Path) -> dict[int, float]:
         out[int(seed)] = float(gap)
     return out
 
+
 def _load_timings_by_seed_from_summary(summary_path: Path) -> dict[int, dict[str, float]]:
     if not summary_path.exists():
         return {}
@@ -650,11 +669,10 @@ def _load_timings_by_seed_from_summary(summary_path: Path) -> dict[int, dict[str
         if not isinstance(timings, dict):
             continue
         out[int(seed)] = {
-            str(k): float(v)
-            for k, v in timings.items()
-            if v is not None and np.isfinite(float(v))
+            str(k): float(v) for k, v in timings.items() if v is not None and np.isfinite(float(v))
         }
     return out
+
 
 def paired_dataset_from_artifacts(
     left_dir: Path,
@@ -670,8 +688,12 @@ def paired_dataset_from_artifacts(
     if not left_csv.exists() or not right_csv.exists():
         raise StatisticalSpecError("Both artifact dirs must contain histories_combined.csv")
 
-    left_start, left_final = _load_start_and_final_by_seed_from_histories(left_csv, spec.metric_name)
-    right_start, right_final = _load_start_and_final_by_seed_from_histories(right_csv, spec.metric_name)
+    left_start, left_final = _load_start_and_final_by_seed_from_histories(
+        left_csv, spec.metric_name
+    )
+    right_start, right_final = _load_start_and_final_by_seed_from_histories(
+        right_csv, spec.metric_name
+    )
     common = sorted(set(left_final) & set(right_final))
 
     if len(common) < spec.min_paired_seeds:

@@ -26,10 +26,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-import time
 import os
-from dataclasses import asdict, dataclass
+import time
 
 # Prevent JAX NCCL multi-device rendezvous deadlocks on cluster by restricting to 1 GPU
 if "CUDA_VISIBLE_DEVICES" in os.environ:
@@ -99,10 +97,10 @@ def run_single_parity(
     exp_output = output_dir / experiment_name
     exp_output.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"  H1 PARITY: {fn_name} | D={num_dims} P={pop_size} G={generations}")
     print(f"  Seeds: {len(seeds)} | Output: {exp_output}")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
 
     composer = Composer.create_default()
 
@@ -185,7 +183,7 @@ def run_single_parity(
             best_fit = run.metrics.get("best_fitness")
             final_gen = run.metrics.get("final_generation")
             tot_evals = run.metrics.get("total_evaluations")
-            
+
             seed_data = {
                 "seed": run.seed,
                 "status": run.status,
@@ -199,8 +197,12 @@ def run_single_parity(
             if run.history:
                 seed_data["convergence"] = [
                     {
-                        "generation": int(h.get("generation")) if h.get("generation") is not None else None,
-                        "best_fitness": float(h.get("best_fitness")) if h.get("best_fitness") is not None else None,
+                        "generation": int(h.get("generation"))
+                        if h.get("generation") is not None
+                        else None,
+                        "best_fitness": float(h.get("best_fitness"))
+                        if h.get("best_fitness") is not None
+                        else None,
                     }
                     for h in run.history
                 ]
@@ -209,8 +211,10 @@ def run_single_parity(
         result_summary["pipelines"][name] = pipeline_data
 
     # Clear JAX caches and force garbage collection to prevent OOM across many experiments
-    import jax
     import gc
+
+    import jax
+
     jax.clear_caches()
     gc.collect()
 
@@ -225,18 +229,13 @@ def run_single_parity(
     for name, pdata in result_summary["pipelines"].items():
         successes = pdata["successful_runs"]
         total = pdata["num_runs"]
-        fitnesses = [
-            s["best_fitness"]
-            for s in pdata["per_seed"]
-            if s["best_fitness"] is not None
-        ]
+        fitnesses = [s["best_fitness"] for s in pdata["per_seed"] if s["best_fitness"] is not None]
         if fitnesses:
             import statistics
 
             mean_fit = statistics.mean(fitnesses)
             std_fit = statistics.stdev(fitnesses) if len(fitnesses) > 1 else 0.0
-            print(f"  {name:30s} | {successes}/{total} ok | "
-                  f"fitness={mean_fit:.6f} ± {std_fit:.6f}")
+            print(f"  {name:30s} | {successes}/{total} ok | fitness={mean_fit:.6f} ± {std_fit:.6f}")
         else:
             print(f"  {name:30s} | {successes}/{total} ok | NO FITNESS DATA")
 
@@ -258,13 +257,11 @@ def run_parity_suite(args: argparse.Namespace) -> None:
     seeds = list(range(1, args.num_seeds + 1))
 
     all_results = []
-    total_experiments = (
-        len(args.functions) * len(args.dims) * len(args.pops) * len(args.gens)
-    )
+    total_experiments = len(args.functions) * len(args.dims) * len(args.pops) * len(args.gens)
     current = 0
 
-    print(f"\n{'#'*70}")
-    print(f"  H1 PARITY SUITE")
+    print(f"\n{'#' * 70}")
+    print("  H1 PARITY SUITE")
     print(f"  Functions: {args.functions}")
     print(f"  Dims: {args.dims}")
     print(f"  Pops: {args.pops}")
@@ -272,7 +269,7 @@ def run_parity_suite(args: argparse.Namespace) -> None:
     print(f"  Seeds: {args.num_seeds}")
     print(f"  Total experiments: {total_experiments}")
     print(f"  Output: {output_dir}")
-    print(f"{'#'*70}")
+    print(f"{'#' * 70}")
 
     suite_start = time.time()
 
@@ -296,11 +293,14 @@ def run_parity_suite(args: argparse.Namespace) -> None:
                     except Exception as e:
                         print(f"  ERROR: {e}")
                         import traceback
+
                         traceback.print_exc()
-                        all_results.append({
-                            "experiment": f"h1_{fn_name}_d{D}_p{P}_g{G}",
-                            "error": str(e),
-                        })
+                        all_results.append(
+                            {
+                                "experiment": f"h1_{fn_name}_d{D}_p{P}_g{G}",
+                                "error": str(e),
+                            }
+                        )
 
     suite_time = time.time() - suite_start
 
@@ -319,13 +319,13 @@ def run_parity_suite(args: argparse.Namespace) -> None:
     with open(suite_file, "w") as f:
         json.dump(suite_summary, f, indent=2, default=str)
 
-    print(f"\n{'#'*70}")
-    print(f"  SUITE COMPLETE")
+    print(f"\n{'#' * 70}")
+    print("  SUITE COMPLETE")
     print(f"  Successful: {suite_summary['successful']}/{total_experiments}")
     print(f"  Failed: {suite_summary['failed']}/{total_experiments}")
     print(f"  Total wall time: {suite_time:.1f}s")
     print(f"  Suite summary: {suite_file}")
-    print(f"{'#'*70}")
+    print(f"{'#' * 70}")
 
 
 # ---------------------------------------------------------------------------
@@ -350,31 +350,46 @@ def main() -> None:
         epilog=__doc__,
     )
     parser.add_argument(
-        "--smoke", action="store_true",
+        "--smoke",
+        action="store_true",
         help="Run minimal smoke test (1 function, small grid, few seeds)",
     )
     parser.add_argument(
-        "--functions", type=parse_str_list, default=None,
+        "--functions",
+        type=parse_str_list,
+        default=None,
         help="Comma-separated BBOB functions (default: smoke=sphere, full=sphere,rosenbrock,rastrigin)",
     )
     parser.add_argument(
-        "--dims", type=parse_int_list, default=None,
+        "--dims",
+        type=parse_int_list,
+        default=None,
         help="Comma-separated dimensionalities (default: smoke=5, full=10,50,100)",
     )
     parser.add_argument(
-        "--pops", type=parse_int_list, default=None,
+        "--pops",
+        type=parse_int_list,
+        default=None,
         help="Comma-separated population sizes (default: smoke=32, full=64,256,1024)",
     )
     parser.add_argument(
-        "--gens", type=parse_int_list, default=None,
+        "--gens",
+        type=parse_int_list,
+        default=None,
         help="Comma-separated generation counts (default: smoke=10, full=50,200)",
     )
     parser.add_argument(
-        "--seeds", "--num-seeds", type=int, default=None, dest="num_seeds",
+        "--seeds",
+        "--num-seeds",
+        type=int,
+        default=None,
+        dest="num_seeds",
         help="Number of independent seeds (default: smoke=3, full=100)",
     )
     parser.add_argument(
-        "--output-dir", type=str, default=None,
+        "--output-dir",
+        type=str,
+        default=None,
         help="Output directory (default: smoke=results/h1_parity_smoke, full=results/h1_parity)",
     )
 

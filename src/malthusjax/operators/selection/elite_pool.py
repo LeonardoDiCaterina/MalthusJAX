@@ -196,7 +196,9 @@ class ElitePoolSelection(BaseSelection[P, C]):
         )
         if getattr(self, "sampling_method", "choice") == "randint":
             # sample indices into `pool` then index
-            sel_idx = jax.random.randint(rng, shape=(self.num_selections,), minval=0, maxval=pool.shape[0])
+            sel_idx = jax.random.randint(
+                rng, shape=(self.num_selections,), minval=0, maxval=pool.shape[0]
+            )
             parent_idx = pool[sel_idx]
 
         return parent_idx, elite_idx

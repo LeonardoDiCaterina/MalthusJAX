@@ -11,7 +11,7 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.operators.base import BaseCrossover
 from malthusjax.operators.base_injection import BaseCrossover_injection as BaseCrossover_injection
 
@@ -68,9 +68,7 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
 
 
 @struct.dataclass
-class UniformCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig]
-):
+class UniformCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Uniform Crossover.
     Single key splits into (n_pairs * n_offspring) subkeys; jax.vmap(per_row) generates all masks
@@ -246,9 +244,7 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
 
 
 @struct.dataclass
-class BlendCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig]
-):
+class BlendCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Blend Crossover.
     Single key splits to (n_pairs * n_offspring * 2) subkeys, reshaped (n, 2, -1).
@@ -458,9 +454,7 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
 
 
 @struct.dataclass
-class SimulatedBinaryCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig]
-):
+class SimulatedBinaryCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Simulated Binary Crossover (SBX).
     Single key splits to (n_pairs * n_offspring * 3) subkeys, reshaped (n, 3, -1).
@@ -579,9 +573,7 @@ class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
 
 
 @struct.dataclass
-class BinomialCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig]
-):
+class BinomialCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Binomial Crossover.
     Single key splits into (n_pairs * n_offspring) subkeys; jax.vmap(per_row) generates all

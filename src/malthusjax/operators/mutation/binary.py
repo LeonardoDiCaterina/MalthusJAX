@@ -13,7 +13,7 @@ import jax.numpy as jnp
 import jax.random
 from flax import struct
 
-from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
+from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
 from malthusjax.operators.base import BaseMutation
 
 

@@ -18,11 +18,11 @@ Usage::
     result = adapter.run_once(jax.random.PRNGKey(42))
 """
 
-#TODO: introduce support for mjx evaluators with non-evosax problems
+# TODO: introduce support for mjx evaluators with non-evosax problems
 # by writing a wrapper to translates the problem/eval interface to evosax's expected problem format.
 # This would allow us to use the adapter with any MalthusJAX evaluator, not just BBOB ones.
 
-#TODO: add support for passing distribution_based_algorithms as well,
+# TODO: add support for passing distribution_based_algorithms as well,
 # which have a slightly different ask/tell interface
 # (they return a population distribution instead of a population,
 # and the tell() method takes the distribution as input instead of returning an updated state).
@@ -129,9 +129,7 @@ class EvosaxEngineAdapter:
 
             tell_fitness = -fitness if maximize else fitness
 
-            state, metrics = strategy.tell(
-                key_tell, population, tell_fitness, state, params
-            )
+            state, metrics = strategy.tell(key_tell, population, tell_fitness, state, params)
 
             metrics = dict(metrics)  # copy to allow mutation
             # Normalize adapter outputs to objective space regardless of how a
@@ -149,9 +147,7 @@ class EvosaxEngineAdapter:
             state = strategy.init(key_init, pop_init, fit_init, params)
 
             carry = (rng, state, p_state)
-            carry, metrics = jax.lax.scan(
-                scan_step, carry, None, length=num_generations, unroll=1
-            )
+            carry, metrics = jax.lax.scan(scan_step, carry, None, length=num_generations, unroll=1)
             return carry[1], metrics
 
         self._jit_run_loop = jax.jit(run_loop)
@@ -213,9 +209,7 @@ class EvosaxEngineAdapter:
         # Trigger JIT compilation with a throwaway key so the cost is
         # captured in the "warmup" bucket, not in "execution".
         key_warmup = jr.PRNGKey(0xDEAD)
-        _ws, _wm = run_fn(
-            key_warmup, population_init, tell_fitness_init, prob_state_init
-        )
+        _ws, _wm = run_fn(key_warmup, population_init, tell_fitness_init, prob_state_init)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), _ws)
         del _ws, _wm
 
@@ -223,9 +217,7 @@ class EvosaxEngineAdapter:
 
         # ---- Execution phase: run with the real key on a warm JIT cache ----
         t_exec_start = time.perf_counter()
-        final_state, metrics = run_fn(
-            key, population_init, tell_fitness_init, prob_state_init
-        )
+        final_state, metrics = run_fn(key, population_init, tell_fitness_init, prob_state_init)
         jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
         t_exec_end = time.perf_counter()
 
@@ -381,6 +373,7 @@ def build_evosax_engine(
             # Handle mutation_std as a numeric alias for std_schedule
             if key == "mutation_std" and isinstance(value, (int, float)):
                 import optax
+
                 strategy_kwargs["std_schedule"] = optax.constant_schedule(value)
             elif key in params_fields:
                 params_kwargs[key] = value

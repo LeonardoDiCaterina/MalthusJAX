@@ -99,10 +99,10 @@ def run_evosax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
         maximize=False,
         seed=args.seed,
         strategy_params={
-                "crossover_rate": args.crossover_rate,
-                # Provide elite pool size via ratio only; some evosax strategy
-                # implementations accept `elite_ratio` but not `elite_count`.
-                "elite_ratio": float(elite_k) / float(args.pop_size),
+            "crossover_rate": args.crossover_rate,
+            # Provide elite pool size via ratio only; some evosax strategy
+            # implementations accept `elite_ratio` but not `elite_count`.
+            "elite_ratio": float(elite_k) / float(args.pop_size),
             "std_schedule": optax.constant_schedule(args.mutation_strength),
         },
         initial_population=_shared_initial_population(args),
@@ -110,9 +110,9 @@ def run_evosax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
 
     population_init = _shared_initial_population(args)
     key_eval = jr.PRNGKey(args.seed + 1)
-    fitness_init, _, _ = evaluator.evosax_problem.eval(key_eval,
-                                                       population_init,
-                                                       evaluator.problem_state)
+    fitness_init, _, _ = evaluator.evosax_problem.eval(
+        key_eval, population_init, evaluator.problem_state
+    )
     initial_best_idx = int(np.argmin(np.asarray(fitness_init)))  # Minimize: pick lowest
     initial_gap = abs(float(fitness_init[initial_best_idx]) - float(evaluator.f_opt))
 
@@ -145,8 +145,9 @@ def run_malthusjax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
         genome_config=genome_config,
         evaluator=evaluator,
         selection=ElitePoolSelection(num_selections=args.pop_size, elite_k=elite_k),
-        crossover=EvosaxUniformCrossoverWrapper(num_offspring=1,
-                                                crossover_rate=args.crossover_rate),
+        crossover=EvosaxUniformCrossoverWrapper(
+            num_offspring=1, crossover_rate=args.crossover_rate
+        ),
         mutation=EvosaxGaussianWrapper(num_offspring=1, mutation_strength=args.mutation_strength),
         enable_progress_bar=False,
     )

@@ -1,4 +1,5 @@
-from typing import Protocol, Any
+from typing import Any, Protocol
+
 import pandas as pd
 
 from malthusjax.dash.plotting.style import PlotStyle

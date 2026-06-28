@@ -13,7 +13,6 @@ nicely with our population and maximization conventions.
 # # TODO: wrap also https://github.com/RobertTLange/gymnax
 # in a different adapter for RL problems
 
-
 from __future__ import annotations
 
 from typing import Any, cast
@@ -37,7 +36,6 @@ BBOB_NAME_ALIASES = {
     "bueche-rastrigin": "bueche_rastrigin",
     "linear_slope": "linear_slope",
     "linear slope": "linear_slope",
-
     # Part 2: Functions with low or moderate conditioning
     "attractive_sector": "attractive_sector",
     "attractive sector": "attractive_sector",
@@ -46,7 +44,6 @@ BBOB_NAME_ALIASES = {
     "rosenbrock": "rosenbrock",
     "rosenbrock_original": "rosenbrock",
     "rosenbrock_rotated": "rosenbrock_rotated",
-
     # Part 3: Functions with high conditioning and unimodal
     "ellipsoidal_original": "ellipsoidal",
     "ellipsoidal_rotated": "ellipsoidal_rotated",
@@ -57,7 +54,6 @@ BBOB_NAME_ALIASES = {
     "sharp ridge": "sharp_ridge",
     "different_powers": "different_powers",
     "different powers": "different_powers",
-
     # Part 4: Multi-modal functions with adequate global structure
     "rastrigin_original": "rastrigin",
     "rastrigin_rotated": "rastrigin_rotated",
@@ -68,7 +64,6 @@ BBOB_NAME_ALIASES = {
     "schaffers f7 ill-cond": "schaffers_f7_ill_cond",
     "griewank_rosenbrock": "griewank_rosenbrock",
     "griewank-rosenbrock": "griewank_rosenbrock",
-
     # Part 5: Multi-modal functions with weak global structure
     "schwefel": "schwefel",
     "gallagher_101_me": "gallagher_101_me",

@@ -125,6 +125,7 @@ class BasisFunction(ABC):
             deriv_fn = jax.grad(deriv_fn, argnums=0)
         return deriv_fn(t, coeffs)
 
+
 class FourierBasis(BasisFunction):
     """Truncated Fourier series on the interval ``[t0, t1]``.
 
@@ -156,25 +157,19 @@ class FourierBasis(BasisFunction):
         return "fourier"
 
     def eval(self, t: float, coeffs: chex.Array) -> float:
-        a0    = coeffs[0]
-        pairs = coeffs[1:].reshape(-1, 2)                    # (n_pairs, 2)
-        n     = jnp.arange(1, pairs.shape[0] + 1, dtype=jnp.float32)
-        w     = 2.0 * jnp.pi / (self.t1 - self.t0)
-        return a0 + jnp.sum(
-            pairs[:, 0] * jnp.cos(n * w * t) +
-            pairs[:, 1] * jnp.sin(n * w * t)
-        )
+        a0 = coeffs[0]
+        pairs = coeffs[1:].reshape(-1, 2)  # (n_pairs, 2)
+        n = jnp.arange(1, pairs.shape[0] + 1, dtype=jnp.float32)
+        w = 2.0 * jnp.pi / (self.t1 - self.t0)
+        return a0 + jnp.sum(pairs[:, 0] * jnp.cos(n * w * t) + pairs[:, 1] * jnp.sin(n * w * t))
 
     def eval_deriv(self, t: float, coeffs: chex.Array) -> float:
         """Analytic derivative — avoids a second pass through the Fourier eval."""
-        pairs = coeffs[1:].reshape(-1, 2)                    # (n_pairs, 2)
-        n     = jnp.arange(1, pairs.shape[0] + 1, dtype=jnp.float32)
-        w     = 2.0 * jnp.pi / (self.t1 - self.t0)
-        nw    = n * w
-        return jnp.sum(
-            -pairs[:, 0] * nw * jnp.sin(nw * t) +
-             pairs[:, 1] * nw * jnp.cos(nw * t)
-        )
+        pairs = coeffs[1:].reshape(-1, 2)  # (n_pairs, 2)
+        n = jnp.arange(1, pairs.shape[0] + 1, dtype=jnp.float32)
+        w = 2.0 * jnp.pi / (self.t1 - self.t0)
+        nw = n * w
+        return jnp.sum(-pairs[:, 0] * nw * jnp.sin(nw * t) + pairs[:, 1] * nw * jnp.cos(nw * t))
 
 
 class ChebyshevBasis(BasisFunction):
@@ -234,15 +229,15 @@ class ChebyshevBasis(BasisFunction):
         def step(carry: tuple, _: Any) -> tuple:
             t_prev, t_curr = carry
             t_next = 2.0 * x * t_curr - t_prev
-            return (t_curr, t_next), t_prev   # emit t_prev; advance carry
+            return (t_curr, t_next), t_prev  # emit t_prev; advance carry
 
         _, values = jax.lax.scan(
             step,
-            init=(jnp.ones_like(x), x),       # carry = (T_0 = 1, T_1 = x)
+            init=(jnp.ones_like(x), x),  # carry = (T_0 = 1, T_1 = x)
             xs=None,
             length=n,
         )
-        return values                           # shape (n,) = [T_0, ..., T_{n-1}]
+        return values  # shape (n,) = [T_0, ..., T_{n-1}]
 
     def eval(self, t: float, coeffs: chex.Array) -> float:
         x = 2.0 * (t - self.t0) / (self.t1 - self.t0) - 1.0
@@ -292,7 +287,6 @@ class MonomialBasis(BasisFunction):
         return result
 
 
-
 class SeriesDistanceMetric(BaseDistances):
     """Distance metrics for 2-D coefficient matrices.
 
@@ -300,8 +294,9 @@ class SeriesDistanceMetric(BaseDistances):
     generalisation of Euclidean distance).
     """
 
-    FROBENIUS: str = "frobenius"   # sqrt(sum of squared element-wise differences)
+    FROBENIUS: str = "frobenius"  # sqrt(sum of squared element-wise differences)
     # Inherits: EUCLIDEAN (alias for frobenius), MANHATTAN, HAMMING
+
 
 @struct.dataclass
 class SeriesGenomeConfig:
@@ -344,13 +339,11 @@ class SeriesGenomeConfig:
     configuration errors early (e.g. even ``n_coeffs`` with FourierBasis).
     """
 
-    n_dims:   int             = _field(pytree_node=False, default=1)
-    n_coeffs: int             = _field(pytree_node=False, default=7)
-    basis:    BasisFunction   = _field(pytree_node=False,
-                                       default_factory=lambda: FourierBasis())
-    bounds:   Tuple[float, float] = _field(pytree_node=False, default=(-2.0, 2.0))
-    dtype:    Any             = _field(pytree_node=False, default=jnp.float32)
-
+    n_dims: int = _field(pytree_node=False, default=1)
+    n_coeffs: int = _field(pytree_node=False, default=7)
+    basis: BasisFunction = _field(pytree_node=False, default_factory=lambda: FourierBasis())
+    bounds: Tuple[float, float] = _field(pytree_node=False, default=(-2.0, 2.0))
+    dtype: Any = _field(pytree_node=False, default=jnp.float32)
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -373,20 +366,16 @@ class SeriesGenomeConfig:
             raise ValueError(f"n_coeffs must be >= 1, got {self.n_coeffs}.")
         lo, hi = self.bounds
         if lo >= hi:
-            raise ValueError(
-                f"bounds must satisfy lower < upper, got {self.bounds}."
-            )
+            raise ValueError(f"bounds must satisfy lower < upper, got {self.bounds}.")
         if isinstance(self.basis, FourierBasis) and self.n_coeffs % 2 == 0:
-            odd_up   = self.n_coeffs + 1
+            odd_up = self.n_coeffs + 1
             odd_down = self.n_coeffs - 1
             raise ValueError(
                 f"FourierBasis requires odd n_coeffs (1 + 2*n_pairs), "
                 f"got {self.n_coeffs}.  Try {odd_down} or {odd_up}."
             )
 
-    def init_population(
-        self, key: chex.PRNGKey, size: int
-    ) -> "SeriesPopulation":
+    def init_population(self, key: chex.PRNGKey, size: int) -> "SeriesPopulation":
         """Create a random population from this config (protocol method)."""
         return SeriesPopulation.init_random(key, self, size)
 
@@ -413,7 +402,7 @@ class SeriesGenome(BaseGenome):
     evaluator for an example.
     """
 
-    values:       chex.Array
+    values: chex.Array
     subscriptable: bool = _field(pytree_node=False, default=True)
 
     # ------------------------------------------------------------------ #
@@ -428,9 +417,7 @@ class SeriesGenome(BaseGenome):
         ``Uniform(bounds[0], bounds[1])``.
         """
         lo, hi = config.bounds
-        values = jax.random.uniform(
-            key, config.shape, minval=lo, maxval=hi, dtype=config.dtype
-        )
+        values = jax.random.uniform(key, config.shape, minval=lo, maxval=hi, dtype=config.dtype)
         return cls(values=values)
 
     def autocorrect(self, config: SeriesGenomeConfig) -> "SeriesGenome":
@@ -472,7 +459,7 @@ class SeriesGenome(BaseGenome):
             return jnp.sum(jnp.abs(diff))
         elif metric == SeriesDistanceMetric.HAMMING:
             value_range = jnp.max(jnp.abs(self.values)) + 1e-8
-            threshold   = 0.01 * value_range
+            threshold = 0.01 * value_range
             return jnp.sum(jnp.abs(diff) > threshold)
         else:
             raise ValueError(f"Unsupported metric: {metric!r}")
@@ -517,9 +504,9 @@ class SeriesGenome(BaseGenome):
 
         Uses ``jnp.where`` to avoid division by zero under JIT.
         """
-        norm      = self.magnitude()
+        norm = self.magnitude()
         norm_safe = jnp.maximum(norm, 1e-8)
-        normed    = jnp.where(norm > 0, self.values / norm_safe, self.values)
+        normed = jnp.where(norm > 0, self.values / norm_safe, self.values)
         return cast("SeriesGenome", cast(Any, self).replace(values=normed))
 
     # ------------------------------------------------------------------ #
@@ -586,6 +573,7 @@ class SeriesGenome(BaseGenome):
 # Population
 # =========================================================================== #
 
+
 @struct.dataclass
 class SeriesPopulation(BasePopulation[SeriesGenome]):
     """Container for a population of :class:`SeriesGenome` individuals.
@@ -601,9 +589,9 @@ class SeriesPopulation(BasePopulation[SeriesGenome]):
     config  : Shared :class:`SeriesGenomeConfig` (static, not a pytree leaf).
     """
 
-    genes:   SeriesGenome
+    genes: SeriesGenome
     fitness: chex.Array
-    config:  SeriesGenomeConfig = _field(pytree_node=False)  # type: ignore[no-untyped-call]
+    config: SeriesGenomeConfig = _field(pytree_node=False)  # type: ignore[no-untyped-call]
 
     GENOME_CLS: ClassVar[Type[SeriesGenome]] = SeriesGenome
 
@@ -619,6 +607,6 @@ class SeriesPopulation(BasePopulation[SeriesGenome]):
         Delegates to :meth:`BaseGenome.create_population` which vmaps
         ``random_init`` over split keys — no Python loop.
         """
-        batched_genes   = SeriesGenome.create_population(key, config, size)
+        batched_genes = SeriesGenome.create_population(key, config, size)
         initial_fitness = jnp.full((size,), -jnp.inf)
         return cls(genes=batched_genes, fitness=initial_fitness, config=config)

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import stats
 
-from malthusjax.stats.core import TestResult, TOSTResult, PairedSample
+from malthusjax.stats.core import PairedSample, TestResult, TOSTResult
 
 
 def wilcoxon(sample: PairedSample, alternative: str = "two-sided") -> TestResult:
@@ -12,16 +12,13 @@ def wilcoxon(sample: PairedSample, alternative: str = "two-sided") -> TestResult
 
     if sample.n == 0:
         raise ValueError("Cannot compute Wilcoxon test on empty sample")
-    
+
     if not np.isfinite(sample.left.values).all() or not np.isfinite(sample.right.values).all():
         raise ValueError("Inputs must be finite")
 
     try:
         res = stats.wilcoxon(
-            sample.left.values,
-            sample.right.values,
-            alternative=alternative,
-            zero_method="wilcox"
+            sample.left.values, sample.right.values, alternative=alternative, zero_method="wilcox"
         )
         return TestResult(
             name="wilcoxon",
@@ -46,7 +43,7 @@ def paired_t(sample: PairedSample, alternative: str = "two-sided") -> TestResult
 
     if sample.n == 0:
         raise ValueError("Cannot compute paired t-test on empty sample")
-    
+
     if sample.n < 2:
         return TestResult(
             name="paired_t",
@@ -72,7 +69,7 @@ def sign_test(sample: PairedSample, alternative: str = "two-sided") -> TestResul
 
     if sample.n == 0:
         raise ValueError("Cannot compute sign test on empty sample")
-    
+
     diffs = sample.diffs
     n_pos = int(np.sum(diffs > 0))
     n_neg = int(np.sum(diffs < 0))
@@ -155,9 +152,10 @@ def compute_standard_tests(
     include_tests: tuple[str, ...],
 ) -> dict[str, TestResult]:
     from malthusjax.stats.core import MetricVector
+
     sample = PairedSample(
         left=MetricVector("left", np.asarray(left, dtype=float)),
-        right=MetricVector("right", np.asarray(right, dtype=float))
+        right=MetricVector("right", np.asarray(right, dtype=float)),
     )
     out = {}
     if "wilcoxon" in include_tests:
@@ -177,8 +175,9 @@ def compute_tost_paired(
     alpha: float,
 ) -> TOSTResult:
     from malthusjax.stats.core import MetricVector
+
     sample = PairedSample(
         left=MetricVector("left", np.asarray(left, dtype=float)),
-        right=MetricVector("right", np.asarray(right, dtype=float))
+        right=MetricVector("right", np.asarray(right, dtype=float)),
     )
     return tost(sample, margin, alpha)

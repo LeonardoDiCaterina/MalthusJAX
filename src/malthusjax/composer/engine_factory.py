@@ -129,6 +129,7 @@ class GeneticEngineAdapter:
         report_initial = float(sign * initial_best)
         report_best = float(sign * final_state.best_fitness)
         import jax
+
         best_genome_flat, _ = jax.flatten_util.ravel_pytree(final_state.best_genome)
         summary = {
             "initial_fitness": report_initial,

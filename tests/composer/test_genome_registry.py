@@ -7,6 +7,7 @@ def test_register_and_get_registry_copy():
     backup = genome_registry._GENOME_REGISTRY.copy()
     genome_registry._GENOME_REGISTRY.clear()
     try:
+
         def factory(**kwargs):
             return kwargs
 

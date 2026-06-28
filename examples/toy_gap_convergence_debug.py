@@ -242,14 +242,19 @@ def run_evosax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
         strategy,
         {
             "offspring_shape": np.asarray(offspring_pop).shape,
-            "first_offspring": np.asarray(offspring_pop)[: min(3, np.asarray(offspring_pop).shape[0])].tolist(),
+            "first_offspring": np.asarray(offspring_pop)[
+                : min(3, np.asarray(offspring_pop).shape[0])
+            ].tolist(),
         },
     )
 
     _print_operator_box(
         "evosax strategy params",
         params,
-        {"params": ev_params, "strategy_attrs": {k: _format_value(v) for k, v in strat_attrs.items()}},
+        {
+            "params": ev_params,
+            "strategy_attrs": {k: _format_value(v) for k, v in strat_attrs.items()},
+        },
     )
     initial_best_idx = int(np.argmin(np.asarray(fitness_init)))
     initial_gap = abs(float(fitness_init[initial_best_idx]) - float(evaluator.f_opt))
@@ -360,8 +365,14 @@ def run_malthusjax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
         "live crossover operator",
         state.operators.crossover,
         {
-            "offspring_shape": np.asarray(jax.tree_util.tree_leaves(crossover_offspring.genes)[0]).shape,
-            "first_offspring": np.asarray(jax.tree_util.tree_leaves(crossover_offspring.genes)[0])[: min(3,  np.asarray(jax.tree_util.tree_leaves(crossover_offspring.genes)[0]).shape[0])].tolist(),
+            "offspring_shape": np.asarray(
+                jax.tree_util.tree_leaves(crossover_offspring.genes)[0]
+            ).shape,
+            "first_offspring": np.asarray(jax.tree_util.tree_leaves(crossover_offspring.genes)[0])[
+                : min(
+                    3, np.asarray(jax.tree_util.tree_leaves(crossover_offspring.genes)[0]).shape[0]
+                )
+            ].tolist(),
         },
     )
 
@@ -369,8 +380,12 @@ def run_malthusjax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
         "live mutation operator",
         state.operators.mutation,
         {
-            "offspring_shape": np.asarray(jax.tree_util.tree_leaves(mutated_offspring.genes)[0]).shape,
-            "first_offspring": np.asarray(jax.tree_util.tree_leaves(mutated_offspring.genes)[0])[: min(3, np.asarray(jax.tree_util.tree_leaves(mutated_offspring.genes)[0]).shape[0])].tolist(),
+            "offspring_shape": np.asarray(
+                jax.tree_util.tree_leaves(mutated_offspring.genes)[0]
+            ).shape,
+            "first_offspring": np.asarray(jax.tree_util.tree_leaves(mutated_offspring.genes)[0])[
+                : min(3, np.asarray(jax.tree_util.tree_leaves(mutated_offspring.genes)[0]).shape[0])
+            ].tolist(),
         },
     )
     final_state, history = engine.debug_run(state)
@@ -467,8 +482,12 @@ def replay_crossover_parity(args: argparse.Namespace) -> None:
         live_num_pairs = live_state.resource_map.crossover.input_count // 2
         live_p1_idx = live_parent_indices[:live_num_pairs]
         live_p2_idx = live_parent_indices[live_num_pairs : live_num_pairs * 2]
-        live_p1_genes = jax.tree_util.tree_map(lambda x: x[live_p1_idx], live_state.population.genes)
-        live_p2_genes = jax.tree_util.tree_map(lambda x: x[live_p2_idx], live_state.population.genes)
+        live_p1_genes = jax.tree_util.tree_map(
+            lambda x: x[live_p1_idx], live_state.population.genes
+        )
+        live_p2_genes = jax.tree_util.tree_map(
+            lambda x: x[live_p2_idx], live_state.population.genes
+        )
         live_dummy = jnp.zeros(live_num_pairs)
         live_p1_pop = live_state.population.spawn_offspring(live_p1_genes, fitness=live_dummy)
         live_p2_pop = live_state.population.spawn_offspring(live_p2_genes, fitness=live_dummy)
@@ -510,13 +529,18 @@ def replay_crossover_parity(args: argparse.Namespace) -> None:
             jax.tree_util.tree_leaves(live_mutants.genes)[0],
             captured_replay,
         )
-        _compare("live_next_genes_vs_trace_mj", jax.tree_util.tree_leaves(live_next_genes)[0], captured_live_mj)
+        _compare(
+            "live_next_genes_vs_trace_mj",
+            jax.tree_util.tree_leaves(live_next_genes)[0],
+            captured_live_mj,
+        )
         _compare("live_fitness", live_new_pop.fitness, data["fitness_init"])
         return
 
 
 def replay_selection_parity(args: argparse.Namespace) -> None:
     """Compare the live selection output against the captured parent split."""
+
     def _compare(label: str, live: object, captured: object) -> None:
         live_arr = np.asarray(live)
         captured_arr = np.asarray(captured)
@@ -528,13 +552,8 @@ def replay_selection_parity(args: argparse.Namespace) -> None:
                 f"allclose={bool(np.array_equal(live_arr, captured_arr))}"
             )
         else:
-            diff_text = (
-                f"shape_mismatch live={live_arr.shape} "
-                f"captured={captured_arr.shape}"
-            )
-        print(
-            f"{label}: live={live_arr.shape}, captured={captured_arr.shape}, {diff_text}"
-        )
+            diff_text = f"shape_mismatch live={live_arr.shape} captured={captured_arr.shape}"
+        print(f"{label}: live={live_arr.shape}, captured={captured_arr.shape}, {diff_text}")
 
     trace_path = Path(f"results/crossover_trace_{args.seed}.npz")
     if not trace_path.exists():
@@ -655,9 +674,7 @@ def replay_selection_parity(args: argparse.Namespace) -> None:
     _compare("p1_parent_genes", live_p1_arr, captured_p1)
     _compare("p2_parent_genes", live_p2_arr, captured_p2)
     live_elite_leaves = jax.tree_util.tree_leaves(live_elites)
-    live_elite_preview = (
-        np.asarray(live_elite_leaves[0])[:3].tolist() if live_elite_leaves else []
-    )
+    live_elite_preview = np.asarray(live_elite_leaves[0])[:3].tolist() if live_elite_leaves else []
     print(f"live elites preview={live_elite_preview}")
     print(
         f"fitness_init parity check: allclose={bool(np.array_equal(np.asarray(fitness_init), np.asarray(data['fitness_init'])))}"
@@ -695,14 +712,18 @@ def replay_selection_parity(args: argparse.Namespace) -> None:
     initial_keys = jr.split(key, args.pop_size)
     population_init = jax.vmap(evaluator.evosax_problem.sample)(initial_keys)
     key_eval = jr.PRNGKey(args.seed + 1)
-    fitness_init, _, _ = evaluator.evosax_problem.eval(key_eval, population_init, evaluator.problem_state)
+    fitness_init, _, _ = evaluator.evosax_problem.eval(
+        key_eval, population_init, evaluator.problem_state
+    )
 
     strategy = adapter.strategy
     params = adapter.params
     state = strategy.init(jr.PRNGKey(args.seed + 2), population_init, fitness_init, params)
     sorted_idx = np.asarray(jnp.argsort(state.fitness))
     pop_size = args.pop_size
-    strategy_elite_ratio = float(getattr(strategy, "elite_ratio", strategy_params.get("elite_ratio", 0.5)))
+    strategy_elite_ratio = float(
+        getattr(strategy, "elite_ratio", strategy_params.get("elite_ratio", 0.5))
+    )
     k_elite = int(strategy_elite_ratio * pop_size)
     p_mask = jnp.arange(pop_size) < k_elite
     base_key, parent_key = jr.split(jr.PRNGKey(args.seed + 3), 2)
@@ -730,7 +751,9 @@ def replay_selection_parity(args: argparse.Namespace) -> None:
         genome_config=genome_config,
         evaluator=evaluator,
         selection=ElitePoolSelection(num_selections=args.pop_size, elite_k=elite_k),
-        crossover=EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=args.crossover_rate),
+        crossover=EvosaxUniformCrossoverWrapper(
+            num_offspring=1, crossover_rate=args.crossover_rate
+        ),
         mutation=EvosaxGaussianWrapper(num_offspring=1, mutation_strength=args.mutation_strength),
         enable_progress_bar=False,
     )
@@ -762,8 +785,13 @@ def replay_selection_parity(args: argparse.Namespace) -> None:
     print(f"allclose: {bool(np.allclose(ev_arr, mj_arr))}")
 
 
-
-def compare_selection(args: argparse.Namespace, trials: int = 100, *, elite_ratio_override: float | None = None, elite_k_override: int | None = None) -> None:
+def compare_selection(
+    args: argparse.Namespace,
+    trials: int = 100,
+    *,
+    elite_ratio_override: float | None = None,
+    elite_k_override: int | None = None,
+) -> None:
     """Run multiple trials comparing Evosax vs MalthusJAX selection on fitness stats.
 
     For each trial we sample a fresh initial population, run both selection
@@ -809,7 +837,9 @@ def compare_selection(args: argparse.Namespace, trials: int = 100, *, elite_rati
         genome_config=genome_config,
         evaluator=evaluator,
         selection=ElitePoolSelection(num_selections=args.pop_size, elite_k=m_elite_k),
-        crossover=EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=args.crossover_rate),
+        crossover=EvosaxUniformCrossoverWrapper(
+            num_offspring=1, crossover_rate=args.crossover_rate
+        ),
         mutation=EvosaxGaussianWrapper(num_offspring=1, mutation_strength=args.mutation_strength),
         enable_progress_bar=False,
     )
@@ -817,13 +847,8 @@ def compare_selection(args: argparse.Namespace, trials: int = 100, *, elite_rati
     ev_diffs_max = []
     ev_diffs_med = []
     ev_diffs_mean = []
-    ev_diffs_dist = []
     ev_all = []
     mj_all = []
-    ev_dist_parent1 = []
-    ev_dist_parent2 = []
-    mj_dist_parent1 = []
-    mj_dist_parent2 = []
 
     try:
         from scipy import stats
@@ -841,7 +866,9 @@ def compare_selection(args: argparse.Namespace, trials: int = 100, *, elite_rati
 
         # evaluate fitness
         key_eval = jr.PRNGKey(seed_i + 1)
-        fitness_init, _, _ = evaluator.evosax_problem.eval(key_eval, population_init, evaluator.problem_state)
+        fitness_init, _, _ = evaluator.evosax_problem.eval(
+            key_eval, population_init, evaluator.problem_state
+        )
 
         # Evosax selection (replicate SimpleGA._ask sampling semantics)
         strategy = adapter.strategy
@@ -851,7 +878,9 @@ def compare_selection(args: argparse.Namespace, trials: int = 100, *, elite_rati
         sorted_idx = np.asarray(jnp.argsort(state.fitness))
         pop_size = args.pop_size
         # respect elite_ratio_override when computing mask
-        strategy_elite_ratio = float(getattr(strategy, "elite_ratio", strategy_params.get("elite_ratio", 0.5)))
+        strategy_elite_ratio = float(
+            getattr(strategy, "elite_ratio", strategy_params.get("elite_ratio", 0.5))
+        )
         k_elite = int(strategy_elite_ratio * pop_size)
         p_mask = jnp.arange(pop_size) < k_elite
         # draw choices
@@ -863,10 +892,18 @@ def compare_selection(args: argparse.Namespace, trials: int = 100, *, elite_rati
 
         # MalthusJAX selection
         init_state = engine.init_state(jr.PRNGKey(seed_i))
-        evaluated_population = evaluator.evaluate_population(RealPopulation.from_array(population_init, genome_config, axis=0))
-        state_m = init_state.replace(population=evaluated_population, best_genome=evaluated_population.genes[0], best_fitness=evaluated_population.fitness[0])
+        evaluated_population = evaluator.evaluate_population(
+            RealPopulation.from_array(population_init, genome_config, axis=0)
+        )
+        state_m = init_state.replace(
+            population=evaluated_population,
+            best_genome=evaluated_population.genes[0],
+            best_fitness=evaluated_population.fitness[0],
+        )
         k_sel, _, _, _ = engine._allocate_entropy(state_m)
-        _, mj_parent_idx = engine._selection_phase(k_sel, state_m.population, state_m.operators, engine.engine_params)
+        _, mj_parent_idx = engine._selection_phase(
+            k_sel, state_m.population, state_m.operators, engine.engine_params
+        )
         mj_parent_idx = np.asarray(mj_parent_idx)
 
         # compute fitness stats for selected parents
@@ -949,7 +986,13 @@ def compare_selection(args: argparse.Namespace, trials: int = 100, *, elite_rati
         print(f"KS test (naive two-sample): stat={ks_stat:.4f}, approx_p={ks_p:.4e}")
 
 
-def compare_mutation(args: argparse.Namespace, trials: int = 100, *, elite_ratio_override: float | None = None, elite_k_override: int | None = None) -> None:
+def compare_mutation(
+    args: argparse.Namespace,
+    trials: int = 100,
+    *,
+    elite_ratio_override: float | None = None,
+    elite_k_override: int | None = None,
+) -> None:
     """Compare mutation operators across many trials (similar to compare_selection).
 
     Applies evosax's mutation primitive and MalthusJAX baked mutation to the same
@@ -970,7 +1013,7 @@ def compare_mutation(args: argparse.Namespace, trials: int = 100, *, elite_ratio
     if elite_ratio_override is not None:
         strategy_params["elite_ratio"] = float(elite_ratio_override)
 
-    adapter = build_evosax_engine(
+    build_evosax_engine(
         strategy_name="SimpleGA",
         evaluator=evaluator,
         pop_size=args.pop_size,
@@ -990,7 +1033,9 @@ def compare_mutation(args: argparse.Namespace, trials: int = 100, *, elite_ratio
         genome_config=genome_config,
         evaluator=evaluator,
         selection=ElitePoolSelection(num_selections=args.pop_size, elite_k=m_elite_k),
-        crossover=EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=args.crossover_rate),
+        crossover=EvosaxUniformCrossoverWrapper(
+            num_offspring=1, crossover_rate=args.crossover_rate
+        ),
         mutation=EvosaxGaussianWrapper(num_offspring=1, mutation_strength=args.mutation_strength),
         enable_progress_bar=False,
     )
@@ -1019,7 +1064,9 @@ def compare_mutation(args: argparse.Namespace, trials: int = 100, *, elite_ratio
 
         # Evaluate initial fitness (not strictly needed but kept for parity)
         key_eval = jr.PRNGKey(seed_i + 1)
-        fitness_init, _, _ = evaluator.evosax_problem.eval(key_eval, population_init, evaluator.problem_state)
+        fitness_init, _, _ = evaluator.evosax_problem.eval(
+            key_eval, population_init, evaluator.problem_state
+        )
 
         # Evosax mutation: apply primitive to each genome
         # Import evosax mutation function locally
@@ -1029,17 +1076,27 @@ def compare_mutation(args: argparse.Namespace, trials: int = 100, *, elite_ratio
         k_mut = jr.PRNGKey(seed_i + 3)
         subkeys = jax.random.split(k_mut, args.pop_size)
         # vectorized application
-        mutated_vals_ev = jax.vmap(lambda kk, sol: evosax_mutation_fn(kk, sol, args.mutation_strength))(subkeys, population_init)
+        mutated_vals_ev = jax.vmap(
+            lambda kk, sol: evosax_mutation_fn(kk, sol, args.mutation_strength)
+        )(subkeys, population_init)
         ev_mut_pop = RealPopulation.from_array(np.asarray(mutated_vals_ev), genome_config, axis=0)
         ev_mut_eval = evaluator.evaluate_population(ev_mut_pop)
 
         # MalthusJAX mutation: use baked operator
         init_state = engine.init_state(jr.PRNGKey(seed_i))
-        evaluated_population = evaluator.evaluate_population(RealPopulation.from_array(population_init, genome_config, axis=0))
-        state_m = init_state.replace(population=evaluated_population, best_genome=evaluated_population.genes[0], best_fitness=evaluated_population.fitness[0])
+        evaluated_population = evaluator.evaluate_population(
+            RealPopulation.from_array(population_init, genome_config, axis=0)
+        )
+        state_m = init_state.replace(
+            population=evaluated_population,
+            best_genome=evaluated_population.genes[0],
+            best_fitness=evaluated_population.fitness[0],
+        )
         _, k_cross, k_mut_keys, _ = engine._allocate_entropy(state_m)
         # Call operator
-        mj_mut_pop = state_m.operators.mutation(k_mut_keys, evaluated_population, engine.genome_config, generation=0)
+        mj_mut_pop = state_m.operators.mutation(
+            k_mut_keys, evaluated_population, engine.genome_config, generation=0
+        )
         mj_mut_eval = evaluator.evaluate_population(mj_mut_pop)
 
         # Stats
@@ -1116,6 +1173,7 @@ def compare_mutation(args: argparse.Namespace, trials: int = 100, *, elite_ratio
         ks_stat, ks_p = stats.ks_2samp(ev_all, mj_all)
         print(f"KS test (two-sample): stat={ks_stat:.4f}, p={ks_p:.4e}")
     else:
+
         def ks_naive(a: np.ndarray, b: np.ndarray) -> tuple[float, float]:
             a = np.sort(a)
             b = np.sort(b)
@@ -1132,7 +1190,13 @@ def compare_mutation(args: argparse.Namespace, trials: int = 100, *, elite_ratio
         print(f"KS test (naive two-sample): stat={ks_stat:.4f}, approx_p={ks_p:.4e}")
 
 
-def compare_crossover(args: argparse.Namespace, trials: int = 100, *, elite_ratio_override: float | None = None, elite_k_override: int | None = None) -> None:
+def compare_crossover(
+    args: argparse.Namespace,
+    trials: int = 100,
+    *,
+    elite_ratio_override: float | None = None,
+    elite_k_override: int | None = None,
+) -> None:
     """Compare crossover operators across many trials.
 
     For each trial we sample an initial population, build parent pairs using
@@ -1173,7 +1237,9 @@ def compare_crossover(args: argparse.Namespace, trials: int = 100, *, elite_rati
         genome_config=genome_config,
         evaluator=evaluator,
         selection=ElitePoolSelection(num_selections=args.pop_size, elite_k=m_elite_k),
-        crossover=EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=args.crossover_rate),
+        crossover=EvosaxUniformCrossoverWrapper(
+            num_offspring=1, crossover_rate=args.crossover_rate
+        ),
         mutation=EvosaxGaussianWrapper(num_offspring=1, mutation_strength=args.mutation_strength),
         enable_progress_bar=False,
     )
@@ -1206,7 +1272,9 @@ def compare_crossover(args: argparse.Namespace, trials: int = 100, *, elite_rati
 
         # fitness (needed for selection sampling)
         key_eval = jr.PRNGKey(seed_i + 1)
-        fitness_init, _, _ = evaluator.evosax_problem.eval(key_eval, population_init, evaluator.problem_state)
+        fitness_init, _, _ = evaluator.evosax_problem.eval(
+            key_eval, population_init, evaluator.problem_state
+        )
 
         # Evosax parent sampling (SimpleGA semantics)
         strategy = adapter.strategy
@@ -1214,7 +1282,9 @@ def compare_crossover(args: argparse.Namespace, trials: int = 100, *, elite_rati
         state = strategy.init(jr.PRNGKey(seed_i + 2), population_init, fitness_init, params)
         sorted_idx = np.asarray(jnp.argsort(state.fitness))
         pop_size = args.pop_size
-        strategy_elite_ratio = float(getattr(strategy, "elite_ratio", strategy_params.get("elite_ratio", 0.5)))
+        strategy_elite_ratio = float(
+            getattr(strategy, "elite_ratio", strategy_params.get("elite_ratio", 0.5))
+        )
         k_elite = int(strategy_elite_ratio * pop_size)
         p_mask = jnp.arange(pop_size) < k_elite
         _, key_ask = jr.split(jr.PRNGKey(seed_i + 3), 2)
@@ -1224,13 +1294,17 @@ def compare_crossover(args: argparse.Namespace, trials: int = 100, *, elite_rati
         parents_1 = jax.random.choice(k1, population_init, (pop_size,), p=p_mask)
         parents_2 = jax.random.choice(k2, population_init, (pop_size,), p=p_mask)
         # Evosax crossover primitive (vectorized)
-        ev_offspring = jax.vmap(evosax_crossover_fn, in_axes=(0, 0, 0, None))(cross_keys, parents_1, parents_2, args.crossover_rate)
+        ev_offspring = jax.vmap(evosax_crossover_fn, in_axes=(0, 0, 0, None))(
+            cross_keys, parents_1, parents_2, args.crossover_rate
+        )
         ev_off_pop = RealPopulation.from_array(np.asarray(ev_offspring), genome_config, axis=0)
         ev_off_eval = evaluator.evaluate_population(ev_off_pop)
 
         # MalthusJAX crossover: prepare p1_pop / p2_pop like engine does
         init_state = engine.init_state(jr.PRNGKey(seed_i))
-        evaluated_population = evaluator.evaluate_population(RealPopulation.from_array(population_init, genome_config, axis=0))
+        evaluated_population = evaluator.evaluate_population(
+            RealPopulation.from_array(population_init, genome_config, axis=0)
+        )
         # need parent indices as in selection sampling to extract parents
         # reuse evosax sampled indices mapping to sorted order
         sel1 = np.asarray(jax.random.choice(k1, jnp.arange(pop_size), (pop_size,), p=p_mask))
@@ -1246,7 +1320,9 @@ def compare_crossover(args: argparse.Namespace, trials: int = 100, *, elite_rati
         k_sel, k_cross_keys, k_mut_keys, k_next = engine._allocate_entropy(init_state)
         # call the baked crossover operator — use the originating `k_cross` so the
         # wrapper's internal split matches Evosax's per-pair keys (parity test)
-        mj_cross_off = init_state.operators.crossover(jnp.expand_dims(k_cross, 0), p1_pop, p2_pop, engine.genome_config, generation=0)
+        mj_cross_off = init_state.operators.crossover(
+            jnp.expand_dims(k_cross, 0), p1_pop, p2_pop, engine.genome_config, generation=0
+        )
         mj_off_eval = evaluator.evaluate_population(mj_cross_off)
 
         # compute stats
@@ -1336,6 +1412,7 @@ def compare_crossover(args: argparse.Namespace, trials: int = 100, *, elite_rati
         ks_stat, ks_p = stats.ks_2samp(ev_all, mj_all)
         print(f"KS test (two-sample): stat={ks_stat:.4f}, p={ks_p:.4e}")
     else:
+
         def ks_naive(a: np.ndarray, b: np.ndarray) -> tuple[float, float]:
             a = np.sort(a)
             b = np.sort(b)
@@ -1352,7 +1429,9 @@ def compare_crossover(args: argparse.Namespace, trials: int = 100, *, elite_rati
         print(f"KS test (naive two-sample): stat={ks_stat:.4f}, approx_p={ks_p:.4e}")
 
 
-def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, top_k: int = 3) -> None:
+def analyze_and_capture_crossover(
+    args: argparse.Namespace, trials: int = 100, top_k: int = 3
+) -> None:
     """Screen trials to find the top-k largest mean-difference crossover trials, then capture detailed traces.
 
     Saves per-trial trace files to `results/crossover_trace_{seed}.npz` and a human-readable
@@ -1365,17 +1444,19 @@ def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, t
 
     seeds = [args.seed + 4000 + i for i in range(trials)]
     diffs = []
-    details = []
     # Quick screening: compute mean offspring fitness difference per trial
     for seed_i in seeds:
         key = jr.PRNGKey(seed_i)
         keys = jr.split(key, args.pop_size)
         population_init = jax.vmap(evaluator.evosax_problem.sample)(keys)
         key_eval = jr.PRNGKey(seed_i + 1)
-        fitness_init, _, _ = evaluator.evosax_problem.eval(key_eval, population_init, evaluator.problem_state)
+        fitness_init, _, _ = evaluator.evosax_problem.eval(
+            key_eval, population_init, evaluator.problem_state
+        )
 
         # Evosax crossover (one-shot like in compare_crossover)
         from evosax.algorithms.population_based.simple_ga import crossover as evosax_crossover_fn
+
         # sample parents same as SimpleGA
         k_ask = jr.PRNGKey(seed_i + 3)
         k_cross, k_mut, k1, k2 = jax.random.split(k_ask, 4)
@@ -1390,22 +1471,48 @@ def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, t
             strategy_params=_shared_strategy_params(args, max(1, args.pop_size // 2)),
             initial_population=None,
         ).strategy
-        state = strategy.init(jr.PRNGKey(seed_i + 2), population_init, fitness_init, strategy.default_params)
+        state = strategy.init(
+            jr.PRNGKey(seed_i + 2), population_init, fitness_init, strategy.default_params
+        )
         sorted_idx = np.asarray(jnp.argsort(state.fitness))
         pop_size = args.pop_size
         p_mask = jnp.arange(pop_size) < int(getattr(strategy, "elite_ratio", 0.5) * pop_size)
         parents_1 = jax.random.choice(k1, population_init, (pop_size,), p=p_mask)
         parents_2 = jax.random.choice(k2, population_init, (pop_size,), p=p_mask)
         cross_keys = jax.random.split(k_cross, pop_size)
-        ev_offspring = jax.vmap(evosax_crossover_fn, in_axes=(0,0,0,None))(cross_keys, parents_1, parents_2, args.crossover_rate)
-        ev_off_eval = evaluator.evaluate_population(RealPopulation.from_array(np.asarray(ev_offspring), RealGenomeConfig(shape=(args.dimensions,), bounds=(-5.0,5.0)), axis=0))
+        ev_offspring = jax.vmap(evosax_crossover_fn, in_axes=(0, 0, 0, None))(
+            cross_keys, parents_1, parents_2, args.crossover_rate
+        )
+        ev_off_eval = evaluator.evaluate_population(
+            RealPopulation.from_array(
+                np.asarray(ev_offspring),
+                RealGenomeConfig(shape=(args.dimensions,), bounds=(-5.0, 5.0)),
+                axis=0,
+            )
+        )
         ev_mean = float(np.mean(np.asarray(ev_off_eval.fitness)))
 
         # MalthusJAX crossover
-        genome_config = RealGenomeConfig(shape=(args.dimensions,), bounds=(-5.0,5.0))
-        engine = GeneticEngine(engine_params=GeneticEngineParams(pop_size=args.pop_size, elitism=0, num_generations=1), genome_config=genome_config, evaluator=evaluator, selection=ElitePoolSelection(num_selections=args.pop_size, elite_k=max(1,args.pop_size//2)), crossover=EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=args.crossover_rate), mutation=EvosaxGaussianWrapper(num_offspring=1, mutation_strength=args.mutation_strength), enable_progress_bar=False)
+        genome_config = RealGenomeConfig(shape=(args.dimensions,), bounds=(-5.0, 5.0))
+        engine = GeneticEngine(
+            engine_params=GeneticEngineParams(pop_size=args.pop_size, elitism=0, num_generations=1),
+            genome_config=genome_config,
+            evaluator=evaluator,
+            selection=ElitePoolSelection(
+                num_selections=args.pop_size, elite_k=max(1, args.pop_size // 2)
+            ),
+            crossover=EvosaxUniformCrossoverWrapper(
+                num_offspring=1, crossover_rate=args.crossover_rate
+            ),
+            mutation=EvosaxGaussianWrapper(
+                num_offspring=1, mutation_strength=args.mutation_strength
+            ),
+            enable_progress_bar=False,
+        )
         init_state = engine.init_state(jr.PRNGKey(seed_i))
-        evaluated_population = evaluator.evaluate_population(RealPopulation.from_array(population_init, genome_config, axis=0))
+        evaluated_population = evaluator.evaluate_population(
+            RealPopulation.from_array(population_init, genome_config, axis=0)
+        )
         # reuse parent sampling indices as above
         sel1 = np.asarray(jax.random.choice(k1, jnp.arange(pop_size), (pop_size,), p=p_mask))
         sel2 = np.asarray(jax.random.choice(k2, jnp.arange(pop_size), (pop_size,), p=p_mask))
@@ -1417,7 +1524,9 @@ def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, t
         p1_pop = evaluated_population.spawn_offspring(p1_genes, fitness=dummy_fitness)
         p2_pop = evaluated_population.spawn_offspring(p2_genes, fitness=dummy_fitness)
         k_sel, k_cross_keys, k_mut_keys, k_next = engine._allocate_entropy(init_state)
-        mj_cross_off = init_state.operators.crossover(jnp.expand_dims(k_cross, 0), p1_pop, p2_pop, engine.genome_config, generation=0)
+        mj_cross_off = init_state.operators.crossover(
+            jnp.expand_dims(k_cross, 0), p1_pop, p2_pop, engine.genome_config, generation=0
+        )
         mj_off_eval = evaluator.evaluate_population(mj_cross_off)
         mj_mean = float(np.mean(np.asarray(mj_off_eval.fitness)))
 
@@ -1437,7 +1546,9 @@ def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, t
         keys = jr.split(key, args.pop_size)
         population_init = jax.vmap(evaluator.evosax_problem.sample)(keys)
         key_eval = jr.PRNGKey(seed_i + 1)
-        fitness_init, _, _ = evaluator.evosax_problem.eval(key_eval, population_init, evaluator.problem_state)
+        fitness_init, _, _ = evaluator.evosax_problem.eval(
+            key_eval, population_init, evaluator.problem_state
+        )
 
         # prepare evosax pieces
         k_ask = jr.PRNGKey(seed_i + 3)
@@ -1453,7 +1564,9 @@ def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, t
             strategy_params=_shared_strategy_params(args, max(1, args.pop_size // 2)),
             initial_population=None,
         ).strategy
-        state = strategy.init(jr.PRNGKey(seed_i + 2), population_init, fitness_init, strategy.default_params)
+        state = strategy.init(
+            jr.PRNGKey(seed_i + 2), population_init, fitness_init, strategy.default_params
+        )
         sorted_idx = np.asarray(jnp.argsort(state.fitness))
         pop_size = args.pop_size
         p_mask = jnp.arange(pop_size) < int(getattr(strategy, "elite_ratio", 0.5) * pop_size)
@@ -1461,21 +1574,32 @@ def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, t
         parents_2 = jax.random.choice(k2, population_init, (pop_size,), p=p_mask)
         cross_keys = jax.random.split(k_cross, pop_size)
         from evosax.algorithms.population_based.simple_ga import crossover as evosax_crossover_fn
-        ev_offspring = jax.vmap(evosax_crossover_fn, in_axes=(0,0,0,None))(cross_keys, parents_1, parents_2, args.crossover_rate)
+
+        ev_offspring = jax.vmap(evosax_crossover_fn, in_axes=(0, 0, 0, None))(
+            cross_keys, parents_1, parents_2, args.crossover_rate
+        )
 
         # MalthusJAX pieces
-        genome_config = RealGenomeConfig(shape=(args.dimensions,), bounds=(-5.0,5.0))
+        genome_config = RealGenomeConfig(shape=(args.dimensions,), bounds=(-5.0, 5.0))
         engine = GeneticEngine(
             engine_params=GeneticEngineParams(pop_size=args.pop_size, elitism=0, num_generations=1),
             genome_config=genome_config,
             evaluator=evaluator,
-            selection=ElitePoolSelection(num_selections=args.pop_size, elite_k=max(1, args.pop_size // 2)),
-            crossover=EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=args.crossover_rate),
-            mutation=EvosaxGaussianWrapper(num_offspring=1, mutation_strength=args.mutation_strength),
+            selection=ElitePoolSelection(
+                num_selections=args.pop_size, elite_k=max(1, args.pop_size // 2)
+            ),
+            crossover=EvosaxUniformCrossoverWrapper(
+                num_offspring=1, crossover_rate=args.crossover_rate
+            ),
+            mutation=EvosaxGaussianWrapper(
+                num_offspring=1, mutation_strength=args.mutation_strength
+            ),
             enable_progress_bar=False,
         )
         init_state = engine.init_state(jr.PRNGKey(seed_i))
-        evaluated_population = evaluator.evaluate_population(RealPopulation.from_array(population_init, genome_config, axis=0))
+        evaluated_population = evaluator.evaluate_population(
+            RealPopulation.from_array(population_init, genome_config, axis=0)
+        )
         sel1 = np.asarray(jax.random.choice(k1, jnp.arange(pop_size), (pop_size,), p=p_mask))
         sel2 = np.asarray(jax.random.choice(k2, jnp.arange(pop_size), (pop_size,), p=p_mask))
         p1_idx = np.asarray(sorted_idx)[sel1]
@@ -1486,7 +1610,9 @@ def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, t
         p1_pop = evaluated_population.spawn_offspring(p1_genes, fitness=dummy_fitness)
         p2_pop = evaluated_population.spawn_offspring(p2_genes, fitness=dummy_fitness)
         k_sel, k_cross_keys, k_mut_keys, k_next = engine._allocate_entropy(init_state)
-        mj_cross_off = init_state.operators.crossover(jnp.expand_dims(k_cross, 0), p1_pop, p2_pop, engine.genome_config, generation=0)
+        mj_cross_off = init_state.operators.crossover(
+            jnp.expand_dims(k_cross, 0), p1_pop, p2_pop, engine.genome_config, generation=0
+        )
 
         # Save traces
         out_npz = Path(f"results/crossover_trace_{seed_i}.npz")
@@ -1518,15 +1644,17 @@ def analyze_and_capture_crossover(args: argparse.Namespace, trials: int = 100, t
             f.write(f"fitness_init[0:5]: {np.asarray(fitness_init)[:5].tolist()}\n")
             f.write(f"parents_1[0]: {np.asarray(parents_1)[0].tolist()}\n")
             f.write(f"parents_2[0]: {np.asarray(parents_2)[0].tolist()}\n")
-            f.write(f"cross_keys[0]: {np.asarray(cross_keys)[0].tolist() if np.asarray(cross_keys).ndim>1 else np.asarray(cross_keys)[0]}\n")
+            f.write(
+                f"cross_keys[0]: {np.asarray(cross_keys)[0].tolist() if np.asarray(cross_keys).ndim > 1 else np.asarray(cross_keys)[0]}\n"
+            )
             f.write(f"ev_offspring[0]: {np.asarray(ev_offspring)[0].tolist()}\n")
             f.write(f"p1_idx[:10]: {p1_idx[:10].tolist()}\n")
             f.write(f"p2_idx[:10]: {p2_idx[:10].tolist()}\n")
             f.write(f"k_cross_keys shape: {np.asarray(k_cross_keys).shape}\n")
-            f.write(f"mj_offspring[0]: {np.asarray(jax.tree_util.tree_leaves(mj_cross_off.genes)[0])[0].tolist()}\n")
+            f.write(
+                f"mj_offspring[0]: {np.asarray(jax.tree_util.tree_leaves(mj_cross_off.genes)[0])[0].tolist()}\n"
+            )
         print(f"Saved trace files: {out_npz}, {out_txt}")
-
-
 
 
 def main() -> None:
@@ -1541,7 +1669,9 @@ def main() -> None:
     if args.backend == "both":
         if args.capture_top_k > 0:
             # screening + capture workflow for crossover diffs
-            analyze_and_capture_crossover(args, trials=args.capture_trials, top_k=args.capture_top_k)
+            analyze_and_capture_crossover(
+                args, trials=args.capture_trials, top_k=args.capture_top_k
+            )
             return
 
         if getattr(args, "param_sweep", False):
@@ -1551,10 +1681,16 @@ def main() -> None:
             for r in ratios:
                 m_k = max(1, int(r * args.pop_size))
                 print(f"\n-- testing elite_ratio={r:.3f} (elite_k={m_k}) --")
-                compare_selection(args, trials=args.compare_trials, elite_ratio_override=r, elite_k_override=m_k)
-                compare_mutation(args, trials=args.compare_trials, elite_ratio_override=r, elite_k_override=m_k)
+                compare_selection(
+                    args, trials=args.compare_trials, elite_ratio_override=r, elite_k_override=m_k
+                )
+                compare_mutation(
+                    args, trials=args.compare_trials, elite_ratio_override=r, elite_k_override=m_k
+                )
                 # compare crossover as well
-                compare_crossover(args, trials=args.compare_trials, elite_ratio_override=r, elite_k_override=m_k)
+                compare_crossover(
+                    args, trials=args.compare_trials, elite_ratio_override=r, elite_k_override=m_k
+                )
         else:
             compare_selection(args, trials=args.compare_trials)
     runs: list[tuple[str, list[float], list[float]]] = []

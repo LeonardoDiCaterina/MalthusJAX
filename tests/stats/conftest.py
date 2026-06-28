@@ -3,13 +3,14 @@
 Design principle: fixtures produce the EXACT data types that stats functions
 consume (MetricVector, PairedSample, RegressionDataset). No DataFrames.
 """
+
 import numpy as np
 import pytest
 
 from malthusjax.stats.core import MetricVector, PairedSample
 
-
 # ─── Factory helpers ────────────────────────────────────────────────────────
+
 
 def make_mv(name: str = "metric", values: list[float] | None = None, n: int = 30) -> MetricVector:
     """Build a MetricVector from a list or random values."""
@@ -45,6 +46,7 @@ def make_pair(
 
 # ─── Standard fixtures ─────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def paired_equal() -> PairedSample:
     """Paired sample with NO real difference (null hypothesis true)."""
@@ -74,6 +76,7 @@ def paired_tiny() -> PairedSample:
 def paired_single() -> PairedSample:
     """Paired sample with n=1 (below minimum for most tests)."""
     return make_pair(left=[1.0], right=[2.0])
+
 
 @pytest.fixture
 def paired_empty() -> PairedSample:

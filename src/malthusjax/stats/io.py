@@ -1,9 +1,16 @@
 from typing import Any
 
-from malthusjax.stats.core import TestResult, TOSTResult, StatisticalComparisonResult, StatisticalSuiteResult
+from malthusjax.stats.core import (
+    StatisticalComparisonResult,
+    StatisticalSuiteResult,
+    TestResult,
+    TOSTResult,
+)
+
 
 def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
     """Return a JSON-serializable representation of the suite."""
+
     def _test_to_dict(test: TestResult) -> dict[str, Any]:
         return {
             "name": test.name,
@@ -71,8 +78,10 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
         "adjusted_p_values": suite.adjusted_p_values,
     }
 
+
 def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
     """Render suite results as a markdown summary."""
+
     def _fmt(value: float | None) -> str:
         if value is None:
             return "n/a"
@@ -87,9 +96,7 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
             "Diff End (L-R) | Left Delta | Right Delta | Delta Diff (L-R) | "
             "Cohen dz | Primary p | Decision | Basis |"
         )
-        lines.append(
-            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|"
-        )
+        lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|")
     else:
         lines.append("| Label | n | Cohen dz | Primary p | Decision | Basis |")
         lines.append("|---|---:|---:|---:|---|---|")
@@ -149,10 +156,7 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
         lines.append("")
         lines.append(f"## Progress Context: {r.label}")
         lines.append("")
-        lines.append(
-            "| Left Start | Right Start | Left Delta | Right Delta | "
-            "Delta Diff (L-R) |"
-        )
+        lines.append("| Left Start | Right Start | Left Delta | Right Delta | Delta Diff (L-R) |")
         lines.append("|---:|---:|---:|---:|---:|")
         lines.append(
             f"| {_fmt(left_start)} | {_fmt(right_start)} | {_fmt(left_delta)} | "
@@ -248,8 +252,10 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
 
     return "\n".join(lines)
 
+
 def regression_to_markdown(result: Any) -> str:
     """Render an OLSResult as a markdown table."""
+
     def _fmt(value: float | None) -> str:
         if value is None:
             return "n/a"
@@ -262,11 +268,11 @@ def regression_to_markdown(result: Any) -> str:
     lines.append(f"**Adjusted $R^2$**: {_fmt(result.adjusted_r_squared)}")
     lines.append(f"**n**: {result.n_observations}")
     lines.append("")
-    
+
     # Coefficients Table
     lines.append("| Feature | Coefficient | Std. Error | t-statistic | p-value |")
     lines.append("|---|---:|---:|---:|---:|")
-    
+
     for feat in result.features:
         lines.append(
             f"| {feat} | {_fmt(result.coefficients.get(feat))} | "
@@ -274,7 +280,7 @@ def regression_to_markdown(result: Any) -> str:
             f"{_fmt(result.t_values.get(feat))} | "
             f"{_fmt(result.p_values.get(feat))} |"
         )
-        
+
     if result.diagnostics:
         lines.append("")
         lines.append("## Diagnostics")
@@ -283,6 +289,8 @@ def regression_to_markdown(result: Any) -> str:
         lines.append("|---|---:|---:|---|")
         for diag in result.diagnostics:
             passes = "Yes" if diag.passes() else "No"
-            lines.append(f"| {diag.name} | {_fmt(diag.statistic)} | {_fmt(diag.p_value)} | {passes} |")
+            lines.append(
+                f"| {diag.name} | {_fmt(diag.statistic)} | {_fmt(diag.p_value)} | {passes} |"
+            )
 
     return "\n".join(lines)

@@ -55,7 +55,7 @@ class ConcreteEngine(AbstractEngine):
             best_fitness=jnp.array(0.0),
             mean_fitness=jnp.array(0.0),
             std_fitness=jnp.array(0.0),
-            generation=jnp.array(new_gen)
+            generation=jnp.array(new_gen),
         )
         return new_state, output
 
