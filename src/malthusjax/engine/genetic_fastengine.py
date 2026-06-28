@@ -6,6 +6,7 @@ Refactored for 'Init-Phase Compilation': Resource mapping happens once at initia
 from __future__ import annotations
 
 import dataclasses
+from dataclasses import replace
 from typing import Any, Callable, Tuple, TypeVar, Union, cast
 
 import chex
@@ -629,15 +630,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             metric_best = new_best_fitness  # monotonic
 
-        final_state = cast(
-            GeneticEvolutionState,
-            cast(Any, state).replace(
+        final_state = replace(state, 
                 population=new_pop,
                 best_genome=new_best_genome,
                 best_fitness=new_best_fitness,
                 generation=state.generation + 1,
-                rng_key=k_next,
-            ),
+            rng_key=k_next,
         )
 
         metrics = GeneticGenerationOutput(
@@ -795,15 +793,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             metric_best = new_best_fitness
 
-        final_state = cast(
-            GeneticEvolutionState,
-            cast(Any, state).replace(
+        final_state = replace(state, 
                 population=new_pop,
                 best_genome=new_best_genome,
                 best_fitness=new_best_fitness,
                 generation=state.generation + 1,
                 rng_key=k_next,
-            ),
         )
 
         metrics = GeneticGenerationOutput(
@@ -909,14 +904,14 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             final_state = cast(
                 GeneticEvolutionState,
-                cast(Any, final_state).replace(best_genome=final_best_genome),
+                replace(final_state, best_genome=final_best_genome),
             )
 
         if params.track_best == TrackBest.NONE:
             best_idx = jnp.argmax(final_state.population.fitness)
             final_state = cast(
                 GeneticEvolutionState,
-                cast(Any, final_state).replace(
+                replace(final_state, 
                     best_fitness=final_state.population.fitness[best_idx]
                 ),
             )
@@ -1158,7 +1153,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         """
         entropy = self._allocate_entropy(state)
 
-        engine_with_entropy = cast(GeneticEngine, cast(Any, self).replace(_entropy_buffer=entropy))
+        engine_with_entropy = replace(self, _entropy_buffer=entropy)
         return engine_with_entropy, state.population
 
     def ask_with_key(
@@ -1169,7 +1164,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         This mirrors ask/tell APIs that pass RNG at call time by temporarily
         overriding ``state.rng_key`` for entropy allocation in this generation.
         """
-        state_with_key = cast(GeneticEvolutionState, cast(Any, state).replace(rng_key=rng_key))
+        state_with_key = replace(state, rng_key=rng_key)
         return self.ask(state_with_key)
 
     def tell(
@@ -1242,7 +1237,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         k_sel, k_cross, k_mut, k_next = self._entropy_buffer
 
-        state = cast(GeneticEvolutionState, cast(Any, state).replace(population=population))
+        state = replace(state, population=population)
         gen_best_fitness = jnp.min(population.fitness)
         is_new = gen_best_fitness < state.best_fitness
         new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
@@ -1254,12 +1249,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             state.best_genome,
         )
 
-        state = cast(
-            GeneticEvolutionState,
-            cast(Any, state).replace(
+        state = replace(state, 
                 best_genome=new_best_genome,
                 best_fitness=new_best_fitness,
-            ),
         )
 
         elites, parent_indices = self._selection_phase(
@@ -1281,11 +1273,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             BasePopulation[Any], cast(Any, state.population).replace(genes=next_genes)
         )
 
-        final_state = cast(
-            GeneticEvolutionState,
-            cast(Any, state).replace(
+        final_state = replace(state, 
                 population=next_population, generation=state.generation + 1, rng_key=k_next
-            ),
         )
 
         # Clear the engine-side entropy buffer to prevent accidental reuse of

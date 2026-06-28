@@ -12,7 +12,9 @@ produce a :class:`GeneticEngineAdapter` conforming to the
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from dataclasses import replace
+from typing import cast, Sequence
 
 import chex
 import jax.numpy as jnp
@@ -84,8 +86,9 @@ class GeneticEngineAdapter:
             best_fitness = fitness[best_idx]
             best_genome = evaluated_pop.genes[best_idx]
 
-            state = cast(Any, state).replace(
-                population=evaluated_pop.replace(fitness=fitness),
+            state = replace(
+                state,
+                population=replace(evaluated_pop, fitness=fitness),
                 best_genome=best_genome,
                 best_fitness=best_fitness,
             )
@@ -129,7 +132,7 @@ class GeneticEngineAdapter:
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
         report_initial = float(sign * initial_best)
         report_best = float(sign * final_state.best_fitness)
-        import jax
+        import jax.flatten_util
 
         best_genome_flat, _ = jax.flatten_util.ravel_pytree(final_state.best_genome)
         summary = {

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from typing import Any, Generic, Iterator, Optional, Type, TypeVar, Union, cast
+from dataclasses import replace
 
 import chex
 import jax
@@ -55,7 +56,7 @@ class BaseGenome:
     def __len__(self) -> int:
         """Return number of elements in the primary values array."""
         try:
-            return int(cast(Any, self).values.shape[0])
+            return int(getattr(self, 'values').shape[0])
         except Exception as e:
             raise TypeError("len() is not supported for this genome (missing 'values').") from e
 
@@ -96,7 +97,7 @@ class BaseGenome:
             )
             raise TypeError(msg)
         try:
-            return cast(Any, self).values[key]
+            return getattr(self, 'values')[key]
         except AttributeError as e:
             raise TypeError("Genome does not expose 'values' for indexing.") from e
 
@@ -129,7 +130,7 @@ class BaseGenome:
                     "or iterate a batched genome to yield individual genomes."
                 )
                 raise TypeError(msg)
-            for val in cast(Any, self).values:
+            for val in getattr(self, 'values'):
                 yield val
 
     @classmethod
@@ -258,7 +259,7 @@ class BasePopulation(Generic[G]):
             n_offspring = leaves[0].shape[0]
             fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
 
-        return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes, fitness=fitness))
+        return replace(self, genes=new_genes, fitness=fitness)
 
     def __len__(self) -> int:
         """Returns the number of individuals currently in the population."""
@@ -279,7 +280,7 @@ class BasePopulation(Generic[G]):
 
         return cast(
             BasePopulation[G],
-            cast(Any, self).replace(genes=sliced_genes, fitness=self.fitness[key]),
+            replace(self, genes=sliced_genes, fitness=self.fitness[key]),
         )
 
     def __iter__(self) -> Iterator[G]:
@@ -302,7 +303,7 @@ class BasePopulation(Generic[G]):
             return cast(G, g.autocorrect(config))
 
         new_genes = jax.vmap(_autocorrect_genome)(self.genes)
-        return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes))
+        return replace(self, genes=new_genes)
 
     def distance_matrix(self, metric: str = DistanceMetric.EUCLIDEAN) -> chex.Array:
         """Compute pairwise distances between all population members.

@@ -5,6 +5,7 @@ This module provides mutation operators for BinaryGenome using the new
 @struct.dataclass factory pattern for JIT compilation and vectorization.
 """
 
+from dataclasses import replace
 from typing import Any, Tuple, cast
 
 import chex
@@ -53,7 +54,7 @@ class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
         else:
             mutated_bool = jnp.logical_xor(genome.values.astype(bool), mask)
             mutated = mutated_bool.astype(genome.values.dtype)
-        return cast(BinaryGenome, cast(Any, genome).replace(values=mutated))
+        return replace(genome, values=mutated)
 
 
 @struct.dataclass
@@ -94,7 +95,7 @@ class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
         new_values = jax.lax.select(
             jnp.broadcast_to(should_mutate, scrambled.shape), scrambled, genome.values
         )
-        return cast(BinaryGenome, cast(Any, genome).replace(values=new_values))
+        return replace(genome, values=new_values)
 
 
 @struct.dataclass
@@ -135,7 +136,7 @@ class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
         v1, v2 = genome.values[idx1], genome.values[idx2]
         swapped = genome.values.at[idx1].set(v2).at[idx2].set(v1)
         new_values = jax.lax.select(should_mutate, swapped, genome.values)
-        return cast(BinaryGenome, cast(Any, genome).replace(values=new_values))
+        return replace(genome, values=new_values)
 
 
 __all__ = ["BitFlipMutation", "ScrambleMutation", "SwapMutation"]

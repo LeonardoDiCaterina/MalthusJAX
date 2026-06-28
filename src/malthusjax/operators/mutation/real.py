@@ -6,6 +6,7 @@ Optimized for H100:
     during random number generation and arithmetic operations.
 """
 
+from dataclasses import replace
 from typing import Any, cast
 
 import chex
@@ -168,7 +169,7 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
         if self.clip:
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
@@ -240,7 +241,7 @@ class GaussianMutation_injection(BaseMutation_injection[RealGenome, RealGenomeCo
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
@@ -308,7 +309,7 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
@@ -379,7 +380,7 @@ class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
@@ -442,7 +443,7 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
@@ -506,7 +507,7 @@ class PolynomialMutation_injection(BaseMutation_injection[RealGenome, RealGenome
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 __all__ = [

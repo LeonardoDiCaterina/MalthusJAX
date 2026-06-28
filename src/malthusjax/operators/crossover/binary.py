@@ -3,6 +3,7 @@ Binary Crossover Operators.
 Optimized for batch-first paradigm.
 """
 
+from dataclasses import replace
 from typing import Any, cast
 
 import chex
@@ -54,7 +55,7 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig]):
         """
         mask = noise_data
         offspring_genes = jnp.where(mask, p2.values, p1.values)
-        return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
+        return replace(p1, values=offspring_genes)
 
 
 @struct.dataclass
@@ -102,7 +103,7 @@ class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig]):
         """
         mask = noise_data
         offspring_genes = jnp.where(mask, p2.values, p1.values)
-        return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
+        return replace(p1, values=offspring_genes)
 
 
 __all__ = ["UniformCrossover", "SinglePointCrossover"]

@@ -4,6 +4,7 @@ Refactored to be purely atomic consumers.
 Optimized to consume pre-allocated keys directly, avoiding internal splitting.
 """
 
+from dataclasses import replace
 from typing import Any, Tuple, cast
 
 import chex
@@ -64,7 +65,7 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         """
         mask = noise_data
         offspring_values = jnp.where(mask, p2.values, p1.values)
-        return cast(RealGenome, cast(Any, p1).replace(values=offspring_values))
+        return replace(p1, values=offspring_values)
 
 
 @struct.dataclass
@@ -113,7 +114,7 @@ class UniformCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeC
         """XLA-fused recombination: select using per-gene pre-generated mask."""
         mask = noise_data
         offspring_values = jnp.where(mask, p2.values, p1.values)
-        return cast(RealGenome, cast(Any, p1).replace(values=offspring_values))
+        return replace(p1, values=offspring_values)
 
 
 @struct.dataclass
@@ -241,7 +242,7 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         offspring_values = jnp.clip(offspring_values, min_b, max_b)
         final_values = jnp.where(should_cross, offspring_values, p1.values)
 
-        return cast(RealGenome, cast(Any, p1).replace(values=final_values))
+        return replace(p1, values=final_values)
 
 
 @struct.dataclass
@@ -310,7 +311,7 @@ class BlendCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeCon
         min_b, max_b = config.bounds
         offspring_values = jnp.clip(offspring_values, min_b, max_b)
         final_values = jnp.where(should_cross, offspring_values, p1.values)
-        return cast(RealGenome, cast(Any, p1).replace(values=final_values))
+        return replace(p1, values=final_values)
 
 
 @struct.dataclass
@@ -454,7 +455,7 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         child_vals = jnp.clip(child_vals, min_b, max_b)
         final_values = jnp.where(should_cross, child_vals, p1.values)
 
-        return cast(RealGenome, cast(Any, p1).replace(values=final_values))
+        return replace(p1, values=final_values)
 
 
 @struct.dataclass
@@ -526,7 +527,7 @@ class SimulatedBinaryCrossover_injection(BaseCrossover_injection[RealGenome, Rea
         child_vals = jnp.clip(child_vals, min_b, max_b)
         final_values = jnp.where(should_cross, child_vals, p1.values)
 
-        return cast(RealGenome, cast(Any, p1).replace(values=final_values))
+        return replace(p1, values=final_values)
 
 
 @struct.dataclass
@@ -573,7 +574,7 @@ class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         trial_values = jnp.where(cross_mask, p1.values, p2.values)
         min_val, max_val = config.bounds
         trial_values = jnp.clip(trial_values, min_val, max_val)
-        return cast(RealGenome, cast(Any, p1).replace(values=trial_values))
+        return replace(p1, values=trial_values)
 
 
 @struct.dataclass
@@ -625,7 +626,7 @@ class BinomialCrossover_injection(BaseCrossover_injection[RealGenome, RealGenome
         trial_values = jnp.where(cross_mask, p2.values, p1.values)
         min_val, max_val = config.bounds
         trial_values = jnp.clip(trial_values, min_val, max_val)
-        return cast(RealGenome, cast(Any, p1).replace(values=trial_values))
+        return replace(p1, values=trial_values)
 
 
 __all__ = [
