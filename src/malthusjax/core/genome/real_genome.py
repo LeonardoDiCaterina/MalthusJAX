@@ -229,7 +229,7 @@ class RealPopulation(BasePopulation[RealGenome]):
     fitness: chex.Array
     config: RealGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
-    GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
+
 
     # TODO: support multidimensional genome populations by accepting `shape` tuples
     #       instead of a scalar `size` for non-1D genomes.

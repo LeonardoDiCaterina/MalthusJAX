@@ -216,26 +216,20 @@ class BasePopulation(Generic[G]):
     genes: G
     fitness: chex.Array
     config: Any = _field(pytree_node=False)
-    GENOME_CLS: ClassVar[Type[Any]] = cast(Type[Any], Any)
 
     @classmethod
-    def from_array(cls, arr: chex.Array, config: Any, axis: int = 0) -> BasePopulation[G]:
+    def from_array(cls, arr: chex.Array, config: Any, genome_cls: Type[G], axis: int = 0) -> BasePopulation[G]:
         """Build a population by interpreting one axis of *arr* as individuals.
 
         The method moves *axis* to the front and delegates to
-        ``GENOME_CLS.from_tensor`` for per‑individual wrapping. Output
+        ``genome_cls.from_tensor`` for per‑individual wrapping. Output
         fitness values are initialized to ``-inf`` as a sentinel.
         """
         arr_batched = jnp.moveaxis(arr, axis, 0)
         pop_size = arr_batched.shape[0]
-        genes = cls.GENOME_CLS.from_tensor(arr_batched, config)
+        genes = genome_cls.from_tensor(arr_batched, config)
         fitness = jnp.full((pop_size,), -jnp.inf)
         return cls(genes=genes, fitness=fitness, config=config)
-
-    @property
-    def values(self) -> Any:
-        """Proxies to the genome's values (batched)."""
-        return cast(Any, self.genes).values
 
     def spawn_offspring(
         self, new_genes: G, fitness: Optional[chex.Array] = None

@@ -145,7 +145,7 @@ class CategoricalPopulation(BasePopulation[CategoricalGenome]):
     fitness: chex.Array
     config: CategoricalGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
-    GENOME_CLS: ClassVar[Type[CategoricalGenome]] = CategoricalGenome
+
 
     @classmethod
     def init_random(

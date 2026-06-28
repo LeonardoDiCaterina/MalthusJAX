@@ -230,7 +230,7 @@ class BinaryPopulation(BasePopulation[BinaryGenome]):
     fitness: chex.Array
     config: BinaryGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
-    GENOME_CLS: ClassVar[Type[BinaryGenome]] = BinaryGenome
+
 
     @classmethod
     def init_random(
