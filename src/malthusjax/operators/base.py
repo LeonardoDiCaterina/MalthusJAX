@@ -105,7 +105,13 @@ class BaseMutation(Generic[G, C]):
 
     @abstractmethod
     def _mutate_one(self, genome: G, noise_data: Any, config: C, **kwargs: Any) -> G:
-        """Tier 1 — Pure mutation arithmetic: genome + noise → mutated genome."""
+        """Tier 1 — Pure mutation arithmetic: genome + noise → mutated genome.
+
+        This method operates on a single `G` structural instance. It should manipulate
+        the PyTree directly (e.g., via `jax.tree_util.tree_map`) rather than assuming
+        a rigid `.values` attribute. The Tier-3 `__call__` orchestrates the vmap to
+        map this operation across population batches without manual array slicing.
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -272,7 +278,13 @@ class BaseCrossover(Generic[G, C]):
     def _recombine_one(self, p1: G, p2: G, noise_data: Any, config: C, **kwargs: Any) -> G:
         """Tier 1 — Pure recombination: p1 + p2 + noise → offspring genome.
 
-        Returns single genome G, not tuple. Base class handles replication via num_offspring.
+        This method operates on single `G` structural instances representing parents.
+        It should manipulate the PyTrees directly rather than assuming a rigid `.values`
+        attribute. The Tier-3 `__call__` orchestrates the vmap to map this operation
+        across population batches.
+
+        Returns a single genome `G`, not a tuple. The base class handles replication
+        via `num_offspring`.
         """
         raise NotImplementedError
 

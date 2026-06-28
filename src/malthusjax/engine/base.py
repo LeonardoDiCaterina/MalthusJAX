@@ -77,6 +77,14 @@ class AbstractEvolutionState(Generic[G, P]):
     """
     Mutable state container for evolution across generations (carries data through scan).
     Concrete implementations (GeneticEvolutionState) extend this with resource_map, operators.
+    
+    Type System Note:
+    As of v2.0, the population generic parameter `P` has been decoupled from the
+    operators but is preserved here for static typing of the scan state. It
+    universally binds to `BasePopulation[G]` or a structural subclass like
+    `RealPopulation`. The engine is completely agnostic of the genome's internal
+    structure (e.g., `.values`).
+
     - population (P): Current population (shape: (pop_size, ...genome_shape)).
     - best_genome (G): Best individual found so far (shape: (...genome_shape)).
     - generation (int): Current generation counter (increments each step).

@@ -219,10 +219,12 @@ class RealGenome(BaseGenome):
 @struct.dataclass
 class RealPopulation(BasePopulation[RealGenome]):
     """
-    A specialized container for a population of RealGenomes.
+    Parallel population container specialized for RealGenome vectors.
 
-    This container ensures that all internal genes are correctly typed and
-    that the population-wide config matches the RealGenome requirements.
+    As of v2.0, this class does not override core population mechanics or
+    intercept `.values` properties. It serves strictly as a strongly-typed
+    alias/subclass of `BasePopulation[RealGenome]` to provide convenient
+    initialization helpers and IDE completion.
     """
 
     genes: RealGenome

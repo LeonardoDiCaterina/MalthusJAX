@@ -223,7 +223,12 @@ class BinaryGenome(BaseGenome):
 @struct.dataclass
 class BinaryPopulation(BasePopulation[BinaryGenome]):
     """
-    A specialized container for a population of BinaryGenomes.
+    Parallel population container specialized for BinaryGenome bitstrings.
+
+    As of v2.0, this class does not override core population mechanics or
+    intercept `.values` properties. It serves strictly as a strongly-typed
+    alias/subclass of `BasePopulation[BinaryGenome]` to provide convenient
+    initialization helpers and IDE completion.
     """
 
     genes: BinaryGenome

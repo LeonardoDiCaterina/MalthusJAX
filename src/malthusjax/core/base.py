@@ -37,9 +37,19 @@ class BaseGenome:
     """Immutable genome representation optimized for JAX PyTree lifting.
 
     Single-genome methods compose with jax.vmap to implement population-level
-    operations via the Struct-of-Arrays (SoA) pattern: each leaf array gains
-    a leading batch dimension (N,). The `subscriptable` flag enables optional
-    Pythonic indexing/iteration, trading PyTree traceability for convenience.
+    operations via the Struct-of-Arrays (SoA) pattern: each leaf array in the
+    PyTree gains a leading batch dimension (N,).
+
+    Type System Note:
+    Tier-3 vectorization leverages `jax.tree_util` maps, treating `BaseGenome`
+    subclasses as opaque PyTrees. There is no explicit requirement for a single
+    primary data array. However, as a unified framework practice, implementations
+    lacking domain-specific structural requirements should conventionally store
+    their primary payload in a `.values` attribute.
+
+    The `subscriptable` flag enables optional Pythonic indexing/iteration over
+    the conventional `.values` attribute, trading pure PyTree traceability for
+    convenience in single-genome extraction.
     """
 
     def __len__(self) -> int:
@@ -196,8 +206,15 @@ class BasePopulation(Generic[G]):
     A unified container for a collection of candidate solutions.
 
     This class implements the Struct-of-Arrays (SoA) pattern. The 'genes'
-    attribute holds a Genome instance where every leaf array has an added
-    leading dimension of size N (population size).
+    attribute holds a single `BaseGenome` instance where every internal leaf
+    array has an added leading dimension of size N (population size).
+
+    Type System Note:
+    As of v2.0, the population parameter `P` has been removed. Population types
+    are strictly inferred as `BasePopulation[G]` using the genome type `G`.
+    Additionally, the explicit `GENOME_CLS` property has been removed. The
+    population is strictly agnostic of its internal structure and relies
+    purely on PyTree manipulations.
 
     Attributes:
         genes: The batched genome data (SoA).
