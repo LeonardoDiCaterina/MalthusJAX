@@ -321,7 +321,5 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
 def pytest_runtest_teardown(item, nextitem):
     """Clear JAX caches after every test to prevent GPU OOM during parameter sweeps."""
     import jax
-    if hasattr(jax, "clear_backends"):
-        jax.clear_backends()
     if hasattr(jax, "clear_caches"):
         jax.clear_caches()
