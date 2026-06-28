@@ -66,11 +66,13 @@ class ElitePoolSelection(BaseSelection[P, C]):
     minimizes diversity.
 
     **Design Trade-offs**:
+
     - **Pros**: Fast convergence, preserves best genes, O(N) complexity
     - **Cons**: Very low diversity, risk of premature convergence,
       limited exploration of search space
 
     **When to Use**:
+
     1. **Final refinement phase**: Late generations when you're optimizing near
        a known good region
     2. **High-dimensional problems with clear optima**: Problems where top-1%

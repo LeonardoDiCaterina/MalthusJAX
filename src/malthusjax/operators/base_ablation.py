@@ -24,7 +24,8 @@ def ablation_single_key_mutation(cls: TMutation) -> TMutation:
     This benchmarks the cost of dynamic key splitting vs ResourceMapper
     pre-allocation during JIT compilation and execution.
 
-    Usage:
+    Usage::
+
         @ablation_single_key_mutation
         class BitFlipMutation_ablation(BitFlipMutation):
             pass
@@ -78,7 +79,8 @@ def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
     Benchmarks dynamic key splitting cost for crossover vs ResourceMapper
     pre-allocation strategy.
 
-    Usage:
+    Usage::
+
         @ablation_single_key_crossover
         class UniformCrossover_ablation(UniformCrossover):
             pass

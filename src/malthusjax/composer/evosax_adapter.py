@@ -158,8 +158,9 @@ class EvosaxEngineAdapter:
     ) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
 
-        Timing methodology
-        ------------------
+        Notes
+        -----
+        **Timing methodology**:
         The method separates JIT compilation cost ("warmup") from pure
         evolution execution time, matching the methodology used by
         :class:`~malthusjax.composer.engine_factory.GeneticEngineAdapter`.

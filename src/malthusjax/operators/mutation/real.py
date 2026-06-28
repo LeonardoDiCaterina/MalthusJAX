@@ -29,10 +29,13 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     in continuous-domain evolutionary algorithms.
 
     **Algorithm**:
+
     1. For each gene:
+
        - Draw Bernoulli(mutation_rate) → gene i is mutated with probability mutation_rate
        - If mutated, add N(0, mutation_strength) to gene i
        - Optionally clip to bounds
+
     2. Return mutated genome
 
     **String Specification Format**::

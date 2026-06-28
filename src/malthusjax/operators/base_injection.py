@@ -19,11 +19,12 @@ class BaseMutation_injection(BaseMutation[G, C]):
     This trades off memory for explicit noise control and determinism.
 
     Design trade-offs:
+
     - RNG: Single key splits internally in _generate_noise (user responsibility).
     - Memory: Full noise materialization increases buffer size but enables replay.
     - XLA: reshape/transpose are metadata-only unless downstream requires copy.
-        e.g. for num_offspring>1, the nested vmap approach avoids transposes entirely
-        by generating noise directly in the final layout (N, K, ...).
+      e.g. for num_offspring>1, the nested vmap approach avoids transposes entirely
+      by generating noise directly in the final layout (N, K, ...).
 
     Architecture: Tier 1 (_mutate_one, pure) → Tier 2 (_generate_noise, RNG) →
     Tier 3 (__call__, vmap nesting with single-pass arithmetic).
@@ -122,6 +123,7 @@ class BaseCrossover_injection(Generic[G, C]):
     Trades memory for explicit control and determinism.
 
     Design trade-offs:
+
     - RNG: Single key split internally in _generate_noise.
     - Memory: Full mask materialization for reproducible recombination.
     - XLA: transpose (axis swap) typically metadata-only if downstream

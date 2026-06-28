@@ -53,8 +53,9 @@ class GeneticEngineAdapter:
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
 
-        Timing methodology
-        ------------------
+        Notes
+        -----
+        **Timing methodology**:
         The method separates JIT compilation cost ("warmup") from pure
         evolution execution time.  The warmup phase includes state
         initialization, population setup, and explicit JIT compilation.

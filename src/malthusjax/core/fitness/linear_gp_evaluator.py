@@ -89,7 +89,7 @@ def op_sqrt(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
 
 
 def op_pow(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
-    """Raise |x| to the power |y|, returning zero when base is zero."""
+    """Raise ``|x|`` to the power ``|y|``, returning zero when base is zero."""
     base = jnp.abs(x)
     exp = jnp.abs(y)
     return jnp.where(base == 0, 0.0, jnp.power(base, exp))

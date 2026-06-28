@@ -166,184 +166,184 @@ class Composer:
         Parameters
         ----------
         fitness : str, optional
-        Fitness function specification (MalthusJAX backend only).
-        Format: ``"name:key1=val,key2=val"``
+            Fitness function specification (MalthusJAX backend only).
+            Format: ``"name:key1=val,key2=val"``
 
-        **Built-in fitness functions**:
+            **Built-in fitness functions**:
 
-        - ``"sphere:dim=INT"`` — Sphere function: $f(x) = \\sum_i x_i^2$
-        - ``"rastrigin:dim=INT"`` — Rastrigin: highly multimodal
-        - ``"griewank:dim=INT"`` — Griewank: multimodal with low local frequencies
-        - ``"bbob:fn=INT,dims=INT"`` — Black-Box Optimization Benchmarking
-          (BBOB) suite function (fn=1–24, dims=2–40)
-        - ``"knapsack:capacity=INT,num_items=INT"`` — 0/1 knapsack
-        - ``"binary_sum:length=INT"`` — Binary sum of bits (for binary genomes)
+            - ``"sphere:dim=INT"`` — Sphere function: $f(x) = \\sum_i x_i^2$
+            - ``"rastrigin:dim=INT"`` — Rastrigin: highly multimodal
+            - ``"griewank:dim=INT"`` — Griewank: multimodal with low local frequencies
+            - ``"bbob:fn=INT,dims=INT"`` — Black-Box Optimization Benchmarking
+              (BBOB) suite function (fn=1–24, dims=2–40)
+            - ``"knapsack:capacity=INT,num_items=INT"`` — 0/1 knapsack
+            - ``"binary_sum:length=INT"`` — Binary sum of bits (for binary genomes)
 
-        Examples: ``"sphere:dim=10"``, ``"bbob:fn=3,dims=10"``,
-        ``"knapsack:capacity=100,num_items=20"``.
+            Examples: ``"sphere:dim=10"``, ``"bbob:fn=3,dims=10"``,
+            ``"knapsack:capacity=100,num_items=20"``.
 
         selection : str, optional
-        Selection operator specification.
-        Format: ``"name:key1=val,key2=val"``
+            Selection operator specification.
+            Format: ``"name:key1=val,key2=val"``
 
-        **Valid operators**:
+            **Valid operators**:
 
-        - ``"tournament:num_selections=INT,tournament_size=INT"``
-          Select via tournament competition (default: size=3).
-        - ``"roulette:num_selections=INT"``
-          Fitness-proportional selection (SUS-like).
-        - ``"elite_pool:num_selections=INT,elite_k=INT"``
-          Keep top-k individuals, select from them.
+            - ``"tournament:num_selections=INT,tournament_size=INT"``
+              Select via tournament competition (default: size=3).
+            - ``"roulette:num_selections=INT"``
+              Fitness-proportional selection (SUS-like).
+            - ``"elite_pool:num_selections=INT,elite_k=INT"``
+              Keep top-k individuals, select from them.
 
-        Examples: ``"tournament:num_selections=25,tournament_size=3"``,
-        ``"roulette:num_selections=25"``.
+            Examples: ``"tournament:num_selections=25,tournament_size=3"``,
+            ``"roulette:num_selections=25"``.
 
         crossover : str, optional
-        Crossover operator specification.
-        Format: ``"name:key1=val,key2=val"``
+            Crossover operator specification.
+            Format: ``"name:key1=val,key2=val"``
 
-        **For real genomes**:
+            **For real genomes**:
 
-        - ``"uniform_real"`` — Uniform crossover (each gene has 50% chance).
-        - ``"blend:alpha=FLOAT"`` — Blend crossover with expansion factor.
-        - ``"simulated_binary:eta=FLOAT"`` — SBX (eta controls spread).
-        - ``"binomial:cr=FLOAT"`` — DE-style binomial crossover.
+            - ``"uniform_real"`` — Uniform crossover (each gene has 50% chance).
+            - ``"blend:alpha=FLOAT"`` — Blend crossover with expansion factor.
+            - ``"simulated_binary:eta=FLOAT"`` — SBX (eta controls spread).
+            - ``"binomial:cr=FLOAT"`` — DE-style binomial crossover.
 
-        **For binary genomes**:
+            **For binary genomes**:
 
-        - ``"uniform_binary"`` — Uniform bit-wise crossover.
-        - ``"single_point"`` — Single-point crossover.
+            - ``"uniform_binary"`` — Uniform bit-wise crossover.
+            - ``"single_point"`` — Single-point crossover.
 
-        Examples: ``"blend:alpha=0.5"``, ``"simulated_binary:eta=20"``.
+            Examples: ``"blend:alpha=0.5"``, ``"simulated_binary:eta=20"``.
 
         mutation : str, optional
-        Mutation operator specification.
-        Format: ``"name:key1=val,key2=val"``
+            Mutation operator specification.
+            Format: ``"name:key1=val,key2=val"``
 
-        **For real genomes**:
+            **For real genomes**:
 
-        - ``"gaussian:mutation_rate=FLOAT,mutation_strength=FLOAT"``
-          Add Gaussian noise (mutation_strength = std dev).
-        - ``"ball:mutation_rate=FLOAT"``
-          Uniform ball (hypersphere) mutation.
-        - ``"polynomial:mutation_rate=FLOAT,eta=FLOAT"``
-          Polynomial mutation (eta controls distribution).
+            - ``"gaussian:mutation_rate=FLOAT,mutation_strength=FLOAT"``
+              Add Gaussian noise (mutation_strength = std dev).
+            - ``"ball:mutation_rate=FLOAT"``
+              Uniform ball (hypersphere) mutation.
+            - ``"polynomial:mutation_rate=FLOAT,eta=FLOAT"``
+              Polynomial mutation (eta controls distribution).
 
-        **For binary genomes**:
+            **For binary genomes**:
 
-        - ``"bitflip:mutation_rate=FLOAT"``
-          Flip each bit independently.
-        - ``"scramble"`` — Random reordering (order-based).
-        - ``"swap"`` — Random bit swap (order-based).
+            - ``"bitflip:mutation_rate=FLOAT"``
+              Flip each bit independently.
+            - ``"scramble"`` — Random reordering (order-based).
+            - ``"swap"`` — Random bit swap (order-based).
 
-        Examples:
-        ``"gaussian:mutation_rate=0.5,mutation_strength=0.1"``,
-        ``"polynomial:mutation_rate=0.1,eta=20"``,
-        ``"bitflip:mutation_rate=0.05"``.
+            Examples:
+            ``"gaussian:mutation_rate=0.5,mutation_strength=0.1"``,
+            ``"polynomial:mutation_rate=0.1,eta=20"``,
+            ``"bitflip:mutation_rate=0.05"``.
 
         seeds : Sequence[int], optional
-        Random seeds for independent runs. Each seed generates a fully
-        independent evolutionary run; results are then aggregated.
-        Default: ``(1, 2, 3)``.
+            Random seeds for independent runs. Each seed generates a fully
+            independent evolutionary run; results are then aggregated.
+            Default: ``(1, 2, 3)``.
 
         generations : int, optional
-        Number of full generational cycles to evolve. Default: 100.
-        (Note: some backends may interpret this differently; see backend-specific
-        documentation.)
+            Number of full generational cycles to evolve. Default: 100.
+            (Note: some backends may interpret this differently; see backend-specific
+            documentation.)
 
         pop_size : int, optional
-        Population size (number of individuals per generation).
-        For GPU efficiency, powers of 2 (32, 64, 128, 256) are preferred.
-        Default: 50.
+            Population size (number of individuals per generation).
+            For GPU efficiency, powers of 2 (32, 64, 128, 256) are preferred.
+            Default: 50.
 
         genome_length : int, optional
-        For continuous genomes: number of decision variables (dimension).
-        For discrete: number of bits or items. Default: 10.
+            For continuous genomes: number of decision variables (dimension).
+            For discrete: number of bits or items. Default: 10.
 
         bounds : Tuple[float, float], optional
-        Search space bounds ``(lower, upper)`` for real genomes.
-        Default: ``(-5.0, 5.0)``.
+            Search space bounds ``(lower, upper)`` for real genomes.
+            Default: ``(-5.0, 5.0)``.
 
         genome_type : str, optional
-        Genome representation: ``"real"`` or ``"binary"``.
-        Controls which operator specs are valid (real vs binary crossover/mutation).
-        Default: ``"real"``.
+            Genome representation: ``"real"`` or ``"binary"``.
+            Controls which operator specs are valid (real vs binary crossover/mutation).
+            Default: ``"real"``.
 
         genome : str, optional
-        Declarative specification of the genome type, shape, and bounds.
-        Format: ``"type:key1=val,key2=val"``
-        Examples: ``"real:dim=10,bounds=(-5.0, 5.0)"``, ``"binary:length=20"``.
-        Explicit arguments (e.g., `genome_type`, `genome_length`) override the
-        values provided in this specification.
+            Declarative specification of the genome type, shape, and bounds.
+            Format: ``"type:key1=val,key2=val"``
+            Examples: ``"real:dim=10,bounds=(-5.0, 5.0)"``, ``"binary:length=20"``.
+            Explicit arguments (e.g., `genome_type`, `genome_length`) override the
+            values provided in this specification.
 
         maximize : bool, optional
-        Optimization direction: ``True`` for maximization, ``False`` for
-        minimization. Default: ``False``.
+            Optimization direction: ``True`` for maximization, ``False`` for
+            minimization. Default: ``False``.
 
         backend : str, optional
-        Execution backend: ``"malthusjax"`` (default) or ``"evosax"``.
-        - ``"malthusjax"``: Uses MalthusJAX operators (requires
-          fitness/selection/crossover/mutation specs)
-        - ``"evosax"``: Uses evosax strategy (requires evosax_strategy; ignores
-          operator specs)
+            Execution backend: ``"malthusjax"`` (default) or ``"evosax"``.
+            - ``"malthusjax"``: Uses MalthusJAX operators (requires
+              fitness/selection/crossover/mutation specs)
+            - ``"evosax"``: Uses evosax strategy (requires evosax_strategy; ignores
+              operator specs)
 
         evosax_strategy : str, optional
-        Evosax strategy name (only if ``backend="evosax"``).
-        Examples: ``"SimpleGA"``, ``"OpenES"``, ``"CMA_ES"``, ``"DE"``.
-        Default: ``"SimpleGA"``.
+            Evosax strategy name (only if ``backend="evosax"``).
+            Examples: ``"SimpleGA"``, ``"OpenES"``, ``"CMA_ES"``, ``"DE"``.
+            Default: ``"SimpleGA"``.
 
         engine_type : str, optional
-        MalthusJAX engine type (only if ``backend="malthusjax"``).
-        Currently supported: ``"ga"`` (generational GA). Default: ``"ga"``.
+            MalthusJAX engine type (only if ``backend="malthusjax"``).
+            Currently supported: ``"ga"`` (generational GA). Default: ``"ga"``.
 
         elitism : int, optional
-        Number of best individuals to carry forward without modification
-        (MalthusJAX backend only). Default: 2.
+            Number of best individuals to carry forward without modification
+            (MalthusJAX backend only). Default: 2.
 
         experiment_name : str, optional
-        Experiment identifier (used in output directory and logging).
-        Default: ``"quick_experiment"``.
+            Experiment identifier (used in output directory and logging).
+            Default: ``"quick_experiment"``.
 
         output_dir : Path or str, optional
-        Output directory for results, artifacts, and logs.
-        If not provided, defaults to ``results/{experiment_name}/``.
+            Output directory for results, artifacts, and logs.
+            If not provided, defaults to ``results/{experiment_name}/``.
 
         engine : optional
-        A pre-configured engine object. If provided, all operator specs
-        (fitness, selection, crossover, mutation) are ignored; use a custom
-        engine to bypass automatic configuration.
+            A pre-configured engine object. If provided, all operator specs
+            (fitness, selection, crossover, mutation) are ignored; use a custom
+            engine to bypass automatic configuration.
 
         prng_impl : str, optional
-        PRNG implementation for JAX key splitting (advanced).
-        Default: ``None`` (auto-select).
+            PRNG implementation for JAX key splitting (advanced).
+            Default: ``None`` (auto-select).
 
         trace_dir : Path or str, optional
-        Directory to write Perfetto-compatible JAX profiler traces.
-        Default: ``None`` (disabled).
+            Directory to write Perfetto-compatible JAX profiler traces.
+            Default: ``None`` (disabled).
 
-        Returns
-        -------
-        ExperimentResult
-        Result object containing per-seed run records and aggregation methods:
+            Returns
+            -------
+            ExperimentResult
+            Result object containing per-seed run records and aggregation methods:
 
-        - ``.runs`` : List[:class:`RunResult`] — Individual runs, one per seed
-        - ``.aggregated_summary()`` — Dict mapping metric names → (mean, median, stdev)
-        - ``.combined_history(seed_field="seed")`` — All generation records with seed labels
-        - ``.canonical_summary`` — Best-of metrics from first seed
+            - ``.runs`` : List[:class:`RunResult`] — Individual runs, one per seed
+            - ``.aggregated_summary()`` — Dict mapping metric names → (mean, median, stdev)
+            - ``.combined_history(seed_field="seed")`` — All generation records with seed labels
+            - ``.canonical_summary`` — Best-of metrics from first seed
 
-        Raises
-        ------
-        ValueError
-        If operator specs have invalid format or unknown operator names.
-        RuntimeError
-        If the underlying engine encounters a critical error during execution.
+            Raises
+            ------
+            ValueError
+            If operator specs have invalid format or unknown operator names.
+            RuntimeError
+            If the underlying engine encounters a critical error during execution.
 
-        Examples
-        --------
-        MalthusJAX backend (default)::
+            Examples
+            --------
+            MalthusJAX backend (default)::
 
-        composer = Composer.create_default()
-        result = composer.quick_run(
+            composer = Composer.create_default()
+            result = composer.quick_run(
             fitness="sphere:dim=25",
             selection="tournament:num_selections=25,tournament_size=3",
             crossover="blend:alpha=0.5",
@@ -351,26 +351,26 @@ class Composer:
             pop_size=100,
             generations=200,
             seeds=(42, 43, 44),
-        )
-        print(result.aggregated_summary())
+            )
+            print(result.aggregated_summary())
 
-        Evosax backend::
+            Evosax backend::
 
-        result = composer.quick_run(
+            result = composer.quick_run(
             backend="evosax",
             evosax_strategy="OpenES",
             fitness="sphere:dim=10",
             pop_size=64,
             generations=500,
             seeds=(1, 2, 3),
-        )
+            )
 
-        No operator specs (uses StubEngine for testing the pipeline)::
+            No operator specs (uses StubEngine for testing the pipeline)::
 
-        result = composer.quick_run(
+            result = composer.quick_run(
             generations=50,
             seeds=(1, 2),
-        )
+            )
         """
         if output_dir is None:
             output_dir = Path("results") / experiment_name

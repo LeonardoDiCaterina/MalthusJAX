@@ -89,8 +89,8 @@ class GeneticEngineParams(AbstractEngineParams):
     This dataclass holds all static configuration for the genetic engine.
     All fields use ``pytree_node=False`` to trigger recompilation when changed.
 
-    Inherited from AbstractEngineParams
-    -----------------------------------
+    Parameters
+    ----------
     pop_size : int
         Number of individuals in population. Must be > 0.
         **GPU efficiency**: Powers of 2 (32, 64, 128, 256) strongly preferred.
@@ -106,9 +106,6 @@ class GeneticEngineParams(AbstractEngineParams):
     num_generations : int
         Total generational cycles to run. Must be > 0.
         Baked into JIT-compiled code; changing triggers recompilation.
-
-    Additional Configuration
-    ========================
     key_derivation : KeyDerivationStrategy, optional
         RNG splitting strategy for entropy allocation.
         - SPLIT: Sequential jax.random.split (uncorrelated, traditional)

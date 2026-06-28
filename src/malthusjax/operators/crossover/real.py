@@ -126,8 +126,9 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     between them.
 
     **Algorithm**:
+
     1. Compute interval [L, U] = [min(p1,p2), max(p1,p2)]
-    2. Expand interval by ±α × |p1-p2| → [L-α×diff, U+α×diff]
+    2. Expand interval by ±α × ``|p1-p2|`` → [L-α×diff, U+α×diff]
     3. Sample offspring uniformly from expanded interval
     4. Apply boundary clipping and optional crossover gating
 
@@ -322,11 +323,14 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     index η controls concentration strength.
 
     **Algorithm**:
+
     1. For each gene:
+
        - Draw uniform random u ~ U[0,1]
        - Compute spread factor β based on η and u
        - Generate two candidates: c1 = 0.5×[(1+β)p1 + (1-β)p2], c2 = 0.5×[(1-β)p1 + (1+β)p2]
        - Randomly select c1 or c2
+
     2. Apply boundary clipping
     3. Conditionally apply (based on crossover_rate)
 
