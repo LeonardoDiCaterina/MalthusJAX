@@ -27,7 +27,7 @@ def test_gaussian_mutation_flow(rng_key):
     offspring_pop = mutation(k_mutation, population, config)
 
     assert len(offspring_pop) == pop_size
-    assert not jnp.allclose(population.values, offspring_pop.values)
+    assert not jnp.allclose(population.genes.values, offspring_pop.genes.values)
 
 
 def test_gaussian_mutation_masked_arithmetic():
@@ -44,7 +44,7 @@ def test_gaussian_mutation_masked_arithmetic():
     offspring = mutation(keys, population, config)
 
     # Delta should be zero because mask_val is 0.0
-    assert jnp.all(offspring.values == population.values)
+    assert jnp.all(offspring.genes.values == population.genes.values)
 
 
 def test_gaussian_mutation_noise_distribution():
@@ -91,7 +91,7 @@ def test_gaussian_mutation_strength_calibration():
         print(f"Testing sigma={sigma} with {len(keys)} keys")
         offspring = mutation(keys, population, config)
 
-        delta = jnp.linalg.norm(offspring.values - parent_vals)
+        delta = jnp.linalg.norm(offspring.genes.values - parent_vals)
         deltas_by_sigma.append(float(delta))
 
     # Verify monotonic increase: delta(0.1) < delta(0.5) < delta(1.0)
@@ -116,6 +116,6 @@ def test_gaussian_mutation_large_population_scaling():
     offspring = mutation(k_mut, population, config)
 
     assert len(offspring) == pop_size
-    assert offspring.values.shape == population.values.shape
+    assert offspring.genes.values.shape == population.genes.values.shape
     # Some changes should exist (stochastic)
-    assert not jnp.allclose(offspring.values, population.values)
+    assert not jnp.allclose(offspring.genes.values, population.genes.values)

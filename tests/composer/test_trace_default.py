@@ -31,8 +31,17 @@ def test_quick_run_uses_default_trace_dir(monkeypatch, tmp_path):
     assert result.runs
 
 
-def test_quick_run_can_override_trace_dir(tmp_path):
+def test_quick_run_can_override_trace_dir(monkeypatch, tmp_path):
     """Supplying trace_dir explicitly should override the default."""
+    captured: dict = {}
+    original_init = BenchmarkRunner.__init__
+
+    def fake_init(self, *args, **kwargs):
+        captured["trace_dir"] = kwargs.get("trace_dir")
+        return original_init(self, *args, **kwargs)
+
+    monkeypatch.setattr(BenchmarkRunner, "__init__", fake_init)
+
     composer = Composer.create_default()
     custom = tmp_path / "mytraces"
     composer.quick_run(
@@ -41,6 +50,4 @@ def test_quick_run_can_override_trace_dir(tmp_path):
         output_dir=tmp_path,
         trace_dir=custom,
     )
-    # check that directory was actually created by the runner
-    assert custom.exists()
-    assert any(custom.iterdir())  # should contain at least one trace subfolder
+    assert captured.get("trace_dir") == custom

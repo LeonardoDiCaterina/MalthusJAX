@@ -64,12 +64,12 @@ def test_sbx_respects_bounds(pop_size: int, genome_dim: int, eta: float) -> None
 
     # Check bounds (with tiny tolerance for numerical precision)
     tolerance = 1e-4
-    assert jnp.all(offspring.values >= bounds[0] - tolerance), (
-        f"Offspring below lower bound: {jnp.min(offspring.values)} < {bounds[0]}"
+    assert jnp.all(offspring.genes.values >= bounds[0] - tolerance), (
+        f"Offspring below lower bound: {jnp.min(offspring.genes.values)} < {bounds[0]}"
     )
 
-    assert jnp.all(offspring.values <= bounds[1] + tolerance), (
-        f"Offspring above upper bound: {jnp.max(offspring.values)} > {bounds[1]}"
+    assert jnp.all(offspring.genes.values <= bounds[1] + tolerance), (
+        f"Offspring above upper bound: {jnp.max(offspring.genes.values)} > {bounds[1]}"
     )
 
 
@@ -104,8 +104,8 @@ def test_sbx_produces_correct_offspring_count(pop_size: int, genome_dim: int) ->
     offspring = crossover(keys, p1_pop, p2_pop, config)
 
     expected_count = (adjust_pop // 2) * 2
-    assert offspring.values.shape[0] == expected_count, (
-        f"Expected {expected_count} offspring, got {offspring.values.shape[0]}"
+    assert offspring.genes.values.shape[0] == expected_count, (
+        f"Expected {expected_count} offspring, got {offspring.genes.values.shape[0]}"
     )
 
 
@@ -154,8 +154,8 @@ def test_sbx_eta_influences_offspring_distribution(genome_dim: int, eta_values: 
 
     # With higher eta, offspring should be closer to parents on average
     center = (-2.0 + 2.0) / 2  # Midpoint between parents
-    dist_low = jnp.mean(jnp.abs(offspring_low.values - center))
-    dist_high = jnp.mean(jnp.abs(offspring_high.values - center))
+    dist_low = jnp.mean(jnp.abs(offspring_low.genes.values - center))
+    dist_high = jnp.mean(jnp.abs(offspring_high.genes.values - center))
 
     # Higher eta should produce tighter distribution (closer to parents)
     # This is a statistical property, so we allow some variance
@@ -210,12 +210,12 @@ def test_uniform_crossover_produces_parental_material(
     # Verify offspring are within parental ranges (not excessively mutated)
     # This is a weaker check - we don't verify exact parent origins due to
     # the stochastic nature of uniform crossover
-    assert offspring.values.shape[0] == (adjust_pop // 2) * 2, (
-        f"Expected {(adjust_pop // 2) * 2} offspring, got {offspring.values.shape[0]}"
+    assert offspring.genes.values.shape[0] == (adjust_pop // 2) * 2, (
+        f"Expected {(adjust_pop // 2) * 2} offspring, got {offspring.genes.values.shape[0]}"
     )
 
-    assert offspring.values.shape[1] == genome_dim, (
-        f"Expected genome dim {genome_dim}, got {offspring.values.shape[1]}"
+    assert offspring.genes.values.shape[1] == genome_dim, (
+        f"Expected genome dim {genome_dim}, got {offspring.genes.values.shape[1]}"
     )
 
 
@@ -247,12 +247,12 @@ def test_uniform_crossover_respects_bounds(pop_size: int, genome_dim: int) -> No
     offspring = crossover(keys, p1_pop, p2_pop, config)
 
     # Offspring should be within bounds since they're combinations of in-bounds parents
-    assert jnp.all(offspring.values >= -5.0 - 1e-4), (
-        f"Offspring below lower bound: {jnp.min(offspring.values)}"
+    assert jnp.all(offspring.genes.values >= -5.0 - 1e-4), (
+        f"Offspring below lower bound: {jnp.min(offspring.genes.values)}"
     )
 
-    assert jnp.all(offspring.values <= 5.0 + 1e-4), (
-        f"Offspring above upper bound: {jnp.max(offspring.values)}"
+    assert jnp.all(offspring.genes.values <= 5.0 + 1e-4), (
+        f"Offspring above upper bound: {jnp.max(offspring.genes.values)}"
     )
 
 
@@ -289,7 +289,7 @@ def test_binary_uniform_crossover_produces_binary(pop_size: int, genome_length: 
     offspring = crossover(keys, p1_pop, p2_pop, config)
 
     # All values must be 0 or 1
-    unique_values = jnp.unique(offspring.values)
+    unique_values = jnp.unique(offspring.genes.values)
     assert jnp.all(jnp.isin(unique_values, jnp.array([0, 1]))), (
         f"BinaryUniformCrossover produced non-binary values: {unique_values}"
     )
@@ -323,7 +323,7 @@ def test_single_point_crossover_produces_binary(pop_size: int, genome_length: in
     offspring = crossover(keys, p1_pop, p2_pop, config)
 
     # All values must be 0 or 1
-    unique_values = jnp.unique(offspring.values)
+    unique_values = jnp.unique(offspring.genes.values)
     assert jnp.all(jnp.isin(unique_values, jnp.array([0, 1]))), (
         f"SinglePointCrossover produced non-binary values: {unique_values}"
     )
@@ -364,13 +364,13 @@ def test_single_point_crossover_has_split_point(pop_size: int, genome_length: in
     offspring = crossover(keys, p1_pop, p2_pop, config)
 
     # Verify offspring count is correct
-    assert offspring.values.shape[0] == (adjust_pop // 2) * 2, (
-        f"Expected {(adjust_pop // 2) * 2} offspring, got {offspring.values.shape[0]}"
+    assert offspring.genes.values.shape[0] == (adjust_pop // 2) * 2, (
+        f"Expected {(adjust_pop // 2) * 2} offspring, got {offspring.genes.values.shape[0]}"
     )
 
     # Verify genome_length is preserved
-    assert offspring.values.shape[1] == genome_length, (
-        f"Expected genome length {genome_length}, got {offspring.values.shape[1]}"
+    assert offspring.genes.values.shape[1] == genome_length, (
+        f"Expected genome length {genome_length}, got {offspring.genes.values.shape[1]}"
     )
 
 
@@ -402,6 +402,6 @@ def test_binary_crossover_preserves_population_size(pop_size: int, genome_length
     offspring = crossover(keys, p1_pop, p2_pop, config)
 
     expected_count = (adjust_pop // 2) * 2
-    assert offspring.values.shape[0] == expected_count, (
-        f"Expected {expected_count} offspring, got {offspring.values.shape[0]}"
+    assert offspring.genes.values.shape[0] == expected_count, (
+        f"Expected {expected_count} offspring, got {offspring.genes.values.shape[0]}"
     )

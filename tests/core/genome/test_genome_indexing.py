@@ -18,7 +18,7 @@ def test_binary_genome_index_iter_len():
     pop = BinaryPopulation.init_random(jr.PRNGKey(1), cfg, size=4)
     first = pop[0]
     assert isinstance(first, BinaryGenome)
-    assert int(first[0]) == int(pop.values[0, 0])
+    assert int(first[0]) == int(pop.genes.values[0, 0])
 
 
 def test_real_genome_index_iter_len():
@@ -33,7 +33,7 @@ def test_real_genome_index_iter_len():
     pop = RealPopulation.init_random(jr.PRNGKey(2), cfg, size=3)
     first = pop[0]
     assert isinstance(first, RealGenome)
-    assert jnp.allclose(first[0], pop.values[0, 0])
+    assert jnp.allclose(first[0], pop.genes.values[0, 0])
 
 
 def test_disable_subscriptable_raises():

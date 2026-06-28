@@ -10,7 +10,7 @@ from malthusjax.benchmarking.results import ExperimentResult
 from malthusjax.composer.composer import Composer
 from malthusjax.composer.evosax_adapter import build_evosax_engine
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
 from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper
@@ -83,7 +83,7 @@ def test_end_to_end_equivalence_manual_vs_composer_vs_toml(tmp_path, fn_name, di
         enable_progress_bar=False,
     )
 
-    initial_population = RealPopulation.from_array(shared_pop, genome_config, axis=0)
+    initial_population = RealPopulation.from_array(shared_pop, genome_config, RealGenome, axis=0)
     evaluated_population = evaluator.evaluate_population(initial_population)
     # prepare state with injected population
     state = engine.init_state(jr.PRNGKey(seed)).replace(

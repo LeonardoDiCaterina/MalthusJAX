@@ -59,14 +59,18 @@ class TestConvergenceParity:
 
         # ---- Aggregated summary via ComparisonResult ----
         table = comparison.summary_table()
-        mjx_best = table["malthusjax"]["best_fitness"]
-        esx_best = table["evosax"]["best_fitness"]
-        mjx_start = table["malthusjax"].get("start_best_fitness")
-        mjx_end = table["malthusjax"].get("end_best_fitness")
-        mjx_delta = table["malthusjax"].get("delta_best")
-        esx_start = table["evosax"].get("start_best_fitness")
-        esx_end = table["evosax"].get("end_best_fitness")
-        esx_delta = table["evosax"].get("delta_best")
+        
+        def _get_mean(val):
+            return val["mean"] if isinstance(val, dict) else val
+
+        mjx_best = _get_mean(table["malthusjax"]["best_fitness"])
+        esx_best = _get_mean(table["evosax"]["best_fitness"])
+        mjx_start = _get_mean(table["malthusjax"].get("start_best_fitness"))
+        mjx_end = _get_mean(table["malthusjax"].get("end_best_fitness"))
+        mjx_delta = _get_mean(table["malthusjax"].get("delta_best"))
+        esx_start = _get_mean(table["evosax"].get("start_best_fitness"))
+        esx_end = _get_mean(table["evosax"].get("end_best_fitness"))
+        esx_delta = _get_mean(table["evosax"].get("delta_best"))
 
         print(
             f"\n  [{problem} d={dims}]  (mean over {len(seeds)} seeds)"

@@ -54,10 +54,14 @@ def _assert_parity_comparison(
         _assert_experiment_result(result, f"{label}/{name}", seeds)
 
     table = comparison.summary_table()
-    mjx_best = table["malthusjax"]["best_fitness"]
-    esx_best = table["evosax"]["best_fitness"]
-    mjx_delta = table["malthusjax"].get("delta_best")
-    esx_delta = table["evosax"].get("delta_best")
+    
+    def _get_mean(val):
+        return val["mean"] if isinstance(val, dict) else val
+
+    mjx_best = _get_mean(table["malthusjax"]["best_fitness"])
+    esx_best = _get_mean(table["evosax"]["best_fitness"])
+    mjx_delta = _get_mean(table["malthusjax"].get("delta_best"))
+    esx_delta = _get_mean(table["evosax"].get("delta_best"))
 
     print(
         f"\n  [{label}]  (mean over {len(seeds)} seeds, canonical init)"
