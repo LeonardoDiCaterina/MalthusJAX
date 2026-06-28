@@ -26,6 +26,7 @@ All basis ``eval`` methods are fully JAX-traceable and compose cleanly with
 
 from __future__ import annotations
 
+import dataclasses
 from abc import ABC, abstractmethod
 from typing import Any, ClassVar, Tuple, Type, cast
 
@@ -70,7 +71,7 @@ class BasisFunction(ABC):
         ...
 
     @abstractmethod
-    def eval(self, t: float, coeffs: chex.Array) -> float:
+    def eval(self, t: float, coeffs: chex.Array) -> chex.Array:
         """Evaluate the series at a single point ``t``.
 
         Parameters
@@ -81,11 +82,11 @@ class BasisFunction(ABC):
 
         Returns
         -------
-        float scalar — the function value at ``t``.
+        Array scalar — the function value at ``t``.
         """
         ...
 
-    def eval_deriv(self, t: float, coeffs: chex.Array) -> float:
+    def eval_deriv(self, t: float, coeffs: chex.Array) -> chex.Array:
         """First derivative d/dt of :meth:`eval` at ``t``.
 
         Default implementation uses ``jax.grad``.  Subclasses may override
@@ -98,11 +99,11 @@ class BasisFunction(ABC):
 
         Returns
         -------
-        float scalar — the derivative at ``t``.
+        Array scalar — the derivative at ``t``.
         """
         return jax.grad(self.eval, argnums=0)(t, coeffs)
 
-    def eval_deriv_nth(self, t: float, coeffs: chex.Array, n: int) -> float:
+    def eval_deriv_nth(self, t: float, coeffs: chex.Array, n: int) -> chex.Array:
         """n-th derivative d^n/dt^n of :meth:`eval` at ``t``.
 
         Uses repeated application of ``jax.grad``.  Subclasses may override
@@ -156,14 +157,14 @@ class FourierBasis(BasisFunction):
     def name(self) -> str:
         return "fourier"
 
-    def eval(self, t: float, coeffs: chex.Array) -> float:
+    def eval(self, t: float, coeffs: chex.Array) -> chex.Array:
         a0 = coeffs[0]
         pairs = coeffs[1:].reshape(-1, 2)  # (n_pairs, 2)
         n = jnp.arange(1, pairs.shape[0] + 1, dtype=jnp.float32)
         w = 2.0 * jnp.pi / (self.t1 - self.t0)
         return a0 + jnp.sum(pairs[:, 0] * jnp.cos(n * w * t) + pairs[:, 1] * jnp.sin(n * w * t))
 
-    def eval_deriv(self, t: float, coeffs: chex.Array) -> float:
+    def eval_deriv(self, t: float, coeffs: chex.Array) -> chex.Array:
         """Analytic derivative — avoids a second pass through the Fourier eval."""
         pairs = coeffs[1:].reshape(-1, 2)  # (n_pairs, 2)
         n = jnp.arange(1, pairs.shape[0] + 1, dtype=jnp.float32)
@@ -224,22 +225,24 @@ class ChebyshevBasis(BasisFunction):
         -------
         Array of shape ``(n,)`` with values ``[T_0, T_1, ..., T_{n-1}]``.
         """
-        x = jnp.asarray(x)
+        x_arr = jnp.asarray(x)
 
-        def step(carry: tuple, _: Any) -> tuple:
+        def step(
+            carry: tuple[chex.Array, chex.Array], _: Any
+        ) -> tuple[tuple[chex.Array, chex.Array], chex.Array]:
             t_prev, t_curr = carry
-            t_next = 2.0 * x * t_curr - t_prev
+            t_next = 2.0 * x_arr * t_curr - t_prev
             return (t_curr, t_next), t_prev  # emit t_prev; advance carry
 
         _, values = jax.lax.scan(
             step,
-            init=(jnp.ones_like(x), x),  # carry = (T_0 = 1, T_1 = x)
+            init=(jnp.ones_like(x_arr), x_arr),  # carry = (T_0 = 1, T_1 = x)
             xs=None,
             length=n,
         )
         return values  # shape (n,) = [T_0, ..., T_{n-1}]
 
-    def eval(self, t: float, coeffs: chex.Array) -> float:
+    def eval(self, t: float, coeffs: chex.Array) -> chex.Array:
         x = 2.0 * (t - self.t0) / (self.t1 - self.t0) - 1.0
         basis = self._basis_values(x, coeffs.shape[0])
         return jnp.dot(coeffs, basis)
@@ -271,12 +274,12 @@ class MonomialBasis(BasisFunction):
     def name(self) -> str:
         return "monomial"
 
-    def eval(self, t: float, coeffs: chex.Array) -> float:
+    def eval(self, t: float, coeffs: chex.Array) -> chex.Array:
         # Horner sweep from highest to lowest degree coefficient.
         # reversed_coeffs = [c_{n-1}, c_{n-2}, ..., c_0]
         reversed_coeffs = jnp.flip(coeffs)
 
-        def step(acc: chex.Array, c: chex.Array) -> tuple:
+        def step(acc: chex.Array, c: chex.Array) -> tuple[chex.Array, Any]:
             return acc * t + c, None
 
         result, _ = jax.lax.scan(
@@ -428,10 +431,7 @@ class SeriesGenome(BaseGenome):
         explicitly or enable ``clip=True`` in the mutation operator.
         """
         lo, hi = config.bounds
-        return cast(
-            "SeriesGenome",
-            cast(Any, self).replace(values=jnp.clip(self.values, lo, hi)),
-        )
+        return dataclasses.replace(self, values=jnp.clip(self.values, lo, hi))
 
     def distance(
         self,
@@ -507,7 +507,7 @@ class SeriesGenome(BaseGenome):
         norm = self.magnitude()
         norm_safe = jnp.maximum(norm, 1e-8)
         normed = jnp.where(norm > 0, self.values / norm_safe, self.values)
-        return cast("SeriesGenome", cast(Any, self).replace(values=normed))
+        return dataclasses.replace(self, values=normed)
 
     # ------------------------------------------------------------------ #
     # Function evaluation  — the key capability added by SeriesGenome
@@ -591,7 +591,7 @@ class SeriesPopulation(BasePopulation[SeriesGenome]):
 
     genes: SeriesGenome
     fitness: chex.Array
-    config: SeriesGenomeConfig = _field(pytree_node=False)  # type: ignore[no-untyped-call]
+    config: SeriesGenomeConfig = _field(pytree_node=False)
 
     GENOME_CLS: ClassVar[Type[SeriesGenome]] = SeriesGenome
 

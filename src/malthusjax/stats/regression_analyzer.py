@@ -61,12 +61,12 @@ class OLSRegressionAnalyzer:
                         ols_res = fit_ols(dataset)
 
                         # Generate markdown diagnostic output
-                        ols_res.target_name = dataset.label
-                        ols_res.n_observations = len(y_vals)
-                        ols_res.adjusted_r_squared = ols_res.r_squared
-                        ols_res.features = list(dataset.X.keys())
-                        ols_res.standard_errors = {}
-                        ols_res.t_values = {}
+                        ols_res.target_name = dataset.label  # type: ignore[attr-defined]
+                        ols_res.n_observations = len(y_vals)  # type: ignore[attr-defined]
+                        ols_res.adjusted_r_squared = ols_res.r_squared  # type: ignore[attr-defined]
+                        ols_res.features = list(dataset.X.keys())  # type: ignore[attr-defined]
+                        ols_res.standard_errors = {}  # type: ignore[attr-defined]
+                        ols_res.t_values = {}  # type: ignore[attr-defined]
 
                         md_path = analysis_dir / f"{prefix}_{var}_ols_summary.md"
                         md_path.write_text(regression_to_markdown(ols_res))

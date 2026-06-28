@@ -1,3 +1,4 @@
+import dataclasses
 from abc import abstractmethod
 from typing import Any, Generic, Tuple, cast
 
@@ -99,7 +100,7 @@ class BaseMutation_injection(BaseMutation[G, C]):
             def _inner(n: chex.Array) -> G:
                 return self._mutate_one(g, n, config)
 
-            return jax.vmap(_inner, in_axes=0)(noise_block)
+            return jax.vmap(_inner, in_axes=0)(noise_block)  # type: ignore[no-any-return]
 
         nested_offspring = jax.vmap(_process_noise_block, in_axes=(0, 0))(
             noise_nk, population.genes
@@ -147,15 +148,15 @@ class BaseCrossover_injection(Generic[G, C]):
 
     def set_typed_keys(self, typed: bool) -> "BaseCrossover_injection[G, C]":
         """Set the PRNG key format flag (new-style typed vs legacy uint32)."""
-        return cast("BaseCrossover_injection[G, C]", cast(Any, self).replace(typed_keys=typed))
+        return dataclasses.replace(self, typed_keys=typed)
 
     def set_input_length(self, length: int) -> "BaseCrossover_injection[G, C]":
         """Locks pair count for static budgeting."""
-        return cast("BaseCrossover_injection[G, C]", cast(Any, self).replace(input_length=length))
+        return dataclasses.replace(self, input_length=length)
 
     def set_max_generations(self, n: int) -> "BaseCrossover_injection[G, C]":
         """Set total generation count for operator-level scheduling."""
-        return cast("BaseCrossover_injection[G, C]", cast(Any, self).replace(max_generations=n))
+        return dataclasses.replace(self, max_generations=n)
 
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:

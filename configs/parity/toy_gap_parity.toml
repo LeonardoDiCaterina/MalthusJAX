@@ -28,7 +28,7 @@ description = "EvoSAX SimpleGA (cr=0.1, ms=0.0, elite_ratio=0.5)"
 [pipelines.malthusjax_evosaxops]
 fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=4056,maximize=false"
 backend = "malthusjax"
-selection = "elite_pool:num_selections=12,elite_k=6"
+selection = "evosax_mimic_selection:num_selections=12,elite_k=6"
 crossover = "evosax_uniform_crossover:crossover_rate=0.1"
 mutation = "evosax_gaussian:mutation_strength=0.0"
 description = "MalthusJAX using EvoSAX operators (cr=0.1, ms=0.0, elite_k=6)"

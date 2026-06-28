@@ -28,10 +28,10 @@ class BBOBAXConfig(BaseEvaluatorConfig):
         max_dims: The fixed-size dimension for JIT (defaults to num_dims).
     """
 
-    fn_name: str = struct.field(pytree_node=False, default="sphere")
-    num_dims: int = struct.field(pytree_node=False, default=2)
+    fn_name: str = struct.field(pytree_node=False, default="sphere")  # type: ignore
+    num_dims: int = struct.field(pytree_node=False, default=2)  # type: ignore
     seed: int = 0
-    max_dims: int = struct.field(pytree_node=False, default=None)
+    max_dims: int = struct.field(pytree_node=False, default=None)  # type: ignore
 
 
 @struct.dataclass
@@ -39,7 +39,7 @@ class BBOBAXEvaluator(BaseEvaluator[RealGenome, BBOBAXConfig, Any]):
     """Evaluator using the pure-JAX bbobax implementation."""
 
     # task is static as it contains function references
-    task: BBOB = struct.field(pytree_node=False)
+    task: BBOB = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
     params: BBOBParams
     problem_state: BBOBState
 

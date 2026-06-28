@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any
 
 import chex
 import jax
@@ -6,7 +6,8 @@ import jax.numpy as jnp
 from evosax.algorithms.population_based.simple_ga import crossover as evosax_crossover
 from flax import struct
 
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.base import BasePopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.operators.base import BaseCrossover, _field
 
 
@@ -99,11 +100,11 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig])
     def __call__(
         self,
         all_keys: chex.Array,
-        p1_pop: RealPopulation,
-        p2_pop: RealPopulation,
+        p1_pop: BasePopulation[RealGenome],
+        p2_pop: BasePopulation[RealGenome],
         config: RealGenomeConfig,
         generation: int = 0,
-    ) -> RealPopulation:
+    ) -> BasePopulation[RealGenome]:
         """Population-level crossover with injection_mode support.
 
         When ``injection_mode=True``, consumes single key and splits internally
@@ -164,4 +165,4 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig])
             offspring_vals = offspring_vals.reshape(-1, offspring_vals.shape[-1])
 
         new_genes = RealGenome(values=offspring_vals)
-        return cast(RealPopulation, p1_pop.spawn_offspring(new_genes))
+        return p1_pop.spawn_offspring(new_genes)

@@ -1,3 +1,4 @@
+import dataclasses
 import warnings
 from abc import abstractmethod
 from typing import Any, Generic, Optional, Tuple, TypeVar, cast
@@ -7,10 +8,10 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.base import BasePopulation
+from malthusjax.core.base import BaseGenome, BasePopulation
 from malthusjax.core.random import is_new_style_key
 
-G = TypeVar("G")  # Genome Data
+G = TypeVar("G", bound=BaseGenome)  # Genome Data
 C = TypeVar("C")  # Config Data
 
 # Backward compatibility: P is kept as a module-level name so that existing
@@ -88,7 +89,7 @@ class BaseMutation(Generic[G, C]):
 
     def set_input_length(self, length: int) -> "BaseMutation[G, C]":
         """Lock population size for static key budgeting."""
-        return cast("BaseMutation[G, C]", cast(Any, self).replace(input_length=length))
+        return dataclasses.replace(self, input_length=length)
 
     def set_typed_keys(self, typed: bool) -> "BaseMutation[G, C]":
         """
@@ -96,11 +97,11 @@ class BaseMutation(Generic[G, C]):
         True = new-style typed keys,
         False = legacy uint32[2].
         """
-        return cast("BaseMutation[G, C]", cast(Any, self).replace(typed_keys=typed))
+        return dataclasses.replace(self, typed_keys=typed)
 
     def set_max_generations(self, n: int) -> "BaseMutation[G, C]":
         """Set total generation count for operator-level scheduling."""
-        return cast("BaseMutation[G, C]", cast(Any, self).replace(max_generations=n))
+        return dataclasses.replace(self, max_generations=n)
 
     @abstractmethod
     def _mutate_one(self, genome: G, noise_data: Any, config: C, **kwargs: Any) -> G:
@@ -167,7 +168,7 @@ class BaseMutation(Generic[G, C]):
             return self._mutate_fused(keys_block, genome, config, generation)
 
         def _process_population(k_block: chex.Array, g: G) -> G:
-            return jax.vmap(_mutate_single, in_axes=(0, None))(k_block, g)
+            return jax.vmap(_mutate_single, in_axes=(0, None))(k_block, g)  # type: ignore[no-any-return]
 
         vmap_process = jax.vmap(_process_population, in_axes=(0, 0))
         nested_offspring = vmap_process(keys_reshaped, population.genes)
@@ -248,7 +249,7 @@ class BaseCrossover(Generic[G, C]):
 
     def set_input_length(self, length: int) -> "BaseCrossover[G, C]":
         """Lock pair count for static key budgeting."""
-        return cast("BaseCrossover[G, C]", cast(Any, self).replace(input_length=length))
+        return dataclasses.replace(self, input_length=length)
 
     def set_typed_keys(self, typed: bool) -> "BaseCrossover[G, C]":
         """
@@ -256,11 +257,11 @@ class BaseCrossover(Generic[G, C]):
         True = new-style typed keys,
         False = legacy uint32[2].
         """
-        return cast("BaseCrossover[G, C]", cast(Any, self).replace(typed_keys=typed))
+        return dataclasses.replace(self, typed_keys=typed)
 
     def set_max_generations(self, n: int) -> "BaseCrossover[G, C]":
         """Set total generation count for operator-level scheduling."""
-        return cast("BaseCrossover[G, C]", cast(Any, self).replace(max_generations=n))
+        return dataclasses.replace(self, max_generations=n)
 
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
@@ -387,7 +388,7 @@ class BaseSelection(Generic[P, C]):
 
     def set_input_length(self, length: int) -> "BaseSelection[P, C]":
         """Lock population size for static budgeting."""
-        return cast("BaseSelection[P, C]", cast(Any, self).replace(input_length=length))
+        return dataclasses.replace(self, input_length=length)
 
     def set_typed_keys(self, typed: bool) -> "BaseSelection[P, C]":
         """
@@ -395,11 +396,11 @@ class BaseSelection(Generic[P, C]):
         True = new-style typed keys,
         False = legacy uint32[2].
         """
-        return cast("BaseSelection[P, C]", cast(Any, self).replace(typed_keys=typed))
+        return dataclasses.replace(self, typed_keys=typed)
 
     def set_n_elites(self, n: int) -> "BaseSelection[P, C]":
         """Set elite count for preservation (called once at engine init)."""
-        return cast("BaseSelection[P, C]", cast(Any, self).replace(n_elites=n))
+        return dataclasses.replace(self, n_elites=n)
 
     @property
     @abstractmethod

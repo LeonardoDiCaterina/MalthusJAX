@@ -135,12 +135,9 @@ class AnalysisPlan:
             X_dict = {feat: np.asarray(df_reg[feat]) for feat in valid_features}
             y_arr = np.asarray(df_reg[target])
 
-            dataset = RegressionDataset(
-                X=X_dict, y=y_arr, target_name=target, dataset_name=reg_name
-            )
+            dataset = RegressionDataset(X=X_dict, y=y_arr, label=reg_name)
 
-            robust = reg_cfg.get("robust", ["HC3"])
-            result = fit_ols(dataset, robust=robust)
+            result = fit_ols(dataset)
 
             # Save Output
             out_file = self.output_dir / f"{reg_name}_regression.md"

@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any
 
 import chex
 import jax
@@ -6,7 +6,8 @@ import jax.numpy as jnp
 from evosax.algorithms.population_based.simple_ga import mutation as evosax_mutation
 from flax import struct
 
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.base import BasePopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.operators.base import BaseMutation, _field
 from malthusjax.operators.mutation.real import (
     GaussianMutation_injection as InjectionGaussianMutation,
@@ -89,10 +90,10 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
     def __call__(
         self,
         all_keys: chex.Array,
-        population: RealPopulation,
+        population: BasePopulation[RealGenome],
         config: RealGenomeConfig,
         generation: int = 0,
-    ) -> RealPopulation:
+    ) -> BasePopulation[RealGenome]:
         """Population-level mutation with injection_mode support.
 
         When ``injection_mode=True``, consumes a single pre-allocated key
@@ -139,4 +140,4 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
             mutated_vals = jax.vmap(_call_evosax)(subkeys, repeated_vals)
 
         new_genes = RealGenome(values=mutated_vals)
-        return cast(RealPopulation, population.spawn_offspring(new_genes))
+        return population.spawn_offspring(new_genes)

@@ -31,7 +31,7 @@ seeds = [
 fitness = "bbob:fn_name=sphere,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -45,7 +45,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=ellipsoidal,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -59,7 +59,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=linear_slope,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -73,7 +73,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -87,7 +87,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=discus,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -101,7 +101,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=different_powers,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -115,7 +115,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=rastrigin_rotated,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -129,7 +129,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=griewank_rosenbrock,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -143,7 +143,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=weierstrass,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 
@@ -157,7 +157,7 @@ strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std
 fitness = "bbob:fn_name=lunacek,num_dims=3,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=15,elite_k=7"
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 

@@ -187,7 +187,7 @@ class BaseGenome:
         population size.
         """
         keys = jax.random.split(key, pop_size)
-        return jax.vmap(cls.random_init, in_axes=(0, None))(keys, config)
+        return jax.vmap(cls.random_init, in_axes=(0, None))(keys, config)  # type: ignore[no-any-return]
 
 
 @struct.dataclass
