@@ -17,7 +17,7 @@ from malthusjax.operators.base_injection import BaseCrossover_injection as BaseC
 
 
 @struct.dataclass
-class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """
     Uniform Crossover (Fused 3-Tier Paradigm).
     Per-gene independent selection from parents via Bernoulli mask. XLA fuses mask generation
@@ -69,7 +69,7 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulatio
 
 @struct.dataclass
 class UniformCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig, RealPopulation]
+    BaseCrossover_injection[RealGenome, RealGenomeConfig]
 ):
     """
     Injection-mode Uniform Crossover.
@@ -119,7 +119,7 @@ class UniformCrossover_injection(
 
 
 @struct.dataclass
-class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """Blend Crossover (BLX-α) — Adaptive Parent-Centered Exploration.
 
     Blend crossover expands the interval [min(p1,p2), max(p1,p2)] by a factor proportional
@@ -247,7 +247,7 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]
 
 @struct.dataclass
 class BlendCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig, RealPopulation]
+    BaseCrossover_injection[RealGenome, RealGenomeConfig]
 ):
     """
     Injection-mode Blend Crossover.
@@ -317,7 +317,7 @@ class BlendCrossover_injection(
 
 
 @struct.dataclass
-class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """Simulated Binary Crossover (SBX) — Distribution-Aware Recombination.
 
     SBX simulates the behavior of single-point binary crossover on real-valued genomes.
@@ -459,7 +459,7 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealP
 
 @struct.dataclass
 class SimulatedBinaryCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig, RealPopulation]
+    BaseCrossover_injection[RealGenome, RealGenomeConfig]
 ):
     """
     Injection-mode Simulated Binary Crossover (SBX).
@@ -532,7 +532,7 @@ class SimulatedBinaryCrossover_injection(
 
 
 @struct.dataclass
-class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """
     DE Binomial Crossover — Fused 3-Tier Paradigm.
     Per-gene selection between mutant (p1) and target (p2) via Bernoulli mask, followed by
@@ -580,7 +580,7 @@ class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulati
 
 @struct.dataclass
 class BinomialCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig, RealPopulation]
+    BaseCrossover_injection[RealGenome, RealGenomeConfig]
 ):
     """
     Injection-mode Binomial Crossover.

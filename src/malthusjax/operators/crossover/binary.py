@@ -15,7 +15,7 @@ from malthusjax.operators.base import BaseCrossover
 
 
 @struct.dataclass
-class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig]):
     """
     Uniform Crossover (Fused 3-Tier Paradigm).
     Per-bit independent selection from parents via Bernoulli mask. XLA fuses mask generation
@@ -58,7 +58,7 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPop
 
 
 @struct.dataclass
-class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig]):
     """
     Single-Point Crossover (Fused 3-Tier Paradigm).
     Selects a random crossover point [1, N-1); swaps segments. Avoids boundary points (0, N)

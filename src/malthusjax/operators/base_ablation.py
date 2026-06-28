@@ -13,8 +13,8 @@ import jax.numpy as jnp
 
 from malthusjax.operators.base import BaseCrossover, BaseMutation
 
-TMutation = TypeVar("TMutation", bound=BaseMutation[Any, Any, Any])
-TCrossover = TypeVar("TCrossover", bound=BaseCrossover[Any, Any, Any])
+TMutation = TypeVar("TMutation", bound=BaseMutation[Any, Any])
+TCrossover = TypeVar("TCrossover", bound=BaseCrossover[Any, Any])
 
 
 def ablation_single_key_mutation(cls: TMutation) -> TMutation:

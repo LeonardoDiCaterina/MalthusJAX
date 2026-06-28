@@ -16,7 +16,7 @@ __all__ = ["EvosaxGaussianWrapper", "InjectionGaussianMutation"]
 
 
 @struct.dataclass
-class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
+class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
     """
     Evosax Gaussian Mutation Wrapper (Integration Adapter).
     Single-key injection-mode integration of evosax.mutation Gaussian operator.
@@ -115,13 +115,13 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
         # per-individual/per-offspring subkeys provided by the caller.
         if all_keys.shape[0] == 1:
             key = all_keys[0]  # (1,2)→(2,) for legacy; (1,)→scalar for typed
-            n = population.values.shape[0]
+            n = population.genes.values.shape[0]
             total_offspring = n * self.num_offspring
             subkeys = jax.random.split(key, total_offspring)
         else:
             # Caller provided subkeys directly. Flatten to a list of length
             # `n * num_offspring`. Preserve typed/untyped formats.
-            n = population.values.shape[0]
+            n = population.genes.values.shape[0]
             if self.typed_keys:
                 subkeys = all_keys.reshape(-1)
             else:
@@ -132,10 +132,10 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig, RealPopul
             return evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
 
         if self.num_offspring == 1:
-            mutated_vals = jax.vmap(_call_evosax)(subkeys, population.values)
+            mutated_vals = jax.vmap(_call_evosax)(subkeys, population.genes.values)
         else:
             # Tile each genome num_offspring times so vmap covers all (individual, offspring)
-            repeated_vals = jnp.repeat(population.values, self.num_offspring, axis=0)
+            repeated_vals = jnp.repeat(population.genes.values, self.num_offspring, axis=0)
             mutated_vals = jax.vmap(_call_evosax)(subkeys, repeated_vals)
 
         new_genes = RealGenome(values=mutated_vals)

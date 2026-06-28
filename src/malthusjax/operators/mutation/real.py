@@ -21,7 +21,7 @@ from malthusjax.operators.base_injection import BaseMutation_injection
 
 
 @struct.dataclass
-class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
+class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """Gaussian (Normal) Mutation — Independent Per-Gene Perturbation.
 
     Gaussian mutation applies independent additive Gaussian noise to each gene,
@@ -170,7 +170,7 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
 
 @struct.dataclass
 class GaussianMutation_injection(
-    BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]
+    BaseMutation_injection[RealGenome, RealGenomeConfig]
 ):
     """
     Injection-mode Gaussian Mutation (single-key variant).
@@ -243,7 +243,7 @@ class GaussianMutation_injection(
 
 
 @struct.dataclass
-class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
+class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
     Ball Mutation (3-Tier Paradigm).
     Tier 2: Muller's Method—Gaussian direction normalized, scaled by u^(1/d).
@@ -311,7 +311,7 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
 
 
 @struct.dataclass
-class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]):
+class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Ball Mutation (single-key variant).
     Splits single key to (n*3) subkeys, reshaped (n, 3, -1) for vmap.
@@ -382,7 +382,7 @@ class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig
 
 
 @struct.dataclass
-class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
+class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
     Polynomial Mutation (3-Tier Paradigm).
     Tier 2: Masks delta via jnp.where(u≤0.5, (2u)^(1/(η+1))-1, 1-(2(1-u))^(1/(η+1))).
@@ -446,7 +446,7 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
 
 @struct.dataclass
 class PolynomialMutation_injection(
-    BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]
+    BaseMutation_injection[RealGenome, RealGenomeConfig]
 ):
     """
     Injection-mode Polynomial Mutation (single-key variant).

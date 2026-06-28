@@ -18,7 +18,7 @@ from malthusjax.operators.base import BaseMutation
 
 
 @struct.dataclass
-class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
     """
     Bit Flip Mutation (3-Tier Paradigm).
     Tier 2: Bernoulli flip mask (N,) where N is bit-string length.
@@ -57,7 +57,7 @@ class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopul
 
 
 @struct.dataclass
-class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
     """
     Scramble Mutation (3-Tier Paradigm).
     Tier 2: Bernoulli decision + permutation indices (N,) reordering.
@@ -98,7 +98,7 @@ class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopu
 
 
 @struct.dataclass
-class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
     """
     Swap Mutation (3-Tier Paradigm).
     Tier 2: Bernoulli decision + two random bit positions (idx1, idx2).
