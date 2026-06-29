@@ -40,6 +40,7 @@ class UniversalAdapterEngine:
         evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
         history_metrics: Optional[Sequence[str]] = None,
         state_has_randkey: bool = False,
+        use_python_loop: bool = False,
     ) -> None:
         self.framework_obj = framework_obj
         self.framework_params = framework_params
@@ -55,6 +56,7 @@ class UniversalAdapterEngine:
         self.evaluator = evaluator
         self.history_metrics = history_metrics
         self.state_has_randkey = state_has_randkey
+        self.use_python_loop = use_python_loop
         
         self._jit_run_loop = None
 
@@ -90,6 +92,43 @@ class UniversalAdapterEngine:
 
         self._jit_run_loop = jax.jit(run_loop)
         return self._jit_run_loop
+        
+    def _build_python_loop(self):
+        """Build a python loop for non-jittable frameworks."""
+        def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
+            rng, state = carry
+            rng, key_step = jax.random.split(rng)
+            
+            # Step the framework
+            state, metrics = self.step_fn(self.framework_obj, state, key_step, self.framework_params, self.evaluator, self.eval_translator)
+                
+            # Process metrics
+            normalized_metrics = {}
+            for k, v in self.metrics_mapping.items():
+                if callable(v):
+                    normalized_metrics[k] = v(metrics)
+                else:
+                    normalized_metrics[k] = metrics.get(v, jnp.nan)
+                    
+            return (rng, state), normalized_metrics
+
+        def run_loop(rng: Any, state_init: Any) -> Tuple[Any, Any]:
+            carry = (rng, state_init)
+            metrics_history = []
+            
+            for _ in range(self.num_generations):
+                carry, metrics = scan_step(carry, None)
+                metrics_history.append(metrics)
+                
+            # Stack metrics to match lax.scan output format
+            stacked_metrics = {}
+            if len(metrics_history) > 0:
+                for k in metrics_history[0].keys():
+                    stacked_metrics[k] = jnp.stack([m[k] for m in metrics_history])
+                    
+            return carry[1], stacked_metrics
+
+        return run_loop
 
     def run_once(self, key: chex.Array, unroll_factor: int = 1, compile: bool = True) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results."""
@@ -100,16 +139,19 @@ class UniversalAdapterEngine:
         # Initialize framework state
         state_init = self.init_fn(self.framework_obj, key_init, self.framework_params, self.initial_population)
 
-        # Build JIT loop and warm up compilation
-        run_loop_jitted = self._build_jit_loop()
-        if compile:
-            _ = run_loop_jitted.lower(key, state_init).compile()
+        # Build JIT loop or Python loop
+        if self.use_python_loop:
+            run_loop = self._build_python_loop()
+        else:
+            run_loop = self._build_jit_loop()
+            if compile:
+                _ = run_loop.lower(key, state_init).compile()
             
         t_warmup_end = time.perf_counter()
 
         # Execute
         t_exec_start = time.perf_counter()
-        final_state, scan_history = run_loop_jitted(key, state_init)
+        final_state, scan_history = run_loop(key, state_init)
         t_exec_end = time.perf_counter()
 
         # Format history output

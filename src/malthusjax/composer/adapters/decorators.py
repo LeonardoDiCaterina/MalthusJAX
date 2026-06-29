@@ -37,6 +37,7 @@ def adapter(
                 eval_mode: str = "native",
                 evaluator: Optional[Any] = None,
                 history_metrics: Optional[Sequence[str]] = None,
+                use_python_loop: bool = False,
                 **kwargs
             ):
                 super().__init__()
@@ -53,6 +54,7 @@ def adapter(
                 self.eval_mode = eval_mode
                 self.evaluator = evaluator
                 self.history_metrics = history_metrics
+                self.use_python_loop = use_python_loop
                 for k, v in kwargs.items():
                     setattr(self, k, v)
                 
@@ -93,6 +95,7 @@ def adapter(
                     evaluator=framework_evaluator,
                     history_metrics=history_metrics,
                     state_has_randkey=False,
+                    use_python_loop=use_python_loop,
                 )
             
             def run_once(self, key, unroll_factor=1, compile=True):
