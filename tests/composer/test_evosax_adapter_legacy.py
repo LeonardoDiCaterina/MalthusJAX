@@ -11,13 +11,12 @@ import jax.numpy as jnp
 import jax.random as jr
 import pytest
 
-from malthusjax.composer.evosax_adapter import (
+from malthusjax.composer.evosax_adapter_legacy import (
     EVOSAX_STRATEGIES,
     EvosaxEngineAdapter,
     build_evosax_engine,
     list_strategies,
 )
-from .base_adapter_suite import BaseAdapterTestSuite
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 
@@ -212,38 +211,26 @@ class TestBuildEvosaxEngine:
         )
         assert adapter.maximize is True
 
-    def test_generic_evaluator_is_supported(self):
-        """Passing a generic evaluator should configure MALTHUSJAX eval_mode."""
+    def test_generic_evaluator_not_supported(self):
+        """Passing a non-BBOB evaluator should raise a clear error."""
 
         class DummyEval(BaseEvaluator):
-            def evaluate_population(self, population):
-                # trivial implementation
-                return population
-                
             def evaluate(self, genome):
+                # trivial implementation, never used by the factory
                 return jnp.zeros((), dtype=jnp.float32)
 
-        from malthusjax.core.genome.real_genome import RealGenomeConfig
-        from flax import struct
-        
-        @struct.dataclass
-        class MockConfig:
-            genome_config: RealGenomeConfig = struct.field(pytree_node=False)
-            maximize: bool = struct.field(pytree_node=False, default=False)
-            
-        dummy = DummyEval(config=MockConfig(genome_config=RealGenomeConfig(shape=(4,))), data=None)
-        
-        adapter = build_evosax_engine(
-            strategy_name="SimpleGA",
-            evaluator=dummy,
-            pop_size=4,
-            generations=1,
-        )
-        assert adapter.engine.eval_mode == "malthusjax"
+        dummy = DummyEval(config=BaseEvaluatorConfig(maximize=False), data=None)
+        with pytest.raises(NotImplementedError, match="Only BBOBEvaluator"):
+            build_evosax_engine(
+                strategy_name="SimpleGA",
+                evaluator=dummy,
+                pop_size=4,
+                generations=1,
+            )
 
 
 # ---------------------------------------------------------------------------
-# General Adapter Harness conformance
+# Adapter: run_once protocol conformance
 # ---------------------------------------------------------------------------
 
 
@@ -251,40 +238,118 @@ class TestBuildEvosaxEngine:
     not HAS_EVOSAX_INIT_TELL,
     reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
 )
-class TestEvosaxAdapter(BaseAdapterTestSuite):
-    """General MalthusJAX test harness conformance for Evosax adapter."""
+class TestEvosaxAdapterRunOnce:
+    """Tests that EvosaxEngineAdapter.run_once satisfies the Engine protocol."""
 
-    def make_adapter(self, maximize: bool = False, eval_mode: str = "native", seed: int = 0):
-        if eval_mode == "native":
-            evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3, maximize=maximize, seed=seed)
-        else:
-            class DummyEval(BaseEvaluator):
-                def evaluate_population(self, population):
-                    return population
-                def evaluate(self, genome):
-                    return jnp.zeros((), dtype=jnp.float32)
-
-            from malthusjax.core.genome.real_genome import RealGenomeConfig
-            from flax import struct
-            
-            _maximize = maximize
-            @struct.dataclass
-            class MockConfig:
-                genome_config: RealGenomeConfig = struct.field(pytree_node=False)
-                maximize: bool = struct.field(pytree_node=False, default=_maximize)
-                
-            evalr = DummyEval(config=MockConfig(genome_config=RealGenomeConfig(shape=(3,))), data=None)
-
+    @pytest.fixture()
+    def small_adapter(self) -> EvosaxEngineAdapter:
+        """A tiny adapter for fast tests."""
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
         return build_evosax_engine(
             strategy_name="SimpleGA",
             evaluator=evalr,
             pop_size=8,
             generations=5,
-            maximize=maximize,
         )
 
+    def test_result_keys(self, small_adapter):
+        result = small_adapter.run_once(jr.PRNGKey(0))
+        assert set(result.keys()) == {"history", "summary", "timings"}
+
+    def test_history_format(self, small_adapter):
+        result = small_adapter.run_once(jr.PRNGKey(0))
+        history = result["history"]
+
+        assert isinstance(history, list)
+        assert len(history) == 5  # generations
+
+        required_keys = {"generation", "best_fitness"}
+        for entry in history:
+            # evosax 0.2+ no longer provides mean/std; those are computed by adapter
+            assert required_keys.issubset(entry.keys())
+
+    def test_history_generations_sequential(self, small_adapter):
+        result = small_adapter.run_once(jr.PRNGKey(0))
+        gens = [h["generation"] for h in result["history"]]
+        assert gens == list(range(1, 6))
+
+    def test_summary_format(self, small_adapter):
+        result = small_adapter.run_once(jr.PRNGKey(0))
+        summary = result["summary"]
+
+        assert "best_fitness" in summary
+        assert "final_generation" in summary
+        assert "total_evaluations" in summary
+        assert summary["final_generation"] == 5
+        assert summary["total_evaluations"] == 5 * 8  # generations * pop_size
+
+    def test_timings_format(self, small_adapter):
+        result = small_adapter.run_once(jr.PRNGKey(0))
+        timings = result["timings"]
+
+        assert "warmup" in timings
+        assert "execution" in timings
+        assert "total" in timings
+        assert timings["warmup"] > 0
+        assert timings["execution"] > 0
+        assert timings["total"] > 0
+
+    def test_fitness_values_are_finite(self, small_adapter):
+        result = small_adapter.run_once(jr.PRNGKey(42))
+
+        for entry in result["history"]:
+            assert jnp.isfinite(entry["best_fitness"]), f"gen {entry['generation']}"
+        assert jnp.isfinite(result["summary"]["best_fitness"])
+
+
 # ---------------------------------------------------------------------------
-# Maximisation sign-flip (Evosax Specifics)
+# Determinism
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skipif(
+    not HAS_EVOSAX_INIT_TELL,
+    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
+)
+class TestEvosaxDeterminism:
+    """Verify reproducibility given the same PRNG key."""
+
+    def test_same_key_same_result(self):
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
+        adapter = build_evosax_engine(
+            strategy_name="SimpleGA",
+            evaluator=evalr,
+            pop_size=8,
+            generations=5,
+        )
+
+        key = jr.PRNGKey(999)
+        r1 = adapter.run_once(key)
+        r2 = adapter.run_once(key)
+
+        assert r1["summary"]["best_fitness"] == r2["summary"]["best_fitness"]
+        assert len(r1["history"]) == len(r2["history"])
+        for h1, h2 in zip(r1["history"], r2["history"]):
+            assert h1["best_fitness"] == h2["best_fitness"]
+
+    def test_different_keys_different_results(self):
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
+        adapter = build_evosax_engine(
+            strategy_name="SimpleGA",
+            evaluator=evalr,
+            pop_size=8,
+            generations=5,
+        )
+
+        r1 = adapter.run_once(jr.PRNGKey(0))
+        r2 = adapter.run_once(jr.PRNGKey(12345))
+
+        # Overwhelmingly unlikely to match on different keys
+        assert r1["summary"]["best_fitness"] != r2["summary"]["best_fitness"]
+
+
+# ---------------------------------------------------------------------------
+# Maximisation sign-flip
 # ---------------------------------------------------------------------------
 
 
@@ -293,7 +358,13 @@ class TestEvosaxAdapter(BaseAdapterTestSuite):
     reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
 )
 class TestMaximisationConvention:
-    """Verify the sign-flip logic when maximize=True for evosax."""
+    """Verify the sign-flip logic when maximize=True.
+
+    Note: evosax BBOBProblem.eval() already returns *negated* fitness
+    (lower = better for the strategy).  state.best_fitness is therefore
+    negative.  The adapter's maximize flag flips the sign so that users
+    see positive-is-better (maximisation) or raw negative (minimisation).
+    """
 
     def test_minimize_reports_raw_evosax_values(self):
         """With maximize=False, best_fitness should match the raw evosax metric.
@@ -310,9 +381,61 @@ class TestMaximisationConvention:
         result = adapter.run_once(jr.PRNGKey(42))
         assert result["summary"]["best_fitness"] >= 0.0
 
+    def test_maximize_flag_changes_outcome(self):
+        """Toggling ``maximize`` should alter the reported fitness values.
+
+        Due to the stochastic nature of the algorithm the actual numerical
+        results are not simply negated; we just check that the two runs differ.
+        """
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
+        min_adapter = build_evosax_engine(
+            strategy_name="SimpleGA",
+            evaluator=evalr,
+            pop_size=10,
+            generations=5,
+            maximize=False,
+        )
+        max_adapter = build_evosax_engine(
+            strategy_name="SimpleGA",
+            evaluator=evalr,
+            pop_size=10,
+            generations=5,
+            maximize=True,
+        )
+        key = jr.PRNGKey(42)
+        min_bf = min_adapter.run_once(key)["summary"]["best_fitness"]
+        max_bf = max_adapter.run_once(key)["summary"]["best_fitness"]
+        assert min_bf != max_bf
+
+    def test_maximize_history_changes(self):
+        """History sequence should differ when maximisation is toggled."""
+        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
+        min_adapter = build_evosax_engine(
+            strategy_name="SimpleGA",
+            evaluator=evalr,
+            pop_size=10,
+            generations=5,
+            maximize=False,
+        )
+        max_adapter = build_evosax_engine(
+            strategy_name="SimpleGA",
+            evaluator=evalr,
+            pop_size=10,
+            generations=5,
+            maximize=True,
+        )
+        key = jr.PRNGKey(42)
+        min_hist = min_adapter.run_once(key)["history"]
+        max_hist = max_adapter.run_once(key)["history"]
+        # just assert that at least one generation differs
+        assert any(
+            hmin["best_fitness"] != hmax["best_fitness"] for hmin, hmax in zip(min_hist, max_hist)
+        )
+
     def test_sign_flip_applied(self):
         """When maximize=True the adapter should still apply a sign flip on the
-        *reported* metric compared to its own raw output.
+        *reported* metric compared to its own raw output.  This is a sanity
+        check of the adapter logic rather than a comparison between two runs.
         """
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
         adapter = build_evosax_engine(
@@ -322,6 +445,8 @@ class TestMaximisationConvention:
             generations=5,
             maximize=True,
         )
+        # run once, then manually reverse the sign of the returned fitness and
+        # ensure it is non-negative, implying a flip occurred in the adapter.
         key = jr.PRNGKey(42)
         result = adapter.run_once(key)
         bf = result["summary"]["best_fitness"]

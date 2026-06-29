@@ -31,13 +31,33 @@ def _evosax_native_eval(evaluator, pop, state, key):
 
 
 def _evosax_mjx_eval(evaluator, pop, state, key):
-    """Executes MalthusJAX evaluation on raw Evosax populations.
+    """Executes MalthusJAX evaluation on raw Evosax populations."""
     
-    WARNING: In future updates, this will construct the specific MalthusJAX 
-    Genome PyTree before calling evaluate. For now, it assumes the evaluator 
-    can handle raw (pop_size, dim) arrays.
-    """
-    return evaluator.evaluate_batch(pop)
+    # 1. Inspect the evaluator's genome configuration to determine the genome type
+    # For now, Evosax integration strictly assumes RealGenome continuous optimization
+    from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
+    
+    # Access the config from the evaluator. Depending on the evaluator type,
+    # the config attribute structure might vary, but standard evaluators have config.genome_config
+    if hasattr(evaluator.config, "genome_config"):
+        config = evaluator.config.genome_config
+    else:
+        # Fallback if the evaluator uses a different config pattern
+        from malthusjax.core.genome.real_genome import RealGenomeConfig
+        config = RealGenomeConfig(shape=pop.shape[1:], dtype=pop.dtype)
+        
+    # 2. Reconstruct the MalthusJAX population structure from the raw `pop` tensor
+    genomes = RealGenome.from_tensor(pop, config)
+    population = RealPopulation(
+        genes=genomes, 
+        fitness=jnp.full(pop.shape[0], -jnp.inf), 
+        config=config
+    )
+    
+    # 3. Evaluate using the standard MalthusJAX batched evaluator
+    population = evaluator.evaluate_population(population)
+    
+    return population.fitness
 
 
 @adapter(
@@ -67,16 +87,30 @@ class EvosaxEngineAdapter:
         # We need to construct pop_init and fit_init properly if not provided.
         # But for brevity, we assume the user provides them or the strategy handles it.
         # If we need the problem to sample the init population:
-        problem, p_state = getattr(self, "_framework_evaluator", (None, None))
-        
-        if pop_init is None and problem is not None:
-            keys = jax.random.split(key, getattr(self, "pop_size", 100))
-            pop_init = jax.vmap(problem.sample)(keys)
+        eval_mode = getattr(self, "eval_mode", "native")
+        if eval_mode == "native":
+            problem, p_state = getattr(self, "_framework_evaluator", (None, None))
+            if pop_init is None and problem is not None:
+                keys = jax.random.split(key, getattr(self, "pop_size", 100))
+                pop_init = jax.vmap(problem.sample)(keys)
             
-        fit_init = jnp.zeros(getattr(self, "pop_size", 100))
-        if problem is not None:
-            fit_init, p_state, _ = problem.eval(key, pop_init, p_state)
-            self._framework_evaluator = (problem, p_state) # Update state
+            fit_init = jnp.zeros(getattr(self, "pop_size", 100))
+            if problem is not None:
+                fit_init, p_state, _ = problem.eval(key, pop_init, p_state)
+                self._framework_evaluator = (problem, p_state) # Update state
+        else:
+            # For MalthusJAX mode, evaluator is stored directly
+            evaluator = getattr(self, "_framework_evaluator", None)
+            
+            if pop_init is None:
+                # If no pop_init, evosax typically uses the init_solution provided to the strategy
+                pop_size = getattr(self, "pop_size", 100)
+                num_dims = getattr(self, "num_dims", 1)
+                bounds = getattr(self, "bounds", (-5.0, 5.0))
+                keys = jax.random.split(key, pop_size)
+                pop_init = jax.random.uniform(key, (pop_size, num_dims), minval=bounds[0], maxval=bounds[1])
+            
+            fit_init = _evosax_mjx_eval(evaluator, pop_init, None, key)
             
         state = strategy.init(key, pop_init, fit_init, params)
         return state
@@ -110,6 +144,7 @@ class EvosaxEngineAdapter:
         return state, metrics
 
 from malthusjax.core.fitness.base import BaseEvaluator
+from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 import jax.random as jr
 
@@ -162,11 +197,23 @@ def build_evosax_engine(
         problem = evaluator.evosax_problem
         problem_state = evaluator.problem_state
         num_dims = evaluator.config.num_dims
+        eval_mode = EvalMode.NATIVE
     else:
-        raise NotImplementedError(
-            "Only BBOBEvaluator instances are currently supported by the "
-            "evosax adapter. Generic BaseEvaluator support is not implemented yet."
-        )
+        problem = None
+        problem_state = None
+        # Infer dimensions from the MalthusJAX evaluator's genome config
+        if hasattr(evaluator, "config"):
+            if hasattr(evaluator.config, "dim"):
+                num_dims = getattr(evaluator.config, "dim")
+                genome_config = RealGenomeConfig(shape=(num_dims,))
+            elif hasattr(evaluator.config, "num_dims"):
+                num_dims = getattr(evaluator.config, "num_dims")
+                genome_config = RealGenomeConfig(shape=(num_dims,))
+            else:
+                raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
+        else:
+            raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
+        eval_mode = EvalMode.MALTHUSJAX
 
     init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])
 
@@ -208,6 +255,7 @@ def build_evosax_engine(
         bounds=bounds,
         maximize=maximize,
         initial_population=initial_population,
+        eval_mode=eval_mode,
         prng_impl=prng_impl,
         evaluator=evaluator,
         history_metrics=history_metrics,
