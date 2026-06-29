@@ -16,11 +16,40 @@ from malthusjax.composer.adapters import EvalMode, adapter
 
 def _qdax_native_eval(evaluator, pop, state, key):
     """Executes the QDAX native scoring function."""
-    # QDAX scoring functions typically return (fitnesses, descriptors, extra_info, next_key)
-    # The universal adapter handles fitness returning, but QDAX's update loop expects the raw evaluator
-    # to be inside MAPElites. This function is mostly a placeholder if we need external evaluation, 
-    # but for QDAX, evaluation is monolithic inside MAPElites.update.
+    # QDAX scoring functions are passed at MAPElites instantiation.
+    # The universal adapter framework provides this translator mostly for standard GAs.
+    # For QDax, we provide a helper to build the scoring_function.
     pass
+
+def _qdax_malthusjax_eval(evaluator: Any, genome_config: Any, maximize: bool = True) -> Callable:
+    """Creates a QDax-compatible scoring function from a MalthusJAX evaluator.
+    
+    QDAX MAPElites expects a scoring_function with signature:
+    (genotypes, random_key) -> (fitnesses, descriptors, extra_scores, random_key)
+    """
+    def scoring_fn(genotypes: chex.Array, random_key: chex.PRNGKey) -> Tuple[chex.Array, chex.Array, Dict]:
+        # QDax passes genotypes as a batch array. We wrap it in a MalthusJAX Population.
+        # We need the genome_config to know how to instantiate the genome (e.g. RealGenome).
+        from malthusjax.core.base import BasePopulation
+        # Import the correct Genome type based on the config. For now we assume RealGenome since QDax mostly uses continuous spaces.
+        from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
+        
+        # Instantiate a population PyTree
+        genes = RealGenome(values=genotypes)
+        pop = RealPopulation(genes=genes, fitness=jnp.zeros(genotypes.shape[0]), config=genome_config)
+        
+        # Evaluate QD
+        updated_pop, descriptors = evaluator.evaluate_population_qd(pop)
+        
+        # extra_scores can be empty dict
+        extra_scores = {}
+        
+        # Flip fitness if we are minimizing, since QDAX always maximizes
+        fit = updated_pop.fitness if maximize else -updated_pop.fitness
+        
+        return fit, descriptors, extra_scores
+    
+    return scoring_fn
 
 
 @adapter(
@@ -31,12 +60,14 @@ def _qdax_native_eval(evaluator, pop, state, key):
     },
     eval_translators={
         EvalMode.NATIVE: _qdax_native_eval,
-        # Will be implemented when we bridge MalthusJAX evaluate_qd
-        EvalMode.MALTHUSJAX: None 
+        # We map MALTHUSJAX to the helper that returns the scoring function closure.
+        EvalMode.MALTHUSJAX: _qdax_malthusjax_eval  
     },
     metrics_mapping={
         # QDAX metrics typically includes max_fitness
-        "best_fitness": "max_fitness"
+        "best_fitness": "max_fitness",
+        "qd_score": "qd_score",
+        "coverage": "coverage"
     }
 )
 class QDaxEngineAdapter:
@@ -48,17 +79,91 @@ class QDaxEngineAdapter:
         init_variables = params.get("init_variables")
         centroids = params.get("centroids")
         
-        repertoire, emitter_state, randkey = strategy.init(init_variables, centroids, key)
-        return (repertoire, emitter_state, randkey)
+        # In MalthusJAX EvalMode, we can lazily inject the scoring function if the strategy is actually a class
+        # But generally, build_qdax_engine handles that.
+        
+        repertoire, emitter_state, metrics = strategy.init(init_variables, centroids, key)
+        # QDAX MAPElites.init returns (repertoire, emitter_state, metrics). 
+        # But MAPElites.update requires (repertoire, emitter_state, key)
+        return (repertoire, emitter_state, key)
 
     def _adapter_step(self, strategy: Any, state: Any, key: chex.Array, params: Any, evaluator: Any, eval_translator: Callable) -> Tuple[Any, Dict]:
         repertoire, emitter_state, randkey = state
         
-        repertoire, emitter_state, metrics, randkey = strategy.update(
-            repertoire, emitter_state, randkey
+        randkey, subkey = jax.random.split(randkey)
+        
+        repertoire, emitter_state, metrics = strategy.update(
+            repertoire, emitter_state, subkey
         )
+        
+        # Reverse the fitness sign in metrics so UniversalAdapterEngine logs the correct value
+        # UniversalAdapterEngine multiplies by -1.0 if maximize=True, and 1.0 if maximize=False
+        # QDAX maximizes, so `max_fitness` is `true_fitness` if maximize=True, and `-true_fitness` if maximize=False
+        if "max_fitness" in metrics:
+            metrics["max_fitness"] = -metrics["max_fitness"]
         
         # We also manually pack the metrics required
         # Note: the decorator will extract `max_fitness` as `best_fitness`
         
         return (repertoire, emitter_state, randkey), metrics
+
+from malthusjax.core.fitness.base import BaseEvaluator
+import jax.random as jr
+
+def build_qdax_engine(
+    strategy_cls: Any,
+    emitter: Any,
+    metrics_function: Callable,
+    evaluator: BaseEvaluator,
+    init_variables: chex.Array,
+    centroids: chex.Array,
+    pop_size: int = 100,
+    generations: int = 50,
+    maximize: bool = True,
+    eval_mode: str = EvalMode.MALTHUSJAX,
+    seed: int = 42,
+    history_metrics: Optional[Sequence[str]] = None,
+    **kwargs: Any,
+):
+    """Builds a QDaxEngineAdapter from QDAX components and a MalthusJAX evaluator."""
+    
+    if eval_mode == EvalMode.MALTHUSJAX:
+        # We need the genome config to know how to build Populations.
+        # In QDax continuous domains, we infer from init_variables shape.
+        from malthusjax.core.genome.real_genome import RealGenomeConfig
+        genome_config = getattr(evaluator.config, "genome_config", None)
+        if genome_config is None:
+            genome_config = RealGenomeConfig(shape=init_variables.shape[1:])
+        
+        # Build the scoring function wrapper
+        scoring_fn = _qdax_malthusjax_eval(evaluator, genome_config, maximize)
+        problem_eval = evaluator
+    else:
+        # Native QDAX tasks like Brax/Jumanji come with their own scoring_function natively
+        # we expect it passed in kwargs or we assume it's attached to the evaluator somehow.
+        scoring_fn = getattr(evaluator, "scoring_function", None)
+        if scoring_fn is None:
+            raise ValueError("Native QDAX tasks require a scoring_function on the evaluator")
+        problem_eval = None
+        
+    strategy = strategy_cls(
+        scoring_function=scoring_fn,
+        emitter=emitter,
+        metrics_function=metrics_function
+    )
+    
+    params = {
+        "init_variables": init_variables,
+        "centroids": centroids
+    }
+    
+    return QDaxEngineAdapter(
+        strategy=strategy,
+        params=params,
+        pop_size=pop_size,
+        num_generations=generations,
+        maximize=maximize,
+        eval_mode=eval_mode,
+        evaluator=problem_eval,
+        history_metrics=history_metrics,
+    )
