@@ -65,6 +65,14 @@ class BaseEvaluator(Generic[G, C, D]):
         """
         raise NotImplementedError
 
+    def evaluate_qd(self, genome: G) -> Tuple[chex.Numeric, chex.Array]:
+        """Compute fitness and behavioral descriptor for a single genome.
+
+        This method is required for Quality-Diversity (QD) algorithms.
+        By default, it raises NotImplementedError.
+        """
+        raise NotImplementedError("This evaluator does not support Quality-Diversity descriptors.")
+
     def evaluate_population(self, population: BasePopulation[G]) -> BasePopulation[G]:
         """Vectorized population evaluation via :func:`jax.vmap`.
 
@@ -74,6 +82,15 @@ class BaseEvaluator(Generic[G, C, D]):
         """
         fitness_scores = jax.vmap(self.evaluate)(population.genes)
         return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
+
+    def evaluate_population_qd(self, population: BasePopulation[G]) -> Tuple[BasePopulation[G], chex.Array]:
+        """Vectorized population QD evaluation via :func:`jax.vmap`.
+
+        Returns a tuple of (population_with_updated_fitness, descriptors).
+        """
+        fitness_scores, descriptors = jax.vmap(self.evaluate_qd)(population.genes)
+        updated_pop = cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
+        return updated_pop, descriptors
 
     @property
     def f_opt(self) -> chex.Numeric | None:
