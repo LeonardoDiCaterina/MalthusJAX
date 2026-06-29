@@ -123,6 +123,7 @@ def build_qdax_engine(
     eval_mode: str = EvalMode.MALTHUSJAX,
     seed: int = 42,
     history_metrics: Optional[Sequence[str]] = None,
+    use_python_loop: bool = False,
     **kwargs: Any,
 ):
     """Builds a QDaxEngineAdapter from QDAX components and a MalthusJAX evaluator."""
@@ -166,4 +167,5 @@ def build_qdax_engine(
         eval_mode=eval_mode,
         evaluator=problem_eval,
         history_metrics=history_metrics,
+        use_python_loop=use_python_loop,
     )

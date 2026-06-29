@@ -162,6 +162,7 @@ def build_evosax_engine(
     initial_population: Any = None,
     prng_impl: Optional[str] = None,
     history_metrics: Optional[Sequence[str]] = None,
+    use_python_loop: bool = False,
     **kwargs: Any,
 ) -> EvosaxEngineAdapter:
     """Build an :class:`EvosaxEngineAdapter` from high-level specs."""
@@ -259,4 +260,5 @@ def build_evosax_engine(
         prng_impl=prng_impl,
         evaluator=evaluator,
         history_metrics=history_metrics,
+        use_python_loop=use_python_loop,
     )
