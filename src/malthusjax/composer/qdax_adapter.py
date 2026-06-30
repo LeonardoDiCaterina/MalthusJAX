@@ -39,7 +39,8 @@ def _qdax_malthusjax_eval(evaluator: Any, genome_config: Any, maximize: bool = T
         pop = RealPopulation(genes=genes, fitness=jnp.zeros(genotypes.shape[0]), config=genome_config)
         
         # Evaluate QD
-        updated_pop, descriptors = evaluator.evaluate_population_qd(pop)
+        updated_pop = evaluator.evaluate_population(pop)
+        descriptors = updated_pop.descriptors
         
         # extra_scores can be empty dict
         extra_scores = {}
@@ -107,14 +108,14 @@ class QDaxEngineAdapter:
         
         return (repertoire, emitter_state, randkey), metrics
 
-from malthusjax.core.fitness.base import BaseEvaluator
+from malthusjax.core.fitness.base import BaseQDEvaluator
 import jax.random as jr
 
 def build_qdax_engine(
     strategy_cls: Any,
     emitter: Any,
     metrics_function: Callable,
-    evaluator: BaseEvaluator,
+    evaluator: BaseQDEvaluator,
     init_variables: chex.Array,
     centroids: chex.Array,
     pop_size: int = 100,

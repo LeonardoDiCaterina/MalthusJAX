@@ -5,17 +5,17 @@ Wraps any evosax population-based strategy using the universal @adapter decorato
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Tuple
-
 import chex
 import evosax
 import jax
 import jax.numpy as jnp
-from evosax.algorithms import population_based_algorithms
-
+from evosax.algorithms import population_based_algorithms, distribution_based_algorithms
 from malthusjax.composer.adapters import EvalMode, adapter
 
-EVOSAX_STRATEGIES: Dict[str, type] = population_based_algorithms
+EVOSAX_STRATEGIES: Dict[str, type] = {
+    **population_based_algorithms,
+    **distribution_based_algorithms
+}
 
 
 def list_strategies() -> list[str]:
@@ -112,7 +112,12 @@ class EvosaxEngineAdapter:
             
             fit_init = _evosax_mjx_eval(evaluator, pop_init, None, key)
             
-        state = strategy.init(key, pop_init, fit_init, params)
+        if type(strategy).__name__ in distribution_based_algorithms:
+            # Distribution-based algorithms expect a mean instead of a population
+            mean_init = jnp.mean(pop_init, axis=0)
+            state = strategy.init(key, mean_init, params)
+        else:
+            state = strategy.init(key, pop_init, fit_init, params)
         return state
 
     def _adapter_step(self, strategy: Any, state: Any, key: chex.Array, params: Any, evaluator: Any, eval_translator: Callable) -> Tuple[Any, Dict]:

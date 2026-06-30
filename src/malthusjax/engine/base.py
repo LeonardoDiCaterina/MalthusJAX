@@ -314,7 +314,6 @@ class AbstractEngine(Generic[G, P], ABC):
         return hlo_text
 
 
-@functools.lru_cache(maxsize=4)
 def _get_evolution_kernel(
     params: AbstractEngineParams, compile_jit: bool = True, unroll_num: int = 1
 ) -> Any:

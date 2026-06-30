@@ -13,7 +13,7 @@ import chex
 import jax
 from flax import struct
 
-from malthusjax.core.base import BaseGenome, BasePopulation
+from malthusjax.core.base import BaseGenome, BasePopulation, QDPopulation
 
 G = TypeVar("G", bound="BaseGenome")
 C = TypeVar("C", bound="BaseEvaluatorConfig")  # Config type
@@ -65,14 +65,6 @@ class BaseEvaluator(Generic[G, C, D]):
         """
         raise NotImplementedError
 
-    def evaluate_qd(self, genome: G) -> Tuple[chex.Numeric, chex.Array]:
-        """Compute fitness and behavioral descriptor for a single genome.
-
-        This method is required for Quality-Diversity (QD) algorithms.
-        By default, it raises NotImplementedError.
-        """
-        raise NotImplementedError("This evaluator does not support Quality-Diversity descriptors.")
-
     def evaluate_population(self, population: BasePopulation[G]) -> BasePopulation[G]:
         """Vectorized population evaluation via :func:`jax.vmap`.
 
@@ -82,15 +74,6 @@ class BaseEvaluator(Generic[G, C, D]):
         """
         fitness_scores = jax.vmap(self.evaluate)(population.genes)
         return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
-
-    def evaluate_population_qd(self, population: BasePopulation[G]) -> Tuple[BasePopulation[G], chex.Array]:
-        """Vectorized population QD evaluation via :func:`jax.vmap`.
-
-        Returns a tuple of (population_with_updated_fitness, descriptors).
-        """
-        fitness_scores, descriptors = jax.vmap(self.evaluate_qd)(population.genes)
-        updated_pop = cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
-        return updated_pop, descriptors
 
     @property
     def f_opt(self) -> chex.Numeric | None:
@@ -126,3 +109,47 @@ class BaseEvaluator(Generic[G, C, D]):
 
 
 RegressionData = Tuple[chex.Array, chex.Array]
+
+@struct.dataclass
+class BaseQDEvaluator(BaseEvaluator[G, C, D]):
+    """JAX-native Quality-Diversity fitness evaluation interface.
+
+    Extends the standard evaluator to compute behavioral descriptors alongside
+    fitness. Returns a specialized `QDPopulation` which safely stores the
+    descriptors in its `.info` dictionary, making it a drop-in replacement
+    for standard scalar evaluators.
+    """
+
+    def evaluate(self, genome: G) -> chex.Numeric:
+        """Fallback standard evaluation that simply discards descriptors.
+        
+        This satisfies the Liskov Substitution Principle if this evaluator
+        is used in a standard GeneticEngine.
+        """
+        fitness, _ = self.evaluate_qd(genome)
+        return fitness
+
+    def evaluate_qd(self, genome: G) -> Tuple[chex.Numeric, chex.Array]:
+        """Compute fitness and behavioral descriptor for a single genome.
+        
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError
+
+    def evaluate_population(self, population: BasePopulation[G]) -> QDPopulation[G]:
+        """Vectorized population evaluation via :func:`jax.vmap`.
+        
+        Evaluates both fitness and descriptors, returning a QDPopulation.
+        """
+        fitness_scores, descriptors = jax.vmap(self.evaluate_qd)(population.genes)
+        
+        # Merge info safely, inserting descriptors
+        new_info = dict(population.info) if population.info else {}
+        new_info["descriptors"] = descriptors
+        
+        return QDPopulation(
+            genes=population.genes,
+            fitness=fitness_scores,
+            config=population.config,
+            info=new_info
+        )

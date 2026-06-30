@@ -226,6 +226,7 @@ class BasePopulation(Generic[G]):
     genes: G
     fitness: chex.Array
     config: Any = _field(pytree_node=False)
+    info: dict[str, Any] = _field(default_factory=dict)
 
     @classmethod
     def from_array(
@@ -241,10 +242,10 @@ class BasePopulation(Generic[G]):
         pop_size = arr_batched.shape[0]
         genes = genome_cls.from_tensor(arr_batched, config)
         fitness = jnp.full((pop_size,), -jnp.inf)
-        return cls(genes=genes, fitness=fitness, config=config)
+        return cls(genes=genes, fitness=fitness, config=config, info={})
 
     def spawn_offspring(
-        self, new_genes: G, fitness: Optional[chex.Array] = None
+        self, new_genes: G, fitness: Optional[chex.Array] = None, info: Optional[dict[str, Any]] = None
     ) -> BasePopulation[G]:
         """Create offspring population, optionally with pre-set fitness.
 
@@ -258,8 +259,11 @@ class BasePopulation(Generic[G]):
                 raise ValueError("Gene structure contains no arrays.")
             n_offspring = leaves[0].shape[0]
             fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
+            
+        if info is None:
+            info = {}
 
-        return replace(self, genes=new_genes, fitness=fitness)
+        return replace(self, genes=new_genes, fitness=fitness, info=info)
 
     def __len__(self) -> int:
         """Returns the number of individuals currently in the population."""
@@ -277,10 +281,15 @@ class BasePopulation(Generic[G]):
 
         if isinstance(key, int):
             return cast(G, sliced_genes)
+            
+        # Safely slice info dict arrays while ignoring non-arrays (like strings/metadata)
+        sliced_info = jax.tree_util.tree_map(
+            lambda x: x[key] if hasattr(x, 'shape') else x, self.info
+        )
 
         return cast(
             BasePopulation[G],
-            replace(self, genes=sliced_genes, fitness=self.fitness[key]),
+            replace(self, genes=sliced_genes, fitness=self.fitness[key], info=sliced_info),
         )
 
     def __iter__(self) -> Iterator[G]:
@@ -326,3 +335,28 @@ class BasePopulation(Generic[G]):
         # Outer vmap iterates over the first individual, inner vmap over the
         # second individual, producing an (N, N) distance matrix.
         return jax.vmap(_vmap_second)(self.genes)
+
+@struct.dataclass
+class QDPopulation(BasePopulation[G]):
+    """A specialized population class for Quality-Diversity algorithms.
+    
+    Provides strongly-typed access to Quality-Diversity metrics (like behavioral
+    descriptors) that are stored in the underlying `info` dictionary.
+    """
+    
+    @property
+    def descriptors(self) -> chex.Array:
+        """Access the behavioral descriptors for the population."""
+        if "descriptors" not in self.info:
+            raise KeyError(
+                "Descriptors not found in population info. Ensure a BaseQDEvaluator "
+                "was used to evaluate this population."
+            )
+        return self.info["descriptors"]
+        
+    def get_qd_score(self, f_opt: chex.Numeric = 0.0) -> chex.Numeric:
+        """Compute the sum of fitnesses of all valid solutions (example metric)."""
+        # A simple QD score formulation: sum of fitnesses for valid individuals.
+        valid_mask = jnp.isfinite(self.fitness)
+        return jnp.sum(jnp.where(valid_mask, self.fitness, 0.0))
+
