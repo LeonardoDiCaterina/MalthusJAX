@@ -12,7 +12,7 @@ from malthusjax.engine.base import (
     AbstractEvolutionState,
     AbstractGenerationOutput,
 )
-from malthusjax.engine.emitters.base import BaseEmitter, EmitterState
+from malthusjax.operators.emitters.base import BaseEmitter, EmitterState
 
 # Import QDAX repertoire for internal Map representation
 try:
@@ -31,7 +31,7 @@ class MapElitesEngineParams(AbstractEngineParams):
     Configuration for the Native MAP-Elites engine.
     Inherits pop_size (batch_size) and num_generations.
     """
-    pass
+    key_derivation: str = "fold_in"  # "fold_in" or "split"
 
 @struct.dataclass
 class MapElitesState(AbstractEvolutionState[G, P]):
@@ -79,7 +79,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
         repertoire = MapElitesRepertoire.init(
             genotypes=eval_pop.genes.values,
             fitnesses=eval_pop.fitness,
-            descriptors=eval_pop.descriptors,
+            descriptors=eval_pop.info["descriptors"],
             centroids=centroids
         )
         
@@ -108,11 +108,29 @@ class MapElitesEngine(AbstractEngine[G, P]):
         """
         Performs a single generation of MAP-Elites.
         """
-        k_ask, k_eval, k_tell, k_next = jax.random.split(state.rng_key, 4)
+        # --- Centralized RNG Management ---
+        emitter_keys = self.emitter.num_keys()
+        total_rng_budget = emitter_keys + 3  # ask(emitter_keys), eval(1), tell(1), next(1)
+        
+        if self.engine_params.key_derivation == "fold_in":
+            indices = jnp.arange(total_rng_budget)
+            all_keys = jax.vmap(jax.random.fold_in, in_axes=(None, 0))(state.rng_key, indices)
+        else:
+            all_keys = jax.random.split(state.rng_key, total_rng_budget)
+            
+        k_ask = all_keys[:emitter_keys]
+        k_eval = all_keys[emitter_keys]
+        k_tell = all_keys[emitter_keys + 1]
+        k_next = all_keys[emitter_keys + 2]
+        # ----------------------------------
         
         # 1. Ask the emitter for a new batch of offspring
         offspring_pop, new_emitter_state = self.emitter.ask(
-            state.emitter_state, state.repertoire, k_ask
+            state.emitter_state, 
+            state.repertoire, 
+            k_ask,
+            generation=state.generation,
+            params=self.engine_params
         )
         
         # 2. Evaluate the offspring
@@ -121,7 +139,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
         # 3. Add to the repertoire (returns a new updated repertoire)
         new_repertoire = state.repertoire.add(
             eval_pop.genes.values,
-            eval_pop.descriptors,
+            eval_pop.info["descriptors"],
             eval_pop.fitness
         )
         
@@ -131,7 +149,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
             new_repertoire,
             eval_pop,
             eval_pop.fitness,
-            eval_pop.descriptors,
+            eval_pop.info["descriptors"],
             k_tell
         )
         

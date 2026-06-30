@@ -5,14 +5,13 @@ from flax import struct
 import chex
 
 from malthusjax.core.base import BasePopulation
-from malthusjax.engine.emitters.base import BaseEmitter, EmitterState
+from malthusjax.operators.emitters.base import AtomicEmitter, EmitterState
 from malthusjax.core.genome.tensorneat_genome import TensorNeatPopulation, TensorNeatGenome
 
 try:
     from tensorneat.common import State
-    from tensorneat.genome import BaseGenome as TNBaseGenome
 except ImportError:
-    State, TNBaseGenome = Any, Any
+    State = Any
 
 @struct.dataclass
 class TensorNeatEmitterState(EmitterState):
@@ -21,9 +20,10 @@ class TensorNeatEmitterState(EmitterState):
     max_conn_marker: chex.Array
 
 @struct.dataclass
-class TensorNeatEmitter(BaseEmitter):
+class TensorNeatEmitter(AtomicEmitter):
     """
     Native MalthusJAX Quality-Diversity Emitter for TensorNEAT graphs.
+    Uses 3-Tier Atomic Architecture.
     """
     _batch_size: int = struct.field(pytree_node=False)
     genome: Any = struct.field(pytree_node=False)  # The TensorNEAT genome class (e.g. DefaultGenome)
@@ -33,14 +33,19 @@ class TensorNeatEmitter(BaseEmitter):
     @property
     def batch_size(self) -> int:
         return self._batch_size
+        
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        # We need 2 keys internally per graph generated (1 for crossover, 1 for mutation)
+        # Parent selection keys are handled in Tier 2 (ask), not Tier 1.
+        return 2
+
+    def set_input_length(self, length: int) -> 'TensorNeatEmitter':
+        return self.replace(_batch_size=length)
 
     def init(self, key: chex.Array, initial_population: BasePopulation, params: Any = None) -> TensorNeatEmitterState:
-        # Initialize a basic TensorNEAT state
         tn_state = State(randkey=key, generation=jnp.float32(0))
-        
-        # Determine the starting max keys from the initial population
         nodes, conns = initial_population.genes.values
-        
         all_nodes_keys = nodes[:, :, 0]
         max_node_key = jnp.max(all_nodes_keys, where=~jnp.isnan(all_nodes_keys), initial=0)
         
@@ -56,27 +61,29 @@ class TensorNeatEmitter(BaseEmitter):
             max_conn_marker=max_conn_marker
         )
 
-    def ask(self, state: Optional[TensorNeatEmitterState], repertoire: Any, key: chex.Array) -> Tuple[TensorNeatPopulation, TensorNeatEmitterState]:
+    def num_keys_for_sampling(self) -> int:
+        # TensorNEAT needs 2 keys if it's crossover? Wait, if it's mutation it just needs 1.
+        # But this is atomic, so we can just look at how many it splits in _sample_parents.
+        # TensorNeatMutationEmitter needs 1? We didn't split them. It's a single class `TensorNeatEmitter`.
+        # Wait, the crossover needs 2 keys to sample 2 sets of parents.
+        # It was splitting k1, k2 = jax.random.split(keys, 2) in _sample_parents.
+        return 2
+
+    def _sample_parents(self, state: Optional[TensorNeatEmitterState], repertoire: Any, keys: chex.Array) -> Tuple[Any, dict, TensorNeatEmitterState]:
+        """
+        Tier 2 - Sampling & Data Prep.
+        """
+        k1, k2 = keys[0], keys[1]
         
-        k1, k2, k3, k4 = jax.random.split(key, 4)
-        
-        # 1. Sample parents from repertoire
         p1_genotypes = repertoire.select(k1, self.batch_size).genotypes
         p2_genotypes = repertoire.select(k2, self.batch_size).genotypes
         
         p1_nodes, p1_conns = p1_genotypes
         p2_nodes, p2_conns = p2_genotypes
         
-        cx_keys = jax.random.split(k3, self.batch_size)
-        mut_keys = jax.random.split(k4, self.batch_size)
+        parents_tuple = (p1_nodes, p1_conns, p2_nodes, p2_conns)
         
-        # 2. Crossover
-        def _cx(k, n1, c1, n2, c2):
-            return self.genome.execute_crossover(state.tn_state, k, n1, c1, n2, c2)
-            
-        new_nodes, new_conns = jax.vmap(_cx)(cx_keys, p1_nodes, p1_conns, p2_nodes, p2_conns)
-        
-        # 3. Mutation key preparation
+        # Batch-level prep for mutation keys
         next_node_key = state.max_node_key + 1
         new_node_keys = jnp.arange(self.batch_size) + next_node_key
         
@@ -86,27 +93,45 @@ class TensorNeatEmitter(BaseEmitter):
         else:
             new_conn_markers = jnp.full((self.batch_size, 3), 0)
             
-        # 4. Mutation
-        def _mut(k, n, c, nnk, nck):
-            return self.genome.execute_mutation(state.tn_state, k, n, c, nnk, nck)
-            
-        final_nodes, final_conns = jax.vmap(_mut)(mut_keys, new_nodes, new_conns, new_node_keys, new_conn_markers)
-        
-        # Calculate max keys for next state
-        updated_max_node_key = state.max_node_key + self.batch_size
-        updated_max_conn_marker = state.max_conn_marker + (self.batch_size * 3)
+        metadata_dict = {
+            'new_node_key': new_node_keys,
+            'new_conn_markers': new_conn_markers
+        }
         
         updated_state = state.replace(
-            max_node_key=updated_max_node_key,
-            max_conn_marker=updated_max_conn_marker
+            max_node_key=state.max_node_key + self.batch_size,
+            max_conn_marker=state.max_conn_marker + (self.batch_size * 3)
         )
         
-        # 5. Wrap in MalthusJAX Population
-        genes = TensorNeatGenome(values=(final_nodes, final_conns))
-        offspring_pop = TensorNeatPopulation(
+        return parents_tuple, metadata_dict, updated_state
+
+    def _emit_one(
+        self, 
+        state: Optional[TensorNeatEmitterState], 
+        keys: chex.Array, 
+        p1_n: chex.Array, p1_c: chex.Array, 
+        p2_n: chex.Array, p2_c: chex.Array, 
+        new_node_key: chex.Array, 
+        new_conn_markers: chex.Array
+    ) -> Tuple[chex.Array, chex.Array]:
+        """
+        Tier 1 - Pure Atomic Graph Generation.
+        Applies execute_crossover and execute_mutation to a single instance.
+        """
+        k_cx, k_mut = keys[0], keys[1]
+        
+        # 1. Crossover
+        cx_n, cx_c = self.genome.execute_crossover(state.tn_state, k_cx, p1_n, p1_c, p2_n, p2_c)
+        
+        # 2. Mutation
+        mut_n, mut_c = self.genome.execute_mutation(state.tn_state, k_mut, cx_n, cx_c, new_node_key, new_conn_markers)
+        
+        return mut_n, mut_c
+
+    def _wrap_population(self, offspring_genes: Tuple[chex.Array, chex.Array]) -> BasePopulation:
+        genes = TensorNeatGenome(values=offspring_genes)
+        return TensorNeatPopulation(
             genes=genes,
             fitness=jnp.full(self.batch_size, -jnp.inf),
             config=None
         )
-        
-        return offspring_pop, updated_state
