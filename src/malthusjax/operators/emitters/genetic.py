@@ -43,7 +43,14 @@ class GeneticMutationEmitter(BaseEmitter):
         k2 = keys[1:]
         
         # 1. Sample parents from repertoire
-        parent_genotypes = repertoire.select(k1, self.batch_size).genotypes
+        if hasattr(repertoire, "sample") and not hasattr(repertoire, "select"):
+            parent_genotypes, _ = repertoire.sample(k1, self.batch_size)
+            if isinstance(parent_genotypes, tuple):
+                parent_genotypes = parent_genotypes[0]
+        else:
+            selection = repertoire.select(k1, self.batch_size)
+            parent_genotypes = selection.genes.values if hasattr(selection, "genes") else selection.genotypes
+            
         parent_pop = self.genome_config.init_population(k1, self.batch_size)
         parent_pop = parent_pop.replace(genes=parent_pop.genes.replace(values=parent_genotypes))
         
@@ -96,8 +103,16 @@ class GeneticCrossoverEmitter(BaseEmitter):
         k2 = keys[2:]
         
         # 1. Sample two sets of parents from repertoire
-        p1_genotypes = repertoire.select(k1_a, self.batch_size).genotypes
-        p2_genotypes = repertoire.select(k1_b, self.batch_size).genotypes
+        if hasattr(repertoire, "sample") and not hasattr(repertoire, "select"):
+            p1_genotypes, _ = repertoire.sample(k1_a, self.batch_size)
+            p2_genotypes, _ = repertoire.sample(k1_b, self.batch_size)
+            if isinstance(p1_genotypes, tuple): p1_genotypes = p1_genotypes[0]
+            if isinstance(p2_genotypes, tuple): p2_genotypes = p2_genotypes[0]
+        else:
+            p1_selection = repertoire.select(k1_a, self.batch_size)
+            p2_selection = repertoire.select(k1_b, self.batch_size)
+            p1_genotypes = p1_selection.genes.values if hasattr(p1_selection, "genes") else p1_selection.genotypes
+            p2_genotypes = p2_selection.genes.values if hasattr(p2_selection, "genes") else p2_selection.genotypes
         
         p1_pop = self.genome_config.init_population(k1_a, self.batch_size)
         p1_pop = p1_pop.replace(genes=p1_pop.genes.replace(values=p1_genotypes))

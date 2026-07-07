@@ -15,6 +15,7 @@ from .decorators import (
 )
 from .engine_catalog import EngineRegistry
 from .evosax_adapter import EvosaxEngineAdapter, build_evosax_engine, list_strategies
+from .mo_factory import MOEngineAdapter, build_mo_engine
 
 __all__ = [
     "Composer",
@@ -28,4 +29,6 @@ __all__ = [
     "register_fitness",
     "register_engine",
     "register_genome",
+    "MOEngineAdapter",
+    "build_mo_engine",
 ]
