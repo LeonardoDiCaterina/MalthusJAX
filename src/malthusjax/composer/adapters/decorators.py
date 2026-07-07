@@ -93,6 +93,7 @@ def adapter(
                     maximize=maximize,
                     initial_population=initial_population,
                     evaluator=framework_evaluator,
+                    malthusjax_evaluator=evaluator,
                     history_metrics=history_metrics,
                     state_has_randkey=False,
                     use_python_loop=use_python_loop,

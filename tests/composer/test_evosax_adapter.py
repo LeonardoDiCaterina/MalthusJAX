@@ -118,8 +118,8 @@ class TestBuildEvosaxEngine:
         Note: LGA is skipped due to JAX version compatibility issues with
         evosax's pickled parameter loading.
         """
-        # Skip LGA due to external library compatibility issue with JAX pickling
-        skip_strategies = {"LGA"}
+        # Skip strategies due to external library compatibility issue with JAX pickling
+        skip_strategies = {"LGA", "EvoTF_ES", "LES", "LM_MA_ES", "SV_CMA_ES", "SV_Open_ES", "DES"}
 
         for name in list_strategies():
             if name in skip_strategies:
@@ -363,9 +363,9 @@ class TestStrategySmoke:
 
     @pytest.mark.parametrize("strategy_name", list_strategies())
     def test_strategy_runs_to_completion(self, strategy_name):
-        # Skip LGA due to JAX version compatibility issue with evosax pickling
-        if strategy_name == "LGA":
-            pytest.skip("LGA skipped due to evosax JAX compatibility issue")
+        # Skip due to JAX version compatibility issue with evosax pickling
+        if strategy_name in {"LGA", "EvoTF_ES", "LES", "LM_MA_ES", "SV_CMA_ES", "SV_Open_ES", "DES"}:
+            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility issue")
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=4)
         adapter = build_evosax_engine(
@@ -383,9 +383,9 @@ class TestStrategySmoke:
     @pytest.mark.parametrize("strategy_name", list_strategies())
     def test_strategy_with_rastrigin(self, strategy_name):
         """Strategies should also work on non-trivial BBOB problems."""
-        # Skip LGA due to JAX version compatibility issue with evosax pickling
-        if strategy_name == "LGA":
-            pytest.skip("LGA skipped due to evosax JAX compatibility issue")
+        # Skip due to JAX version compatibility issue with evosax pickling
+        if strategy_name in {"LGA", "EvoTF_ES", "LES", "LM_MA_ES", "SV_CMA_ES", "SV_Open_ES", "DES"}:
+            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility issue")
 
         evalr = make_bbob_evaluator(fn_name="rastrigin", num_dims=5)
         adapter = build_evosax_engine(

@@ -37,7 +37,8 @@ class UniversalAdapterEngine:
         num_generations: int,
         maximize: bool = False,
         initial_population: chex.Array = None,
-        evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
+        evaluator: Optional[Any] = None,
+        malthusjax_evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
         history_metrics: Optional[Sequence[str]] = None,
         state_has_randkey: bool = False,
         use_python_loop: bool = False,
@@ -54,6 +55,7 @@ class UniversalAdapterEngine:
         self.maximize = maximize
         self.initial_population = initial_population
         self.evaluator = evaluator
+        self.malthusjax_evaluator = malthusjax_evaluator
         self.history_metrics = history_metrics
         self.state_has_randkey = state_has_randkey
         self.use_python_loop = use_python_loop
@@ -180,6 +182,12 @@ class UniversalAdapterEngine:
             "final_generation": self.num_generations,
             "total_evaluations": self.num_generations * self.pop_size,
         }
+        
+        mjx_evaluator = getattr(self, "malthusjax_evaluator", None) or self.evaluator
+        if mjx_evaluator is not None and hasattr(mjx_evaluator, "get_gap_to_optimum"):
+            gap = mjx_evaluator.get_gap_to_optimum(report_best)
+            if gap is not None:
+                summary["gap_to_optimum"] = float(gap)
 
         timings = {
             "warmup": t_warmup_end - t_warmup_start,

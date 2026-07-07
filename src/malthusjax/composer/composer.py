@@ -453,11 +453,10 @@ class Composer:
                     **kwargs,
                 )
             elif isinstance(strategy, QDAXStrategy):
-                from malthusjax.composer.adapters.qdax_adapter import build_qdax_engine
-                from malthusjax.core.fitness import get_evaluator
+                from malthusjax.composer.qdax_adapter import build_qdax_engine
                 
                 # Resolving evaluator if fitness string was passed
-                evaluator = get_evaluator(fitness) if isinstance(fitness, str) else fitness
+                evaluator = OperatorCatalog().get(fitness) if isinstance(fitness, str) else fitness
                 
                 # Very basic auto-resolution of components if they are not provided
                 strategy_cls = strategy.strategy_cls

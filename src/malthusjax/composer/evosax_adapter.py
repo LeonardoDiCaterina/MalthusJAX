@@ -25,7 +25,11 @@ def list_strategies() -> list[str]:
 
 def _evosax_native_eval(evaluator, pop, state, key):
     """Executes the evosax native problem evaluation."""
-    problem, p_state = evaluator
+    if hasattr(evaluator, "evosax_problem"):
+        problem = evaluator.evosax_problem
+        p_state = evaluator.problem_state
+    else:
+        problem, p_state = evaluator
     fitness, p_state, _ = problem.eval(key, pop, p_state)
     return fitness
 
@@ -71,7 +75,7 @@ def _evosax_mjx_eval(evaluator, pop, state, key):
         EvalMode.MALTHUSJAX: _evosax_mjx_eval
     },
     metrics_mapping={
-        "best_fitness": "best_fitness_in_generation",
+        "best_fitness": "best_fitness",
         "mean_fitness": "mean_fitness",
         "std_fitness": "std_fitness"
     }
@@ -97,6 +101,8 @@ class EvosaxEngineAdapter:
             fit_init = jnp.zeros(getattr(self, "pop_size", 100))
             if problem is not None:
                 fit_init, p_state, _ = problem.eval(key, pop_init, p_state)
+                if getattr(self, "maximize", False):
+                    fit_init = -fit_init
                 self._framework_evaluator = (problem, p_state) # Update state
         else:
             # For MalthusJAX mode, evaluator is stored directly
@@ -209,7 +215,10 @@ def build_evosax_engine(
         problem_state = None
         # Infer dimensions from the MalthusJAX evaluator's genome config
         if hasattr(evaluator, "config"):
-            if hasattr(evaluator.config, "dim"):
+            if hasattr(evaluator.config, "genome_config") and hasattr(evaluator.config.genome_config, "shape"):
+                num_dims = evaluator.config.genome_config.shape[0]
+                genome_config = evaluator.config.genome_config
+            elif hasattr(evaluator.config, "dim"):
                 num_dims = getattr(evaluator.config, "dim")
                 genome_config = RealGenomeConfig(shape=(num_dims,))
             elif hasattr(evaluator.config, "num_dims"):
@@ -224,7 +233,11 @@ def build_evosax_engine(
     init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])
 
     strategy_cls = EVOSAX_STRATEGIES[strategy_name]
-    strategy = strategy_cls(population_size=pop_size, solution=init_solution)
+    if strategy_name == "RandomSearch":
+        sampling_fn = lambda k: jr.uniform(k, (num_dims,), minval=bounds[0], maxval=bounds[1])
+        strategy = strategy_cls(population_size=pop_size, solution=init_solution, sampling_fn=sampling_fn)
+    else:
+        strategy = strategy_cls(population_size=pop_size, solution=init_solution)
 
     params = strategy.default_params
     if strategy_params:

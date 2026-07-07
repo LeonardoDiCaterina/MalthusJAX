@@ -3,13 +3,16 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 import functools
+import pytest
+
+pytest.importorskip("qdax")
 
 from qdax.core.map_elites import MAPElites
 from qdax.core.emitters.standard_emitters import MixingEmitter
 from qdax.utils.metrics import default_qd_metrics
 from qdax.core.containers.mapelites_repertoire import compute_cvt_centroids
 
-from malthusjax.core.fitness.base import BaseEvaluator
+from malthusjax.core.fitness.base import BaseQDEvaluator
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.composer.adapters import EvalMode
 from malthusjax.composer.qdax_adapter import build_qdax_engine
@@ -19,7 +22,7 @@ from .base_adapter_suite import BaseAdapterTestSuite
 class MockConfig:
     genome_config: RealGenomeConfig = struct.field(pytree_node=False)
 
-class DummyQDEval(BaseEvaluator):
+class DummyQDEval(BaseQDEvaluator):
     def __init__(self, config=None):
         super().__init__(config=config, data=None)
     
