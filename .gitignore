@@ -901,3 +901,9 @@ docs/source/api/ # if you never want the stubs tracked
 
 # Deprecated legacy scripts
 scripts/.deprecated/
+
+# Agent artifacts
+docs/agent_artifacts/
+
+# Scratch and debugging scripts
+scratch/
