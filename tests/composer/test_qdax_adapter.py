@@ -12,7 +12,7 @@ from qdax.core.emitters.standard_emitters import MixingEmitter
 from qdax.utils.metrics import default_qd_metrics
 from qdax.core.containers.mapelites_repertoire import compute_cvt_centroids
 
-from malthusjax.core.fitness.base import BaseQDEvaluator
+from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.composer.adapters import EvalMode
 from malthusjax.composer.qdax_adapter import build_qdax_engine
