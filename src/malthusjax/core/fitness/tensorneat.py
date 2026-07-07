@@ -3,7 +3,7 @@ import jax.numpy as jnp
 from typing import Any, Callable
 from flax import struct
 
-from malthusjax.core.fitness.base import BaseQDEvaluator
+from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 from malthusjax.core.genome.tensorneat_genome import TensorNeatPopulation
 
 @struct.dataclass
