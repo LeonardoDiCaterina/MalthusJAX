@@ -18,6 +18,7 @@
 - **Unified CLI (`mjax`)**: Clean separation of execution (`run`, `parity`), analysis (`analyze`), plotting (`plot`), and reports (`report`).
 - **Decorators for Custom Extensions**: Zero-boilerplate registry decorators (`@register_selection`, `@register_mutation`, etc.) for seamless Jupyter Notebook and script integration.
 - **Multi-Genome Encoding**: Native support for **Real-valued** (continuous), **Binary** (combinatorial), and **Categorical** (permutations) genomes.
+- **Hardware-Accelerated RL**: Deep native integrations with **Gymnax**, **Brax**, and **Jumanji** to evolve neural network policies at millions of frames per second.
 - **Statistical Parity Suite**: Direct seed-aligned comparison with [evosax](https://github.com/RobertTLange/evosax) including automatic hypothesis testing (t-test, Wilcoxon, sign test).
 - **Ask/Tell Interface**: Standard stateful API for custom external evaluation loops (e.g. physics simulations or API-bound calls).
 
@@ -284,6 +285,41 @@ print(f"Best value found: {final_state.best_fitness:.2f}")
 
 ---
 
+## Hardware-Accelerated Reinforcement Learning
+
+MalthusJAX natively bridges to state-of-the-art JAX physics and RL environments, allowing you to unroll entire generations of Neural Network policies directly on accelerators:
+
+- **Gymnax**: Evolve policies for classic control and standard benchmark tasks (e.g., CartPole).
+- **Brax**: Evolve continuous control policies for complex MuJoCo-style robotics and locomotion tasks (e.g., Ant).
+- **Jumanji**: Evolve algorithmic solutions for dynamic grid and combinatorial puzzles (e.g., Snake).
+
+### RL Policy Evaluation Example
+
+```python
+from malthusjax.core.fitness.rl.gymnax_evaluator import GymnaxEvaluator, GymnaxEvaluatorConfig
+from malthusjax.engine.genetic_fastengine import GeneticFastEngine, GeneticEngineConfig
+import jax
+
+# Initialize Gymnax CartPole (evaluating robustly over 10 random environments)
+config = GymnaxEvaluatorConfig(env_name="CartPole-v1", max_steps=500, num_eval_envs=10)
+evaluator = GymnaxEvaluator.create(config)
+
+# MalthusJAX seamlessly maps your 1D Genome arrays into deep Flax PyTrees!
+engine_config = GeneticEngineConfig(
+    pop_size=2000, 
+    num_generations=50, 
+    genome_size=4610,  # Size of the flattened Flax policy network
+    crossover_rate=0.8,
+    mutation_rate=0.1
+)
+engine = GeneticFastEngine.create(engine_config)
+
+# Evolve the RL policy synchronously at GPU speeds
+# Note: Requires writing a minimal standard loop or using the provided run methods.
+```
+
+---
+
 ## Statistical Parity Benchmarking
 
 To ensure implementation validity, MalthusJAX includes a dedicated statistical parity system that runs seed-aligned optimizations alongside `evosax` baseline implementations.
@@ -333,16 +369,34 @@ print(f"Optimal fitness found: {state.best_fitness:.6f}")
 
 ---
 
-## Development
+## Development & Advanced Makefile Usage
 
-Use the provided `Makefile` targets to lint, check types, format, and run tests:
+MalthusJAX uses a comprehensive `Makefile` to manage everything from local development checks to massive GPU cluster benchmarks. 
 
+### Local Checks and Tests
 ```bash
-make check-all    # Format, lint, typecheck, and test (enforces >=80% coverage)
-make test         # Execute test suite
-make lint         # Run Ruff formatting and linting
-make docs         # Generate local Sphinx documentation
+make check-all          # Format, lint, typecheck, and run full test suite (>=80% coverage)
+make test-fast          # Run full suite, skip coverage (faster iteration)
+make test-failing       # Re-run only the tests known to fail on multi-GPU hosts
+make test-bench         # Run functional benchmarks locally
+make docs               # Build Sphinx HTML docs
 ```
+
+### Experiment Execution via TOML
+You can run complex TOML experiments directly through the Makefile, including background execution (`nohup`) for long-running cluster jobs:
+```bash
+make run-toml TOML=configs/examples/experiment.toml
+make run-toml-nohup TOML=configs/examples/experiment.toml  # Runs in background, logs to file
+make suite-parity CONFIG_DIR=configs/thesis/ OUT_DIR=results/my_suite
+```
+
+### Thesis Benchmarking Pipeline
+For research and ablation studies, MalthusJAX provides pre-configured benchmark pipelines (H1 Parity, H2 Ablation, H3 Representation):
+```bash
+make smoke-all          # Runs ultra-fast local smoke tests for all 3 hypothesis suites
+make run-hard-all       # Executes the full hard-benchmark suite (GPU cluster recommended)
+```
+*(Append `-nohup` to any benchmark target to run it headlessly.)*
 
 ---
 
