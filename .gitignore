@@ -907,3 +907,7 @@ docs/agent_artifacts/
 
 # Scratch and debugging scripts
 scratch/
+
+# RL Assimilation
+docs/*_assimilation/
+examples/rl/videos/
