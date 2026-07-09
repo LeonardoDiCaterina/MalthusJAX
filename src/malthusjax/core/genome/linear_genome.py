@@ -37,6 +37,10 @@ class LinearGenomeConfig:
     num_ops: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
     max_arity: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
+    @property
+    def dtype(self) -> jnp.dtype:
+        return jnp.int32
+
 
 @struct.dataclass
 class LinearGenome(BaseGenome):
