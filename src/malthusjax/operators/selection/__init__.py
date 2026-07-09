@@ -2,17 +2,18 @@
 Selection Operators Module.
 """
 
-from .elite_pool import ElitePoolSelection
-from .evosax_mimic import EvoSaxMimicSelection
-from .roulette import RouletteSelection
-from .tournament import TournamentSelection
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+from malthusjax.operators.selection.evosax_mimic import EvoSaxMimicSelection
+from malthusjax.operators.selection.roulette import RouletteSelection
+from malthusjax.operators.selection.simulated_annealing import SimulatedAnnealingSelector
+from malthusjax.operators.selection.tournament import TournamentSelection
 
 __all__ = [
-    "TournamentSelection",
-    "RouletteSelection",
     "ElitePoolSelection",
-    "SimplifiedElitePoolSelection",
     "EvoSaxMimicSelection",
+    "RouletteSelection",
+    "SimulatedAnnealingSelector",
+    "TournamentSelection",
 ]
 
 
