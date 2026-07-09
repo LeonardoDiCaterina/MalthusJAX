@@ -19,13 +19,15 @@ def rastrigin(x: jax.Array) -> jax.Array:
     # x shape: (..., n_dims)
     A = 10.0
     n = x.shape[-1]
-    # Minimize, so return negative for maximization engine
+    # MalthusJAX engine minimizes fitness by default
     val = A * n + jnp.sum(x**2 - A * jnp.cos(2 * jnp.pi * x), axis=-1)
-    return -val
+    return val
 
 @struct.dataclass
 class RastriginEvaluator(BaseEvaluator[RealGenome, BaseEvaluatorConfig, type(None)]):
     def evaluate(self, genes: RealGenome) -> jax.Array:
+        # If any values drift out of bounds, Rastrigin will naturally penalize them (since it grows quadratically).
+        # We also enforce strict clipping during mutation.
         return rastrigin(genes.values)
 
 def run_island_model_demo():
@@ -52,12 +54,12 @@ def run_island_model_demo():
     )
     
     crossover = SimulatedBinaryCrossover(crossover_rate=0.9, eta=15.0)
-    mutation = PolynomialMutation(mutation_rate=1.0/dim, eta=20.0)
+    mutation = PolynomialMutation(mutation_rate=1.0/dim, eta=20.0, clip=True)
     
     selection_island = TournamentSelection(num_selections=pop_size_per_island, tournament_size=3)
     base_engine = GeneticEngine(
         genome_config=config,
-        evaluator=RastriginEvaluator(config=BaseEvaluatorConfig(maximize=True), data=None),
+        evaluator=RastriginEvaluator(config=BaseEvaluatorConfig(maximize=False), data=None),
         selection=selection_island,
         crossover=crossover,
         mutation=mutation,
@@ -84,7 +86,7 @@ def run_island_model_demo():
     baseline_params = GeneticEngineParams(pop_size=total_pop_size, elitism=5*num_islands)
     baseline_engine = GeneticEngine(
         genome_config=config,
-        evaluator=RastriginEvaluator(config=BaseEvaluatorConfig(maximize=True), data=None),
+        evaluator=RastriginEvaluator(config=BaseEvaluatorConfig(maximize=False), data=None),
         selection=selection_baseline,
         crossover=crossover,
         mutation=mutation,
@@ -128,13 +130,13 @@ def run_island_model_demo():
     print(f"\\nRunning Ring Topology Island -> {num_islands} Islands x {pop_size_per_island} Individuals")
     ring_history_raw = run_model(ring_island, ring_island.init_state, ring_island.step, num_generations // migration_interval, key)
     # ring_history_raw.best_fitness shape: (outer_gens, num_islands, migration_interval)
-    # We max over islands, then flatten
-    ring_history = jnp.max(ring_history_raw.best_fitness, axis=1).flatten()
+    # We min over islands, then flatten since lower is better
+    ring_history = jnp.min(ring_history_raw.best_fitness, axis=1).flatten()
     print(f"Final Best Fitness (Ring): {ring_history[-1]:.4f}")
     
     print(f"\\nRunning Fully Connected Island -> {num_islands} Islands x {pop_size_per_island} Individuals")
     fc_history_raw = run_model(fully_connected_island, fully_connected_island.init_state, fully_connected_island.step, num_generations // migration_interval, key)
-    fc_history = jnp.max(fc_history_raw.best_fitness, axis=1).flatten()
+    fc_history = jnp.min(fc_history_raw.best_fitness, axis=1).flatten()
     print(f"Final Best Fitness (Fully Connected): {fc_history[-1]:.4f}")
     
     # Plotting
@@ -144,7 +146,8 @@ def run_island_model_demo():
     plt.plot(fc_history, label="Fully Connected Island (4x250)", alpha=0.8)
     plt.title("Rastrigin Optimization (20D): Island Models vs Monolithic")
     plt.xlabel("Generations")
-    plt.ylabel("Best Fitness (Higher is Better, Max=0)")
+    plt.ylabel("Best Fitness (Lower is Better, Min=0)")
+    plt.yscale("log") # Use log scale to show convergence clearly
     plt.legend()
     plt.grid(True)
     plt.tight_layout()

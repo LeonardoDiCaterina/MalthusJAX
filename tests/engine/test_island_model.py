@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
+import chex
 
 from malthusjax.core.base import BasePopulation
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealGenome
@@ -9,21 +10,27 @@ from malthusjax.engine.island_model.topologies import RingTopologyIsland, FullyC
 from flax import struct
 
 @struct.dataclass
+class DummyState:
+    population: BasePopulation
+    rng_key: chex.Array
+
+@struct.dataclass
 class DummyEngine(AbstractEngine):
-    def init_state(self, key, pop):
-        return None
-
-    def init(self, key, config, pop_size):
+    def init_state(self, key):
+        # We need a fixed pop_size since the DummyEngine doesn't have engine_params configured cleanly in the test.
+        # But wait, we can just hardcode pop_size=10 for the test
+        pop_size = 10
         fitness = jnp.zeros(pop_size)
-        genes = jnp.zeros((pop_size, config.shape[0]))
+        genes = jnp.zeros((pop_size, 3))
+        config = RealGenomeConfig(shape=(3,), bounds=(-1.0, 1.0))
         pop = BasePopulation(config=config, genes=RealGenome(values=genes), fitness=fitness)
-        return pop, None
+        return DummyState(population=pop, rng_key=jax.random.split(key)[0])
 
-    def step(self, key, pop, state, generation):
+    def step(self, state):
         # Dummy step just adds 1 to the genes
-        genes = pop.genes.values + 1.0
-        new_pop = pop.replace(genes=RealGenome(values=genes))
-        return new_pop, state
+        genes = state.population.genes.values + 1.0
+        new_pop = state.population.replace(genes=RealGenome(values=genes))
+        return state.replace(population=new_pop), None
 
 @pytest.fixture
 def base_engine():
@@ -38,9 +45,9 @@ def test_ring_topology_initialization(base_engine):
     )
     
     key = jax.random.PRNGKey(0)
-    config = RealGenomeConfig(shape=(3,), bounds=(-1.0, 1.0))
     
-    multi_pop, multi_state = island_model.init(key, config, island_size=10)
+    multi_state = island_model.init_state(key)
+    multi_pop = multi_state.population
     
     # Check 2D structure
     assert isinstance(multi_pop, BasePopulation)
