@@ -4,6 +4,7 @@ Mutation Operators Module.
 
 from .binary import BitFlipMutation, ScrambleMutation, SwapMutation
 from .evosax_mutation import EvosaxGaussianWrapper
+from .linear import LinearMutation
 from .real import (
     BallMutation,
     BallMutation_injection,
@@ -24,6 +25,7 @@ __all__ = [
     "PolynomialMutation",
     "PolynomialMutation_injection",
     "EvosaxGaussianWrapper",
+    "LinearMutation",
 ]
 
 # ---------------------------------------------------------------------------
@@ -49,6 +51,8 @@ def _register_mutation() -> None:
             ("bitflip", BitFlipMutation, {}),
             ("scramble", ScrambleMutation, {}),
             ("swap", SwapMutation, {}),
+            # Linear mutation
+            ("linear", LinearMutation, {}),
         ],
         override=True,
     )

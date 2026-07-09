@@ -8,6 +8,7 @@ All crossover operators inherit from BaseCrossover and return (num_offspring, ge
 from .binary import SinglePointCrossover
 from .binary import UniformCrossover as BinaryUniformCrossover
 from .evosax_crossover import EvosaxUniformCrossoverWrapper
+from .linear import LinearUniformCrossover
 from .real import (
     BinomialCrossover,
     BinomialCrossover_injection,
@@ -38,6 +39,7 @@ __all__ = [
     "SimulatedBinaryCrossover",
     "SimulatedBinaryCrossover_injection",
     "EvosaxUniformCrossoverWrapper",
+    "LinearUniformCrossover",
 ]
 
 
@@ -58,6 +60,7 @@ def _register_crossover() -> None:
             ("evosax_uniform_crossover", EvosaxUniformCrossoverWrapper, {}),
             ("uniform_binary", BinaryUniformCrossover, {}),
             ("single_point", SinglePointCrossover, {}),
+            ("linear_uniform", LinearUniformCrossover, {}),
         ],
         override=True,
     )
