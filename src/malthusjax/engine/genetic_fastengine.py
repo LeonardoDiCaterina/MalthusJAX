@@ -350,7 +350,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         current population to extract elite genomes for preservation.
         """
         # Default single-call selection
-        parent_idx, elite_idx = operators.selection(key_selection, population.fitness)
+        parent_idx, elite_idx = operators.selection(key_selection, population)
 
         # Extract elites genes for preservation
         if params.elitism > 0:
