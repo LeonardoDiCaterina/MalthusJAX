@@ -30,6 +30,7 @@ def _register_selection() -> None:
                 {"num_selections": 4, "elite_k": 2, "sampling_method": "choice"},
             ),
             ("evosax_mimic_selection", EvoSaxMimicSelection, {"num_selections": 4, "elite_k": 2}),
+            ("prefix_tournament", "malthusjax.operators.selection.prefix.tournament:PrefixTournamentSelection", {"num_selections": 4, "tournament_size": 3}),
         ],
         override=True,
     )
