@@ -31,6 +31,9 @@ def predict_one(
     then executes every instruction via ``jax.lax.scan``, accumulating
     results.
 
+    If the genome is a ConstantAwarePrefixGenome, its constants are automatically
+    appended to the x_input array before filling the memory buffer.
+
     Args:
         genome: An unbatched ``LinearGenome`` instance.
         x_input: A 1-D input vector of shape ``(num_inputs,)``.
@@ -41,8 +44,16 @@ def predict_one(
         A 1-D array of shape ``(L,)`` containing the output of every
         instruction in execution order.
     """
-    total_mem = num_inputs + length
-    memory = jnp.zeros(total_mem).at[:num_inputs].set(x_input)
+    
+    # Check if genome has constants and append them to x_input
+    if hasattr(genome, "constants"):
+        x_input = jnp.concatenate([x_input, genome.constants])
+        actual_inputs = num_inputs + genome.constants.shape[0]
+    else:
+        actual_inputs = num_inputs
+        
+    total_mem = actual_inputs + length
+    memory = jnp.zeros(total_mem).at[:actual_inputs].set(x_input)
 
     def step(current_mem: Any, inputs: Any) -> Any:
         mem, write_idx = current_mem
@@ -57,6 +68,6 @@ def predict_one(
 
         return (new_mem, write_idx + 1), result
 
-    init_state = (memory, num_inputs)
+    init_state = (memory, actual_inputs)
     _, instruction_outputs = jax.lax.scan(step, init_state, (genome.ops, genome.args))
     return instruction_outputs

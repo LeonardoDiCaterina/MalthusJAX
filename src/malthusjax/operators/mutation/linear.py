@@ -73,7 +73,7 @@ class LinearMutation(BaseMutation[LinearGenome, Any]):
         L = genome.ops.shape[0]
         max_arity = genome.args.shape[1]
         
-        N = config.num_inputs
+        N = getattr(config, "num_inputs", 0) + getattr(config, "num_constants", 0)
         num_ops = config.num_ops
         
         k_ops_mask, k_ops_val, k_args_mask, k_source = jax.random.split(k0, 4)
@@ -106,4 +106,4 @@ class LinearMutation(BaseMutation[LinearGenome, Any]):
         new_args = jnp.where(source == 1, new_internal_args, new_input_args)
         mutated_args = jnp.where(args_mutate_mask, new_args, genome.args)
         
-        return type(genome)(ops=mutated_ops, args=mutated_args)
+        return genome.replace(ops=mutated_ops, args=mutated_args)

@@ -221,3 +221,59 @@ class BasePrefixAwareGenome(LinearGenome):
 
     def __repr__(self) -> str:
         return f"<BasePrefixAwareGenome(L={self.size}, max_arity={self.args.shape[-1]})>"
+
+@struct.dataclass
+class ConstantGenomeConfig(PrefixGenomeConfig):
+    """Configuration for genomes that evolve continuous constants."""
+    num_constants: int = struct.field(pytree_node=False, default=0)  # type: ignore[no-untyped-call]
+
+    def init_population(self, key: chex.PRNGKey, size: int) -> Any:
+        from malthusjax.core.genome.prefix.population import PrefixPopulation
+        return PrefixPopulation.init_random(key, self, size)
+
+@struct.dataclass
+class ConstantAwarePrefixGenome(BasePrefixAwareGenome):
+    """A prefix-aware genome that also holds an array of continuous constants.
+    
+    The constants are treated as extra pseudo-inputs during evaluation.
+    If num_inputs = N and num_constants = C, the args array can reference:
+    - [0, N-1]: External inputs
+    - [N, N+C-1]: Constants
+    - [N+C, N+C+i-1]: Previous rows
+    """
+    constants: chex.Array  # Shape (num_constants,)
+
+    @classmethod
+    def random_init(
+        cls, key: chex.PRNGKey, config: ConstantGenomeConfig  # type: ignore[override]
+    ) -> ConstantAwarePrefixGenome:
+        """Initialise an LGP genome with optional constants."""
+        k_base, k_const = jax.random.split(key)
+        
+        # We initialise the base genome using the effective number of inputs (N + C)
+        # so that it legally samples from the constants range as well!
+        base_config = PrefixGenomeConfig(
+            length=config.length,
+            num_inputs=config.num_inputs + config.num_constants,
+            num_ops=config.num_ops,
+            max_arity=config.max_arity,
+            p_input=config.p_input
+        )
+        base = BasePrefixAwareGenome.random_init(k_base, base_config)
+        
+        # Sample initial constants from standard normal
+        constants = jax.random.normal(k_const, (config.num_constants,))
+        
+        return cls(ops=base.ops, args=base.args, constants=constants)
+        
+    def autocorrect(self, config: ConstantGenomeConfig) -> ConstantAwarePrefixGenome:
+        base_config = PrefixGenomeConfig(
+            length=config.length,
+            num_inputs=config.num_inputs + config.num_constants,
+            num_ops=config.num_ops,
+            max_arity=config.max_arity,
+            p_input=config.p_input
+        )
+        base = super().autocorrect(base_config)
+        return cast(ConstantAwarePrefixGenome, base).replace(constants=self.constants)
+
