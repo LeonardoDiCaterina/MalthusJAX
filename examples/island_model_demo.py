@@ -13,22 +13,7 @@ from malthusjax.operators.mutation.real import PolynomialMutation
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 import matplotlib.pyplot as plt
 
-# --- Problem Definition: Rastrigin Function ---
-# Rastrigin is a highly multi-modal function often used to test global optimization algorithms.
-def rastrigin(x: jax.Array) -> jax.Array:
-    # x shape: (..., n_dims)
-    A = 10.0
-    n = x.shape[-1]
-    # MalthusJAX engine minimizes fitness by default
-    val = A * n + jnp.sum(x**2 - A * jnp.cos(2 * jnp.pi * x), axis=-1)
-    return val
-
-@struct.dataclass
-class RastriginEvaluator(BaseEvaluator[RealGenome, BaseEvaluatorConfig, type(None)]):
-    def evaluate(self, genes: RealGenome) -> jax.Array:
-        # If any values drift out of bounds, Rastrigin will naturally penalize them (since it grows quadratically).
-        # We also enforce strict clipping during mutation.
-        return rastrigin(genes.values)
+from malthusjax.core.fitness.bbobax_evaluator import BBOBAXEvaluator, BBOBAXConfig
 
 def run_island_model_demo():
     print("Initializing Asynchronous Island Model Demo...")
@@ -45,7 +30,7 @@ def run_island_model_demo():
     migration_interval = 50
     num_migrants = 10
     
-    config = RealGenomeConfig(shape=(dim,), bounds=(-5.12, 5.12))
+    config = RealGenomeConfig(shape=(dim,), bounds=(-5.0, 5.0))
     
     # 2. Base Engine Configuration
     params = GeneticEngineParams(
@@ -56,10 +41,14 @@ def run_island_model_demo():
     crossover = SimulatedBinaryCrossover(crossover_rate=0.9, eta=15.0)
     mutation = PolynomialMutation(mutation_rate=1.0/dim, eta=20.0, clip=True)
     
+    # BBOB Gallagher's Gaussian 101-me peaks (Highly multimodal and difficult)
+    bbob_config = BBOBAXConfig(fn_name="gallagher_101_me", num_dims=dim, maximize=False)
+    evaluator = BBOBAXEvaluator.create(bbob_config)
+    
     selection_island = TournamentSelection(num_selections=pop_size_per_island, tournament_size=3)
     base_engine = GeneticEngine(
         genome_config=config,
-        evaluator=RastriginEvaluator(config=BaseEvaluatorConfig(maximize=False), data=None),
+        evaluator=evaluator,
         selection=selection_island,
         crossover=crossover,
         mutation=mutation,
@@ -86,7 +75,7 @@ def run_island_model_demo():
     baseline_params = GeneticEngineParams(pop_size=total_pop_size, elitism=5*num_islands)
     baseline_engine = GeneticEngine(
         genome_config=config,
-        evaluator=RastriginEvaluator(config=BaseEvaluatorConfig(maximize=False), data=None),
+        evaluator=evaluator,
         selection=selection_baseline,
         crossover=crossover,
         mutation=mutation,
@@ -144,7 +133,7 @@ def run_island_model_demo():
     plt.plot(baseline_history, label="Baseline (1x1000)", alpha=0.8)
     plt.plot(ring_history, label="Ring Island (4x250)", alpha=0.8)
     plt.plot(fc_history, label="Fully Connected Island (4x250)", alpha=0.8)
-    plt.title("Rastrigin Optimization (20D): Island Models vs Monolithic")
+    plt.title("BBOB Gallagher's Gaussian 101-me peaks (20D): Island Models vs Monolithic")
     plt.xlabel("Generations")
     plt.ylabel("Best Fitness (Lower is Better, Min=0)")
     plt.yscale("log") # Use log scale to show convergence clearly

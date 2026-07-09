@@ -74,9 +74,10 @@ class BBOBAXEvaluator(BaseEvaluator[RealGenome, BBOBAXConfig, Any]):
         rng = jr.PRNGKey(0)
 
         _, eval_result = self.task.evaluate(rng, x, self.problem_state, self.params)
-        # Respect MalthusJAX maximization convention
+        # Respect MalthusJAX minimization convention
         # bbobax returns minimization objective by default.
-        return eval_result.fitness if self.config.maximize else -eval_result.fitness
+        # If config says maximize=True, we negate so that the engine's argmin maximizes it.
+        return -eval_result.fitness if self.config.maximize else eval_result.fitness
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
