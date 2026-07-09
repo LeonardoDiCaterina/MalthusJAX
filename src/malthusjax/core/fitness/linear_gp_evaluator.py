@@ -279,25 +279,14 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
 
     def predict_one(self, genome: LinearGenome, x_input: chex.Array) -> chex.Array:
         """Execute one genome on one input vector to get all intermediate results."""
-        total_mem = self.config.num_inputs + self.config.length
-        memory = jnp.zeros(total_mem).at[: self.config.num_inputs].set(x_input)
+        from malthusjax.core.fitness.linear_gp_interpreter import predict_one as _predict_one
 
-        def step(current_mem: Any, inputs: Any) -> Any:
-            mem, write_idx = current_mem
-            op_code, arg_indices = inputs
-
-            args_val = jnp.take(mem, arg_indices)
-            result = jax.lax.switch(
-                op_code, TENSORGP_FUNCTIONS, args_val[0], args_val[1], args_val[2]
-            )
-            result = jnp.nan_to_num(result, nan=0.0, posinf=1e6, neginf=-1e6)
-            new_mem = mem.at[write_idx].set(result)
-
-            return (new_mem, write_idx + 1), result
-
-        init_state = (memory, self.config.num_inputs)
-        _, instruction_outputs = jax.lax.scan(step, init_state, (genome.ops, genome.args))
-        return instruction_outputs
+        return _predict_one(
+            genome,
+            x_input,
+            num_inputs=self.config.num_inputs,
+            length=self.config.length,
+        )
 
     def evaluate(self, genome: LinearGenome) -> chex.Numeric:
         """Returns the MSE of the best instruction (Symbiotic Selection).
