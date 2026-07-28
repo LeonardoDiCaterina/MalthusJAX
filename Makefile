@@ -103,6 +103,10 @@ install-bench:
 	@echo "--- Installing benchmark dependencies (Detected Backend: $(JAX_EXTRA)) ---"
 	$(PYTHON) -m pip install -e ".[dev,benchmarks,all-integrations,$(JAX_EXTRA)]"
 
+install-stats:
+	@echo "--- Installing statistical dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	$(PYTHON) -m pip install -e ".[stats,$(JAX_EXTRA)]"
+
 install-rl:
 	@echo "--- Installing RL dependencies (Detected Backend: $(JAX_EXTRA)) ---"
 	$(PYTHON) -m pip install -e ".[rl,$(JAX_EXTRA)]"

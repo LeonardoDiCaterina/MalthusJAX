@@ -3,7 +3,7 @@
 ARG BASE_IMAGE=python:3.10-slim
 FROM ${BASE_IMAGE}
 
-# Allow passing the extras (e.g. "[cuda12,qdax,rl]") during build
+# Allow passing the extras (e.g. "[cuda12,qdax,rl,stats]") during build
 # If not specified, installs cpu backend
 ARG EXTRAS="[cpu]"
 

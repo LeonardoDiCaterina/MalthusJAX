@@ -24,7 +24,6 @@ dependencies = [
     "typing-extensions>=4.0.0",
     "flax>=0.7.0",
     "chex>=0.1.7",
-    "scikit-learn>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -41,7 +40,14 @@ tensorneat = ["tensorneat"]
 rl = ["gymnax", "brax", "jumanji"]
 bbobax = ["bbobax"]
 kozax = ["kozax"]
-
+stats = [
+    "scikit-learn>=1.0.0",
+    "statsmodels>=0.14.0",
+    "scipy>=1.9.0",
+    "pandas>=2.0.0",
+    "pingouin>=0.5.0",
+    "seaborn>=0.12.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -67,15 +73,11 @@ examples = [
     "jupyter>=1.0.0",
 ]
 benchmarks = [
-    "pandas>=2.0.0",
-    "scipy>=1.9.0",
+    "malthusjax[stats]",
     "toml",
     "tomli>=2.0.0; python_version < '3.11'",
-    "statsmodels>=0.14.0",
-    "seaborn>=0.12.0",
-    "pingouin>=0.5.0",
 ]
-all-integrations = ["malthusjax[evosax,qdax,tensorneat,rl,bbobax,kozax]"]
+all-integrations = ["malthusjax[evosax,qdax,tensorneat,rl,bbobax,kozax,stats]"]
 all = ["malthusjax[dev,docs,examples,benchmarks,all-integrations]"]
 
 [project.urls]
