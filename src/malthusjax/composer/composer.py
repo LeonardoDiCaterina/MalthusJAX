@@ -17,6 +17,8 @@ import jax.random as jr
 
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 
+from malthusjax.composer.strategies.base import BaseStrategy
+from malthusjax.composer.strategies.core import GeneticStrategy, EvoSAXStrategy, MapElitesStrategy, QDAXStrategy
 from ..benchmarking import BenchmarkRunner, ExperimentResult, StubEngine
 from ..benchmarking.results import ComparisonResult
 from .catalog import OperatorCatalog
@@ -135,7 +137,9 @@ class Composer:
         backend: str = "malthusjax",
         engine_type: str = "ga",
         evosax_strategy: str = "SimpleGA",
+        qdax_strategy: str = "MAPElites",
         # Real operator specifications (malthusjax backend)
+        strategy: Optional[BaseStrategy] = None,
         genome: Optional[str] = None,
         fitness: Optional[str] = None,
         selection: Optional[str] = None,
@@ -415,9 +419,28 @@ class Composer:
             if bounds is None:
                 bounds = (-5.0, 5.0)
 
-            if backend == "evosax":
+            if strategy is None:
+                if backend == "evosax":
+                    strategy = EvoSAXStrategy(algorithm_name=evosax_strategy)
+                elif backend == "qdax":
+                    strategy = QDAXStrategy(
+                        strategy_cls=qdax_strategy,
+                        emitter=None,
+                        metrics_function=None,
+                        centroids=None,
+                        init_variables=None,
+                        algorithm_kwargs=kwargs
+                    )
+                elif self._has_real_operators(genome, fitness, selection, crossover, mutation):
+                    strategy = GeneticStrategy(
+                        selection=selection,
+                        crossover=crossover,
+                        mutation=mutation,
+                    )
+
+            if isinstance(strategy, EvoSAXStrategy):
                 engine = self._build_evosax_engine(
-                    strategy_name=evosax_strategy,
+                    strategy_name=strategy.algorithm_name,
                     fitness_spec=fitness,
                     pop_size=pop_size,
                     generations=generations,
@@ -426,15 +449,41 @@ class Composer:
                     maximize=maximize,
                     prng_impl=prng_impl,
                     history_metrics=history_metrics,
+                    **strategy.algorithm_kwargs,
                     **kwargs,
                 )
-            elif self._has_real_operators(genome, fitness, selection, crossover, mutation):
+            elif isinstance(strategy, QDAXStrategy):
+                from malthusjax.composer.qdax_adapter import build_qdax_engine
+                
+                # Resolving evaluator if fitness string was passed
+                evaluator = OperatorCatalog().get(fitness) if isinstance(fitness, str) else fitness
+                
+                # Very basic auto-resolution of components if they are not provided
+                strategy_cls = strategy.strategy_cls
+                if isinstance(strategy_cls, str):
+                    from qdax.core.map_elites import MAPElites
+                    if strategy_cls == "MAPElites":
+                        strategy_cls = MAPElites
+                    else:
+                        raise ValueError(f"Unknown qdax strategy_cls: {strategy_cls}")
+                
+                engine = build_qdax_engine(
+                    strategy_cls=strategy_cls,
+                    emitter=strategy.emitter,
+                    metrics_function=strategy.metrics_function,
+                    evaluator=evaluator,
+                    init_variables=strategy.init_variables,
+                    centroids=strategy.centroids,
+                    pop_size=pop_size,
+                    generations=generations,
+                    maximize=maximize,
+                    **strategy.algorithm_kwargs
+                )
+            elif isinstance(strategy, (GeneticStrategy, MapElitesStrategy)):
                 engine = self._build_real_engine(
+                    strategy=strategy,
                     genome=genome,
                     fitness=fitness,
-                    selection=selection,
-                    crossover=crossover,
-                    mutation=mutation,
                     engine_type=engine_type,
                     genome_type=genome_type,
                     pop_size=pop_size,
@@ -973,30 +1022,26 @@ class Composer:
 
     def _build_real_engine(
         self,
+        strategy: BaseStrategy,
         fitness: Optional[str],
-        selection: Optional[str],
-        crossover: Optional[str],
-        mutation: Optional[str],
         engine_type: str = "ga",
         data_config: Optional[Dict[str, Any]] = None,
         **config: Any,
     ) -> Any:
         """Build engine from operator specs and config via EngineRegistry."""
         from malthusjax.engine.schedules import TrackBest
+        from malthusjax.composer.strategies.core import GeneticStrategy
 
         catalog = OperatorCatalog()
 
-        data_registry = self._build_data_registry(data_config) if data_config else None
+        data_registry = None
+        if data_config:
+            data_registry = self._build_data_registry(data_config)
 
-        maximize_flag = config.get("maximize", False)
         seed_val = config.get("seed", 42)
-        if fitness and "maximize=" not in fitness:
-            # Append maximize param correctly: if fitness has params (contains :),
-            # use comma; if it's just a name, use colon to start params
-            if ":" in fitness:
-                fitness = f"{fitness},maximize={maximize_flag}"
-            else:
-                fitness = f"{fitness}:maximize={maximize_flag}"
+        maximize_flag = config.get("maximize", False)
+
+        # We append seed to fitness strings if missing so BBOB etc uses the right seed
         if fitness and "seed=" not in fitness:
             if ":" in fitness:
                 fitness = f"{fitness},seed={seed_val}"
@@ -1007,17 +1052,25 @@ class Composer:
             fitness or f"sphere:dim=10,maximize={maximize_flag},seed={seed_val}",
             data_registry=data_registry,
         )
-        resolved_selection = catalog.get(
-            selection
-            or f"tournament:num_selections={config.get('pop_size', 50) // 2},tournament_size=3",
-            data_registry=data_registry,
-        )
-        resolved_crossover = catalog.get(
-            crossover or "blend:alpha=0.5", data_registry=data_registry
-        )
-        resolved_mutation = catalog.get(
-            mutation or "gaussian:mutation_rate=0.1", data_registry=data_registry
-        )
+        
+        if isinstance(strategy, GeneticStrategy):
+            resolved_selection = catalog.get(
+                strategy.selection
+                or f"tournament:num_selections={config.get('pop_size', 50) // 2},tournament_size=3",
+                data_registry=data_registry,
+            ) if isinstance(strategy.selection, str) or strategy.selection is None else strategy.selection
+            
+            resolved_crossover = catalog.get(
+                strategy.crossover or "blend:alpha=0.5", data_registry=data_registry
+            ) if isinstance(strategy.crossover, str) or strategy.crossover is None else strategy.crossover
+            
+            resolved_mutation = catalog.get(
+                strategy.mutation or "gaussian:mutation_rate=0.1", data_registry=data_registry
+            ) if isinstance(strategy.mutation, str) or strategy.mutation is None else strategy.mutation
+        else:
+            resolved_selection = None
+            resolved_crossover = None
+            resolved_mutation = None
 
         # Ensure we use LIGHT tracking for monotonic convergence curves
         if "track_best" not in config:

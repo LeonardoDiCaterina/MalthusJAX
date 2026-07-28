@@ -44,31 +44,30 @@ def _run_evosax_raw(
     strategy = strategy_cls(population_size=pop_size, solution=init_solution)
     params = strategy.default_params
 
-    # --- Mirror the adapter's key splitting ---
-    # adapter performs: key, key_pop, key_eval = split(key, 3)
-    k_main, k_pop, k_eval = jr.split(key, 3)
+    # adapter performs: key, key_init, key_eval = split(key, 3)
+    k_main, k_init, k_eval = jr.split(key, 3)
     # adapter uses a fixed evaluator.problem_state created during evaluator
     # construction using the configured seed; replicate that here.
     p_state = problem.init(jr.PRNGKey(seed))
 
     # adapter chooses initial solution earlier; we already have init_solution
 
-    # initial population via problem.sample with k_pop
-    pop_keys = jr.split(k_pop, pop_size)
+    # initial population via problem.sample with k_init
+    pop_keys = jr.split(k_init, pop_size)
     init_x = jax.vmap(problem.sample)(pop_keys)
-    # compute initial fitness using key_eval (no sign flip here)
-    init_fit_raw, _, _ = problem.eval(k_eval, init_x, p_state)
+    # compute initial fitness using key_init (as implemented in _adapter_init)
+    init_fit_raw, _, _ = problem.eval(k_init, init_x, p_state)
     init_fit = -init_fit_raw if maximize else init_fit_raw
 
-    # adapter will inside run_loop split k_main to get key_init and key_run
-    k_run, key_init = jr.split(k_main)
-    state = strategy.init(key_init, init_x, init_fit, params)
+    # _adapter_init passes key_init to strategy.init
+    state = strategy.init(k_init, init_x, init_fit, params)
 
     # --- Evolution loop matching adapter's rng chain ---
     # adapter keeps rng in carry and splits each iteration
     def scan_step(carry, _):
         rng, state, p_state = carry
-        rng, k_ask, k_eval_step, k_tell = jr.split(rng, 4)
+        rng, key_step = jr.split(rng)
+        k_ask, k_eval_step, k_tell = jr.split(key_step, 3)
         x, new_state = strategy.ask(k_ask, state, params)
         fitness, _, _ = problem.eval(k_eval_step, x, p_state)
         tell_fitness = -fitness if maximize else fitness
@@ -78,7 +77,7 @@ def _run_evosax_raw(
     # run the generational scan, capturing metrics from each tell
     (rng_final, state, p_state), (all_best, all_fitness) = jax.lax.scan(
         scan_step,
-        (k_run, state, p_state),
+        (k_main, state, p_state),
         None,
         length=generations,
     )
@@ -200,7 +199,7 @@ class TestEvosaxAdapterMatchesRaw:
             assert jnp.isclose(-raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6), (
                 f"gen {gen_idx}: -raw={-raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
             )
-            assert jnp.isclose(raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6), (
+            assert jnp.isclose(-raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6), (
                 f"gen {gen_idx}: mean mismatch"
             )
 
@@ -314,21 +313,21 @@ def _run_evosax_raw_with_init_pop(
     strategy = strategy_cls(population_size=pop_size, solution=init_solution)
     params = strategy.default_params
 
-    k_main, k_pop, k_eval = jr.split(key, 3)
-    k_run, k_init = jr.split(k_main)
+    k_main, k_init, k_eval = jr.split(key, 3)
     # static state created from seed, not run key
     p_state = problem.init(jr.PRNGKey(seed))
 
     init_x = jnp.asarray(initial_population)
 
-    # Evaluate initial population
-    init_fit_raw, _, _ = problem.eval(k_eval, init_x, p_state)
+    # Evaluate initial population (evosax_adapter passes key_init to eval)
+    init_fit_raw, _, _ = problem.eval(k_init, init_x, p_state)
 
     state = strategy.init(k_init, init_x, init_fit_raw, params)
 
     def scan_step(carry, _):
         rng, state, p_state = carry
-        rng, k_ask, k_eval_step, k_tell = jr.split(rng, 4)
+        rng, key_step = jr.split(rng)
+        k_ask, k_eval_step, k_tell = jr.split(key_step, 3)
         x, new_state = strategy.ask(k_ask, state, params)
         fitness, _, _ = problem.eval(k_eval_step, x, p_state)
         new_state, metrics = strategy.tell(k_tell, x, fitness, new_state, params)
@@ -336,7 +335,7 @@ def _run_evosax_raw_with_init_pop(
 
     (rng_final, state, p_state), (all_best, all_fitness) = jax.lax.scan(
         scan_step,
-        (k_run, state, p_state),
+        (k_main, state, p_state),
         None,
         length=generations,
     )
