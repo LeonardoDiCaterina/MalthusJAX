@@ -5,7 +5,7 @@ from flax import struct
 from typing import Any, Tuple, Optional, TypeVar
 
 from malthusjax.core.base import BaseGenome, BasePopulation
-from malthusjax.core.fitness.base import BaseQDEvaluator
+from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 from malthusjax.engine.base import (
     AbstractEngine,
     AbstractEngineParams,

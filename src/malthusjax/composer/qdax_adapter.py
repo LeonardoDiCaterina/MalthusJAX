@@ -108,7 +108,7 @@ class QDaxEngineAdapter:
         
         return (repertoire, emitter_state, randkey), metrics
 
-from malthusjax.core.fitness.base import BaseQDEvaluator
+from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 import jax.random as jr
 
 def build_qdax_engine(

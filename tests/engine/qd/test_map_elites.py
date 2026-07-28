@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 
 from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesEngineParams
-from malthusjax.core.fitness.base import BaseQDEvaluator
+from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 from malthusjax.operators.emitters.mixing import MixingEmitter
 from malthusjax.operators.emitters.genetic import GeneticMutationEmitter, GeneticCrossoverEmitter
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation

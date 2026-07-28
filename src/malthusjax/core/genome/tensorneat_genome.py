@@ -4,7 +4,8 @@ import jax.numpy as jnp
 from typing import Any, Tuple, Type
 from flax import struct
 
-from malthusjax.core.base import BaseGenome, QDPopulation
+from malthusjax.core.base import BaseGenome
+from malthusjax.core.genome.qd.population import QDPopulation
 
 @struct.dataclass
 class TensorNeatGenomeConfig:
