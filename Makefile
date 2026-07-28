@@ -434,11 +434,11 @@ smoke-all:
 	
 	@echo "\n=== H2 Ablation Smoke ==="
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_ablation_lhs.toml --data_dir results/h2_ablation_smoke
+	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_ablation_lhs.toml --data_dir results/h2_ablation_lhs_smoke
 	
 	@echo "\n=== H3 Representation Smoke ==="
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h3_representation_lhs.toml --data_dir results/h3_representation_smoke
+	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h3_representation_lhs.toml --data_dir results/h3_representation_lhs_smoke
 	@echo "\n=== ALL SMOKE PROXIES GENERATED IN results/ ==="
 
 benchmark-analyze:

@@ -6,7 +6,7 @@ num_seeds = 100
 aggregation_level = "summary_only"
 
 [grid]
-functions = ["lunacek_bi_rastrigin", "schwefel", "gallagher_21_hi"]
+functions = ["lunacek", "schwefel", "gallagher_21_hi"]
 dims_min = 10
 dims_max = 100
 pops_min = 64
