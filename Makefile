@@ -97,11 +97,39 @@ TOY_GENERATIONS ?= 20
 
 install-dev:
 	@echo "--- Installing dev dependencies (Detected Backend: $(JAX_EXTRA)) ---"
-	$(PYTHON) -m pip install -e ".[dev,docs,examples,$(JAX_EXTRA)]"
+	$(PYTHON) -m pip install -e ".[dev,docs,examples,all-integrations,$(JAX_EXTRA)]"
 
 install-bench:
 	@echo "--- Installing benchmark dependencies (Detected Backend: $(JAX_EXTRA)) ---"
-	$(PYTHON) -m pip install -e ".[dev,benchmarks,$(JAX_EXTRA)]"
+	$(PYTHON) -m pip install -e ".[dev,benchmarks,all-integrations,$(JAX_EXTRA)]"
+
+install-stats:
+	@echo "--- Installing statistical dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	$(PYTHON) -m pip install -e ".[stats,$(JAX_EXTRA)]"
+
+install-rl:
+	@echo "--- Installing RL dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	$(PYTHON) -m pip install -e ".[rl,$(JAX_EXTRA)]"
+
+install-evosax:
+	@echo "--- Installing evosax dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	$(PYTHON) -m pip install -e ".[evosax,$(JAX_EXTRA)]"
+
+install-qdax:
+	@echo "--- Installing qdax dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	$(PYTHON) -m pip install -e ".[qdax,$(JAX_EXTRA)]"
+
+install-tensorneat:
+	@echo "--- Installing tensorneat dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	$(PYTHON) -m pip install -e ".[tensorneat,$(JAX_EXTRA)]"
+
+install-kozax:
+	@echo "--- Installing kozax dependencies (Detected Backend: $(JAX_EXTRA)) ---"
+	$(PYTHON) -m pip install -e ".[kozax,$(JAX_EXTRA)]"
+
+install-all:
+	@echo "--- Installing all integrations (Detected Backend: $(JAX_EXTRA)) ---"
+	$(PYTHON) -m pip install -e ".[all-integrations,$(JAX_EXTRA)]"
 
 test:
 	@echo "--- Running tests with coverage ---"
