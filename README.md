@@ -80,6 +80,32 @@ make install-dev
 
 ---
 
+## Docker & Cluster Usage
+
+MalthusJAX includes a robust, multi-stage `Dockerfile` to simplify deployment on shared GPU clusters. The image allows you to cleanly isolate optional dependencies (`qdax`, `evosax`, `tensorneat`, `kozax`, `rl`) during the build process using the `EXTRAS` argument.
+
+```bash
+# Example: Build an image containing only RL environments and QDAX
+docker build \
+  --build-arg BASE_IMAGE=nvidia/cuda:12.2.0-base-ubuntu22.04 \
+  --build-arg EXTRAS="[cuda12,qdax,rl]" \
+  -t malthusjax:latest .
+```
+
+### JAX Memory Management on Shared GPUs
+By default, JAX aggressively pre-allocates 90% of available GPU VRAM. When running your Docker container on a shared cluster, this behavior can cause Out-Of-Memory (OOM) errors for others or block your container from starting.
+
+To prevent this, override the default allocator at runtime:
+```bash
+docker run --gpus all \
+  -e XLA_PYTHON_CLIENT_PREALLOCATE=false \
+  -e XLA_PYTHON_CLIENT_ALLOCATOR=platform \
+  -v $(pwd)/results:/app/results \
+  malthusjax:latest run configs/experiment.toml
+```
+
+---
+
 ## Quick Start (CLI & TOML)
 
 Describe your evolutionary runs in a simple TOML configuration:

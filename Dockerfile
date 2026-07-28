@@ -38,6 +38,20 @@ RUN python -m pip install --no-cache-dir -e ".${EXTRAS}"
 # Copy the rest of the source code
 COPY . .
 
+# ==============================================================================
+# JAX/XLA MEMORY MANAGEMENT (OPTIONAL)
+# ==============================================================================
+# JAX defaults to aggressively pre-allocating 90% of GPU VRAM. If you are 
+# running this container on a shared cluster GPU, you will likely encounter 
+# Out-Of-Memory (OOM) errors or block other users.
+#
+# Uncomment the following lines to use on-demand memory allocation, or pass 
+# them at runtime via `docker run -e XLA_PYTHON_CLIENT_PREALLOCATE=false ...`
+#
+# ENV XLA_PYTHON_CLIENT_PREALLOCATE=false
+# ENV XLA_PYTHON_CLIENT_ALLOCATOR=platform
+# ==============================================================================
+
 # Run the mjax CLI by default
 ENTRYPOINT ["mjax"]
 CMD ["--help"]
