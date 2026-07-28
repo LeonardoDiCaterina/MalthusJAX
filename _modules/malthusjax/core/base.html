@@ -684,34 +684,6 @@
 </div>
 
 
-<div class="viewcode-block" id="QDPopulation">
-<a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.core.base.QDPopulation">[docs]</a>
-<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">QDPopulation</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A specialized population class for Quality-Diversity algorithms.</span>
-<span class="sd">    </span>
-<span class="sd">    Provides strongly-typed access to Quality-Diversity metrics (like behavioral</span>
-<span class="sd">    descriptors) that are stored in the underlying `info` dictionary.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">descriptors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Access the behavioral descriptors for the population.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;descriptors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
-                <span class="s2">&quot;Descriptors not found in population info. Ensure a BaseQDEvaluator &quot;</span>
-                <span class="s2">&quot;was used to evaluate this population.&quot;</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;descriptors&quot;</span><span class="p">]</span>
-        
-<div class="viewcode-block" id="QDPopulation.get_qd_score">
-<a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.core.base.QDPopulation.get_qd_score">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_qd_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_opt</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the sum of fitnesses of all valid solutions (example metric).&quot;&quot;&quot;</span>
-        <span class="c1"># A simple QD score formulation: sum of fitnesses for valid individuals.</span>
-        <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid_mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span></div>
-</div>
 
 
 </pre></div>
