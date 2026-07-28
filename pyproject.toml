@@ -36,7 +36,7 @@ cpu = ["jax[cpu]>=0.4.0"]
 # Modular Integrations
 evosax = ["evosax"]
 qdax = ["qdax"]
-tensorneat = ["tensorneat"]
+tensorneat = ["tensorneat @ git+https://github.com/EMI-Group/tensorneat.git"]
 rl = ["gymnax", "brax", "jumanji"]
 bbobax = ["bbobax"]
 kozax = ["kozax"]
