@@ -16,7 +16,6 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
-    "sphinx_autodoc_typehints",
     "numpydoc",
     "sphinx_copybutton",
     "myst_parser",
