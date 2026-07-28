@@ -1,4 +1,5 @@
-from typing import Any, cast
+from dataclasses import replace
+from typing import Any
 
 import chex
 import jax
@@ -6,12 +7,13 @@ import jax.numpy as jnp
 from evosax.algorithms.population_based.simple_ga import crossover as evosax_crossover
 from flax import struct
 
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.base import BasePopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.operators.base import BaseCrossover, _field
 
 
 @struct.dataclass
-class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig]):
     """
     Evosax Compatibility Wrapper — Single-Key Mode.
     Consumes single key, splits internally in _cross_fused to generate per-pair masks.
@@ -99,11 +101,11 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
     def __call__(
         self,
         all_keys: chex.Array,
-        p1_pop: RealPopulation,
-        p2_pop: RealPopulation,
+        p1_pop: BasePopulation[RealGenome],
+        p2_pop: BasePopulation[RealGenome],
         config: RealGenomeConfig,
         generation: int = 0,
-    ) -> RealPopulation:
+    ) -> BasePopulation[RealGenome]:
         """Population-level crossover with injection_mode support.
 
         When ``injection_mode=True``, consumes single key and splits internally
@@ -125,7 +127,7 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
         if not self.injection_mode:
             return super().__call__(all_keys, p1_pop, p2_pop, config, generation=generation)
 
-        num_pairs = p1_pop.values.shape[0]
+        num_pairs = p1_pop.genes.values.shape[0]
 
         # Support two injection-mode calling conventions:
         # 1) Single-origin key (legacy): ResourceMapper gives a single key
@@ -148,14 +150,14 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
             return evosax_crossover(k, p1_vals, p2_vals, self.crossover_rate)
 
         if self.num_offspring == 1:
-            offspring_vals = jax.vmap(_cross_one)(keys, p1_pop.values, p2_pop.values)
+            offspring_vals = jax.vmap(_cross_one)(keys, p1_pop.genes.values, p2_pop.genes.values)
         else:
             if self.typed_keys:
                 keys_reshaped = keys.reshape(num_pairs, self.num_offspring)
             else:
                 keys_reshaped = keys.reshape(num_pairs, self.num_offspring, keys.shape[-1])
-            p1_vals_rep = jnp.repeat(p1_pop.values[:, None, :], self.num_offspring, axis=1)
-            p2_vals_rep = jnp.repeat(p2_pop.values[:, None, :], self.num_offspring, axis=1)
+            p1_vals_rep = jnp.repeat(p1_pop.genes.values[:, None, :], self.num_offspring, axis=1)
+            p2_vals_rep = jnp.repeat(p2_pop.genes.values[:, None, :], self.num_offspring, axis=1)
 
             def _cross_pair(k_block: chex.Array, p1: chex.Array, p2: chex.Array) -> chex.Array:
                 return jax.vmap(_cross_one)(k_block, p1, p2)
@@ -164,4 +166,4 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig, 
             offspring_vals = offspring_vals.reshape(-1, offspring_vals.shape[-1])
 
         new_genes = RealGenome(values=offspring_vals)
-        return cast(RealPopulation, p1_pop.spawn_offspring(new_genes))
+        return p1_pop.spawn_offspring(new_genes)

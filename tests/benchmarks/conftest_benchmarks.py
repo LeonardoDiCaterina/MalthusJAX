@@ -454,6 +454,7 @@ class MalthusJAXBenchEngine:
                     "mean_fitness": full_hist.mean_fitness,
                 }
                 return new_c, light_hist
+
             return jax.lax.scan(scan_body, state, None, length=self.num_generations)
 
         self._jit_scan = jax.jit(scan_fn)
@@ -621,9 +622,7 @@ class EvosaxBenchEngine:
                 self.canonical_bounds,
             )
         else:
-            init_x = jax.random.uniform(
-                r_init, (self.pop_size, self.dims), minval=-5.0, maxval=5.0
-            )
+            init_x = jax.random.uniform(r_init, (self.pop_size, self.dims), minval=-5.0, maxval=5.0)
 
         init_fit = jnp.full((self.pop_size,), jnp.inf)
         es_state = self._strategy.init(r_init, init_x, init_fit, self._params)

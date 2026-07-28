@@ -6,8 +6,8 @@ import pandas as pd
 
 class DataTransformer(Protocol):
     """Protocol for DataFrame transformers in the Dash layer."""
-    def transform(self, df: pd.DataFrame, spec: dict[str, Any]) -> pd.DataFrame:
-        ...
+
+    def transform(self, df: pd.DataFrame, spec: dict[str, Any]) -> pd.DataFrame: ...
 
 
 class DropWarmupTransformer(DataTransformer):
@@ -17,7 +17,9 @@ class DropWarmupTransformer(DataTransformer):
         if df.empty or "run_index" not in df.columns:
             return df
 
-        group_by = spec.get("group_by", ["source", "experiment", "pipeline", "fn_name", "D", "P", "G"])
+        group_by = spec.get(
+            "group_by", ["source", "experiment", "pipeline", "fn_name", "D", "P", "G"]
+        )
         valid_groups = [col for col in group_by if col in df.columns]
 
         if not valid_groups:
@@ -97,7 +99,7 @@ class InteractionTransformer(DataTransformer):
             col1, col2 = interaction
             if col1 not in df_out.columns or col2 not in df_out.columns:
                 raise KeyError(f"Interaction features {col1} or {col2} not found in DataFrame.")
-            
+
             new_col = f"{col1}_x_{col2}"
             df_out[new_col] = df_out[col1] * df_out[col2]
 

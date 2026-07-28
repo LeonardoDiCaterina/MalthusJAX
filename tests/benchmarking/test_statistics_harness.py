@@ -76,6 +76,7 @@ def eq_spec() -> StatisticalComparisonSpec:
 
 # --- immediate scaffold sanity checks (should pass now) ---
 
+
 def test_dataclass_shapes(raw_spec: StatisticalComparisonSpec, sample_dataset: PairedMetricDataset):
     assert raw_spec.metric_name == "best_fitness"
     assert sample_dataset.left_values.shape == sample_dataset.right_values.shape
@@ -120,26 +121,29 @@ def test_result_types_constructible():
 
 # --- contract tests for future logic (xfail until implementation) ---
 
+
 def test_validate_spec_rejects_missing_equivalence_margin():
-    spec = StatisticalComparisonSpec(hypothesis_kind=HypothesisKind.EQUIVALENCE,
-                                     equivalence_margin=None)
+    spec = StatisticalComparisonSpec(
+        hypothesis_kind=HypothesisKind.EQUIVALENCE, equivalence_margin=None
+    )
     with pytest.raises(StatisticalSpecError):
         validate_spec(spec)
 
 
 def test_infer_scipy_alternative_mapping():
-    assert infer_scipy_alternative(Sidedness.TWO_SIDED,
-                                   ExpectedDirection.LEFT_LT_RIGHT) == "two-sided"
-    assert infer_scipy_alternative(Sidedness.ONE_SIDED,
-                                   ExpectedDirection.LEFT_LT_RIGHT) == "less"
-    assert infer_scipy_alternative(Sidedness.ONE_SIDED,
-                                   ExpectedDirection.LEFT_GT_RIGHT) == "greater"
+    assert (
+        infer_scipy_alternative(Sidedness.TWO_SIDED, ExpectedDirection.LEFT_LT_RIGHT) == "two-sided"
+    )
+    assert infer_scipy_alternative(Sidedness.ONE_SIDED, ExpectedDirection.LEFT_LT_RIGHT) == "less"
+    assert (
+        infer_scipy_alternative(Sidedness.ONE_SIDED, ExpectedDirection.LEFT_GT_RIGHT) == "greater"
+    )
 
 
 def test_compute_tost_paired_contract(sample_dataset: PairedMetricDataset):
-    out = compute_tost_paired(sample_dataset.left_values,
-                              sample_dataset.right_values,
-                              margin=0.2, alpha=0.05)
+    out = compute_tost_paired(
+        sample_dataset.left_values, sample_dataset.right_values, margin=0.2, alpha=0.05
+    )
     assert isinstance(out, TOSTResult)
     assert out.margin == 0.2
     assert out.lower_bound == -0.2
@@ -165,14 +169,12 @@ def test_compute_effect_sizes_contract(sample_dataset: PairedMetricDataset):
 
 def test_apply_decision_rule_prefers_tost(eq_spec: StatisticalComparisonSpec):
     tests = {
-        "wilcoxon": StatTestResult(name="wilcoxon",
-                                   statistic=1.0,
-                                   p_value=0.001,
-                                   alternative="two-sided"),
-        "paired_t": StatTestResult(name="paired_t",
-                                   statistic=1.0,
-                                   p_value=0.001,
-                                   alternative="two-sided"),
+        "wilcoxon": StatTestResult(
+            name="wilcoxon", statistic=1.0, p_value=0.001, alternative="two-sided"
+        ),
+        "paired_t": StatTestResult(
+            name="paired_t", statistic=1.0, p_value=0.001, alternative="two-sided"
+        ),
     }
     tost = TOSTResult(
         margin=0.2,
@@ -191,8 +193,9 @@ def test_apply_decision_rule_prefers_tost(eq_spec: StatisticalComparisonSpec):
     assert error is None
 
 
-def test_compare_paired_arrays_contract(sample_dataset: PairedMetricDataset,
-                                        raw_spec: StatisticalComparisonSpec):
+def test_compare_paired_arrays_contract(
+    sample_dataset: PairedMetricDataset, raw_spec: StatisticalComparisonSpec
+):
     result = compare_paired_arrays(
         label=sample_dataset.label,
         left_name=sample_dataset.left_name,
@@ -213,8 +216,9 @@ def test_adjust_pvalues_none_is_identity():
     assert adjusted == pvals
 
 
-def test_comparator_compare_suite_contract(sample_dataset: PairedMetricDataset,
-                                           raw_spec: StatisticalComparisonSpec):
+def test_comparator_compare_suite_contract(
+    sample_dataset: PairedMetricDataset, raw_spec: StatisticalComparisonSpec
+):
     comp = StatisticalComparator()
     suite = comp.compare_suite([sample_dataset], raw_spec)
     assert isinstance(suite, StatisticalSuiteResult)
@@ -233,8 +237,9 @@ def test_adjust_pvalues_holm_and_fdr_bh():
     assert all(0.0 <= p <= 1.0 for p in fdr)
 
 
-def test_suite_to_dict_and_markdown(sample_dataset: PairedMetricDataset,
-                                    raw_spec: StatisticalComparisonSpec):
+def test_suite_to_dict_and_markdown(
+    sample_dataset: PairedMetricDataset, raw_spec: StatisticalComparisonSpec
+):
     comp = StatisticalComparator()
     suite = comp.compare_suite([sample_dataset], raw_spec)
 
@@ -249,8 +254,9 @@ def test_suite_to_dict_and_markdown(sample_dataset: PairedMetricDataset,
     assert "Cohen dz" in md
 
 
-def test_attach_adjusted_pvalues_contract(sample_dataset: PairedMetricDataset,
-                                          raw_spec: StatisticalComparisonSpec):
+def test_attach_adjusted_pvalues_contract(
+    sample_dataset: PairedMetricDataset, raw_spec: StatisticalComparisonSpec
+):
     result = compare_paired_arrays(
         label=sample_dataset.label,
         left_name=sample_dataset.left_name,
@@ -343,43 +349,30 @@ def test_paired_dataset_from_artifacts(tmp_path):
     left_dir.mkdir()
     right_dir.mkdir()
 
-    left_csv = (
-        "seed,best_fitness,generation\n"
-        "0,1.0,1\n"
-        "0,0.8,2\n"
-        "1,0.9,1\n"
-        "1,0.7,2\n"
-    )
-    right_csv = (
-        "seed,best_fitness,generation\n"
-        "0,1.1,1\n"
-        "0,1.0,2\n"
-        "1,1.0,1\n"
-        "1,0.95,2\n"
-    )
+    left_csv = "seed,best_fitness,generation\n0,1.0,1\n0,0.8,2\n1,0.9,1\n1,0.7,2\n"
+    right_csv = "seed,best_fitness,generation\n0,1.1,1\n0,1.0,2\n1,1.0,1\n1,0.95,2\n"
     (left_dir / "histories_combined.csv").write_text(left_csv)
     (right_dir / "histories_combined.csv").write_text(right_csv)
 
     import json
+
     left_summary = {
         "runs": [
             {"seed": 0, "timings": {"warmup": 4.0, "execution": 0.01}},
-            {"seed": 1, "timings": {"warmup": 0.1, "execution": 0.01}}
+            {"seed": 1, "timings": {"warmup": 0.1, "execution": 0.01}},
         ]
     }
     right_summary = {
         "runs": [
             {"seed": 0, "timings": {"warmup": 2.0, "execution": 0.01}},
-            {"seed": 1, "timings": {"warmup": 0.1, "execution": 0.01}}
+            {"seed": 1, "timings": {"warmup": 0.1, "execution": 0.01}},
         ]
     }
     (left_dir / "summary.json").write_text(json.dumps(left_summary))
     (right_dir / "summary.json").write_text(json.dumps(right_summary))
 
     spec = StatisticalComparisonSpec(
-        metric_name="best_fitness",
-        min_paired_seeds=2,
-        include_timing_stats=True
+        metric_name="best_fitness", min_paired_seeds=2, include_timing_stats=True
     )
     ds = paired_dataset_from_artifacts(left_dir, right_dir, "L", "R", spec)
 
@@ -403,7 +396,7 @@ def test_paired_dataset_from_experiments_excludes_seed_0_for_timing():
             metrics={"best_fitness": 1.0, "initial_fitness": 2.0},
             history=[{"best_fitness": 2.0}, {"best_fitness": 1.0}],
             duration_seconds=4.01,
-            timings={"warmup": 4.0, "execution": 0.01}
+            timings={"warmup": 4.0, "execution": 0.01},
         ),
         RunResult(
             seed=1,
@@ -411,7 +404,7 @@ def test_paired_dataset_from_experiments_excludes_seed_0_for_timing():
             metrics={"best_fitness": 0.8, "initial_fitness": 1.8},
             history=[{"best_fitness": 1.8}, {"best_fitness": 0.8}],
             duration_seconds=0.11,
-            timings={"warmup": 0.1, "execution": 0.01}
+            timings={"warmup": 0.1, "execution": 0.01},
         ),
     ]
     right_runs = [
@@ -421,7 +414,7 @@ def test_paired_dataset_from_experiments_excludes_seed_0_for_timing():
             metrics={"best_fitness": 1.2, "initial_fitness": 2.2},
             history=[{"best_fitness": 2.2}, {"best_fitness": 1.2}],
             duration_seconds=2.01,
-            timings={"warmup": 2.0, "execution": 0.01}
+            timings={"warmup": 2.0, "execution": 0.01},
         ),
         RunResult(
             seed=1,
@@ -429,16 +422,14 @@ def test_paired_dataset_from_experiments_excludes_seed_0_for_timing():
             metrics={"best_fitness": 0.9, "initial_fitness": 1.9},
             history=[{"best_fitness": 1.9}, {"best_fitness": 0.9}],
             duration_seconds=0.11,
-            timings={"warmup": 0.1, "execution": 0.01}
+            timings={"warmup": 0.1, "execution": 0.01},
         ),
     ]
     left = ExperimentResult(name="left_exp", runs=left_runs)
     right = ExperimentResult(name="right_exp", runs=right_runs)
 
     spec = StatisticalComparisonSpec(
-        metric_name="best_fitness",
-        min_paired_seeds=2,
-        include_timing_stats=True
+        metric_name="best_fitness", min_paired_seeds=2, include_timing_stats=True
     )
     ds = paired_dataset_from_experiments(left, right, "left", "right", spec)
 
@@ -450,4 +441,3 @@ def test_paired_dataset_from_experiments_excludes_seed_0_for_timing():
     assert timing_summary["duration_seconds"]["left_mean"] == pytest.approx(0.11)
     assert timing_summary["duration_seconds"]["right_mean"] == pytest.approx(0.11)
     assert timing_summary["components"]["warmup"]["left_mean"] == pytest.approx(0.1)
-

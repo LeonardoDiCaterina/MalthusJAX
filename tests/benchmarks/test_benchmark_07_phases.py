@@ -55,7 +55,7 @@ class TestStepPhaseBreakdown:
 
         benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
         benchmark.name = "00_full_step"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     def test_phase0_entropy(self, benchmark):
         """Phase 0: 4-way PRNG split (_allocate_entropy)."""
@@ -70,7 +70,7 @@ class TestStepPhaseBreakdown:
 
         benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
         benchmark.name = "01_entropy"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     def test_phase1_selection(self, benchmark):
         """Phase 1: elite top_k + selection operator."""
@@ -89,7 +89,7 @@ class TestStepPhaseBreakdown:
 
         benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
         benchmark.name = "02_selection"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     def test_phase2_reproduction(self, benchmark):
         """Phase 2: crossover vmap + mutation vmap."""
@@ -129,7 +129,7 @@ class TestStepPhaseBreakdown:
 
         benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
         benchmark.name = "03_reproduction"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     def test_phase3b_evaluate(self, benchmark):
         """Phase 3b: fitness evaluation only."""
@@ -146,7 +146,7 @@ class TestStepPhaseBreakdown:
 
         benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
         benchmark.name = "04_evaluate"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     def test_track_best_full_vs_light(self, benchmark):
         """Compare step latency: TrackBest.LIGHT (default) vs FULL (argmax+gather+where)."""
@@ -162,7 +162,7 @@ class TestStepPhaseBreakdown:
 
         benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"
         benchmark.name = "05_trackbest_light"
-        benchmark.pedantic(_run_light, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run_light, iterations=1, rounds=5, warmup_rounds=2)
 
     def test_elite_topk_vs_argpartition(self, benchmark):
         """Direct comparison: jax.lax.top_k vs jnp.argpartition for elite selection.
@@ -182,7 +182,7 @@ class TestStepPhaseBreakdown:
 
         benchmark.group = f"elite_extraction/pop{self._POP}"
         benchmark.name = "argpartition"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     def test_elite_topk(self, benchmark):
         """Elite extraction baseline: jax.lax.top_k (O(N log N) full sort)."""
@@ -198,4 +198,4 @@ class TestStepPhaseBreakdown:
 
         benchmark.group = f"elite_extraction/pop{self._POP}"
         benchmark.name = "top_k"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)

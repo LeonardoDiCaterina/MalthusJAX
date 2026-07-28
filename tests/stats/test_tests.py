@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from malthusjax.stats.core import TestResult, TOSTResult
-from malthusjax.stats.tests import wilcoxon, paired_t, sign_test, tost
+from malthusjax.stats.tests import paired_t, sign_test, tost, wilcoxon
 
 
 def test_wilcoxon_null_not_rejected(paired_equal):
@@ -37,6 +37,7 @@ def test_wilcoxon_with_nans(paired_equal):
     arr = paired_equal.left.values.copy()
     arr[0] = np.nan
     from malthusjax.stats.core import MetricVector, PairedSample
+
     ps = PairedSample(MetricVector("l", arr), paired_equal.right)
     with pytest.raises(ValueError, match="finite"):
         wilcoxon(ps)
@@ -64,9 +65,9 @@ def test_paired_t_constant_diffs(paired_identical):
 
 def test_sign_all_positive_diffs():
     from malthusjax.stats.core import MetricVector, PairedSample
+
     ps = PairedSample(
-        MetricVector("l", np.array([2.0, 3.0, 4.0])),
-        MetricVector("r", np.array([1.0, 1.0, 1.0]))
+        MetricVector("l", np.array([2.0, 3.0, 4.0])), MetricVector("r", np.array([1.0, 1.0, 1.0]))
     )
     res = sign_test(ps, alternative="greater")
     assert res.p_value < 0.2  # 1/8

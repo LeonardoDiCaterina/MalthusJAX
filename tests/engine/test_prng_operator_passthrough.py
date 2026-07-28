@@ -87,7 +87,9 @@ def test_crossover_mutation_keys_reshape_and_usage(small_engine):
 
 def test_reproduction_with_forwarded_presplit_keys():
     # Construct engine that forwards presplit keys to operators
-    params = GeneticEngineParams(pop_size=16, elitism=1, num_generations=1, forward_presplit_keys=True)
+    params = GeneticEngineParams(
+        pop_size=16, elitism=1, num_generations=1, forward_presplit_keys=True
+    )
     genome_config = RealGenomeConfig(shape=(5,), bounds=(-5.0, 5.0))
     bbob = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=5, maximize=False))
 

@@ -10,13 +10,15 @@ from malthusjax.operators.base import BaseSelection, C, P
 
 @struct.dataclass
 class EvoSaxMimicSelection(BaseSelection[P, C]):
-    elite_k: int = struct.field(pytree_node=False, default=10)
+    elite_k: int = struct.field(pytree_node=False, default=10)  # type: ignore
 
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 1
 
-    def _select(self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any) -> chex.Array:
+    def _select(
+        self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
+    ) -> chex.Array:
         rng = keys if keys.ndim <= 1 else keys[0]
         pop_size = fitness.shape[0]
         idx = jnp.argsort(fitness)
@@ -24,7 +26,9 @@ class EvoSaxMimicSelection(BaseSelection[P, C]):
         p_norm = p / jnp.sum(p)
         return jax.random.choice(rng, idx, shape=(self.num_selections,), replace=True, p=p_norm)
 
-    def __call__(self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any) -> Tuple[chex.Array, chex.Array]:
+    def __call__(
+        self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any
+    ) -> Tuple[chex.Array, chex.Array]:
         fitness = jnp.asarray(getattr(population, "fitness", population))
         rng = keys if keys.ndim <= 1 else keys[0]
 
@@ -33,6 +37,6 @@ class EvoSaxMimicSelection(BaseSelection[P, C]):
 
         # Elites to preserve (for SimpleGA, this matches n_elites)
         idx = jnp.argsort(fitness)
-        elite_idx = idx[:self.n_elites]
+        elite_idx = idx[: self.n_elites]
 
         return parent_idx, elite_idx

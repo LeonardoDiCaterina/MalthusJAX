@@ -222,7 +222,10 @@ evosax_strategy = "SimpleGA"
         normalized = result.normalized_runs("malthusjax_ga")
         assert len(normalized) == 1
         assert normalized[0].metrics["best_fitness"] < 0
-        assert normalized[0].metrics["best_fitness"] == result.summary_table()["malthusjax_ga"]["best_fitness"]["mean"]
+        assert (
+            normalized[0].metrics["best_fitness"]
+            == result.summary_table()["malthusjax_ga"]["best_fitness"]["mean"]
+        )
 
         # Evosax is already lower-is-better in raw metrics, so normalized_runs
         # should preserve the original values for that pipeline.

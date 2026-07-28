@@ -66,11 +66,13 @@ class ElitePoolSelection(BaseSelection[P, C]):
     minimizes diversity.
 
     **Design Trade-offs**:
+
     - **Pros**: Fast convergence, preserves best genes, O(N) complexity
     - **Cons**: Very low diversity, risk of premature convergence,
       limited exploration of search space
 
     **When to Use**:
+
     1. **Final refinement phase**: Late generations when you're optimizing near
        a known good region
     2. **High-dimensional problems with clear optima**: Problems where top-1%
@@ -196,7 +198,9 @@ class ElitePoolSelection(BaseSelection[P, C]):
         )
         if getattr(self, "sampling_method", "choice") == "randint":
             # sample indices into `pool` then index
-            sel_idx = jax.random.randint(rng, shape=(self.num_selections,), minval=0, maxval=pool.shape[0])
+            sel_idx = jax.random.randint(
+                rng, shape=(self.num_selections,), minval=0, maxval=pool.shape[0]
+            )
             parent_idx = pool[sel_idx]
 
         return parent_idx, elite_idx

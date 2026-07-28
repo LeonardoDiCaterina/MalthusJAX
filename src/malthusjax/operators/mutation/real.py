@@ -6,6 +6,7 @@ Optimized for H100:
     during random number generation and arithmetic operations.
 """
 
+from dataclasses import replace
 from typing import Any, cast
 
 import chex
@@ -14,14 +15,14 @@ import jax.numpy as jnp
 import jax.random
 from flax import struct
 
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.engine.schedules import ScheduleType, compute_scheduled_strength
 from malthusjax.operators.base import BaseMutation, _field
 from malthusjax.operators.base_injection import BaseMutation_injection
 
 
 @struct.dataclass
-class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
+class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """Gaussian (Normal) Mutation — Independent Per-Gene Perturbation.
 
     Gaussian mutation applies independent additive Gaussian noise to each gene,
@@ -29,10 +30,13 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
     in continuous-domain evolutionary algorithms.
 
     **Algorithm**:
+
     1. For each gene:
+
        - Draw Bernoulli(mutation_rate) → gene i is mutated with probability mutation_rate
        - If mutated, add N(0, mutation_strength) to gene i
        - Optionally clip to bounds
+
     2. Return mutated genome
 
     **String Specification Format**::
@@ -165,13 +169,11 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation
         if self.clip:
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
-class GaussianMutation_injection(
-    BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]
-):
+class GaussianMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Gaussian Mutation (single-key variant).
     Splits single key to (n*K) subkeys, reshaped (n, K, -1) for vmap.
@@ -239,11 +241,11 @@ class GaussianMutation_injection(
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
-class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
+class BallMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
     Ball Mutation (3-Tier Paradigm).
     Tier 2: Muller's Method—Gaussian direction normalized, scaled by u^(1/d).
@@ -307,11 +309,11 @@ class BallMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
-class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]):
+class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Ball Mutation (single-key variant).
     Splits single key to (n*3) subkeys, reshaped (n, 3, -1) for vmap.
@@ -378,11 +380,11 @@ class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
-class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulation]):
+class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     """
     Polynomial Mutation (3-Tier Paradigm).
     Tier 2: Masks delta via jnp.where(u≤0.5, (2u)^(1/(η+1))-1, 1-(2(1-u))^(1/(η+1))).
@@ -441,13 +443,11 @@ class PolynomialMutation(BaseMutation[RealGenome, RealGenomeConfig, RealPopulati
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 @struct.dataclass
-class PolynomialMutation_injection(
-    BaseMutation_injection[RealGenome, RealGenomeConfig, RealPopulation]
-):
+class PolynomialMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Polynomial Mutation (single-key variant).
     Splits single key to (n*2) subkeys, reshaped (n, 2, -1) for vmap.
@@ -507,7 +507,7 @@ class PolynomialMutation_injection(
             min_val, max_val = config.bounds
             mutated_values = jnp.clip(mutated_values, min_val, max_val)
 
-        return cast(RealGenome, cast(Any, genome).replace(values=mutated_values))
+        return replace(genome, values=mutated_values)
 
 
 __all__ = [

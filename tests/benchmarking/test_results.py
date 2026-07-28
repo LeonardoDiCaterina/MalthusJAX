@@ -117,6 +117,7 @@ def test_comparison_timing_data_and_boxplot():
         assert ax.get_ylabel() == "duration_seconds (seconds)"
         assert ax.get_title() == "Timing boxplot"
 
+
 def test_comparison_final_metric_data_and_boxplot_negation():
     from malthusjax.benchmarking.results import ComparisonResult
 

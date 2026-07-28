@@ -7,7 +7,7 @@ corresponding population container and random initialization logic.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Tuple, Type, cast
+from typing import Any, Tuple, cast
 
 import chex
 import jax
@@ -223,14 +223,17 @@ class BinaryGenome(BaseGenome):
 @struct.dataclass
 class BinaryPopulation(BasePopulation[BinaryGenome]):
     """
-    A specialized container for a population of BinaryGenomes.
+    Parallel population container specialized for BinaryGenome bitstrings.
+
+    As of v2.0, this class does not override core population mechanics or
+    intercept `.values` properties. It serves strictly as a strongly-typed
+    alias/subclass of `BasePopulation[BinaryGenome]` to provide convenient
+    initialization helpers and IDE completion.
     """
 
     genes: BinaryGenome
     fitness: chex.Array
     config: BinaryGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-
-    GENOME_CLS: ClassVar[Type[BinaryGenome]] = BinaryGenome
 
     @classmethod
     def init_random(

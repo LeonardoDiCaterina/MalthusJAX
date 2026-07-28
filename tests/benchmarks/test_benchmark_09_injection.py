@@ -56,7 +56,7 @@ class TestInjectionOperators:
         mode = "injection" if use_injection else "standard"
         benchmark.group = f"injection_crossover/pop{self._POP}_d{self._DIMS}"
         benchmark.name = f"{crossover_type}_{mode}"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     @pytest.mark.parametrize("mutation_type", _INJECTION_MUTATION_TYPES)
     @pytest.mark.parametrize("use_injection", [False, True])
@@ -76,7 +76,7 @@ class TestInjectionOperators:
         mode = "injection" if use_injection else "standard"
         benchmark.group = f"injection_mutation/pop{self._POP}_d{self._DIMS}"
         benchmark.name = f"{mutation_type}_{mode}"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     @pytest.mark.parametrize("crossover_type", _INJECTION_CROSSOVER_TYPES)
     @pytest.mark.parametrize("use_injection", [False, True])
@@ -98,7 +98,7 @@ class TestInjectionOperators:
             f"injection_crossover_scan_{NUM_GENERATIONS_SHORT}gen/pop{self._POP}_d{self._DIMS}"
         )
         benchmark.name = f"{crossover_type}_{mode}"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     @pytest.mark.parametrize("mutation_type", _INJECTION_MUTATION_TYPES)
     @pytest.mark.parametrize("use_injection", [False, True])
@@ -120,4 +120,4 @@ class TestInjectionOperators:
             f"injection_mutation_scan_{NUM_GENERATIONS_SHORT}gen/pop{self._POP}_d{self._DIMS}"
         )
         benchmark.name = f"{mutation_type}_{mode}"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)

@@ -10,7 +10,8 @@ jit/vmap patterns.
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, ClassVar, Generic, Iterator, Optional, Type, TypeVar, Union, cast
+from typing import Any, Generic, Iterator, Optional, Type, TypeVar, Union, cast
+from dataclasses import replace
 
 import chex
 import jax
@@ -37,15 +38,25 @@ class BaseGenome:
     """Immutable genome representation optimized for JAX PyTree lifting.
 
     Single-genome methods compose with jax.vmap to implement population-level
-    operations via the Struct-of-Arrays (SoA) pattern: each leaf array gains
-    a leading batch dimension (N,). The `subscriptable` flag enables optional
-    Pythonic indexing/iteration, trading PyTree traceability for convenience.
+    operations via the Struct-of-Arrays (SoA) pattern: each leaf array in the
+    PyTree gains a leading batch dimension (N,).
+
+    Type System Note:
+    Tier-3 vectorization leverages `jax.tree_util` maps, treating `BaseGenome`
+    subclasses as opaque PyTrees. There is no explicit requirement for a single
+    primary data array. However, as a unified framework practice, implementations
+    lacking domain-specific structural requirements should conventionally store
+    their primary payload in a `.values` attribute.
+
+    The `subscriptable` flag enables optional Pythonic indexing/iteration over
+    the conventional `.values` attribute, trading pure PyTree traceability for
+    convenience in single-genome extraction.
     """
 
     def __len__(self) -> int:
         """Return number of elements in the primary values array."""
         try:
-            return int(cast(Any, self).values.shape[0])
+            return int(getattr(self, 'values').shape[0])
         except Exception as e:
             raise TypeError("len() is not supported for this genome (missing 'values').") from e
 
@@ -70,11 +81,7 @@ class BaseGenome:
         """
         # Determine if this is a batched genome by checking array leaf dimensions
         leaves = jax.tree_util.tree_leaves(self)
-        is_batched = (
-            leaves and
-            hasattr(leaves[0], "shape") and
-            len(leaves[0].shape) > 1
-        )
+        is_batched = leaves and hasattr(leaves[0], "shape") and len(leaves[0].shape) > 1
 
         if is_batched:
             # Batched genome: use tree_map to extract and reconstruct individual/sub-genome
@@ -90,7 +97,7 @@ class BaseGenome:
             )
             raise TypeError(msg)
         try:
-            return cast(Any, self).values[key]
+            return getattr(self, 'values')[key]
         except AttributeError as e:
             raise TypeError("Genome does not expose 'values' for indexing.") from e
 
@@ -107,11 +114,7 @@ class BaseGenome:
         """
         # Determine if this is a batched genome
         leaves = jax.tree_util.tree_leaves(self)
-        is_batched = (
-            leaves and
-            hasattr(leaves[0], "shape") and
-            len(leaves[0].shape) > 1
-        )
+        is_batched = leaves and hasattr(leaves[0], "shape") and len(leaves[0].shape) > 1
 
         if is_batched:
             # Batched genome: iterate and yield individual genomes
@@ -127,7 +130,7 @@ class BaseGenome:
                     "or iterate a batched genome to yield individual genomes."
                 )
                 raise TypeError(msg)
-            for val in cast(Any, self).values:
+            for val in getattr(self, 'values'):
                 yield val
 
     @classmethod
@@ -195,7 +198,7 @@ class BaseGenome:
         population size.
         """
         keys = jax.random.split(key, pop_size)
-        return jax.vmap(cls.random_init, in_axes=(0, None))(keys, config)
+        return jax.vmap(cls.random_init, in_axes=(0, None))(keys, config)  # type: ignore[no-any-return]
 
 
 @struct.dataclass
@@ -204,8 +207,15 @@ class BasePopulation(Generic[G]):
     A unified container for a collection of candidate solutions.
 
     This class implements the Struct-of-Arrays (SoA) pattern. The 'genes'
-    attribute holds a Genome instance where every leaf array has an added
-    leading dimension of size N (population size).
+    attribute holds a single `BaseGenome` instance where every internal leaf
+    array has an added leading dimension of size N (population size).
+
+    Type System Note:
+    As of v2.0, the population parameter `P` has been removed. Population types
+    are strictly inferred as `BasePopulation[G]` using the genome type `G`.
+    Additionally, the explicit `GENOME_CLS` property has been removed. The
+    population is strictly agnostic of its internal structure and relies
+    purely on PyTree manipulations.
 
     Attributes:
         genes: The batched genome data (SoA).
@@ -216,26 +226,22 @@ class BasePopulation(Generic[G]):
     genes: G
     fitness: chex.Array
     config: Any = _field(pytree_node=False)
-    GENOME_CLS: ClassVar[Type[Any]] = cast(Type[Any], Any)
 
     @classmethod
-    def from_array(cls, arr: chex.Array, config: Any, axis: int = 0) -> BasePopulation[G]:
+    def from_array(
+        cls, arr: chex.Array, config: Any, genome_cls: Type[G], axis: int = 0
+    ) -> BasePopulation[G]:
         """Build a population by interpreting one axis of *arr* as individuals.
 
         The method moves *axis* to the front and delegates to
-        ``GENOME_CLS.from_tensor`` for per‑individual wrapping. Output
+        ``genome_cls.from_tensor`` for per‑individual wrapping. Output
         fitness values are initialized to ``-inf`` as a sentinel.
         """
         arr_batched = jnp.moveaxis(arr, axis, 0)
         pop_size = arr_batched.shape[0]
-        genes = cls.GENOME_CLS.from_tensor(arr_batched, config)
+        genes = genome_cls.from_tensor(arr_batched, config)
         fitness = jnp.full((pop_size,), -jnp.inf)
         return cls(genes=genes, fitness=fitness, config=config)
-
-    @property
-    def values(self) -> Any:
-        """Proxies to the genome's values (batched)."""
-        return cast(Any, self.genes).values
 
     def spawn_offspring(
         self, new_genes: G, fitness: Optional[chex.Array] = None
@@ -253,7 +259,7 @@ class BasePopulation(Generic[G]):
             n_offspring = leaves[0].shape[0]
             fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
 
-        return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes, fitness=fitness))
+        return replace(self, genes=new_genes, fitness=fitness)
 
     def __len__(self) -> int:
         """Returns the number of individuals currently in the population."""
@@ -274,7 +280,7 @@ class BasePopulation(Generic[G]):
 
         return cast(
             BasePopulation[G],
-            cast(Any, self).replace(genes=sliced_genes, fitness=self.fitness[key]),
+            replace(self, genes=sliced_genes, fitness=self.fitness[key]),
         )
 
     def __iter__(self) -> Iterator[G]:
@@ -297,7 +303,7 @@ class BasePopulation(Generic[G]):
             return cast(G, g.autocorrect(config))
 
         new_genes = jax.vmap(_autocorrect_genome)(self.genes)
-        return cast(BasePopulation[G], cast(Any, self).replace(genes=new_genes))
+        return replace(self, genes=new_genes)
 
     def distance_matrix(self, metric: str = DistanceMetric.EUCLIDEAN) -> chex.Array:
         """Compute pairwise distances between all population members.

@@ -416,6 +416,7 @@ def test_runtime_register(catalog: OperatorCatalog) -> None:
     finally:
         _OPERATOR_REGISTRY.pop(key, None)
 
+
 def test_catalog_get_with_data_registry():
     """Test data_id resolution"""
     catalog = OperatorCatalog()
@@ -423,11 +424,13 @@ def test_catalog_get_with_data_registry():
     evaluator = catalog.get("sphere:data_id=sphere_10", data_registry=data_reg)
     assert evaluator is not None
 
+
 def test_catalog_get_backward_compat_no_registry():
     """Test old behavior unchanged"""
     catalog = OperatorCatalog()
     evaluator = catalog.get("sphere:dim=10")
     assert evaluator is not None
+
 
 def test_data_registry_missing_id_raises():
     """Test error handling"""

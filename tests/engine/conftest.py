@@ -68,8 +68,12 @@ def mutation_operator():
 
 @pytest.fixture
 def genetic_engine(
-    engine_params, genome_config, bbob_evaluator,
-    selection_operator, crossover_operator, mutation_operator
+    engine_params,
+    genome_config,
+    bbob_evaluator,
+    selection_operator,
+    crossover_operator,
+    mutation_operator,
 ):
     """
     Fully configured genetic engine for testing.

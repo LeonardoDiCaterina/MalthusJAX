@@ -38,7 +38,7 @@ def build_pipelines() -> dict[str, dict[str, Any]]:
         "Evosax:SimpleGA": {
             "backend": "evosax",
             "evosax_strategy": "SimpleGA",
-        }
+        },
     }
 
 

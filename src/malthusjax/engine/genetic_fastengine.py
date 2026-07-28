@@ -5,6 +5,8 @@ Refactored for 'Init-Phase Compilation': Resource mapping happens once at initia
 
 from __future__ import annotations
 
+import dataclasses
+from dataclasses import replace
 from typing import Any, Callable, Tuple, TypeVar, Union, cast
 
 import chex
@@ -88,8 +90,8 @@ class GeneticEngineParams(AbstractEngineParams):
     This dataclass holds all static configuration for the genetic engine.
     All fields use ``pytree_node=False`` to trigger recompilation when changed.
 
-    Inherited from AbstractEngineParams
-    -----------------------------------
+    Parameters
+    ----------
     pop_size : int
         Number of individuals in population. Must be > 0.
         **GPU efficiency**: Powers of 2 (32, 64, 128, 256) strongly preferred.
@@ -105,9 +107,6 @@ class GeneticEngineParams(AbstractEngineParams):
     num_generations : int
         Total generational cycles to run. Must be > 0.
         Baked into JIT-compiled code; changing triggers recompilation.
-
-    Additional Configuration
-    ========================
     key_derivation : KeyDerivationStrategy, optional
         RNG splitting strategy for entropy allocation.
         - SPLIT: Sequential jax.random.split (uncorrelated, traditional)
@@ -194,8 +193,8 @@ class OperatorState:
     """
 
     selection: BaseSelection[Any, Any] = _field(pytree_node=False)
-    crossover: BaseCrossover[Any, Any, Any] = _field(pytree_node=False)
-    mutation: BaseMutation[Any, Any, Any] = _field(pytree_node=False)
+    crossover: BaseCrossover[Any, Any] = _field(pytree_node=False)
+    mutation: BaseMutation[Any, Any] = _field(pytree_node=False)
 
 
 @struct.dataclass
@@ -298,8 +297,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     genome_config: Any = _field(pytree_node=False)
     evaluator: BaseEvaluator[Any, Any, Any] = _field(pytree_node=False)
     selection: BaseSelection[Any, Any] = _field(pytree_node=False)
-    crossover: BaseCrossover[Any, Any, Any] = _field(pytree_node=False)
-    mutation: BaseMutation[Any, Any, Any] = _field(pytree_node=False)
+    crossover: BaseCrossover[Any, Any] = _field(pytree_node=False)
+    mutation: BaseMutation[Any, Any] = _field(pytree_node=False)
     # Hooks & Config
     # hooks: Tuple[AbstractHook] (placeholder for future hook support)
 
@@ -379,7 +378,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                 if getattr(key_selection, "shape", ()) and int(key_selection.shape[0]) == 2:
                     k1 = key_selection[0]
                     k2 = key_selection[1]
-                    sel_op = operators.selection.replace(num_selections=pop_size)
+                    sel_op = dataclasses.replace(operators.selection, num_selections=pop_size)
                     p1_idx, _ = sel_op(jnp.expand_dims(k1, 0), population)
                     p2_idx, _ = sel_op(jnp.expand_dims(k2, 0), population)
                     parent_idx = jnp.concatenate([p1_idx, p2_idx], axis=0)
@@ -394,7 +393,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                             else key_selection[0]
                         )
                         k1, k2 = jax.random.split(key_base, 2)
-                        sel_op = operators.selection.replace(num_selections=pop_size)
+                        sel_op = dataclasses.replace(operators.selection, num_selections=pop_size)
                         p1_idx, _ = sel_op(jnp.expand_dims(k1, 0), population)
                         p2_idx, _ = sel_op(jnp.expand_dims(k2, 0), population)
                         parent_idx = jnp.concatenate([p1_idx, p2_idx], axis=0)
@@ -480,11 +479,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         p1_pop = population.spawn_offspring(p1_genes, fitness=dummy_fitness)
         p2_pop = population.spawn_offspring(p2_genes, fitness=dummy_fitness)
 
-        offspring_pop = cast(
-            BasePopulation[Any],
-            operators.crossover(
-                keys_to_pass, p1_pop, p2_pop, self.genome_config, generation=generation
-            ),
+        offspring_pop = operators.crossover(
+            keys_to_pass, p1_pop, p2_pop, self.genome_config, generation=generation
         )
         produced_offspring = jax.tree_util.tree_leaves(offspring_pop.genes)[0].shape[0]
         if produced_offspring != rmap.crossover.output_count:
@@ -495,9 +491,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
 
         # Allow forwarding/splitting of mutation keys similarly when requested.
-        expected_mut_keys = operators.mutation.num_keys(
-            input_shape=(offspring_pop.genes.values.shape[0],)
-        )
+        expected_mut_keys = operators.mutation.num_keys(input_shape=(len(offspring_pop),))
         if not params.forward_presplit_keys:
             if keys_mutation.shape[0] != expected_mut_keys:
                 raise ValueError(
@@ -510,10 +504,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                 mut_keys_to_pass = keys_mutation
             else:
                 if expected_mut_keys == 1 and keys_mutation.shape[0] == 1:
-                    total_offspring = offspring_pop.genes.values.shape[0]
+                    total_offspring = len(offspring_pop)
                     mut_keys_to_pass = jax.random.split(keys_mutation[0], total_offspring)
                 else:
-                    total_offspring = offspring_pop.genes.values.shape[0]
+                    total_offspring = len(offspring_pop)
                     if keys_mutation.shape[0] == total_offspring:
                         mut_keys_to_pass = keys_mutation
                     else:
@@ -523,11 +517,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                             f"{expected_mut_keys} or {total_offspring} "
                         )
 
-        final_pop = cast(
-            BasePopulation[Any],
-            operators.mutation(
-                mut_keys_to_pass, offspring_pop, self.genome_config, generation=generation
-            ),
+        final_pop = operators.mutation(
+            mut_keys_to_pass, offspring_pop, self.genome_config, generation=generation
         )
 
         return final_pop
@@ -639,15 +630,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             metric_best = new_best_fitness  # monotonic
 
-        final_state = cast(
-            GeneticEvolutionState,
-            cast(Any, state).replace(
+        final_state = replace(state, 
                 population=new_pop,
                 best_genome=new_best_genome,
                 best_fitness=new_best_fitness,
                 generation=state.generation + 1,
-                rng_key=k_next,
-            ),
+            rng_key=k_next,
         )
 
         metrics = GeneticGenerationOutput(
@@ -669,7 +657,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         def _first_leaf_shape(tree: Any) -> tuple[int, ...]:
             leaves = jax.tree_util.tree_leaves(tree)
-            return leaves[0].shape if leaves else ()
+            return leaves[0].shape if leaves else ()  # type: ignore[no-any-return]
 
         def _preview_leaf(tree: Any, limit: int = 3) -> list[Any]:
             leaves = jax.tree_util.tree_leaves(tree)
@@ -678,7 +666,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             arr = np.asarray(leaves[0])
             if arr.ndim == 0:
                 return [arr.item()]
-            return arr[: min(limit, arr.shape[0])].tolist()
+            return arr[: min(limit, arr.shape[0])].tolist()  # type: ignore[no-any-return]
 
         num_pairs = state.resource_map.crossover.input_count // 2
         expected_cross_keys = state.operators.crossover.num_keys(input_shape=(num_pairs,))
@@ -694,8 +682,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             f"{state.resource_map.crossover.output_count}"
         )
         mutation_io = (
-            f"{state.resource_map.mutation.input_count}/"
-            f"{state.resource_map.mutation.output_count}"
+            f"{state.resource_map.mutation.input_count}/{state.resource_map.mutation.output_count}"
         )
 
         print(
@@ -728,10 +715,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             k_sel, state.population, state.operators, self.engine_params
         )
         elite_shape = _first_leaf_shape(elites)
-        print(
-            "phase 1 selection: "
-            f"elites={elite_shape}, parents={parent_indices.shape}"
-        )
+        print(f"phase 1 selection: elites={elite_shape}, parents={parent_indices.shape}")
         parent_preview = np.asarray(parent_indices)[:8].tolist()
         print(
             "phase 1 selection preview: "
@@ -778,8 +762,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         new_pop = self._evaluate(next_genes, state)
         print(
-            "phase 3b evaluate: "
-            f"population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
+            f"phase 3b evaluate: population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
         )
         print(
             "phase 3b evaluate preview: "
@@ -810,15 +793,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             metric_best = new_best_fitness
 
-        final_state = cast(
-            GeneticEvolutionState,
-            cast(Any, state).replace(
+        final_state = replace(state, 
                 population=new_pop,
                 best_genome=new_best_genome,
                 best_fitness=new_best_fitness,
                 generation=state.generation + 1,
                 rng_key=k_next,
-            ),
         )
 
         metrics = GeneticGenerationOutput(
@@ -924,14 +904,14 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             final_state = cast(
                 GeneticEvolutionState,
-                cast(Any, final_state).replace(best_genome=final_best_genome),
+                replace(final_state, best_genome=final_best_genome),
             )
 
         if params.track_best == TrackBest.NONE:
             best_idx = jnp.argmax(final_state.population.fitness)
             final_state = cast(
                 GeneticEvolutionState,
-                cast(Any, final_state).replace(
+                replace(final_state, 
                     best_fitness=final_state.population.fitness[best_idx]
                 ),
             )
@@ -1173,18 +1153,18 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         """
         entropy = self._allocate_entropy(state)
 
-        engine_with_entropy = cast(GeneticEngine, cast(Any, self).replace(_entropy_buffer=entropy))
+        engine_with_entropy = replace(self, _entropy_buffer=entropy)
         return engine_with_entropy, state.population
 
     def ask_with_key(
-        self, state: GeneticEvolutionState, rng_key: chex.Array
+        self, state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]], rng_key: chex.Array
     ) -> Tuple["GeneticEngine", BasePopulation[Any]]:
         """Ask variant with explicit key override for parity adapters.
 
         This mirrors ask/tell APIs that pass RNG at call time by temporarily
         overriding ``state.rng_key`` for entropy allocation in this generation.
         """
-        state_with_key = cast(GeneticEvolutionState, cast(Any, state).replace(rng_key=rng_key))
+        state_with_key = replace(state, rng_key=rng_key)
         return self.ask(state_with_key)
 
     def tell(
@@ -1257,7 +1237,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         k_sel, k_cross, k_mut, k_next = self._entropy_buffer
 
-        state = cast(GeneticEvolutionState, cast(Any, state).replace(population=population))
+        state = replace(state, population=population)
         gen_best_fitness = jnp.min(population.fitness)
         is_new = gen_best_fitness < state.best_fitness
         new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
@@ -1269,12 +1249,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             state.best_genome,
         )
 
-        state = cast(
-            GeneticEvolutionState,
-            cast(Any, state).replace(
+        state = replace(state, 
                 best_genome=new_best_genome,
                 best_fitness=new_best_fitness,
-            ),
         )
 
         elites, parent_indices = self._selection_phase(
@@ -1296,11 +1273,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             BasePopulation[Any], cast(Any, state.population).replace(genes=next_genes)
         )
 
-        final_state = cast(
-            GeneticEvolutionState,
-            cast(Any, state).replace(
+        final_state = replace(state, 
                 population=next_population, generation=state.generation + 1, rng_key=k_next
-            ),
         )
 
         # Clear the engine-side entropy buffer to prevent accidental reuse of
@@ -1318,7 +1292,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         return final_state
 
     def tell_with_key(
-        self, state: GeneticEvolutionState, population: BasePopulation[Any], rng_key: chex.Array
+        self,
+        state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]],
+        population: BasePopulation[Any],
+        rng_key: chex.Array,
     ) -> GeneticEvolutionState:
         """Tell variant with explicit key override for parity adapters.
 
@@ -1327,4 +1304,4 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         intentionally not consumed here.
         """
         _ = rng_key
-        return self.tell(state, population)
+        return self.tell(cast(GeneticEvolutionState, state), population)

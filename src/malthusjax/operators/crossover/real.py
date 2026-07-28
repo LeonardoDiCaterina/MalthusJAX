@@ -4,6 +4,7 @@ Refactored to be purely atomic consumers.
 Optimized to consume pre-allocated keys directly, avoiding internal splitting.
 """
 
+from dataclasses import replace
 from typing import Any, Tuple, cast
 
 import chex
@@ -11,13 +12,13 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.operators.base import BaseCrossover
 from malthusjax.operators.base_injection import BaseCrossover_injection as BaseCrossover_injection
 
 
 @struct.dataclass
-class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """
     Uniform Crossover (Fused 3-Tier Paradigm).
     Per-gene independent selection from parents via Bernoulli mask. XLA fuses mask generation
@@ -64,13 +65,11 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulatio
         """
         mask = noise_data
         offspring_values = jnp.where(mask, p2.values, p1.values)
-        return cast(RealGenome, cast(Any, p1).replace(values=offspring_values))
+        return replace(p1, values=offspring_values)
 
 
 @struct.dataclass
-class UniformCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig, RealPopulation]
-):
+class UniformCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Uniform Crossover.
     Single key splits into (n_pairs * n_offspring) subkeys; jax.vmap(per_row) generates all masks
@@ -115,11 +114,11 @@ class UniformCrossover_injection(
         """XLA-fused recombination: select using per-gene pre-generated mask."""
         mask = noise_data
         offspring_values = jnp.where(mask, p2.values, p1.values)
-        return cast(RealGenome, cast(Any, p1).replace(values=offspring_values))
+        return replace(p1, values=offspring_values)
 
 
 @struct.dataclass
-class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """Blend Crossover (BLX-α) — Adaptive Parent-Centered Exploration.
 
     Blend crossover expands the interval [min(p1,p2), max(p1,p2)] by a factor proportional
@@ -128,8 +127,9 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]
     between them.
 
     **Algorithm**:
+
     1. Compute interval [L, U] = [min(p1,p2), max(p1,p2)]
-    2. Expand interval by ±α × |p1-p2| → [L-α×diff, U+α×diff]
+    2. Expand interval by ±α × ``|p1-p2|`` → [L-α×diff, U+α×diff]
     3. Sample offspring uniformly from expanded interval
     4. Apply boundary clipping and optional crossover gating
 
@@ -242,13 +242,11 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]
         offspring_values = jnp.clip(offspring_values, min_b, max_b)
         final_values = jnp.where(should_cross, offspring_values, p1.values)
 
-        return cast(RealGenome, cast(Any, p1).replace(values=final_values))
+        return replace(p1, values=final_values)
 
 
 @struct.dataclass
-class BlendCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig, RealPopulation]
-):
+class BlendCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Blend Crossover.
     Single key splits to (n_pairs * n_offspring * 2) subkeys, reshaped (n, 2, -1).
@@ -313,11 +311,11 @@ class BlendCrossover_injection(
         min_b, max_b = config.bounds
         offspring_values = jnp.clip(offspring_values, min_b, max_b)
         final_values = jnp.where(should_cross, offspring_values, p1.values)
-        return cast(RealGenome, cast(Any, p1).replace(values=final_values))
+        return replace(p1, values=final_values)
 
 
 @struct.dataclass
-class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """Simulated Binary Crossover (SBX) — Distribution-Aware Recombination.
 
     SBX simulates the behavior of single-point binary crossover on real-valued genomes.
@@ -326,11 +324,14 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealP
     index η controls concentration strength.
 
     **Algorithm**:
+
     1. For each gene:
+
        - Draw uniform random u ~ U[0,1]
        - Compute spread factor β based on η and u
        - Generate two candidates: c1 = 0.5×[(1+β)p1 + (1-β)p2], c2 = 0.5×[(1-β)p1 + (1+β)p2]
        - Randomly select c1 or c2
+
     2. Apply boundary clipping
     3. Conditionally apply (based on crossover_rate)
 
@@ -454,13 +455,11 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealP
         child_vals = jnp.clip(child_vals, min_b, max_b)
         final_values = jnp.where(should_cross, child_vals, p1.values)
 
-        return cast(RealGenome, cast(Any, p1).replace(values=final_values))
+        return replace(p1, values=final_values)
 
 
 @struct.dataclass
-class SimulatedBinaryCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig, RealPopulation]
-):
+class SimulatedBinaryCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Simulated Binary Crossover (SBX).
     Single key splits to (n_pairs * n_offspring * 3) subkeys, reshaped (n, 3, -1).
@@ -528,11 +527,11 @@ class SimulatedBinaryCrossover_injection(
         child_vals = jnp.clip(child_vals, min_b, max_b)
         final_values = jnp.where(should_cross, child_vals, p1.values)
 
-        return cast(RealGenome, cast(Any, p1).replace(values=final_values))
+        return replace(p1, values=final_values)
 
 
 @struct.dataclass
-class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulation]):
+class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     """
     DE Binomial Crossover — Fused 3-Tier Paradigm.
     Per-gene selection between mutant (p1) and target (p2) via Bernoulli mask, followed by
@@ -575,13 +574,11 @@ class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig, RealPopulati
         trial_values = jnp.where(cross_mask, p1.values, p2.values)
         min_val, max_val = config.bounds
         trial_values = jnp.clip(trial_values, min_val, max_val)
-        return cast(RealGenome, cast(Any, p1).replace(values=trial_values))
+        return replace(p1, values=trial_values)
 
 
 @struct.dataclass
-class BinomialCrossover_injection(
-    BaseCrossover_injection[RealGenome, RealGenomeConfig, RealPopulation]
-):
+class BinomialCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
     """
     Injection-mode Binomial Crossover.
     Single key splits into (n_pairs * n_offspring) subkeys; jax.vmap(per_row) generates all
@@ -629,7 +626,7 @@ class BinomialCrossover_injection(
         trial_values = jnp.where(cross_mask, p2.values, p1.values)
         min_val, max_val = config.bounds
         trial_values = jnp.clip(trial_values, min_val, max_val)
-        return cast(RealGenome, cast(Any, p1).replace(values=trial_values))
+        return replace(p1, values=trial_values)
 
 
 __all__ = [

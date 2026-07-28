@@ -64,7 +64,9 @@ def test_mutation_matches_with_presplit_keys():
     k1, _ = jar.split(key)
     parents = RealPopulation.init_random(k1, cfg, pop_size)
 
-    wrapper = EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=True).set_input_length(pop_size)
+    wrapper = EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=True).set_input_length(
+        pop_size
+    )
 
     base_key, _ = jar.split(key)
     subkeys = jar.split(base_key, pop_size * wrapper.num_offspring)

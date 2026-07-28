@@ -56,16 +56,16 @@ def test_gaussian_mutation_respects_bounds(
     offspring = mutation(keys, population, config)
 
     # Core invariant: all offspring within bounds
-    assert offspring.values.shape[0] == pop_size, (
-        f"Expected {pop_size} offspring, got {offspring.values.shape[0]}"
+    assert offspring.genes.values.shape[0] == pop_size, (
+        f"Expected {pop_size} offspring, got {offspring.genes.values.shape[0]}"
     )
 
-    assert jnp.all(offspring.values >= bounds[0]), (
-        f"Mutation produced values below lower bound: {jnp.min(offspring.values)} < {bounds[0]}"
+    assert jnp.all(offspring.genes.values >= bounds[0]), (
+        f"Mutation produced values below lower bound: {jnp.min(offspring.genes.values)} < {bounds[0]}"
     )
 
-    assert jnp.all(offspring.values <= bounds[1]), (
-        f"Mutation produced values above upper bound: {jnp.max(offspring.values)} > {bounds[1]}"
+    assert jnp.all(offspring.genes.values <= bounds[1]), (
+        f"Mutation produced values above upper bound: {jnp.max(offspring.genes.values)} > {bounds[1]}"
     )
 
 
@@ -84,14 +84,14 @@ def test_gaussian_mutation_zero_rate_is_identity(pop_size: int, genome_dim: int)
     config = RealGenomeConfig(shape=(genome_dim,), bounds=(-5.0, 5.0))
     rng = jar.PRNGKey(99)
     population = RealPopulation.init_random(rng, config, size=pop_size)
-    original_values = jnp.array(population.values)
+    original_values = jnp.array(population.genes.values)
 
     mutation = GaussianMutation(mutation_rate=0.0, mutation_strength=0.5).set_input_length(pop_size)
     keys = jar.split(rng, mutation.num_keys((pop_size,)))
     offspring = mutation(keys, population, config)
 
     # With rate=0, offspring should be identical to parent
-    assert jnp.allclose(offspring.values, original_values), (
+    assert jnp.allclose(offspring.genes.values, original_values), (
         "Mutation with rate=0 should be identity operation"
     )
 
@@ -118,8 +118,8 @@ def test_gaussian_mutation_preserves_population_size(pop_size: int, genome_dim: 
     keys = jar.split(rng, mutation.num_keys((pop_size,)))
     offspring = mutation(keys, population, config)
 
-    assert offspring.values.shape[0] == pop_size, (
-        f"Expected {pop_size} offspring, got {offspring.values.shape[0]}"
+    assert offspring.genes.values.shape[0] == pop_size, (
+        f"Expected {pop_size} offspring, got {offspring.genes.values.shape[0]}"
     )
 
 
@@ -191,7 +191,7 @@ def test_gaussian_mutation_strength_amplitude(
 
     keys1 = jar.split(jar.PRNGKey(1), mutation1.num_keys((1,)))
     offspring1 = mutation1(keys1, population, config)
-    delta1 = jnp.mean(jnp.abs(offspring1.values - population.values))
+    delta1 = jnp.mean(jnp.abs(offspring1.genes.values - population.genes.values))
 
     # Test with strength2
     mutation2 = GaussianMutation(
@@ -200,7 +200,7 @@ def test_gaussian_mutation_strength_amplitude(
 
     keys2 = jar.split(jar.PRNGKey(2), mutation2.num_keys((1,)))
     offspring2 = mutation2(keys2, population, config)
-    delta2 = jnp.mean(jnp.abs(offspring2.values - population.values))
+    delta2 = jnp.mean(jnp.abs(offspring2.genes.values - population.genes.values))
 
     # Higher strength should produce larger deltas on average
     assert delta2 > delta1 * 0.9, (
@@ -241,7 +241,7 @@ def test_bitflip_mutation_produces_binary_values(
     offspring = mutation(keys, population, config)
 
     # All values must be 0 or 1
-    unique_values = jnp.unique(offspring.values)
+    unique_values = jnp.unique(offspring.genes.values)
     assert jnp.all(jnp.isin(unique_values, jnp.array([0, 1]))), (
         f"BitFlip produced non-binary values: {unique_values}"
     )
@@ -261,13 +261,13 @@ def test_bitflip_mutation_zero_rate_is_identity(pop_size: int, genome_length: in
     config = BinaryGenomeConfig(length=genome_length)
     rng = jar.PRNGKey(123)
     population = BinaryPopulation.init_random(rng, config, size=pop_size)
-    original_values = jnp.array(population.values)
+    original_values = jnp.array(population.genes.values)
 
     mutation = BitFlipMutation(mutation_rate=0.0).set_input_length(pop_size)
     keys = jar.split(rng, mutation.num_keys((pop_size,)))
     offspring = mutation(keys, population, config)
 
-    assert jnp.array_equal(offspring.values, original_values), (
+    assert jnp.array_equal(offspring.genes.values, original_values), (
         "BitFlip with rate=0 should not change any bits"
     )
 
@@ -288,8 +288,8 @@ def test_bitflip_mutation_preserves_population_size(pop_size: int, genome_length
     keys = jar.split(rng, mutation.num_keys((pop_size,)))
     offspring = mutation(keys, population, config)
 
-    assert offspring.values.shape[0] == pop_size, (
-        f"Expected {pop_size} offspring, got {offspring.values.shape[0]}"
+    assert offspring.genes.values.shape[0] == pop_size, (
+        f"Expected {pop_size} offspring, got {offspring.genes.values.shape[0]}"
     )
 
 
@@ -317,7 +317,7 @@ def test_bitflip_mutation_rate_flip_count(genome_length: int) -> None:
     offspring = mutation(keys, population, config)
 
     # Count flips: since parent is all 0, all 1s in offspring are flips
-    num_flips = int(jnp.sum(offspring.values[0]))
+    num_flips = int(jnp.sum(offspring.genes.values[0]))
 
     # With rate=1.0, expect all bits to flip
     assert num_flips == genome_length, (

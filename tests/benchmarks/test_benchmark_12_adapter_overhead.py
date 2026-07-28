@@ -6,7 +6,6 @@ Measures pure execution wall-clock time overhead of the `EvosaxEngineAdapter`
 facade compared to a raw `evosax` scan loop.
 """
 
-import jax
 import jax.random as jr
 import pytest
 
@@ -22,7 +21,7 @@ from tests.benchmarks.conftest_benchmarks import (
 
 class TestAdapterOverhead:
     """Proves the adapter facade adds zero statistical execution overhead.
-    
+
     Both the adapter and the raw evosax implementation lower the ask/eval/tell
     loop into a single JAX scan block. The adapter should merely be a Python
     configuration overlay that disappears entirely inside the XLA compiled graph.

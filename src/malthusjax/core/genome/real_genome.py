@@ -7,7 +7,7 @@ population container specialized for real vectors.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Tuple, Type, cast
+from typing import Any, Tuple, cast
 
 import chex
 import jax
@@ -219,17 +219,17 @@ class RealGenome(BaseGenome):
 @struct.dataclass
 class RealPopulation(BasePopulation[RealGenome]):
     """
-    A specialized container for a population of RealGenomes.
+    Parallel population container specialized for RealGenome vectors.
 
-    This container ensures that all internal genes are correctly typed and
-    that the population-wide config matches the RealGenome requirements.
+    As of v2.0, this class does not override core population mechanics or
+    intercept `.values` properties. It serves strictly as a strongly-typed
+    alias/subclass of `BasePopulation[RealGenome]` to provide convenient
+    initialization helpers and IDE completion.
     """
 
     genes: RealGenome
     fitness: chex.Array
     config: RealGenomeConfig = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
-
-    GENOME_CLS: ClassVar[Type[RealGenome]] = RealGenome
 
     # TODO: support multidimensional genome populations by accepting `shape` tuples
     #       instead of a scalar `size` for non-1D genomes.

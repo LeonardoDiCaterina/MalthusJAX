@@ -9,14 +9,17 @@ import jax.numpy as jnp
 import pytest
 
 from malthusjax.core.genome.binary_genome import (
+    BinaryGenome,
     BinaryGenomeConfig,
     BinaryPopulation,
 )
 from malthusjax.core.genome.categorical_genome import (
+    CategoricalGenome,
     CategoricalGenomeConfig,
     CategoricalPopulation,
 )
 from malthusjax.core.genome.real_genome import (
+    RealGenome,
     RealGenomeConfig,
     RealPopulation,
 )
@@ -29,7 +32,7 @@ class TestRealPopulationFromArray:
         """axis=0 (default): leading dim is population."""
         arr = jnp.arange(20.0).reshape((4, 5))
         cfg = RealGenomeConfig(shape=(5,), bounds=(-10.0, 10.0))
-        pop = RealPopulation.from_array(arr, cfg)
+        pop = RealPopulation.from_array(arr, cfg, RealGenome)
 
         assert len(pop) == 4
         assert pop.genes.values.shape == (4, 5)
@@ -41,7 +44,7 @@ class TestRealPopulationFromArray:
         """axis=1: pop dim is in the middle → each genome has shape (x, z)."""
         arr = jax.random.uniform(jax.random.PRNGKey(0), (3, 6, 4))
         cfg = RealGenomeConfig(shape=(3, 4), bounds=(-5.0, 5.0))
-        pop = RealPopulation.from_array(arr, cfg, axis=1)
+        pop = RealPopulation.from_array(arr, cfg, RealGenome, axis=1)
 
         assert len(pop) == 6
         assert pop.genes.values.shape == (6, 3, 4)
@@ -52,7 +55,7 @@ class TestRealPopulationFromArray:
         """axis=-1: trailing dim is population."""
         arr = jax.random.normal(jax.random.PRNGKey(1), (2, 3, 8))
         cfg = RealGenomeConfig(shape=(2, 3))
-        pop = RealPopulation.from_array(arr, cfg, axis=-1)
+        pop = RealPopulation.from_array(arr, cfg, RealGenome, axis=-1)
 
         assert len(pop) == 8
         assert pop.genes.values.shape == (8, 2, 3)
@@ -61,7 +64,7 @@ class TestRealPopulationFromArray:
         """Simple 2-D array → axis=0 gives 1-D genomes."""
         arr = jnp.ones((10, 7))
         cfg = RealGenomeConfig(shape=(7,))
-        pop = RealPopulation.from_array(arr, cfg)
+        pop = RealPopulation.from_array(arr, cfg, RealGenome)
 
         assert len(pop) == 10
         assert pop.genes.values.shape == (10, 7)
@@ -74,14 +77,14 @@ class TestRealPopulationFromArray:
         """Output preserves float64 when x64 mode is on."""
         arr = jnp.zeros((3, 4), dtype=jnp.float64)
         cfg = RealGenomeConfig(shape=(4,), dtype=jnp.float64)
-        pop = RealPopulation.from_array(arr, cfg)
+        pop = RealPopulation.from_array(arr, cfg, RealGenome)
         assert pop.genes.values.dtype == jnp.float64
 
     def test_preserves_dtype_f32(self):
         """Output preserves float32 dtype of the input array."""
         arr = jnp.zeros((3, 4), dtype=jnp.float32)
         cfg = RealGenomeConfig(shape=(4,), dtype=jnp.float32)
-        pop = RealPopulation.from_array(arr, cfg)
+        pop = RealPopulation.from_array(arr, cfg, RealGenome)
         assert pop.genes.values.dtype == jnp.float32
 
 
@@ -91,7 +94,7 @@ class TestBinaryPopulationFromArray:
     def test_axis0(self):
         bits = jnp.array([[1, 0, 1], [0, 1, 0], [1, 1, 1]], dtype=jnp.int32)
         cfg = BinaryGenomeConfig(shape=(3,))
-        pop = BinaryPopulation.from_array(bits, cfg)
+        pop = BinaryPopulation.from_array(bits, cfg, BinaryGenome)
 
         assert len(pop) == 3
         assert pop.genes.values.shape == (3, 3)
@@ -100,7 +103,7 @@ class TestBinaryPopulationFromArray:
     def test_axis1(self):
         bits = jax.random.bernoulli(jax.random.PRNGKey(2), shape=(4, 5, 2)).astype(jnp.int32)
         cfg = BinaryGenomeConfig(shape=(4, 2))
-        pop = BinaryPopulation.from_array(bits, cfg, axis=1)
+        pop = BinaryPopulation.from_array(bits, cfg, BinaryGenome, axis=1)
 
         assert len(pop) == 5
         assert pop.genes.values.shape == (5, 4, 2)
@@ -112,7 +115,7 @@ class TestCategoricalPopulationFromArray:
     def test_axis0(self):
         cats = jax.random.randint(jax.random.PRNGKey(3), (6, 10), 0, 5)
         cfg = CategoricalGenomeConfig(num_categories=5, shape=(10,))
-        pop = CategoricalPopulation.from_array(cats, cfg)
+        pop = CategoricalPopulation.from_array(cats, cfg, CategoricalGenome)
 
         assert len(pop) == 6
         assert pop.genes.values.shape == (6, 10)
@@ -120,7 +123,7 @@ class TestCategoricalPopulationFromArray:
     def test_axis_last(self):
         cats = jax.random.randint(jax.random.PRNGKey(4), (3, 7, 12), 0, 8)
         cfg = CategoricalGenomeConfig(num_categories=8, shape=(3, 7))
-        pop = CategoricalPopulation.from_array(cats, cfg, axis=-1)
+        pop = CategoricalPopulation.from_array(cats, cfg, CategoricalGenome, axis=-1)
 
         assert len(pop) == 12
         assert pop.genes.values.shape == (12, 3, 7)
@@ -133,7 +136,7 @@ class TestFromArrayEdgeCases:
         """Population of 1 still works."""
         arr = jnp.ones((1, 5))
         cfg = RealGenomeConfig(shape=(5,))
-        pop = RealPopulation.from_array(arr, cfg)
+        pop = RealPopulation.from_array(arr, cfg, RealGenome)
         assert len(pop) == 1
 
     def test_round_trip_with_init_random(self):
@@ -143,7 +146,7 @@ class TestFromArrayEdgeCases:
         original = RealPopulation.init_random(key, cfg, 8)
 
         raw = original.genes.values
-        rebuilt = RealPopulation.from_array(raw, cfg, axis=0)
+        rebuilt = RealPopulation.from_array(raw, cfg, RealGenome, axis=0)
 
         assert jnp.allclose(rebuilt.genes.values, original.genes.values)
         assert len(rebuilt) == len(original)
@@ -154,7 +157,7 @@ class TestFromArrayEdgeCases:
 
         @jax.jit
         def build(arr):
-            pop = RealPopulation.from_array(arr, cfg)
+            pop = RealPopulation.from_array(arr, cfg, RealGenome)
             return pop.genes.values, pop.fitness
 
         arr = jnp.ones((3, 4))

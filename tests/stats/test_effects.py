@@ -1,6 +1,6 @@
 import numpy as np
 
-from malthusjax.stats.effects import cohens_dz, rank_biserial, glass_delta
+from malthusjax.stats.effects import cohens_dz, glass_delta, rank_biserial
 
 
 def test_cohens_dz_positive_shift(paired_shifted):
@@ -25,9 +25,9 @@ def test_cohens_dz_n1(paired_single):
 
 def test_rank_biserial_all_positive():
     from malthusjax.stats.core import MetricVector, PairedSample
+
     ps = PairedSample(
-        MetricVector("l", np.array([2.0, 3.0, 4.0])),
-        MetricVector("r", np.array([1.0, 1.0, 1.0]))
+        MetricVector("l", np.array([2.0, 3.0, 4.0])), MetricVector("r", np.array([1.0, 1.0, 1.0]))
     )
     rb = rank_biserial(ps)
     assert rb == 1.0
@@ -35,9 +35,9 @@ def test_rank_biserial_all_positive():
 
 def test_rank_biserial_all_negative():
     from malthusjax.stats.core import MetricVector, PairedSample
+
     ps = PairedSample(
-        MetricVector("l", np.array([1.0, 1.0, 1.0])),
-        MetricVector("r", np.array([2.0, 3.0, 4.0]))
+        MetricVector("l", np.array([1.0, 1.0, 1.0])), MetricVector("r", np.array([2.0, 3.0, 4.0]))
     )
     rb = rank_biserial(ps)
     assert rb == -1.0
@@ -50,9 +50,10 @@ def test_rank_biserial_all_ties(paired_identical):
 
 def test_glass_delta_zero_variance():
     from malthusjax.stats.core import MetricVector, PairedSample
+
     ps = PairedSample(
         MetricVector("l", np.array([2.0, 3.0, 4.0])),
-        MetricVector("r", np.array([1.0, 1.0, 1.0])) # std is 0
+        MetricVector("r", np.array([1.0, 1.0, 1.0])),  # std is 0
     )
     gd = glass_delta(ps)
     assert gd == 0.0

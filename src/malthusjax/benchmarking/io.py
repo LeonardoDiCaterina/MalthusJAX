@@ -137,7 +137,6 @@ def write_experiment_artifacts(
     return written_paths
 
 
-
 class DataLoader:
     """Universal data loader for various formats."""
 
@@ -195,7 +194,7 @@ class DataLoader:
 
         coords_arr = np.array(coords)
         diff = coords_arr[:, np.newaxis, :] - coords_arr[np.newaxis, :, :]
-        dist_matrix = np.sqrt(np.sum(diff ** 2, axis=-1))
+        dist_matrix = np.sqrt(np.sum(diff**2, axis=-1))
 
         return jnp.asarray(dist_matrix)
 

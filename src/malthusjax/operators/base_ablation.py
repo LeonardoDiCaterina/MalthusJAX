@@ -13,8 +13,8 @@ import jax.numpy as jnp
 
 from malthusjax.operators.base import BaseCrossover, BaseMutation
 
-TMutation = TypeVar("TMutation", bound=BaseMutation[Any, Any, Any])
-TCrossover = TypeVar("TCrossover", bound=BaseCrossover[Any, Any, Any])
+TMutation = TypeVar("TMutation", bound=BaseMutation[Any, Any])
+TCrossover = TypeVar("TCrossover", bound=BaseCrossover[Any, Any])
 
 
 def ablation_single_key_mutation(cls: TMutation) -> TMutation:
@@ -24,7 +24,8 @@ def ablation_single_key_mutation(cls: TMutation) -> TMutation:
     This benchmarks the cost of dynamic key splitting vs ResourceMapper
     pre-allocation during JIT compilation and execution.
 
-    Usage:
+    Usage::
+
         @ablation_single_key_mutation
         class BitFlipMutation_ablation(BitFlipMutation):
             pass
@@ -59,7 +60,7 @@ def ablation_single_key_mutation(cls: TMutation) -> TMutation:
         )
         total_needed = self.input_length * self.num_offspring * self.num_keys_per_atomic_operation
 
-        split_keys = cast(Any, jax.random.split)(single_key, num=int(total_needed))
+        split_keys = jax.random.split(single_key, num=int(total_needed))
         keys_reshaped = split_keys.reshape(keys_shape)
 
         return cast(Any, original_call)(self, keys_reshaped, population, config, **kwargs)
@@ -78,7 +79,8 @@ def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
     Benchmarks dynamic key splitting cost for crossover vs ResourceMapper
     pre-allocation strategy.
 
-    Usage:
+    Usage::
+
         @ablation_single_key_crossover
         class UniformCrossover_ablation(UniformCrossover):
             pass
@@ -113,7 +115,7 @@ def ablation_single_key_crossover(cls: TCrossover) -> TCrossover:
         )
         total_needed = self.input_length * self.num_offspring * self.num_keys_per_atomic_operation
 
-        split_keys = cast(Any, jax.random.split)(single_key, num=int(total_needed))
+        split_keys = jax.random.split(single_key, num=int(total_needed))
         keys_reshaped = split_keys.reshape(keys_shape)
 
         return cast(Any, original_call)(self, keys_reshaped, p1_pop, p2_pop, config, **kwargs)

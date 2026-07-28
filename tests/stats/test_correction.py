@@ -1,6 +1,6 @@
 import numpy as np
 
-from malthusjax.stats.correction import holm_bonferroni, fdr_bh
+from malthusjax.stats.correction import fdr_bh, holm_bonferroni
 
 
 def test_holm_basic():

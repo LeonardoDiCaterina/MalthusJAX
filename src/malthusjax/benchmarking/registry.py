@@ -34,4 +34,3 @@ class DataRegistry:
             return config
         else:
             raise ValueError(f"Unknown data source type '{source}' for data_id {data_id}")
-

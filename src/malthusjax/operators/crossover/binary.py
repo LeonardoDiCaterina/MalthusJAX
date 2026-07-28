@@ -3,6 +3,7 @@ Binary Crossover Operators.
 Optimized for batch-first paradigm.
 """
 
+from dataclasses import replace
 from typing import Any, cast
 
 import chex
@@ -10,12 +11,12 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
+from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
 from malthusjax.operators.base import BaseCrossover
 
 
 @struct.dataclass
-class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig]):
     """
     Uniform Crossover (Fused 3-Tier Paradigm).
     Per-bit independent selection from parents via Bernoulli mask. XLA fuses mask generation
@@ -54,11 +55,11 @@ class UniformCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPop
         """
         mask = noise_data
         offspring_genes = jnp.where(mask, p2.values, p1.values)
-        return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
+        return replace(p1, values=offspring_genes)
 
 
 @struct.dataclass
-class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig]):
     """
     Single-Point Crossover (Fused 3-Tier Paradigm).
     Selects a random crossover point [1, N-1); swaps segments. Avoids boundary points (0, N)
@@ -102,7 +103,7 @@ class SinglePointCrossover(BaseCrossover[BinaryGenome, BinaryGenomeConfig, Binar
         """
         mask = noise_data
         offspring_genes = jnp.where(mask, p2.values, p1.values)
-        return cast(BinaryGenome, cast(Any, p1).replace(values=offspring_genes))
+        return replace(p1, values=offspring_genes)
 
 
 __all__ = ["UniformCrossover", "SinglePointCrossover"]

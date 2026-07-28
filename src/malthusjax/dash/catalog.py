@@ -33,7 +33,7 @@ class DataCatalog:
             "benchmark_results.json",
             "parity_results.json",
             "ablation_results.json",
-            "representation_results.json"
+            "representation_results.json",
         ]
 
         for source_name, path in self._sources.items():
@@ -45,10 +45,21 @@ class DataCatalog:
                         records.extend(self._parse_file(json_path, source_name))
 
         if not records:
-            self._data = pd.DataFrame(columns=[
-                "source", "experiment", "fn_name", "D", "P", "G",
-                "pipeline", "run_index", "seed", "best_fitness", "execution_time"
-            ])
+            self._data = pd.DataFrame(
+                columns=[
+                    "source",
+                    "experiment",
+                    "fn_name",
+                    "D",
+                    "P",
+                    "G",
+                    "pipeline",
+                    "run_index",
+                    "seed",
+                    "best_fitness",
+                    "execution_time",
+                ]
+            )
         else:
             self._data = pd.DataFrame(records)
 
@@ -74,24 +85,26 @@ class DataCatalog:
         # Legacy Fallback: Extract from experiment string if missing
         if pd.isna(D) or pd.isna(P):
             if pd.isna(D):
-                m = re.search(r'_d(\d+)_', exp_name)
-                if m: D = float(m.group(1))
+                m = re.search(r"_d(\d+)_", exp_name)
+                if m:
+                    D = float(m.group(1))
             if pd.isna(P):
-                m = re.search(r'_p(\d+)_', exp_name)
-                if m: P = float(m.group(1))
+                m = re.search(r"_p(\d+)_", exp_name)
+                if m:
+                    P = float(m.group(1))
             if pd.isna(G):
-                m = re.search(r'_g(\d+)', exp_name)
-                if m: G = float(m.group(1))
+                m = re.search(r"_g(\d+)", exp_name)
+                if m:
+                    G = float(m.group(1))
 
         pipelines = data.get("pipelines", {})
         for p_name, p_data in pipelines.items():
-
             # Support old legacy format where runs were directly in a list
             if isinstance(p_data, dict):
                 runs = p_data.get("per_seed", p_data)
             else:
                 runs = p_data
-                
+
             if not isinstance(runs, list):
                 runs = [runs]
 
@@ -112,18 +125,20 @@ class DataCatalog:
                 if np.isnan(best_fit) and np.isnan(exec_time):
                     continue
 
-                records.append({
-                    "source": source_name,
-                    "experiment": exp_name,
-                    "fn_name": fn_name,
-                    "D": float(D) if D is not None else np.nan,
-                    "P": float(P) if P is not None else np.nan,
-                    "G": float(G) if G is not None else np.nan,
-                    "pipeline": p_name,
-                    "run_index": int(run_index),
-                    "seed": int(seed),
-                    "best_fitness": best_fit,
-                    "execution_time": exec_time,
-                })
+                records.append(
+                    {
+                        "source": source_name,
+                        "experiment": exp_name,
+                        "fn_name": fn_name,
+                        "D": float(D) if D is not None else np.nan,
+                        "P": float(P) if P is not None else np.nan,
+                        "G": float(G) if G is not None else np.nan,
+                        "pipeline": p_name,
+                        "run_index": int(run_index),
+                        "seed": int(seed),
+                        "best_fitness": best_fit,
+                        "execution_time": exec_time,
+                    }
+                )
 
         return records

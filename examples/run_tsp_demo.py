@@ -18,10 +18,7 @@ def main() -> None:
         print(f"\\n--- Start Pipeline: {pipeline_name} ---")
 
         # 3. Pass data_config into quick_run so it can resolve data_ids
-        exec_result = composer.quick_run(
-            data_config=result.data_registry,
-            **kwargs
-        )
+        exec_result = composer.quick_run(data_config=result.data_registry, **kwargs)
 
         print(f"Pipeline {pipeline_name} Complete.")
         print(f"Summary: {exec_result.aggregated_summary()}")

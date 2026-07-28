@@ -10,7 +10,7 @@ from malthusjax.benchmarking.results import ExperimentResult
 from malthusjax.composer.composer import Composer
 from malthusjax.composer.evosax_adapter import build_evosax_engine
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
 from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper
@@ -35,7 +35,10 @@ def test_compare_shared_initial_population_matches_toy(monkeypatch):
 
     pipelines = {
         "m_j": {"fitness": "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"},
-        "ev": {"backend": "evosax", "fitness": "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"},
+        "ev": {
+            "backend": "evosax",
+            "fitness": "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false",
+        },
     }
 
     comparison = composer.compare(
@@ -51,20 +54,27 @@ def test_compare_shared_initial_population_matches_toy(monkeypatch):
     np.testing.assert_allclose(np.asarray(comparison.initial_population), np.asarray(toy_pop))
 
 
-@pytest.mark.parametrize("fn_name,dimensions,pop_size,elitism", [
-    ("sphere", 2, 4, 0),
-    ("rosenbrock", 3, 8, 0),
-    ("rastrigin", 3, 8, 1),
-    ("sphere", 5, 8, 2),
-])
-def test_end_to_end_equivalence_manual_vs_composer_vs_toml(tmp_path, fn_name, dimensions, pop_size, elitism):
+@pytest.mark.parametrize(
+    "fn_name,dimensions,pop_size,elitism",
+    [
+        ("sphere", 2, 4, 0),
+        ("rosenbrock", 3, 8, 0),
+        ("rastrigin", 3, 8, 1),
+        ("sphere", 5, 8, 2),
+    ],
+)
+def test_end_to_end_equivalence_manual_vs_composer_vs_toml(
+    tmp_path, fn_name, dimensions, pop_size, elitism
+):
     # Small quick experiment parameters
     generations = 1
     seed = 0
     elite_k = max(1, pop_size // 2) if elitism > 0 else 1
 
     # Build evaluator and shared initial population (same logic composer uses)
-    evaluator = BBOBEvaluator.create(BBOBConfig(fn_name=fn_name, num_dims=dimensions, seed=seed, maximize=False))
+    evaluator = BBOBEvaluator.create(
+        BBOBConfig(fn_name=fn_name, num_dims=dimensions, seed=seed, maximize=False)
+    )
 
     pop_key = jr.PRNGKey(seed)
     sample_keys = jr.split(pop_key, pop_size)
@@ -72,7 +82,9 @@ def test_end_to_end_equivalence_manual_vs_composer_vs_toml(tmp_path, fn_name, di
 
     # --- Manual engine run (MalthusJAX) ---------------------------------
     genome_config = RealGenomeConfig(shape=(dimensions,), bounds=(-5.0, 5.0))
-    engine_params = GeneticEngineParams(pop_size=pop_size, elitism=elitism, num_generations=generations)
+    engine_params = GeneticEngineParams(
+        pop_size=pop_size, elitism=elitism, num_generations=generations
+    )
     engine = GeneticEngine(
         engine_params=engine_params,
         genome_config=genome_config,
@@ -83,7 +95,7 @@ def test_end_to_end_equivalence_manual_vs_composer_vs_toml(tmp_path, fn_name, di
         enable_progress_bar=False,
     )
 
-    initial_population = RealPopulation.from_array(shared_pop, genome_config, axis=0)
+    initial_population = RealPopulation.from_array(shared_pop, genome_config, RealGenome, axis=0)
     evaluated_population = evaluator.evaluate_population(initial_population)
     # prepare state with injected population
     state = engine.init_state(jr.PRNGKey(seed)).replace(
@@ -141,7 +153,9 @@ elitism = {elitism}
     toml_path = tmp_path / "mini.toml"
     toml_path.write_text(toml_content)
 
-    comparison_toml = Composer.from_toml(str(toml_path), shared_initial_population=True, pop_seed=seed)
+    comparison_toml = Composer.from_toml(
+        str(toml_path), shared_initial_population=True, pop_seed=seed
+    )
     toml_best = float(comparison_toml.pipelines["simple"].runs[0].metrics["best_fitness"])
 
     # Compare all three
@@ -149,16 +163,21 @@ elitism = {elitism}
     np.testing.assert_allclose(manual_best, toml_best)
 
 
-@pytest.mark.parametrize("fn_name,dimensions,pop_size,seed", [
-    ("sphere", 2, 4, 0),
-    ("rosenbrock", 3, 8, 0),
-    ("rastrigin", 3, 8, 1),
-    ("sphere", 5, 8, 2),
-])
+@pytest.mark.parametrize(
+    "fn_name,dimensions,pop_size,seed",
+    [
+        ("sphere", 2, 4, 0),
+        ("rosenbrock", 3, 8, 0),
+        ("rastrigin", 3, 8, 1),
+        ("sphere", 5, 8, 2),
+    ],
+)
 def test_evosax_backend_equivalence(tmp_path, fn_name, dimensions, pop_size, seed):
     generations = 1
 
-    evaluator = BBOBEvaluator.create(BBOBConfig(fn_name=fn_name, num_dims=dimensions, seed=seed, maximize=False))
+    evaluator = BBOBEvaluator.create(
+        BBOBConfig(fn_name=fn_name, num_dims=dimensions, seed=seed, maximize=False)
+    )
 
     pop_key = jr.PRNGKey(seed)
     sample_keys = jr.split(pop_key, pop_size)
@@ -179,7 +198,15 @@ def test_evosax_backend_equivalence(tmp_path, fn_name, dimensions, pop_size, see
 
     # Composer.compare with backend evosax
     composer = Composer.create_default()
-    pipelines = {"evosax_manual": {"backend": "evosax", "evosax_strategy": "SimpleGA", "pop_size": pop_size, "generations": generations, "fitness": f"bbob:fn_name={fn_name},num_dims={dimensions},seed={seed},maximize=false"}}
+    pipelines = {
+        "evosax_manual": {
+            "backend": "evosax",
+            "evosax_strategy": "SimpleGA",
+            "pop_size": pop_size,
+            "generations": generations,
+            "fitness": f"bbob:fn_name={fn_name},num_dims={dimensions},seed={seed},maximize=false",
+        }
+    }
 
     comparison = composer.compare(
         pipelines=pipelines,
@@ -209,7 +236,9 @@ evosax_strategy = "SimpleGA"
     toml_path = tmp_path / "evosax_mini.toml"
     toml_path.write_text(toml_content)
 
-    comparison_toml = Composer.from_toml(str(toml_path), shared_initial_population=True, pop_seed=seed)
+    comparison_toml = Composer.from_toml(
+        str(toml_path), shared_initial_population=True, pop_seed=seed
+    )
     toml_best = float(comparison_toml.pipelines["evosax"].runs[0].metrics["best_fitness"])
 
     np.testing.assert_allclose(manual_best, comp_best)

@@ -44,6 +44,7 @@ class MultipleTestingPolicy(str, Enum):
 @dataclass(frozen=True)
 class MetricVector:
     """A named 1D array of scalar observations."""
+
     name: str
     values: np.ndarray
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -56,15 +57,14 @@ class MetricVector:
 @dataclass(frozen=True)
 class PairedSample:
     """Two aligned MetricVectors from matched observations (e.g., same seed)."""
+
     left: MetricVector
     right: MetricVector
     label: str = ""
 
     def __post_init__(self) -> None:
         if self.left.n != self.right.n:
-            raise ValueError(
-                f"Paired sample size mismatch: {self.left.n} vs {self.right.n}"
-            )
+            raise ValueError(f"Paired sample size mismatch: {self.left.n} vs {self.right.n}")
 
     @property
     def n(self) -> int:
@@ -78,6 +78,7 @@ class PairedSample:
 @dataclass(frozen=True)
 class RegressionDataset:
     """Labeled arrays for OLS modeling."""
+
     y: np.ndarray
     X: dict[str, np.ndarray]
     treatment_col: str = "is_treatment"
@@ -216,10 +217,12 @@ class StatisticalSuiteResult:
 
     def to_dict(self) -> dict[str, Any]:
         from malthusjax.stats.io import suite_to_dict
+
         return suite_to_dict(self)
 
     def to_markdown(self) -> str:
         from malthusjax.stats.io import suite_to_markdown
+
         return suite_to_markdown(self)
 
 

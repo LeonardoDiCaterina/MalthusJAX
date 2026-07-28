@@ -49,7 +49,7 @@ use_history_for_final = true
 fitness = "bbob:fn_name=sphere,num_dims=5,seed=0,maximize=false"
 backend = "malthusjax"
 elitism = 0
-selection = "elite_pool:num_selections=12,elite_k=4"
+selection = "evosax_mimic_selection:num_selections=12,elite_k=4"
 crossover = "evosax_uniform_crossover:crossover_rate=0.5"
 mutation = "evosax_gaussian:mutation_strength=0.1"
 description = "Sphere 5D - MalthusJAX (elite_k=4, cr=0.5, ms=0.1)"

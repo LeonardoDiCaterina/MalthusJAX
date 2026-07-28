@@ -30,13 +30,13 @@ def pytest_addoption(parser):
         "--pop-sizes",
         action="store",
         default="100,500,1024,1025",
-        help="Comma-separated list of population sizes (e.g. 100,500,1000)"
+        help="Comma-separated list of population sizes (e.g. 100,500,1000)",
     )
     parser.addoption(
         "--num-gens",
         action="store",
         default="50,100,1000",
-        help="Comma-separated list of generation counts (e.g. 50,100,1000)"
+        help="Comma-separated list of generation counts (e.g. 50,100,1000)",
     )
 
 
@@ -317,3 +317,9 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
         mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1),
     )
     return engine
+
+def pytest_runtest_teardown(item, nextitem):
+    """Clear JAX caches after every test to prevent GPU OOM during parameter sweeps."""
+    import jax
+    if hasattr(jax, "clear_caches"):
+        jax.clear_caches()

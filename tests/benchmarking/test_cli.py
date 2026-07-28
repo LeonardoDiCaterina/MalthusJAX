@@ -32,13 +32,14 @@ def test_cli_run(tmp_path: Path):
         pop_size = 10
         generations = 2
         seeds = [1]
-        
+
         [pipelines.baseline]
         selection = "tournament:tournament_size=2"
         """
     )
 
     import os
+
     original_cwd = os.getcwd()
     os.chdir(tmp_path)
     try:
@@ -64,16 +65,17 @@ def test_cli_parity_and_analyze(tmp_path: Path):
         pop_size = 10
         generations = 2
         seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        
+
         [pipelines.malthusjax]
         selection = "tournament:tournament_size=2"
-        
+
         [pipelines.evosax]
         selection = "tournament:tournament_size=2"
         """
     )
 
     import os
+
     original_cwd = os.getcwd()
     os.chdir(tmp_path)
     try:

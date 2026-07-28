@@ -5,6 +5,7 @@ This module provides mutation operators for BinaryGenome using the new
 @struct.dataclass factory pattern for JIT compilation and vectorization.
 """
 
+from dataclasses import replace
 from typing import Any, Tuple, cast
 
 import chex
@@ -13,12 +14,12 @@ import jax.numpy as jnp
 import jax.random
 from flax import struct
 
-from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
+from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig
 from malthusjax.operators.base import BaseMutation
 
 
 @struct.dataclass
-class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
     """
     Bit Flip Mutation (3-Tier Paradigm).
     Tier 2: Bernoulli flip mask (N,) where N is bit-string length.
@@ -53,11 +54,11 @@ class BitFlipMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopul
         else:
             mutated_bool = jnp.logical_xor(genome.values.astype(bool), mask)
             mutated = mutated_bool.astype(genome.values.dtype)
-        return cast(BinaryGenome, cast(Any, genome).replace(values=mutated))
+        return replace(genome, values=mutated)
 
 
 @struct.dataclass
-class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
     """
     Scramble Mutation (3-Tier Paradigm).
     Tier 2: Bernoulli decision + permutation indices (N,) reordering.
@@ -94,11 +95,11 @@ class ScrambleMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopu
         new_values = jax.lax.select(
             jnp.broadcast_to(should_mutate, scrambled.shape), scrambled, genome.values
         )
-        return cast(BinaryGenome, cast(Any, genome).replace(values=new_values))
+        return replace(genome, values=new_values)
 
 
 @struct.dataclass
-class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulation]):
+class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig]):
     """
     Swap Mutation (3-Tier Paradigm).
     Tier 2: Bernoulli decision + two random bit positions (idx1, idx2).
@@ -135,7 +136,7 @@ class SwapMutation(BaseMutation[BinaryGenome, BinaryGenomeConfig, BinaryPopulati
         v1, v2 = genome.values[idx1], genome.values[idx2]
         swapped = genome.values.at[idx1].set(v2).at[idx2].set(v1)
         new_values = jax.lax.select(should_mutate, swapped, genome.values)
-        return cast(BinaryGenome, cast(Any, genome).replace(values=new_values))
+        return replace(genome, values=new_values)
 
 
 __all__ = ["BitFlipMutation", "ScrambleMutation", "SwapMutation"]

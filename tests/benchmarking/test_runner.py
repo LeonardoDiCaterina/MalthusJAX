@@ -89,11 +89,12 @@ def test_runner_serialize_history():
 
     result = runner.run([1])
     assert len(result.runs) == 1
-    
+
     run = result.runs[0]
     # The history should be empty
     assert len(run.history) == 0
     import pytest
+
     assert run.metrics["best_fitness"] == pytest.approx(0.85)
     # The summary from the engine should still have total_evaluations
     assert run.metrics["total_evaluations"] == 2 * 50

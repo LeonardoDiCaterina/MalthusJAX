@@ -67,7 +67,6 @@ def handle_parity(args: argparse.Namespace) -> int:
     return 0
 
 
-
 from malthusjax.benchmarking.results import (
     ComparisonResult,
     ExperimentResult,
@@ -98,7 +97,9 @@ def _load_comparison(results_dir: Path) -> ComparisonResult:
                 # handle if it was just dumped via run_result.to_dict()
                 runs.append(RunResult.from_dict(data))
         pipelines[pipe_name] = ExperimentResult(name=pipe_name, runs=runs)
-    return ComparisonResult(pipelines=pipelines, shared_config={}, initial_population=None, negate_map={})
+    return ComparisonResult(
+        pipelines=pipelines, shared_config={}, initial_population=None, negate_map={}
+    )
 
 
 def handle_analyze(args: argparse.Namespace) -> int:
@@ -186,6 +187,7 @@ def handle_report(args: argparse.Namespace) -> int:
     handle_plot(args)
     return 0
 
+
 def handle_aggregate(args: argparse.Namespace) -> int:
     """Handle `mjax aggregate`."""
     out_dir = args.out_dir
@@ -228,6 +230,7 @@ def handle_aggregate(args: argparse.Namespace) -> int:
 
     print(f"Aggregate report complete. Results saved in {out_dir}")
     return 0
+
 
 def handle_catalog(args: argparse.Namespace) -> int:
     """Handle `mjax catalog`."""
@@ -283,8 +286,12 @@ def main(args: Optional[List[str]] = None) -> int:
     parser_aggregate = subparsers.add_parser(
         "aggregate", help="Aggregate multiple experiments into a suite report"
     )
-    parser_aggregate.add_argument("--out_dir", type=Path, required=True, help="Output directory for the aggregate suite")
-    parser_aggregate.add_argument("results_dirs", type=Path, nargs="+", help="One or more experiment result directories")
+    parser_aggregate.add_argument(
+        "--out_dir", type=Path, required=True, help="Output directory for the aggregate suite"
+    )
+    parser_aggregate.add_argument(
+        "results_dirs", type=Path, nargs="+", help="One or more experiment result directories"
+    )
     parser_aggregate.set_defaults(func=handle_aggregate)
 
     # 7. CATALOG

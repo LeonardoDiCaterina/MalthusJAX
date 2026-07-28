@@ -286,6 +286,7 @@ def test_tournament_all_individuals_samplable(pop_size: int, genome_dim: int) ->
     for i in range(5):
         selected = selection(jar.PRNGKey(100 + i), population, None)
         import numpy as np
+
         all_selected.update(np.asarray(selected[0]).tolist())
 
     # With 5 rounds of pop_size*5 selections from pop_size individuals,

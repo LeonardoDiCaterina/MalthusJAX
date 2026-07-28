@@ -1,3 +1,5 @@
+import dataclasses
+import warnings
 from abc import abstractmethod
 from typing import Any, Generic, Optional, Tuple, TypeVar, cast
 
@@ -6,18 +8,22 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.base import BasePopulation
+from malthusjax.core.base import BaseGenome, BasePopulation
 from malthusjax.core.random import is_new_style_key
 
-G = TypeVar("G")  # Genome Data
+G = TypeVar("G", bound=BaseGenome)  # Genome Data
 C = TypeVar("C")  # Config Data
+
+# Backward compatibility: P is kept as a module-level name so that existing
+# code using ``from malthusjax.operators.base import P`` continues to work,
+# but it is no longer used in operator class definitions.
 P = TypeVar("P", bound=BasePopulation[Any])
 
 _field: Any = struct.field
 
 
 @struct.dataclass
-class BaseMutation(Generic[G, C, P]):
+class BaseMutation(Generic[G, C]):
     """Vectorized mutation operator with pre-allocated key budgeting.
 
     Tier 3 of the 3-tier architecture: separates RNG (_generate_noise, Tier 2)
@@ -32,7 +38,35 @@ class BaseMutation(Generic[G, C, P]):
     Shape contracts:
     - Input: population.genes with leaf shapes (N, d, ...)
     - Output: population.genes with leaf shapes (N*K, d, ...) where K=num_offspring
+
+    Type system note (v2 array-family refactor):
+    The genome parameter `G` represents the structural PyTree type (e.g. `RealGenome`).
+    The population parameter `P` has been eliminated; population types are now strictly
+    inferred as `BasePopulation[G]`. This forces Tier-3 infrastructure to treat `G` as an
+    opaque PyTree without assuming a contiguous `.values` array.
+
+    .. deprecated:: 2.0
+        The third type parameter ``P`` (population type) has been removed.
+        Use ``BaseMutation[G, C]`` instead of ``BaseMutation[G, C, P]``.
+        Old signatures continue to work but emit a deprecation warning.
     """
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # Detect old-style 3-arg Generic usage in class bases.
+        for base in getattr(cls, "__orig_bases__", ()):
+            args = getattr(base, "__args__", None)
+            if args is not None and len(args) == 3:
+                origin = getattr(base, "__origin__", None)
+                if origin is BaseMutation:
+                    warnings.warn(
+                        f"{cls.__qualname__} uses BaseMutation[G, C, P] which is "
+                        "deprecated. Use BaseMutation[G, C] instead — the population "
+                        "type P is now inferred from G.",
+                        DeprecationWarning,
+                        stacklevel=2,
+                    )
+                    break
 
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
@@ -53,25 +87,31 @@ class BaseMutation(Generic[G, C, P]):
         """
         return input_shape[0] * self.num_offspring * self.num_keys_per_atomic_operation
 
-    def set_input_length(self, length: int) -> "BaseMutation[G, C, P]":
+    def set_input_length(self, length: int) -> "BaseMutation[G, C]":
         """Lock population size for static key budgeting."""
-        return cast("BaseMutation[G, C, P]", cast(Any, self).replace(input_length=length))
+        return dataclasses.replace(self, input_length=length)
 
-    def set_typed_keys(self, typed: bool) -> "BaseMutation[G, C, P]":
+    def set_typed_keys(self, typed: bool) -> "BaseMutation[G, C]":
         """
         Set key format based on PRNG impl.
         True = new-style typed keys,
         False = legacy uint32[2].
         """
-        return cast("BaseMutation[G, C, P]", cast(Any, self).replace(typed_keys=typed))
+        return dataclasses.replace(self, typed_keys=typed)
 
-    def set_max_generations(self, n: int) -> "BaseMutation[G, C, P]":
+    def set_max_generations(self, n: int) -> "BaseMutation[G, C]":
         """Set total generation count for operator-level scheduling."""
-        return cast("BaseMutation[G, C, P]", cast(Any, self).replace(max_generations=n))
+        return dataclasses.replace(self, max_generations=n)
 
     @abstractmethod
     def _mutate_one(self, genome: G, noise_data: Any, config: C, **kwargs: Any) -> G:
-        """Tier 1 — Pure mutation arithmetic: genome + noise → mutated genome."""
+        """Tier 1 — Pure mutation arithmetic: genome + noise → mutated genome.
+
+        This method operates on a single `G` structural instance. It should manipulate
+        the PyTree directly (e.g., via `jax.tree_util.tree_map`) rather than assuming
+        a rigid `.values` attribute. The Tier-3 `__call__` orchestrates the vmap to
+        map this operation across population batches without manual array slicing.
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -91,7 +131,9 @@ class BaseMutation(Generic[G, C, P]):
         noise = self._generate_noise(keys, config, generation)
         return self._mutate_one(genome, noise, config)
 
-    def __call__(self, all_keys: chex.Array, population: P, config: C, generation: int = 0) -> P:
+    def __call__(
+        self, all_keys: chex.Array, population: BasePopulation[G], config: C, generation: int = 0
+    ) -> BasePopulation[G]:
         """Tier 3 — Population-level mutation using JAX vmaps.
 
         This method orchestrates either a flat or nested vmap over the provided
@@ -116,7 +158,7 @@ class BaseMutation(Generic[G, C, P]):
                 return self._mutate_fused(k, g, config, generation)
 
             new_genes = jax.vmap(_mutate_flat, in_axes=(0, 0))(keys_flat, population.genes)
-            return cast(P, population.spawn_offspring(new_genes))
+            return population.spawn_offspring(new_genes)
 
         """
         General path: nested vmap for num_offspring > 1.
@@ -132,7 +174,7 @@ class BaseMutation(Generic[G, C, P]):
             return self._mutate_fused(keys_block, genome, config, generation)
 
         def _process_population(k_block: chex.Array, g: G) -> G:
-            return jax.vmap(_mutate_single, in_axes=(0, None))(k_block, g)
+            return jax.vmap(_mutate_single, in_axes=(0, None))(k_block, g)  # type: ignore[no-any-return]
 
         vmap_process = jax.vmap(_process_population, in_axes=(0, 0))
         nested_offspring = vmap_process(keys_reshaped, population.genes)
@@ -142,11 +184,11 @@ class BaseMutation(Generic[G, C, P]):
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes_flat = cast(G, jax.tree_util.tree_map(flatten_fn, nested_offspring))
-        return cast(P, population.spawn_offspring(new_genes_flat))
+        return population.spawn_offspring(new_genes_flat)
 
 
 @struct.dataclass
-class BaseCrossover(Generic[G, C, P]):
+class BaseCrossover(Generic[G, C]):
     """Vectorized crossover operator with pre-allocated key budgeting.
 
     Tier 3 of the 3-tier architecture: separates RNG (_generate_noise, Tier 2)
@@ -162,7 +204,34 @@ class BaseCrossover(Generic[G, C, P]):
     - Input: p1_pop, p2_pop with genes leaf shape (N, d, ...).
     - Output: genes shape (N*K, d, ...) where K=num_offspring.
     - Axis ordering: pair-major (direct reshape, no transpose).
+
+    Type system note (v2 array-family refactor):
+    The genome parameter `G` represents the structural PyTree type (e.g. `RealGenome`).
+    The population parameter `P` has been eliminated; population types are now strictly
+    inferred as `BasePopulation[G]`. This forces Tier-3 infrastructure to treat `G` as an
+    opaque PyTree without assuming a contiguous `.values` array.
+
+    .. deprecated:: 2.0
+        The third type parameter ``P`` (population type) has been removed.
+        Use ``BaseCrossover[G, C]`` instead of ``BaseCrossover[G, C, P]``.
+        Old signatures continue to work but emit a deprecation warning.
     """
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        for base in getattr(cls, "__orig_bases__", ()):
+            args = getattr(base, "__args__", None)
+            if args is not None and len(args) == 3:
+                origin = getattr(base, "__origin__", None)
+                if origin is BaseCrossover:
+                    warnings.warn(
+                        f"{cls.__qualname__} uses BaseCrossover[G, C, P] which is "
+                        "deprecated. Use BaseCrossover[G, C] instead — the population "
+                        "type P is now inferred from G.",
+                        DeprecationWarning,
+                        stacklevel=2,
+                    )
+                    break
 
     num_offspring: int = _field(pytree_node=False, default=1)
     input_length: int = _field(pytree_node=False, default=-1)
@@ -184,21 +253,21 @@ class BaseCrossover(Generic[G, C, P]):
         num_pairs = input_shape[0]
         return num_pairs * self.num_offspring * self.num_keys_per_atomic_operation
 
-    def set_input_length(self, length: int) -> "BaseCrossover[G, C, P]":
+    def set_input_length(self, length: int) -> "BaseCrossover[G, C]":
         """Lock pair count for static key budgeting."""
-        return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(input_length=length))
+        return dataclasses.replace(self, input_length=length)
 
-    def set_typed_keys(self, typed: bool) -> "BaseCrossover[G, C, P]":
+    def set_typed_keys(self, typed: bool) -> "BaseCrossover[G, C]":
         """
         Set key format based on PRNG impl.
         True = new-style typed keys,
         False = legacy uint32[2].
         """
-        return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(typed_keys=typed))
+        return dataclasses.replace(self, typed_keys=typed)
 
-    def set_max_generations(self, n: int) -> "BaseCrossover[G, C, P]":
+    def set_max_generations(self, n: int) -> "BaseCrossover[G, C]":
         """Set total generation count for operator-level scheduling."""
-        return cast("BaseCrossover[G, C, P]", cast(Any, self).replace(max_generations=n))
+        return dataclasses.replace(self, max_generations=n)
 
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
@@ -209,7 +278,13 @@ class BaseCrossover(Generic[G, C, P]):
     def _recombine_one(self, p1: G, p2: G, noise_data: Any, config: C, **kwargs: Any) -> G:
         """Tier 1 — Pure recombination: p1 + p2 + noise → offspring genome.
 
-        Returns single genome G, not tuple. Base class handles replication via num_offspring.
+        This method operates on single `G` structural instances representing parents.
+        It should manipulate the PyTrees directly rather than assuming a rigid `.values`
+        attribute. The Tier-3 `__call__` orchestrates the vmap to map this operation
+        across population batches.
+
+        Returns a single genome `G`, not a tuple. The base class handles replication
+        via `num_offspring`.
         """
         raise NotImplementedError
 
@@ -237,15 +312,20 @@ class BaseCrossover(Generic[G, C, P]):
         else:
             keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation, 2)
 
-        def _cross_one_return_values(k: chex.Array) -> chex.Array:
-            return cast(Any, self._cross_fused(k, p1, p2, config, generation)).values
+        def _cross_one(k: chex.Array) -> G:
+            return self._cross_fused(k, p1, p2, config, generation)
 
-        offspring_values = jax.vmap(_cross_one_return_values)(keys_reshaped)
-        return cast(G, cast(Any, p1).replace(values=offspring_values))
+        offspring = jax.vmap(_cross_one)(keys_reshaped)
+        return cast(G, offspring)
 
     def __call__(
-        self, all_keys: chex.Array, p1_pop: P, p2_pop: P, config: C, generation: int = 0
-    ) -> P:
+        self,
+        all_keys: chex.Array,
+        p1_pop: BasePopulation[G],
+        p2_pop: BasePopulation[G],
+        config: C,
+        generation: int = 0,
+    ) -> BasePopulation[G]:
         """Tier 3 — Population-level crossover executed via JAX vmaps.
 
         Handles both the single‑offspring fast path and the general nested vmap
@@ -268,7 +348,7 @@ class BaseCrossover(Generic[G, C, P]):
             new_genes = jax.vmap(_cross_flat, in_axes=(0, 0, 0))(
                 keys_flat, p1_pop.genes, p2_pop.genes
             )
-            return cast(P, p1_pop.spawn_offspring(new_genes))
+            return p1_pop.spawn_offspring(new_genes)
 
         if self.typed_keys:
             keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys)
@@ -292,7 +372,7 @@ class BaseCrossover(Generic[G, C, P]):
             return x.reshape((-1,) + x.shape[2:])
 
         new_genes_flat = cast(G, jax.tree_util.tree_map(flatten_fn, nested_offspring))
-        return cast(P, p1_pop.spawn_offspring(new_genes_flat))
+        return p1_pop.spawn_offspring(new_genes_flat)
 
 
 @struct.dataclass
@@ -320,7 +400,7 @@ class BaseSelection(Generic[P, C]):
 
     def set_input_length(self, length: int) -> "BaseSelection[P, C]":
         """Lock population size for static budgeting."""
-        return cast("BaseSelection[P, C]", cast(Any, self).replace(input_length=length))
+        return dataclasses.replace(self, input_length=length)
 
     def set_typed_keys(self, typed: bool) -> "BaseSelection[P, C]":
         """
@@ -328,11 +408,11 @@ class BaseSelection(Generic[P, C]):
         True = new-style typed keys,
         False = legacy uint32[2].
         """
-        return cast("BaseSelection[P, C]", cast(Any, self).replace(typed_keys=typed))
+        return dataclasses.replace(self, typed_keys=typed)
 
     def set_n_elites(self, n: int) -> "BaseSelection[P, C]":
         """Set elite count for preservation (called once at engine init)."""
-        return cast("BaseSelection[P, C]", cast(Any, self).replace(n_elites=n))
+        return dataclasses.replace(self, n_elites=n)
 
     @property
     @abstractmethod

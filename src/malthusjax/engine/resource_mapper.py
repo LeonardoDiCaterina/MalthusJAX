@@ -78,7 +78,7 @@ class ShardingManager:
         """
         keys = jax.random.split(key, num)
 
-        return cast(chex.Array, jax.device_put(keys, self.pop_sharding))
+        return jax.device_put(keys, self.pop_sharding)
 
 
 class OperatorAllocation(NamedTuple):
@@ -132,7 +132,7 @@ class ResourceMap:
         case the output length matches ``total_rng_budget``.
         """
         if self.key_derivation == KeyDerivationStrategy.SPLIT:
-            return cast(chex.Array, jax.random.split(master_key, int(self.total_rng_budget)))
+            return jax.random.split(master_key, int(self.total_rng_budget))
         elif self.key_derivation == KeyDerivationStrategy.FOLD:
 
             def _fold_in(i: chex.Array) -> chex.Array:
@@ -146,8 +146,8 @@ class ResourceMap:
 
 def compute_resource_map(
     selection: BaseSelection[Any, Any],
-    crossover: BaseCrossover[Any, Any, Any],
-    mutation: BaseMutation[Any, Any, Any],
+    crossover: BaseCrossover[Any, Any],
+    mutation: BaseMutation[Any, Any],
     genome_config: Any,
     pop_size: int,
     elitism: int = 0,

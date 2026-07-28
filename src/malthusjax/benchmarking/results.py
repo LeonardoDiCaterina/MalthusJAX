@@ -329,23 +329,23 @@ class ExperimentResult:
             mean = statistics.mean(vals)
             med = statistics.median(vals)
             stdev = statistics.stdev(vals) if len(vals) > 1 else 0.0
-            
+
             ci_lower = mean
             ci_upper = mean
             ci_margin = 0.0
             if len(vals) > 1 and sp_stats is not None:
                 sem = stdev / math.sqrt(len(vals))
-                ci_margin = sp_stats.t.ppf(0.975, df=len(vals)-1) * sem
+                ci_margin = sp_stats.t.ppf(0.975, df=len(vals) - 1) * sem
                 ci_lower = mean - ci_margin
                 ci_upper = mean + ci_margin
 
             summary[k] = {
-                "mean": mean, 
-                "median": med, 
+                "mean": mean,
+                "median": med,
                 "stdev": stdev,
                 "ci_lower": ci_lower,
                 "ci_upper": ci_upper,
-                "ci_margin": ci_margin
+                "ci_margin": ci_margin,
             }
         return summary
 
@@ -473,7 +473,9 @@ class ComparisonResult:
         """Pipeline names in insertion order."""
         return list(self.pipelines.keys())
 
-    def summary_table(self, latex: bool = False, optimum: Optional[float] = None) -> Union[Dict[str, Dict[str, float]], str]:
+    def summary_table(
+        self, latex: bool = False, optimum: Optional[float] = None
+    ) -> Union[Dict[str, Dict[str, float]], str]:
         """Compute per-pipeline aggregated metrics across all seeds.
 
         This is the main method for comparing algorithm performance. Returns
@@ -534,15 +536,13 @@ class ComparisonResult:
             table_row = {}
             for k, v in agg.items():
                 mean_val = (
-                    v["mean"] * s
-                    if k in self._FITNESS_KEYS and optimum is None
-                    else v["mean"]
+                    v["mean"] * s if k in self._FITNESS_KEYS and optimum is None else v["mean"]
                 )
                 table_row[k] = {
                     "mean": mean_val,
                     "ci_margin": v.get("ci_margin", 0.0),
                     "ci_lower": v.get("ci_lower", mean_val),
-                    "ci_upper": v.get("ci_upper", mean_val)
+                    "ci_upper": v.get("ci_upper", mean_val),
                 }
             table[name] = table_row
 
@@ -575,7 +575,7 @@ class ComparisonResult:
         lines.append("\\hline")
 
         for pipeline_name, metrics in table.items():
-            row = [ _latex_escape(pipeline_name) ]
+            row = [_latex_escape(pipeline_name)]
             for metric in metric_names:
                 val = metrics.get(metric)
                 if val is None:
@@ -620,8 +620,7 @@ class ComparisonResult:
         normalized_runs: List[RunResult] = []
         for run in self.pipelines[pipeline_name].runs:
             normalized_metrics = {
-                k: (v * sign if k in self._FITNESS_KEYS else v)
-                for k, v in run.metrics.items()
+                k: (v * sign if k in self._FITNESS_KEYS else v) for k, v in run.metrics.items()
             }
             normalized_history = [
                 {k: (v * sign if k in self._FITNESS_KEYS else v) for k, v in row.items()}
@@ -643,8 +642,9 @@ class ComparisonResult:
 
         return normalized_runs
 
-
-    def statistical_speedup(self, base_pipeline: str, target_pipeline: str, conf_level: float = 0.95) -> Dict[str, float]:
+    def statistical_speedup(
+        self, base_pipeline: str, target_pipeline: str, conf_level: float = 0.95
+    ) -> Dict[str, float]:
         """Compute paired speedup (Base / Target) across seeds with confidence intervals."""
         if sp_stats is None:
             raise ImportError("scipy is required for statistical tests.")
@@ -661,8 +661,8 @@ class ComparisonResult:
 
         speedups = []
         for seed in common_seeds:
-            # Drop warmup (highest duration in both, wait, we do this by just removing max if we had lists. 
-            # If we want to be safe, we just use the raw durations here. Actually it's better to just do pairing. 
+            # Drop warmup (highest duration in both, wait, we do this by just removing max if we had lists.
+            # If we want to be safe, we just use the raw durations here. Actually it's better to just do pairing.
             # Or we can remove the maximum duration seed from the paired list.)
             speedups.append(base_runs[seed].duration_seconds / target_runs[seed].duration_seconds)
 
@@ -682,23 +682,34 @@ class ComparisonResult:
         if n > 1:
             sem = stdev / math.sqrt(n)
             alpha = 1.0 - conf_level
-            ci_margin = sp_stats.t.ppf(1 - alpha/2, df=n-1) * sem
+            ci_margin = sp_stats.t.ppf(1 - alpha / 2, df=n - 1) * sem
 
         return {
             "mean_speedup": mean_speedup,
             "ci_lower": mean_speedup - ci_margin,
             "ci_upper": mean_speedup + ci_margin,
             "stdev": stdev,
-            "n_samples": n
+            "n_samples": n,
         }
 
-    def statistical_fitness_delta(self, base_pipeline: str, target_pipeline: str, metric_key: str = "best_fitness", conf_level: float = 0.95, optimum: Optional[float] = None) -> Dict[str, float]:
+    def statistical_fitness_delta(
+        self,
+        base_pipeline: str,
+        target_pipeline: str,
+        metric_key: str = "best_fitness",
+        conf_level: float = 0.95,
+        optimum: Optional[float] = None,
+    ) -> Dict[str, float]:
         """Compute paired fitness delta (Target - Base) across seeds with confidence intervals."""
         if sp_stats is None:
             raise ImportError("scipy is required for statistical tests.")
 
-        base_runs = {r.seed: r for r in self.normalized_runs(base_pipeline) if metric_key in r.metrics}
-        target_runs = {r.seed: r for r in self.normalized_runs(target_pipeline) if metric_key in r.metrics}
+        base_runs = {
+            r.seed: r for r in self.normalized_runs(base_pipeline) if metric_key in r.metrics
+        }
+        target_runs = {
+            r.seed: r for r in self.normalized_runs(target_pipeline) if metric_key in r.metrics
+        }
 
         common_seeds = set(base_runs.keys()).intersection(target_runs.keys())
         if not common_seeds:
@@ -721,14 +732,14 @@ class ComparisonResult:
         if n > 1:
             sem = stdev / math.sqrt(n)
             alpha = 1.0 - conf_level
-            ci_margin = sp_stats.t.ppf(1 - alpha/2, df=n-1) * sem
+            ci_margin = sp_stats.t.ppf(1 - alpha / 2, df=n - 1) * sem
 
         return {
             "mean_delta": mean_delta,
             "ci_lower": mean_delta - ci_margin,
             "ci_upper": mean_delta + ci_margin,
             "stdev": stdev,
-            "n_samples": n
+            "n_samples": n,
         }
 
     def timing_data(self, timing_key: str = "duration_seconds") -> Dict[str, List[float]]:
@@ -814,9 +825,7 @@ class ComparisonResult:
                 values.append(timings)
 
         if not values:
-            raise ValueError(
-                f"No timing values available for timing_key='{timing_key}'"
-            )
+            raise ValueError(f"No timing values available for timing_key='{timing_key}'")
 
         fig: Figure | None = None
         if ax is None:
@@ -841,7 +850,9 @@ class ComparisonResult:
 
         return ax
 
-    def final_metric_data(self, metric_key: str = "best_fitness", optimum: Optional[float] = None) -> Dict[str, List[float]]:
+    def final_metric_data(
+        self, metric_key: str = "best_fitness", optimum: Optional[float] = None
+    ) -> Dict[str, List[float]]:
         """Collect final metric values for each pipeline across all seeds.
 
         Parameters
@@ -887,7 +898,10 @@ class ComparisonResult:
                     value = value * sign
                 values.append(value)
 
-            if metric_key in ("duration_seconds", "execution", "total", "warmup") and len(values) > 1:
+            if (
+                metric_key in ("duration_seconds", "execution", "total", "warmup")
+                and len(values) > 1
+            ):
                 values = values[1:]
 
             data[name] = values
@@ -942,9 +956,7 @@ class ComparisonResult:
                 values.append(metric_vals)
 
         if not values:
-            raise ValueError(
-                f"No metric values available for metric_key='{metric_key}'"
-            )
+            raise ValueError(f"No metric values available for metric_key='{metric_key}'")
 
         fig: Figure | None = None
         if ax is None:
@@ -1198,15 +1210,13 @@ class ComparisonResult:
                     )
                 fig = getattr(axes[0], "figure", None)
             else:
-                raise ValueError(
-                    "When seed_index is a list, ax must be an iterable of axes."
-                )
+                raise ValueError("When seed_index is a list, ax must be an iterable of axes.")
 
             for subplot_ax, seed in zip(axes, seed_list):
-                subplot_title = (
-                    f"{title} (seed {seed})" if title is not None else f"Seed {seed}"
+                subplot_title = f"{title} (seed {seed})" if title is not None else f"Seed {seed}"
+                self.plot_convergence(
+                    seed, ax=subplot_ax, title=subplot_title, negate=negate, optimum=optimum
                 )
-                self.plot_convergence(seed, ax=subplot_ax, title=subplot_title, negate=negate, optimum=optimum)
 
             if save_path is not None and fig is not None:
                 out_path = Path(save_path)
@@ -1296,26 +1306,35 @@ class ComparisonResult:
 
         # Add colors if possible
         colors = [
-            '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-            '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b",
+            "#e377c2",
+            "#7f7f7f",
+            "#bcbd22",
+            "#17becf",
         ]
-        for i, patch in enumerate(bplot['boxes']):
+        for i, patch in enumerate(bplot["boxes"]):
             patch.set_facecolor(colors[i % len(colors)])
             patch.set_alpha(0.7)
 
-        for median in bplot['medians']:
-            median.set_color('black')
+        for median in bplot["medians"]:
+            median.set_color("black")
             median.set_linewidth(1.5)
 
         ax.set_title(title or f"{metric_key} Distribution Over Seeds")
         ax.set_ylabel(metric_key)
-        ax.grid(True, alpha=0.3, axis='y')
+        ax.grid(True, alpha=0.3, axis="y")
 
         if save_path is not None and fig is not None:
             out_path = Path(save_path)
             out_path.parent.mkdir(parents=True, exist_ok=True)
             fig.savefig(out_path, bbox_inches="tight")
         return ax
+
 
 class MetaComparison:
     """Aggregate suite for comparing multiple experiments natively."""
@@ -1327,7 +1346,9 @@ class MetaComparison:
         try:
             import matplotlib.pyplot as plt
         except ImportError as e:
-            raise ImportError("matplotlib is required. Install it with: pip install matplotlib") from e
+            raise ImportError(
+                "matplotlib is required. Install it with: pip install matplotlib"
+            ) from e
 
         n = len(self.comparisons)
         if n == 0:
@@ -1349,7 +1370,12 @@ class MetaComparison:
             fig.savefig(out_path, bbox_inches="tight")
         return axes
 
-    def plot_boxplot_grid(self, save_path: Optional[Union[str, Path]] = None, metric_key: str = "best_fitness", **kwargs) -> Any:
+    def plot_boxplot_grid(
+        self,
+        save_path: Optional[Union[str, Path]] = None,
+        metric_key: str = "best_fitness",
+        **kwargs,
+    ) -> Any:
         try:
             import matplotlib.pyplot as plt
         except ImportError as e:
@@ -1364,16 +1390,9 @@ class MetaComparison:
             axes = [axes]
 
         for ax, (exp_name, comp) in zip(axes, self.comparisons.items()):
-            comp.plot_boxplots(
-                metric_key=metric_key,
-                ax=ax,
-                title=exp_name,
-                **kwargs
-            )
+            comp.plot_boxplots(metric_key=metric_key, ax=ax, title=exp_name, **kwargs)
 
-        fig.suptitle(
-            f"{metric_key.capitalize()} Distribution Suite", fontsize=16, y=1.05
-        )
+        fig.suptitle(f"{metric_key.capitalize()} Distribution Suite", fontsize=16, y=1.05)
         plt.tight_layout()
         if save_path:
             out_path = Path(save_path)

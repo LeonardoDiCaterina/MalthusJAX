@@ -66,6 +66,7 @@ class RouletteSelection(BaseSelection[P, C]):
     selection behavior.
 
     **Temperature Tuning**:
+
     - Low temperature (0.1-0.5): Aggressive selection pressure, risk of premature
       convergence to local optima
     - Medium temperature (1.0-2.0): Balanced, recommended for exploiting good regions
@@ -73,11 +74,13 @@ class RouletteSelection(BaseSelection[P, C]):
     - High temperature (5.0+): Uniform sampling, high diversity, slow convergence
 
     **Computational Complexity**:
+
     - With Gumbel-Max and num_selections == pop_size: O(N log N) due to reduction
     - Otherwise: O(N + num_selections) via categorical sampling
     - Memory: O(N × num_selections) for Gumbel-Max, O(N) for categorical
 
     **When to Use**:
+
     - Problem has well-characterized fitness landscape
     - You want fitness-weighted selection (high-fitness individuals breed more)
     - Diversity is maintained through other mechanisms (mutation, crossover)

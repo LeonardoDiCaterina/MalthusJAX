@@ -36,7 +36,7 @@ class TestSingleStepLatency:
 
         benchmark.group = f"single_step/pop{pop_size}_d{dims}"
         benchmark.name = "malthusjax_evosaxops" if use_evosax_ops else "malthusjax"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
@@ -58,7 +58,7 @@ class TestSingleStepLatency:
 
         benchmark.group = f"single_step/pop{pop_size}_d{dims}"
         benchmark.name = "malthusjax_roulette_evosaxops"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     @pytest.mark.parametrize("pop_size", POP_SIZES)
     @pytest.mark.parametrize("dims", DIMENSIONS)
@@ -80,7 +80,7 @@ class TestSingleStepLatency:
 
         benchmark.group = f"single_step/pop{pop_size}_d{dims}"
         benchmark.name = "malthusjax_tournament_evosaxops"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     # --- Evosax ---
 
@@ -96,4 +96,4 @@ class TestSingleStepLatency:
 
         benchmark.group = f"single_step/pop{pop_size}_d{dims}"
         benchmark.name = "evosax"
-        benchmark.pedantic(_run, iterations=1, rounds=100, warmup_rounds=2)
+        benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)

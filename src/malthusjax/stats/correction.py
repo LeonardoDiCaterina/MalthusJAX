@@ -75,5 +75,5 @@ def adjust_pvalues(
         return holm_bonferroni(p_values)
     if policy == MultipleTestingPolicy.FDR_BH:
         return fdr_bh(p_values)
-    
+
     raise NotImplementedError(f"Unsupported multiple-testing policy: {policy.value}")

@@ -41,17 +41,23 @@ class PlotStyle:
             return cls()
 
         known_fields = {
-            "width", "height", "palette", "title_fontsize",
-            "label_fontsize", "tick_fontsize", "grid", "legend_loc"
+            "width",
+            "height",
+            "palette",
+            "title_fontsize",
+            "label_fontsize",
+            "tick_fontsize",
+            "grid",
+            "legend_loc",
         }
-        
+
         kwargs = {}
         fields_data = {}
-        
+
         for k, v in data.items():
             if k in known_fields:
                 fields_data[k] = v
             else:
                 kwargs[k] = v
-                
+
         return cls(**fields_data, kwargs=kwargs)

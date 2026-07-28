@@ -12,8 +12,9 @@ def get_default_style() -> PlotStyle:
         tick_fontsize=10,
         grid=True,
         legend_loc="upper right",
-        kwargs={}
+        kwargs={},
     )
+
 
 def get_dark_style() -> PlotStyle:
     """Provides a premium dark mode styling template."""
@@ -26,5 +27,5 @@ def get_dark_style() -> PlotStyle:
         tick_fontsize=10,
         grid=True,
         legend_loc="upper right",
-        kwargs={"facecolor": "#2c3e50"}
+        kwargs={"facecolor": "#2c3e50"},
     )

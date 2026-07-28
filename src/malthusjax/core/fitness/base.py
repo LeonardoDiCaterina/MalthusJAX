@@ -55,10 +55,13 @@ class BaseEvaluator(Generic[G, C, D]):
     def evaluate(self, genome: G) -> chex.Numeric:
         """Compute fitness for a single genome.
 
-        The provided genome should contain unbatched values. The return value is
-        a scalar (or a small vector for multiobjective cases) suitable for
-        JIT‑compiled pipelines. Implementations may use ``self.config`` and
-        ``self.data`` to parameterize the evaluation.
+        The provided genome (`G`) is an unbatched PyTree instance. Evaluators
+        should extract necessary fields (e.g., `.values`) themselves according
+        to the specific genome structure they expect.
+
+        The return value is a scalar (or a small vector for multiobjective cases)
+        suitable for JIT‑compiled pipelines. Implementations may use ``self.config``
+        and ``self.data`` during evaluation.
         """
         raise NotImplementedError
 

@@ -332,7 +332,7 @@ class TestBitFlipCorrelationPatterns:
 
         # Each offspring should have same bits as parent (permuted)
         for i in range(2):
-            parent_bits = jnp.sort(pop.values[i])
+            parent_bits = jnp.sort(pop.genes.values[i])
             offspring_bits = jnp.sort(offspring.values[i])
             assert jnp.array_equal(parent_bits, offspring_bits), (
                 f"Scramble should preserve bit set, got parent={parent_bits}, "
@@ -352,6 +352,6 @@ class TestBitFlipCorrelationPatterns:
         offspring = op(keys, pop, binary_config)
 
         # With mutation_rate=1.0, all offspring should differ from parents
-        assert not jnp.any(jnp.all(offspring.values == pop.values, axis=1)), (
+        assert not jnp.any(jnp.all(offspring.values == pop.genes.values, axis=1)), (
             "SwapMutation with rate=1.0 should modify all individuals"
         )'''
