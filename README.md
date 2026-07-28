@@ -231,6 +231,29 @@ comparison = composer.compare(
 print(comparison.summary_table())
 ```
 
+### Integrating External Libraries (EvoSAX & QDAX)
+
+MalthusJAX's Composer allows you to effortlessly benchmark external libraries like **EvoSAX** against native MalthusJAX strategies in a single unified script:
+
+```python
+from malthusjax.composer import Composer
+
+composer = Composer.create_default()
+
+result = composer.quick_run(
+    fitness="bbob:fn_name=sphere,dim=10",
+    backend="evosax",                     # Use the EvoSAX backend!
+    evosax_strategy="CMA_ES",             # Select any EvoSAX strategy
+    pop_size=64,
+    generations=100,
+    seeds=(42, 43)
+)
+
+print(result.aggregated_summary())
+```
+
+For advanced Quality-Diversity experiments, MalthusJAX provides native adapter functions like `build_qdax_engine` and `build_tensorneat_engine` to deeply embed MAP-Elites grids or NEAT topologies directly into the Engine protocol.
+
 ---
 
 ## Extending MalthusJAX with Decorators
