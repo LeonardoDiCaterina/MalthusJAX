@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.mutation.real module" href="malthusjax.operators.mutation.real.html"><link rel="prev" title="malthusjax.operators.mutation.binary module" href="malthusjax.operators.mutation.binary.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.mutation.evosax_mutation module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,88 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-mutation-evosax-mutation-module">
-<h1>malthusjax.operators.mutation.evosax_mutation module<a class="headerlink" href="#malthusjax-operators-mutation-evosax-mutation-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.mutation.evosax_mutation">
+<span id="malthusjax-operators-mutation-evosax-mutation-module"></span><h1>malthusjax.operators.mutation.evosax_mutation module<a class="headerlink" href="#module-malthusjax.operators.mutation.evosax_mutation" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.evosax_mutation.</span></span><span class="sig-name descname"><span class="pre">EvosaxGaussianWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">injection_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/evosax_mutation.html#EvosaxGaussianWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a>]</p>
+<p>Evosax Gaussian Mutation Wrapper (Integration Adapter).
+Single-key injection-mode integration of evosax.mutation Gaussian operator.
+Key strategy: Accepts single PRNG key, splits per individual (pop_size subkeys),
+applies evosax mutation to each genome independently via jax.vmap.
+Default num_keys_per_atomic_operation=1 (reported budget for static framework).
+Trade-off: Dynamic key splitting (memory efficient) vs static XLA shape stability.
+Purpose: Benchmarking evosax compatibility, ablation baseline for framework
+comparison, demonstrating alternative single-key injection interface pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>injection_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.mutation_strength">
+<span class="sig-name descname"><span class="pre">mutation_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.mutation_strength" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.injection_mode">
+<span class="sig-name descname"><span class="pre">injection_mode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.injection_mode" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>This wrapper consumes 1 atomic key for each fused operation. We
+expose 1 here so that the BaseMutation reshape logic produces a
+non-zero atomic key axis. The single key will be flattened and the
+first 2-int PRNG pair extracted before calling Evosax.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/evosax_mutation.html#EvosaxGaussianWrapper.num_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Return key budget.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">injection_mode=True</span></code> (default), always returns 1 so the
+ResourceMapper allocates a single key that this wrapper splits
+dynamically.  With <code class="docutils literal notranslate"><span class="pre">injection_mode=False</span></code>, returns the standard
+per-individual budget delegated to the base-class fused path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.InjectionGaussianMutation">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.evosax_mutation.</span></span><span class="sig-name descname"><span class="pre">InjectionGaussianMutation</span></span><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.InjectionGaussianMutation" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="malthusjax.operators.mutation.real.html#malthusjax.operators.mutation.real.GaussianMutation_injection" title="malthusjax.operators.mutation.real.GaussianMutation_injection"><code class="xref py py-class docutils literal notranslate"><span class="pre">GaussianMutation_injection</span></code></a></p>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +438,35 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.mutation.evosax_mutation module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.mutation_strength"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.mutation_strength</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.injection_mode"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.injection_mode</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.num_keys"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.replace"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.InjectionGaussianMutation"><code class="docutils literal notranslate"><span class="pre">InjectionGaussianMutation</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

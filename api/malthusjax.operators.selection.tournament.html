@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.base module" href="malthusjax.operators.base.html"><link rel="prev" title="malthusjax.operators.selection.roulette module" href="malthusjax.operators.selection.roulette.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.selection.tournament module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,101 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-selection-tournament-module">
-<h1>malthusjax.operators.selection.tournament module<a class="headerlink" href="#malthusjax-operators-selection-tournament-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.selection.tournament">
+<span id="malthusjax-operators-selection-tournament-module"></span><h1>malthusjax.operators.selection.tournament module<a class="headerlink" href="#module-malthusjax.operators.selection.tournament" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.tournament.TournamentSelection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.selection.tournament.</span></span><span class="sig-name descname"><span class="pre">TournamentSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_selections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_elites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tournament_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/selection/tournament.html#TournamentSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.selection.tournament.TournamentSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSelection</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Tournament Selection (Balanced Exploitation &amp; Exploration).</p>
+<p>In tournament selection, the algorithm repeatedly:
+1. Randomly sample <code class="docutils literal notranslate"><span class="pre">tournament_size</span></code> individuals from the population
+2. Select the individual with the highest fitness
+3. Repeat <code class="docutils literal notranslate"><span class="pre">num_selections</span></code> times (with replacement)</p>
+<p>This provides a good middle ground between pure elite selection (high exploitation)
+and fitness-proportional selection (fitness-weighted exploration).</p>
+<p><strong>String Specification Format</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;tournament:num_selections=INT,tournament_size=INT&quot;</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;tournament&quot;</span>  <span class="c1"># Use defaults (num_selections=4,</span>
+             <span class="c1">#                tournament_size=3)</span>
+<span class="s2">&quot;tournament:num_selections=25&quot;</span>  <span class="c1"># Custom num_selections, default tournament_size</span>
+<span class="s2">&quot;tournament:num_selections=50,tournament_size=5&quot;</span>  <span class="c1"># Both custom</span>
+<span class="s2">&quot;tournament:tournament_size=7&quot;</span>  <span class="c1"># Custom tournament size, default num_selections</span>
+</pre></div>
+</div>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>tournament_size<span class="classifier">int, optional</span></dt><dd><p>Number of candidates sampled per tournament round.
+Valid range: 2 to population_size.
+- tournament_size=2: Mild selection pressure, high diversity
+- tournament_size=3-5: Balanced (recommended for most problems)
+- tournament_size=7+: Strong selection pressure, lower diversity
+Default: 3 (recommended for general-purpose problems).</p>
+</dd>
+<dt>num_selections<span class="classifier">int</span></dt><dd><p>Number of individuals to select (typically equals population size).
+Set by the engine during <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_input_length()</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p><strong>Fitness Requirements</strong>: Tournament selection supports all fitness ranges
+(positive, negative, zero, or mixed). The algorithm only compares relative
+fitness values, making it robust to any fitness function.</p>
+<p><strong>Selection Pressure</strong>: The <code class="docutils literal notranslate"><span class="pre">tournament_size</span></code> parameter directly controls
+selection pressure.
+- Larger tournaments → stronger preference for high-fitness individuals
+- Smaller tournaments → more uniform selection (higher diversity)</p>
+<p><strong>Recommended Default</strong>: <code class="docutils literal notranslate"><span class="pre">tournament_size=3</span></code> offers a good balance for
+most optimization problems. Increase to 5-7 for harder landscapes or when
+you want faster convergence. Use 2 for maintaining diversity.</p>
+<p><strong>Computational Complexity</strong>: O(num_selections × tournament_size) for one call.
+Very efficient on GPUs due to vectorization of tournament sampling.</p>
+<p><strong>Trade-offs</strong>:
+- Better diversity than elite selection alone
+- Simpler than fitness-proportional selection (no averaging)
+- Works with any fitness function (unlike roulette selection)
+- Consistent selection pressure across generations</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.tournament.TournamentSelection.tournament_size">
+<span class="sig-name descname"><span class="pre">tournament_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#malthusjax.operators.selection.tournament.TournamentSelection.tournament_size" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.tournament.TournamentSelection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.tournament.TournamentSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.tournament.TournamentSelection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.selection.tournament.TournamentSelection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>tournament_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +451,32 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.selection.tournament module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.tournament.TournamentSelection"><code class="docutils literal notranslate"><span class="pre">TournamentSelection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.tournament.TournamentSelection.tournament_size"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.tournament_size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.tournament.TournamentSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.tournament.TournamentSelection.replace"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

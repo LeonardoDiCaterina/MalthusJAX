@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.base_ablation module" href="malthusjax.operators.base_ablation.html"><link rel="prev" title="malthusjax.operators.selection.tournament module" href="malthusjax.operators.selection.tournament.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.base module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,430 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-base-module">
-<h1>malthusjax.operators.base module<a class="headerlink" href="#malthusjax-operators-base-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.base">
+<span id="malthusjax-operators-base-module"></span><h1>malthusjax.operators.base module<a class="headerlink" href="#module-malthusjax.operators.base" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.base.</span></span><span class="sig-name descname"><span class="pre">BaseMutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseMutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseMutation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Vectorized mutation operator with pre-allocated key budgeting.</p>
+<p>Tier 3 of the 3-tier architecture: separates RNG (_generate_noise, Tier 2)
+from pure arithmetic (_mutate_one, Tier 1). Fuses both into single vmap
+kernel via _mutate_fused for XLA optimization (RNG + arithmetic in one pass).</p>
+<p>Vmap structure:
+- Outer vmap: Iterate over input_length individuals (population dimension).
+- Inner vmap: Iterate over num_offspring mutants per individual (offspring dimension).
+- Key budgeting: __call__ expects keys shape (input_length, num_offspring, atomic_keys, 2).</p>
+<p>Shape contracts:
+- Input: population.genes with leaf shapes (N, d, …)
+- Output: population.genes with leaf shapes (N*K, d, …) where K=num_offspring</p>
+<p>Type system note (v2 array-family refactor):
+The genome parameter <cite>G</cite> represents the structural PyTree type (e.g. <cite>RealGenome</cite>).
+The population parameter <cite>P</cite> has been eliminated; population types are now strictly
+inferred as <cite>BasePopulation[G]</cite>. This forces Tier-3 infrastructure to treat <cite>G</cite> as an
+opaque PyTree without assuming a contiguous <cite>.values</cite> array.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.0: </span>The third type parameter <code class="docutils literal notranslate"><span class="pre">P</span></code> (population type) has been removed.
+Use <code class="docutils literal notranslate"><span class="pre">BaseMutation[G,</span> <span class="pre">C]</span></code> instead of <code class="docutils literal notranslate"><span class="pre">BaseMutation[G,</span> <span class="pre">C,</span> <span class="pre">P]</span></code>.
+Old signatures continue to work but emit a deprecation warning.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.num_offspring">
+<span class="sig-name descname"><span class="pre">num_offspring</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.num_offspring" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.input_length">
+<span class="sig-name descname"><span class="pre">input_length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.input_length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.typed_keys">
+<span class="sig-name descname"><span class="pre">typed_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.typed_keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.max_generations">
+<span class="sig-name descname"><span class="pre">max_generations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.max_generations" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per (individual, offspring) pair. Budgeted by ResourceMapper.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseMutation.num_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Total keys needed: input_length * num_offspring * atomic_keys.</p>
+<p>Returns shape for ResourceMapper pre-allocation:
+(input_length, num_offspring, num_keys_per_atomic_operation, [2]).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.set_input_length">
+<span class="sig-name descname"><span class="pre">set_input_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseMutation.set_input_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.set_input_length" title="Link to this definition">¶</a></dt>
+<dd><p>Lock population size for static key budgeting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><em>BaseMutation</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.set_typed_keys">
+<span class="sig-name descname"><span class="pre">set_typed_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseMutation.set_typed_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.set_typed_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Set key format based on PRNG impl.
+True = new-style typed keys,
+False = legacy uint32[2].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>typed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><em>BaseMutation</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.set_max_generations">
+<span class="sig-name descname"><span class="pre">set_max_generations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseMutation.set_max_generations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.set_max_generations" title="Link to this definition">¶</a></dt>
+<dd><p>Set total generation count for operator-level scheduling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><em>BaseMutation</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.base.</span></span><span class="sig-name descname"><span class="pre">BaseCrossover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Vectorized crossover operator with pre-allocated key budgeting.</p>
+<p>Tier 3 of the 3-tier architecture: separates RNG (_generate_noise, Tier 2)
+from pure recombination (_recombine_one, Tier 1). Fuses both via _cross_fused
+for XLA optimization.</p>
+<p>Vmap structure:
+- Outer vmap: Iterate over input_length parent pairs.
+- Inner vmap: Iterate over num_offspring per pair.
+- Key budgeting: __call__ expects keys shape (input_length, num_offspring, atomic_keys, 2).</p>
+<p>Shape contracts:
+- Input: p1_pop, p2_pop with genes leaf shape (N, d, …).
+- Output: genes shape (N*K, d, …) where K=num_offspring.
+- Axis ordering: pair-major (direct reshape, no transpose).</p>
+<p>Type system note (v2 array-family refactor):
+The genome parameter <cite>G</cite> represents the structural PyTree type (e.g. <cite>RealGenome</cite>).
+The population parameter <cite>P</cite> has been eliminated; population types are now strictly
+inferred as <cite>BasePopulation[G]</cite>. This forces Tier-3 infrastructure to treat <cite>G</cite> as an
+opaque PyTree without assuming a contiguous <cite>.values</cite> array.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.0: </span>The third type parameter <code class="docutils literal notranslate"><span class="pre">P</span></code> (population type) has been removed.
+Use <code class="docutils literal notranslate"><span class="pre">BaseCrossover[G,</span> <span class="pre">C]</span></code> instead of <code class="docutils literal notranslate"><span class="pre">BaseCrossover[G,</span> <span class="pre">C,</span> <span class="pre">P]</span></code>.
+Old signatures continue to work but emit a deprecation warning.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.num_offspring">
+<span class="sig-name descname"><span class="pre">num_offspring</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.num_offspring" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.input_length">
+<span class="sig-name descname"><span class="pre">input_length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.input_length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.typed_keys">
+<span class="sig-name descname"><span class="pre">typed_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.typed_keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.max_generations">
+<span class="sig-name descname"><span class="pre">max_generations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.max_generations" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per (pair, offspring) combo. Budgeted by ResourceMapper.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover.num_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Total keys needed: num_pairs * num_offspring * atomic_keys.</p>
+<p>Returns shape for ResourceMapper:
+(input_length, num_offspring, num_keys_per_atomic_operation, [2]).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.set_input_length">
+<span class="sig-name descname"><span class="pre">set_input_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover.set_input_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.set_input_length" title="Link to this definition">¶</a></dt>
+<dd><p>Lock pair count for static key budgeting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.set_typed_keys">
+<span class="sig-name descname"><span class="pre">set_typed_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover.set_typed_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.set_typed_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Set key format based on PRNG impl.
+True = new-style typed keys,
+False = legacy uint32[2].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>typed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.set_max_generations">
+<span class="sig-name descname"><span class="pre">set_max_generations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover.set_max_generations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.set_max_generations" title="Link to this definition">¶</a></dt>
+<dd><p>Set total generation count for operator-level scheduling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.cross_single_pair">
+<span class="sig-name descname"><span class="pre">cross_single_pair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover.cross_single_pair"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.cross_single_pair" title="Link to this definition">¶</a></dt>
+<dd><p>Perform crossover on a single parent pair outside of __call__.</p>
+<p>This helper is handy for on‑the‑fly debugging or visualization when
+parents are not drawn from a batched population. It internally splits
+the provided <em>key</em> into the required format and then applies the
+fused crossover logic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>p1</strong> (<em>G</em>)</p></li>
+<li><p><strong>p2</strong> (<em>G</em>)</p></li>
+<li><p><strong>config</strong> (<em>C</em>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>G</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.base.</span></span><span class="sig-name descname"><span class="pre">BaseSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_selections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_elites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Stateless selection operator for fitness-based index sampling.</p>
+<p>Selects indices from a population based on fitness values. Optional PRNG key
+enables stochastic selection (tournament, rank-based); deterministic selectors
+(best, truncation) ignore key.</p>
+<p>Shape contracts:
+- Input fitness: (pop_size,) array.
+- Output parent indices: (num_selections,) integer array.
+- Output elite indices: (n_elites,) integer array (for preservation).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">n_elites</span></code> field controls how many elite indices the operator
+returns alongside parents.  It is set once during engine init via
+<code class="docutils literal notranslate"><span class="pre">set_n_elites()</span></code> and is static (pytree_node=False).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.num_selections">
+<span class="sig-name descname"><span class="pre">num_selections</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.num_selections" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.input_length">
+<span class="sig-name descname"><span class="pre">input_length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.input_length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.typed_keys">
+<span class="sig-name descname"><span class="pre">typed_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.typed_keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.n_elites">
+<span class="sig-name descname"><span class="pre">n_elites</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.n_elites" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.set_input_length">
+<span class="sig-name descname"><span class="pre">set_input_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseSelection.set_input_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.set_input_length" title="Link to this definition">¶</a></dt>
+<dd><p>Lock population size for static budgeting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><em>BaseSelection</em></a>[<em>P</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.set_typed_keys">
+<span class="sig-name descname"><span class="pre">set_typed_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseSelection.set_typed_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.set_typed_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Set key format based on PRNG impl.
+True = new-style typed keys,
+False = legacy uint32[2].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>typed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><em>BaseSelection</em></a>[<em>P</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.set_n_elites">
+<span class="sig-name descname"><span class="pre">set_n_elites</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseSelection.set_n_elites"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.set_n_elites" title="Link to this definition">¶</a></dt>
+<dd><p>Set elite count for preservation (called once at engine init).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><em>BaseSelection</em></a>[<em>P</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseSelection.num_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Total keys needed for one selection pass (typically ≤ atomic_keys).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.get_elite_indices">
+<span class="sig-name descname"><span class="pre">get_elite_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseSelection.get_elite_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.get_elite_indices" title="Link to this definition">¶</a></dt>
+<dd><p>Return indices of the top <code class="docutils literal notranslate"><span class="pre">n_elites</span></code> individuals.</p>
+<p>Default implementation: O(N) <code class="docutils literal notranslate"><span class="pre">jnp.argpartition</span></code>.  Subclasses
+(e.g. <code class="docutils literal notranslate"><span class="pre">ElitePoolSelection</span></code>) may override <code class="docutils literal notranslate"><span class="pre">__call__</span></code> to fuse
+this with parent selection in a single pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseSelection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.base.BaseSelection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +780,67 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.base module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation"><code class="docutils literal notranslate"><span class="pre">BaseMutation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.num_offspring"><code class="docutils literal notranslate"><span class="pre">BaseMutation.num_offspring</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.input_length"><code class="docutils literal notranslate"><span class="pre">BaseMutation.input_length</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseMutation.typed_keys</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.max_generations"><code class="docutils literal notranslate"><span class="pre">BaseMutation.max_generations</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BaseMutation.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.num_keys"><code class="docutils literal notranslate"><span class="pre">BaseMutation.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_input_length()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_typed_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_max_generations()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.replace"><code class="docutils literal notranslate"><span class="pre">BaseMutation.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover"><code class="docutils literal notranslate"><span class="pre">BaseCrossover</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.num_offspring"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.num_offspring</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.input_length"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.input_length</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.typed_keys</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.max_generations"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.max_generations</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.num_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_input_length()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_typed_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_max_generations()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.cross_single_pair"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.cross_single_pair()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.replace"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection"><code class="docutils literal notranslate"><span class="pre">BaseSelection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.num_selections"><code class="docutils literal notranslate"><span class="pre">BaseSelection.num_selections</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.input_length"><code class="docutils literal notranslate"><span class="pre">BaseSelection.input_length</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseSelection.typed_keys</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.n_elites"><code class="docutils literal notranslate"><span class="pre">BaseSelection.n_elites</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseSelection.set_input_length()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseSelection.set_typed_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.set_n_elites"><code class="docutils literal notranslate"><span class="pre">BaseSelection.set_n_elites()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BaseSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.num_keys"><code class="docutils literal notranslate"><span class="pre">BaseSelection.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.get_elite_indices"><code class="docutils literal notranslate"><span class="pre">BaseSelection.get_elite_indices()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseSelection.replace"><code class="docutils literal notranslate"><span class="pre">BaseSelection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

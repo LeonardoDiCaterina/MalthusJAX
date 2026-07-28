@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.engine.genetic_fastengine module" href="malthusjax.engine.genetic_fastengine.html"><link rel="prev" title="malthusjax.engine package" href="malthusjax.engine.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.engine.base module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,389 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-engine-base-module">
-<h1>malthusjax.engine.base module<a class="headerlink" href="#malthusjax-engine-base-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.engine.base">
+<span id="malthusjax-engine-base-module"></span><h1>malthusjax.engine.base module<a class="headerlink" href="#module-malthusjax.engine.base" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.engine.base.compute_unroll_num">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.engine.base.</span></span><span class="sig-name descname"><span class="pre">compute_unroll_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_generations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#compute_unroll_num"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.compute_unroll_num" title="Link to this definition">¶</a></dt>
+<dd><p>Return the scan unroll factor for an evolution loop.</p>
+<p>Historically this adjusted XLA scan unrolling, but the mechanism was
+deprecated after benchmarks showed no benefit and a linear growth in IR
+size. It remains here for backwards compatibility and now always returns
+<code class="docutils literal notranslate"><span class="pre">1</span></code> regardless of <em>num_generations</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.engine.base.validate_engine_params">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.engine.base.</span></span><span class="sig-name descname"><span class="pre">validate_engine_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#validate_engine_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.validate_engine_params" title="Link to this definition">¶</a></dt>
+<dd><p>Validate engine parameters outside of JIT context.
+Call this before starting evolution to catch configuration errors early.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams" title="malthusjax.engine.base.AbstractEngineParams"><em>AbstractEngineParams</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.base.</span></span><span class="sig-name descname"><span class="pre">AbstractEngineParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unroll_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngineParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base immutable configuration for evolution engines (pytree_node=False).
+All fields remain static during JIT compilation; mutations use .replace().
+- pop_size: Population size (must be &gt; 0).
+- elitism: Number of elite individuals preserved each generation (0 ≤ elitism &lt; pop_size).
+- num_generations: Number of evolution steps (must be &gt; 0).
+- unroll_num: JAX scan unroll factor for latency/memory trade-off (default 1).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>unroll_num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams.pop_size">
+<span class="sig-name descname"><span class="pre">pop_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams.pop_size" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams.elitism">
+<span class="sig-name descname"><span class="pre">elitism</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams.elitism" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams.num_generations">
+<span class="sig-name descname"><span class="pre">num_generations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams.num_generations" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams.unroll_num">
+<span class="sig-name descname"><span class="pre">unroll_num</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams.unroll_num" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.base.</span></span><span class="sig-name descname"><span class="pre">AbstractEvolutionState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEvolutionState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>]</p>
+<p>Mutable state container for evolution across generations (carries data through scan).
+Concrete implementations (GeneticEvolutionState) extend this with resource_map, operators.</p>
+<p>Type System Note:
+As of v2.0, the population generic parameter <cite>P</cite> has been decoupled from the
+operators but is preserved here for static typing of the scan state. It
+universally binds to <cite>BasePopulation[G]</cite> or a structural subclass like
+<cite>RealPopulation</cite>. The engine is completely agnostic of the genome’s internal
+structure (e.g., <cite>.values</cite>).</p>
+<ul class="simple">
+<li><p>population (P): Current population (shape: (pop_size, …genome_shape)).</p></li>
+<li><p>best_genome (G): Best individual found so far (shape: (…genome_shape)).</p></li>
+<li><p>generation (int): Current generation counter (increments each step).</p></li>
+<li><p>best_fitness (Array): Scalar fitness of best_genome.</p></li>
+<li><p>rng_key (Array): Master PRNG key for next generation (shape: (2,)).</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>population</strong> (<em>P</em>)</p></li>
+<li><p><strong>best_genome</strong> (<em>G</em>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>best_fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>rng_key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState.population">
+<span class="sig-name descname"><span class="pre">population</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">P</span></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState.population" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState.best_genome">
+<span class="sig-name descname"><span class="pre">best_genome</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">G</span></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState.best_genome" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState.generation">
+<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState.generation" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState.best_fitness">
+<span class="sig-name descname"><span class="pre">best_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState.best_fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState.rng_key">
+<span class="sig-name descname"><span class="pre">rng_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState.rng_key" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractGenerationOutput">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.base.</span></span><span class="sig-name descname"><span class="pre">AbstractGenerationOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">best_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractGenerationOutput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractGenerationOutput" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>KPI payload returned at every evolution step (collected by JAX scan).
+Foundation for universal dashboard generation.
+- best_fitness: Scalar best fitness this generation.
+- mean_fitness: Scalar population mean fitness this generation.
+- generation: Current generation counter.
+History: scan returns tuple of (final_state, jax.lax.scan output), where output
+stacks all KPI instances into (num_generations,) shaped arrays per field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>best_fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>mean_fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>std_fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>generation</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractGenerationOutput.best_fitness">
+<span class="sig-name descname"><span class="pre">best_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.engine.base.AbstractGenerationOutput.best_fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractGenerationOutput.mean_fitness">
+<span class="sig-name descname"><span class="pre">mean_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.engine.base.AbstractGenerationOutput.mean_fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractGenerationOutput.std_fitness">
+<span class="sig-name descname"><span class="pre">std_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.engine.base.AbstractGenerationOutput.std_fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractGenerationOutput.generation">
+<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.engine.base.AbstractGenerationOutput.generation" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractGenerationOutput.get_kpi_names">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_kpi_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractGenerationOutput.get_kpi_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractGenerationOutput.get_kpi_names" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractGenerationOutput.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.base.AbstractGenerationOutput.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.base.</span></span><span class="sig-name descname"><span class="pre">AbstractEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>], <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Abstract base class for all evolutionary engines.</p>
+<p>Standardizes the evolution loop using JAX scan.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>engine_params</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams" title="malthusjax.engine.base.AbstractEngineParams"><em>AbstractEngineParams</em></a>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.engine_params">
+<span class="sig-name descname"><span class="pre">engine_params</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams" title="malthusjax.engine.base.AbstractEngineParams"><span class="pre">AbstractEngineParams</span></a></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.engine_params" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.init_state">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">init_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rng_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.init_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.init_state" title="Link to this definition">¶</a></dt>
+<dd><p>Build and return the initial evolution state.</p>
+<p>This first-phase compilation step sets up the resource mapper, operators,
+and initial population. If <em>rng_key</em> is an integer, implementations
+should convert it to a typed PRNG key using the configured backend.
+The returned state is cached and reused by <code class="docutils literal notranslate"><span class="pre">step</span></code> and <code class="docutils literal notranslate"><span class="pre">run</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rng_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>Array</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.step">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.step" title="Link to this definition">¶</a></dt>
+<dd><p>Perform a single evolutionary generation update.</p>
+<p>Engines typically perform entropy allocation, selection, reproduction,
+merging, evaluation, and high‑order‑function updates. The input <em>state</em>
+carries the current population, PRNG key, and other resources. The
+method returns the updated state together with a KPI payload.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.debug_step">
+<span class="sig-name descname"><span class="pre">debug_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.debug_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.debug_step" title="Link to this definition">¶</a></dt>
+<dd><p>Run one step and print the resulting population length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.debug_run">
+<span class="sig-name descname"><span class="pre">debug_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.debug_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.debug_run" title="Link to this definition">¶</a></dt>
+<dd><p>Run the engine in a Python loop using <cite>debug_step</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>initial_state</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_it</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.run" title="Link to this definition">¶</a></dt>
+<dd><p>Run the full evolution loop starting from <em>initial_state</em>.</p>
+<p>This method obtains the JIT‑compiled scan kernel and executes it for
+the configured number of generations. If <em>time_it</em> is true the method
+measures wall‑clock duration, optionally printing progress when
+<em>verbose</em> is enabled. Returns the final state, the stacked KPI history,
+and an optional elapsed time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_state</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p></li>
+<li><p><strong>time_it</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>compile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.ask_with_key">
+<span class="sig-name descname"><span class="pre">ask_with_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.ask_with_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.ask_with_key" title="Link to this definition">¶</a></dt>
+<dd><p>Optional key-aware ask interface.</p>
+<p>Default behavior delegates to <code class="docutils literal notranslate"><span class="pre">ask(state)</span></code> when implemented by the
+concrete engine. Engines that need explicit key control can override
+this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p></li>
+<li><p><strong>rng_key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.base.AbstractEngine" title="malthusjax.engine.base.AbstractEngine"><em>AbstractEngine</em></a>[<em>G</em>, <em>P</em>], <em>P</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.tell_with_key">
+<span class="sig-name descname"><span class="pre">tell_with_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.tell_with_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.tell_with_key" title="Link to this definition">¶</a></dt>
+<dd><p>Optional key-aware tell interface.</p>
+<p>Default behavior delegates to <code class="docutils literal notranslate"><span class="pre">tell(state,</span> <span class="pre">population)</span></code> when
+implemented by the concrete engine. Engines that need explicit key
+control can override this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p></li>
+<li><p><strong>population</strong> (<em>P</em>)</p></li>
+<li><p><strong>rng_key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.get_hlo_text">
+<span class="sig-name descname"><span class="pre">get_hlo_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.get_hlo_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.get_hlo_text" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts HLO text.
+If optimize=True, runs the full XLA compiler to show FUSION.
+If optimize=False, shows the raw graph (faster, good for debugging shapes).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_state</strong> (<a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p></li>
+<li><p><strong>optimize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>print_analysis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngine.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngine.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +739,67 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.engine.base module</a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.base.compute_unroll_num"><code class="docutils literal notranslate"><span class="pre">compute_unroll_num()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.validate_engine_params"><code class="docutils literal notranslate"><span class="pre">validate_engine_params()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.pop_size"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.pop_size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.elitism"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.elitism</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.num_generations"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.num_generations</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.unroll_num"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.unroll_num</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.population"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.population</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.best_genome"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_genome</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.generation"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.generation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.rng_key"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.rng_key</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput"><code class="docutils literal notranslate"><span class="pre">AbstractGenerationOutput</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractGenerationOutput.best_fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput.mean_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractGenerationOutput.mean_fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput.std_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractGenerationOutput.std_fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput.generation"><code class="docutils literal notranslate"><span class="pre">AbstractGenerationOutput.generation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput.get_kpi_names"><code class="docutils literal notranslate"><span class="pre">AbstractGenerationOutput.get_kpi_names()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractGenerationOutput.replace"><code class="docutils literal notranslate"><span class="pre">AbstractGenerationOutput.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine"><code class="docutils literal notranslate"><span class="pre">AbstractEngine</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.engine_params"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.engine_params</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.init_state"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.init_state()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.step"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.step()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.debug_step"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.debug_step()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.debug_run"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.debug_run()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.run"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.run()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.ask_with_key()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.tell_with_key()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.get_hlo_text"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.get_hlo_text()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngine.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

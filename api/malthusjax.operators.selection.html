@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.selection.elite_pool module" href="malthusjax.operators.selection.elite_pool.html"><link rel="prev" title="malthusjax.operators.mutation.real module" href="malthusjax.operators.mutation.real.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.selection package - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -316,15 +316,397 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-selection-package">
-<h1>malthusjax.operators.selection package<a class="headerlink" href="#malthusjax-operators-selection-package" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.selection">
+<span id="malthusjax-operators-selection-package"></span><h1>malthusjax.operators.selection package<a class="headerlink" href="#module-malthusjax.operators.selection" title="Link to this heading">¶</a></h1>
+<p>Selection Operators Module.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.TournamentSelection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.selection.</span></span><span class="sig-name descname"><span class="pre">TournamentSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_selections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_elites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tournament_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/selection/tournament.html#TournamentSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.selection.TournamentSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSelection</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Tournament Selection (Balanced Exploitation &amp; Exploration).</p>
+<p>In tournament selection, the algorithm repeatedly:
+1. Randomly sample <code class="docutils literal notranslate"><span class="pre">tournament_size</span></code> individuals from the population
+2. Select the individual with the highest fitness
+3. Repeat <code class="docutils literal notranslate"><span class="pre">num_selections</span></code> times (with replacement)</p>
+<p>This provides a good middle ground between pure elite selection (high exploitation)
+and fitness-proportional selection (fitness-weighted exploration).</p>
+<p><strong>String Specification Format</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;tournament:num_selections=INT,tournament_size=INT&quot;</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;tournament&quot;</span>  <span class="c1"># Use defaults (num_selections=4,</span>
+             <span class="c1">#                tournament_size=3)</span>
+<span class="s2">&quot;tournament:num_selections=25&quot;</span>  <span class="c1"># Custom num_selections, default tournament_size</span>
+<span class="s2">&quot;tournament:num_selections=50,tournament_size=5&quot;</span>  <span class="c1"># Both custom</span>
+<span class="s2">&quot;tournament:tournament_size=7&quot;</span>  <span class="c1"># Custom tournament size, default num_selections</span>
+</pre></div>
+</div>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>tournament_size<span class="classifier">int, optional</span></dt><dd><p>Number of candidates sampled per tournament round.
+Valid range: 2 to population_size.
+- tournament_size=2: Mild selection pressure, high diversity
+- tournament_size=3-5: Balanced (recommended for most problems)
+- tournament_size=7+: Strong selection pressure, lower diversity
+Default: 3 (recommended for general-purpose problems).</p>
+</dd>
+<dt>num_selections<span class="classifier">int</span></dt><dd><p>Number of individuals to select (typically equals population size).
+Set by the engine during <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_input_length()</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p><strong>Fitness Requirements</strong>: Tournament selection supports all fitness ranges
+(positive, negative, zero, or mixed). The algorithm only compares relative
+fitness values, making it robust to any fitness function.</p>
+<p><strong>Selection Pressure</strong>: The <code class="docutils literal notranslate"><span class="pre">tournament_size</span></code> parameter directly controls
+selection pressure.
+- Larger tournaments → stronger preference for high-fitness individuals
+- Smaller tournaments → more uniform selection (higher diversity)</p>
+<p><strong>Recommended Default</strong>: <code class="docutils literal notranslate"><span class="pre">tournament_size=3</span></code> offers a good balance for
+most optimization problems. Increase to 5-7 for harder landscapes or when
+you want faster convergence. Use 2 for maintaining diversity.</p>
+<p><strong>Computational Complexity</strong>: O(num_selections × tournament_size) for one call.
+Very efficient on GPUs due to vectorization of tournament sampling.</p>
+<p><strong>Trade-offs</strong>:
+- Better diversity than elite selection alone
+- Simpler than fitness-proportional selection (no averaging)
+- Works with any fitness function (unlike roulette selection)
+- Consistent selection pressure across generations</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.TournamentSelection.tournament_size">
+<span class="sig-name descname"><span class="pre">tournament_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#malthusjax.operators.selection.TournamentSelection.tournament_size" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.TournamentSelection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.TournamentSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.TournamentSelection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.selection.TournamentSelection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>tournament_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.RouletteSelection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.selection.</span></span><span class="sig-name descname"><span class="pre">RouletteSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_selections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_elites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gumbel_trick</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/selection/roulette.html#RouletteSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.selection.RouletteSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSelection</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Fitness-Proportional Roulette Selection (Adaptive Paths).</p>
+<p>In roulette selection, individuals are selected with probability proportional
+to their fitness. A softmax transformation converts fitness values to a valid
+probability distribution, with temperature controlling selection pressure.</p>
+<p>This approach allows the algorithm to adaptively adjust selection pressure based
+on fitness diversity across generations.</p>
+<p><strong>String Specification Format</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;roulette:num_selections=INT[,temperature=FLOAT]&quot;</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;roulette&quot;</span>  <span class="c1"># Defaults (num_selections=4, temperature=1.0)</span>
+<span class="s2">&quot;roulette:num_selections=25&quot;</span>  <span class="c1"># Custom num_selections, default temperature</span>
+<span class="s2">&quot;roulette:num_selections=50,temperature=0.5&quot;</span>  <span class="c1"># Both custom (lower temp = more pressure)</span>
+<span class="s2">&quot;roulette:temperature=2.0&quot;</span>  <span class="c1"># Custom temperature, default num_selections</span>
+</pre></div>
+</div>
+<section id="id1">
+<h2>Parameters<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>temperature<span class="classifier">float, optional</span></dt><dd><p>Controls selection pressure in the softmax transformation.
+Valid range: (0, ∞)
+- temperature=0.1: Very strong exploitation (high-fitness individuals dominate)
+- temperature=1.0: Balanced (fitness-proportional, default)
+- temperature=5.0: Weak selection, more uniform (higher diversity)
+Default: 1.0 (balanced fitness-proportional selection).</p>
+</dd>
+<dt>use_gumbel_trick<span class="classifier">bool, optional</span></dt><dd><p>If True (default), uses the Gumbel-Max trick for fast parallel sampling
+when <code class="docutils literal notranslate"><span class="pre">num_selections</span> <span class="pre">==</span> <span class="pre">population_size</span></code>. Otherwise uses categorical sampling.
+Default: True (faster for full replacement).</p>
+</dd>
+<dt>chunk_size<span class="classifier">int, optional</span></dt><dd><p>When using Gumbel-Max with populations larger than this, splits into chunks
+to control memory usage. Default: 1024.</p>
+</dd>
+<dt>num_selections<span class="classifier">int</span></dt><dd><p>Number of individuals to select. Set by the engine.</p>
+</dd>
+</dl>
+</section>
+<section id="id2">
+<h2>Notes<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p><strong>⚠️  CRITICAL FITNESS REQUIREMENT</strong>: Roulette selection requires <strong>non-negative
+fitness values</strong>. If your fitness function can return negative values (e.g.,
+minimization problems with negative scores), you must either:</p>
+<ol class="arabic simple">
+<li><p><strong>Shift fitness</strong>: Add a constant to all fitness values to make them positive</p></li>
+<li><p><strong>Transform fitness</strong>: Use <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">(1.0</span> <span class="pre">+</span> <span class="pre">loss)</span></code> or similar</p></li>
+<li><p><strong>Use tournament selection instead</strong>: Recommended if you’re unsure about fitness range</p></li>
+</ol>
+<p>Violating this requirement will cause NaN values in the softmax and invalid
+selection behavior.</p>
+<p><strong>Temperature Tuning</strong>:</p>
+<ul class="simple">
+<li><p>Low temperature (0.1-0.5): Aggressive selection pressure, risk of premature
+convergence to local optima</p></li>
+<li><p>Medium temperature (1.0-2.0): Balanced, recommended for exploiting good regions
+while maintaining diversity</p></li>
+<li><p>High temperature (5.0+): Uniform sampling, high diversity, slow convergence</p></li>
+</ul>
+<p><strong>Computational Complexity</strong>:</p>
+<ul class="simple">
+<li><p>With Gumbel-Max and num_selections == pop_size: O(N log N) due to reduction</p></li>
+<li><p>Otherwise: O(N + num_selections) via categorical sampling</p></li>
+<li><p>Memory: O(N × num_selections) for Gumbel-Max, O(N) for categorical</p></li>
+</ul>
+<p><strong>When to Use</strong>:</p>
+<ul class="simple">
+<li><p>Problem has well-characterized fitness landscape</p></li>
+<li><p>You want fitness-weighted selection (high-fitness individuals breed more)</p></li>
+<li><p>Diversity is maintained through other mechanisms (mutation, crossover)</p></li>
+<li><p>All fitness values are guaranteed non-negative</p></li>
+</ul>
+<p><strong>Recommendation</strong>: If you’re unsure about fitness ranges or want robustness,
+use <a class="reference internal" href="#malthusjax.operators.selection.TournamentSelection" title="malthusjax.operators.selection.TournamentSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">TournamentSelection</span></code></a> instead (works with any fitness function).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.RouletteSelection.temperature">
+<span class="sig-name descname"><span class="pre">temperature</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#malthusjax.operators.selection.RouletteSelection.temperature" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.RouletteSelection.use_gumbel_trick">
+<span class="sig-name descname"><span class="pre">use_gumbel_trick</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.operators.selection.RouletteSelection.use_gumbel_trick" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.RouletteSelection.chunk_size">
+<span class="sig-name descname"><span class="pre">chunk_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></span><a class="headerlink" href="#malthusjax.operators.selection.RouletteSelection.chunk_size" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.RouletteSelection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.RouletteSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.RouletteSelection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.selection.RouletteSelection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>use_gumbel_trick</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.ElitePoolSelection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.selection.</span></span><span class="sig-name descname"><span class="pre">ElitePoolSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_selections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_elites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elite_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'choice'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/selection/elite_pool.html#ElitePoolSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.selection.ElitePoolSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSelection</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Elite Pool Selection (High Performance).</p>
+<p>In elite pool selection, the algorithm:
+1. Identifies the top <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> individuals by fitness
+2. For each selection, uniformly randomly picks from this elite pool
+3. Guarantees only the best genes are preserved and propagated</p>
+<p>This provides maximum exploitation of high-fitness solutions but with limited
+diversity (all selected parents come from a small elite pool).</p>
+<p><strong>String Specification Format</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;elite_pool:num_selections=INT[,elite_k=INT]&quot;</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;elite_pool&quot;</span>  <span class="c1"># Defaults (num_selections=4, elite_k=2)</span>
+<span class="s2">&quot;elite_pool:num_selections=50&quot;</span>  <span class="c1"># Custom num_selections, default elite_k</span>
+<span class="s2">&quot;elite_pool:num_selections=50,elite_k=10&quot;</span>  <span class="c1"># Both custom</span>
+<span class="s2">&quot;elite_pool:elite_k=5&quot;</span>  <span class="c1"># Custom elite pool size, default num_selections</span>
+</pre></div>
+</div>
+<section id="id3">
+<h2>Parameters<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>elite_k<span class="classifier">int, optional</span></dt><dd><p>Number of top individuals to include in the selection pool.
+Valid range: 1 to population_size.
+- elite_k=1: Only the single best individual is selected (very aggressive)
+- elite_k=3-5: Small elite pool (typical for fine-tuning)
+- elite_k = pop_size // 3: Moderate elite pool (1/3 of population)
+- elite_k = pop_size // 2: Large elite pool (more diversity)
+Default: 10.</p>
+</dd>
+<dt>num_selections<span class="classifier">int</span></dt><dd><p>Number of individuals to select from the elite pool.
+Set by the engine during <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_input_length()</span></code>.
+Note: All selections come from the <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> best individuals.</p>
+</dd>
+</dl>
+</section>
+<section id="id4">
+<h2>Notes<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<p><strong>Fitness Requirements</strong>: Elite pool selection supports all fitness ranges
+(positive, negative, zero, or mixed). The algorithm ranks individuals and
+selects from the top-k, making it robust to any fitness function.</p>
+<p><strong>Selection Pressure</strong>: Very high—only the top <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> individuals ever
+contribute genes to the next generation. This maximizes exploitation but
+minimizes diversity.</p>
+<p><strong>Design Trade-offs</strong>:</p>
+<ul class="simple">
+<li><p><strong>Pros</strong>: Fast convergence, preserves best genes, O(N) complexity</p></li>
+<li><p><strong>Cons</strong>: Very low diversity, risk of premature convergence,
+limited exploration of search space</p></li>
+</ul>
+<p><strong>When to Use</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Final refinement phase</strong>: Late generations when you’re optimizing near
+a known good region</p></li>
+<li><p><strong>High-dimensional problems with clear optima</strong>: Problems where top-1%
+solutions are significantly better than others</p></li>
+<li><p><strong>Hybrid approaches</strong>: Combine with tournament or roulette selection
+(e.g., 30% elite pool selections, 70% tournament selections)</p></li>
+<li><p><strong>Small elite pool (k ≤ 5)</strong>: When you trust your problem has a clear gradient</p></li>
+</ol>
+<p><strong>When NOT to Use</strong>:
+- Problem has many equally-good optima (high confusion)
+- Early exploration phase is critical (use tournament instead)
+- Diversity maintenance is important (use tournament or roulette)
+- Problem landscape is multimodal (you may need to explore more)</p>
+<p><strong>Computational Complexity</strong>:
+- Filtering elite: O(N) via <code class="docutils literal notranslate"><span class="pre">jnp.argpartition</span></code> (very fast)
+- Sampling from pool: O(num_selections) with uniform random selection
+- <strong>Total: O(N + num_selections)</strong> (efficient)</p>
+<p><strong>Recommendation</strong>: Start with <a class="reference internal" href="#malthusjax.operators.selection.TournamentSelection" title="malthusjax.operators.selection.TournamentSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">TournamentSelection</span></code></a> (tournament_size=3)
+for general problems. If convergence is too slow near the optimum, introduce
+a small elite pool (5-10% of population) mixed with tournament selection.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.ElitePoolSelection.elite_k">
+<span class="sig-name descname"><span class="pre">elite_k</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></span><a class="headerlink" href="#malthusjax.operators.selection.ElitePoolSelection.elite_k" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.ElitePoolSelection.sampling_method">
+<span class="sig-name descname"><span class="pre">sampling_method</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'choice'</span></span><a class="headerlink" href="#malthusjax.operators.selection.ElitePoolSelection.sampling_method" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.ElitePoolSelection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.ElitePoolSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.ElitePoolSelection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.selection.ElitePoolSelection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>elite_k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>sampling_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.EvoSaxMimicSelection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.selection.</span></span><span class="sig-name descname"><span class="pre">EvoSaxMimicSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_selections</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_elites</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elite_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/selection/evosax_mimic.html#EvoSaxMimicSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.selection.EvoSaxMimicSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSelection</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>elite_k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.EvoSaxMimicSelection.elite_k">
+<span class="sig-name descname"><span class="pre">elite_k</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></span><a class="headerlink" href="#malthusjax.operators.selection.EvoSaxMimicSelection.elite_k" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.EvoSaxMimicSelection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.EvoSaxMimicSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.EvoSaxMimicSelection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.selection.EvoSaxMimicSelection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.operators.selection.elite_pool.html#malthusjax.operators.selection.elite_pool.ElitePoolSelection"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.elite_pool.html#malthusjax.operators.selection.elite_pool.ElitePoolSelection.elite_k"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.elite_k</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.elite_pool.html#malthusjax.operators.selection.elite_pool.ElitePoolSelection.sampling_method"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.sampling_method</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.elite_pool.html#malthusjax.operators.selection.elite_pool.ElitePoolSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.elite_pool.html#malthusjax.operators.selection.elite_pool.ElitePoolSelection.replace"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.operators.selection.roulette.html#malthusjax.operators.selection.roulette.RouletteSelection"><code class="docutils literal notranslate"><span class="pre">RouletteSelection</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.roulette.html#malthusjax.operators.selection.roulette.RouletteSelection.temperature"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.temperature</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.roulette.html#malthusjax.operators.selection.roulette.RouletteSelection.use_gumbel_trick"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.use_gumbel_trick</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.roulette.html#malthusjax.operators.selection.roulette.RouletteSelection.chunk_size"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.chunk_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.roulette.html#malthusjax.operators.selection.roulette.RouletteSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.roulette.html#malthusjax.operators.selection.roulette.RouletteSelection.replace"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.operators.selection.tournament.html#malthusjax.operators.selection.tournament.TournamentSelection"><code class="docutils literal notranslate"><span class="pre">TournamentSelection</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.tournament.html#malthusjax.operators.selection.tournament.TournamentSelection.tournament_size"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.tournament_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.tournament.html#malthusjax.operators.selection.tournament.TournamentSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.selection.tournament.html#malthusjax.operators.selection.tournament.TournamentSelection.replace"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
@@ -386,6 +768,33 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">malthusjax.operators.selection package</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.TournamentSelection"><code class="docutils literal notranslate"><span class="pre">TournamentSelection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.TournamentSelection.tournament_size"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.tournament_size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.TournamentSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.TournamentSelection.replace"><code class="docutils literal notranslate"><span class="pre">TournamentSelection.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.RouletteSelection"><code class="docutils literal notranslate"><span class="pre">RouletteSelection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.RouletteSelection.temperature"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.temperature</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.RouletteSelection.use_gumbel_trick"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.use_gumbel_trick</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.RouletteSelection.chunk_size"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.chunk_size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.RouletteSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.RouletteSelection.replace"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.ElitePoolSelection"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.ElitePoolSelection.elite_k"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.elite_k</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.ElitePoolSelection.sampling_method"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.sampling_method</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.ElitePoolSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.ElitePoolSelection.replace"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.EvoSaxMimicSelection"><code class="docutils literal notranslate"><span class="pre">EvoSaxMimicSelection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.EvoSaxMimicSelection.elite_k"><code class="docutils literal notranslate"><span class="pre">EvoSaxMimicSelection.elite_k</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.EvoSaxMimicSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">EvoSaxMimicSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.EvoSaxMimicSelection.replace"><code class="docutils literal notranslate"><span class="pre">EvoSaxMimicSelection.replace()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 </ul>
 </li>

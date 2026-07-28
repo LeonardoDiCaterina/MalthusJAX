@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.composer.engine_factory module" href="malthusjax.composer.engine_factory.html"><link rel="prev" title="malthusjax.composer.config module" href="malthusjax.composer.config.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.composer.engine_catalog module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,159 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-composer-engine-catalog-module">
-<h1>malthusjax.composer.engine_catalog module<a class="headerlink" href="#malthusjax-composer-engine-catalog-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.composer.engine_catalog">
+<span id="malthusjax-composer-engine-catalog-module"></span><h1>malthusjax.composer.engine_catalog module<a class="headerlink" href="#module-malthusjax.composer.engine_catalog" title="Link to this heading">¶</a></h1>
+<p>Engine Catalog — string-spec → engine instance resolution.</p>
+<p>The catalog is a thin wrapper around the global <code class="xref py py-mod docutils literal notranslate"><span class="pre">engine_registry</span></code>.
+Engine modules register themselves at import time (see
+<code class="docutils literal notranslate"><span class="pre">engine/__init__.py</span></code>).  <code class="docutils literal notranslate"><span class="pre">EngineRegistry</span></code> triggers those imports on
+first construction and then delegates <code class="docutils literal notranslate"><span class="pre">get()</span></code> to the registry.</p>
+<section id="public-api">
+<h2>Public API<a class="headerlink" href="#public-api" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.get(&quot;ga&quot;,</span> <span class="pre">evaluator=ev,</span> <span class="pre">selection=sel,</span> <span class="pre">crossover=cx,</span> <span class="pre">mutation=mut)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.get(&quot;ga:pop_size=200&quot;,</span> <span class="pre">...)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.parse_spec(&quot;nsga2:pop_size=100,generations=200&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.list_available()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.get_help(&quot;ga&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.register(&quot;custom&quot;,</span> <span class="pre">factory)</span></code></p></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">registry</span> <span class="o">=</span> <span class="n">EngineRegistry</span><span class="p">()</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+    <span class="s2">&quot;ga:pop_size=100&quot;</span><span class="p">,</span>
+    <span class="n">evaluator</span><span class="o">=</span><span class="n">sphere_eval</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="n">tournament</span><span class="p">,</span>
+    <span class="n">crossover</span><span class="o">=</span><span class="n">blend</span><span class="p">,</span>
+    <span class="n">mutation</span><span class="o">=</span><span class="n">gaussian</span><span class="p">,</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_catalog.EngineRegistry">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.engine_catalog.</span></span><span class="sig-name descname"><span class="pre">EngineRegistry</span></span><a class="reference internal" href="../_modules/malthusjax/composer/engine_catalog.html#EngineRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_catalog.EngineRegistry" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Catalog for resolving engine specifications.</p>
+<p>Supports format: <code class="docutils literal notranslate"><span class="pre">&quot;engine_name:param1=value1,param2=value2&quot;</span></code></p>
+<dl class="simple">
+<dt>Available Engines:</dt><dd><ul class="simple">
+<li><p>ga: Standard genetic algorithm (GeneticEngine)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">registry</span> <span class="o">=</span> <span class="n">EngineRegistry</span><span class="p">()</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ga&quot;</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">ev</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="n">sel</span><span class="p">,</span>
+                      <span class="n">crossover</span><span class="o">=</span><span class="n">cx</span><span class="p">,</span> <span class="n">mutation</span><span class="o">=</span><span class="n">mut</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ga:pop_size=200,elitism=4&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_catalog.EngineRegistry.parse_spec">
+<span class="sig-name descname"><span class="pre">parse_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_catalog.html#EngineRegistry.parse_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_catalog.EngineRegistry.parse_spec" title="Link to this definition">¶</a></dt>
+<dd><p>Parse an engine specification such as <code class="docutils literal notranslate"><span class="pre">&quot;ga&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;nsga2:pop_size=100,generations=200&quot;</span></code> and return the
+<code class="docutils literal notranslate"><span class="pre">(engine_name,</span> <span class="pre">params_dict)</span></code> tuple.  A <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> is raised when
+the string cannot be interpreted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_catalog.EngineRegistry.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_catalog.html#EngineRegistry.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_catalog.EngineRegistry.get" title="Link to this definition">¶</a></dt>
+<dd><p>Resolve <em>spec</em> to a concrete engine instance.</p>
+<p>The specification string and any <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are merged with registry
+defaults before invoking the underlying factory.  The caller must
+supply already-resolved operator instances for evaluator,
+selection, crossover and mutation; all other keyword parameters are
+forwarded transparently.  Errors during construction are re‑raised as
+<code class="docutils literal notranslate"><span class="pre">KeyError</span></code> (unknown engine name) or <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> (invalid
+parameters).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>evaluator</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>selection</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>crossover</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>mutation</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_catalog.EngineRegistry.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_catalog.html#EngineRegistry.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_catalog.EngineRegistry.register" title="Link to this definition">¶</a></dt>
+<dd><p>Register a new engine type in the catalog.</p>
+<p><em>engine_name</em> gives the string key (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;nsga2&quot;</span></code>) and <em>factory</em>
+is a callable that constructs instances when invoked.  Optional
+<em>defaults</em> provide baseline parameters; set <em>override</em> if you wish to
+replace an existing registration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>factory</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>defaults</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>override</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_catalog.EngineRegistry.list_available">
+<span class="sig-name descname"><span class="pre">list_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_catalog.html#EngineRegistry.list_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_catalog.EngineRegistry.list_available" title="Link to this definition">¶</a></dt>
+<dd><p>Return sorted list of all registered engine names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_catalog.EngineRegistry.get_help">
+<span class="sig-name descname"><span class="pre">get_help</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_catalog.html#EngineRegistry.get_help"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_catalog.EngineRegistry.get_help" title="Link to this definition">¶</a></dt>
+<dd><p>Return a formatted help string for a registered engine.</p>
+<p>The output includes the engine’s docstring and its default parameters.
+A <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> is raised if <em>engine_name</em> isn’t present in the catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +509,35 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.composer.engine_catalog module</a><ul>
+<li><a class="reference internal" href="#public-api">Public API</a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_catalog.EngineRegistry"><code class="docutils literal notranslate"><span class="pre">EngineRegistry</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.engine_catalog.EngineRegistry.parse_spec"><code class="docutils literal notranslate"><span class="pre">EngineRegistry.parse_spec()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_catalog.EngineRegistry.get"><code class="docutils literal notranslate"><span class="pre">EngineRegistry.get()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_catalog.EngineRegistry.register"><code class="docutils literal notranslate"><span class="pre">EngineRegistry.register()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_catalog.EngineRegistry.list_available"><code class="docutils literal notranslate"><span class="pre">EngineRegistry.list_available()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_catalog.EngineRegistry.get_help"><code class="docutils literal notranslate"><span class="pre">EngineRegistry.get_help()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

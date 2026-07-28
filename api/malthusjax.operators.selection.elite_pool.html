@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.selection.roulette module" href="malthusjax.operators.selection.roulette.html"><link rel="prev" title="malthusjax.operators.selection package" href="malthusjax.operators.selection.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.selection.elite_pool module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,127 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-selection-elite-pool-module">
-<h1>malthusjax.operators.selection.elite_pool module<a class="headerlink" href="#malthusjax-operators-selection-elite-pool-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.selection.elite_pool">
+<span id="malthusjax-operators-selection-elite-pool-module"></span><h1>malthusjax.operators.selection.elite_pool module<a class="headerlink" href="#module-malthusjax.operators.selection.elite_pool" title="Link to this heading">¶</a></h1>
+<p>Selection Operators.
+Refactored for the ‘Consumer Paradigm’: Pure index generation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.elite_pool.ElitePoolSelection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.selection.elite_pool.</span></span><span class="sig-name descname"><span class="pre">ElitePoolSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_selections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_elites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elite_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'choice'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/selection/elite_pool.html#ElitePoolSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSelection</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Elite Pool Selection (High Performance).</p>
+<p>In elite pool selection, the algorithm:
+1. Identifies the top <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> individuals by fitness
+2. For each selection, uniformly randomly picks from this elite pool
+3. Guarantees only the best genes are preserved and propagated</p>
+<p>This provides maximum exploitation of high-fitness solutions but with limited
+diversity (all selected parents come from a small elite pool).</p>
+<p><strong>String Specification Format</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;elite_pool:num_selections=INT[,elite_k=INT]&quot;</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;elite_pool&quot;</span>  <span class="c1"># Defaults (num_selections=4, elite_k=2)</span>
+<span class="s2">&quot;elite_pool:num_selections=50&quot;</span>  <span class="c1"># Custom num_selections, default elite_k</span>
+<span class="s2">&quot;elite_pool:num_selections=50,elite_k=10&quot;</span>  <span class="c1"># Both custom</span>
+<span class="s2">&quot;elite_pool:elite_k=5&quot;</span>  <span class="c1"># Custom elite pool size, default num_selections</span>
+</pre></div>
+</div>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>elite_k<span class="classifier">int, optional</span></dt><dd><p>Number of top individuals to include in the selection pool.
+Valid range: 1 to population_size.
+- elite_k=1: Only the single best individual is selected (very aggressive)
+- elite_k=3-5: Small elite pool (typical for fine-tuning)
+- elite_k = pop_size // 3: Moderate elite pool (1/3 of population)
+- elite_k = pop_size // 2: Large elite pool (more diversity)
+Default: 10.</p>
+</dd>
+<dt>num_selections<span class="classifier">int</span></dt><dd><p>Number of individuals to select from the elite pool.
+Set by the engine during <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_input_length()</span></code>.
+Note: All selections come from the <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> best individuals.</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p><strong>Fitness Requirements</strong>: Elite pool selection supports all fitness ranges
+(positive, negative, zero, or mixed). The algorithm ranks individuals and
+selects from the top-k, making it robust to any fitness function.</p>
+<p><strong>Selection Pressure</strong>: Very high—only the top <code class="docutils literal notranslate"><span class="pre">elite_k</span></code> individuals ever
+contribute genes to the next generation. This maximizes exploitation but
+minimizes diversity.</p>
+<p><strong>Design Trade-offs</strong>:</p>
+<ul class="simple">
+<li><p><strong>Pros</strong>: Fast convergence, preserves best genes, O(N) complexity</p></li>
+<li><p><strong>Cons</strong>: Very low diversity, risk of premature convergence,
+limited exploration of search space</p></li>
+</ul>
+<p><strong>When to Use</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Final refinement phase</strong>: Late generations when you’re optimizing near
+a known good region</p></li>
+<li><p><strong>High-dimensional problems with clear optima</strong>: Problems where top-1%
+solutions are significantly better than others</p></li>
+<li><p><strong>Hybrid approaches</strong>: Combine with tournament or roulette selection
+(e.g., 30% elite pool selections, 70% tournament selections)</p></li>
+<li><p><strong>Small elite pool (k ≤ 5)</strong>: When you trust your problem has a clear gradient</p></li>
+</ol>
+<p><strong>When NOT to Use</strong>:
+- Problem has many equally-good optima (high confusion)
+- Early exploration phase is critical (use tournament instead)
+- Diversity maintenance is important (use tournament or roulette)
+- Problem landscape is multimodal (you may need to explore more)</p>
+<p><strong>Computational Complexity</strong>:
+- Filtering elite: O(N) via <code class="docutils literal notranslate"><span class="pre">jnp.argpartition</span></code> (very fast)
+- Sampling from pool: O(num_selections) with uniform random selection
+- <strong>Total: O(N + num_selections)</strong> (efficient)</p>
+<p><strong>Recommendation</strong>: Start with <code class="xref py py-class docutils literal notranslate"><span class="pre">TournamentSelection</span></code> (tournament_size=3)
+for general problems. If convergence is too slow near the optimum, introduce
+a small elite pool (5-10% of population) mixed with tournament selection.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.elite_pool.ElitePoolSelection.elite_k">
+<span class="sig-name descname"><span class="pre">elite_k</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></span><a class="headerlink" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection.elite_k" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.elite_pool.ElitePoolSelection.sampling_method">
+<span class="sig-name descname"><span class="pre">sampling_method</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'choice'</span></span><a class="headerlink" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection.sampling_method" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.elite_pool.ElitePoolSelection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.elite_pool.ElitePoolSelection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>elite_k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>sampling_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +477,33 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.selection.elite_pool module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection.elite_k"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.elite_k</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection.sampling_method"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.sampling_method</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.elite_pool.ElitePoolSelection.replace"><code class="docutils literal notranslate"><span class="pre">ElitePoolSelection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

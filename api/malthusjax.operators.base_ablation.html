@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.base_injection module" href="malthusjax.operators.base_injection.html"><link rel="prev" title="malthusjax.operators.base module" href="malthusjax.operators.base.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.base_ablation module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,63 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-base-ablation-module">
-<h1>malthusjax.operators.base_ablation module<a class="headerlink" href="#malthusjax-operators-base-ablation-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.base_ablation">
+<span id="malthusjax-operators-base-ablation-module"></span><h1>malthusjax.operators.base_ablation module<a class="headerlink" href="#module-malthusjax.operators.base_ablation" title="Link to this heading">¶</a></h1>
+<p>Ablation decorators: Single-key mode for benchmarking key splitting overhead.</p>
+<p>Converts operators to consume a single PRNG key and split internally,
+allowing performance comparison vs ResourceMapper pre-allocation strategy.
+Useful for measuring dynamic key splitting cost in evolutionary loops.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.operators.base_ablation.ablation_single_key_mutation">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.operators.base_ablation.</span></span><span class="sig-name descname"><span class="pre">ablation_single_key_mutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_ablation.html#ablation_single_key_mutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_ablation.ablation_single_key_mutation" title="Link to this definition">¶</a></dt>
+<dd><p>Convert mutation operator to single-key ablation mode for benchmarking.</p>
+<p>Replaces num_keys() to return 1 and __call__() to split internally.
+This benchmarks the cost of dynamic key splitting vs ResourceMapper
+pre-allocation during JIT compilation and execution.</p>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ablation_single_key_mutation</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BitFlipMutation_ablation</span><span class="p">(</span><span class="n">BitFlipMutation</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cls</strong> (<em>TMutation</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>TMutation</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.operators.base_ablation.ablation_single_key_crossover">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.operators.base_ablation.</span></span><span class="sig-name descname"><span class="pre">ablation_single_key_crossover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_ablation.html#ablation_single_key_crossover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_ablation.ablation_single_key_crossover" title="Link to this definition">¶</a></dt>
+<dd><p>Convert crossover operator to single-key ablation mode for benchmarking.</p>
+<p>Replaces num_keys() to return 1 and __call__() to split internally.
+Benchmarks dynamic key splitting cost for crossover vs ResourceMapper
+pre-allocation strategy.</p>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ablation_single_key_crossover</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UniformCrossover_ablation</span><span class="p">(</span><span class="n">UniformCrossover</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cls</strong> (<em>TCrossover</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>TCrossover</em></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +413,28 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.base_ablation module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.base_ablation.ablation_single_key_mutation"><code class="docutils literal notranslate"><span class="pre">ablation_single_key_mutation()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_ablation.ablation_single_key_crossover"><code class="docutils literal notranslate"><span class="pre">ablation_single_key_crossover()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

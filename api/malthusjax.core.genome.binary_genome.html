@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.core.genome.categorical_genome module" href="malthusjax.core.genome.categorical_genome.html"><link rel="prev" title="malthusjax.core.genome package" href="malthusjax.core.genome.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.core.genome.binary_genome module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,363 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-core-genome-binary-genome-module">
-<h1>malthusjax.core.genome.binary_genome module<a class="headerlink" href="#malthusjax-core-genome-binary-genome-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.core.genome.binary_genome">
+<span id="malthusjax-core-genome-binary-genome-module"></span><h1>malthusjax.core.genome.binary_genome module<a class="headerlink" href="#module-malthusjax.core.genome.binary_genome" title="Link to this heading">¶</a></h1>
+<p>Binary genome and population types.</p>
+<p>Defines the representation for bit‑string genomes along with helper methods
+for conversion, distance computation and simple bit tricks. Includes the
+corresponding population container and random initialization logic.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenomeConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.binary_genome.</span></span><span class="sig-name descname"><span class="pre">BinaryGenomeConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'jax.numpy.int32'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenomeConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Static configuration for discrete binary string genomes.</p>
+<p>This class defines the genome length and initialization properties for all
+binary genomes created with this configuration. All individuals share the same
+shape and bit encoding.</p>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl>
+<dt>shape<span class="classifier">tuple[int, …]</span></dt><dd><p>Logical shape of the bit-string (default: (1,) to prevent scalar genomes).
+- shape=(10,) → 10-bit string (length 10)
+- shape=(64,) → 64-bit string (for binary optimization)
+- shape=(20, 16) → 320-bit matrix (if shaped genomes needed)
+Default: (1,) (single bit)</p>
+<p><strong>Legacy Alias</strong>: Passing <cite>length=N</cite> automatically sets <cite>shape=(N,)</cite>.</p>
+</dd>
+<dt>length<span class="classifier">int | None</span></dt><dd><p>Backward-compatibility alias for genome_length.
+If provided, overrides <cite>shape</cite> with <cite>shape=(length,)</cite>.
+<strong>Deprecated</strong>: Use <cite>shape</cite> directly instead.
+Default: None</p>
+</dd>
+<dt>p<span class="classifier">float</span></dt><dd><p>Bernoulli probability parameter for bit initialization.
+- p=0.5: Unbiased initialization (default, typical for most problems)
+- p&lt;0.5: Bias toward 0-bits
+- p&gt;0.5: Bias toward 1-bits
+Valid range: [0.0, 1.0]
+Default: 0.5</p>
+</dd>
+<dt>dtype<span class="classifier">jnp.dtype</span></dt><dd><p>JAX data type for bit values.
+- jnp.int32 (default): Standard integer type, GPU-efficient
+- jnp.int8: More memory-efficient for very long genomes
+- jnp.int64: Rarely needed (overkill for binary)
+Default: jnp.int32</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p><strong>Binary Genome Representation</strong>:</p>
+<p>Binary genomes use <strong>{0, 1} values internally</strong> (not floating-point).
+Each bit is stored as an integer (typically jnp.int32 or jnp.int8).</p>
+<p><strong>Typical Uses</strong>:
+- Combinatorial optimization (Knapsack, Traveling Salesman)
+- Feature selection (bit = feature on/off)
+- Boolean satisfiability (SAT) problems
+- Constrained selection problems</p>
+<p><strong>Initialization</strong>:
+Each bit is sampled from Bernoulli(p), so approximately p fraction of bits
+are 1 and (1-p) fraction are 0 in initial population.
+- p=0.5 → ~50% 1-bits, ~50% 0-bits (unbiased)
+- p=0.1 → ~10% 1-bits, ~90% 0-bits (sparse)
+- p=0.9 → ~90% 1-bits, ~10% 0-bits (dense)</p>
+<p><strong>Genome Length via shape</strong>:
+The effective genome_length is the product of all dimensions, e.g.:
+- shape=(64,) → length = 64 bits
+- shape=(8, 8) → length = 64 bits
+- shape=(16, 16, 4) → length = 1024 bits</p>
+<p>The <a href="#id1"><span class="problematic" id="id2">:property:`resolved_shape`</span></a> method handles backward-compatibility
+by honoring the legacy <cite>length</cite> parameter if provided.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenomeConfig.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.shape" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenomeConfig.length">
+<span class="sig-name descname"><span class="pre">length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenomeConfig.p">
+<span class="sig-name descname"><span class="pre">p</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.p" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenomeConfig.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.dtype" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.numpy.int32.html#jax.numpy.int32" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int32</span></code></a></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenomeConfig.resolved_shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">resolved_shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.resolved_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Return the effective shape, honoring legacy <cite>length</cite> if present.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenomeConfig.init_population">
+<span class="sig-name descname"><span class="pre">init_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenomeConfig.init_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.init_population" title="Link to this definition">¶</a></dt>
+<dd><p>Create a random population from this config (protocol method for JR-2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><em>BinaryGenome</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenomeConfig.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>dtype</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)"><em>dtype</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.binary_genome.</span></span><span class="sig-name descname"><span class="pre">BinaryGenome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subscriptable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGenome</span></code></a></p>
+<p>A discrete, binary bit-string genome representation.</p>
+<p>Represents candidate solutions as sequences of 0s and 1s. This is the
+standard representation for combinatorial problems like the Knapsack
+Problem, Feature Selection, and Boolean Satisfiability (SAT).</p>
+<p>In a BinaryPopulation, the ‘bits’ array is promoted to shape (N, length).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>subscriptable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.values" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.subscriptable">
+<span class="sig-name descname"><span class="pre">subscriptable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.subscriptable" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.random_init">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">random_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenome.random_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.random_init" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize bit-string via Bernoulli sampling at probability <em>p</em>.</p>
+<p>The returned genome has dtype and shape determined by the provided
+configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><em>BinaryGenomeConfig</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><em>BinaryGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.autocorrect">
+<span class="sig-name descname"><span class="pre">autocorrect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenome.autocorrect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.autocorrect" title="Link to this definition">¶</a></dt>
+<dd><p>Enforce bit domain [0, 1] via clipping and dtype conversion.</p>
+<p>Called post-mutation/crossover to guarantee discrete binary values
+in case floating-point operations introduced out-of-bounds values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><em>BinaryGenomeConfig</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><em>BinaryGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.distance">
+<span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hamming'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenome.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.distance" title="Link to this definition">¶</a></dt>
+<dd><p>Compute distance between binary genomes.</p>
+<p>The other genome is cast to <a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a>. Available metrics
+are Hamming (bitwise mismatch count) or Euclidean norm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>)</p></li>
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.size">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.size" title="Link to this definition">¶</a></dt>
+<dd><p>The number of bits in the genome.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.shape" title="Link to this definition">¶</a></dt>
+<dd><p>The logical shape of the bit-string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.from_tensor">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenome.from_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.from_tensor" title="Link to this definition">¶</a></dt>
+<dd><p>Construct a batched BinaryGenome from a raw array.</p>
+<p>Keeps implementation minimal and JIT-safe: simply wraps the provided
+array in the <cite>BinaryGenome</cite> dataclass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><em>BinaryGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.to_int">
+<span class="sig-name descname"><span class="pre">to_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msb_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenome.to_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.to_int" title="Link to this definition">¶</a></dt>
+<dd><p>Convert the bit-string to an integer using positional weights.</p>
+<p>The <em>msb_first</em> flag controls bit significance ordering. The result is
+a scalar JAX array which may exceed native integer precision for long
+genomes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>msb_first</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.count_ones">
+<span class="sig-name descname"><span class="pre">count_ones</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenome.count_ones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.count_ones" title="Link to this definition">¶</a></dt>
+<dd><p>Sum of bits; Hamming weight. Scalar JAX array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.flip_bit">
+<span class="sig-name descname"><span class="pre">flip_bit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryGenome.flip_bit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.flip_bit" title="Link to this definition">¶</a></dt>
+<dd><p>Toggle bit at index via JAX .at[index].set() functional update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><em>BinaryGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryGenome.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryGenome.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryPopulation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.binary_genome.</span></span><span class="sig-name descname"><span class="pre">BinaryPopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryPopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryPopulation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a>]</p>
+<p>Parallel population container specialized for BinaryGenome bitstrings.</p>
+<p>As of v2.0, this class does not override core population mechanics or
+intercept <cite>.values</cite> properties. It serves strictly as a strongly-typed
+alias/subclass of <cite>BasePopulation[BinaryGenome]</cite> to provide convenient
+initialization helpers and IDE completion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genes</strong> (<a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><em>BinaryGenome</em></a>)</p></li>
+<li><p><strong>fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><em>BinaryGenomeConfig</em></a>)</p></li>
+<li><p><strong>info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryPopulation.genes">
+<span class="sig-name descname"><span class="pre">genes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><span class="pre">BinaryGenome</span></a></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.genes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryPopulation.fitness">
+<span class="sig-name descname"><span class="pre">fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryPopulation.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><span class="pre">BinaryGenomeConfig</span></a></span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryPopulation.init_random">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">init_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryPopulation.init_random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.init_random" title="Link to this definition">¶</a></dt>
+<dd><p>Orchestrates parallel Bernoulli sampling for the initial population.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><em>BinaryGenomeConfig</em></a>)</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryPopulation" title="malthusjax.core.genome.binary_genome.BinaryPopulation"><em>BinaryPopulation</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.binary_genome.BinaryPopulation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +713,59 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.core.genome.binary_genome module</a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.length"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.length</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.p"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.p</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.dtype</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.resolved_shape"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.resolved_shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.init_population()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome"><code class="docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.values"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.values</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.subscriptable"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.subscriptable</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.random_init()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.autocorrect()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.distance"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.distance()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.size"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.shape"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.from_tensor()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.to_int"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.to_int()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.count_ones"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.count_ones()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.flip_bit"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.flip_bit()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryGenome.replace"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryPopulation"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.genes"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.genes</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.config"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.config</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.init_random()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.binary_genome.BinaryPopulation.replace"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

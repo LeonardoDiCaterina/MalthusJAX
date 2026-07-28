@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.selection package" href="malthusjax.operators.selection.html"><link rel="prev" title="malthusjax.operators.mutation.evosax_mutation module" href="malthusjax.operators.mutation.evosax_mutation.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.mutation.real module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,492 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-mutation-real-module">
-<h1>malthusjax.operators.mutation.real module<a class="headerlink" href="#malthusjax-operators-mutation-real-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.mutation.real">
+<span id="malthusjax-operators-mutation-real-module"></span><h1>malthusjax.operators.mutation.real module<a class="headerlink" href="#module-malthusjax.operators.mutation.real" title="Link to this heading">¶</a></h1>
+<p>Real-valued Mutation Operators.
+Optimized for H100:
+1. Uses Masked Arithmetic (genome + noise * mask) instead of Branching (jnp.where).
+2. Explicit casting to ensure correct dtypes (e.g., BF16)</p>
+<blockquote>
+<div><p>during random number generation and arithmetic operations.</p>
+</div></blockquote>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.real.</span></span><span class="sig-name descname"><span class="pre">GaussianMutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schedule_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ScheduleType.CONSTANT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/real.html#GaussianMutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a>]</p>
+<p>Gaussian (Normal) Mutation — Independent Per-Gene Perturbation.</p>
+<p>Gaussian mutation applies independent additive Gaussian noise to each gene,
+with per-gene probability control. This is the most common mutation operator
+in continuous-domain evolutionary algorithms.</p>
+<p><strong>Algorithm</strong>:</p>
+<ol class="arabic simple">
+<li><p>For each gene:</p>
+<ul class="simple">
+<li><p>Draw Bernoulli(mutation_rate) → gene i is mutated with probability mutation_rate</p></li>
+<li><p>If mutated, add N(0, mutation_strength) to gene i</p></li>
+<li><p>Optionally clip to bounds</p></li>
+</ul>
+</li>
+<li><p>Return mutated genome</p></li>
+</ol>
+<p><strong>String Specification Format</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;gaussian:mutation_rate=FLOAT[,mutation_strength=FLOAT]&quot;</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;gaussian&quot;</span>                                              <span class="c1"># Defaults (rate=0.1, strength=0.1)</span>
+<span class="s2">&quot;gaussian:mutation_rate=0.05&quot;</span>                         <span class="c1"># Lower rate, less mutations</span>
+<span class="s2">&quot;gaussian:mutation_rate=0.2,mutation_strength=0.2&quot;</span>    <span class="c1"># Both custom</span>
+<span class="s2">&quot;gaussian:mutation_strength=0.05&quot;</span>                     <span class="c1"># Milder mutations</span>
+<span class="s2">&quot;gaussian:mutation_rate=1.0,mutation_strength=0.01&quot;</span>   <span class="c1"># All genes affected, small noise</span>
+</pre></div>
+</div>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl>
+<dt>mutation_rate<span class="classifier">float, optional</span></dt><dd><p><strong>Per-gene mutation probability</strong>: Fraction of genes affected per mutation event.
+Valid range: [0.0, 1.0]
+- mutation_rate=0.0: No mutation (disabled)
+- mutation_rate=0.05: 5% of genes mutated (typical for large genomes, d≥100)
+- mutation_rate=0.1: 10% mutated (common default, works well for d≈10-100)
+- mutation_rate=1.0: All genes mutated every generation (strong perturbation)
+Default: 0.1 (recommended starting point).</p>
+<p><strong>Typical values by genome dimension</strong>:
+- d=1-10: mutation_rate ≈ 0.15-0.3 (higher, because fewer genes)
+- d=10-100: mutation_rate ≈ 0.05-0.15 (moderate)
+- d=100+: mutation_rate ≈ 0.01-0.05 (lower, to avoid excessive perturbation)</p>
+</dd>
+<dt>mutation_strength<span class="classifier">float, optional</span></dt><dd><p><strong>Gaussian noise standard deviation</strong>: Controls magnitude of per-gene perturbations.
+Valid range: (0, ∞), but typically [0.01, 1.0]
+- mutation_strength=0.01: Very small noise (fine-tuning near optima)
+- mutation_strength=0.1: Moderate noise (balanced exploration/exploitation)
+- mutation_strength=1.0: Large noise (aggressive exploration)
+Default: 0.1 (works well when genome is roughly normalized to [-1, 1]).</p>
+<p><strong>Interaction with genome bounds</strong>: If your genome bounds are [low, high],
+set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.</p>
+</dd>
+<dt>clip<span class="classifier">bool, optional</span></dt><dd><p>If True, clip mutated values to genome bounds [min_b, max_b].
+If False, allow violations (clipping happens at evaluation boundary).
+Default: False (for compatibility with landscape exploration).</p>
+</dd>
+<dt>schedule_type<span class="classifier">ScheduleType, optional</span></dt><dd><p>Mutation strength schedule across generations (CONSTANT, LINEAR_DECAY, etc.).
+Default: ScheduleType.CONSTANT.</p>
+</dd>
+<dt>final_strength<span class="classifier">float, optional</span></dt><dd><p>Target mutation strength at final generation (used if schedule_type != CONSTANT).
+Default: 0.0 (decay to zero).</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p><strong>INTERACTION BETWEEN mutation_rate AND mutation_strength</strong>:
+These two parameters control different aspects of mutation:
+- <cite>mutation_rate</cite>: <strong>Which</strong> genes are modified (controls sparsity)
+- <cite>mutation_strength</cite>: <strong>How much</strong> each modified gene changes (controls perturbation scale)</p>
+<p><strong>Example scenarios</strong>:
+1. <strong>Exploration phase</strong>: Higher mutation_rate (0.2) + higher mutation_strength (0.2)</p>
+<blockquote>
+<div><p>→ Many genes perturbed by large amounts</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p><strong>Exploitation/fine-tuning</strong>: Lower mutation_rate (0.05) + lower mutation_strength (0.05)
+→ Few genes, small noise</p></li>
+<li><p><strong>Balanced default</strong>: mutation_rate=0.1, mutation_strength=0.1
+→ ~10% of genes affected, each by ~0.1 std units</p></li>
+</ol>
+<p><strong>When to Use</strong>: Gaussian mutation is the recommended operator for continuous
+optimization. It’s simple, effective, and works well across nearly all problem types.
+Use it unless you have a specific reason to prefer other mutations (e.g., Ball mutation
+for constrained, high-dimensional problems).</p>
+<p><strong>Computational Complexity</strong>: O(genome_dimension) per individual.
+Very efficient; no sorting or complex operations.</p>
+<p><strong>Best Practices</strong>:
+- Start with mutation_rate=1.0/genome_dimension (standard recommendation)
+- Tune mutation_strength based on your problem scale (not genome dimension)
+- Use scheduling to decrease strength over generations for fine-tuning
+- Monitor diversity and adjust rate if offspring differ too little from parents</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation.mutation_strength">
+<span class="sig-name descname"><span class="pre">mutation_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation.mutation_strength" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation.clip">
+<span class="sig-name descname"><span class="pre">clip</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation.clip" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation.schedule_type">
+<span class="sig-name descname"><span class="pre">schedule_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><span class="pre">ScheduleType</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation.schedule_type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation.final_strength">
+<span class="sig-name descname"><span class="pre">final_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation.final_strength" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>one for the Bernoulli mask and one for Gaussian noise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Requires 2 keys</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>mutation_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>schedule_type</strong> (<a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
+<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.real.</span></span><span class="sig-name descname"><span class="pre">BallMutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schedule_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ScheduleType.CONSTANT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/real.html#BallMutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a>]</p>
+<p>Ball Mutation (3-Tier Paradigm).
+Tier 2: Muller’s Method—Gaussian direction normalized, scaled by u^(1/d).
+Tier 1: Masked addition (genome + ball_delta * mask).
+Shape contract: (d,) genome + (d,) ball_delta → (d,) mutated genome.
+Key budget: 3 pre-allocated subkeys (mask, direction, magnitude scaling).
+Muller’s Method ensures uniform spatial distribution within ball volume
+via power-law radial scaling u^(1/d) to counter dimension bias.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>schedule_type</strong> (<a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
+<li><p><strong>final_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation.radius">
+<span class="sig-name descname"><span class="pre">radius</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation.radius" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation.clip">
+<span class="sig-name descname"><span class="pre">clip</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation.clip" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation.schedule_type">
+<span class="sig-name descname"><span class="pre">schedule_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><span class="pre">ScheduleType</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation.schedule_type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation.final_radius">
+<span class="sig-name descname"><span class="pre">final_radius</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation.final_radius" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>1 for Bernoulli mask, 1 for Gaussian vector, 1 for Magnitude scaling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Requires 3 keys</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.real.</span></span><span class="sig-name descname"><span class="pre">PolynomialMutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/real.html#PolynomialMutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a>]</p>
+<p>Polynomial Mutation (3-Tier Paradigm).
+Tier 2: Masks delta via jnp.where(u≤0.5, (2u)^(1/(η+1))-1, 1-(2(1-u))^(1/(η+1))).
+Tier 1: Scaled addition (genome + delta * bound_range * mask).
+Shape contract: (d,) genome + (d,) delta → (d,) mutated genome.
+Key budget: 2 pre-allocated subkeys (mask, uniform u for polynomial spread).
+Delta branching ensures symmetric distribution around parent for both u&lt;0.5
+and u≥0.5 regions, producing offspring concentrated near parent (small η).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>eta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation.eta">
+<span class="sig-name descname"><span class="pre">eta</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20.0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation.eta" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation.clip">
+<span class="sig-name descname"><span class="pre">clip</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation.clip" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>one for the Bernoulli mask and one for the ‘u’ value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Requires 2 keys</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation_injection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.real.</span></span><span class="sig-name descname"><span class="pre">GaussianMutation_injection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schedule_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ScheduleType.CONSTANT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/real.html#GaussianMutation_injection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation_injection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base_injection.html#malthusjax.operators.base_injection.BaseMutation_injection" title="malthusjax.operators.base_injection.BaseMutation_injection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation_injection</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a>]</p>
+<p>Injection-mode Gaussian Mutation (single-key variant).
+Splits single key to (n*K) subkeys, reshaped (n, K, -1) for vmap.
+Vmap generates all (n*num_offspring) noise arrays in parallel.
+Shape contract: (d,) noise per (pair, offspring) → (n, d) flattened output.
+Trade-off: Full noise materialization vs no re-splitting (reproducibility).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>mutation_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>schedule_type</strong> (<a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
+<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation_injection.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation_injection.mutation_strength">
+<span class="sig-name descname"><span class="pre">mutation_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.mutation_strength" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation_injection.clip">
+<span class="sig-name descname"><span class="pre">clip</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.clip" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation_injection.schedule_type">
+<span class="sig-name descname"><span class="pre">schedule_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><span class="pre">ScheduleType</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.schedule_type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation_injection.final_strength">
+<span class="sig-name descname"><span class="pre">final_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.final_strength" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation_injection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Requires 2 keys:
+- one for the Bernoulli mask
+- one for Gaussian noise.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.GaussianMutation_injection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation_injection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.real.</span></span><span class="sig-name descname"><span class="pre">BallMutation_injection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schedule_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ScheduleType.CONSTANT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/real.html#BallMutation_injection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation_injection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base_injection.html#malthusjax.operators.base_injection.BaseMutation_injection" title="malthusjax.operators.base_injection.BaseMutation_injection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation_injection</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a>]</p>
+<p>Injection-mode Ball Mutation (single-key variant).
+Splits single key to (n*3) subkeys, reshaped (n, 3, -1) for vmap.
+Vmap generates all (n*num_offspring) ball deltas in parallel.
+Shape contract: (d,) ball_delta per (pair, offspring) → (n, d) flattened.
+Trade-off: Full vector/magnitude materialization vs reproducibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>schedule_type</strong> (<a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
+<li><p><strong>final_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation_injection.radius">
+<span class="sig-name descname"><span class="pre">radius</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation_injection.radius" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation_injection.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation_injection.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation_injection.clip">
+<span class="sig-name descname"><span class="pre">clip</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation_injection.clip" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation_injection.schedule_type">
+<span class="sig-name descname"><span class="pre">schedule_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><span class="pre">ScheduleType</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation_injection.schedule_type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation_injection.final_radius">
+<span class="sig-name descname"><span class="pre">final_radius</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation_injection.final_radius" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation_injection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation_injection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>single key budgeted, split internally.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Injection mode</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BallMutation_injection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.real.BallMutation_injection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation_injection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.real.</span></span><span class="sig-name descname"><span class="pre">PolynomialMutation_injection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/real.html#PolynomialMutation_injection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base_injection.html#malthusjax.operators.base_injection.BaseMutation_injection" title="malthusjax.operators.base_injection.BaseMutation_injection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation_injection</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a>]</p>
+<p>Injection-mode Polynomial Mutation (single-key variant).
+Splits single key to (n*2) subkeys, reshaped (n, 2, -1) for vmap.
+Vmap generates all (n*num_offspring) delta_q arrays in parallel.
+Shape contract: (d,) delta per (pair, offspring) → (n, d) flattened.
+Trade-off: Full delta materialization vs reproducibility (no re-splitting).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>eta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation_injection.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation_injection.eta">
+<span class="sig-name descname"><span class="pre">eta</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20.0</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.eta" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation_injection.clip">
+<span class="sig-name descname"><span class="pre">clip</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.clip" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation_injection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>single key budgeted, split internally.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Injection mode</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.PolynomialMutation_injection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +842,82 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.mutation.real module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation"><code class="docutils literal notranslate"><span class="pre">GaussianMutation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation.mutation_rate"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation.mutation_strength"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.mutation_strength</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation.clip"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.clip</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation.schedule_type"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.schedule_type</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation.final_strength"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.final_strength</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation.replace"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation"><code class="docutils literal notranslate"><span class="pre">BallMutation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation.radius"><code class="docutils literal notranslate"><span class="pre">BallMutation.radius</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation.mutation_rate"><code class="docutils literal notranslate"><span class="pre">BallMutation.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation.clip"><code class="docutils literal notranslate"><span class="pre">BallMutation.clip</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation.schedule_type"><code class="docutils literal notranslate"><span class="pre">BallMutation.schedule_type</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation.final_radius"><code class="docutils literal notranslate"><span class="pre">BallMutation.final_radius</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BallMutation.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation.replace"><code class="docutils literal notranslate"><span class="pre">BallMutation.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation.mutation_rate"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation.eta"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation.eta</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation.clip"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation.clip</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation.replace"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation_injection"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.mutation_rate"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.mutation_strength"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection.mutation_strength</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.clip"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection.clip</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.schedule_type"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection.schedule_type</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.final_strength"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection.final_strength</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation_injection.replace"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation_injection"><code class="docutils literal notranslate"><span class="pre">BallMutation_injection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation_injection.radius"><code class="docutils literal notranslate"><span class="pre">BallMutation_injection.radius</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation_injection.mutation_rate"><code class="docutils literal notranslate"><span class="pre">BallMutation_injection.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation_injection.clip"><code class="docutils literal notranslate"><span class="pre">BallMutation_injection.clip</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation_injection.schedule_type"><code class="docutils literal notranslate"><span class="pre">BallMutation_injection.schedule_type</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation_injection.final_radius"><code class="docutils literal notranslate"><span class="pre">BallMutation_injection.final_radius</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation_injection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BallMutation_injection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BallMutation_injection.replace"><code class="docutils literal notranslate"><span class="pre">BallMutation_injection.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.mutation_rate"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.eta"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection.eta</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.clip"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection.clip</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.replace"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

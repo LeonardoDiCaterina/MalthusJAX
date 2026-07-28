@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.composer package" href="malthusjax.composer.html"><link rel="prev" title="malthusjax.benchmarking.results module" href="malthusjax.benchmarking.results.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.benchmarking.runner module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,177 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-benchmarking-runner-module">
-<h1>malthusjax.benchmarking.runner module<a class="headerlink" href="#malthusjax-benchmarking-runner-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.benchmarking.runner">
+<span id="malthusjax-benchmarking-runner-module"></span><h1>malthusjax.benchmarking.runner module<a class="headerlink" href="#module-malthusjax.benchmarking.runner" title="Link to this heading">¶</a></h1>
+<p>Benchmarking runner and engine protocol definitions.</p>
+<p>This lightweight module defines the <a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner" title="malthusjax.benchmarking.runner.BenchmarkRunner"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code></a> class which
+executes an evolutionary engine across multiple random seeds, collects the
+results, and optionally writes artifact files.  A small <code class="docutils literal notranslate"><span class="pre">Engine</span></code> protocol
+is specified here for engines to implement, and a simple deterministic
+<a class="reference internal" href="#malthusjax.benchmarking.runner.StubEngine" title="malthusjax.benchmarking.runner.StubEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">StubEngine</span></code></a> is provided for testing purposes.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.Engine">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.runner.</span></span><span class="sig-name descname"><span class="pre">Engine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/runner.html#Engine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.runner.Engine" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Simple protocol that engines must satisfy.</p>
+<p>Any engine plugged into <a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner" title="malthusjax.benchmarking.runner.BenchmarkRunner"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code></a> needs to expose a
+<code class="docutils literal notranslate"><span class="pre">run_once</span></code> method accepting a JAX random key and returning a dictionary
+containing three standard entries: <code class="docutils literal notranslate"><span class="pre">'history'</span></code> for per-generation
+statistics, <code class="docutils literal notranslate"><span class="pre">'summary'</span></code> for final metrics, and an optional <code class="docutils literal notranslate"><span class="pre">'timings'</span></code>
+dictionary capturing performance data.  This loose contract allows the
+benchmarking infrastructure to remain agnostic to concrete engine
+implementations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.Engine.run_once">
+<span class="sig-name descname"><span class="pre">run_once</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/runner.html#Engine.run_once"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.runner.Engine.run_once" title="Link to this definition">¶</a></dt>
+<dd><p>Execute a single run of the engine and return its result dictionary.</p>
+<p>The caller is responsible for interpreting the resulting keys as
+described in the class docstring above.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.runner.</span></span><span class="sig-name descname"><span class="pre">BenchmarkRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'benchmark_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_artifacts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prng_impl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serialize_history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/runner.html#BenchmarkRunner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Runs benchmarking experiments across multiple seeds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>engine</strong> (<a class="reference internal" href="#malthusjax.benchmarking.runner.Engine" title="malthusjax.benchmarking.runner.Engine"><em>Engine</em></a>)</p></li>
+<li><p><strong>experiment_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>write_artifacts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>prng_impl</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>trace_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>serialize_history</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner.engine">
+<span class="sig-name descname"><span class="pre">engine</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.benchmarking.runner.Engine" title="malthusjax.benchmarking.runner.Engine"><span class="pre">Engine</span></a></span><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner.engine" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner.experiment_name">
+<span class="sig-name descname"><span class="pre">experiment_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'benchmark_experiment'</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner.experiment_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner.output_dir">
+<span class="sig-name descname"><span class="pre">output_dir</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner.output_dir" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner.write_artifacts">
+<span class="sig-name descname"><span class="pre">write_artifacts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner.write_artifacts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner.prng_impl">
+<span class="sig-name descname"><span class="pre">prng_impl</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner.prng_impl" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner.trace_dir">
+<span class="sig-name descname"><span class="pre">trace_dir</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner.trace_dir" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner.serialize_history">
+<span class="sig-name descname"><span class="pre">serialize_history</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner.serialize_history" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.BenchmarkRunner.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/runner.html#BenchmarkRunner.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.runner.BenchmarkRunner.run" title="Link to this definition">¶</a></dt>
+<dd><p>Drive the supplied engine over a sequence of seeds.</p>
+<p>Each seed is converted into a PRNG key (honouring any configured
+<em>prng_impl</em>), and <code class="docutils literal notranslate"><span class="pre">_run_single_seed</span></code> is invoked in turn.  Progress
+bars are shown if <code class="docutils literal notranslate"><span class="pre">tqdm</span></code> is installed.  Results from all seeds are
+collated into an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExperimentResult</span></code>; metadata such as the list of
+seeds and run counts are automatically populated.  When an output
+directory is provided the corresponding JSON/CSV artifacts are also
+written.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seeds</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>)</p></li>
+<li><p><strong>timeout_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ExperimentResult" title="malthusjax.benchmarking.results.ExperimentResult"><em>ExperimentResult</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.StubEngine">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.runner.</span></span><span class="sig-name descname"><span class="pre">StubEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_fitness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">improvement_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/runner.html#StubEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.runner.StubEngine" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Deterministic stub engine for testing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>base_fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>improvement_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.StubEngine.generations">
+<span class="sig-name descname"><span class="pre">generations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.StubEngine.generations" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.StubEngine.base_fitness">
+<span class="sig-name descname"><span class="pre">base_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.StubEngine.base_fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.StubEngine.improvement_rate">
+<span class="sig-name descname"><span class="pre">improvement_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.benchmarking.runner.StubEngine.improvement_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.runner.StubEngine.run_once">
+<span class="sig-name descname"><span class="pre">run_once</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/runner.html#StubEngine.run_once"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.runner.StubEngine.run_once" title="Link to this definition">¶</a></dt>
+<dd><p>Produce a predictable synthetic result for testing.</p>
+<p>The returned history and summary values are driven deterministically by
+the supplied key so that test cases can assert against known outputs.
+This stub avoids any actual computation while still exercising the
+benchmarking machinery.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +527,48 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.benchmarking.runner module</a><ul>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.Engine.run_once"><code class="docutils literal notranslate"><span class="pre">Engine.run_once()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner.engine"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.engine</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner.experiment_name"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.experiment_name</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner.output_dir"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.output_dir</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner.write_artifacts"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.write_artifacts</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner.prng_impl"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.prng_impl</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner.trace_dir"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.trace_dir</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner.serialize_history"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.serialize_history</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.BenchmarkRunner.run"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.run()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.StubEngine"><code class="docutils literal notranslate"><span class="pre">StubEngine</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.StubEngine.generations"><code class="docutils literal notranslate"><span class="pre">StubEngine.generations</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.StubEngine.base_fitness"><code class="docutils literal notranslate"><span class="pre">StubEngine.base_fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.StubEngine.improvement_rate"><code class="docutils literal notranslate"><span class="pre">StubEngine.improvement_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.runner.StubEngine.run_once"><code class="docutils literal notranslate"><span class="pre">StubEngine.run_once()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

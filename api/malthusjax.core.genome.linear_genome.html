@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.core.genome.real_genome module" href="malthusjax.core.genome.real_genome.html"><link rel="prev" title="malthusjax.core.genome.categorical_genome module" href="malthusjax.core.genome.categorical_genome.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.core.genome.linear_genome module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,316 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-core-genome-linear-genome-module">
-<h1>malthusjax.core.genome.linear_genome module<a class="headerlink" href="#malthusjax-core-genome-linear-genome-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.core.genome.linear_genome">
+<span id="malthusjax-core-genome-linear-genome-module"></span><h1>malthusjax.core.genome.linear_genome module<a class="headerlink" href="#module-malthusjax.core.genome.linear_genome" title="Link to this heading">¶</a></h1>
+<p>Linear genetic programming genome and population definitions.</p>
+<p>Encodes programs as sequences of opcode/argument pairs with DAG validity.
+Includes utilities for random initialization, autocorrection, rendering and
+structural distance metrics, plus the corresponding batched container.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.linear_genome.</span></span><span class="sig-name descname"><span class="pre">LinearGenomeConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_ops</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_arity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearGenomeConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Configuration for Linear Genetic Programming (LGP) genomes.</p>
+<p>Defines program structure: L instructions, N external inputs, num_ops
+distinct opcodes, max_arity arguments per operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_inputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_ops</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>max_arity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.length">
+<span class="sig-name descname"><span class="pre">length</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.length" title="Link to this definition">¶</a></dt>
+<dd><p>Total instruction count (L).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_inputs">
+<span class="sig-name descname"><span class="pre">num_inputs</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_inputs" title="Link to this definition">¶</a></dt>
+<dd><p>Number of external inputs (N).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_ops">
+<span class="sig-name descname"><span class="pre">num_ops</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_ops" title="Link to this definition">¶</a></dt>
+<dd><p>Size of opcode alphabet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity">
+<span class="sig-name descname"><span class="pre">max_arity</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum operation arity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">num_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">num_ops</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">max_arity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.linear_genome.</span></span><span class="sig-name descname"><span class="pre">LinearGenome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ops</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearGenome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGenome</span></code></a></p>
+<p>Linear Genetic Programming genome with topological DAG constraint.</p>
+<p>Encodes a program as a sequence of (op, args) pairs. Maintains DAG
+validity: instruction i references only external inputs (indices 0:N)
+or prior instructions (indices N:N+i). This prevents cycles and enables
+single-pass evaluation without control-flow analysis during tracing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ops</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>args</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.ops">
+<span class="sig-name descname"><span class="pre">ops</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.ops" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.args">
+<span class="sig-name descname"><span class="pre">args</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.args" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.values">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">values</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.values" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for compatibility with BaseGenome interface.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.random_init">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">random_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearGenome.random_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.random_init" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize LGP genome with topological DAG validity.</p>
+<p>Opcodes are drawn uniformly while argument indices are sampled such
+that each instruction can only reference earlier instructions or
+external inputs, ensuring acyclic topology.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig" title="malthusjax.core.genome.linear_genome.LinearGenomeConfig"><em>LinearGenomeConfig</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="malthusjax.core.genome.linear_genome.LinearGenome"><em>LinearGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.autocorrect">
+<span class="sig-name descname"><span class="pre">autocorrect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearGenome.autocorrect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.autocorrect" title="Link to this definition">¶</a></dt>
+<dd><p>Restore topological DAG validity via per-instruction index clipping.</p>
+<p>Clips opcodes to [0, num_ops) and argument indices to per-instruction
+limits [0, N+i). Ensures correctness post-mutation without conditional
+branching (XLA-safe).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig" title="malthusjax.core.genome.linear_genome.LinearGenomeConfig"><em>LinearGenomeConfig</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="malthusjax.core.genome.linear_genome.LinearGenome"><em>LinearGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.distance">
+<span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hamming'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearGenome.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.distance" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the structural Hamming distance between two programs.
+Sums mismatches in both operation codes and argument indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>)</p></li>
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.size">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.size" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the total number of instructions (L).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.shape" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the logical dimensions of the genome data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.from_tensor">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearGenome.from_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.from_tensor" title="Link to this definition">¶</a></dt>
+<dd><p>Construct LinearGenome from an (ops, args) tensor pair.</p>
+<p>The input tuple may be batched along a leading population dimension.
+The optional <em>config</em> argument is ignored and exists purely for
+interface consistency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em>, </em><em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em>]</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="malthusjax.core.genome.linear_genome.LinearGenome"><em>LinearGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearGenome.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.render" title="Link to this definition">¶</a></dt>
+<dd><p>Format the genome as human‑readable assembly text.</p>
+<p>Uses <em>config</em> to label inputs and temporaries. If <em>op_names</em> is
+provided, those symbols will be used instead of generic <code class="docutils literal notranslate"><span class="pre">OP_N</span></code>
+placeholders.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig" title="malthusjax.core.genome.linear_genome.LinearGenomeConfig"><em>LinearGenomeConfig</em></a>)</p></li>
+<li><p><strong>op_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenome.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenome.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.linear_genome.</span></span><span class="sig-name descname"><span class="pre">LinearPopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearPopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="malthusjax.core.genome.linear_genome.LinearGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearGenome</span></code></a>]</p>
+<p>Population container for batch-optimized LinearGenomes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genes</strong> (<a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="malthusjax.core.genome.linear_genome.LinearGenome"><em>LinearGenome</em></a>)</p></li>
+<li><p><strong>fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig" title="malthusjax.core.genome.linear_genome.LinearGenomeConfig"><em>LinearGenomeConfig</em></a>)</p></li>
+<li><p><strong>info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation.genes">
+<span class="sig-name descname"><span class="pre">genes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="malthusjax.core.genome.linear_genome.LinearGenome"><span class="pre">LinearGenome</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation.genes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation.fitness">
+<span class="sig-name descname"><span class="pre">fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation.fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig" title="malthusjax.core.genome.linear_genome.LinearGenomeConfig"><span class="pre">LinearGenomeConfig</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation.GENOME_CLS">
+<span class="sig-name descname"><span class="pre">GENOME_CLS</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation.GENOME_CLS" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="malthusjax.core.genome.linear_genome.LinearGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearGenome</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation.init_random">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">init_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/linear_genome.html#LinearPopulation.init_random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation.init_random" title="Link to this definition">¶</a></dt>
+<dd><p>Parallelized initialization of LGP programs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig" title="malthusjax.core.genome.linear_genome.LinearGenomeConfig"><em>LinearGenomeConfig</em></a>)</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation" title="malthusjax.core.genome.linear_genome.LinearPopulation"><em>LinearPopulation</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +666,61 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.core.genome.linear_genome module</a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.length"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.length</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_inputs"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_inputs</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_ops"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_ops</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.max_arity</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.length</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_inputs</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_ops</span></code></a></li>
+<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.max_arity</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome"><code class="docutils literal notranslate"><span class="pre">LinearGenome</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.ops"><code class="docutils literal notranslate"><span class="pre">LinearGenome.ops</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.args"><code class="docutils literal notranslate"><span class="pre">LinearGenome.args</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.values"><code class="docutils literal notranslate"><span class="pre">LinearGenome.values</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.random_init"><code class="docutils literal notranslate"><span class="pre">LinearGenome.random_init()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">LinearGenome.autocorrect()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.distance"><code class="docutils literal notranslate"><span class="pre">LinearGenome.distance()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.size"><code class="docutils literal notranslate"><span class="pre">LinearGenome.size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.shape"><code class="docutils literal notranslate"><span class="pre">LinearGenome.shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">LinearGenome.from_tensor()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.render"><code class="docutils literal notranslate"><span class="pre">LinearGenome.render()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome.replace"><code class="docutils literal notranslate"><span class="pre">LinearGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation"><code class="docutils literal notranslate"><span class="pre">LinearPopulation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.genes"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.genes</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.config"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.config</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.GENOME_CLS"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.GENOME_CLS</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.init_random()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.replace"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

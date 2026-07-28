@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.selection.tournament module" href="malthusjax.operators.selection.tournament.html"><link rel="prev" title="malthusjax.operators.selection.elite_pool module" href="malthusjax.operators.selection.elite_pool.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.selection.roulette module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,133 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-selection-roulette-module">
-<h1>malthusjax.operators.selection.roulette module<a class="headerlink" href="#malthusjax-operators-selection-roulette-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.selection.roulette">
+<span id="malthusjax-operators-selection-roulette-module"></span><h1>malthusjax.operators.selection.roulette module<a class="headerlink" href="#module-malthusjax.operators.selection.roulette" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.roulette.RouletteSelection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.selection.roulette.</span></span><span class="sig-name descname"><span class="pre">RouletteSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_selections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_elites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gumbel_trick</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/selection/roulette.html#RouletteSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.selection.roulette.RouletteSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSelection</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Fitness-Proportional Roulette Selection (Adaptive Paths).</p>
+<p>In roulette selection, individuals are selected with probability proportional
+to their fitness. A softmax transformation converts fitness values to a valid
+probability distribution, with temperature controlling selection pressure.</p>
+<p>This approach allows the algorithm to adaptively adjust selection pressure based
+on fitness diversity across generations.</p>
+<p><strong>String Specification Format</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;roulette:num_selections=INT[,temperature=FLOAT]&quot;</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;roulette&quot;</span>  <span class="c1"># Defaults (num_selections=4, temperature=1.0)</span>
+<span class="s2">&quot;roulette:num_selections=25&quot;</span>  <span class="c1"># Custom num_selections, default temperature</span>
+<span class="s2">&quot;roulette:num_selections=50,temperature=0.5&quot;</span>  <span class="c1"># Both custom (lower temp = more pressure)</span>
+<span class="s2">&quot;roulette:temperature=2.0&quot;</span>  <span class="c1"># Custom temperature, default num_selections</span>
+</pre></div>
+</div>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>temperature<span class="classifier">float, optional</span></dt><dd><p>Controls selection pressure in the softmax transformation.
+Valid range: (0, ∞)
+- temperature=0.1: Very strong exploitation (high-fitness individuals dominate)
+- temperature=1.0: Balanced (fitness-proportional, default)
+- temperature=5.0: Weak selection, more uniform (higher diversity)
+Default: 1.0 (balanced fitness-proportional selection).</p>
+</dd>
+<dt>use_gumbel_trick<span class="classifier">bool, optional</span></dt><dd><p>If True (default), uses the Gumbel-Max trick for fast parallel sampling
+when <code class="docutils literal notranslate"><span class="pre">num_selections</span> <span class="pre">==</span> <span class="pre">population_size</span></code>. Otherwise uses categorical sampling.
+Default: True (faster for full replacement).</p>
+</dd>
+<dt>chunk_size<span class="classifier">int, optional</span></dt><dd><p>When using Gumbel-Max with populations larger than this, splits into chunks
+to control memory usage. Default: 1024.</p>
+</dd>
+<dt>num_selections<span class="classifier">int</span></dt><dd><p>Number of individuals to select. Set by the engine.</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p><strong>⚠️  CRITICAL FITNESS REQUIREMENT</strong>: Roulette selection requires <strong>non-negative
+fitness values</strong>. If your fitness function can return negative values (e.g.,
+minimization problems with negative scores), you must either:</p>
+<ol class="arabic simple">
+<li><p><strong>Shift fitness</strong>: Add a constant to all fitness values to make them positive</p></li>
+<li><p><strong>Transform fitness</strong>: Use <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">(1.0</span> <span class="pre">+</span> <span class="pre">loss)</span></code> or similar</p></li>
+<li><p><strong>Use tournament selection instead</strong>: Recommended if you’re unsure about fitness range</p></li>
+</ol>
+<p>Violating this requirement will cause NaN values in the softmax and invalid
+selection behavior.</p>
+<p><strong>Temperature Tuning</strong>:</p>
+<ul class="simple">
+<li><p>Low temperature (0.1-0.5): Aggressive selection pressure, risk of premature
+convergence to local optima</p></li>
+<li><p>Medium temperature (1.0-2.0): Balanced, recommended for exploiting good regions
+while maintaining diversity</p></li>
+<li><p>High temperature (5.0+): Uniform sampling, high diversity, slow convergence</p></li>
+</ul>
+<p><strong>Computational Complexity</strong>:</p>
+<ul class="simple">
+<li><p>With Gumbel-Max and num_selections == pop_size: O(N log N) due to reduction</p></li>
+<li><p>Otherwise: O(N + num_selections) via categorical sampling</p></li>
+<li><p>Memory: O(N × num_selections) for Gumbel-Max, O(N) for categorical</p></li>
+</ul>
+<p><strong>When to Use</strong>:</p>
+<ul class="simple">
+<li><p>Problem has well-characterized fitness landscape</p></li>
+<li><p>You want fitness-weighted selection (high-fitness individuals breed more)</p></li>
+<li><p>Diversity is maintained through other mechanisms (mutation, crossover)</p></li>
+<li><p>All fitness values are guaranteed non-negative</p></li>
+</ul>
+<p><strong>Recommendation</strong>: If you’re unsure about fitness ranges or want robustness,
+use <code class="xref py py-class docutils literal notranslate"><span class="pre">TournamentSelection</span></code> instead (works with any fitness function).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.roulette.RouletteSelection.temperature">
+<span class="sig-name descname"><span class="pre">temperature</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#malthusjax.operators.selection.roulette.RouletteSelection.temperature" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.roulette.RouletteSelection.use_gumbel_trick">
+<span class="sig-name descname"><span class="pre">use_gumbel_trick</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.operators.selection.roulette.RouletteSelection.use_gumbel_trick" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.roulette.RouletteSelection.chunk_size">
+<span class="sig-name descname"><span class="pre">chunk_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></span><a class="headerlink" href="#malthusjax.operators.selection.roulette.RouletteSelection.chunk_size" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.roulette.RouletteSelection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.roulette.RouletteSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.selection.roulette.RouletteSelection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.selection.roulette.RouletteSelection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>use_gumbel_trick</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +483,34 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.selection.roulette module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.roulette.RouletteSelection"><code class="docutils literal notranslate"><span class="pre">RouletteSelection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.selection.roulette.RouletteSelection.temperature"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.temperature</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.roulette.RouletteSelection.use_gumbel_trick"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.use_gumbel_trick</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.roulette.RouletteSelection.chunk_size"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.chunk_size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.roulette.RouletteSelection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.selection.roulette.RouletteSelection.replace"><code class="docutils literal notranslate"><span class="pre">RouletteSelection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

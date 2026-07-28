@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.core.base module" href="malthusjax.core.base.html"><link rel="prev" title="malthusjax.core.genome.linear_genome module" href="malthusjax.core.genome.linear_genome.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.core.genome.real_genome module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,360 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-core-genome-real-genome-module">
-<h1>malthusjax.core.genome.real_genome module<a class="headerlink" href="#malthusjax-core-genome-real-genome-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.core.genome.real_genome">
+<span id="malthusjax-core-genome-real-genome-module"></span><h1>malthusjax.core.genome.real_genome module<a class="headerlink" href="#module-malthusjax.core.genome.real_genome" title="Link to this heading">¶</a></h1>
+<p>Real‑valued genome types and utilities.</p>
+<p>Implements continuous genome representations along with vector norms,
+noise injection and basic algebraic helpers. Also provides the parallel
+population container specialized for real vectors.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealDistanceMetric">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.real_genome.</span></span><span class="sig-name descname"><span class="pre">RealDistanceMetric</span></span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealDistanceMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealDistanceMetric" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.DistanceMetric" title="malthusjax.core.base.DistanceMetric"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistanceMetric</span></code></a></p>
+<p>Metrics specific to real-valued vectors.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenomeConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.real_genome.</span></span><span class="sig-name descname"><span class="pre">RealGenomeConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inf)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'jax.numpy.float32'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenomeConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenomeConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Static configuration for continuous real-valued genomes.</p>
+<p>This class defines the search space and numerical properties for all genomes
+created with this configuration. All individuals share the same shape and bounds.</p>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl>
+<dt>shape<span class="classifier">tuple[int, …]</span></dt><dd><p>Shape of the real-valued vector. Defines the dimensionality and array structure.
+Examples:
+- shape=(10,) → 10-dimensional vector [d0, d1, …, d9]
+- shape=(5, 3) → 5×3 matrix (15 total parameters)
+- shape=(4, 4, 4) → 4×4×4 tensor (64 total parameters)
+Default: () (empty shape for backward compatibility)</p>
+</dd>
+<dt>bounds<span class="classifier">tuple[float, float]</span></dt><dd><p>Valid range [lower, upper] applied <strong>uniformly to all genes</strong>.
+- lower: Minimum allowed value (e.g., -10.0)
+- upper: Maximum allowed value (e.g., +10.0)
+- All genes will be initialized uniformly within [lower, upper]
+Default: (-∞, +∞) (unbounded)</p>
+<p>Examples:
+- bounds=(-1.0, 1.0) → normalized range
+- bounds=(0.0, 100.0) → positive-only range
+- bounds=(-5.12, 5.12) → Rastrigin function standard
+- bounds=(-512.0, 512.0) → Schwefel function standard</p>
+</dd>
+<dt>dtype<span class="classifier">type or jnp.dtype</span></dt><dd><p>JAX floating-point dtype for all gene values.
+- jnp.float32 (default): 32-bit precision, GPU-efficient
+- jnp.float64: 64-bit precision, higher accuracy but slower
+Default: jnp.float32</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p>** CRITICAL: Bounds Enforcement**:</p>
+<p>Bounds are <strong>enforced during initialization</strong> (via <a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.random_init" title="malthusjax.core.genome.real_genome.RealGenome.random_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">RealGenome.random_init()</span></code></a>).
+However, bounds are <strong>NOT automatically enforced after mutation or crossover</strong>.</p>
+<p>If your mutation operators can push values outside [lower, upper], you <strong>MUST</strong>:
+1. Enable clipping in the mutation operator (clip=True for GaussianMutation)
+2. <strong>OR</strong> call <a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.autocorrect" title="malthusjax.core.genome.real_genome.RealGenome.autocorrect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">RealGenome.autocorrect()</span></code></a> after mutation
+3. <strong>OR</strong> accept that individuals may operate outside bounds (and handle in fitness)</p>
+<p><strong>Example Workflow</strong>:</p>
+<p>Without clipping (allowing out-of-bounds):</p>
+<ul class="simple">
+<li><p>Configuration: bounds=[-1, 1]</p></li>
+<li><p>After mutation: values might become [-1.5, 1.2] (outside bounds)</p></li>
+<li><p>Evaluator must handle these values (e.g., clip before evaluation, or penalize)</p></li>
+</ul>
+<p>With clipping enabled:</p>
+<ul class="simple">
+<li><p>Use GaussianMutation(…, clip=True)</p></li>
+<li><p>OR manually: mutated_genome = mutated_genome.autocorrect(config)</p></li>
+<li><p>Guarantees values stay in [lower, upper]</p></li>
+</ul>
+<p><strong>When to Use Unbounded Search</strong>:
+- Research/exploration: Allow temporary excursions outside nominal bounds
+- Penalty-based approaches: Evaluator penalizes out-of-bounds genomes
+- Adaptive problems: Bounds change during evolution (recompute dynamically)</p>
+<p><strong>When to Enforce Bounds</strong>:
+- Constrained optimization: Hard-constraint problems
+- Physics simulations: Physical laws require values in specific ranges
+- Benchmark problems: Standard bounds are part of problem definition</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenomeConfig.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.shape" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenomeConfig.bounds">
+<span class="sig-name descname"><span class="pre">bounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(-inf,</span> <span class="pre">inf)</span></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.bounds" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenomeConfig.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.dtype" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.numpy.float32.html#jax.numpy.float32" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float32</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenomeConfig.init_population">
+<span class="sig-name descname"><span class="pre">init_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenomeConfig.init_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.init_population" title="Link to this definition">¶</a></dt>
+<dd><p>Create a random population from this config (protocol method for JR-2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenomeConfig.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>dtype</strong> (<a class="reference internal" href="malthusjax.composer.node.html#malthusjax.composer.node.Node.type" title="malthusjax.composer.node.Node.type"><em>type</em></a><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>] </em><em>| </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)"><em>dtype</em></a><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.real_genome.</span></span><span class="sig-name descname"><span class="pre">RealGenome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subscriptable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGenome</span></code></a></p>
+<p>A continuous, real-valued genome representation.</p>
+<p>This genome is represented as a 1D vector of floating-point numbers. It is
+ideal for function optimization, neural network weight evolution, and
+parameter estimation where the search space is a manifold in R^n.</p>
+<p>When part of a RealPopulation, the ‘values’ array becomes 2D (N, length),
+where N is the population size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>subscriptable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.values" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.subscriptable">
+<span class="sig-name descname"><span class="pre">subscriptable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.subscriptable" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.random_init">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">random_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.random_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.random_init" title="Link to this definition">¶</a></dt>
+<dd><p>Samples a genome from a uniform distribution within the configured bounds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><em>RealGenomeConfig</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.autocorrect">
+<span class="sig-name descname"><span class="pre">autocorrect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.autocorrect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.autocorrect" title="Link to this definition">¶</a></dt>
+<dd><p>Clamps the genome values to ensure they remain within the hypercube
+defined by the configuration bounds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><em>RealGenomeConfig</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.distance">
+<span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.distance" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the distance between this genome and another in continuous space.</p>
+<p>The <em>other</em> genome is cast internally to <a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>. Supported
+metrics include ‘euclidean’ (L2), ‘manhattan’ (L1), and an approximate
+‘hamming’ based on a value threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>)</p></li>
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.size">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.size" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the length of the vector.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.shape" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the array shape of the genome values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.magnitude">
+<span class="sig-name descname"><span class="pre">magnitude</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.magnitude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.magnitude" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the L2 norm (magnitude) of the genome vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.normalize">
+<span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.normalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.normalize" title="Link to this definition">¶</a></dt>
+<dd><p>Scales the genome to unit length (norm=1).
+Utilizes jnp.where to prevent division by zero during JIT compilation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.add_noise">
+<span class="sig-name descname"><span class="pre">add_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.add_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.add_noise" title="Link to this definition">¶</a></dt>
+<dd><p>Applies Gaussian jitter to the genome, often used as a mutation operator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>noise_std</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.from_tensor">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.from_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.from_tensor" title="Link to this definition">¶</a></dt>
+<dd><p>Construct a batched RealGenome from a raw array.</p>
+<p>This is intentionally a trivial factory: it wraps the provided array in
+the <cite>RealGenome</cite> dataclass. Keep the implementation pure and avoid
+Python-side validation so it remains JIT-traceable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealGenome.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealGenome.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealPopulation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.real_genome.</span></span><span class="sig-name descname"><span class="pre">RealPopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealPopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealPopulation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>]</p>
+<p>Parallel population container specialized for RealGenome vectors.</p>
+<p>As of v2.0, this class does not override core population mechanics or
+intercept <cite>.values</cite> properties. It serves strictly as a strongly-typed
+alias/subclass of <cite>BasePopulation[RealGenome]</cite> to provide convenient
+initialization helpers and IDE completion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genes</strong> (<a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a>)</p></li>
+<li><p><strong>fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><em>RealGenomeConfig</em></a>)</p></li>
+<li><p><strong>info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealPopulation.genes">
+<span class="sig-name descname"><span class="pre">genes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><span class="pre">RealGenome</span></a></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealPopulation.genes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealPopulation.fitness">
+<span class="sig-name descname"><span class="pre">fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealPopulation.fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealPopulation.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><span class="pre">RealGenomeConfig</span></a></span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealPopulation.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealPopulation.init_random">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">init_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealPopulation.init_random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealPopulation.init_random" title="Link to this definition">¶</a></dt>
+<dd><p>Orchestrates the parallel creation of ‘size’ random real genomes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><em>RealGenomeConfig</em></a>)</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealPopulation" title="malthusjax.core.genome.real_genome.RealPopulation"><em>RealPopulation</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.real_genome.RealPopulation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.real_genome.RealPopulation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +710,58 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.core.genome.real_genome module</a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealDistanceMetric"><code class="docutils literal notranslate"><span class="pre">RealDistanceMetric</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.bounds"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.bounds</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.dtype</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.init_population()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome"><code class="docutils literal notranslate"><span class="pre">RealGenome</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.values"><code class="docutils literal notranslate"><span class="pre">RealGenome.values</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.subscriptable"><code class="docutils literal notranslate"><span class="pre">RealGenome.subscriptable</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.random_init"><code class="docutils literal notranslate"><span class="pre">RealGenome.random_init()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">RealGenome.autocorrect()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.distance"><code class="docutils literal notranslate"><span class="pre">RealGenome.distance()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.size"><code class="docutils literal notranslate"><span class="pre">RealGenome.size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.shape"><code class="docutils literal notranslate"><span class="pre">RealGenome.shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.magnitude"><code class="docutils literal notranslate"><span class="pre">RealGenome.magnitude()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.normalize"><code class="docutils literal notranslate"><span class="pre">RealGenome.normalize()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.add_noise"><code class="docutils literal notranslate"><span class="pre">RealGenome.add_noise()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">RealGenome.from_tensor()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealGenome.replace"><code class="docutils literal notranslate"><span class="pre">RealGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealPopulation"><code class="docutils literal notranslate"><span class="pre">RealPopulation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealPopulation.genes"><code class="docutils literal notranslate"><span class="pre">RealPopulation.genes</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">RealPopulation.fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealPopulation.config"><code class="docutils literal notranslate"><span class="pre">RealPopulation.config</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">RealPopulation.init_random()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.real_genome.RealPopulation.replace"><code class="docutils literal notranslate"><span class="pre">RealPopulation.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

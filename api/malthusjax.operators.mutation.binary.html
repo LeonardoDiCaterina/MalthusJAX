@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.mutation.evosax_mutation module" href="malthusjax.operators.mutation.evosax_mutation.html"><link rel="prev" title="malthusjax.operators.mutation package" href="malthusjax.operators.mutation.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.mutation.binary module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,135 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-mutation-binary-module">
-<h1>malthusjax.operators.mutation.binary module<a class="headerlink" href="#malthusjax-operators-mutation-binary-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.mutation.binary">
+<span id="malthusjax-operators-mutation-binary-module"></span><h1>malthusjax.operators.mutation.binary module<a class="headerlink" href="#module-malthusjax.operators.mutation.binary" title="Link to this heading">¶</a></h1>
+<p>Binary mutation operators using the new paradigm.</p>
+<p>This module provides mutation operators for BinaryGenome using the new
+&#64;struct.dataclass factory pattern for JIT compilation and vectorization.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.BitFlipMutation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.binary.</span></span><span class="sig-name descname"><span class="pre">BitFlipMutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/binary.html#BitFlipMutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.binary.BitFlipMutation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenomeConfig</span></code></a>]</p>
+<p>Bit Flip Mutation (3-Tier Paradigm).
+Tier 2: Bernoulli flip mask (N,) where N is bit-string length.
+Tier 1: Bitwise XOR with dtype-conditional logic (bool vs numeric).
+Shape contract: (N,) genome + (N,) flip_mask → (N,) mutated bit-string.
+Key budget: 1 pre-allocated subkey (Bernoulli mask generation).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.BitFlipMutation.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.binary.BitFlipMutation.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.BitFlipMutation.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.binary.BitFlipMutation.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per (individual, offspring) pair. Budgeted by ResourceMapper.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.BitFlipMutation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.binary.BitFlipMutation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.ScrambleMutation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.binary.</span></span><span class="sig-name descname"><span class="pre">ScrambleMutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/binary.html#ScrambleMutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.binary.ScrambleMutation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenomeConfig</span></code></a>]</p>
+<p>Scramble Mutation (3-Tier Paradigm).
+Tier 2: Bernoulli decision + permutation indices (N,) reordering.
+Tier 1: Apply permutation conditionally via jax.lax.select (branchless XLA).
+Shape contract: (N,) genome → (N,) permuted_or_original_genome.
+Key budget: 2 pre-allocated subkeys (decision mask, permutation generation).
+Jax.lax.select ensures XLA traces without control flow (scalars broadcast).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.ScrambleMutation.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.binary.ScrambleMutation.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.ScrambleMutation.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.binary.ScrambleMutation.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per (individual, offspring) pair. Budgeted by ResourceMapper.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.ScrambleMutation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.binary.ScrambleMutation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.SwapMutation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.binary.</span></span><span class="sig-name descname"><span class="pre">SwapMutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/binary.html#SwapMutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.binary.SwapMutation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenomeConfig</span></code></a>]</p>
+<p>Swap Mutation (3-Tier Paradigm).
+Tier 2: Bernoulli decision + two random bit positions (idx1, idx2).
+Tier 1: Conditional swap via jax.array.at[].set() chaining (immutable arrays).
+Shape contract: (N,) genome → (N,) swapped_or_original_genome.
+Key budget: 3 pre-allocated subkeys (decision, idx1 randint, idx2 randint).
+Functional swap via .at[] preserves JAX immutability for JIT compilation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.SwapMutation.mutation_rate">
+<span class="sig-name descname"><span class="pre">mutation_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.operators.mutation.binary.SwapMutation.mutation_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.SwapMutation.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.binary.SwapMutation.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per (individual, offspring) pair. Budgeted by ResourceMapper.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.binary.SwapMutation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.binary.SwapMutation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +485,44 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.mutation.binary module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.BitFlipMutation"><code class="docutils literal notranslate"><span class="pre">BitFlipMutation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.BitFlipMutation.mutation_rate"><code class="docutils literal notranslate"><span class="pre">BitFlipMutation.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.BitFlipMutation.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BitFlipMutation.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.BitFlipMutation.replace"><code class="docutils literal notranslate"><span class="pre">BitFlipMutation.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.ScrambleMutation"><code class="docutils literal notranslate"><span class="pre">ScrambleMutation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.ScrambleMutation.mutation_rate"><code class="docutils literal notranslate"><span class="pre">ScrambleMutation.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.ScrambleMutation.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">ScrambleMutation.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.ScrambleMutation.replace"><code class="docutils literal notranslate"><span class="pre">ScrambleMutation.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.SwapMutation"><code class="docutils literal notranslate"><span class="pre">SwapMutation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.SwapMutation.mutation_rate"><code class="docutils literal notranslate"><span class="pre">SwapMutation.mutation_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.SwapMutation.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">SwapMutation.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.binary.SwapMutation.replace"><code class="docutils literal notranslate"><span class="pre">SwapMutation.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

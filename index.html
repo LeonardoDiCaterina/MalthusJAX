@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Quick Start" href="quickstart.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -389,6 +389,298 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome"><code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BaseGenome.random_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.distance"><code class="docutils literal notranslate"><span class="pre">BaseGenome.distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BaseGenome.autocorrect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.size"><code class="docutils literal notranslate"><span class="pre">BaseGenome.size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.shape"><code class="docutils literal notranslate"><span class="pre">BaseGenome.shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">BaseGenome.from_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.create_population"><code class="docutils literal notranslate"><span class="pre">BaseGenome.create_population()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.replace"><code class="docutils literal notranslate"><span class="pre">BaseGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation"><code class="docutils literal notranslate"><span class="pre">BasePopulation</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.genes"><code class="docutils literal notranslate"><span class="pre">BasePopulation.genes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id0"><code class="docutils literal notranslate"><span class="pre">BasePopulation.genes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id1"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id2"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.spawn_offspring"><code class="docutils literal notranslate"><span class="pre">BasePopulation.spawn_offspring()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.autocorrect"><code class="docutils literal notranslate"><span class="pre">BasePopulation.autocorrect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.distance_matrix"><code class="docutils literal notranslate"><span class="pre">BasePopulation.distance_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.replace"><code class="docutils literal notranslate"><span class="pre">BasePopulation.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.DistanceMetric"><code class="docutils literal notranslate"><span class="pre">DistanceMetric</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.DistanceMetric.HAMMING"><code class="docutils literal notranslate"><span class="pre">DistanceMetric.HAMMING</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.DistanceMetric.EUCLIDEAN"><code class="docutils literal notranslate"><span class="pre">DistanceMetric.EUCLIDEAN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.DistanceMetric.MANHATTAN"><code class="docutils literal notranslate"><span class="pre">DistanceMetric.MANHATTAN</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator.config"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator.data"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator.evaluate_population"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.evaluate_population()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator.f_opt"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.f_opt</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator.x_opt"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.x_opt</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator.get_gap_to_optimum"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.get_gap_to_optimum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinarySumConfig"><code class="docutils literal notranslate"><span class="pre">BinarySumConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinarySumConfig.replace"><code class="docutils literal notranslate"><span class="pre">BinarySumConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinarySumEvaluator"><code class="docutils literal notranslate"><span class="pre">BinarySumEvaluator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinarySumEvaluator.config"><code class="docutils literal notranslate"><span class="pre">BinarySumEvaluator.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinarySumEvaluator.data"><code class="docutils literal notranslate"><span class="pre">BinarySumEvaluator.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinarySumEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">BinarySumEvaluator.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinarySumEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">BinarySumEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackConfig"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackConfig.n_items"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.n_items</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackConfig.weights"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.weights</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackConfig.values"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.values</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackConfig.capacity"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.capacity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackConfig.penalty_factor"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.penalty_factor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id3"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.n_items</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id4"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.weights</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id5"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.values</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id6"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.capacity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id7"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.penalty_factor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackConfig.replace"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackEvaluator"><code class="docutils literal notranslate"><span class="pre">KnapsackEvaluator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackEvaluator.config"><code class="docutils literal notranslate"><span class="pre">KnapsackEvaluator.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackEvaluator.data"><code class="docutils literal notranslate"><span class="pre">KnapsackEvaluator.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">KnapsackEvaluator.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackEvaluator.create_random_problem"><code class="docutils literal notranslate"><span class="pre">KnapsackEvaluator.create_random_problem()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackEvaluator.create_synthetic"><code class="docutils literal notranslate"><span class="pre">KnapsackEvaluator.create_synthetic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackEvaluator.create_from_data"><code class="docutils literal notranslate"><span class="pre">KnapsackEvaluator.create_from_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.KnapsackEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">KnapsackEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxConfig"><code class="docutils literal notranslate"><span class="pre">BoxConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxConfig.target_point"><code class="docutils literal notranslate"><span class="pre">BoxConfig.target_point</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxConfig.box_bounds"><code class="docutils literal notranslate"><span class="pre">BoxConfig.box_bounds</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxConfig.penalty_factor"><code class="docutils literal notranslate"><span class="pre">BoxConfig.penalty_factor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxConfig.objective_type"><code class="docutils literal notranslate"><span class="pre">BoxConfig.objective_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id8"><code class="docutils literal notranslate"><span class="pre">BoxConfig.target_point</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id9"><code class="docutils literal notranslate"><span class="pre">BoxConfig.box_bounds</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id10"><code class="docutils literal notranslate"><span class="pre">BoxConfig.penalty_factor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id11"><code class="docutils literal notranslate"><span class="pre">BoxConfig.objective_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxConfig.replace"><code class="docutils literal notranslate"><span class="pre">BoxConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxEvaluator"><code class="docutils literal notranslate"><span class="pre">BoxEvaluator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxEvaluator.config"><code class="docutils literal notranslate"><span class="pre">BoxEvaluator.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxEvaluator.data"><code class="docutils literal notranslate"><span class="pre">BoxEvaluator.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">BoxEvaluator.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxEvaluator.create_random_problem"><code class="docutils literal notranslate"><span class="pre">BoxEvaluator.create_random_problem()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BoxEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">BoxEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.GriewankConfig"><code class="docutils literal notranslate"><span class="pre">GriewankConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GriewankConfig.replace"><code class="docutils literal notranslate"><span class="pre">GriewankConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.GriewankEvaluator"><code class="docutils literal notranslate"><span class="pre">GriewankEvaluator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GriewankEvaluator.config"><code class="docutils literal notranslate"><span class="pre">GriewankEvaluator.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GriewankEvaluator.data"><code class="docutils literal notranslate"><span class="pre">GriewankEvaluator.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GriewankEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">GriewankEvaluator.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GriewankEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">GriewankEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.SphereConfig"><code class="docutils literal notranslate"><span class="pre">SphereConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.SphereConfig.replace"><code class="docutils literal notranslate"><span class="pre">SphereConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.SphereEvaluator"><code class="docutils literal notranslate"><span class="pre">SphereEvaluator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.SphereEvaluator.config"><code class="docutils literal notranslate"><span class="pre">SphereEvaluator.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.SphereEvaluator.data"><code class="docutils literal notranslate"><span class="pre">SphereEvaluator.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.SphereEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">SphereEvaluator.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.SphereEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">SphereEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome"><code class="docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.values"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.values</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.subscriptable"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.subscriptable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.random_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.autocorrect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.distance"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.size"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.shape"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.from_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.to_int"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.to_int()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.count_ones"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.count_ones()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.flip_bit"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.flip_bit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenome.replace"><code class="docutils literal notranslate"><span class="pre">BinaryGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenomeConfig"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenomeConfig.length"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.length</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenomeConfig.p"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.p</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.dtype</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenomeConfig.resolved_shape"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.resolved_shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.init_population()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">BinaryGenomeConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.genes"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.genes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.fitness</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.config"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.init_random()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.replace"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.values"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.values</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.random_init"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.random_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.autocorrect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.distance"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.size"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.shape"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.from_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.is_permutation"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.is_permutation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.to_permutation"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.to_permutation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.swap_positions"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.swap_positions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.count_category"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.count_category()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenome.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenomeConfig"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenomeConfig.num_categories"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id14"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id15"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#id16"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.init_population()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.genes"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.genes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.fitness</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.config"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.init_random()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome"><code class="docutils literal notranslate"><span class="pre">RealGenome</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.values"><code class="docutils literal notranslate"><span class="pre">RealGenome.values</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.subscriptable"><code class="docutils literal notranslate"><span class="pre">RealGenome.subscriptable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.random_init"><code class="docutils literal notranslate"><span class="pre">RealGenome.random_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">RealGenome.autocorrect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.distance"><code class="docutils literal notranslate"><span class="pre">RealGenome.distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.size"><code class="docutils literal notranslate"><span class="pre">RealGenome.size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.shape"><code class="docutils literal notranslate"><span class="pre">RealGenome.shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.magnitude"><code class="docutils literal notranslate"><span class="pre">RealGenome.magnitude()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.normalize"><code class="docutils literal notranslate"><span class="pre">RealGenome.normalize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.add_noise"><code class="docutils literal notranslate"><span class="pre">RealGenome.add_noise()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">RealGenome.from_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenome.replace"><code class="docutils literal notranslate"><span class="pre">RealGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenomeConfig"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.shape</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenomeConfig.bounds"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.bounds</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.dtype</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.init_population()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">RealGenomeConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation"><code class="docutils literal notranslate"><span class="pre">RealPopulation</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.genes"><code class="docutils literal notranslate"><span class="pre">RealPopulation.genes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">RealPopulation.fitness</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.config"><code class="docutils literal notranslate"><span class="pre">RealPopulation.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">RealPopulation.init_random()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.replace"><code class="docutils literal notranslate"><span class="pre">RealPopulation.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine"><code class="docutils literal notranslate"><span class="pre">AbstractEngine</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.engine_params"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.engine_params</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.init_state"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.init_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.step"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.debug_step"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.debug_step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.debug_run"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.debug_run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.run"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.ask_with_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.tell_with_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.get_hlo_text"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.get_hlo_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngine.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngineParams"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngineParams.pop_size"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.pop_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngineParams.elitism"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.elitism</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngineParams.num_generations"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.num_generations</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngineParams.unroll_num"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.unroll_num</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEngineParams.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.population"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.population</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.best_genome"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_genome</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.generation"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.generation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_fitness</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.rng_key"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.rng_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.compute_unroll_num"><code class="docutils literal notranslate"><span class="pre">compute_unroll_num()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine"><code class="docutils literal notranslate"><span class="pre">GeneticEngine</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.genome_config"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.genome_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.evaluator"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.evaluator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.selection"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.selection</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.crossover"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.crossover</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.mutation"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.mutation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.enable_progress_bar"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.enable_progress_bar</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.step"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.debug_step"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.debug_step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.run"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.init_state"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.init_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.ask"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask_with_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell_with_key()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.key_derivation"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.key_derivation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.prng_impl"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.prng_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.schedule_type"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.schedule_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.track_best"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.track_best</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.initial_strength"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.initial_strength</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.final_strength"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.final_strength</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.debug_tracing"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.debug_tracing</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.forward_presplit_keys"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.forward_presplit_keys</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngineParams.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngineParams.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticGenerationOutput"><code class="docutils literal notranslate"><span class="pre">GeneticGenerationOutput</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticGenerationOutput.random_key"><code class="docutils literal notranslate"><span class="pre">GeneticGenerationOutput.random_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticGenerationOutput.replace"><code class="docutils literal notranslate"><span class="pre">GeneticGenerationOutput.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.ScheduleType"><code class="docutils literal notranslate"><span class="pre">ScheduleType</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.ScheduleType.CONSTANT"><code class="docutils literal notranslate"><span class="pre">ScheduleType.CONSTANT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.ScheduleType.LINEAR_DECAY"><code class="docutils literal notranslate"><span class="pre">ScheduleType.LINEAR_DECAY</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.ScheduleType.COSINE_ANNEAL"><code class="docutils literal notranslate"><span class="pre">ScheduleType.COSINE_ANNEAL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.ScheduleType.EXPONENTIAL_DECAY"><code class="docutils literal notranslate"><span class="pre">ScheduleType.EXPONENTIAL_DECAY</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.compute_scheduled_strength"><code class="docutils literal notranslate"><span class="pre">compute_scheduled_strength()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.html">malthusjax.benchmarking package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.html">malthusjax.composer package</a></li>

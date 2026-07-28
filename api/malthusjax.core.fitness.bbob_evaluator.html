@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.core.fitness.binary_evaluators module" href="malthusjax.core.fitness.binary_evaluators.html"><link rel="prev" title="malthusjax.core.fitness.base module" href="malthusjax.core.fitness.base.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.core.fitness.bbob_evaluator module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,201 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-core-fitness-bbob-evaluator-module">
-<h1>malthusjax.core.fitness.bbob_evaluator module<a class="headerlink" href="#malthusjax-core-fitness-bbob-evaluator-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.core.fitness.bbob_evaluator">
+<span id="malthusjax-core-fitness-bbob-evaluator-module"></span><h1>malthusjax.core.fitness.bbob_evaluator module<a class="headerlink" href="#module-malthusjax.core.fitness.bbob_evaluator" title="Link to this heading">¶</a></h1>
+<p>Wrapper around evosax BBOB benchmark problems.</p>
+<p>Exposes a MalthusJAX-friendly evaluator that leverages the evosax
+BBOBProblem API for deterministic black‑box function evaluation. Plays
+nicely with our population and maximization conventions.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.bbob_evaluator.</span></span><span class="sig-name descname"><span class="pre">BBOBConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sphere'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/bbob_evaluator.html#BBOBConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig" title="malthusjax.core.fitness.base.BaseEvaluatorConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEvaluatorConfig</span></code></a></p>
+<p>Configuration for BBOB black-box optimization benchmarks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>fn_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>num_dims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBConfig.fn_name">
+<span class="sig-name descname"><span class="pre">fn_name</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.fn_name" title="Link to this definition">¶</a></dt>
+<dd><p>BBOB function identifier (lowercase: ‘sphere’, ‘rastrigin’, etc).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBConfig.num_dims">
+<span class="sig-name descname"><span class="pre">num_dims</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.num_dims" title="Link to this definition">¶</a></dt>
+<dd><p>Problem dimensionality.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBConfig.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.seed" title="Link to this definition">¶</a></dt>
+<dd><p>Seed ID for problem instance (rotation matrices, shifts).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">fn_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sphere'</span></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">num_dims</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBConfig.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.bbob_evaluator.</span></span><span class="sig-name descname"><span class="pre">BBOBEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evosax_problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/bbob_evaluator.html#BBOBEvaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEvaluator</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig" title="malthusjax.core.fitness.bbob_evaluator.BBOBConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BBOBConfig</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
+<p>BBOB benchmark wrapper for MalthusJAX RealGenome optimization.</p>
+<p>Wraps evosax BBOBProblem for standard black-box test functions. The problem
+instance and its state are stored as non-PyTree fields (static).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>C</em>)</p></li>
+<li><p><strong>data</strong> (<em>D</em>)</p></li>
+<li><p><strong>evosax_problem</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>problem_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evosax_problem">
+<span class="sig-name descname"><span class="pre">evosax_problem</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evosax_problem" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.problem_state">
+<span class="sig-name descname"><span class="pre">problem_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.problem_state" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.create">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/bbob_evaluator.html#BBOBEvaluator.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.create" title="Link to this definition">¶</a></dt>
+<dd><p>Factory method to initialize the evosax BBOBProblem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig" title="malthusjax.core.fitness.bbob_evaluator.BBOBConfig"><em>BBOBConfig</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator" title="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator"><em>BBOBEvaluator</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/bbob_evaluator.html#BBOBEvaluator.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate" title="Link to this definition">¶</a></dt>
+<dd><p>Single genome evaluation via the evosax fitness function.</p>
+<p>The input vector is reshaped to match evosax expectations and evaluated
+deterministically. Returns raw minimization objective (lower=better).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>genome</strong> (<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate_population">
+<span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/bbob_evaluator.html#BBOBEvaluator.evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate_population" title="Link to this definition">¶</a></dt>
+<dd><p>Vectorized batch evaluation using evosax native evaluation.</p>
+<p>The population genes array is fed directly into the fitness function with
+deterministic evaluation. Returns raw minimization objectives (lower=better).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><em>RealGenome</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.f_opt">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">f_opt</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.f_opt" title="Link to this definition">¶</a></dt>
+<dd><p>Reference minimum value (optimal function value) for this problem.</p>
+<p>This is the known global optimum from the BBOB benchmark suite.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.x_opt">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">x_opt</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.x_opt" title="Link to this definition">¶</a></dt>
+<dd><p>Reference optimal solution location for this problem.</p>
+<p>This is the known global optimum location from the BBOB benchmark suite.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.get_gap_to_optimum">
+<span class="sig-name descname"><span class="pre">get_gap_to_optimum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fitness_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/bbob_evaluator.html#BBOBEvaluator.get_gap_to_optimum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.get_gap_to_optimum" title="Link to this definition">¶</a></dt>
+<dd><p>Compute gap between a fitness value and the known optimum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fitness_value</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The fitness value to compare (should be raw BBOB value,
+not considering maximize flag).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The absolute gap to the optimum (always positive, 0 means optimal).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +551,48 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.core.fitness.bbob_evaluator module</a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig"><code class="docutils literal notranslate"><span class="pre">BBOBConfig</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.fn_name"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.fn_name</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.num_dims"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.num_dims</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.seed"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.seed</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.fn_name</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.num_dims</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.seed</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.replace"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evosax_problem"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.evosax_problem</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.problem_state"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.problem_state</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.create"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.create()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate_population"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.evaluate_population()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.f_opt"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.f_opt</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.x_opt"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.x_opt</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.get_gap_to_optimum"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.get_gap_to_optimum()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">BBOBEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

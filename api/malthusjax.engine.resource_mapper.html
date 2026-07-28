@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.engine.schedules module" href="malthusjax.engine.schedules.html"><link rel="prev" title="malthusjax.engine.genetic_fastengine module" href="malthusjax.engine.genetic_fastengine.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.engine.resource_mapper module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,348 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-engine-resource-mapper-module">
-<h1>malthusjax.engine.resource_mapper module<a class="headerlink" href="#malthusjax-engine-resource-mapper-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.engine.resource_mapper">
+<span id="malthusjax-engine-resource-mapper-module"></span><h1>malthusjax.engine.resource_mapper module<a class="headerlink" href="#module-malthusjax.engine.resource_mapper" title="Link to this heading">¶</a></h1>
+<p>Resource Mapper - Static RNG Budget Allocator &amp; Data Flow Calculator.</p>
+<p>Step 3 of Optimization Roadmap:
+Pre-calculates exact RNG requirements and operator output shapes
+to enable static allocation and precise “cascade” data flow.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.KeyDerivationStrategy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.resource_mapper.</span></span><span class="sig-name descname"><span class="pre">KeyDerivationStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#KeyDerivationStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<p>Strategy for deriving RNG keys from master key (resource_map.get_keys).
+SPLIT: Sequential jax.random.split → uncorrelated keys, single-threaded, lower memory.
+FOLD: Parallel jax.random.fold_in with indices → deterministic keys, parallelizable,</p>
+<blockquote>
+<div><p>scales better to large key budgets (suitable for multi-device).</p>
+</div></blockquote>
+<p>Trade-off: SPLIT guaranteed uncorrelated (statistical gold standard) but blocks on
+split sequencing. FOLD parallelizable but fold_in determinism replaces randomness.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.KeyDerivationStrategy.SPLIT">
+<span class="sig-name descname"><span class="pre">SPLIT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'split'</span></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy.SPLIT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.KeyDerivationStrategy.FOLD">
+<span class="sig-name descname"><span class="pre">FOLD</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'fold_in'</span></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy.FOLD" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ShardingManager">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.resource_mapper.</span></span><span class="sig-name descname"><span class="pre">ShardingManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'batch'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#ShardingManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.ShardingManager" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>GSPMD (General and Simplified Parallelization) layout for population sharding.
+Optimizes memory layout for both single-device (layout optimization) and
+multi-device (parallelism) execution.
+Axes: matrix (pop_size, features) sharded on pop_size for data parallelism.
+vector (pop_size,) sharded on pop_size (fitness array).
+replicated: Metadata (best_genome, scalars) replicated across devices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ShardingManager.axis_name">
+<span class="sig-name descname"><span class="pre">axis_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ShardingManager.axis_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ShardingManager.alloc_population">
+<span class="sig-name descname"><span class="pre">alloc_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'jax.numpy.float32'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#ShardingManager.alloc_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.ShardingManager.alloc_population" title="Link to this definition">¶</a></dt>
+<dd><p>Create a zero-initialized array for a population using the configured sharding.</p>
+<p>The tensor is immediately placed on device with the desired layout
+to avoid host‑device transfers during execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>dtype</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ShardingManager.split_key_sharded">
+<span class="sig-name descname"><span class="pre">split_key_sharded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#ShardingManager.split_key_sharded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.ShardingManager.split_key_sharded" title="Link to this definition">¶</a></dt>
+<dd><p>Produce a sharded sequence of RNG keys for multi‑device execution.</p>
+<p>The resulting array is placed on the population sharding mesh so that
+each device receives its own independent key stream.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.OperatorAllocation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.resource_mapper.</span></span><span class="sig-name descname"><span class="pre">OperatorAllocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#OperatorAllocation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
+<p>Allocation details for a single operator stage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>start_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>end_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>output_count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>operator_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.OperatorAllocation.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.OperatorAllocation.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.OperatorAllocation.start_idx">
+<span class="sig-name descname"><span class="pre">start_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.OperatorAllocation.start_idx" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.OperatorAllocation.end_idx">
+<span class="sig-name descname"><span class="pre">end_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.OperatorAllocation.end_idx" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.OperatorAllocation.input_count">
+<span class="sig-name descname"><span class="pre">input_count</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.OperatorAllocation.input_count" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.OperatorAllocation.output_count">
+<span class="sig-name descname"><span class="pre">output_count</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.OperatorAllocation.output_count" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.OperatorAllocation.operator_type">
+<span class="sig-name descname"><span class="pre">operator_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.OperatorAllocation.operator_type" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.resource_mapper.</span></span><span class="sig-name descname"><span class="pre">ResourceMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total_rng_budget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_derivation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">KeyDerivationStrategy.SPLIT</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#ResourceMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Master plan for RNG distribution and Data Flow in one generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>total_rng_budget</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>selection</strong> (<a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="malthusjax.engine.resource_mapper.OperatorAllocation"><em>OperatorAllocation</em></a>)</p></li>
+<li><p><strong>crossover</strong> (<a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="malthusjax.engine.resource_mapper.OperatorAllocation"><em>OperatorAllocation</em></a>)</p></li>
+<li><p><strong>mutation</strong> (<a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="malthusjax.engine.resource_mapper.OperatorAllocation"><em>OperatorAllocation</em></a>)</p></li>
+<li><p><strong>next_key</strong> (<a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="malthusjax.engine.resource_mapper.OperatorAllocation"><em>OperatorAllocation</em></a>)</p></li>
+<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_pairs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>genome_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>key_derivation</strong> (<a class="reference internal" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy" title="malthusjax.engine.resource_mapper.KeyDerivationStrategy"><em>KeyDerivationStrategy</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.total_rng_budget">
+<span class="sig-name descname"><span class="pre">total_rng_budget</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.total_rng_budget" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.selection">
+<span class="sig-name descname"><span class="pre">selection</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="malthusjax.engine.resource_mapper.OperatorAllocation"><span class="pre">OperatorAllocation</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.selection" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.crossover">
+<span class="sig-name descname"><span class="pre">crossover</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="malthusjax.engine.resource_mapper.OperatorAllocation"><span class="pre">OperatorAllocation</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.crossover" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.mutation">
+<span class="sig-name descname"><span class="pre">mutation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="malthusjax.engine.resource_mapper.OperatorAllocation"><span class="pre">OperatorAllocation</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.mutation" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.next_key">
+<span class="sig-name descname"><span class="pre">next_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation" title="malthusjax.engine.resource_mapper.OperatorAllocation"><span class="pre">OperatorAllocation</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.next_key" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.pop_size">
+<span class="sig-name descname"><span class="pre">pop_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.pop_size" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.num_pairs">
+<span class="sig-name descname"><span class="pre">num_pairs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.num_pairs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.genome_shape">
+<span class="sig-name descname"><span class="pre">genome_shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.genome_shape" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.key_derivation">
+<span class="sig-name descname"><span class="pre">key_derivation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy" title="malthusjax.engine.resource_mapper.KeyDerivationStrategy"><span class="pre">KeyDerivationStrategy</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'split'</span></span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.key_derivation" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.get_key_slice">
+<span class="sig-name descname"><span class="pre">get_key_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#ResourceMap.get_key_slice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.get_key_slice" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the slice to extract this operator’s keys from the master buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>op_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.14)">slice</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.get_output_count">
+<span class="sig-name descname"><span class="pre">get_output_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#ResourceMap.get_output_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.get_output_count" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the number of items produced by this operator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>op_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.get_keys">
+<span class="sig-name descname"><span class="pre">get_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#ResourceMap.get_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.get_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Derive a flat buffer of RNG keys according to the selected strategy.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">SPLIT</span></code> the method simply calls <code class="docutils literal notranslate"><span class="pre">jax.random.split</span></code>; for
+<code class="docutils literal notranslate"><span class="pre">FOLD</span></code> it vmap‑folds the master key over integer indices. In either
+case the output length matches <code class="docutils literal notranslate"><span class="pre">total_rng_budget</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>master_key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.ResourceMap.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.resource_mapper.ResourceMap.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.compute_resource_map">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.engine.resource_mapper.</span></span><span class="sig-name descname"><span class="pre">compute_resource_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_derivation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">KeyDerivationStrategy.SPLIT</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#compute_resource_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.compute_resource_map" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate RNG budget and data-flow allocations for one generation.</p>
+<p>The function computes how many parents, pairs and offspring will be
+produced and allocates key ranges for each operator accordingly. It also
+applies safety checks (e.g. fold_in compatibility) and returns a
+<a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap" title="malthusjax.engine.resource_mapper.ResourceMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceMap</span></code></a> describing the allocations.
+———-
+The logical flow is:
+1. Selection: pop_size → parents_needed (indices)
+2. Crossover: parents_needed → offspring_count (genomes)
+3. Mutation: offspring_count → mutant_count (genomes)
+4. Next Key: single key for next generation derivation.
+———-
+in case of overproduction (offspring &gt; pop_size), the excess is noted but not prevented;
+users are advised to adjust parameters to minimize waste.
+in case of odd population size in crossover, the last parent may be duplicated to form a pair;
+this results in the self-crossover of the last parent</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>selection</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><em>BaseSelection</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>crossover</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>mutation</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><em>BaseMutation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>genome_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>key_derivation</strong> (<a class="reference internal" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy" title="malthusjax.engine.resource_mapper.KeyDerivationStrategy"><em>KeyDerivationStrategy</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap" title="malthusjax.engine.resource_mapper.ResourceMap"><em>ResourceMap</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.get_resource_summary">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.engine.resource_mapper.</span></span><span class="sig-name descname"><span class="pre">get_resource_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmap</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#get_resource_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.get_resource_summary" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a cascade data flow summary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rmap</strong> (<a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap" title="malthusjax.engine.resource_mapper.ResourceMap"><em>ResourceMap</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.get_step_dimension_flow">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.engine.resource_mapper.</span></span><span class="sig-name descname"><span class="pre">get_step_dimension_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_symbol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'n'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_symbol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#get_step_dimension_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.get_step_dimension_flow" title="Link to this definition">¶</a></dt>
+<dd><p>Generate an exact phase-by-phase dimension flow for one step.</p>
+<p>The flow is symbolic in the population size <code class="docutils literal notranslate"><span class="pre">n</span></code> and genome width <code class="docutils literal notranslate"><span class="pre">d</span></code>.
+It uses the concrete allocations in <code class="docutils literal notranslate"><span class="pre">rmap</span></code> to parameterize the pair count
+and offspring sizes used by the engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmap</strong> (<a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap" title="malthusjax.engine.resource_mapper.ResourceMap"><em>ResourceMap</em></a>)</p></li>
+<li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>pop_symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>genome_symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>genome_width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +698,65 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.engine.resource_mapper module</a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy"><code class="docutils literal notranslate"><span class="pre">KeyDerivationStrategy</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy.SPLIT"><code class="docutils literal notranslate"><span class="pre">KeyDerivationStrategy.SPLIT</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy.FOLD"><code class="docutils literal notranslate"><span class="pre">KeyDerivationStrategy.FOLD</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ShardingManager"><code class="docutils literal notranslate"><span class="pre">ShardingManager</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ShardingManager.axis_name"><code class="docutils literal notranslate"><span class="pre">ShardingManager.axis_name</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ShardingManager.alloc_population"><code class="docutils literal notranslate"><span class="pre">ShardingManager.alloc_population()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ShardingManager.split_key_sharded"><code class="docutils literal notranslate"><span class="pre">ShardingManager.split_key_sharded()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation"><code class="docutils literal notranslate"><span class="pre">OperatorAllocation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation.num_keys"><code class="docutils literal notranslate"><span class="pre">OperatorAllocation.num_keys</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation.start_idx"><code class="docutils literal notranslate"><span class="pre">OperatorAllocation.start_idx</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation.end_idx"><code class="docutils literal notranslate"><span class="pre">OperatorAllocation.end_idx</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation.input_count"><code class="docutils literal notranslate"><span class="pre">OperatorAllocation.input_count</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation.output_count"><code class="docutils literal notranslate"><span class="pre">OperatorAllocation.output_count</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.OperatorAllocation.operator_type"><code class="docutils literal notranslate"><span class="pre">OperatorAllocation.operator_type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap"><code class="docutils literal notranslate"><span class="pre">ResourceMap</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.total_rng_budget"><code class="docutils literal notranslate"><span class="pre">ResourceMap.total_rng_budget</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.selection"><code class="docutils literal notranslate"><span class="pre">ResourceMap.selection</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.crossover"><code class="docutils literal notranslate"><span class="pre">ResourceMap.crossover</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.mutation"><code class="docutils literal notranslate"><span class="pre">ResourceMap.mutation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.next_key"><code class="docutils literal notranslate"><span class="pre">ResourceMap.next_key</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.pop_size"><code class="docutils literal notranslate"><span class="pre">ResourceMap.pop_size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.num_pairs"><code class="docutils literal notranslate"><span class="pre">ResourceMap.num_pairs</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.genome_shape"><code class="docutils literal notranslate"><span class="pre">ResourceMap.genome_shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.key_derivation"><code class="docutils literal notranslate"><span class="pre">ResourceMap.key_derivation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.get_key_slice"><code class="docutils literal notranslate"><span class="pre">ResourceMap.get_key_slice()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.get_output_count"><code class="docutils literal notranslate"><span class="pre">ResourceMap.get_output_count()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.get_keys"><code class="docutils literal notranslate"><span class="pre">ResourceMap.get_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.ResourceMap.replace"><code class="docutils literal notranslate"><span class="pre">ResourceMap.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.compute_resource_map"><code class="docutils literal notranslate"><span class="pre">compute_resource_map()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.get_resource_summary"><code class="docutils literal notranslate"><span class="pre">get_resource_summary()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.resource_mapper.get_step_dimension_flow"><code class="docutils literal notranslate"><span class="pre">get_step_dimension_flow()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

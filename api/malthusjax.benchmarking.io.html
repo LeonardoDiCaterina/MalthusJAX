@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.benchmarking.results module" href="malthusjax.benchmarking.results.html"><link rel="prev" title="malthusjax.benchmarking.cli module" href="malthusjax.benchmarking.cli.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.benchmarking.io module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,178 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-benchmarking-io-module">
-<h1>malthusjax.benchmarking.io module<a class="headerlink" href="#malthusjax-benchmarking-io-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.benchmarking.io">
+<span id="malthusjax-benchmarking-io-module"></span><h1>malthusjax.benchmarking.io module<a class="headerlink" href="#module-malthusjax.benchmarking.io" title="Link to this heading">¶</a></h1>
+<p>Input/output helpers for experiment results.</p>
+<p>This module handles reading and writing of JSON and CSV artifacts produced by
+benchmark runs.  All writing is performed via atomic temp files to avoid
+corruption, and a convenience function builds per-seed directories for
+additional outputs.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.write_summary_json">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.io.</span></span><span class="sig-name descname"><span class="pre">write_summary_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">experiment_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#write_summary_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.write_summary_json" title="Link to this definition">¶</a></dt>
+<dd><p>Persist an experiment summary to disk as JSON.</p>
+<p>The target path is created if necessary, and the data is first written to
+a <code class="docutils literal notranslate"><span class="pre">.json.tmp</span></code> temporary file which is then atomically renamed.  This
+guards against partial writes if the process is interrupted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment_result</strong> (<a class="reference internal" href="malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ExperimentResult" title="malthusjax.benchmarking.results.ExperimentResult"><em>ExperimentResult</em></a>)</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.read_summary_json">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.io.</span></span><span class="sig-name descname"><span class="pre">read_summary_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#read_summary_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.read_summary_json" title="Link to this definition">¶</a></dt>
+<dd><p>Load an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExperimentResult</span></code> from a JSON file written by
+<a class="reference internal" href="#malthusjax.benchmarking.io.write_summary_json" title="malthusjax.benchmarking.io.write_summary_json"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_summary_json()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ExperimentResult" title="malthusjax.benchmarking.results.ExperimentResult"><em>ExperimentResult</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.write_histories_csv">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.io.</span></span><span class="sig-name descname"><span class="pre">write_histories_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">experiment_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#write_histories_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.write_histories_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Dump the concatenated run histories to a CSV file with a seed column.</p>
+<p>The headers are inferred from the union of keys present in the histories,
+and an empty file with just a header is produced if there are no rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment_result</strong> (<a class="reference internal" href="malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ExperimentResult" title="malthusjax.benchmarking.results.ExperimentResult"><em>ExperimentResult</em></a>)</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.ensure_seed_folder">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.io.</span></span><span class="sig-name descname"><span class="pre">ensure_seed_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#ensure_seed_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.ensure_seed_folder" title="Link to this definition">¶</a></dt>
+<dd><p>Ensure a per-seed subdirectory exists and return its path.</p>
+<p>The directory is named <code class="docutils literal notranslate"><span class="pre">seed_XXXX</span></code> where XXXX is the zero-padded seed
+value.  This is convenient for organising artifacts generated by
+individual runs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.write_experiment_artifacts">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.io.</span></span><span class="sig-name descname"><span class="pre">write_experiment_artifacts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">experiment_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#write_experiment_artifacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.write_experiment_artifacts" title="Link to this definition">¶</a></dt>
+<dd><p>Emit all standard artifacts for an experiment and report their paths.</p>
+<p>Depending on the flags the summary JSON and combined histories CSV are
+written.  In all cases per-seed subdirectories are created and their
+locations are returned in the resulting mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment_result</strong> (<a class="reference internal" href="malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ExperimentResult" title="malthusjax.benchmarking.results.ExperimentResult"><em>ExperimentResult</em></a>)</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>write_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>write_json</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.DataLoader">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.io.</span></span><span class="sig-name descname"><span class="pre">DataLoader</span></span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#DataLoader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.DataLoader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Universal data loader for various formats.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.DataLoader.load_csv">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#DataLoader.load_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.DataLoader.load_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Load CSV file into a JAX array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.DataLoader.load_npz">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load_npz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#DataLoader.load_npz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.DataLoader.load_npz" title="Link to this definition">¶</a></dt>
+<dd><p>Load .npz archive into JAX arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.DataLoader.load_tsplib">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load_tsplib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#DataLoader.load_tsplib"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.DataLoader.load_tsplib" title="Link to this definition">¶</a></dt>
+<dd><p>Load TSPLib distance matrix.</p>
+<p>Currently supports EDGE_WEIGHT_TYPE=EUC_2D coordinate lists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.io.DataLoader.load_any">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load_any</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/io.html#DataLoader.load_any"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.io.DataLoader.load_any" title="Link to this definition">¶</a></dt>
+<dd><p>Auto-detect format and load.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +528,38 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.benchmarking.io module</a><ul>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.write_summary_json"><code class="docutils literal notranslate"><span class="pre">write_summary_json()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.read_summary_json"><code class="docutils literal notranslate"><span class="pre">read_summary_json()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.write_histories_csv"><code class="docutils literal notranslate"><span class="pre">write_histories_csv()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.ensure_seed_folder"><code class="docutils literal notranslate"><span class="pre">ensure_seed_folder()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.write_experiment_artifacts"><code class="docutils literal notranslate"><span class="pre">write_experiment_artifacts()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.DataLoader"><code class="docutils literal notranslate"><span class="pre">DataLoader</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.DataLoader.load_csv"><code class="docutils literal notranslate"><span class="pre">DataLoader.load_csv()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.DataLoader.load_npz"><code class="docutils literal notranslate"><span class="pre">DataLoader.load_npz()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.DataLoader.load_tsplib"><code class="docutils literal notranslate"><span class="pre">DataLoader.load_tsplib()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.io.DataLoader.load_any"><code class="docutils literal notranslate"><span class="pre">DataLoader.load_any()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

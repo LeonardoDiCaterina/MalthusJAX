@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="prev" title="malthusjax.operators.base_ablation module" href="malthusjax.operators.base_ablation.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.base_injection module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,191 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-base-injection-module">
-<h1>malthusjax.operators.base_injection module<a class="headerlink" href="#malthusjax-operators-base-injection-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.base_injection">
+<span id="malthusjax-operators-base-injection-module"></span><h1>malthusjax.operators.base_injection module<a class="headerlink" href="#module-malthusjax.operators.base_injection" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseMutation_injection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.base_injection.</span></span><span class="sig-name descname"><span class="pre">BaseMutation_injection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_injection.html#BaseMutation_injection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_injection.BaseMutation_injection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMutation</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Vectorized mutation with external noise injection (single-key mode).</p>
+<p>Differs from BaseMutation: consumes single PRNG key, expects _generate_noise
+to return fully materialized noise tensor shaped (input_length, num_offspring, …).
+This trades off memory for explicit noise control and determinism.</p>
+<p>Design trade-offs:</p>
+<ul class="simple">
+<li><p>RNG: Single key splits internally in _generate_noise (user responsibility).</p></li>
+<li><p>Memory: Full noise materialization increases buffer size but enables replay.</p></li>
+<li><p>XLA: reshape/transpose are metadata-only unless downstream requires copy.
+e.g. for num_offspring&gt;1, the nested vmap approach avoids transposes entirely
+by generating noise directly in the final layout (N, K, …).</p></li>
+</ul>
+<p>Architecture: Tier 1 (_mutate_one, pure) → Tier 2 (_generate_noise, RNG) →
+Tier 3 (__call__, vmap nesting with single-pass arithmetic).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseMutation_injection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.base_injection.BaseMutation_injection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>single key budgeted, split internally.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Injection mode</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseMutation_injection.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_injection.html#BaseMutation_injection.num_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_injection.BaseMutation_injection.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Returns 1 key; _generate_noise responsible for internal splitting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseMutation_injection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.base_injection.BaseMutation_injection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.base_injection.</span></span><span class="sig-name descname"><span class="pre">BaseCrossover_injection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_injection.html#BaseCrossover_injection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>]</p>
+<p>Vectorized crossover with external noise injection (single-key mode).</p>
+<p>Mirrors mutation injection: consumes single key, expects _generate_noise
+to return masks/indices with shape (input_length, num_offspring, …).
+Trades memory for explicit control and determinism.</p>
+<p>Design trade-offs:</p>
+<ul class="simple">
+<li><p>RNG: Single key split internally in _generate_noise.</p></li>
+<li><p>Memory: Full mask materialization for reproducible recombination.</p></li>
+<li><p>XLA: transpose (axis swap) typically metadata-only if downstream
+layout matches; may trigger copy if not. reshape usually no-cost.</p></li>
+</ul>
+<p>Architecture: Tier 1 (_recombine_one, pure) → Tier 2 (_generate_noise, RNG) →
+Tier 3 (__call__, triple nested vmap: pairs, offspring, elements).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.num_offspring">
+<span class="sig-name descname"><span class="pre">num_offspring</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.num_offspring" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.input_length">
+<span class="sig-name descname"><span class="pre">input_length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></span><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.input_length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.typed_keys">
+<span class="sig-name descname"><span class="pre">typed_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.typed_keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.max_generations">
+<span class="sig-name descname"><span class="pre">max_generations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.max_generations" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Budget requirement (injection uses 1 key total).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_injection.html#BaseCrossover_injection.num_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Returns 1 key; _generate_noise handles internal splitting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.set_typed_keys">
+<span class="sig-name descname"><span class="pre">set_typed_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_injection.html#BaseCrossover_injection.set_typed_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.set_typed_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Set the PRNG key format flag (new-style typed vs legacy uint32).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>typed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection" title="malthusjax.operators.base_injection.BaseCrossover_injection"><em>BaseCrossover_injection</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.set_input_length">
+<span class="sig-name descname"><span class="pre">set_input_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_injection.html#BaseCrossover_injection.set_input_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.set_input_length" title="Link to this definition">¶</a></dt>
+<dd><p>Locks pair count for static budgeting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection" title="malthusjax.operators.base_injection.BaseCrossover_injection"><em>BaseCrossover_injection</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.set_max_generations">
+<span class="sig-name descname"><span class="pre">set_max_generations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base_injection.html#BaseCrossover_injection.set_max_generations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.set_max_generations" title="Link to this definition">¶</a></dt>
+<dd><p>Set total generation count for operator-level scheduling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection" title="malthusjax.operators.base_injection.BaseCrossover_injection"><em>BaseCrossover_injection</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base_injection.BaseCrossover_injection.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.base_injection.BaseCrossover_injection.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -355,8 +533,45 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.base_injection module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseMutation_injection"><code class="docutils literal notranslate"><span class="pre">BaseMutation_injection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseMutation_injection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BaseMutation_injection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseMutation_injection.num_keys"><code class="docutils literal notranslate"><span class="pre">BaseMutation_injection.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseMutation_injection.replace"><code class="docutils literal notranslate"><span class="pre">BaseMutation_injection.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.num_offspring"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.num_offspring</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.input_length"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.input_length</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.typed_keys</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.max_generations"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.max_generations</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.num_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.set_typed_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.set_input_length()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.set_max_generations()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base_injection.BaseCrossover_injection.replace"><code class="docutils literal notranslate"><span class="pre">BaseCrossover_injection.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

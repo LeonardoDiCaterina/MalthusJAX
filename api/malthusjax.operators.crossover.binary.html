@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.crossover.evosax_crossover module" href="malthusjax.operators.crossover.evosax_crossover.html"><link rel="prev" title="malthusjax.operators.crossover package" href="malthusjax.operators.crossover.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.crossover.binary module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,87 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-crossover-binary-module">
-<h1>malthusjax.operators.crossover.binary module<a class="headerlink" href="#malthusjax-operators-crossover-binary-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.crossover.binary">
+<span id="malthusjax-operators-crossover-binary-module"></span><h1>malthusjax.operators.crossover.binary module<a class="headerlink" href="#module-malthusjax.operators.crossover.binary" title="Link to this heading">¶</a></h1>
+<p>Binary Crossover Operators.
+Optimized for batch-first paradigm.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.binary.UniformCrossover">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.crossover.binary.</span></span><span class="sig-name descname"><span class="pre">UniformCrossover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/crossover/binary.html#UniformCrossover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.crossover.binary.UniformCrossover" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseCrossover</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenomeConfig</span></code></a>]</p>
+<p>Uniform Crossover (Fused 3-Tier Paradigm).
+Per-bit independent selection from parents via Bernoulli mask. XLA fuses mask generation
+(Tier 2) with selection kernel (Tier 1) into single compiled operation.</p>
+<p>Shape contract: Parent (N,) X Parent (N,) -&gt; Offspring (N,)
+Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>crossover_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.binary.UniformCrossover.crossover_rate">
+<span class="sig-name descname"><span class="pre">crossover_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#malthusjax.operators.crossover.binary.UniformCrossover.crossover_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.binary.UniformCrossover.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.crossover.binary.UniformCrossover.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Bernoulli mask generation requires 1 PRNG subkey.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.binary.UniformCrossover.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.crossover.binary.UniformCrossover.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.binary.SinglePointCrossover">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.crossover.binary.</span></span><span class="sig-name descname"><span class="pre">SinglePointCrossover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/crossover/binary.html#SinglePointCrossover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.crossover.binary.SinglePointCrossover" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseCrossover</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenome" title="malthusjax.core.genome.binary_genome.BinaryGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryGenomeConfig</span></code></a>]</p>
+<p>Single-Point Crossover (Fused 3-Tier Paradigm).
+Selects a random crossover point [1, N-1); swaps segments. Avoids boundary points (0, N)
+to ensure meaningful recombination (both parents contribute genes).</p>
+<p>Shape contract: Parent (N,) X Parent (N,) -&gt; Offspring (N,)
+Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.binary.SinglePointCrossover.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.crossover.binary.SinglePointCrossover.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Randint sampling for crossover point requires 1 PRNG subkey.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.binary.SinglePointCrossover.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.crossover.binary.SinglePointCrossover.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +437,37 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.crossover.binary module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.binary.UniformCrossover"><code class="docutils literal notranslate"><span class="pre">UniformCrossover</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.binary.UniformCrossover.crossover_rate"><code class="docutils literal notranslate"><span class="pre">UniformCrossover.crossover_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.binary.UniformCrossover.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">UniformCrossover.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.binary.UniformCrossover.replace"><code class="docutils literal notranslate"><span class="pre">UniformCrossover.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.binary.SinglePointCrossover"><code class="docutils literal notranslate"><span class="pre">SinglePointCrossover</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.binary.SinglePointCrossover.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">SinglePointCrossover.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.binary.SinglePointCrossover.replace"><code class="docutils literal notranslate"><span class="pre">SinglePointCrossover.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.composer.config module" href="malthusjax.composer.config.html"><link rel="prev" title="malthusjax.composer.catalog module" href="malthusjax.composer.catalog.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.composer.composer module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,669 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-composer-composer-module">
-<h1>malthusjax.composer.composer module<a class="headerlink" href="#malthusjax-composer-composer-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.composer.composer">
+<span id="malthusjax-composer-composer-module"></span><h1>malthusjax.composer.composer module<a class="headerlink" href="#module-malthusjax.composer.composer" title="Link to this heading">¶</a></h1>
+<p>High-level API for declarative and programmatic experiments.</p>
+<p>The <a class="reference internal" href="#malthusjax.composer.composer.Composer" title="malthusjax.composer.composer.Composer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Composer</span></code></a> class wraps the benchmarking system with convenient
+helper methods like <code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">compare()</span></code>, and <code class="xref py py-meth docutils literal notranslate"><span class="pre">from_toml()</span></code>.
+It orchestrates engine construction, seeding, result aggregation and provides
+sensible defaults for rapid prototyping.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.Composer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.composer.</span></span><span class="sig-name descname"><span class="pre">Composer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">registry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>High-level interface for running evolutionary algorithms.</p>
+<p>The <a class="reference internal" href="#malthusjax.composer.composer.Composer" title="malthusjax.composer.composer.Composer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Composer</span></code></a> class provides three primary entry points for
+running genetic algorithms with different levels of configuration:</p>
+<ol class="arabic simple">
+<li><p><strong>:meth:`quick_run` — Interactive exploration</strong>
+Use when exploring hyperparameters, testing fitness functions, or
+learning MalthusJAX. Accepts programmatic operator specifications
+(e.g., <code class="docutils literal notranslate"><span class="pre">fitness=&quot;sphere:dim=10&quot;</span></code>) and runs a full experiment with
+multiple seeds, returning aggregated results immediately.</p></li>
+<li><p><strong>:meth:`from_toml` — Reproducible declarative experiments</strong>
+Use when you want versioned, reproducible experiments for papers or
+production benchmarking. Define pipelines in a TOML file; the method
+loads, parses, and executes all pipelines automatically while
+preserving shared configuration like seeds and population bounds.</p></li>
+<li><p><strong>:meth:`compare` — Programmatic multi-pipeline benchmarking</strong>
+Use when comparing algorithm variants. Accepts a dict of pipeline
+configurations (each a <a class="reference internal" href="#malthusjax.composer.composer.Composer.quick_run" title="malthusjax.composer.composer.Composer.quick_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code></a> kwargs dict), shares initial
+populations and seeds across pipelines for fair comparison, and returns
+utilities for statistical summary and visualization.</p></li>
+</ol>
+<p>All methods return result objects (<code class="xref py py-class docutils literal notranslate"><span class="pre">ExperimentResult</span></code> from
+<a class="reference internal" href="#malthusjax.composer.composer.Composer.quick_run" title="malthusjax.composer.composer.Composer.quick_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ComparisonResult</span></code> from <a class="reference internal" href="#malthusjax.composer.composer.Composer.from_toml" title="malthusjax.composer.composer.Composer.from_toml"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_toml()</span></code></a> and
+<a class="reference internal" href="#malthusjax.composer.composer.Composer.compare" title="malthusjax.composer.composer.Composer.compare"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compare()</span></code></a>) with aggregated metrics and convergence histories.</p>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>Quick exploration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=5&quot;</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;tournament:num_selections=25,tournament_size=3&quot;</span><span class="p">,</span>
+    <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
+    <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.1,mutation_strength=0.2&quot;</span><span class="p">,</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Reproducible TOML-based experiment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span>
+    <span class="s2">&quot;experiment.toml&quot;</span><span class="p">,</span>
+    <span class="n">trace_dir</span><span class="o">=</span><span class="s2">&quot;results/traces&quot;</span>
+<span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span><span class="n">seed_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Benchmarking multiple pipelines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
+    <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;Blend+Gaussian&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.1&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;SBX+Polynomial&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;simulated_binary:eta=2&quot;</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;polynomial:mutation_rate=0.1&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">comparison</span><span class="o">.</span><span class="n">summary_table</span><span class="p">())</span>
+<span class="n">comparison</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.Composer.registry">
+<span class="sig-name descname"><span class="pre">registry</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.composer.composer.Composer.registry" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.Composer.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.composer.Composer.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.Composer.quick_run">
+<span class="sig-name descname"><span class="pre">quick_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quick_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'malthusjax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ga'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evosax_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SimpleGA'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdax_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MAPElites'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prng_impl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_history_for_final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.quick_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer.quick_run" title="Link to this definition">¶</a></dt>
+<dd><p>Run a full evolutionary experiment with programmatic operator specs.</p>
+<p>This is the main entry point for interactive exploration and benchmarking.
+It accepts operator specifications as string specs (for the <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;&quot;</span>
+<span class="pre">backend)</span> <span class="pre">or</span> <span class="pre">strategy</span> <span class="pre">names</span> <span class="pre">(for</span> <span class="pre">the</span> <span class="pre">``&quot;evosax&quot;</span></code> backend), orchestrates
+multiple independent runs (one per seed), aggregates results, and returns
+an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExperimentResult</span></code>.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>fitness<span class="classifier">str, optional</span></dt><dd><p>Fitness function specification (MalthusJAX backend only).
+Format: <code class="docutils literal notranslate"><span class="pre">&quot;name:key1=val,key2=val&quot;</span></code></p>
+<p><strong>Built-in fitness functions</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;sphere:dim=INT&quot;</span></code> — Sphere function: $f(x) = sum_i x_i^2$</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;rastrigin:dim=INT&quot;</span></code> — Rastrigin: highly multimodal</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;griewank:dim=INT&quot;</span></code> — Griewank: multimodal with low local frequencies</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;bbob:fn=INT,dims=INT&quot;</span></code> — Black-Box Optimization Benchmarking
+(BBOB) suite function (fn=1–24, dims=2–40)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;knapsack:capacity=INT,num_items=INT&quot;</span></code> — 0/1 knapsack</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;binary_sum:length=INT&quot;</span></code> — Binary sum of bits (for binary genomes)</p></li>
+</ul>
+<p>Examples: <code class="docutils literal notranslate"><span class="pre">&quot;sphere:dim=10&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;bbob:fn=3,dims=10&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;knapsack:capacity=100,num_items=20&quot;</span></code>.</p>
+</dd>
+<dt>selection<span class="classifier">str, optional</span></dt><dd><p>Selection operator specification.
+Format: <code class="docutils literal notranslate"><span class="pre">&quot;name:key1=val,key2=val&quot;</span></code></p>
+<p><strong>Valid operators</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;tournament:num_selections=INT,tournament_size=INT&quot;</span></code>
+Select via tournament competition (default: size=3).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;roulette:num_selections=INT&quot;</span></code>
+Fitness-proportional selection (SUS-like).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;elite_pool:num_selections=INT,elite_k=INT&quot;</span></code>
+Keep top-k individuals, select from them.</p></li>
+</ul>
+<p>Examples: <code class="docutils literal notranslate"><span class="pre">&quot;tournament:num_selections=25,tournament_size=3&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;roulette:num_selections=25&quot;</span></code>.</p>
+</dd>
+<dt>crossover<span class="classifier">str, optional</span></dt><dd><p>Crossover operator specification.
+Format: <code class="docutils literal notranslate"><span class="pre">&quot;name:key1=val,key2=val&quot;</span></code></p>
+<p><strong>For real genomes</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;uniform_real&quot;</span></code> — Uniform crossover (each gene has 50% chance).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;blend:alpha=FLOAT&quot;</span></code> — Blend crossover with expansion factor.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;simulated_binary:eta=FLOAT&quot;</span></code> — SBX (eta controls spread).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;binomial:cr=FLOAT&quot;</span></code> — DE-style binomial crossover.</p></li>
+</ul>
+<p><strong>For binary genomes</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;uniform_binary&quot;</span></code> — Uniform bit-wise crossover.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;single_point&quot;</span></code> — Single-point crossover.</p></li>
+</ul>
+<p>Examples: <code class="docutils literal notranslate"><span class="pre">&quot;blend:alpha=0.5&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;simulated_binary:eta=20&quot;</span></code>.</p>
+</dd>
+<dt>mutation<span class="classifier">str, optional</span></dt><dd><p>Mutation operator specification.
+Format: <code class="docutils literal notranslate"><span class="pre">&quot;name:key1=val,key2=val&quot;</span></code></p>
+<p><strong>For real genomes</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;gaussian:mutation_rate=FLOAT,mutation_strength=FLOAT&quot;</span></code>
+Add Gaussian noise (mutation_strength = std dev).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;ball:mutation_rate=FLOAT&quot;</span></code>
+Uniform ball (hypersphere) mutation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;polynomial:mutation_rate=FLOAT,eta=FLOAT&quot;</span></code>
+Polynomial mutation (eta controls distribution).</p></li>
+</ul>
+<p><strong>For binary genomes</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;bitflip:mutation_rate=FLOAT&quot;</span></code>
+Flip each bit independently.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;scramble&quot;</span></code> — Random reordering (order-based).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;swap&quot;</span></code> — Random bit swap (order-based).</p></li>
+</ul>
+<p>Examples:
+<code class="docutils literal notranslate"><span class="pre">&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;polynomial:mutation_rate=0.1,eta=20&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;bitflip:mutation_rate=0.05&quot;</span></code>.</p>
+</dd>
+<dt>seeds<span class="classifier">Sequence[int], optional</span></dt><dd><p>Random seeds for independent runs. Each seed generates a fully
+independent evolutionary run; results are then aggregated.
+Default: <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3)</span></code>.</p>
+</dd>
+<dt>generations<span class="classifier">int, optional</span></dt><dd><p>Number of full generational cycles to evolve. Default: 100.
+(Note: some backends may interpret this differently; see backend-specific
+documentation.)</p>
+</dd>
+<dt>pop_size<span class="classifier">int, optional</span></dt><dd><p>Population size (number of individuals per generation).
+For GPU efficiency, powers of 2 (32, 64, 128, 256) are preferred.
+Default: 50.</p>
+</dd>
+<dt>genome_length<span class="classifier">int, optional</span></dt><dd><p>For continuous genomes: number of decision variables (dimension).
+For discrete: number of bits or items. Default: 10.</p>
+</dd>
+<dt>bounds<span class="classifier">Tuple[float, float], optional</span></dt><dd><p>Search space bounds <code class="docutils literal notranslate"><span class="pre">(lower,</span> <span class="pre">upper)</span></code> for real genomes.
+Default: <code class="docutils literal notranslate"><span class="pre">(-5.0,</span> <span class="pre">5.0)</span></code>.</p>
+</dd>
+<dt>genome_type<span class="classifier">str, optional</span></dt><dd><p>Genome representation: <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;binary&quot;</span></code>.
+Controls which operator specs are valid (real vs binary crossover/mutation).
+Default: <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code>.</p>
+</dd>
+<dt>genome<span class="classifier">str, optional</span></dt><dd><p>Declarative specification of the genome type, shape, and bounds.
+Format: <code class="docutils literal notranslate"><span class="pre">&quot;type:key1=val,key2=val&quot;</span></code>
+Examples: <code class="docutils literal notranslate"><span class="pre">&quot;real:dim=10,bounds=(-5.0,</span> <span class="pre">5.0)&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;binary:length=20&quot;</span></code>.
+Explicit arguments (e.g., <cite>genome_type</cite>, <cite>genome_length</cite>) override the
+values provided in this specification.</p>
+</dd>
+<dt>maximize<span class="classifier">bool, optional</span></dt><dd><p>Optimization direction: <code class="docutils literal notranslate"><span class="pre">True</span></code> for maximization, <code class="docutils literal notranslate"><span class="pre">False</span></code> for
+minimization. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt>backend<span class="classifier">str, optional</span></dt><dd><p>Execution backend: <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">&quot;evosax&quot;</span></code>.
+- <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code>: Uses MalthusJAX operators (requires</p>
+<blockquote>
+<div><p>fitness/selection/crossover/mutation specs)</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;evosax&quot;</span></code>: Uses evosax strategy (requires evosax_strategy; ignores
+operator specs)</p></li>
+</ul>
+</dd>
+<dt>evosax_strategy<span class="classifier">str, optional</span></dt><dd><p>Evosax strategy name (only if <code class="docutils literal notranslate"><span class="pre">backend=&quot;evosax&quot;</span></code>).
+Examples: <code class="docutils literal notranslate"><span class="pre">&quot;SimpleGA&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;OpenES&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;CMA_ES&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;DE&quot;</span></code>.
+Default: <code class="docutils literal notranslate"><span class="pre">&quot;SimpleGA&quot;</span></code>.</p>
+</dd>
+<dt>engine_type<span class="classifier">str, optional</span></dt><dd><p>MalthusJAX engine type (only if <code class="docutils literal notranslate"><span class="pre">backend=&quot;malthusjax&quot;</span></code>).
+Currently supported: <code class="docutils literal notranslate"><span class="pre">&quot;ga&quot;</span></code> (generational GA). Default: <code class="docutils literal notranslate"><span class="pre">&quot;ga&quot;</span></code>.</p>
+</dd>
+<dt>elitism<span class="classifier">int, optional</span></dt><dd><p>Number of best individuals to carry forward without modification
+(MalthusJAX backend only). Default: 2.</p>
+</dd>
+<dt>experiment_name<span class="classifier">str, optional</span></dt><dd><p>Experiment identifier (used in output directory and logging).
+Default: <code class="docutils literal notranslate"><span class="pre">&quot;quick_experiment&quot;</span></code>.</p>
+</dd>
+<dt>output_dir<span class="classifier">Path or str, optional</span></dt><dd><p>Output directory for results, artifacts, and logs.
+If not provided, defaults to <code class="docutils literal notranslate"><span class="pre">results/{experiment_name}/</span></code>.</p>
+</dd>
+<dt>engine<span class="classifier">optional</span></dt><dd><p>A pre-configured engine object. If provided, all operator specs
+(fitness, selection, crossover, mutation) are ignored; use a custom
+engine to bypass automatic configuration.</p>
+</dd>
+<dt>prng_impl<span class="classifier">str, optional</span></dt><dd><p>PRNG implementation for JAX key splitting (advanced).
+Default: <code class="docutils literal notranslate"><span class="pre">None</span></code> (auto-select).</p>
+</dd>
+<dt>trace_dir<span class="classifier">Path or str, optional</span></dt><dd><p>Directory to write Perfetto-compatible JAX profiler traces.
+Default: <code class="docutils literal notranslate"><span class="pre">None</span></code> (disabled).</p>
+<p>ExperimentResult
+Result object containing per-seed run records and aggregation methods:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.runs</span></code> : List[<code class="xref py py-class docutils literal notranslate"><span class="pre">RunResult</span></code>] — Individual runs, one per seed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.aggregated_summary()</span></code> — Dict mapping metric names → (mean, median, stdev)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.combined_history(seed_field=&quot;seed&quot;)</span></code> — All generation records with seed labels</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.canonical_summary</span></code> — Best-of metrics from first seed</p></li>
+</ul>
+<p>ValueError
+If operator specs have invalid format or unknown operator names.
+RuntimeError
+If the underlying engine encounters a critical error during execution.</p>
+<p>MalthusJAX backend (default):</p>
+<p>composer = Composer.create_default()
+result = composer.quick_run(
+fitness=”sphere:dim=25”,
+selection=”tournament:num_selections=25,tournament_size=3”,
+crossover=”blend:alpha=0.5”,
+mutation=”gaussian:mutation_rate=0.5,mutation_strength=0.1”,
+pop_size=100,
+generations=200,
+seeds=(42, 43, 44),
+)
+print(result.aggregated_summary())</p>
+<p>Evosax backend:</p>
+<p>result = composer.quick_run(
+backend=”evosax”,
+evosax_strategy=”OpenES”,
+fitness=”sphere:dim=10”,
+pop_size=64,
+generations=500,
+seeds=(1, 2, 3),
+)</p>
+<p>No operator specs (uses StubEngine for testing the pipeline):</p>
+<p>result = composer.quick_run(
+generations=50,
+seeds=(1, 2),
+)</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seeds</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>)</p></li>
+<li><p><strong>experiment_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>engine</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>engine_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>evosax_strategy</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>qdax_strategy</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>strategy</strong> (<em>BaseStrategy</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>selection</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>crossover</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>mutation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>genome_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>genome_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>prng_impl</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>use_history_for_final</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>trace_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>data_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>history_metrics</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ExperimentResult" title="malthusjax.benchmarking.results.ExperimentResult"><em>ExperimentResult</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.Composer.compare">
+<span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pipelines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(42,</span> <span class="pre">43,</span> <span class="pre">44)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_initial_population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">123</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">shared_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer.compare" title="Link to this definition">¶</a></dt>
+<dd><p>Run multiple algorithm variants and return comparison results.</p>
+<p>This method executes several experiment pipelines with identical seeding
+and optional population initialization, enabling fair statistical
+comparison of different evolutionary strategies.</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>pipelines<span class="classifier">Dict[str, Dict[str, Any]]</span></dt><dd><p>Mapping of display names (pipeline identifiers) to kwarg dicts.
+Each dict contains <a class="reference internal" href="#malthusjax.composer.composer.Composer.quick_run" title="malthusjax.composer.composer.Composer.quick_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code></a> parameters (fitness, selection,
+crossover, mutation, backend, evosax_strategy, etc.) that override
+the shared configuration. Keys determine plot legend labels and table
+headers in results.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipelines</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;Blend+Gaussian&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
+        <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.1&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;SBX+Polynomial&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;simulated_binary:eta=2.0&quot;</span><span class="p">,</span>
+        <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;polynomial:mutation_rate=0.1,eta=20&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;Evosax CMA-ES&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>
+        <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">&quot;CMA_ES&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Backend selection: Include <code class="docutils literal notranslate"><span class="pre">backend</span></code> and <code class="docutils literal notranslate"><span class="pre">evosax_strategy</span></code> in
+each pipeline dict to mix MalthusJAX and Evosax strategies in one
+comparison.</p>
+</dd>
+<dt>seeds<span class="classifier">Sequence[int], optional</span></dt><dd><p>Random seeds shared across all pipelines. Using the same seeds
+ensures statistically comparable runs. Default: <code class="docutils literal notranslate"><span class="pre">(42,</span> <span class="pre">43,</span> <span class="pre">44)</span></code>.</p>
+</dd>
+<dt>shared_initial_population<span class="classifier">bool, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, generate a single random population and inject it into
+every pipeline’s first run. This isolates algorithmic differences
+from initialization variance, enhancing fair comparison.
+Default: <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd>
+<dt>pop_seed<span class="classifier">int, optional</span></dt><dd><p>Random seed for generating the shared initial population.
+Default: 123.
+(Only used if <code class="docutils literal notranslate"><span class="pre">shared_initial_population=True</span></code>.)</p>
+</dd>
+<dt><a href="#id2"><span class="problematic" id="id3">**</span></a>shared_kwargs<span class="classifier">Any</span></dt><dd><p>Default configuration applied to all pipelines (merged before
+pipeline-specific overrides). Use for common settings like
+<code class="docutils literal notranslate"><span class="pre">fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">pop_size</span></code>, <code class="docutils literal notranslate"><span class="pre">generations</span></code>, <code class="docutils literal notranslate"><span class="pre">bounds</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">compare</span><span class="p">(</span>
+    <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>  <span class="c1"># shared</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>               <span class="c1"># shared</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>           <span class="c1"># shared</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>ComparisonResult</dt><dd><p>Contains:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.pipelines</span></code> : Dict[str, <code class="xref py py-class docutils literal notranslate"><span class="pre">ExperimentResult</span></code>]
+Per-pipeline results with aggregation methods.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.summary_table()</span></code> : Dict[str, Dict[str, float]]
+Per-pipeline aggregated metrics (mean across seeds).
+Fitness is always normalized to “lower is better”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.plot_convergence(seed_index=0,</span> <span class="pre">ax=None)</span></code> -&gt; matplotlib axis
+Overlay convergence curves for all pipelines.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.convergence_data(seed_index=0)</span></code> : Dict[str, List[Dict]]
+Raw per-pipeline generation histories for custom plotting.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="raises">
+<h3>Raises<a class="headerlink" href="#raises" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If pipelines dict is empty or contains invalid operator specs.</p>
+</dd>
+<dt>KeyError</dt><dd><p>If required shared config keys (e.g., fitness, pop_size) are missing
+from both shared and pipeline-specific settings.</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h3>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h3>
+<p>The method automatically handles backend normalization: Evosax pipelines
+have their fitness values negated before display so that all pipelines
+use a consistent “lower is better” convention. This behavior is
+transparent to the user (controlled by ComparisonResult.negate_map).</p>
+</section>
+<section id="id4">
+<h3>Examples<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<p>Three-way comparison with shared fitness:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
+<span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
+    <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;Blend+Gaussian&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;SBX+Polynomial&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;simulated_binary:eta=20&quot;</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;polynomial:mutation_rate=0.1,eta=20&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;Evosax OpenES&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>
+            <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">&quot;OpenES&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>           <span class="c1"># shared across all</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>                     <span class="c1"># shared</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>                  <span class="c1"># shared</span>
+    <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">,</span> <span class="mi">45</span><span class="p">),</span>          <span class="c1"># shared</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">comparison</span><span class="o">.</span><span class="n">summary_table</span><span class="p">())</span>
+<span class="n">comparison</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span><span class="n">seed_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Fair initialization (shared first population):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
+    <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>
+    <span class="n">shared_initial_population</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="c1"># use same init pop</span>
+    <span class="n">pop_seed</span><span class="o">=</span><span class="mi">999</span><span class="p">,</span>                     <span class="c1"># populate seed</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;rastrigin:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># All pipelines start from identical population</span>
+</pre></div>
+</div>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pipelines</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>seeds</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>)</p></li>
+<li><p><strong>shared_initial_population</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>pop_seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>shared_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ComparisonResult" title="malthusjax.benchmarking.results.ComparisonResult"><em>ComparisonResult</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.Composer.from_toml">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_toml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipelines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_initial_population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">123</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.from_toml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer.from_toml" title="Link to this definition">¶</a></dt>
+<dd><p>Load and execute a declarative TOML experiment specification.</p>
+<p>This classmethod provides a reproducible, version-controllable way to
+define and run experiments. TOML files specify shared configuration,
+pipeline-specific overrides, and seeds in a human-readable format.
+The method parses the file, runs all pipelines with fair comparison
+settings, and returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">ComparisonResult</span></code> with visualization
+and summary utilities.</p>
+<section id="id5">
+<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>path<span class="classifier">str or pathlib.Path</span></dt><dd><p>Path to a TOML experiment configuration file. The file must contain
+at least <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> section with default settings and
+one or more <code class="docutils literal notranslate"><span class="pre">[pipelines.NAME]</span></code> sections defining algorithm variants.
+See Notes for full TOML schema.</p>
+</dd>
+<dt>pipelines<span class="classifier">List[str], optional</span></dt><dd><p>If provided, only execute pipelines with these names. If <code class="docutils literal notranslate"><span class="pre">None</span></code>,
+all pipelines defined in the TOML file are executed.
+Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt>shared_initial_population<span class="classifier">bool, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, generate a single random population and inject it into
+each pipeline’s first run for fair initialization. Default: <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd>
+<dt>pop_seed<span class="classifier">int, optional</span></dt><dd><p>Random seed for generating the shared initial population.
+Default: 123.</p>
+</dd>
+<dt>trace_dir<span class="classifier">str or pathlib.Path, optional</span></dt><dd><p>Directory for Perfetto JAX profiler traces. If provided, traces are
+written to <code class="docutils literal notranslate"><span class="pre">trace_dir/&lt;pipeline_name&gt;/</span></code> for the first seed of each
+run. Default: <code class="docutils literal notranslate"><span class="pre">None</span></code> (no traces).</p>
+</dd>
+</dl>
+</section>
+<section id="id6">
+<h3>Returns<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>ComparisonResult</dt><dd><p>Multi-pipeline result object. Contains:
+- <code class="docutils literal notranslate"><span class="pre">.summary_table()</span></code> : aggregated metrics per pipeline
+- <code class="docutils literal notranslate"><span class="pre">.plot_convergence()</span></code> : matplotlib visualization
+- <code class="docutils literal notranslate"><span class="pre">.convergence_data()</span></code> : raw history data
+- <code class="docutils literal notranslate"><span class="pre">.pipelines</span></code> : dict of per-pipeline <code class="xref py py-class docutils literal notranslate"><span class="pre">ExperimentResult</span></code></p>
+</dd>
+</dl>
+</section>
+<section id="id7">
+<h3>Raises<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>FileNotFoundError</dt><dd><p>If the specified TOML file does not exist.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If TOML structure is invalid or required keys are missing.</p>
+</dd>
+<dt>KeyError</dt><dd><p>If a pipeline references undefined operators or configs.</p>
+</dd>
+</dl>
+</section>
+<section id="id8">
+<h3>Notes<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<p><strong>TOML File Structure</strong>:</p>
+<p>The TOML file must follow this schema:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">experiment</span><span class="p">]</span>
+<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_experiment&quot;</span>           <span class="c1"># optional</span>
+
+<span class="p">[</span><span class="n">experiment</span><span class="o">.</span><span class="n">shared</span><span class="p">]</span>
+<span class="n">fitness</span> <span class="o">=</span> <span class="s2">&quot;sphere:dim=10&quot;</span>
+<span class="n">selection</span> <span class="o">=</span> <span class="s2">&quot;tournament:num_selections=25,tournament_size=3&quot;</span>
+<span class="n">pop_size</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">generations</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">seeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">]</span>             <span class="c1"># list of seeds</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">]</span>             <span class="c1"># optional</span>
+<span class="n">maximize</span> <span class="o">=</span> <span class="n">false</span>                 <span class="c1"># optional</span>
+
+<span class="p">[</span><span class="n">pipelines</span><span class="o">.</span><span class="n">blend_gaussian</span><span class="p">]</span>
+<span class="n">crossover</span> <span class="o">=</span> <span class="s2">&quot;blend:alpha=0.5&quot;</span>
+<span class="n">mutation</span> <span class="o">=</span> <span class="s2">&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;</span>
+
+<span class="p">[</span><span class="n">pipelines</span><span class="o">.</span><span class="n">sbx_polynomial</span><span class="p">]</span>
+<span class="n">crossover</span> <span class="o">=</span> <span class="s2">&quot;simulated_binary:eta=20&quot;</span>
+<span class="n">mutation</span> <span class="o">=</span> <span class="s2">&quot;polynomial:mutation_rate=0.1,eta=20&quot;</span>
+
+<span class="p">[</span><span class="n">pipelines</span><span class="o">.</span><span class="n">evosax_cmaes</span><span class="p">]</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;evosax&quot;</span>
+<span class="n">evosax_strategy</span> <span class="o">=</span> <span class="s2">&quot;CMA_ES&quot;</span>
+</pre></div>
+</div>
+<p><strong>Operator Spec Format</strong>:</p>
+<p>All operator specs (fitness, selection, crossover, mutation) use the
+format: <code class="docutils literal notranslate"><span class="pre">&quot;operator_name:param1=val1,param2=val2&quot;</span></code>.</p>
+<p>Common parameters:
+- Fitness dim/num_dims/fn: Problem dimension or function ID
+- Selection num_selections: Number of individuals to select
+- Mutation/crossover rates: Probability values (0.0-1.0)</p>
+<p><strong>Inheritance and Override</strong>:</p>
+<p>Each pipeline inherits all keys from <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> and can
+override them. Pipeline-specific values take precedence.</p>
+</section>
+<section id="id9">
+<h3>Examples<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<p>Simple TOML-based experiment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># experiment.toml content:</span>
+<span class="c1"># [experiment.shared]</span>
+<span class="c1"># fitness = &quot;sphere:dim=10&quot;</span>
+<span class="c1"># pop_size = 100</span>
+<span class="c1"># generations = 200</span>
+<span class="c1"># seeds = [42, 43, 44]</span>
+<span class="c1"># [pipelines.ga_blend]</span>
+<span class="c1"># crossover = &quot;blend:alpha=0.5&quot;</span>
+<span class="c1"># [pipelines.ga_sbx]</span>
+<span class="c1"># crossover = &quot;simulated_binary:eta=20&quot;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="s2">&quot;experiment.toml&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">summary_table</span><span class="p">())</span>
+<span class="n">result</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Execute selected pipelines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span>
+    <span class="s2">&quot;experiment.toml&quot;</span><span class="p">,</span>
+    <span class="n">pipelines</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ga_blend&quot;</span><span class="p">,</span> <span class="s2">&quot;ga_sbx&quot;</span><span class="p">],</span>  <span class="c1"># skip others</span>
+    <span class="n">trace_dir</span><span class="o">=</span><span class="s2">&quot;results/traces&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Reproducible benchmark (same TOML used in paper):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># experiment.toml is versioned in git</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="s2">&quot;experiment.toml&quot;</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">summary_table</span><span class="p">()</span>  <span class="c1"># Reproducible: same config -&gt; same results</span>
+</pre></div>
+</div>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a>)</p></li>
+<li><p><strong>pipelines</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>shared_initial_population</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>pop_seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>trace_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ComparisonResult" title="malthusjax.benchmarking.results.ComparisonResult"><em>ComparisonResult</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.Composer.create_default">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create_default</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.create_default"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer.create_default" title="Link to this definition">¶</a></dt>
+<dd><p>Create a <a class="reference internal" href="#malthusjax.composer.composer.Composer" title="malthusjax.composer.composer.Composer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Composer</span></code></a> instance with default configuration.</p>
+<p>This is a convenience factory method that initializes a <a class="reference internal" href="#malthusjax.composer.composer.Composer" title="malthusjax.composer.composer.Composer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Composer</span></code></a>
+with empty registry and minimal default config. Equivalent to calling
+<code class="docutils literal notranslate"><span class="pre">Composer(config={&quot;version&quot;:</span> <span class="pre">&quot;0.1&quot;})</span></code>. Most users should call this
+before invoking <a class="reference internal" href="#malthusjax.composer.composer.Composer.quick_run" title="malthusjax.composer.composer.Composer.quick_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code></a>, <a class="reference internal" href="#malthusjax.composer.composer.Composer.compare" title="malthusjax.composer.composer.Composer.compare"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compare()</span></code></a>, or <a class="reference internal" href="#malthusjax.composer.composer.Composer.from_toml" title="malthusjax.composer.composer.Composer.from_toml"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_toml()</span></code></a>.</p>
+<section id="id10">
+<h3>Returns<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>Composer</dt><dd><p>A ready-to-use <a class="reference internal" href="#malthusjax.composer.composer.Composer" title="malthusjax.composer.composer.Composer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Composer</span></code></a> instance with defaults applied.</p>
+</dd>
+</dl>
+</section>
+<section id="id11">
+<h3>Examples<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<p>Standard initialization:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#malthusjax.composer.composer.Composer" title="malthusjax.composer.composer.Composer"><em>Composer</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>registry</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +1019,35 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.composer.composer module</a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.composer.Composer"><code class="docutils literal notranslate"><span class="pre">Composer</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.composer.Composer.registry"><code class="docutils literal notranslate"><span class="pre">Composer.registry</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.composer.Composer.config"><code class="docutils literal notranslate"><span class="pre">Composer.config</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.composer.Composer.quick_run"><code class="docutils literal notranslate"><span class="pre">Composer.quick_run()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.composer.Composer.compare"><code class="docutils literal notranslate"><span class="pre">Composer.compare()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.composer.Composer.from_toml"><code class="docutils literal notranslate"><span class="pre">Composer.from_toml()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.composer.Composer.create_default"><code class="docutils literal notranslate"><span class="pre">Composer.create_default()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

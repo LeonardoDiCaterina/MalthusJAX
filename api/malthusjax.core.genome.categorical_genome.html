@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.core.genome.linear_genome module" href="malthusjax.core.genome.linear_genome.html"><link rel="prev" title="malthusjax.core.genome.binary_genome module" href="malthusjax.core.genome.binary_genome.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.core.genome.categorical_genome module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,326 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-core-genome-categorical-genome-module">
-<h1>malthusjax.core.genome.categorical_genome module<a class="headerlink" href="#malthusjax-core-genome-categorical-genome-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.core.genome.categorical_genome">
+<span id="malthusjax-core-genome-categorical-genome-module"></span><h1>malthusjax.core.genome.categorical_genome module<a class="headerlink" href="#module-malthusjax.core.genome.categorical_genome" title="Link to this heading">¶</a></h1>
+<p>Categorical genome representation for discrete search spaces.</p>
+<p>Provides integer‑indexed sequence genomes along with permutation helpers
+and distance metrics. A matching population class offers batched
+operations and initialization.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.categorical_genome.</span></span><span class="sig-name descname"><span class="pre">CategoricalGenomeConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_categories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'jax.numpy.int32'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenomeConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Configuration for discrete categorical genomes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_categories</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>dtype</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)"><em>dtype</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.num_categories">
+<span class="sig-name descname"><span class="pre">num_categories</span></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.num_categories" title="Link to this definition">¶</a></dt>
+<dd><p>Cardinality of the discrete alphabet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.shape" title="Link to this definition">¶</a></dt>
+<dd><p>Logical shape of the categorical sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.dtype" title="Link to this definition">¶</a></dt>
+<dd><p>JAX dtype for category indices; typically jnp.int32.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)">numpy.dtype</a>[Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">num_categories</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.numpy.int32.html#jax.numpy.int32" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int32</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.init_population">
+<span class="sig-name descname"><span class="pre">init_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenomeConfig.init_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.init_population" title="Link to this definition">¶</a></dt>
+<dd><p>Create a random population from this config (protocol method for JR-2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><em>CategoricalGenome</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.categorical_genome.</span></span><span class="sig-name descname"><span class="pre">CategoricalGenome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGenome</span></code></a></p>
+<p>Categorical sequence genome for discrete optimization.</p>
+<p>Values are integer indices in [0, num_categories). Suitable for
+permutation-based and combinatorial problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.values" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.random_init">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">random_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome.random_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.random_init" title="Link to this definition">¶</a></dt>
+<dd><p>Create random categorical genome using discrete uniform sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig" title="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig"><em>CategoricalGenomeConfig</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><em>CategoricalGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.autocorrect">
+<span class="sig-name descname"><span class="pre">autocorrect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome.autocorrect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.autocorrect" title="Link to this definition">¶</a></dt>
+<dd><p>Ensure all categories are within [0, num_categories-1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig" title="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig"><em>CategoricalGenomeConfig</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><em>CategoricalGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.distance">
+<span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hamming'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.distance" title="Link to this definition">¶</a></dt>
+<dd><p>Compute distance between categorical genomes.</p>
+<p>The <em>other</em> genome is treated as a <a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">CategoricalGenome</span></code></a>. Supported
+metrics are Hamming, Euclidean and Manhattan; the result is a scalar
+suitable for downstream vectorized computations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>)</p></li>
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.size">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.size" title="Link to this definition">¶</a></dt>
+<dd><p>Return number of categorical positions.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.shape" title="Link to this definition">¶</a></dt>
+<dd><p>Return shape of the genome array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.from_tensor">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome.from_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.from_tensor" title="Link to this definition">¶</a></dt>
+<dd><p>Construct a batched CategoricalGenome from a raw array.</p>
+<p>Implementation is intentionally trivial and JIT-safe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><em>CategoricalGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.is_permutation">
+<span class="sig-name descname"><span class="pre">is_permutation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome.is_permutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.is_permutation" title="Link to this definition">¶</a></dt>
+<dd><p>Check if all categorical values are unique (valid permutation).</p>
+<p>Uses jnp.unique(size=self.size, fill_value=-1) to pad uniques to
+expected length, then verifies absence of sentinel (-1). Returns
+JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.to_permutation">
+<span class="sig-name descname"><span class="pre">to_permutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome.to_permutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.to_permutation" title="Link to this definition">¶</a></dt>
+<dd><p>Generate permutation via argsort; deterministic and JIT-safe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig" title="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig"><em>CategoricalGenomeConfig</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><em>CategoricalGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.swap_positions">
+<span class="sig-name descname"><span class="pre">swap_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome.swap_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.swap_positions" title="Link to this definition">¶</a></dt>
+<dd><p>Exchange values at two indices via functional .at updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>pos2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><em>CategoricalGenome</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.count_category">
+<span class="sig-name descname"><span class="pre">count_category</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalGenome.count_category"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.count_category" title="Link to this definition">¶</a></dt>
+<dd><p>Return count of a specific category value. Scalar JAX array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>category</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenome.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalPopulation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.genome.categorical_genome.</span></span><span class="sig-name descname"><span class="pre">CategoricalPopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalPopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">CategoricalGenome</span></code></a>]</p>
+<p>Population container for CategoricalGenome objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genes</strong> (<a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><em>CategoricalGenome</em></a>)</p></li>
+<li><p><strong>fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig" title="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig"><em>CategoricalGenomeConfig</em></a>)</p></li>
+<li><p><strong>info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalPopulation.genes">
+<span class="sig-name descname"><span class="pre">genes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome" title="malthusjax.core.genome.categorical_genome.CategoricalGenome"><span class="pre">CategoricalGenome</span></a></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.genes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalPopulation.fitness">
+<span class="sig-name descname"><span class="pre">fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.fitness" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalPopulation.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig" title="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig"><span class="pre">CategoricalGenomeConfig</span></a></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalPopulation.init_random">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">init_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/categorical_genome.html#CategoricalPopulation.init_random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.init_random" title="Link to this definition">¶</a></dt>
+<dd><p>Create random population of categorical genomes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig" title="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig"><em>CategoricalGenomeConfig</em></a>)</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation" title="malthusjax.core.genome.categorical_genome.CategoricalPopulation"><em>CategoricalPopulation</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalPopulation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +676,60 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.core.genome.categorical_genome module</a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.num_categories"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.init_population()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.values"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.values</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.random_init"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.random_init()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.autocorrect()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.distance"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.distance()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.size"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.size</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.shape"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.shape</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.from_tensor"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.from_tensor()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.is_permutation"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.is_permutation()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.to_permutation"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.to_permutation()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.swap_positions"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.swap_positions()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.count_category"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.count_category()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenome.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalGenome.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.genes"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.genes</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.fitness</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.config"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.config</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.init_random()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalPopulation.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

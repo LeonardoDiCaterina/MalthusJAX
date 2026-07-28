@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators package" href="malthusjax.operators.html"><link rel="prev" title="malthusjax.engine.resource_mapper module" href="malthusjax.engine.resource_mapper.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.engine.schedules module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,141 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-engine-schedules-module">
-<h1>malthusjax.engine.schedules module<a class="headerlink" href="#malthusjax-engine-schedules-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.engine.schedules">
+<span id="malthusjax-engine-schedules-module"></span><h1>malthusjax.engine.schedules module<a class="headerlink" href="#module-malthusjax.engine.schedules" title="Link to this heading">¶</a></h1>
+<p>JAX-native mutation strength schedules.</p>
+<p>Provides pure-JAX schedule computation that is safe inside jax.lax.scan.
+Replaces Python callable schedules (CV-3/JR-4) which caused
+ConcretizationTypeError or silently froze schedule values.</p>
+<dl>
+<dt>Usage:</dt><dd><p>from malthusjax.engine.schedules import ScheduleType, compute_scheduled_strength</p>
+<p># Inside engine params:
+params = GeneticEngineParams(</p>
+<blockquote>
+<div><p>schedule_type=ScheduleType.LINEAR_DECAY,
+initial_strength=1.0,
+final_strength=0.01,</p>
+</div></blockquote>
+<p>)</p>
+<p># Inside jax.lax.scan (safe — all ops are jnp):
+strength = compute_scheduled_strength(</p>
+<blockquote>
+<div><p>ScheduleType.LINEAR_DECAY, generation, max_generations,
+initial_strength=1.0, final_strength=0.01,</p>
+</div></blockquote>
+<p>)</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.ScheduleType">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">ScheduleType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#ScheduleType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<p>Mutation strength schedule type.</p>
+<p>Each variant maps to a row in the vectorized schedule lookup table
+inside <code class="docutils literal notranslate"><span class="pre">compute_scheduled_strength</span></code>.  Using IntEnum ensures the
+value is a concrete Python int usable as a <code class="docutils literal notranslate"><span class="pre">pytree_node=False</span></code>
+field — the JIT static fingerprint changes only if the schedule
+<em>type</em> changes, not its parameters.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.ScheduleType.CONSTANT">
+<span class="sig-name descname"><span class="pre">CONSTANT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType.CONSTANT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.ScheduleType.LINEAR_DECAY">
+<span class="sig-name descname"><span class="pre">LINEAR_DECAY</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType.LINEAR_DECAY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.ScheduleType.COSINE_ANNEAL">
+<span class="sig-name descname"><span class="pre">COSINE_ANNEAL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType.COSINE_ANNEAL" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.ScheduleType.EXPONENTIAL_DECAY">
+<span class="sig-name descname"><span class="pre">EXPONENTIAL_DECAY</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType.EXPONENTIAL_DECAY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackBest">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">TrackBest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackBest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.TrackBest" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<p>Controls how the Hall-of-Fame (best individual) is tracked during
+the <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code> evolution loop.</p>
+<p>Selecting a lighter mode reduces scan-carry size and eliminates
+per-step <code class="docutils literal notranslate"><span class="pre">jnp.argmax</span></code> / <code class="docutils literal notranslate"><span class="pre">Gather</span></code> / <code class="docutils literal notranslate"><span class="pre">jax.lax.cond</span></code> overhead.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">NONE</span></code></dt><dd><p>Zero extra ops per step.  <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> / <code class="docutils literal notranslate"><span class="pre">best_genome</span></code> in
+the scan carry are passed through unchanged.  The history’s
+<code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> reports <em>per-generation</em> best (NOT monotonic).
+After <code class="docutils literal notranslate"><span class="pre">run()</span></code> completes, a one-shot post-scan finalization
+populates <code class="docutils literal notranslate"><span class="pre">best_genome</span></code> and <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> on the final
+state from the last population.  Users can recover the monotonic
+convergence curve via <code class="docutils literal notranslate"><span class="pre">jnp.maximum.accumulate(history.best_fitness)</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">LIGHT</span></code> <em>(default)</em></dt><dd><p>Per step: one <code class="docutils literal notranslate"><span class="pre">jnp.max</span></code> (O(N) reduction) + one <code class="docutils literal notranslate"><span class="pre">jnp.maximum</span></code>
+(scalar).  Both are fusible with the evaluation kernel.
+<code class="docutils literal notranslate"><span class="pre">best_genome</span></code> is NOT tracked in the carry — it is populated
+once after the scan from the final population via <code class="docutils literal notranslate"><span class="pre">jnp.argmax</span></code>.
+History <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> is monotonically non-decreasing.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">FULL</span></code></dt><dd><p>Per step: <code class="docutils literal notranslate"><span class="pre">jnp.max</span></code> + <code class="docutils literal notranslate"><span class="pre">jnp.argmax</span></code> + Gather + element-wise
+<code class="docutils literal notranslate"><span class="pre">jnp.where</span></code> on genome leaves.  <code class="docutils literal notranslate"><span class="pre">best_genome</span></code> is maintained
+in the carry across all generations.  Uses <code class="docutils literal notranslate"><span class="pre">jnp.where</span></code> instead
+of <code class="docutils literal notranslate"><span class="pre">jax.lax.cond</span></code> to avoid the XLA fusion barrier.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackBest.NONE">
+<span class="sig-name descname"><span class="pre">NONE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.schedules.TrackBest.NONE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackBest.LIGHT">
+<span class="sig-name descname"><span class="pre">LIGHT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.engine.schedules.TrackBest.LIGHT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackBest.FULL">
+<span class="sig-name descname"><span class="pre">FULL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#malthusjax.engine.schedules.TrackBest.FULL" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.compute_scheduled_strength">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">compute_scheduled_strength</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_strength</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#compute_scheduled_strength"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.compute_scheduled_strength" title="Link to this definition">¶</a></dt>
+<dd><p>Return the mutation strength corresponding to a generation.</p>
+<p>The implementation relies exclusively on <code class="docutils literal notranslate"><span class="pre">jnp</span></code> operations so that
+<code class="docutils literal notranslate"><span class="pre">generation</span></code> may be a tracer inside a JAX scan. The schedule type and
+max generations are expected to be concrete constants used to select and
+normalise the curve.</p>
+<p>Supported schedules include constant, linear decay, cosine annealing and
+exponential decay. <code class="docutils literal notranslate"><span class="pre">final_strength</span></code> is ignored for types that do not
+depend on it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>schedule</strong> (<a class="reference internal" href="#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>initial_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +491,40 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.engine.schedules module</a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.ScheduleType"><code class="docutils literal notranslate"><span class="pre">ScheduleType</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.ScheduleType.CONSTANT"><code class="docutils literal notranslate"><span class="pre">ScheduleType.CONSTANT</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.ScheduleType.LINEAR_DECAY"><code class="docutils literal notranslate"><span class="pre">ScheduleType.LINEAR_DECAY</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.ScheduleType.COSINE_ANNEAL"><code class="docutils literal notranslate"><span class="pre">ScheduleType.COSINE_ANNEAL</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.ScheduleType.EXPONENTIAL_DECAY"><code class="docutils literal notranslate"><span class="pre">ScheduleType.EXPONENTIAL_DECAY</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.TrackBest"><code class="docutils literal notranslate"><span class="pre">TrackBest</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.TrackBest.NONE"><code class="docutils literal notranslate"><span class="pre">TrackBest.NONE</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.TrackBest.LIGHT"><code class="docutils literal notranslate"><span class="pre">TrackBest.LIGHT</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.TrackBest.FULL"><code class="docutils literal notranslate"><span class="pre">TrackBest.FULL</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.compute_scheduled_strength"><code class="docutils literal notranslate"><span class="pre">compute_scheduled_strength()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

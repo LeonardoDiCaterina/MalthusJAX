@@ -1,0 +1,1565 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>malthusjax.composer.composer - MalthusJAX documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">MalthusJAX  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <span class="sidebar-brand-text">MalthusJAX  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/malthusjax.html">malthusjax package</a><input aria-label="Toggle navigation of malthusjax package" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.benchmarking.html">malthusjax.benchmarking package</a><input aria-label="Toggle navigation of malthusjax.benchmarking package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.analysis.html">malthusjax.benchmarking.analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.cli.html">malthusjax.benchmarking.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.io.html">malthusjax.benchmarking.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.results.html">malthusjax.benchmarking.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.runner.html">malthusjax.benchmarking.runner module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.composer.html">malthusjax.composer package</a><input aria-label="Toggle navigation of malthusjax.composer package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.catalog.html">malthusjax.composer.catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.composer.html">malthusjax.composer.composer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.config.html">malthusjax.composer.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.engine_catalog.html">malthusjax.composer.engine_catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.engine_factory.html">malthusjax.composer.engine_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.engine_registry.html">malthusjax.composer.engine_registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.evosax_adapter.html">malthusjax.composer.evosax_adapter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.node.html">malthusjax.composer.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.pipeline.html">malthusjax.composer.pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.registry.html">malthusjax.composer.registry module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.genome.binary_genome.html">malthusjax.core.genome.binary_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.genome.categorical_genome.html">malthusjax.core.genome.categorical_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.genome.linear_genome.html">malthusjax.core.genome.linear_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.genome.real_genome.html">malthusjax.core.genome.real_genome module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.core.base.html">malthusjax.core.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.core.random.html">malthusjax.core.random module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.engine.html">malthusjax.engine package</a><input aria-label="Toggle navigation of malthusjax.engine package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.engine.base.html">malthusjax.engine.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.engine.genetic_fastengine.html">malthusjax.engine.genetic_fastengine module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.engine.resource_mapper.html">malthusjax.engine.resource_mapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.engine.schedules.html">malthusjax.engine.schedules module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.operators.html">malthusjax.operators package</a><input aria-label="Toggle navigation of malthusjax.operators package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.operators.crossover.html">malthusjax.operators.crossover package</a><input aria-label="Toggle navigation of malthusjax.operators.crossover package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.crossover.binary.html">malthusjax.operators.crossover.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.crossover.evosax_crossover.html">malthusjax.operators.crossover.evosax_crossover module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.crossover.real.html">malthusjax.operators.crossover.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.operators.mutation.html">malthusjax.operators.mutation package</a><input aria-label="Toggle navigation of malthusjax.operators.mutation package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.mutation.binary.html">malthusjax.operators.mutation.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.mutation.evosax_mutation.html">malthusjax.operators.mutation.evosax_mutation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.mutation.real.html">malthusjax.operators.mutation.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.operators.selection.html">malthusjax.operators.selection package</a><input aria-label="Toggle navigation of malthusjax.operators.selection package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.operators.base.html">malthusjax.operators.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.operators.base_ablation.html">malthusjax.operators.base_ablation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.operators.base_injection.html">malthusjax.operators.base_injection module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for malthusjax.composer.composer</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;High-level API for declarative and programmatic experiments.</span>
+
+<span class="sd">The :class:`Composer` class wraps the benchmarking system with convenient</span>
+<span class="sd">helper methods like :meth:`quick_run`, :meth:`compare`, and :meth:`from_toml`.</span>
+<span class="sd">It orchestrates engine construction, seeding, result aggregation and provides</span>
+<span class="sd">sensible defaults for rapid prototyping.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.bbob_evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BBOBConfig</span><span class="p">,</span> <span class="n">BBOBEvaluator</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneticStrategy</span><span class="p">,</span> <span class="n">EvoSAXStrategy</span><span class="p">,</span> <span class="n">MapElitesStrategy</span><span class="p">,</span> <span class="n">QDAXStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkRunner</span><span class="p">,</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">StubEngine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComparisonResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_experiment_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.engine_catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineRegistry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.evosax_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_evosax_engine</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover - optional dependency</span>
+    <span class="n">tqdm</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="Composer">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Composer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;High-level interface for running evolutionary algorithms.</span>
+
+<span class="sd">    The :class:`Composer` class provides three primary entry points for</span>
+<span class="sd">    running genetic algorithms with different levels of configuration:</span>
+
+<span class="sd">    1. **:meth:`quick_run` — Interactive exploration**</span>
+<span class="sd">       Use when exploring hyperparameters, testing fitness functions, or</span>
+<span class="sd">       learning MalthusJAX. Accepts programmatic operator specifications</span>
+<span class="sd">       (e.g., ``fitness=&quot;sphere:dim=10&quot;``) and runs a full experiment with</span>
+<span class="sd">       multiple seeds, returning aggregated results immediately.</span>
+
+<span class="sd">    2. **:meth:`from_toml` — Reproducible declarative experiments**</span>
+<span class="sd">       Use when you want versioned, reproducible experiments for papers or</span>
+<span class="sd">       production benchmarking. Define pipelines in a TOML file; the method</span>
+<span class="sd">       loads, parses, and executes all pipelines automatically while</span>
+<span class="sd">       preserving shared configuration like seeds and population bounds.</span>
+
+<span class="sd">    3. **:meth:`compare` — Programmatic multi-pipeline benchmarking**</span>
+<span class="sd">       Use when comparing algorithm variants. Accepts a dict of pipeline</span>
+<span class="sd">       configurations (each a :meth:`quick_run` kwargs dict), shares initial</span>
+<span class="sd">       populations and seeds across pipelines for fair comparison, and returns</span>
+<span class="sd">       utilities for statistical summary and visualization.</span>
+
+<span class="sd">    All methods return result objects (:class:`ExperimentResult` from</span>
+<span class="sd">    :meth:`quick_run`, :class:`ComparisonResult` from :meth:`from_toml` and</span>
+<span class="sd">    :meth:`compare`) with aggregated metrics and convergence histories.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Quick exploration::</span>
+
+<span class="sd">        composer = Composer.create_default()</span>
+<span class="sd">        result = composer.quick_run(</span>
+<span class="sd">            fitness=&quot;sphere:dim=5&quot;,</span>
+<span class="sd">            selection=&quot;tournament:num_selections=25,tournament_size=3&quot;,</span>
+<span class="sd">            crossover=&quot;blend:alpha=0.5&quot;,</span>
+<span class="sd">            mutation=&quot;gaussian:mutation_rate=0.1,mutation_strength=0.2&quot;,</span>
+<span class="sd">            pop_size=50,</span>
+<span class="sd">            generations=50,</span>
+<span class="sd">            seeds=(42, 43, 44),</span>
+<span class="sd">        )</span>
+<span class="sd">        print(result.aggregated_summary())</span>
+
+<span class="sd">    Reproducible TOML-based experiment::</span>
+
+<span class="sd">        result = Composer.from_toml(</span>
+<span class="sd">            &quot;experiment.toml&quot;,</span>
+<span class="sd">            trace_dir=&quot;results/traces&quot;</span>
+<span class="sd">        )</span>
+<span class="sd">        result.plot_convergence(seed_index=0)</span>
+
+<span class="sd">    Benchmarking multiple pipelines::</span>
+
+<span class="sd">        comparison = composer.compare(</span>
+<span class="sd">            pipelines={</span>
+<span class="sd">                &quot;Blend+Gaussian&quot;: dict(</span>
+<span class="sd">                    crossover=&quot;blend:alpha=0.5&quot;,</span>
+<span class="sd">                    mutation=&quot;gaussian:mutation_rate=0.1&quot;,</span>
+<span class="sd">                ),</span>
+<span class="sd">                &quot;SBX+Polynomial&quot;: dict(</span>
+<span class="sd">                    crossover=&quot;simulated_binary:eta=2&quot;,</span>
+<span class="sd">                    mutation=&quot;polynomial:mutation_rate=0.1&quot;,</span>
+<span class="sd">                ),</span>
+<span class="sd">            },</span>
+<span class="sd">            fitness=&quot;sphere:dim=10&quot;,</span>
+<span class="sd">            pop_size=50,</span>
+<span class="sd">            generations=100,</span>
+<span class="sd">        )</span>
+<span class="sd">        print(comparison.summary_table())</span>
+<span class="sd">        comparison.plot_convergence()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">registry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_seeds</span><span class="p">(</span><span class="n">seeds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Normalize seed input into an explicit tuple of integers.</span>
+
+<span class="sd">        Accepts either:</span>
+<span class="sd">        - an iterable of seeds (e.g., ``[42, 43, 44]``), or</span>
+<span class="sd">        - an integer count (e.g., ``100`` -&gt; ``(1, 2, ..., 100)``).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seeds</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">seeds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seeds must be &gt; 0 when provided as an integer count&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">seeds_tuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seeds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">seeds_tuple</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seeds must not be empty&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">seeds_tuple</span>
+
+<div class="viewcode-block" id="Composer.quick_run">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.quick_run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">quick_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">seeds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">experiment_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;quick_experiment&quot;</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">engine</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="c1"># Backend selection</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;malthusjax&quot;</span><span class="p">,</span>
+        <span class="n">engine_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ga&quot;</span><span class="p">,</span>
+        <span class="n">evosax_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;SimpleGA&quot;</span><span class="p">,</span>
+        <span class="n">qdax_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;MAPElites&quot;</span><span class="p">,</span>
+        <span class="c1"># Real operator specifications (malthusjax backend)</span>
+        <span class="n">strategy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseStrategy</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">genome</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">fitness</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">selection</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">crossover</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mutation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">genome_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+        <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">genome_length</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">elitism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">prng_impl</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_history_for_final</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">trace_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">data_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">history_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run a full evolutionary experiment with programmatic operator specs.</span>
+
+<span class="sd">        This is the main entry point for interactive exploration and benchmarking.</span>
+<span class="sd">        It accepts operator specifications as string specs (for the ``&quot;malthusjax&quot;&quot;</span>
+<span class="sd">        backend) or strategy names (for the ``&quot;evosax&quot;`` backend), orchestrates</span>
+<span class="sd">        multiple independent runs (one per seed), aggregates results, and returns</span>
+<span class="sd">        an :class:`ExperimentResult`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fitness : str, optional</span>
+<span class="sd">            Fitness function specification (MalthusJAX backend only).</span>
+<span class="sd">            Format: ``&quot;name:key1=val,key2=val&quot;``</span>
+
+<span class="sd">            **Built-in fitness functions**:</span>
+
+<span class="sd">            - ``&quot;sphere:dim=INT&quot;`` — Sphere function: $f(x) = \\sum_i x_i^2$</span>
+<span class="sd">            - ``&quot;rastrigin:dim=INT&quot;`` — Rastrigin: highly multimodal</span>
+<span class="sd">            - ``&quot;griewank:dim=INT&quot;`` — Griewank: multimodal with low local frequencies</span>
+<span class="sd">            - ``&quot;bbob:fn=INT,dims=INT&quot;`` — Black-Box Optimization Benchmarking</span>
+<span class="sd">              (BBOB) suite function (fn=1–24, dims=2–40)</span>
+<span class="sd">            - ``&quot;knapsack:capacity=INT,num_items=INT&quot;`` — 0/1 knapsack</span>
+<span class="sd">            - ``&quot;binary_sum:length=INT&quot;`` — Binary sum of bits (for binary genomes)</span>
+
+<span class="sd">            Examples: ``&quot;sphere:dim=10&quot;``, ``&quot;bbob:fn=3,dims=10&quot;``,</span>
+<span class="sd">            ``&quot;knapsack:capacity=100,num_items=20&quot;``.</span>
+
+<span class="sd">        selection : str, optional</span>
+<span class="sd">            Selection operator specification.</span>
+<span class="sd">            Format: ``&quot;name:key1=val,key2=val&quot;``</span>
+
+<span class="sd">            **Valid operators**:</span>
+
+<span class="sd">            - ``&quot;tournament:num_selections=INT,tournament_size=INT&quot;``</span>
+<span class="sd">              Select via tournament competition (default: size=3).</span>
+<span class="sd">            - ``&quot;roulette:num_selections=INT&quot;``</span>
+<span class="sd">              Fitness-proportional selection (SUS-like).</span>
+<span class="sd">            - ``&quot;elite_pool:num_selections=INT,elite_k=INT&quot;``</span>
+<span class="sd">              Keep top-k individuals, select from them.</span>
+
+<span class="sd">            Examples: ``&quot;tournament:num_selections=25,tournament_size=3&quot;``,</span>
+<span class="sd">            ``&quot;roulette:num_selections=25&quot;``.</span>
+
+<span class="sd">        crossover : str, optional</span>
+<span class="sd">            Crossover operator specification.</span>
+<span class="sd">            Format: ``&quot;name:key1=val,key2=val&quot;``</span>
+
+<span class="sd">            **For real genomes**:</span>
+
+<span class="sd">            - ``&quot;uniform_real&quot;`` — Uniform crossover (each gene has 50% chance).</span>
+<span class="sd">            - ``&quot;blend:alpha=FLOAT&quot;`` — Blend crossover with expansion factor.</span>
+<span class="sd">            - ``&quot;simulated_binary:eta=FLOAT&quot;`` — SBX (eta controls spread).</span>
+<span class="sd">            - ``&quot;binomial:cr=FLOAT&quot;`` — DE-style binomial crossover.</span>
+
+<span class="sd">            **For binary genomes**:</span>
+
+<span class="sd">            - ``&quot;uniform_binary&quot;`` — Uniform bit-wise crossover.</span>
+<span class="sd">            - ``&quot;single_point&quot;`` — Single-point crossover.</span>
+
+<span class="sd">            Examples: ``&quot;blend:alpha=0.5&quot;``, ``&quot;simulated_binary:eta=20&quot;``.</span>
+
+<span class="sd">        mutation : str, optional</span>
+<span class="sd">            Mutation operator specification.</span>
+<span class="sd">            Format: ``&quot;name:key1=val,key2=val&quot;``</span>
+
+<span class="sd">            **For real genomes**:</span>
+
+<span class="sd">            - ``&quot;gaussian:mutation_rate=FLOAT,mutation_strength=FLOAT&quot;``</span>
+<span class="sd">              Add Gaussian noise (mutation_strength = std dev).</span>
+<span class="sd">            - ``&quot;ball:mutation_rate=FLOAT&quot;``</span>
+<span class="sd">              Uniform ball (hypersphere) mutation.</span>
+<span class="sd">            - ``&quot;polynomial:mutation_rate=FLOAT,eta=FLOAT&quot;``</span>
+<span class="sd">              Polynomial mutation (eta controls distribution).</span>
+
+<span class="sd">            **For binary genomes**:</span>
+
+<span class="sd">            - ``&quot;bitflip:mutation_rate=FLOAT&quot;``</span>
+<span class="sd">              Flip each bit independently.</span>
+<span class="sd">            - ``&quot;scramble&quot;`` — Random reordering (order-based).</span>
+<span class="sd">            - ``&quot;swap&quot;`` — Random bit swap (order-based).</span>
+
+<span class="sd">            Examples:</span>
+<span class="sd">            ``&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;``,</span>
+<span class="sd">            ``&quot;polynomial:mutation_rate=0.1,eta=20&quot;``,</span>
+<span class="sd">            ``&quot;bitflip:mutation_rate=0.05&quot;``.</span>
+
+<span class="sd">        seeds : Sequence[int], optional</span>
+<span class="sd">            Random seeds for independent runs. Each seed generates a fully</span>
+<span class="sd">            independent evolutionary run; results are then aggregated.</span>
+<span class="sd">            Default: ``(1, 2, 3)``.</span>
+
+<span class="sd">        generations : int, optional</span>
+<span class="sd">            Number of full generational cycles to evolve. Default: 100.</span>
+<span class="sd">            (Note: some backends may interpret this differently; see backend-specific</span>
+<span class="sd">            documentation.)</span>
+
+<span class="sd">        pop_size : int, optional</span>
+<span class="sd">            Population size (number of individuals per generation).</span>
+<span class="sd">            For GPU efficiency, powers of 2 (32, 64, 128, 256) are preferred.</span>
+<span class="sd">            Default: 50.</span>
+
+<span class="sd">        genome_length : int, optional</span>
+<span class="sd">            For continuous genomes: number of decision variables (dimension).</span>
+<span class="sd">            For discrete: number of bits or items. Default: 10.</span>
+
+<span class="sd">        bounds : Tuple[float, float], optional</span>
+<span class="sd">            Search space bounds ``(lower, upper)`` for real genomes.</span>
+<span class="sd">            Default: ``(-5.0, 5.0)``.</span>
+
+<span class="sd">        genome_type : str, optional</span>
+<span class="sd">            Genome representation: ``&quot;real&quot;`` or ``&quot;binary&quot;``.</span>
+<span class="sd">            Controls which operator specs are valid (real vs binary crossover/mutation).</span>
+<span class="sd">            Default: ``&quot;real&quot;``.</span>
+
+<span class="sd">        genome : str, optional</span>
+<span class="sd">            Declarative specification of the genome type, shape, and bounds.</span>
+<span class="sd">            Format: ``&quot;type:key1=val,key2=val&quot;``</span>
+<span class="sd">            Examples: ``&quot;real:dim=10,bounds=(-5.0, 5.0)&quot;``, ``&quot;binary:length=20&quot;``.</span>
+<span class="sd">            Explicit arguments (e.g., `genome_type`, `genome_length`) override the</span>
+<span class="sd">            values provided in this specification.</span>
+
+<span class="sd">        maximize : bool, optional</span>
+<span class="sd">            Optimization direction: ``True`` for maximization, ``False`` for</span>
+<span class="sd">            minimization. Default: ``False``.</span>
+
+<span class="sd">        backend : str, optional</span>
+<span class="sd">            Execution backend: ``&quot;malthusjax&quot;`` (default) or ``&quot;evosax&quot;``.</span>
+<span class="sd">            - ``&quot;malthusjax&quot;``: Uses MalthusJAX operators (requires</span>
+<span class="sd">              fitness/selection/crossover/mutation specs)</span>
+<span class="sd">            - ``&quot;evosax&quot;``: Uses evosax strategy (requires evosax_strategy; ignores</span>
+<span class="sd">              operator specs)</span>
+
+<span class="sd">        evosax_strategy : str, optional</span>
+<span class="sd">            Evosax strategy name (only if ``backend=&quot;evosax&quot;``).</span>
+<span class="sd">            Examples: ``&quot;SimpleGA&quot;``, ``&quot;OpenES&quot;``, ``&quot;CMA_ES&quot;``, ``&quot;DE&quot;``.</span>
+<span class="sd">            Default: ``&quot;SimpleGA&quot;``.</span>
+
+<span class="sd">        engine_type : str, optional</span>
+<span class="sd">            MalthusJAX engine type (only if ``backend=&quot;malthusjax&quot;``).</span>
+<span class="sd">            Currently supported: ``&quot;ga&quot;`` (generational GA). Default: ``&quot;ga&quot;``.</span>
+
+<span class="sd">        elitism : int, optional</span>
+<span class="sd">            Number of best individuals to carry forward without modification</span>
+<span class="sd">            (MalthusJAX backend only). Default: 2.</span>
+
+<span class="sd">        experiment_name : str, optional</span>
+<span class="sd">            Experiment identifier (used in output directory and logging).</span>
+<span class="sd">            Default: ``&quot;quick_experiment&quot;``.</span>
+
+<span class="sd">        output_dir : Path or str, optional</span>
+<span class="sd">            Output directory for results, artifacts, and logs.</span>
+<span class="sd">            If not provided, defaults to ``results/{experiment_name}/``.</span>
+
+<span class="sd">        engine : optional</span>
+<span class="sd">            A pre-configured engine object. If provided, all operator specs</span>
+<span class="sd">            (fitness, selection, crossover, mutation) are ignored; use a custom</span>
+<span class="sd">            engine to bypass automatic configuration.</span>
+
+<span class="sd">        prng_impl : str, optional</span>
+<span class="sd">            PRNG implementation for JAX key splitting (advanced).</span>
+<span class="sd">            Default: ``None`` (auto-select).</span>
+
+<span class="sd">        trace_dir : Path or str, optional</span>
+<span class="sd">            Directory to write Perfetto-compatible JAX profiler traces.</span>
+<span class="sd">            Default: ``None`` (disabled).</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ExperimentResult</span>
+<span class="sd">            Result object containing per-seed run records and aggregation methods:</span>
+
+<span class="sd">            - ``.runs`` : List[:class:`RunResult`] — Individual runs, one per seed</span>
+<span class="sd">            - ``.aggregated_summary()`` — Dict mapping metric names → (mean, median, stdev)</span>
+<span class="sd">            - ``.combined_history(seed_field=&quot;seed&quot;)`` — All generation records with seed labels</span>
+<span class="sd">            - ``.canonical_summary`` — Best-of metrics from first seed</span>
+
+<span class="sd">            Raises</span>
+<span class="sd">            ------</span>
+<span class="sd">            ValueError</span>
+<span class="sd">            If operator specs have invalid format or unknown operator names.</span>
+<span class="sd">            RuntimeError</span>
+<span class="sd">            If the underlying engine encounters a critical error during execution.</span>
+
+<span class="sd">            Examples</span>
+<span class="sd">            --------</span>
+<span class="sd">            MalthusJAX backend (default)::</span>
+
+<span class="sd">            composer = Composer.create_default()</span>
+<span class="sd">            result = composer.quick_run(</span>
+<span class="sd">            fitness=&quot;sphere:dim=25&quot;,</span>
+<span class="sd">            selection=&quot;tournament:num_selections=25,tournament_size=3&quot;,</span>
+<span class="sd">            crossover=&quot;blend:alpha=0.5&quot;,</span>
+<span class="sd">            mutation=&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;,</span>
+<span class="sd">            pop_size=100,</span>
+<span class="sd">            generations=200,</span>
+<span class="sd">            seeds=(42, 43, 44),</span>
+<span class="sd">            )</span>
+<span class="sd">            print(result.aggregated_summary())</span>
+
+<span class="sd">            Evosax backend::</span>
+
+<span class="sd">            result = composer.quick_run(</span>
+<span class="sd">            backend=&quot;evosax&quot;,</span>
+<span class="sd">            evosax_strategy=&quot;OpenES&quot;,</span>
+<span class="sd">            fitness=&quot;sphere:dim=10&quot;,</span>
+<span class="sd">            pop_size=64,</span>
+<span class="sd">            generations=500,</span>
+<span class="sd">            seeds=(1, 2, 3),</span>
+<span class="sd">            )</span>
+
+<span class="sd">            No operator specs (uses StubEngine for testing the pipeline)::</span>
+
+<span class="sd">            result = composer.quick_run(</span>
+<span class="sd">            generations=50,</span>
+<span class="sd">            seeds=(1, 2),</span>
+<span class="sd">            )</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">output_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">experiment_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Resolve genome defaults and specification</span>
+            <span class="k">if</span> <span class="n">genome</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.genome_catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeCatalog</span>
+
+                <span class="n">cat</span> <span class="o">=</span> <span class="n">GenomeCatalog</span><span class="p">()</span>
+                <span class="n">g_type</span><span class="p">,</span> <span class="n">g_params</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">genome</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">genome_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">genome_type</span> <span class="o">=</span> <span class="n">g_type</span>
+                <span class="k">if</span> <span class="n">genome_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">genome_length</span> <span class="o">=</span> <span class="n">g_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dim&quot;</span><span class="p">,</span> <span class="n">g_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;length&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;bounds&quot;</span> <span class="ow">in</span> <span class="n">g_params</span><span class="p">:</span>
+                    <span class="n">b</span> <span class="o">=</span> <span class="n">g_params</span><span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="n">b_str</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;()[]&quot;</span><span class="p">)</span>
+                        <span class="n">parts</span> <span class="o">=</span> <span class="n">b_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+                        <span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">bounds</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">genome_length</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;shape&quot;</span> <span class="ow">in</span> <span class="n">g_params</span><span class="p">:</span>
+                    <span class="n">shape_val</span> <span class="o">=</span> <span class="n">g_params</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span>
+                    <span class="n">genome_length</span> <span class="o">=</span> <span class="n">shape_val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">shape_val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">shape_val</span>
+
+            <span class="c1"># If genome length is still unset, infer from fitness spec (e.g. &quot;sphere:dim=5&quot;).</span>
+            <span class="k">if</span> <span class="n">genome_length</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
+                <span class="n">_</span> <span class="o">=</span> <span class="n">parsed_name</span>  <span class="c1"># parsed_name intentionally unused; kept for clarity.</span>
+                <span class="n">dim_val</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dim&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_dims&quot;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">dim_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">genome_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_val</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">genome_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">genome_type</span> <span class="o">=</span> <span class="s2">&quot;real&quot;</span>
+            <span class="k">if</span> <span class="n">genome_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">genome_length</span> <span class="o">=</span> <span class="mi">10</span>
+            <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">strategy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;evosax&quot;</span><span class="p">:</span>
+                    <span class="n">strategy</span> <span class="o">=</span> <span class="n">EvoSAXStrategy</span><span class="p">(</span><span class="n">algorithm_name</span><span class="o">=</span><span class="n">evosax_strategy</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;qdax&quot;</span><span class="p">:</span>
+                    <span class="n">strategy</span> <span class="o">=</span> <span class="n">QDAXStrategy</span><span class="p">(</span>
+                        <span class="n">strategy_cls</span><span class="o">=</span><span class="n">qdax_strategy</span><span class="p">,</span>
+                        <span class="n">emitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">metrics_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">centroids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">init_variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">algorithm_kwargs</span><span class="o">=</span><span class="n">kwargs</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_real_operators</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">crossover</span><span class="p">,</span> <span class="n">mutation</span><span class="p">):</span>
+                    <span class="n">strategy</span> <span class="o">=</span> <span class="n">GeneticStrategy</span><span class="p">(</span>
+                        <span class="n">selection</span><span class="o">=</span><span class="n">selection</span><span class="p">,</span>
+                        <span class="n">crossover</span><span class="o">=</span><span class="n">crossover</span><span class="p">,</span>
+                        <span class="n">mutation</span><span class="o">=</span><span class="n">mutation</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">EvoSAXStrategy</span><span class="p">):</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_evosax_engine</span><span class="p">(</span>
+                    <span class="n">strategy_name</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_name</span><span class="p">,</span>
+                    <span class="n">fitness_spec</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span>
+                    <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
+                    <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
+                    <span class="n">num_dims</span><span class="o">=</span><span class="n">genome_length</span><span class="p">,</span>
+                    <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+                    <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
+                    <span class="n">prng_impl</span><span class="o">=</span><span class="n">prng_impl</span><span class="p">,</span>
+                    <span class="n">history_metrics</span><span class="o">=</span><span class="n">history_metrics</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_kwargs</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">QDAXStrategy</span><span class="p">):</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.qdax_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_qdax_engine</span>
+                
+                <span class="c1"># Resolving evaluator if fitness string was passed</span>
+                <span class="n">evaluator</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">fitness</span>
+                
+                <span class="c1"># Very basic auto-resolution of components if they are not provided</span>
+                <span class="n">strategy_cls</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">strategy_cls</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy_cls</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">qdax.core.map_elites</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAPElites</span>
+                    <span class="k">if</span> <span class="n">strategy_cls</span> <span class="o">==</span> <span class="s2">&quot;MAPElites&quot;</span><span class="p">:</span>
+                        <span class="n">strategy_cls</span> <span class="o">=</span> <span class="n">MAPElites</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown qdax strategy_cls: </span><span class="si">{</span><span class="n">strategy_cls</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+                <span class="n">engine</span> <span class="o">=</span> <span class="n">build_qdax_engine</span><span class="p">(</span>
+                    <span class="n">strategy_cls</span><span class="o">=</span><span class="n">strategy_cls</span><span class="p">,</span>
+                    <span class="n">emitter</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">emitter</span><span class="p">,</span>
+                    <span class="n">metrics_function</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">metrics_function</span><span class="p">,</span>
+                    <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluator</span><span class="p">,</span>
+                    <span class="n">init_variables</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">init_variables</span><span class="p">,</span>
+                    <span class="n">centroids</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">centroids</span><span class="p">,</span>
+                    <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
+                    <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
+                    <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_kwargs</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="p">(</span><span class="n">GeneticStrategy</span><span class="p">,</span> <span class="n">MapElitesStrategy</span><span class="p">)):</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_real_engine</span><span class="p">(</span>
+                    <span class="n">strategy</span><span class="o">=</span><span class="n">strategy</span><span class="p">,</span>
+                    <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">,</span>
+                    <span class="n">fitness</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span>
+                    <span class="n">engine_type</span><span class="o">=</span><span class="n">engine_type</span><span class="p">,</span>
+                    <span class="n">genome_type</span><span class="o">=</span><span class="n">genome_type</span><span class="p">,</span>
+                    <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
+                    <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
+                    <span class="n">genome_shape</span><span class="o">=</span><span class="n">genome_length</span><span class="p">,</span>
+                    <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+                    <span class="n">elitism</span><span class="o">=</span><span class="n">elitism</span><span class="p">,</span>
+                    <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
+                    <span class="n">prng_impl</span><span class="o">=</span><span class="n">prng_impl</span><span class="p">,</span>
+                    <span class="n">data_config</span><span class="o">=</span><span class="n">data_config</span><span class="p">,</span>
+                    <span class="n">history_metrics</span><span class="o">=</span><span class="n">history_metrics</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_stub_engine</span><span class="p">(</span><span class="n">generations</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">runner</span> <span class="o">=</span> <span class="n">BenchmarkRunner</span><span class="p">(</span>
+            <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span>
+            <span class="n">experiment_name</span><span class="o">=</span><span class="n">experiment_name</span><span class="p">,</span>
+            <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+            <span class="n">write_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">prng_impl</span><span class="o">=</span><span class="n">prng_impl</span><span class="p">,</span>
+            <span class="n">trace_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">trace_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">trace_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;results/traces&quot;</span><span class="p">),</span>
+            <span class="n">serialize_history</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;serialize_history&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">normalized_seeds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_seeds</span><span class="p">(</span><span class="n">seeds</span><span class="p">)</span>
+        <span class="n">experiment</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">normalized_seeds</span><span class="p">)</span>
+
+        <span class="c1"># Composer-level postprocessing: when engines run with</span>
+        <span class="c1"># TrackBest.NONE for speed they may omit or produce an</span>
+        <span class="c1"># invalid `summary[&#39;best_fitness&#39;]`. Allow callers to request</span>
+        <span class="c1"># that the final best is derived from the last history entry</span>
+        <span class="c1"># (history[-1]) instead. We also auto-fix non-finite summaries.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_postprocess_experiment_final_from_history</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="n">use_history_for_final</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">experiment</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_postprocess_experiment_final_from_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure per-run summary best_fitness is consistent with history.</span>
+
+<span class="sd">        When engines disable internal best-tracking (for speed), the</span>
+<span class="sd">        returned ``summary`` may be missing or invalid. This helper will</span>
+<span class="sd">        copy the final generation&#39;s best metrics from ``run.history[-1]``</span>
+<span class="sd">        into ``run.metrics[&#39;best_fitness&#39;]`` (and ``final_generation``)</span>
+<span class="sd">        when either *force* is True or when the existing metric is</span>
+<span class="sd">        absent/non-finite.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+
+        <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">experiment</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
+            <span class="c1"># skip errored runs</span>
+            <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;success&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># determine whether we should replace the summary</span>
+            <span class="n">best_val</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">)</span>
+            <span class="n">need_replace</span> <span class="o">=</span> <span class="n">force</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="n">best_val</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">best_val</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+                    <span class="ow">and</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">best_val</span><span class="p">)</span> <span class="ow">or</span> <span class="n">math</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">best_val</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">need_replace</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">run</span><span class="o">.</span><span class="n">history</span><span class="p">:</span>
+                <span class="c1"># nothing to do</span>
+                <span class="k">continue</span>
+
+            <span class="n">last</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;best_fitness&quot;</span> <span class="ow">in</span> <span class="n">last</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">run</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">last</span><span class="p">[</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="k">if</span> <span class="s2">&quot;generation&quot;</span> <span class="ow">in</span> <span class="n">last</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">run</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;final_generation&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">last</span><span class="p">[</span><span class="s2">&quot;generation&quot;</span><span class="p">]))</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_infer_genome_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Infer genome length from config, preferring explicit values.</span>
+
+<span class="sd">        Priority:</span>
+<span class="sd">        1) ``genome_length`` kwarg</span>
+<span class="sd">        2) ``fitness`` spec params ``dim`` / ``num_dims``</span>
+<span class="sd">        3) default 10</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;genome_length&quot;</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">and</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;genome_length&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;genome_length&quot;</span><span class="p">])</span>
+
+        <span class="n">fitness_spec</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fitness&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
+            <span class="n">dim_val</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dim&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_dims&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">dim_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_val</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="mi">10</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_initial_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">pop_seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deterministically generate a shared initial population matrix for a given pipeline config.</span>
+
+<span class="sd">        Ensures that pipelines with identical bounds, population sizes, and dimensionality</span>
+<span class="sd">        receive the exact same starting points, while dynamically scaling to the requested pop_size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
+
+        <span class="n">pop_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pop_size&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+        <span class="n">genome_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_genome_length</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bounds&quot;</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
+        <span class="n">fitness_spec</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fitness&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;bbob&quot;</span> <span class="ow">in</span> <span class="n">fitness_spec</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
+            <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">parsed_name</span> <span class="o">==</span> <span class="s2">&quot;bbob&quot;</span><span class="p">:</span>
+                <span class="n">fn</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn_name&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn&quot;</span><span class="p">,</span> <span class="s2">&quot;rosenbrock&quot;</span><span class="p">))</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dim&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_dims&quot;</span><span class="p">,</span> <span class="n">genome_length</span><span class="p">))</span>
+                <span class="n">bbob_seed</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">bbob_eval</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                    <span class="n">BBOBConfig</span><span class="p">(</span>
+                        <span class="n">fn_name</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span>
+                        <span class="n">num_dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span>
+                        <span class="n">seed</span><span class="o">=</span><span class="n">bbob_seed</span><span class="p">,</span>
+                        <span class="n">maximize</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">pop_key</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">pop_seed</span><span class="p">)</span>
+                <span class="n">sample_keys</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">pop_key</span><span class="p">,</span> <span class="n">pop_size</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">bbob_eval</span><span class="o">.</span><span class="n">evosax_problem</span><span class="o">.</span><span class="n">sample</span><span class="p">)(</span><span class="n">sample_keys</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">jr</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
+            <span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">pop_seed</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">genome_length</span><span class="p">),</span>
+            <span class="n">minval</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">maxval</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Composer.compare">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.compare">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compare</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pipelines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+        <span class="n">seeds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">),</span>
+        <span class="n">shared_initial_population</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">pop_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">123</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">shared_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComparisonResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run multiple algorithm variants and return comparison results.</span>
+
+<span class="sd">        This method executes several experiment pipelines with identical seeding</span>
+<span class="sd">        and optional population initialization, enabling fair statistical</span>
+<span class="sd">        comparison of different evolutionary strategies.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pipelines : Dict[str, Dict[str, Any]]</span>
+<span class="sd">            Mapping of display names (pipeline identifiers) to kwarg dicts.</span>
+<span class="sd">            Each dict contains :meth:`quick_run` parameters (fitness, selection,</span>
+<span class="sd">            crossover, mutation, backend, evosax_strategy, etc.) that override</span>
+<span class="sd">            the shared configuration. Keys determine plot legend labels and table</span>
+<span class="sd">            headers in results.</span>
+
+<span class="sd">            Example::</span>
+
+<span class="sd">                pipelines={</span>
+<span class="sd">                    &quot;Blend+Gaussian&quot;: dict(</span>
+<span class="sd">                        crossover=&quot;blend:alpha=0.5&quot;,</span>
+<span class="sd">                        mutation=&quot;gaussian:mutation_rate=0.1&quot;,</span>
+<span class="sd">                    ),</span>
+<span class="sd">                    &quot;SBX+Polynomial&quot;: dict(</span>
+<span class="sd">                        crossover=&quot;simulated_binary:eta=2.0&quot;,</span>
+<span class="sd">                        mutation=&quot;polynomial:mutation_rate=0.1,eta=20&quot;,</span>
+<span class="sd">                    ),</span>
+<span class="sd">                    &quot;Evosax CMA-ES&quot;: dict(</span>
+<span class="sd">                        backend=&quot;evosax&quot;,</span>
+<span class="sd">                        evosax_strategy=&quot;CMA_ES&quot;,</span>
+<span class="sd">                    ),</span>
+<span class="sd">                }</span>
+
+<span class="sd">            Backend selection: Include ``backend`` and ``evosax_strategy`` in</span>
+<span class="sd">            each pipeline dict to mix MalthusJAX and Evosax strategies in one</span>
+<span class="sd">            comparison.</span>
+
+<span class="sd">        seeds : Sequence[int], optional</span>
+<span class="sd">            Random seeds shared across all pipelines. Using the same seeds</span>
+<span class="sd">            ensures statistically comparable runs. Default: ``(42, 43, 44)``.</span>
+
+<span class="sd">        shared_initial_population : bool, optional</span>
+<span class="sd">            If ``True``, generate a single random population and inject it into</span>
+<span class="sd">            every pipeline&#39;s first run. This isolates algorithmic differences</span>
+<span class="sd">            from initialization variance, enhancing fair comparison.</span>
+<span class="sd">            Default: ``True``.</span>
+
+<span class="sd">        pop_seed : int, optional</span>
+<span class="sd">            Random seed for generating the shared initial population.</span>
+<span class="sd">            Default: 123.</span>
+<span class="sd">            (Only used if ``shared_initial_population=True``.)</span>
+
+<span class="sd">        **shared_kwargs : Any</span>
+<span class="sd">            Default configuration applied to all pipelines (merged before</span>
+<span class="sd">            pipeline-specific overrides). Use for common settings like</span>
+<span class="sd">            ``fitness``, ``pop_size``, ``generations``, ``bounds``.</span>
+
+<span class="sd">            Example::</span>
+
+<span class="sd">                compare(</span>
+<span class="sd">                    pipelines={...},</span>
+<span class="sd">                    fitness=&quot;sphere:dim=10&quot;,  # shared</span>
+<span class="sd">                    pop_size=50,               # shared</span>
+<span class="sd">                    generations=100,           # shared</span>
+<span class="sd">                )</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComparisonResult</span>
+<span class="sd">            Contains:</span>
+
+<span class="sd">            - ``.pipelines`` : Dict[str, :class:`ExperimentResult`]</span>
+<span class="sd">              Per-pipeline results with aggregation methods.</span>
+<span class="sd">            - ``.summary_table()`` : Dict[str, Dict[str, float]]</span>
+<span class="sd">              Per-pipeline aggregated metrics (mean across seeds).</span>
+<span class="sd">              Fitness is always normalized to &quot;lower is better&quot;.</span>
+<span class="sd">            - ``.plot_convergence(seed_index=0, ax=None)`` -&gt; matplotlib axis</span>
+<span class="sd">              Overlay convergence curves for all pipelines.</span>
+<span class="sd">            - ``.convergence_data(seed_index=0)`` : Dict[str, List[Dict]]</span>
+<span class="sd">              Raw per-pipeline generation histories for custom plotting.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If pipelines dict is empty or contains invalid operator specs.</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If required shared config keys (e.g., fitness, pop_size) are missing</span>
+<span class="sd">            from both shared and pipeline-specific settings.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The method automatically handles backend normalization: Evosax pipelines</span>
+<span class="sd">        have their fitness values negated before display so that all pipelines</span>
+<span class="sd">        use a consistent &quot;lower is better&quot; convention. This behavior is</span>
+<span class="sd">        transparent to the user (controlled by ComparisonResult.negate_map).</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Three-way comparison with shared fitness::</span>
+
+<span class="sd">            composer = Composer.create_default()</span>
+<span class="sd">            comparison = composer.compare(</span>
+<span class="sd">                pipelines={</span>
+<span class="sd">                    &quot;Blend+Gaussian&quot;: dict(</span>
+<span class="sd">                        crossover=&quot;blend:alpha=0.5&quot;,</span>
+<span class="sd">                        mutation=&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;,</span>
+<span class="sd">                    ),</span>
+<span class="sd">                    &quot;SBX+Polynomial&quot;: dict(</span>
+<span class="sd">                        crossover=&quot;simulated_binary:eta=20&quot;,</span>
+<span class="sd">                        mutation=&quot;polynomial:mutation_rate=0.1,eta=20&quot;,</span>
+<span class="sd">                    ),</span>
+<span class="sd">                    &quot;Evosax OpenES&quot;: dict(</span>
+<span class="sd">                        backend=&quot;evosax&quot;,</span>
+<span class="sd">                        evosax_strategy=&quot;OpenES&quot;,</span>
+<span class="sd">                    ),</span>
+<span class="sd">                },</span>
+<span class="sd">                fitness=&quot;sphere:dim=10&quot;,           # shared across all</span>
+<span class="sd">                pop_size=100,                     # shared</span>
+<span class="sd">                generations=200,                  # shared</span>
+<span class="sd">                seeds=(42, 43, 44, 45),          # shared</span>
+<span class="sd">            )</span>
+<span class="sd">            print(comparison.summary_table())</span>
+<span class="sd">            comparison.plot_convergence(seed_index=0)</span>
+
+<span class="sd">        Fair initialization (shared first population)::</span>
+
+<span class="sd">            comparison = composer.compare(</span>
+<span class="sd">                pipelines={...},</span>
+<span class="sd">                shared_initial_population=True,   # use same init pop</span>
+<span class="sd">                pop_seed=999,                     # populate seed</span>
+<span class="sd">                fitness=&quot;rastrigin:dim=10&quot;,</span>
+<span class="sd">                pop_size=50,</span>
+<span class="sd">            )</span>
+<span class="sd">            # All pipelines start from identical population</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">trace_base</span> <span class="o">=</span> <span class="n">shared_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;trace_dir&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">results</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ExperimentResult</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">negate_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">last_init_pop</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">iterable</span> <span class="o">=</span> <span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">tqdm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">iterable</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pipelines</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;pipelines&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pipeline_kwargs</span> <span class="ow">in</span> <span class="n">iterable</span><span class="p">:</span>
+            <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">shared_kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">pipeline_kwargs</span><span class="p">}</span>
+            <span class="n">merged</span><span class="p">[</span><span class="s2">&quot;seeds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seeds</span>
+            <span class="n">merged</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;experiment_name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">trace_base</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">merged</span><span class="p">[</span><span class="s2">&quot;trace_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">trace_base</span><span class="p">)</span> <span class="o">/</span> <span class="n">name</span>
+
+            <span class="k">if</span> <span class="n">shared_initial_population</span> <span class="ow">and</span> <span class="s2">&quot;initial_population&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">merged</span><span class="p">:</span>
+                <span class="n">pipeline_init_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_initial_population</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
+                <span class="n">p_genome_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_genome_length</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">p_genome_length</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;Shared initial population dimension mismatch: &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;expected </span><span class="si">{</span><span class="n">p_genome_length</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">merged</span><span class="p">[</span><span class="s2">&quot;initial_population&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
+                <span class="n">last_init_pop</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
+
+            <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span><span class="o">**</span><span class="n">merged</span><span class="p">)</span>
+            <span class="n">maximize_flag</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">merged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+
+            <span class="c1"># Normalize displayed metrics/history to the canonical</span>
+            <span class="c1"># &quot;lower-is-better&quot; convention used by ComparisonResult.</span>
+            <span class="c1">#</span>
+            <span class="c1"># Current adapters for both MalthusJAX and Evosax return metrics</span>
+            <span class="c1"># in the objective&#39;s natural direction:</span>
+            <span class="c1">#   - maximize=False -&gt; lower is better (no sign flip needed)</span>
+            <span class="c1">#   - maximize=True  -&gt; higher is better (flip sign for display)</span>
+            <span class="c1">#</span>
+            <span class="c1"># Keep normalization objective-driven (not backend-driven) to</span>
+            <span class="c1"># avoid regressions when backend internals change.</span>
+            <span class="n">negate_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">maximize_flag</span>
+
+        <span class="k">return</span> <span class="n">ComparisonResult</span><span class="p">(</span>
+            <span class="n">pipelines</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
+            <span class="n">shared_config</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">shared_kwargs</span><span class="p">),</span>
+            <span class="n">initial_population</span><span class="o">=</span><span class="n">last_init_pop</span><span class="p">,</span>
+            <span class="n">negate_map</span><span class="o">=</span><span class="n">negate_map</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Composer.from_toml">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.from_toml">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_toml</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+        <span class="n">pipelines</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">shared_initial_population</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">pop_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">123</span><span class="p">,</span>
+        <span class="n">trace_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComparisonResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load and execute a declarative TOML experiment specification.</span>
+
+<span class="sd">        This classmethod provides a reproducible, version-controllable way to</span>
+<span class="sd">        define and run experiments. TOML files specify shared configuration,</span>
+<span class="sd">        pipeline-specific overrides, and seeds in a human-readable format.</span>
+<span class="sd">        The method parses the file, runs all pipelines with fair comparison</span>
+<span class="sd">        settings, and returns a :class:`ComparisonResult` with visualization</span>
+<span class="sd">        and summary utilities.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str or pathlib.Path</span>
+<span class="sd">            Path to a TOML experiment configuration file. The file must contain</span>
+<span class="sd">            at least ``[experiment.shared]`` section with default settings and</span>
+<span class="sd">            one or more ``[pipelines.NAME]`` sections defining algorithm variants.</span>
+<span class="sd">            See Notes for full TOML schema.</span>
+
+<span class="sd">        pipelines : List[str], optional</span>
+<span class="sd">            If provided, only execute pipelines with these names. If ``None``,</span>
+<span class="sd">            all pipelines defined in the TOML file are executed.</span>
+<span class="sd">            Default: ``None``.</span>
+
+<span class="sd">        shared_initial_population : bool, optional</span>
+<span class="sd">            If ``True``, generate a single random population and inject it into</span>
+<span class="sd">            each pipeline&#39;s first run for fair initialization. Default: ``True``.</span>
+
+<span class="sd">        pop_seed : int, optional</span>
+<span class="sd">            Random seed for generating the shared initial population.</span>
+<span class="sd">            Default: 123.</span>
+
+<span class="sd">        trace_dir : str or pathlib.Path, optional</span>
+<span class="sd">            Directory for Perfetto JAX profiler traces. If provided, traces are</span>
+<span class="sd">            written to ``trace_dir/&lt;pipeline_name&gt;/`` for the first seed of each</span>
+<span class="sd">            run. Default: ``None`` (no traces).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComparisonResult</span>
+<span class="sd">            Multi-pipeline result object. Contains:</span>
+<span class="sd">            - ``.summary_table()`` : aggregated metrics per pipeline</span>
+<span class="sd">            - ``.plot_convergence()`` : matplotlib visualization</span>
+<span class="sd">            - ``.convergence_data()`` : raw history data</span>
+<span class="sd">            - ``.pipelines`` : dict of per-pipeline :class:`ExperimentResult`</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        FileNotFoundError</span>
+<span class="sd">            If the specified TOML file does not exist.</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If TOML structure is invalid or required keys are missing.</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If a pipeline references undefined operators or configs.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        **TOML File Structure**:</span>
+
+<span class="sd">        The TOML file must follow this schema::</span>
+
+<span class="sd">            [experiment]</span>
+<span class="sd">            name = &quot;my_experiment&quot;           # optional</span>
+
+<span class="sd">            [experiment.shared]</span>
+<span class="sd">            fitness = &quot;sphere:dim=10&quot;</span>
+<span class="sd">            selection = &quot;tournament:num_selections=25,tournament_size=3&quot;</span>
+<span class="sd">            pop_size = 50</span>
+<span class="sd">            generations = 100</span>
+<span class="sd">            seeds = [42, 43, 44]             # list of seeds</span>
+<span class="sd">            bounds = [-5.0, 5.0]             # optional</span>
+<span class="sd">            maximize = false                 # optional</span>
+
+<span class="sd">            [pipelines.blend_gaussian]</span>
+<span class="sd">            crossover = &quot;blend:alpha=0.5&quot;</span>
+<span class="sd">            mutation = &quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;</span>
+
+<span class="sd">            [pipelines.sbx_polynomial]</span>
+<span class="sd">            crossover = &quot;simulated_binary:eta=20&quot;</span>
+<span class="sd">            mutation = &quot;polynomial:mutation_rate=0.1,eta=20&quot;</span>
+
+<span class="sd">            [pipelines.evosax_cmaes]</span>
+<span class="sd">            backend = &quot;evosax&quot;</span>
+<span class="sd">            evosax_strategy = &quot;CMA_ES&quot;</span>
+
+<span class="sd">        **Operator Spec Format**:</span>
+
+<span class="sd">        All operator specs (fitness, selection, crossover, mutation) use the</span>
+<span class="sd">        format: ``&quot;operator_name:param1=val1,param2=val2&quot;``.</span>
+
+<span class="sd">        Common parameters:</span>
+<span class="sd">        - Fitness dim/num_dims/fn: Problem dimension or function ID</span>
+<span class="sd">        - Selection num_selections: Number of individuals to select</span>
+<span class="sd">        - Mutation/crossover rates: Probability values (0.0-1.0)</span>
+
+<span class="sd">        **Inheritance and Override**:</span>
+
+<span class="sd">        Each pipeline inherits all keys from ``[experiment.shared]`` and can</span>
+<span class="sd">        override them. Pipeline-specific values take precedence.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Simple TOML-based experiment::</span>
+
+<span class="sd">            # experiment.toml content:</span>
+<span class="sd">            # [experiment.shared]</span>
+<span class="sd">            # fitness = &quot;sphere:dim=10&quot;</span>
+<span class="sd">            # pop_size = 100</span>
+<span class="sd">            # generations = 200</span>
+<span class="sd">            # seeds = [42, 43, 44]</span>
+<span class="sd">            # [pipelines.ga_blend]</span>
+<span class="sd">            # crossover = &quot;blend:alpha=0.5&quot;</span>
+<span class="sd">            # [pipelines.ga_sbx]</span>
+<span class="sd">            # crossover = &quot;simulated_binary:eta=20&quot;</span>
+
+<span class="sd">            result = Composer.from_toml(&quot;experiment.toml&quot;)</span>
+<span class="sd">            print(result.summary_table())</span>
+<span class="sd">            result.plot_convergence()</span>
+
+<span class="sd">        Execute selected pipelines::</span>
+
+<span class="sd">            result = Composer.from_toml(</span>
+<span class="sd">                &quot;experiment.toml&quot;,</span>
+<span class="sd">                pipelines=[&quot;ga_blend&quot;, &quot;ga_sbx&quot;],  # skip others</span>
+<span class="sd">                trace_dir=&quot;results/traces&quot;,</span>
+<span class="sd">            )</span>
+
+<span class="sd">        Reproducible benchmark (same TOML used in paper)::</span>
+
+<span class="sd">            # experiment.toml is versioned in git</span>
+<span class="sd">            result = Composer.from_toml(&quot;experiment.toml&quot;)</span>
+<span class="sd">            result.summary_table()  # Reproducible: same config -&gt; same results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">config_res</span> <span class="o">=</span> <span class="n">load_experiment_config</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">pipelines</span><span class="o">=</span><span class="n">pipelines</span><span class="p">)</span>
+        <span class="n">experiment_meta</span> <span class="o">=</span> <span class="n">config_res</span><span class="o">.</span><span class="n">meta</span>
+        <span class="n">resolved</span> <span class="o">=</span> <span class="n">config_res</span><span class="o">.</span><span class="n">pipelines</span>
+        <span class="n">data_registry</span> <span class="o">=</span> <span class="n">config_res</span><span class="o">.</span><span class="n">data_registry</span>
+        <span class="n">shared</span> <span class="o">=</span> <span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shared&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;output_dir&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">output_dir</span><span class="p">:</span>
+            <span class="n">shared</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;output_dir&quot;</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
+
+        <span class="n">seeds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_normalize_seeds</span><span class="p">(</span><span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;seeds&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">)))</span>
+
+        <span class="n">pipeline_overrides</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">merged_cfg</span> <span class="ow">in</span> <span class="n">resolved</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">overrides</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">merged_cfg</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shared</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">merged_cfg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">shared</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+            <span class="p">}</span>
+            <span class="n">pipeline_overrides</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">overrides</span>
+
+        <span class="n">composer</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
+            <span class="n">pipelines</span><span class="o">=</span><span class="n">pipeline_overrides</span><span class="p">,</span>
+            <span class="n">seeds</span><span class="o">=</span><span class="n">seeds</span><span class="p">,</span>
+            <span class="n">shared_initial_population</span><span class="o">=</span><span class="n">shared_initial_population</span><span class="p">,</span>
+            <span class="n">pop_seed</span><span class="o">=</span><span class="n">pop_seed</span><span class="p">,</span>
+            <span class="n">trace_dir</span><span class="o">=</span><span class="n">trace_dir</span><span class="p">,</span>
+            <span class="n">data_config</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">shared</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_has_real_operators</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">genome</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">fitness</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">selection</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">crossover</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">mutation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if any real operator specs are provided.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">([</span><span class="n">genome</span><span class="p">,</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">crossover</span><span class="p">,</span> <span class="n">mutation</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_data_registry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a configuration of data sources into a resolved data registry.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.benchmarking.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataRegistry</span>
+
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">DataRegistry</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">data_id</span><span class="p">,</span> <span class="n">data_spec</span> <span class="ow">in</span> <span class="n">data_config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">reg</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">data_spec</span><span class="p">)</span>
+
+        <span class="n">resolved</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">data_id</span> <span class="ow">in</span> <span class="n">data_config</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">resolved</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">data_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">resolved</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_real_engine</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">strategy</span><span class="p">:</span> <span class="n">BaseStrategy</span><span class="p">,</span>
+        <span class="n">fitness</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">engine_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ga&quot;</span><span class="p">,</span>
+        <span class="n">data_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build engine from operator specs and config via EngineRegistry.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.schedules</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackBest</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneticStrategy</span>
+
+        <span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
+
+        <span class="n">data_registry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">data_config</span><span class="p">:</span>
+            <span class="n">data_registry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_data_registry</span><span class="p">(</span><span class="n">data_config</span><span class="p">)</span>
+
+        <span class="n">seed_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+        <span class="n">maximize_flag</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># We append seed to fitness strings if missing so BBOB etc uses the right seed</span>
+        <span class="k">if</span> <span class="n">fitness</span> <span class="ow">and</span> <span class="s2">&quot;seed=&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">:</span>
+                <span class="n">fitness</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fitness</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness</span><span class="si">}</span><span class="s2">:seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">resolved_evaluator</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">fitness</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;sphere:dim=10,maximize=</span><span class="si">{</span><span class="n">maximize_flag</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
+        <span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">GeneticStrategy</span><span class="p">):</span>
+            <span class="n">resolved_selection</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">strategy</span><span class="o">.</span><span class="n">selection</span>
+                <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;tournament:num_selections=</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pop_size&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s2">,tournament_size=3&quot;</span><span class="p">,</span>
+                <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
+            <span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">selection</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">strategy</span><span class="o">.</span><span class="n">selection</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">strategy</span><span class="o">.</span><span class="n">selection</span>
+            
+            <span class="n">resolved_crossover</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">strategy</span><span class="o">.</span><span class="n">crossover</span> <span class="ow">or</span> <span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span> <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span>
+            <span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">crossover</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">strategy</span><span class="o">.</span><span class="n">crossover</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">strategy</span><span class="o">.</span><span class="n">crossover</span>
+            
+            <span class="n">resolved_mutation</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">strategy</span><span class="o">.</span><span class="n">mutation</span> <span class="ow">or</span> <span class="s2">&quot;gaussian:mutation_rate=0.1&quot;</span><span class="p">,</span> <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span>
+            <span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">mutation</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">strategy</span><span class="o">.</span><span class="n">mutation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">strategy</span><span class="o">.</span><span class="n">mutation</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">resolved_selection</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">resolved_crossover</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">resolved_mutation</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Ensure we use LIGHT tracking for monotonic convergence curves</span>
+        <span class="k">if</span> <span class="s2">&quot;track_best&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+            <span class="n">config</span><span class="p">[</span><span class="s2">&quot;track_best&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span>
+
+        <span class="n">engine_registry</span> <span class="o">=</span> <span class="n">EngineRegistry</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">engine_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">engine_type</span><span class="p">,</span>
+            <span class="n">evaluator</span><span class="o">=</span><span class="n">resolved_evaluator</span><span class="p">,</span>
+            <span class="n">selection</span><span class="o">=</span><span class="n">resolved_selection</span><span class="p">,</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="n">resolved_crossover</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="n">resolved_mutation</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">config</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_evosax_engine</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">strategy_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">fitness_spec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_dims</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">bounds</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">prng_impl</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build EvosaxEngineAdapter from strategy name and config.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
+
+            <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
+            <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">parsed_name</span> <span class="o">==</span> <span class="s2">&quot;bbob&quot;</span><span class="p">:</span>
+                <span class="n">fn_param</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn_name&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fn_param</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="kn">import</span><span class="w"> </span><span class="nn">evosax.problems.bbob.meta_bbob</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mb</span>
+
+                    <span class="n">bbob_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mb</span><span class="o">.</span><span class="n">bbob_fns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">fn_param</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">fn_param</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbob_keys</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;BBOB function index </span><span class="si">{</span><span class="n">fn_param</span><span class="si">}</span><span class="s2"> is out of range (1-</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bbob_keys</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+                        <span class="p">)</span>
+                    <span class="n">fn</span> <span class="o">=</span> <span class="n">bbob_keys</span><span class="p">[</span><span class="n">fn_param</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">fn_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;BBOB fitness specification requires either fn_name or fn index&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">fn</span> <span class="o">=</span> <span class="n">fn_param</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fn</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn_name&quot;</span><span class="p">,</span> <span class="n">parsed_name</span><span class="p">)</span>
+
+            <span class="n">dims</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dim&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_dims&quot;</span><span class="p">,</span> <span class="n">num_dims</span><span class="p">))</span>
+            <span class="n">seed</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span>
+            <span class="n">maxim</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="n">maximize</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="s2">&quot;sphere&quot;</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="n">num_dims</span>
+            <span class="n">seed</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+            <span class="n">maxim</span> <span class="o">=</span> <span class="n">maximize</span>
+
+        <span class="n">evalr</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">BBOBConfig</span><span class="p">(</span><span class="n">fn_name</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">num_dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># If no initial_population provided and evaluator has sample() method,</span>
+        <span class="c1"># use it for consistent initialization across backends</span>
+        <span class="n">init_pop</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;initial_population&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">init_pop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evalr</span><span class="p">,</span> <span class="s2">&quot;evosax_problem&quot;</span><span class="p">):</span>
+            <span class="c1"># Use same seed as BBOB problem for consistent initialization</span>
+            <span class="n">pop_key</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+            <span class="n">sample_keys</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">pop_key</span><span class="p">,</span> <span class="n">pop_size</span><span class="p">)</span>
+            <span class="n">init_pop</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">evalr</span><span class="o">.</span><span class="n">evosax_problem</span><span class="o">.</span><span class="n">sample</span><span class="p">)(</span><span class="n">sample_keys</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">build_evosax_engine</span><span class="p">(</span>
+            <span class="n">strategy_name</span><span class="o">=</span><span class="n">strategy_name</span><span class="p">,</span>
+            <span class="n">evaluator</span><span class="o">=</span><span class="n">evalr</span><span class="p">,</span>
+            <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
+            <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+            <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">,</span>
+            <span class="n">strategy_params</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;strategy_params&quot;</span><span class="p">),</span>
+            <span class="n">initial_population</span><span class="o">=</span><span class="n">init_pop</span><span class="p">,</span>
+            <span class="n">prng_impl</span><span class="o">=</span><span class="n">prng_impl</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_stub_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StubEngine</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build StubEngine with legacy behavior for backward compatibility.&quot;&quot;&quot;</span>
+        <span class="n">base_fitness</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;base_fitness&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">improvement_rate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;improvement_rate&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">StubEngine</span><span class="p">(</span>
+            <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
+            <span class="n">base_fitness</span><span class="o">=</span><span class="n">base_fitness</span><span class="p">,</span>
+            <span class="n">improvement_rate</span><span class="o">=</span><span class="n">improvement_rate</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Composer.create_default">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.create_default">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_default</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Composer&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a :class:`Composer` instance with default configuration.</span>
+
+<span class="sd">        This is a convenience factory method that initializes a :class:`Composer`</span>
+<span class="sd">        with empty registry and minimal default config. Equivalent to calling</span>
+<span class="sd">        ``Composer(config={&quot;version&quot;: &quot;0.1&quot;})``. Most users should call this</span>
+<span class="sd">        before invoking :meth:`quick_run`, :meth:`compare`, or :meth:`from_toml`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Composer</span>
+<span class="sd">            A ready-to-use :class:`Composer` instance with defaults applied.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Standard initialization::</span>
+
+<span class="sd">            composer = Composer.create_default()</span>
+<span class="sd">            result = composer.quick_run(</span>
+<span class="sd">                fitness=&quot;sphere:dim=10&quot;,</span>
+<span class="sd">                pop_size=50,</span>
+<span class="sd">                generations=100,</span>
+<span class="sd">            )</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.1&quot;</span><span class="p">})</span></div>
+</div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Leonardo Di Caterina
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    </body>
+</html>

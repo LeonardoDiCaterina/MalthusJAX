@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.engine package" href="malthusjax.engine.html"><link rel="prev" title="malthusjax.core.base module" href="malthusjax.core.base.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.core.random module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,118 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-core-random-module">
-<h1>malthusjax.core.random module<a class="headerlink" href="#malthusjax-core-random-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.core.random">
+<span id="malthusjax-core-random-module"></span><h1>malthusjax.core.random module<a class="headerlink" href="#module-malthusjax.core.random" title="Link to this heading">¶</a></h1>
+<p>PRNG key factory and helpers for MalthusJAX.</p>
+<p>Centralizes creation of typed JAX PRNG keys and helper utilities for
+legacy/compat detection and warnings.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.random.PRNGImpl">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.random.</span></span><span class="sig-name descname"><span class="pre">PRNGImpl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/random.html#PRNGImpl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.random.PRNGImpl" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<p>Available JAX PRNG implementations.</p>
+<p>Mirrors the pattern used by other enums in the codebase.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.random.PRNGImpl.THREEFRY">
+<span class="sig-name descname"><span class="pre">THREEFRY</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'threefry2x32'</span></span><a class="headerlink" href="#malthusjax.core.random.PRNGImpl.THREEFRY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.random.PRNGImpl.PHILOX">
+<span class="sig-name descname"><span class="pre">PHILOX</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'philox4x32_10'</span></span><a class="headerlink" href="#malthusjax.core.random.PRNGImpl.PHILOX" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.random.PRNGImpl.RBG">
+<span class="sig-name descname"><span class="pre">RBG</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'rbg'</span></span><a class="headerlink" href="#malthusjax.core.random.PRNGImpl.RBG" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.random.PRNGImpl.UNSAFE_RBG">
+<span class="sig-name descname"><span class="pre">UNSAFE_RBG</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'unsafe_rbg'</span></span><a class="headerlink" href="#malthusjax.core.random.PRNGImpl.UNSAFE_RBG" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.core.random.resolve_prng_impl">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.core.random.</span></span><span class="sig-name descname"><span class="pre">resolve_prng_impl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/random.html#resolve_prng_impl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.random.resolve_prng_impl" title="Link to this definition">¶</a></dt>
+<dd><p>Resolve a user-facing PRNG name to a <a class="reference internal" href="#malthusjax.core.random.PRNGImpl" title="malthusjax.core.random.PRNGImpl"><code class="xref py py-class docutils literal notranslate"><span class="pre">PRNGImpl</span></code></a> enum value.</p>
+<p>Accepts short names (<code class="docutils literal notranslate"><span class="pre">&quot;threefry&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;philox&quot;</span></code>), full JAX backend
+strings (<code class="docutils literal notranslate"><span class="pre">&quot;threefry2x32&quot;</span></code>), <code class="docutils literal notranslate"><span class="pre">PRNGImpl</span></code> members, or <code class="docutils literal notranslate"><span class="pre">None</span></code>
+(falls back to <code class="xref py py-data docutils literal notranslate"><span class="pre">DEFAULT_IMPL</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <em>name</em> is not recognised.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference internal" href="#malthusjax.core.random.PRNGImpl" title="malthusjax.core.random.PRNGImpl"><em>PRNGImpl</em></a><em> | </em><em>None</em>)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#malthusjax.core.random.PRNGImpl" title="malthusjax.core.random.PRNGImpl"><em>PRNGImpl</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.core.random.create_key">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.core.random.</span></span><span class="sig-name descname"><span class="pre">create_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/random.html#create_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.random.create_key" title="Link to this definition">¶</a></dt>
+<dd><p>Create a PRNG key using the requested implementation.</p>
+<p>Falls back to <code class="docutils literal notranslate"><span class="pre">jax.random.PRNGKey</span></code> if the new <code class="docutils literal notranslate"><span class="pre">jax.random.key</span></code> API
+is not available in the installed JAX version.</p>
+<p>The returned key encodes the chosen backend and can be split or folded
+to propagate the implementation information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>impl</strong> (<a class="reference internal" href="#malthusjax.core.random.PRNGImpl" title="malthusjax.core.random.PRNGImpl"><em>PRNGImpl</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.core.random.is_new_style_key">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.core.random.</span></span><span class="sig-name descname"><span class="pre">is_new_style_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/random.html#is_new_style_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.random.is_new_style_key" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if <cite>key</cite> looks like a new-style typed key, False for legacy PRNGKey.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>Array</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.core.random.validate_key">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.core.random.</span></span><span class="sig-name descname"><span class="pre">validate_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/random.html#validate_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.random.validate_key" title="Link to this definition">¶</a></dt>
+<dd><p>Validate the provided key and warn on legacy-style keys.</p>
+<p>This should be called at engine boundaries (e.g., <cite>init_state</cite>) to guide users
+toward using <cite>create_key()</cite> or <cite>jax.random.key()</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>)</p></li>
+<li><p><strong>context</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +468,37 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.core.random module</a><ul>
+<li><a class="reference internal" href="#malthusjax.core.random.PRNGImpl"><code class="docutils literal notranslate"><span class="pre">PRNGImpl</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.random.PRNGImpl.THREEFRY"><code class="docutils literal notranslate"><span class="pre">PRNGImpl.THREEFRY</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.random.PRNGImpl.PHILOX"><code class="docutils literal notranslate"><span class="pre">PRNGImpl.PHILOX</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.random.PRNGImpl.RBG"><code class="docutils literal notranslate"><span class="pre">PRNGImpl.RBG</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.random.PRNGImpl.UNSAFE_RBG"><code class="docutils literal notranslate"><span class="pre">PRNGImpl.UNSAFE_RBG</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.random.resolve_prng_impl"><code class="docutils literal notranslate"><span class="pre">resolve_prng_impl()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.random.create_key"><code class="docutils literal notranslate"><span class="pre">create_key()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.random.is_new_style_key"><code class="docutils literal notranslate"><span class="pre">is_new_style_key()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.random.validate_key"><code class="docutils literal notranslate"><span class="pre">validate_key()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

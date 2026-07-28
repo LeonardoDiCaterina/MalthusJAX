@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.composer.composer module" href="malthusjax.composer.composer.html"><link rel="prev" title="malthusjax.composer package" href="malthusjax.composer.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.composer.catalog module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,196 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-composer-catalog-module">
-<h1>malthusjax.composer.catalog module<a class="headerlink" href="#malthusjax-composer-catalog-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.composer.catalog">
+<span id="malthusjax-composer-catalog-module"></span><h1>malthusjax.composer.catalog module<a class="headerlink" href="#module-malthusjax.composer.catalog" title="Link to this heading">¶</a></h1>
+<p>Operator catalog — string-spec → operator instance resolution.</p>
+<p>The catalog is a thin wrapper around the global <code class="xref py py-mod docutils literal notranslate"><span class="pre">_registry</span></code>.  Operator
+sub-packages register themselves at import time (see each package’s
+<code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>).  <code class="docutils literal notranslate"><span class="pre">OperatorCatalog</span></code> triggers those imports on first
+construction and then delegates <code class="docutils literal notranslate"><span class="pre">get()</span></code> to the registry.</p>
+<section id="public-api-fully-backward-compatible">
+<h2>Public API (fully backward-compatible)<a class="headerlink" href="#public-api-fully-backward-compatible" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.get(&quot;tournament:num_selections=50,tournament_size=3&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.parse_spec(&quot;gaussian:mutation_rate=0.1&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.register(&quot;custom&quot;,</span> <span class="pre">factory)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.list_available()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catalog.get_help(&quot;tournament&quot;)</span></code></p></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tournament&quot;</span><span class="p">)</span>                       <span class="c1"># default params</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tournament:num_selections=50&quot;</span><span class="p">)</span>      <span class="c1"># override defaults</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gaussian:mutation_rate=0.1&quot;</span><span class="p">)</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">)</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">)</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bbob:fn_name=rastrigin,dim=5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.composer.catalog.OperatorCatalog">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.catalog.</span></span><span class="sig-name descname"><span class="pre">OperatorCatalog</span></span><a class="reference internal" href="../_modules/malthusjax/composer/catalog.html#OperatorCatalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.catalog.OperatorCatalog" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Catalog for creating operators from string specifications.</p>
+<p>Supports format: <code class="docutils literal notranslate"><span class="pre">&quot;operator_type:param1=value1,param2=value2&quot;</span></code></p>
+<dl class="simple">
+<dt>Available Selection Operators:</dt><dd><ul class="simple">
+<li><p>tournament: Tournament selection</p></li>
+<li><p>roulette: Roulette wheel selection</p></li>
+<li><p>elite_pool: Elite pool selection (deterministic)</p></li>
+</ul>
+</dd>
+<dt>Available Real-Valued Crossover Operators:</dt><dd><ul class="simple">
+<li><p>blend: Blend crossover (BLX)</p></li>
+<li><p>blend_injection: Blend crossover (injection variant)</p></li>
+<li><p>simulated_binary: Simulated Binary Crossover (SBX)</p></li>
+<li><p>simulated_binary_injection: SBX (injection variant)</p></li>
+<li><p>binomial: Binomial crossover</p></li>
+<li><p>binomial_injection: Binomial crossover (injection variant)</p></li>
+<li><p>uniform_real: Uniform crossover for real genomes</p></li>
+<li><p>uniform_real_injection: Uniform crossover (injection variant)</p></li>
+<li><p>evosax_uniform_crossover: Evosax uniform crossover wrapper</p></li>
+</ul>
+</dd>
+<dt>Available Binary Crossover Operators:</dt><dd><ul class="simple">
+<li><p>uniform_binary: Uniform crossover for binary genomes</p></li>
+<li><p>single_point: Single-point crossover</p></li>
+</ul>
+</dd>
+<dt>Available Real-Valued Mutation Operators:</dt><dd><ul class="simple">
+<li><p>gaussian: Gaussian (normal) mutation</p></li>
+<li><p>gaussian_injection: Gaussian mutation (injection variant)</p></li>
+<li><p>ball: Ball mutation</p></li>
+<li><p>ball_injection: Ball mutation (injection variant)</p></li>
+<li><p>polynomial: Polynomial mutation</p></li>
+<li><p>polynomial_injection: Polynomial mutation (injection variant)</p></li>
+<li><p>evosax_gaussian: Evosax Gaussian mutation wrapper</p></li>
+</ul>
+</dd>
+<dt>Available Binary Mutation Operators:</dt><dd><ul class="simple">
+<li><p>bitflip: Bit-flip mutation</p></li>
+<li><p>scramble: Scramble mutation</p></li>
+<li><p>swap: Swap mutation</p></li>
+</ul>
+</dd>
+<dt>Available Fitness Evaluators:</dt><dd><ul class="simple">
+<li><p>sphere: Sphere optimization (maximization)</p></li>
+<li><p>rastrigin: Rastrigin optimization (maximization)</p></li>
+<li><p>knapsack: Knapsack problem</p></li>
+<li><p>bbob: General BBOB function family</p></li>
+<li><p>sphere_minimize: Sphere minimization</p></li>
+<li><p>sphere_maximize: Sphere maximization</p></li>
+<li><p>griewank: Griewank function</p></li>
+<li><p>binary_sum: Binary sum (OneMax)</p></li>
+</ul>
+</dd>
+<dt>Available Evosax Strategies (use via Composer backend=”evosax”):</dt><dd><ul class="simple">
+<li><p>evosax_simplega: Simple Genetic Algorithm</p></li>
+<li><p>evosax_mr15: MR15 Genetic Algorithm</p></li>
+<li><p>evosax_de: Differential Evolution</p></li>
+</ul>
+</dd>
+</dl>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tournament&quot;</span><span class="p">)</span>  <span class="c1"># Default parameters</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tournament:num_selections=50,tournament_size=3&quot;</span><span class="p">)</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gaussian:mutation_rate=0.1&quot;</span><span class="p">)</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">)</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.catalog.OperatorCatalog.parse_spec">
+<span class="sig-name descname"><span class="pre">parse_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/catalog.html#OperatorCatalog.parse_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.catalog.OperatorCatalog.parse_spec" title="Link to this definition">¶</a></dt>
+<dd><p>Parse an operator specification such as
+<code class="docutils literal notranslate"><span class="pre">&quot;operator_type:param1=value1,param2=value2&quot;</span></code> and return a
+tuple <code class="docutils literal notranslate"><span class="pre">(operator_type,</span> <span class="pre">params_dict)</span></code>.  A <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> is raised if
+the string is malformed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.catalog.OperatorCatalog.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_registry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/catalog.html#OperatorCatalog.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.catalog.OperatorCatalog.get" title="Link to this definition">¶</a></dt>
+<dd><p>Resolve <em>spec</em> to a configured operator instance.  The
+spec string may include comma-separated parameter overrides.  A
+<code class="docutils literal notranslate"><span class="pre">KeyError</span></code> is raised for unknown operator types and a
+<code class="docutils literal notranslate"><span class="pre">ValueError</span></code> for invalid parameter combinations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>data_registry</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.catalog.OperatorCatalog.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operator_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/catalog.html#OperatorCatalog.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.catalog.OperatorCatalog.register" title="Link to this definition">¶</a></dt>
+<dd><p>Register a new operator type in the catalog.  Supply a string
+key and a factory callable which accepts <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code>.  Set <em>override</em>
+to <code class="docutils literal notranslate"><span class="pre">True</span></code> to replace an existing entry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operator_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>factory</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>override</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.catalog.OperatorCatalog.list_available">
+<span class="sig-name descname"><span class="pre">list_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/catalog.html#OperatorCatalog.list_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.catalog.OperatorCatalog.list_available" title="Link to this definition">¶</a></dt>
+<dd><p>Return sorted list of all registered operator keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.catalog.OperatorCatalog.get_help">
+<span class="sig-name descname"><span class="pre">get_help</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operator_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/catalog.html#OperatorCatalog.get_help"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.catalog.OperatorCatalog.get_help" title="Link to this definition">¶</a></dt>
+<dd><p>Get help string for operator type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>operator_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +546,35 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.composer.catalog module</a><ul>
+<li><a class="reference internal" href="#public-api-fully-backward-compatible">Public API (fully backward-compatible)</a></li>
+<li><a class="reference internal" href="#malthusjax.composer.catalog.OperatorCatalog"><code class="docutils literal notranslate"><span class="pre">OperatorCatalog</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.catalog.OperatorCatalog.parse_spec"><code class="docutils literal notranslate"><span class="pre">OperatorCatalog.parse_spec()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.catalog.OperatorCatalog.get"><code class="docutils literal notranslate"><span class="pre">OperatorCatalog.get()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.catalog.OperatorCatalog.register"><code class="docutils literal notranslate"><span class="pre">OperatorCatalog.register()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.catalog.OperatorCatalog.list_available"><code class="docutils literal notranslate"><span class="pre">OperatorCatalog.list_available()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.catalog.OperatorCatalog.get_help"><code class="docutils literal notranslate"><span class="pre">OperatorCatalog.get_help()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

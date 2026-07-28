@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.benchmarking.io module" href="malthusjax.benchmarking.io.html"><link rel="prev" title="malthusjax.benchmarking.analysis module" href="malthusjax.benchmarking.analysis.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.benchmarking.cli module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,126 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-benchmarking-cli-module">
-<h1>malthusjax.benchmarking.cli module<a class="headerlink" href="#malthusjax-benchmarking-cli-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.benchmarking.cli">
+<span id="malthusjax-benchmarking-cli-module"></span><h1>malthusjax.benchmarking.cli module<a class="headerlink" href="#module-malthusjax.benchmarking.cli" title="Link to this heading">¶</a></h1>
+<p>Unified CLI interface for MalthusJAX benchmarking and analysis.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.cli.handle_run">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.cli.</span></span><span class="sig-name descname"><span class="pre">handle_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/cli.html#handle_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.cli.handle_run" title="Link to this definition">¶</a></dt>
+<dd><p>Handle <cite>mjax run</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><em>Namespace</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.cli.handle_parity">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.cli.</span></span><span class="sig-name descname"><span class="pre">handle_parity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/cli.html#handle_parity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.cli.handle_parity" title="Link to this definition">¶</a></dt>
+<dd><p>Handle <cite>mjax parity</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><em>Namespace</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.cli.handle_analyze">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.cli.</span></span><span class="sig-name descname"><span class="pre">handle_analyze</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/cli.html#handle_analyze"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.cli.handle_analyze" title="Link to this definition">¶</a></dt>
+<dd><p>Handle <cite>mjax analyze</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><em>Namespace</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.cli.handle_plot">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.cli.</span></span><span class="sig-name descname"><span class="pre">handle_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/cli.html#handle_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.cli.handle_plot" title="Link to this definition">¶</a></dt>
+<dd><p>Handle <cite>mjax plot</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><em>Namespace</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.cli.handle_report">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.cli.</span></span><span class="sig-name descname"><span class="pre">handle_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/cli.html#handle_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.cli.handle_report" title="Link to this definition">¶</a></dt>
+<dd><p>Handle <cite>mjax report</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><em>Namespace</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.cli.handle_aggregate">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.cli.</span></span><span class="sig-name descname"><span class="pre">handle_aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/cli.html#handle_aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.cli.handle_aggregate" title="Link to this definition">¶</a></dt>
+<dd><p>Handle <cite>mjax aggregate</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><em>Namespace</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.cli.handle_catalog">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.cli.</span></span><span class="sig-name descname"><span class="pre">handle_catalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/cli.html#handle_catalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.cli.handle_catalog" title="Link to this definition">¶</a></dt>
+<dd><p>Handle <cite>mjax catalog</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><em>Namespace</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.benchmarking.cli.main">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.benchmarking.cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/benchmarking/cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.benchmarking.cli.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main CLI entry point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +476,34 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.benchmarking.cli module</a><ul>
+<li><a class="reference internal" href="#malthusjax.benchmarking.cli.handle_run"><code class="docutils literal notranslate"><span class="pre">handle_run()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.cli.handle_parity"><code class="docutils literal notranslate"><span class="pre">handle_parity()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.cli.handle_analyze"><code class="docutils literal notranslate"><span class="pre">handle_analyze()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.cli.handle_plot"><code class="docutils literal notranslate"><span class="pre">handle_plot()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.cli.handle_report"><code class="docutils literal notranslate"><span class="pre">handle_report()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.cli.handle_aggregate"><code class="docutils literal notranslate"><span class="pre">handle_aggregate()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.cli.handle_catalog"><code class="docutils literal notranslate"><span class="pre">handle_catalog()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.benchmarking.cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

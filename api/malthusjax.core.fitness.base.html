@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.core.fitness.bbob_evaluator module" href="malthusjax.core.fitness.bbob_evaluator.html"><link rel="prev" title="malthusjax.core.fitness package" href="malthusjax.core.fitness.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.core.fitness.base module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,166 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-core-fitness-base-module">
-<h1>malthusjax.core.fitness.base module<a class="headerlink" href="#malthusjax-core-fitness-base-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.core.fitness.base">
+<span id="malthusjax-core-fitness-base-module"></span><h1>malthusjax.core.fitness.base module<a class="headerlink" href="#module-malthusjax.core.fitness.base" title="Link to this heading">¶</a></h1>
+<p>Core fitness evaluation interfaces and configurations.</p>
+<p>Defines the abstract base classes that concrete evaluators inherit from.
+Includes helper types such as regression data tuples and the static
+configuration dataclass used across the evaluator hierarchy.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluatorConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.base.</span></span><span class="sig-name descname"><span class="pre">BaseEvaluatorConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluatorConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base configuration for fitness evaluation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize">
+<span class="sig-name descname"><span class="pre">maximize</span></span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize" title="Link to this definition">¶</a></dt>
+<dd><p>Optimization direction. If True, higher fitness is better;
+otherwise, lower is better (default). Follows evosax convention:
+lower-is-better (minimize) is the default. Controls jax.lax.select
+branching in single and batch evaluators.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">maximize</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluatorConfig.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.base.</span></span><span class="sig-name descname"><span class="pre">BaseEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">D</span></code>]</p>
+<p>JAX-native fitness evaluation interface with vmap composition.</p>
+<p>Defines single-genome evaluate(genome) -&gt; scalar, which vmaps into
+evaluate_population(population) -&gt; population for Struct-of-Arrays (SoA)
+batching. Config (C) and data (D) are static (pytree_node=False) to
+remain constant across vmap lifting; only genomes are batched.</p>
+<dl class="simple">
+<dt>Type Parameters:</dt><dd><p>G: Genome type (e.g., RealGenome, BinaryGenome).
+C: Config type; typically pytree_node=False (static across vmap).
+D: Data type (e.g., training data, problem parameters); static.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>C</em>)</p></li>
+<li><p><strong>data</strong> (<em>D</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">C</span></span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">D</span></span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluator.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.evaluate" title="Link to this definition">¶</a></dt>
+<dd><p>Compute fitness for a single genome.</p>
+<p>The provided genome (<cite>G</cite>) is an unbatched PyTree instance. Evaluators
+should extract necessary fields (e.g., <cite>.values</cite>) themselves according
+to the specific genome structure they expect.</p>
+<p>The return value is a scalar (or a small vector for multiobjective cases)
+suitable for JIT‑compiled pipelines. Implementations may use <code class="docutils literal notranslate"><span class="pre">self.config</span></code>
+and <code class="docutils literal notranslate"><span class="pre">self.data</span></code> during evaluation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>genome</strong> (<em>G</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.evaluate_population">
+<span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluator.evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.evaluate_population" title="Link to this definition">¶</a></dt>
+<dd><p>Vectorized population evaluation via <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.vmap.html#jax.vmap" title="(in JAX)"><code class="xref py py-func docutils literal notranslate"><span class="pre">jax.vmap()</span></code></a>.</p>
+<p>Each member of <em>population.genes</em> is passed through <code class="docutils literal notranslate"><span class="pre">evaluate</span></code>; the
+resulting fitness array replaces the old values in a new population
+object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.f_opt">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">f_opt</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.f_opt" title="Link to this definition">¶</a></dt>
+<dd><p>Reference optimal fitness value (e.g., global minimum).</p>
+<p>Returns None if the evaluator does not have a known reference optimum.
+Concrete evaluators (e.g., BBOBEvaluator) override this property.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.x_opt">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">x_opt</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.x_opt" title="Link to this definition">¶</a></dt>
+<dd><p>Reference optimal solution location.</p>
+<p>Returns None if the evaluator does not have a known reference optimum.
+Concrete evaluators (e.g., BBOBEvaluator) override this property.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.get_gap_to_optimum">
+<span class="sig-name descname"><span class="pre">get_gap_to_optimum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fitness_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluator.get_gap_to_optimum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.get_gap_to_optimum" title="Link to this definition">¶</a></dt>
+<dd><p>Compute gap between a fitness value and the known optimum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fitness_value</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The fitness value to compare.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The absolute gap to the optimum, or None if no optimum reference exists.
+A gap of 0 means the value is optimal.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +516,43 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.core.fitness.base module</a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.maximize</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.maximize</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig.replace"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.config"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.config</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.data"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.data</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.evaluate_population"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.evaluate_population()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.f_opt"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.f_opt</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.x_opt"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.x_opt</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.get_gap_to_optimum"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.get_gap_to_optimum()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

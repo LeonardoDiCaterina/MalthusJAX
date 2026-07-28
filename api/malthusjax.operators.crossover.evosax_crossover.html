@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators.crossover.real module" href="malthusjax.operators.crossover.real.html"><link rel="prev" title="malthusjax.operators.crossover.binary module" href="malthusjax.operators.crossover.binary.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.operators.crossover.evosax_crossover module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,82 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-operators-crossover-evosax-crossover-module">
-<h1>malthusjax.operators.crossover.evosax_crossover module<a class="headerlink" href="#malthusjax-operators-crossover-evosax-crossover-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.operators.crossover.evosax_crossover">
+<span id="malthusjax-operators-crossover-evosax-crossover-module"></span><h1>malthusjax.operators.crossover.evosax_crossover module<a class="headerlink" href="#module-malthusjax.operators.crossover.evosax_crossover" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.crossover.evosax_crossover.</span></span><span class="sig-name descname"><span class="pre">EvosaxUniformCrossoverWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">injection_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/crossover/evosax_crossover.html#EvosaxUniformCrossoverWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseCrossover</span></code></a>[<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenome" title="malthusjax.core.genome.real_genome.RealGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealGenomeConfig</span></code></a>]</p>
+<p>Evosax Compatibility Wrapper — Single-Key Mode.
+Consumes single key, splits internally in _cross_fused to generate per-pair masks.
+Alternative to standard pre-allocated key budgeting; enables direct evosax integration.
+Design trade-off: Dynamic key splitting vs. static shape stability.</p>
+<p>Use for: Benchmarking evosax compatibility; ablation studies; comparative evolution.
+Shape contract: Parent (d,) X Parent (d,) -&gt; Offspring (d,)
+Key budget: 1 key (split dynamically, not pre-allocated)
+With <code class="docutils literal notranslate"><span class="pre">injection_mode=True</span></code> (default), the engine passes a single key and
+this operator splits internally for maximum performance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>crossover_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>injection_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_offspring">
+<span class="sig-name descname"><span class="pre">num_offspring</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_offspring" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.crossover_rate">
+<span class="sig-name descname"><span class="pre">crossover_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.crossover_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.injection_mode">
+<span class="sig-name descname"><span class="pre">injection_mode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.injection_mode" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>Keys required per (pair, offspring) combo. Budgeted by ResourceMapper.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/crossover/evosax_crossover.html#EvosaxUniformCrossoverWrapper.num_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Return key budget.
+With <code class="docutils literal notranslate"><span class="pre">injection_mode=True</span></code>, always returns 1 (single key, split internally).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +432,35 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.operators.crossover.evosax_crossover module</a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_offspring"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.num_offspring</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.crossover_rate"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.crossover_rate</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.injection_mode"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.injection_mode</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_keys"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.replace"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.replace()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

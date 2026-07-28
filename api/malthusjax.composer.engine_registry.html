@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.composer.evosax_adapter module" href="malthusjax.composer.evosax_adapter.html"><link rel="prev" title="malthusjax.composer.engine_factory module" href="malthusjax.composer.engine_factory.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>malthusjax.composer.engine_registry module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -311,13 +311,95 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="malthusjax-composer-engine-registry-module">
-<h1>malthusjax.composer.engine_registry module<a class="headerlink" href="#malthusjax-composer-engine-registry-module" title="Link to this heading">¶</a></h1>
+          <section id="module-malthusjax.composer.engine_registry">
+<span id="malthusjax-composer-engine-registry-module"></span><h1>malthusjax.composer.engine_registry module<a class="headerlink" href="#module-malthusjax.composer.engine_registry" title="Link to this heading">¶</a></h1>
+<p>Global engine registry for the EngineRegistry catalog.</p>
+<p>Provides a lightweight <code class="docutils literal notranslate"><span class="pre">register</span></code> / <code class="docutils literal notranslate"><span class="pre">register_table</span></code> API that engine
+modules call at import time.  <code class="docutils literal notranslate"><span class="pre">EngineRegistry</span></code> (the catalog class in
+<em>engine_catalog.py</em>) reads the accumulated entries via <code class="docutils literal notranslate"><span class="pre">get_registry()</span></code>.</p>
+<p>A registry entry maps a <strong>catalog key</strong> (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;ga&quot;</span></code>) to a
+<strong>(factory, defaults)</strong> pair.  The <em>factory</em> is any callable that accepts
+operator instances + <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> and returns an engine adapter compatible
+with the <a class="reference internal" href="malthusjax.benchmarking.runner.html#malthusjax.benchmarking.runner.Engine" title="malthusjax.benchmarking.runner.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a> protocol.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_registry.register">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.composer.engine_registry.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_registry.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_registry.register" title="Link to this definition">¶</a></dt>
+<dd><p>Register a single engine under <em>name</em>.</p>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>name</dt><dd><p>Engine key users will reference (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;ga&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nsga2&quot;</span></code>).</p>
+</dd>
+<dt>factory</dt><dd><p>Callable that accepts <code class="docutils literal notranslate"><span class="pre">(evaluator,</span> <span class="pre">selection,</span> <span class="pre">crossover,</span> <span class="pre">mutation,</span>
+<span class="pre">**kwargs)</span></code> and returns an engine satisfying the
+<a class="reference internal" href="malthusjax.benchmarking.runner.html#malthusjax.benchmarking.runner.Engine" title="malthusjax.benchmarking.runner.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a> protocol.</p>
+</dd>
+<dt>defaults</dt><dd><p>Default kwargs applied when the user omits them in the spec string.</p>
+</dd>
+<dt>override</dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">False</span></code> (default) and <em>name</em> is already registered, raise
+<code class="docutils literal notranslate"><span class="pre">KeyError</span></code>.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>factory</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>defaults</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>override</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_registry.register_table">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.composer.engine_registry.</span></span><span class="sig-name descname"><span class="pre">register_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entries</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_registry.html#register_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_registry.register_table" title="Link to this definition">¶</a></dt>
+<dd><p>Bulk-register a list of <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">factory,</span> <span class="pre">defaults)</span></code> tuples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entries</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>override</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_registry.get_registry">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.composer.engine_registry.</span></span><span class="sig-name descname"><span class="pre">get_registry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_registry.html#get_registry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_registry.get_registry" title="Link to this definition">¶</a></dt>
+<dd><p>Return a <strong>copy</strong> of the current registry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a>[[…], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_registry.list_available">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.composer.engine_registry.</span></span><span class="sig-name descname"><span class="pre">list_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_registry.html#list_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.engine_registry.list_available" title="Link to this definition">¶</a></dt>
+<dd><p>Return sorted list of registered engine names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -363,8 +445,30 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">malthusjax.composer.engine_registry module</a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.engine_registry.register"><code class="docutils literal notranslate"><span class="pre">register()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_registry.register_table"><code class="docutils literal notranslate"><span class="pre">register_table()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_registry.get_registry"><code class="docutils literal notranslate"><span class="pre">get_registry()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_registry.list_available"><code class="docutils literal notranslate"><span class="pre">list_available()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
