@@ -7,6 +7,10 @@ from .base import (
     AbstractGenerationOutput,
     compute_unroll_num,
 )
+
+from malthusjax.engine.island_model.base import BaseIslandModel
+from malthusjax.engine.island_model.topologies import FullyConnectedIsland, RingTopologyIsland
+
 from .genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
 from .schedules import ScheduleType, TrackBest, compute_scheduled_strength
 
@@ -17,6 +21,9 @@ __all__ = [
     "AbstractEvolutionState",
     "AbstractEngineParams",
     "AbstractGenerationOutput",
+    "BaseIslandModel",
+    "FullyConnectedIsland",
+    "RingTopologyIsland",
     "GeneticEngine",
     "GeneticEngineParams",
     "GeneticGenerationOutput",
