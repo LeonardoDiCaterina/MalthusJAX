@@ -322,7 +322,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ClassVar</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
@@ -354,15 +355,25 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Immutable genome representation optimized for JAX PyTree lifting.</span>
 
 <span class="sd">    Single-genome methods compose with jax.vmap to implement population-level</span>
-<span class="sd">    operations via the Struct-of-Arrays (SoA) pattern: each leaf array gains</span>
-<span class="sd">    a leading batch dimension (N,). The `subscriptable` flag enables optional</span>
-<span class="sd">    Pythonic indexing/iteration, trading PyTree traceability for convenience.</span>
+<span class="sd">    operations via the Struct-of-Arrays (SoA) pattern: each leaf array in the</span>
+<span class="sd">    PyTree gains a leading batch dimension (N,).</span>
+
+<span class="sd">    Type System Note:</span>
+<span class="sd">    Tier-3 vectorization leverages `jax.tree_util` maps, treating `BaseGenome`</span>
+<span class="sd">    subclasses as opaque PyTrees. There is no explicit requirement for a single</span>
+<span class="sd">    primary data array. However, as a unified framework practice, implementations</span>
+<span class="sd">    lacking domain-specific structural requirements should conventionally store</span>
+<span class="sd">    their primary payload in a `.values` attribute.</span>
+
+<span class="sd">    The `subscriptable` flag enables optional Pythonic indexing/iteration over</span>
+<span class="sd">    the conventional `.values` attribute, trading pure PyTree traceability for</span>
+<span class="sd">    convenience in single-genome extraction.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return number of elements in the primary values array.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;len() is not supported for this genome (missing &#39;values&#39;).&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
@@ -387,11 +398,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Determine if this is a batched genome by checking array leaf dimensions</span>
         <span class="n">leaves</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_leaves</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">is_batched</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">leaves</span> <span class="ow">and</span>
-            <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span> <span class="ow">and</span>
-            <span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
-        <span class="p">)</span>
+        <span class="n">is_batched</span> <span class="o">=</span> <span class="n">leaves</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">is_batched</span><span class="p">:</span>
             <span class="c1"># Batched genome: use tree_map to extract and reconstruct individual/sub-genome</span>
@@ -407,7 +414,7 @@
             <span class="p">)</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">)[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Genome does not expose &#39;values&#39; for indexing.&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
@@ -424,11 +431,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Determine if this is a batched genome</span>
         <span class="n">leaves</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_leaves</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">is_batched</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">leaves</span> <span class="ow">and</span>
-            <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span> <span class="ow">and</span>
-            <span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
-        <span class="p">)</span>
+        <span class="n">is_batched</span> <span class="o">=</span> <span class="n">leaves</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">is_batched</span><span class="p">:</span>
             <span class="c1"># Batched genome: iterate and yield individual genomes</span>
@@ -444,7 +447,7 @@
                     <span class="s2">&quot;or iterate a batched genome to yield individual genomes.&quot;</span>
                 <span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="n">val</span>
 
 <div class="viewcode-block" id="BaseGenome.random_init">
@@ -526,7 +529,7 @@
 <span class="sd">        population size.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pop_size</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">random_init</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))(</span><span class="n">keys</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">random_init</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))(</span><span class="n">keys</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>  <span class="c1"># type: ignore[no-any-return]</span></div>
 </div>
 
 
@@ -539,8 +542,15 @@
 <span class="sd">    A unified container for a collection of candidate solutions.</span>
 
 <span class="sd">    This class implements the Struct-of-Arrays (SoA) pattern. The &#39;genes&#39;</span>
-<span class="sd">    attribute holds a Genome instance where every leaf array has an added</span>
-<span class="sd">    leading dimension of size N (population size).</span>
+<span class="sd">    attribute holds a single `BaseGenome` instance where every internal leaf</span>
+<span class="sd">    array has an added leading dimension of size N (population size).</span>
+
+<span class="sd">    Type System Note:</span>
+<span class="sd">    As of v2.0, the population parameter `P` has been removed. Population types</span>
+<span class="sd">    are strictly inferred as `BasePopulation[G]` using the genome type `G`.</span>
+<span class="sd">    Additionally, the explicit `GENOME_CLS` property has been removed. The</span>
+<span class="sd">    population is strictly agnostic of its internal structure and relies</span>
+<span class="sd">    purely on PyTree manipulations.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        genes: The batched genome data (SoA).</span>
@@ -551,29 +561,25 @@
     <span class="n">genes</span><span class="p">:</span> <span class="n">G</span>
     <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
     <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">GENOME_CLS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BasePopulation.from_array">
 <a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.core.base.BasePopulation.from_array">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_array</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_array</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">genome_cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a population by interpreting one axis of *arr* as individuals.</span>
 
 <span class="sd">        The method moves *axis* to the front and delegates to</span>
-<span class="sd">        ``GENOME_CLS.from_tensor`` for per‑individual wrapping. Output</span>
+<span class="sd">        ``genome_cls.from_tensor`` for per‑individual wrapping. Output</span>
 <span class="sd">        fitness values are initialized to ``-inf`` as a sentinel.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">arr_batched</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">pop_size</span> <span class="o">=</span> <span class="n">arr_batched</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">genes</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">GENOME_CLS</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">arr_batched</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">genes</span> <span class="o">=</span> <span class="n">genome_cls</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">arr_batched</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
         <span class="n">fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">pop_size</span><span class="p">,),</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span></div>
 
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Proxies to the genome&#39;s values (batched).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
 
 <div class="viewcode-block" id="BasePopulation.spawn_offspring">
 <a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.core.base.BasePopulation.spawn_offspring">[docs]</a>
@@ -593,7 +599,7 @@
             <span class="n">n_offspring</span> <span class="o">=</span> <span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="p">(</span><span class="n">n_offspring</span><span class="p">,))</span>
 
-        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">new_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">fitness</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="o">=</span><span class="n">new_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">fitness</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -615,7 +621,7 @@
 
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span>
             <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span>
-            <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">sliced_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fitness</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span>
+            <span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="o">=</span><span class="n">sliced_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fitness</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
@@ -640,7 +646,7 @@
             <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">autocorrect</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
 
         <span class="n">new_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_autocorrect_genome</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">new_genes</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="o">=</span><span class="n">new_genes</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BasePopulation.distance_matrix">
