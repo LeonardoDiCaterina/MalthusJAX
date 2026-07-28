@@ -16,32 +16,8 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
-    "numpydoc",
     "sphinx_copybutton",
     "myst_parser",
-]
-
-# Mock optional / heavy C-extension dependencies to avoid slow imports
-# and allow building docs without them installed.
-autodoc_mock_imports = [
-    "jax",
-    "jaxlib",
-    "flax",
-    "chex",
-    "optax",
-    "numpy",
-    "sklearn",
-    "scipy",
-    "pandas",
-    "evosax",
-    "qdax",
-    "tensorneat",
-    "gymnax",
-    "brax",
-    "jumanji",
-    "bbobax",
-    "kozax",
-    "pytest",
 ]
 
 # -- Napoleon settings -------------------------------------------------------
