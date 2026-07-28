@@ -58,9 +58,12 @@ def test_bbobax_maximize_flag_flips_sign():
 
     # They should be opposites
     assert jnp.isclose(fit_min, -fit_max)
-    # Since sphere at [1,1] is 2.0, fit_max should be 2.0, fit_min should be -2.0
-    # (Assuming the task hasn't shifted the optimum away from 0,0 significantly)
-    assert fit_max > fit_min
+    # Since sphere at [1,1] is 2.0:
+    # - fit_min (maximize=False) returns 2.0
+    # - fit_max (maximize=True) returns -2.0
+    # The GeneticEngine minimizes by default, so it will look for the lowest value.
+    # Therefore, we assert fit_min > fit_max (2.0 > -2.0)
+    assert fit_min > fit_max
 
 
 def test_bbobax_different_functions_produce_different_results():
