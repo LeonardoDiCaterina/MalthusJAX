@@ -44,7 +44,7 @@ class MOGenerationOutput(AbstractGenerationOutput):
 
 @struct.dataclass
 class MOEngine(AbstractEngine[G, P]):
-    """
+    r"""
     Native MalthusJAX Multi-Objective Engine (NSGA-II paradigm).
     
     Orchestrates the interplay between the BaseEmitter and the smart MOPopulation 

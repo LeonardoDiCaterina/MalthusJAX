@@ -101,7 +101,7 @@ class RealGenomeConfig:
     """
 
     shape: Tuple[int, ...] = _field(pytree_node=False, default_factory=lambda: ())
-    bounds: Tuple[float, float] = _field(pytree_node=False, default=(-jnp.inf, jnp.inf))
+    bounds: Tuple[float, float] = _field(pytree_node=False, default=(-float("inf"), float("inf")))
     dtype: type[jnp.floating[Any]] | jnp.dtype[jnp.floating[Any]] = _field(
         pytree_node=False, default=jnp.float32
     )

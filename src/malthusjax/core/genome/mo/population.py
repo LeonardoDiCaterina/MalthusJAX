@@ -19,7 +19,7 @@ from malthusjax.core.genome.mo.sorting import (
 
 @struct.dataclass
 class MOPopulation(BasePopulation):
-    """A self-sorting population container for Multi-Objective evolution.
+    r"""A self-sorting population container for Multi-Objective evolution.
     
     This class perfectly mirrors the $\mu+\lambda$ survival and NSGA-II 
     tournament selection paradigms inherently as pure functions.
@@ -48,7 +48,7 @@ class MOPopulation(BasePopulation):
         )
         
     def merge(self, offspring_pop: BasePopulation) -> 'MOPopulation':
-        """Concatenates this population with offspring and recalculates fronts.
+        r"""Concatenates this population with offspring and recalculates fronts.
         
         This forms the merged pool for $\mu+\lambda$ survival.
         """
