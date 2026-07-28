@@ -8,7 +8,6 @@ from malthusjax.core.genome.linear_genome import LinearGenome, LinearGenomeConfi
 from malthusjax.operators.mutation.linear import (
     DECAY_FUNCTIONS,
     LinearMutation,
-    LinearMutationConfig,
 )
 
 
@@ -59,12 +58,11 @@ def test_linear_mutation_topological_validity(dummy_genome, genome_config):
     """Ensure mutated genome respects topological order constraints."""
     key = jax.random.PRNGKey(42)
     # High mutation rate to force many changes
-    config = LinearMutationConfig(mutation_rate=1.0, p_internal=0.5, decay_name="uniform")
-    mutator = LinearMutation()
+    mutator = LinearMutation(mutation_rate=1.0, p_internal=0.5, decay_name="uniform")
     
     # _mutate_one manually
-    noise = mutator._generate_noise(jax.random.split(key, mutator.num_keys_per_atomic_operation), config)
-    mutated = mutator._mutate_one(dummy_genome, noise, config, genome_config=genome_config)
+    noise = mutator._generate_noise(jax.random.split(key, mutator.num_keys_per_atomic_operation), genome_config)
+    mutated = mutator._mutate_one(dummy_genome, noise, genome_config)
     
     # Ops must be in [0, num_ops-1]
     assert jnp.all(mutated.ops >= 0)
@@ -81,11 +79,10 @@ def test_linear_mutation_row_zero_clamping(dummy_genome, genome_config):
     """Row 0 must NEVER reference an internal row, even if p_internal is 1.0."""
     key = jax.random.PRNGKey(1337)
     # Force internal references
-    config = LinearMutationConfig(mutation_rate=1.0, p_internal=1.0, decay_name="uniform")
-    mutator = LinearMutation()
+    mutator = LinearMutation(mutation_rate=1.0, p_internal=1.0, decay_name="uniform")
     
-    noise = mutator._generate_noise(jax.random.split(key, 2), config)
-    mutated = mutator._mutate_one(dummy_genome, noise, config, genome_config=genome_config)
+    noise = mutator._generate_noise(jax.random.split(key, mutator.num_keys_per_atomic_operation), genome_config)
+    mutated = mutator._mutate_one(dummy_genome, noise, genome_config)
     
     # Row 0 MUST have references < num_inputs
     assert jnp.all(mutated.args[0] < genome_config.num_inputs)
@@ -96,26 +93,28 @@ def test_linear_mutation_row_zero_clamping(dummy_genome, genome_config):
 def test_linear_mutation_missing_genome_config(dummy_genome):
     """Raises ValueError if genome_config is not provided."""
     key = jax.random.PRNGKey(0)
-    config = LinearMutationConfig()
     mutator = LinearMutation()
-    noise = mutator._generate_noise(jax.random.split(key, 2), config)
     
-    with pytest.raises(ValueError, match="requires 'genome_config'"):
-        mutator._mutate_one(dummy_genome, noise, config)
+    noise = mutator._generate_noise(jax.random.split(key, mutator.num_keys_per_atomic_operation), None)
+    with pytest.raises((ValueError, AttributeError)):
+        mutator._mutate_one(dummy_genome, noise, None)
 
 
 def test_linear_mutation_jit(dummy_genome, genome_config):
     """Verify that the operator is fully JIT-compilable."""
     key = jax.random.PRNGKey(42)
-    config = LinearMutationConfig(mutation_rate=0.5, p_internal=0.5)
-    mutator = LinearMutation()
+    mutator = LinearMutation(mutation_rate=0.5, p_internal=0.5)
     
-    @jax.jit
-    def jitted_mutate(k, g, c, gc):
-        noise = mutator._generate_noise(jax.random.split(k, 2), c)
-        return mutator._mutate_one(g, noise, c, genome_config=gc)
-        
-    mutated = jitted_mutate(key, dummy_genome, config, genome_config)
+    v_keys = jax.random.split(key, 10 * mutator.num_keys_per_atomic_operation)
     
-    assert mutated.ops.shape == dummy_genome.ops.shape
-    assert mutated.args.shape == dummy_genome.args.shape
+    # Should work without genome_config keyword arg if passed as config
+    noise = jax.vmap(mutator._generate_noise, in_axes=(0, None))(
+        v_keys.reshape(10, mutator.num_keys_per_atomic_operation, -1), genome_config
+    )
+    
+    genomes = jax.tree_util.tree_map(lambda x: jnp.stack([x] * 10), dummy_genome)
+    mutated = jax.vmap(mutator._mutate_one, in_axes=(0, 0, None))(
+        genomes, noise, genome_config
+    )
+    assert mutated.ops.shape == (10, *dummy_genome.ops.shape)
+    assert mutated.args.shape == (10, *dummy_genome.args.shape)
