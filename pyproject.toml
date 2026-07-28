@@ -140,11 +140,11 @@ addopts = [
 ]
 markers = [
     "slow: marks tests as slow (deselect with -m 'not slow')",
-    "integration: marks tests as integration tests",
+    "integration: marks tests as full-pipeline integration tests",
     "benchmark: marks tests as performance benchmarks",
     "invariant: marks tests as property-based invariant tests",
-    "regression: marks tests as regression tests for specific issues",
-    "performance: marks tests as performance-sensitive",
+    "regression: marks tests as regression tests for specific bug fixes",
+    "gpu: marks tests requiring GPU hardware",
 ]
 
 [tool.coverage.run]

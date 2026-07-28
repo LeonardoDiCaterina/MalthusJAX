@@ -1,4 +1,4 @@
-.PHONY: help install-dev install-bench test test-fast test-failing test-fixes test-bench test-bench-snapshot \
+.PHONY: help install-dev install-bench test test-fast test-unit test-failing test-fixes test-bench test-bench-snapshot \
         test-bench-group-01 test-bench-group-02 test-bench-group-03 test-bench-group-04 \
         test-bench-group-05 test-bench-group-06 test-bench-group-07 test-bench-group-08 \
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
@@ -33,6 +33,7 @@ help:
 	@echo "  make install-bench  Install package + benchmark deps (evosax, pandas, scipy)"
 	@echo "  make test           Run full pytest suite with coverage (min 80%)"
 	@echo "  make test-fast      Run full suite, skip coverage (faster iteration)"
+	@echo "  make test-unit      Run fast unit tests only (skips slow tests)"
 	@echo "  make test-failing       Re-run only the subset known to fail on multi-GPU hosts"
 	@echo "  make test-fixes         Re-run the two most-recently fixed tests (cli + bfloat16)"
 	@echo "  make test-bench         Run functional tests in tests/benchmarks/ (no timing)"
@@ -111,17 +112,18 @@ test-fast:
 	@echo "--- Running tests without coverage ---"
 	python -m pytest --no-cov -q
 
+test-unit:
+	@echo "--- Running fast unit tests only ---"
+	python -m pytest -m "not slow" --no-cov -q
+
 test-failing:
 	@echo "--- Running previously failing test subset ---"
 	python -m pytest --no-cov -q \
 	  tests/composer/test_engine_factory.py::test_engine_adapter_run_once \
 	  tests/composer/test_optimization_direction.py::TestOptimizationDirection::test_optimization_directions_are_opposite \
-	  tests/engine/test_engine_edge_cases_fixed.py \
-	  tests/engine/test_engine_quality_fixed.py \
 	  tests/engine/test_genetic_engine.py \
 	  tests/engine/test_genetic_engine_asktel.py \
 	  tests/engine/test_genetic_engine_core.py \
-	  tests/engine/test_genetic_engine_fixes.py \
 	  tests/engine/test_genetic_engine_jit.py \
 	  tests/engine/test_genetic_engine_scheduling.py \
 	  tests/engine/test_genetic_engine_phases.py::TestSelectionPhase::test_elite_genes_are_best_fitness \
