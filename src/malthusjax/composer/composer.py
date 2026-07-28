@@ -162,7 +162,7 @@ class Composer:
         """Run a full evolutionary experiment with programmatic operator specs.
 
         This is the main entry point for interactive exploration and benchmarking.
-        It accepts operator specifications as string specs (for the ``"malthusjax""
+        It accepts operator specifications as string specs (for the ``"malthusjax"``
         backend) or strategy names (for the ``"evosax"`` backend), orchestrates
         multiple independent runs (one per seed), aggregates results, and returns
         an :class:`ExperimentResult`.
@@ -286,6 +286,7 @@ class Composer:
 
         backend : str, optional
             Execution backend: ``"malthusjax"`` (default) or ``"evosax"``.
+
             - ``"malthusjax"``: Uses MalthusJAX operators (requires
               fitness/selection/crossover/mutation specs)
             - ``"evosax"``: Uses evosax strategy (requires evosax_strategy; ignores
@@ -325,9 +326,9 @@ class Composer:
             Directory to write Perfetto-compatible JAX profiler traces.
             Default: ``None`` (disabled).
 
-            Returns
-            -------
-            ExperimentResult
+        Returns
+        -------
+        ExperimentResult
             Result object containing per-seed run records and aggregation methods:
 
             - ``.runs`` : List[:class:`RunResult`] — Individual runs, one per seed
@@ -335,45 +336,45 @@ class Composer:
             - ``.combined_history(seed_field="seed")`` — All generation records with seed labels
             - ``.canonical_summary`` — Best-of metrics from first seed
 
-            Raises
-            ------
-            ValueError
+        Raises
+        ------
+        ValueError
             If operator specs have invalid format or unknown operator names.
-            RuntimeError
+        RuntimeError
             If the underlying engine encounters a critical error during execution.
 
-            Examples
-            --------
-            MalthusJAX backend (default)::
+        Examples
+        --------
+        MalthusJAX backend (default)::
 
             composer = Composer.create_default()
             result = composer.quick_run(
-            fitness="sphere:dim=25",
-            selection="tournament:num_selections=25,tournament_size=3",
-            crossover="blend:alpha=0.5",
-            mutation="gaussian:mutation_rate=0.5,mutation_strength=0.1",
-            pop_size=100,
-            generations=200,
-            seeds=(42, 43, 44),
+                fitness="sphere:dim=25",
+                selection="tournament:num_selections=25,tournament_size=3",
+                crossover="blend:alpha=0.5",
+                mutation="gaussian:mutation_rate=0.5,mutation_strength=0.1",
+                pop_size=100,
+                generations=200,
+                seeds=(42, 43, 44),
             )
             print(result.aggregated_summary())
 
-            Evosax backend::
+        Evosax backend::
 
             result = composer.quick_run(
-            backend="evosax",
-            evosax_strategy="OpenES",
-            fitness="sphere:dim=10",
-            pop_size=64,
-            generations=500,
-            seeds=(1, 2, 3),
+                backend="evosax",
+                evosax_strategy="OpenES",
+                fitness="sphere:dim=10",
+                pop_size=64,
+                generations=500,
+                seeds=(1, 2, 3),
             )
 
-            No operator specs (uses StubEngine for testing the pipeline)::
+        No operator specs (uses StubEngine for testing the pipeline)::
 
             result = composer.quick_run(
-            generations=50,
-            seeds=(1, 2),
+                generations=50,
+                seeds=(1, 2),
             )
         """
         if output_dir is None:
@@ -688,7 +689,7 @@ class Composer:
             Default: 123.
             (Only used if ``shared_initial_population=True``.)
 
-        **shared_kwargs : Any
+        \*\*shared_kwargs : Any
             Default configuration applied to all pipelines (merged before
             pipeline-specific overrides). Use for common settings like
             ``fitness``, ``pop_size``, ``generations``, ``bounds``.

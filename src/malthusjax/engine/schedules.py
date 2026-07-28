@@ -5,7 +5,8 @@ Provides pure-JAX schedule computation that is safe inside jax.lax.scan.
 Replaces Python callable schedules (CV-3/JR-4) which caused
 ConcretizationTypeError or silently froze schedule values.
 
-Usage:
+Usage::
+
     from malthusjax.engine.schedules import ScheduleType, compute_scheduled_strength
 
     # Inside engine params:

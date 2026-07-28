@@ -85,7 +85,7 @@ class BinaryGenomeConfig:
     - shape=(8, 8) → length = 64 bits
     - shape=(16, 16, 4) → length = 1024 bits
 
-    The :property:`resolved_shape` method handles backward-compatibility
+    The :attr:`resolved_shape` method handles backward-compatibility
     by honoring the legacy `length` parameter if provided.
     """
 

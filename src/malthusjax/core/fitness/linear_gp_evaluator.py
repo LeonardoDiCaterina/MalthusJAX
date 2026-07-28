@@ -131,7 +131,7 @@ def op_mdist(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
 
 
 def op_len(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
-    """Compute Euclidean length sqrt(x**2 + y**2)."""
+    """Compute Euclidean length ``sqrt(x**2 + y**2)``."""
     return jnp.sqrt(x**2 + y**2)
 
 
@@ -164,13 +164,13 @@ def op_xor(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
 
 
 def op_step(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
-    """Step function: returns -1 if *x*<0 else 1."""
+    """Step function: returns -1 if ``x < 0`` else 1."""
     return jnp.where(x < 0, -1.0, 1.0)
 
 
 # --- 3. Ternary Operators ---
 def op_if(x: chex.Numeric, y: chex.Numeric, z: chex.Numeric) -> chex.Numeric:
-    """Ternary conditional: choose *y* if *x*<0 else *z*."""
+    """Ternary conditional: choose *y* if ``x < 0`` else *z*."""
     return jnp.where(x < 0, y, z)
 
 

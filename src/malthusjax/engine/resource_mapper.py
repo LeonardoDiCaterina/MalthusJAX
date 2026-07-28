@@ -25,9 +25,11 @@ _logger = logging.getLogger(__name__)
 class KeyDerivationStrategy(Enum):
     """
     Strategy for deriving RNG keys from master key (resource_map.get_keys).
-    SPLIT: Sequential jax.random.split → uncorrelated keys, single-threaded, lower memory.
-    FOLD: Parallel jax.random.fold_in with indices → deterministic keys, parallelizable,
-          scales better to large key budgets (suitable for multi-device).
+    
+    - SPLIT: Sequential jax.random.split → uncorrelated keys, single-threaded, lower memory.
+    - FOLD: Parallel jax.random.fold_in with indices → deterministic keys, parallelizable,
+      scales better to large key budgets (suitable for multi-device).
+      
     Trade-off: SPLIT guaranteed uncorrelated (statistical gold standard) but blocks on
     split sequencing. FOLD parallelizable but fold_in determinism replaces randomness.
     """

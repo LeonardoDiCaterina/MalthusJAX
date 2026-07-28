@@ -1,9 +1,10 @@
 """
 Real-valued Mutation Operators.
 Optimized for H100:
+
 1. Uses Masked Arithmetic (genome + noise * mask) instead of Branching (jnp.where).
 2. Explicit casting to ensure correct dtypes (e.g., BF16)
-    during random number generation and arithmetic operations.
+   during random number generation and arithmetic operations.
 """
 
 from dataclasses import replace
@@ -56,13 +57,16 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     mutation_rate : float, optional
         **Per-gene mutation probability**: Fraction of genes affected per mutation event.
         Valid range: [0.0, 1.0]
+
         - mutation_rate=0.0: No mutation (disabled)
         - mutation_rate=0.05: 5% of genes mutated (typical for large genomes, d≥100)
         - mutation_rate=0.1: 10% mutated (common default, works well for d≈10-100)
         - mutation_rate=1.0: All genes mutated every generation (strong perturbation)
+
         Default: 0.1 (recommended starting point).
 
         **Typical values by genome dimension**:
+
         - d=1-10: mutation_rate ≈ 0.15-0.3 (higher, because fewer genes)
         - d=10-100: mutation_rate ≈ 0.05-0.15 (moderate)
         - d=100+: mutation_rate ≈ 0.01-0.05 (lower, to avoid excessive perturbation)
@@ -70,9 +74,11 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     mutation_strength : float, optional
         **Gaussian noise standard deviation**: Controls magnitude of per-gene perturbations.
         Valid range: (0, ∞), but typically [0.01, 1.0]
+
         - mutation_strength=0.01: Very small noise (fine-tuning near optima)
         - mutation_strength=0.1: Moderate noise (balanced exploration/exploitation)
         - mutation_strength=1.0: Large noise (aggressive exploration)
+
         Default: 0.1 (works well when genome is roughly normalized to [-1, 1]).
 
         **Interaction with genome bounds**: If your genome bounds are [low, high],
