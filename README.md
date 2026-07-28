@@ -15,9 +15,13 @@
 ## Key Features
 
 - **JIT-Compiled Engines**: Entire generation loops are fused into single JAX kernels executing on GPUs/TPUs.
+- **Universal Composer API**: Dynamic Ask/Tell and compilation routing across EvoSAX, QDAX, and TensorNEAT under a single configuration layer.
 - **Unified CLI (`mjax`)**: Clean separation of execution (`run`, `parity`), analysis (`analyze`), plotting (`plot`), and reports (`report`).
 - **Decorators for Custom Extensions**: Zero-boilerplate registry decorators (`@register_selection`, `@register_mutation`, etc.) for seamless Jupyter Notebook and script integration.
 - **Multi-Genome Encoding**: Native support for **Real-valued** (continuous), **Binary** (combinatorial), and **Categorical** (permutations) genomes.
+- **GPU-Native Island Models**: Zero-overhead distributed parallel populations with topological migration (`jnp.roll`) executing entirely in GPU VRAM.
+- **Multi-Objective Optimization**: Vectorized Non-dominated Sorting Genetic Algorithm II (NSGA-II) math running inside the dedicated `MOEngine`.
+- **Quality-Diversity Integration**: Native MAP-Elites grid mapping and vectorized behavioral descriptor emitters.
 - **Hardware-Accelerated RL**: Deep native integrations with **Gymnax**, **Brax**, and **Jumanji** to evolve neural network policies at millions of frames per second.
 - **Statistical Parity Suite**: Direct seed-aligned comparison with [evosax](https://github.com/RobertTLange/evosax) including automatic hypothesis testing (t-test, Wilcoxon, sign test).
 - **Ask/Tell Interface**: Standard stateful API for custom external evaluation loops (e.g. physics simulations or API-bound calls).
@@ -26,7 +30,7 @@
 
 ## Architecture
 
-MalthusJAX is structured hierarchically. Higher levels consume lower levels via a registry catalog.
+MalthusJAX is structured hierarchically. The high-level Composer coordinates execution, dynamically spawning fast engines or external adapters, while keeping memory vectorization unified.
 
 ```mermaid
 graph TD
@@ -37,19 +41,25 @@ graph TD
         composer --> registry
     end
 
-    subgraph engine_layer[Engine Layer]
-        composer --> engine["GeneticEngine / Evosax Adapter"]
+    subgraph engine_layer[Engine & Meta-Engine Layer]
+        composer --> base_engine["GeneticEngine / GeneticFastEngine"]
+        composer --> mo_engine["MOEngine (NSGA-II)"]
+        composer --> island_meta["BaseIslandModel (Ring/Fully Connected)"]
+        composer --> adapter_engine["UniversalAdapterEngine"]
+        
+        island_meta -.-> |vmaps & manages| base_engine
+        adapter_engine --> evosax["EvoSAX / QDAX / TensorNEAT"]
     end
 
     subgraph operators_layer[Operators Layer]
-        engine --> selection["Selection"]
-        engine --> crossover["Crossover"]
-        engine --> mutation["Mutation"]
+        base_engine --> selection["Selection / Pareto Fronts"]
+        base_engine --> crossover["Crossover"]
+        base_engine --> mutation["Mutation"]
     end
 
     subgraph core_layer[Core Layer]
-        engine --> genomes["Genomes: Real, Binary, Categorical"]
-        engine --> evaluators["Evaluators: Sphere, BBOB, TSP, Knapsack"]
+        base_engine --> genomes["Genomes: Real, Binary, Categorical"]
+        base_engine --> evaluators["Evaluators: Sphere, BBOB, MAP-Elites BDs"]
     end
 ```
 
@@ -316,6 +326,69 @@ engine = GeneticFastEngine.create(engine_config)
 
 # Evolve the RL policy synchronously at GPU speeds
 # Note: Requires writing a minimal standard loop or using the provided run methods.
+```
+
+---
+
+## Multi-Objective Optimization (NSGA-II)
+
+MalthusJAX implements a fully vectorized Non-dominated Sorting Genetic Algorithm II (NSGA-II) within the `MOEngine` to optimize multiple conflicting objectives without leaving the GPU.
+
+```python
+from malthusjax.engine.mo.mo_engine import MOEngine
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.operators.selection import TournamentSelection
+from malthusjax.operators.crossover import RealUniformCrossover
+from malthusjax.operators.mutation import RealGaussianMutation
+from malthusjax.core.fitness.mo.evaluator import BaseMOEvaluator
+
+# Define config for 10-dimensional, 3-objective problem
+genome_config = RealGenomeConfig(shape=(10,), bounds=(-5.0, 5.0))
+
+engine = MOEngine(
+    genome_config=genome_config,
+    evaluator=MyMultiObjectiveEvaluator(),  # Returns (pop_size, 3) objectives
+    selection=TournamentSelection(num_selections=100, tournament_size=3),
+    crossover=RealUniformCrossover(num_offspring=1),
+    mutation=RealGaussianMutation(mutation_rate=0.1),
+)
+
+# Compile and run the multi-objective loop
+state = engine.init_state(jax.random.PRNGKey(42))
+final_state, history, elapsed = engine.run(state, time_it=True)
+```
+
+---
+
+## GPU-Native Distributed Island Models
+
+To scale populations without communication bottlenecks, the `BaseIslandModel` allows you to parallelize optimization across isolated islands natively in VRAM using GPU vectorization (`jax.vmap`) and fast array shifts (`jnp.roll`).
+
+```python
+from malthusjax.engine.island_model.topologies import RingTopologyIsland
+from malthusjax.engine import GeneticEngine, GeneticEngineParams
+
+# Configure base engine running locally on a single island
+base_engine = GeneticEngine(
+    engine_params=GeneticEngineParams(pop_size=100),
+    # ... selection, mutation, crossover, evaluator configs
+)
+
+# Wrap it in a 1,024-island ring topology
+island_model = RingTopologyIsland(
+    engine=base_engine,
+    num_islands=1024,
+    migration_interval=10,  # Migrate top individuals every 10 generations
+    num_migrants=5,         # Number of elite migrants
+)
+
+# Run 100,000+ individuals in parallel fully on the GPU
+state = island_model.init_state(jax.random.PRNGKey(42))
+# Meta-engines are stepped using standard JAX loops or scan
+final_state, _ = jax.lax.scan(
+    lambda st, _: (island_model.step(st)[0], None),
+    state, None, length=100
+)
 ```
 
 ---
