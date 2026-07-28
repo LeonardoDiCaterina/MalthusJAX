@@ -328,27 +328,19 @@ configuration dataclass used across the evaluator hierarchy.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Base configuration for fitness evaluation.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Optimization direction. If True, higher fitness is better;
+otherwise, lower is better (default). Follows evosax convention:
+lower-is-better (minimize) is the default. Controls jax.lax.select
+branching in single and batch evaluators.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize">
-<span class="sig-name descname"><span class="pre">maximize</span></span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize" title="Link to this definition">¶</a></dt>
-<dd><p>Optimization direction. If True, higher fitness is better;
-otherwise, lower is better (default). Follows evosax convention:
-lower-is-better (minimize) is the default. Controls jax.lax.select
-branching in single and batch evaluators.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">maximize</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">maximize</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -531,7 +523,6 @@ A gap of 0 means the value is optimal.</p>
 <li><a class="reference internal" href="#">malthusjax.core.fitness.base module</a><ul>
 <li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.maximize</span></code></a></li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.maximize</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluatorConfig.replace"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.replace()</span></code></a></li>
 </ul>
 </li>

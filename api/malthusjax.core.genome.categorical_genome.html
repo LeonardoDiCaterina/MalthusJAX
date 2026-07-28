@@ -328,8 +328,15 @@ operations and initialization.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Configuration for discrete categorical genomes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>num_categories</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Cardinality of the discrete alphabet.</p></li>
+<li><p><strong>shape</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>) – Logical shape of the categorical sequence.</p></li>
+<li><p><strong>dtype</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)"><em>numpy.dtype</em></a><em>[</em><em>Any</em><em>]</em>) – JAX dtype for category indices; typically jnp.int32.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>num_categories</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
 <li><p><strong>dtype</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)"><em>dtype</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
@@ -338,50 +345,17 @@ operations and initialization.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.num_categories">
-<span class="sig-name descname"><span class="pre">num_categories</span></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.num_categories" title="Link to this definition">¶</a></dt>
-<dd><p>Cardinality of the discrete alphabet.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">num_categories</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.num_categories" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.shape">
-<span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.shape" title="Link to this definition">¶</a></dt>
-<dd><p>Logical shape of the categorical sequence.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …]</p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.shape" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.dtype">
 <span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.dtype" title="Link to this definition">¶</a></dt>
-<dd><p>JAX dtype for category indices; typically jnp.int32.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)">numpy.dtype</a>[Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">num_categories</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.numpy.int32.html#jax.numpy.int32" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int32</span></code></a></p>
 </dd></dl>
 
@@ -693,9 +667,6 @@ JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
 <li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.num_categories"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
-<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.init_population()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.replace()</span></code></a></li>
 </ul>

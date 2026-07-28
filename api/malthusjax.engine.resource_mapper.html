@@ -326,12 +326,12 @@ to enable static allocation and precise “cascade” data flow.</p>
 <dt class="sig sig-object py" id="malthusjax.engine.resource_mapper.KeyDerivationStrategy">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.resource_mapper.</span></span><span class="sig-name descname"><span class="pre">KeyDerivationStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/resource_mapper.html#KeyDerivationStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.resource_mapper.KeyDerivationStrategy" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
-<p>Strategy for deriving RNG keys from master key (resource_map.get_keys).
-SPLIT: Sequential jax.random.split → uncorrelated keys, single-threaded, lower memory.
-FOLD: Parallel jax.random.fold_in with indices → deterministic keys, parallelizable,</p>
-<blockquote>
-<div><p>scales better to large key budgets (suitable for multi-device).</p>
-</div></blockquote>
+<p>Strategy for deriving RNG keys from master key (resource_map.get_keys).</p>
+<ul class="simple">
+<li><p>SPLIT: Sequential jax.random.split → uncorrelated keys, single-threaded, lower memory.</p></li>
+<li><p>FOLD: Parallel jax.random.fold_in with indices → deterministic keys, parallelizable,
+scales better to large key budgets (suitable for multi-device).</p></li>
+</ul>
 <p>Trade-off: SPLIT guaranteed uncorrelated (statistical gold standard) but blocks on
 split sequencing. FOLD parallelizable but fold_in determinism replaces randomness.</p>
 <dl class="py attribute">

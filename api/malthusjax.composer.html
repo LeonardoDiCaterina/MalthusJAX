@@ -407,8 +407,8 @@ utilities for statistical summary and visualization.</p></li>
 <span class="sig-name descname"><span class="pre">quick_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quick_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'malthusjax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ga'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evosax_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SimpleGA'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdax_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MAPElites'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prng_impl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_history_for_final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.quick_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.Composer.quick_run" title="Link to this definition">¶</a></dt>
 <dd><p>Run a full evolutionary experiment with programmatic operator specs.</p>
 <p>This is the main entry point for interactive exploration and benchmarking.
-It accepts operator specifications as string specs (for the <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;&quot;</span>
-<span class="pre">backend)</span> <span class="pre">or</span> <span class="pre">strategy</span> <span class="pre">names</span> <span class="pre">(for</span> <span class="pre">the</span> <span class="pre">``&quot;evosax&quot;</span></code> backend), orchestrates
+It accepts operator specifications as string specs (for the <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code>
+backend) or strategy names (for the <code class="docutils literal notranslate"><span class="pre">&quot;evosax&quot;</span></code> backend), orchestrates
 multiple independent runs (one per seed), aggregates results, and returns
 an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExperimentResult</span></code>.</p>
 <section id="parameters">
@@ -513,12 +513,10 @@ values provided in this specification.</p>
 <dt>maximize<span class="classifier">bool, optional</span></dt><dd><p>Optimization direction: <code class="docutils literal notranslate"><span class="pre">True</span></code> for maximization, <code class="docutils literal notranslate"><span class="pre">False</span></code> for
 minimization. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </dd>
-<dt>backend<span class="classifier">str, optional</span></dt><dd><p>Execution backend: <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">&quot;evosax&quot;</span></code>.
-- <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code>: Uses MalthusJAX operators (requires</p>
-<blockquote>
-<div><p>fitness/selection/crossover/mutation specs)</p>
-</div></blockquote>
+<dt>backend<span class="classifier">str, optional</span></dt><dd><p>Execution backend: <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">&quot;evosax&quot;</span></code>.</p>
 <ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code>: Uses MalthusJAX operators (requires
+fitness/selection/crossover/mutation specs)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;evosax&quot;</span></code>: Uses evosax strategy (requires evosax_strategy; ignores
 operator specs)</p></li>
 </ul>
@@ -548,46 +546,65 @@ Default: <code class="docutils literal notranslate"><span class="pre">None</span
 </dd>
 <dt>trace_dir<span class="classifier">Path or str, optional</span></dt><dd><p>Directory to write Perfetto-compatible JAX profiler traces.
 Default: <code class="docutils literal notranslate"><span class="pre">None</span></code> (disabled).</p>
-<p>ExperimentResult
-Result object containing per-seed run records and aggregation methods:</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>ExperimentResult</dt><dd><p>Result object containing per-seed run records and aggregation methods:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">.runs</span></code> : List[<code class="xref py py-class docutils literal notranslate"><span class="pre">RunResult</span></code>] — Individual runs, one per seed</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">.aggregated_summary()</span></code> — Dict mapping metric names → (mean, median, stdev)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">.combined_history(seed_field=&quot;seed&quot;)</span></code> — All generation records with seed labels</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">.canonical_summary</span></code> — Best-of metrics from first seed</p></li>
 </ul>
-<p>ValueError
-If operator specs have invalid format or unknown operator names.
-RuntimeError
-If the underlying engine encounters a critical error during execution.</p>
-<p>MalthusJAX backend (default):</p>
-<p>composer = Composer.create_default()
-result = composer.quick_run(
-fitness=”sphere:dim=25”,
-selection=”tournament:num_selections=25,tournament_size=3”,
-crossover=”blend:alpha=0.5”,
-mutation=”gaussian:mutation_rate=0.5,mutation_strength=0.1”,
-pop_size=100,
-generations=200,
-seeds=(42, 43, 44),
-)
-print(result.aggregated_summary())</p>
-<p>Evosax backend:</p>
-<p>result = composer.quick_run(
-backend=”evosax”,
-evosax_strategy=”OpenES”,
-fitness=”sphere:dim=10”,
-pop_size=64,
-generations=500,
-seeds=(1, 2, 3),
-)</p>
-<p>No operator specs (uses StubEngine for testing the pipeline):</p>
-<p>result = composer.quick_run(
-generations=50,
-seeds=(1, 2),
-)</p>
 </dd>
 </dl>
+</section>
+<section id="raises">
+<h3>Raises<a class="headerlink" href="#raises" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If operator specs have invalid format or unknown operator names.</p>
+</dd>
+<dt>RuntimeError</dt><dd><p>If the underlying engine encounters a critical error during execution.</p>
+</dd>
+</dl>
+</section>
+<section id="id1">
+<h3>Examples<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p>MalthusJAX backend (default):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=25&quot;</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;tournament:num_selections=25,tournament_size=3&quot;</span><span class="p">,</span>
+    <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
+    <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;</span><span class="p">,</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Evosax backend:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>
+    <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">&quot;OpenES&quot;</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>No operator specs (uses StubEngine for testing the pipeline):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -634,8 +651,8 @@ seeds=(1, 2),
 <p>This method executes several experiment pipelines with identical seeding
 and optional population initialization, enabling fair statistical
 comparison of different evolutionary strategies.</p>
-<section id="id1">
-<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>pipelines<span class="classifier">Dict[str, Dict[str, Any]]</span></dt><dd><p>Mapping of display names (pipeline identifiers) to kwarg dicts.
 Each dict contains <a class="reference internal" href="#malthusjax.composer.Composer.quick_run" title="malthusjax.composer.Composer.quick_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code></a> parameters (fitness, selection,
@@ -675,7 +692,7 @@ Default: <code class="docutils literal notranslate"><span class="pre">True</span
 Default: 123.
 (Only used if <code class="docutils literal notranslate"><span class="pre">shared_initial_population=True</span></code>.)</p>
 </dd>
-<dt><a href="#id2"><span class="problematic" id="id3">**</span></a>shared_kwargs<span class="classifier">Any</span></dt><dd><p>Default configuration applied to all pipelines (merged before
+<dt>**shared_kwargs<span class="classifier">Any</span></dt><dd><p>Default configuration applied to all pipelines (merged before
 pipeline-specific overrides). Use for common settings like
 <code class="docutils literal notranslate"><span class="pre">fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">pop_size</span></code>, <code class="docutils literal notranslate"><span class="pre">generations</span></code>, <code class="docutils literal notranslate"><span class="pre">bounds</span></code>.</p>
 <p>Example:</p>
@@ -690,8 +707,8 @@ pipeline-specific overrides). Use for common settings like
 </dd>
 </dl>
 </section>
-<section id="returns">
-<h3>Returns<a class="headerlink" href="#returns" title="Link to this heading">¶</a></h3>
+<section id="id3">
+<h3>Returns<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ComparisonResult</dt><dd><p>Contains:</p>
 <ul class="simple">
@@ -708,8 +725,8 @@ Raw per-pipeline generation histories for custom plotting.</p></li>
 </dd>
 </dl>
 </section>
-<section id="raises">
-<h3>Raises<a class="headerlink" href="#raises" title="Link to this heading">¶</a></h3>
+<section id="id4">
+<h3>Raises<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ValueError</dt><dd><p>If pipelines dict is empty or contains invalid operator specs.</p>
 </dd>
@@ -725,8 +742,8 @@ have their fitness values negated before display so that all pipelines
 use a consistent “lower is better” convention. This behavior is
 transparent to the user (controlled by ComparisonResult.negate_map).</p>
 </section>
-<section id="id4">
-<h3>Examples<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<section id="id5">
+<h3>Examples<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
 <p>Three-way comparison with shared fitness:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
@@ -791,8 +808,8 @@ pipeline-specific overrides, and seeds in a human-readable format.
 The method parses the file, runs all pipelines with fair comparison
 settings, and returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">ComparisonResult</span></code> with visualization
 and summary utilities.</p>
-<section id="id5">
-<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<section id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>path<span class="classifier">str or pathlib.Path</span></dt><dd><p>Path to a TOML experiment configuration file. The file must contain
 at least <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> section with default settings and
@@ -815,8 +832,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id6">
-<h3>Returns<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<section id="id7">
+<h3>Returns<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ComparisonResult</dt><dd><p>Multi-pipeline result object. Contains:
 - <code class="docutils literal notranslate"><span class="pre">.summary_table()</span></code> : aggregated metrics per pipeline
@@ -826,8 +843,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id7">
-<h3>Raises<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<section id="id8">
+<h3>Raises<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>FileNotFoundError</dt><dd><p>If the specified TOML file does not exist.</p>
 </dd>
@@ -837,8 +854,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id8">
-<h3>Notes<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<section id="id9">
+<h3>Notes<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
 <p><strong>TOML File Structure</strong>:</p>
 <p>The TOML file must follow this schema:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">experiment</span><span class="p">]</span>
@@ -877,8 +894,8 @@ format: <code class="docutils literal notranslate"><span class="pre">&quot;opera
 <p>Each pipeline inherits all keys from <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> and can
 override them. Pipeline-specific values take precedence.</p>
 </section>
-<section id="id9">
-<h3>Examples<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<section id="id10">
+<h3>Examples<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
 <p>Simple TOML-based experiment:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># experiment.toml content:</span>
 <span class="c1"># [experiment.shared]</span>
@@ -935,15 +952,15 @@ override them. Pipeline-specific values take precedence.</p>
 with empty registry and minimal default config. Equivalent to calling
 <code class="docutils literal notranslate"><span class="pre">Composer(config={&quot;version&quot;:</span> <span class="pre">&quot;0.1&quot;})</span></code>. Most users should call this
 before invoking <a class="reference internal" href="#malthusjax.composer.Composer.quick_run" title="malthusjax.composer.Composer.quick_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code></a>, <a class="reference internal" href="#malthusjax.composer.Composer.compare" title="malthusjax.composer.Composer.compare"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compare()</span></code></a>, or <a class="reference internal" href="#malthusjax.composer.Composer.from_toml" title="malthusjax.composer.Composer.from_toml"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_toml()</span></code></a>.</p>
-<section id="id10">
-<h3>Returns<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<section id="id11">
+<h3>Returns<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>Composer</dt><dd><p>A ready-to-use <a class="reference internal" href="#malthusjax.composer.Composer" title="malthusjax.composer.Composer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Composer</span></code></a> instance with defaults applied.</p>
 </dd>
 </dl>
 </section>
-<section id="id11">
-<h3>Examples<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<section id="id12">
+<h3>Examples<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
 <p>Standard initialization:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>

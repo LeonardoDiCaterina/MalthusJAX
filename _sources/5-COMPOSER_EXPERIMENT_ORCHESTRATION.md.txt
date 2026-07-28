@@ -4,18 +4,18 @@ This section covers the `malthusjax.composer` module, which provides a high-leve
 
 ## 5.1. The Composer Pattern: Config-Driven GA Runs
 
-Composer abstracts the complexity of engine construction, operator composition, and fitness evaluation behind a simple `quick_run()` method. It supports two backends (MalthusJAX native and evosax) and provides sensible defaults for population size, generations, and mutation schedules.
+Composer abstracts the complexity of engine construction, operator composition, and fitness evaluation behind a simple `quick_run()` method. It supports multiple backends (MalthusJAX native, QDAX, evosax, TensorNEAT) and provides sensible defaults for population size, generations, and mutation schedules.
 
 ### 5.1.1. The Composer Class and quick_run() Entry Point
 
 **Concept:** Providing a minimal, product-first interface for launching experiments.
 
-**Knowledge Point:** Core method signature, parameter resolution, backend dispatch (malthusjax vs. evosax), and integration with BenchmarkRunner.
+**Knowledge Point:** Core method signature, parameter resolution, backend dispatch, and integration with BenchmarkRunner.
 
 Prose to be written:
 - Role of Composer as the top-level orchestrator
 - `quick_run()` as the main user-facing API
-- Support for two backends: native MalthusJAX and evosax strategies
+- Support for external adapters alongside native engines
 - How Composer resolves operator specs → operator instances
 - Integration with BenchmarkRunner for multi-seed experiments
 - Return value (ExperimentResult) and its contents
@@ -44,7 +44,6 @@ Prose to be written:
 
 Prose to be written:
 - Role of BenchmarkRunner in multi-seed loops
-- How seeds are passed to GeneticEngineAdapter or EvosaxEngineAdapter
 - Reproducibility guarantees (same seed → same trajectory)
 - Aggregation of per-seed histories and fitness traces
 - Progress tracking (tqdm integration)
@@ -86,7 +85,7 @@ Prose to be written:
 
 **Concept:** Using the same catalog pattern for fitness functions.
 
-**Knowledge Point:** Registration of continuoustests (Sphere, Rastrigin, BBOB), discrete tests, and custom evaluators.
+**Knowledge Point:** Registration of continuous tests (Sphere, Rastrigin, BBOB), discrete tests, and custom evaluators.
 
 Prose to be written:
 - Fitness evaluators follow the same catalog pattern
@@ -142,50 +141,34 @@ Prose to be written:
 
 ## 5.4. Engine Factory: Building Engines from Specs
 
-The engine factory module creates fully configured engines (GeneticEngine or EvosaxEngineAdapter) from string specifications or explicit parameters.
+The engine factory module creates fully configured engines from string specifications or explicit parameters. It resolves both native MalthusJAX engines and external adapters.
 
-### 5.4.1. GeneticEngineAdapter: MalthusJAX Backend
+### 5.4.1. Resolving Native Engines (GA, MO, QD, Island)
 
-**Concept:** Wrapping GeneticEngine to match the BenchmarkRunner.Engine protocol.
+**Concept:** Dynamic dispatch to the correct native Engine based on user requests.
 
-**Knowledge Point:** Adapter responsibilities; timing; population injection for fair cross-engine comparisons.
-
-Prose to be written:
-- Role of GeneticEngineAdapter as a protocol bridge
-- `run_once(key) -> Dict[str, Any]` contract
-- Initialization timing and device synchronization
-- Population injection feature (overriding engine-initialized population)
-- History collection per generation (best, mean, std fitness)
-- Timing breakdown (init, evolution, evaluation)
-- Example: creating and running an adapter
-
-### 5.4.2. EvosaxEngineAdapter: evosax Interoperability
-
-**Concept:** Wrapping evosax strategies (ask/tell interface) for benchmark comparison.
-
-**Knowledge Point:** Strategy registry (SimpleGA, MR15_GA, DifferentialEvolution); ask/tell loop; fitness evaluation in evosax style.
+**Knowledge Point:** EngineRegistry class; registering new engine builders; resolving engine type strings (e.g., `"mo:num_objectives=2"` or `"qd:archive_size=1000"`).
 
 Prose to be written:
-- Rationale for evosax interop (fair framework comparisons)
-- Supported strategies and their parameters
-- ask/tell interface mechanics (get population → evaluate → tell fitness)
-- How MalthusJAX fitness evaluators integrate with evosax ask/tell
-- Population injection for fair comparison
-- Timing and history collection
-- Example: comparing SimpleGA (evosax) vs. Tournament GA (MalthusJAX)
-
-### 5.4.3. Engine Registry and Engine Type Specifications
-
-**Concept:** Extending the factory with custom engine builders.
-
-**Knowledge Point:** EngineRegistry class; registering new engine builders; resolving engine type strings (e.g., `"ga:elitism=4"`).
-
-Prose to be written:
-- Current engine types (just "ga" but extensible)
-- Registering custom engine builders
-- Parameter parsing in engine type strings (e.g., `"ga:elitism=4,unroll_num=32"`)
+- The registry of native engines (GeneticEngine, MOEngine, QDEngine, IslandModelEngine)
+- Parameter parsing in engine type strings (e.g., `"qd:archive_size=1000"`)
 - Engine-specific parameter defaults
-- Example: registering a custom engine (e.g., a multi-objective engine)
+- Example: declaring a Quality-Diversity run in Composer
+
+### 5.4.2. External Adapters (EvoSAX, QDAX, TensorNEAT)
+
+**Concept:** Wrapping external libraries via Adapter patterns for fair benchmark comparison.
+
+**Knowledge Point:** Adapter responsibilities; bridging the Composer contract to external library semantics; population injection.
+
+Prose to be written:
+- Rationale for interop (fair framework comparisons)
+- **EvoSAX Adapter**: Wrapping `ask`/`tell` loops and strategy parameters.
+- **QDAX Adapter**: Wrapping emitters, metrics, and Map-Elites containers.
+- **TensorNEAT Adapter**: Wrapping node/edge structural mutation semantics.
+- How MalthusJAX fitness evaluators integrate with these external adapters
+- Population injection for fair comparison
+- Example: comparing QDEngine (MalthusJAX) vs. QDAX using Composer
 
 ## 5.5. Integration with Benchmarking Infrastructure
 
@@ -203,8 +186,6 @@ Prose to be written:
 - Required dict keys: `history`, `summary`, `timings`
 - History format: list of per-generation dicts
 - Summary format: final fitness, evaluations, etc.
-- Both GeneticEngineAdapter and EvosaxEngineAdapter implement the protocol
-- Example: implementing a custom Engine for a new backend
 
 ### 5.5.2. BenchmarkRunner Usage with Composer
 
@@ -321,17 +302,17 @@ Prose to be written:
 - Example: grid search over tournament_size ∈ [2,3,4,5]
 - Example: random search over 100 random configurations
 
-### 5.7.4. Cross-Framework Comparison (evosax vs. MalthusJAX)
+### 5.7.4. Cross-Framework Comparison (External Libraries vs. MalthusJAX)
 
 **Concept:** Fair algorithm benchmarking across libraries.
 
-**Knowledge Point:** Using EvosaxEngineAdapter and GeneticEngineAdapter in parallel; controlling for population initialization and seed.
+**Knowledge Point:** Using External Adapters alongside native engines; controlling for population initialization and seed.
 
 Prose to be written:
 - Setting up identical experimental conditions
 - Using population injection to ensure fair comparison
 - Seed consistency and PRNG backend specification
 - Interpreting convergence differences
-- Example: SimpleGA (evosax) vs. Tournament GA (MalthusJAX)
-- Fair comparison caveats (elite pool vs. tournament diversity)
+- Example: MAP-Elites (QDAX) vs. QDEngine (MalthusJAX)
+- Fair comparison caveats
 

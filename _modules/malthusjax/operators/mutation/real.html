@@ -313,9 +313,10 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Real-valued Mutation Operators.</span>
 <span class="sd">Optimized for H100:</span>
+
 <span class="sd">1. Uses Masked Arithmetic (genome + noise * mask) instead of Branching (jnp.where).</span>
 <span class="sd">2. Explicit casting to ensure correct dtypes (e.g., BF16)</span>
-<span class="sd">    during random number generation and arithmetic operations.</span>
+<span class="sd">   during random number generation and arithmetic operations.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
@@ -370,13 +371,16 @@
 <span class="sd">    mutation_rate : float, optional</span>
 <span class="sd">        **Per-gene mutation probability**: Fraction of genes affected per mutation event.</span>
 <span class="sd">        Valid range: [0.0, 1.0]</span>
+
 <span class="sd">        - mutation_rate=0.0: No mutation (disabled)</span>
 <span class="sd">        - mutation_rate=0.05: 5% of genes mutated (typical for large genomes, d≥100)</span>
 <span class="sd">        - mutation_rate=0.1: 10% mutated (common default, works well for d≈10-100)</span>
 <span class="sd">        - mutation_rate=1.0: All genes mutated every generation (strong perturbation)</span>
+
 <span class="sd">        Default: 0.1 (recommended starting point).</span>
 
 <span class="sd">        **Typical values by genome dimension**:</span>
+
 <span class="sd">        - d=1-10: mutation_rate ≈ 0.15-0.3 (higher, because fewer genes)</span>
 <span class="sd">        - d=10-100: mutation_rate ≈ 0.05-0.15 (moderate)</span>
 <span class="sd">        - d=100+: mutation_rate ≈ 0.01-0.05 (lower, to avoid excessive perturbation)</span>
@@ -384,9 +388,11 @@
 <span class="sd">    mutation_strength : float, optional</span>
 <span class="sd">        **Gaussian noise standard deviation**: Controls magnitude of per-gene perturbations.</span>
 <span class="sd">        Valid range: (0, ∞), but typically [0.01, 1.0]</span>
+
 <span class="sd">        - mutation_strength=0.01: Very small noise (fine-tuning near optima)</span>
 <span class="sd">        - mutation_strength=0.1: Moderate noise (balanced exploration/exploitation)</span>
 <span class="sd">        - mutation_strength=1.0: Large noise (aggressive exploration)</span>
+
 <span class="sd">        Default: 0.1 (works well when genome is roughly normalized to [-1, 1]).</span>
 
 <span class="sd">        **Interaction with genome bounds**: If your genome bounds are [low, high],</span>

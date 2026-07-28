@@ -739,8 +739,17 @@ control flow.</p>
 <dd><p>Bases: <a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig" title="malthusjax.core.fitness.base.BaseEvaluatorConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEvaluatorConfig</span></code></a></p>
 <p>Configuration for 0/1 Knapsack problem fitness evaluation.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>n_items</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of items in the knapsack problem.</p></li>
+<li><p><strong>weights</strong> (<em>jax.jaxlib._jax.Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>numpy.ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>numpy.bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>numpy.number</em></a>) – Item weights array, shape (n_items,).</p></li>
+<li><p><strong>values</strong> (<em>jax.jaxlib._jax.Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>numpy.ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>numpy.bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>numpy.number</em></a>) – Item values array, shape (n_items,).</p></li>
+<li><p><strong>capacity</strong> (<em>jax.jaxlib._jax.Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>numpy.ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>numpy.bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>numpy.number</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum weight capacity (scalar).</p></li>
+<li><p><strong>penalty_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Linear constraint penalty coefficient (default 1000.0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
 <li><p><strong>n_items</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>weights</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
@@ -752,82 +761,27 @@ control flow.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.KnapsackConfig.n_items">
-<span class="sig-name descname"><span class="pre">n_items</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.n_items" title="Link to this definition">¶</a></dt>
-<dd><p>Number of items in the knapsack problem.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">n_items</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.n_items" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.KnapsackConfig.weights">
-<span class="sig-name descname"><span class="pre">weights</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.weights" title="Link to this definition">¶</a></dt>
-<dd><p>Item weights array, shape (n_items,).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jax.jaxlib._jax.Array | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)">numpy.bool</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)">numpy.number</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">weights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.weights" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.KnapsackConfig.values">
-<span class="sig-name descname"><span class="pre">values</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.values" title="Link to this definition">¶</a></dt>
-<dd><p>Item values array, shape (n_items,).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jax.jaxlib._jax.Array | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)">numpy.bool</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)">numpy.number</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">values</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.values" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.KnapsackConfig.capacity">
-<span class="sig-name descname"><span class="pre">capacity</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.capacity" title="Link to this definition">¶</a></dt>
-<dd><p>Maximum weight capacity (scalar).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jax.jaxlib._jax.Array | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)">numpy.bool</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)">numpy.number</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">capacity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100.0</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.capacity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.KnapsackConfig.penalty_factor">
-<span class="sig-name descname"><span class="pre">penalty_factor</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.penalty_factor" title="Link to this definition">¶</a></dt>
-<dd><p>Linear constraint penalty coefficient (default 1000.0).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">n_items</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">weights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">values</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id3">
-<span class="sig-name descname"><span class="pre">capacity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100.0</span></span><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id4">
-<span class="sig-name descname"><span class="pre">penalty_factor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></span><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">penalty_factor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></span><a class="headerlink" href="#malthusjax.core.fitness.KnapsackConfig.penalty_factor" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1052,8 +1006,16 @@ around it, returning a <a class="reference internal" href="#malthusjax.core.fitn
 <dd><p>Bases: <a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig" title="malthusjax.core.fitness.base.BaseEvaluatorConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEvaluatorConfig</span></code></a></p>
 <p>Configuration for box-constrained optimization.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>target_point</strong> (<em>jax.jaxlib._jax.Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>numpy.ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>numpy.bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>numpy.number</em></a>) – Target location in solution space, shape (d,).</p></li>
+<li><p><strong>box_bounds</strong> (<em>Tuple</em><em>[</em><em>jax.jaxlib._jax.Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>numpy.ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>numpy.bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>numpy.number</em></a><em>, </em><em>jax.jaxlib._jax.Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>numpy.ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>numpy.bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>numpy.number</em></a><em>]</em>) – Tuple (lower, upper) constraint bounds, each shape (d,).</p></li>
+<li><p><strong>penalty_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Linear constraint violation penalty coefficient.</p></li>
+<li><p><strong>objective_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – ‘distance’ (L2) or ‘sphere’ (sum of squares).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
 <li><p><strong>target_point</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
 <li><p><strong>box_bounds</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em>, </em><em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em>]</em>)</p></li>
@@ -1064,66 +1026,22 @@ around it, returning a <a class="reference internal" href="#malthusjax.core.fitn
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.BoxConfig.target_point">
-<span class="sig-name descname"><span class="pre">target_point</span></span><a class="headerlink" href="#malthusjax.core.fitness.BoxConfig.target_point" title="Link to this definition">¶</a></dt>
-<dd><p>Target location in solution space, shape (d,).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jax.jaxlib._jax.Array | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)">numpy.bool</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)">numpy.number</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">target_point</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.fitness.BoxConfig.target_point" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.BoxConfig.box_bounds">
-<span class="sig-name descname"><span class="pre">box_bounds</span></span><a class="headerlink" href="#malthusjax.core.fitness.BoxConfig.box_bounds" title="Link to this definition">¶</a></dt>
-<dd><p>Tuple (lower, upper) constraint bounds, each shape (d,).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[jax.jaxlib._jax.Array | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)">numpy.bool</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)">numpy.number</a>, jax.jaxlib._jax.Array | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)">numpy.bool</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)">numpy.number</a>]</p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">box_bounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.fitness.BoxConfig.box_bounds" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.BoxConfig.penalty_factor">
-<span class="sig-name descname"><span class="pre">penalty_factor</span></span><a class="headerlink" href="#malthusjax.core.fitness.BoxConfig.penalty_factor" title="Link to this definition">¶</a></dt>
-<dd><p>Linear constraint violation penalty coefficient.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">penalty_factor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></span><a class="headerlink" href="#malthusjax.core.fitness.BoxConfig.penalty_factor" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.BoxConfig.objective_type">
-<span class="sig-name descname"><span class="pre">objective_type</span></span><a class="headerlink" href="#malthusjax.core.fitness.BoxConfig.objective_type" title="Link to this definition">¶</a></dt>
-<dd><p>‘distance’ (L2) or ‘sphere’ (sum of squares).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id5">
-<span class="sig-name descname"><span class="pre">target_point</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id6">
-<span class="sig-name descname"><span class="pre">box_bounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#id6" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id7">
-<span class="sig-name descname"><span class="pre">penalty_factor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></span><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id8">
-<span class="sig-name descname"><span class="pre">objective_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'distance'</span></span><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">objective_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'distance'</span></span><a class="headerlink" href="#malthusjax.core.fitness.BoxConfig.objective_type" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1253,7 +1171,6 @@ gives the permutation of cities.</p>
 <li class="toctree-l1"><a class="reference internal" href="malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.maximize</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.base.html#id0"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.maximize</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig.replace"><code class="docutils literal notranslate"><span class="pre">BaseEvaluatorConfig.replace()</span></code></a></li>
 </ul>
 </li>
@@ -1275,9 +1192,6 @@ gives the permutation of cities.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.fn_name"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.fn_name</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.num_dims"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.num_dims</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.seed"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.seed</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html#id0"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.fn_name</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html#id1"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.num_dims</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html#id2"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.seed</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.replace"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.replace()</span></code></a></li>
 </ul>
 </li>
@@ -1318,11 +1232,6 @@ gives the permutation of cities.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#malthusjax.core.fitness.binary_evaluators.KnapsackConfig.values"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.values</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#malthusjax.core.fitness.binary_evaluators.KnapsackConfig.capacity"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.capacity</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#malthusjax.core.fitness.binary_evaluators.KnapsackConfig.penalty_factor"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.penalty_factor</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#id0"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.n_items</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#id1"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.weights</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#id2"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.values</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#id3"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.capacity</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#id4"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.penalty_factor</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html#malthusjax.core.fitness.binary_evaluators.KnapsackConfig.replace"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.replace()</span></code></a></li>
 </ul>
 </li>
@@ -1412,10 +1321,6 @@ gives the permutation of cities.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html#malthusjax.core.fitness.real_evaluators.BoxConfig.box_bounds"><code class="docutils literal notranslate"><span class="pre">BoxConfig.box_bounds</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html#malthusjax.core.fitness.real_evaluators.BoxConfig.penalty_factor"><code class="docutils literal notranslate"><span class="pre">BoxConfig.penalty_factor</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html#malthusjax.core.fitness.real_evaluators.BoxConfig.objective_type"><code class="docutils literal notranslate"><span class="pre">BoxConfig.objective_type</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html#id0"><code class="docutils literal notranslate"><span class="pre">BoxConfig.target_point</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html#id1"><code class="docutils literal notranslate"><span class="pre">BoxConfig.box_bounds</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html#id2"><code class="docutils literal notranslate"><span class="pre">BoxConfig.penalty_factor</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html#id3"><code class="docutils literal notranslate"><span class="pre">BoxConfig.objective_type</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html#malthusjax.core.fitness.real_evaluators.BoxConfig.replace"><code class="docutils literal notranslate"><span class="pre">BoxConfig.replace()</span></code></a></li>
 </ul>
 </li>
@@ -1542,11 +1447,6 @@ gives the permutation of cities.</p>
 <li><a class="reference internal" href="#malthusjax.core.fitness.KnapsackConfig.values"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.values</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.KnapsackConfig.capacity"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.capacity</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.KnapsackConfig.penalty_factor"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.penalty_factor</span></code></a></li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.n_items</span></code></a></li>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.weights</span></code></a></li>
-<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.values</span></code></a></li>
-<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.capacity</span></code></a></li>
-<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.penalty_factor</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.KnapsackConfig.replace"><code class="docutils literal notranslate"><span class="pre">KnapsackConfig.replace()</span></code></a></li>
 </ul>
 </li>
@@ -1585,10 +1485,6 @@ gives the permutation of cities.</p>
 <li><a class="reference internal" href="#malthusjax.core.fitness.BoxConfig.box_bounds"><code class="docutils literal notranslate"><span class="pre">BoxConfig.box_bounds</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.BoxConfig.penalty_factor"><code class="docutils literal notranslate"><span class="pre">BoxConfig.penalty_factor</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.BoxConfig.objective_type"><code class="docutils literal notranslate"><span class="pre">BoxConfig.objective_type</span></code></a></li>
-<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">BoxConfig.target_point</span></code></a></li>
-<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">BoxConfig.box_bounds</span></code></a></li>
-<li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">BoxConfig.penalty_factor</span></code></a></li>
-<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">BoxConfig.objective_type</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.BoxConfig.replace"><code class="docutils literal notranslate"><span class="pre">BoxConfig.replace()</span></code></a></li>
 </ul>
 </li>

@@ -321,16 +321,16 @@
 <p>This section covers the <code class="docutils literal notranslate"><span class="pre">malthusjax.composer</span></code> module, which provides a high-level, config-driven interface for running evolutionary experiments. Rather than manually instantiating operators, engines, and fitness functions, users can describe experiments via string specifications or TOML files and let Composer resolve the details. This section bridges the gap between low-level operator/engine APIs and user-facing experiment workflows.</p>
 <section id="the-composer-pattern-config-driven-ga-runs">
 <h2>5.1. The Composer Pattern: Config-Driven GA Runs<a class="headerlink" href="#the-composer-pattern-config-driven-ga-runs" title="Link to this heading">¶</a></h2>
-<p>Composer abstracts the complexity of engine construction, operator composition, and fitness evaluation behind a simple <code class="docutils literal notranslate"><span class="pre">quick_run()</span></code> method. It supports two backends (MalthusJAX native and evosax) and provides sensible defaults for population size, generations, and mutation schedules.</p>
+<p>Composer abstracts the complexity of engine construction, operator composition, and fitness evaluation behind a simple <code class="docutils literal notranslate"><span class="pre">quick_run()</span></code> method. It supports multiple backends (MalthusJAX native, QDAX, evosax, TensorNEAT) and provides sensible defaults for population size, generations, and mutation schedules.</p>
 <section id="the-composer-class-and-quick-run-entry-point">
 <h3>5.1.1. The Composer Class and quick_run() Entry Point<a class="headerlink" href="#the-composer-class-and-quick-run-entry-point" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Providing a minimal, product-first interface for launching experiments.</p>
-<p><strong>Knowledge Point:</strong> Core method signature, parameter resolution, backend dispatch (malthusjax vs. evosax), and integration with BenchmarkRunner.</p>
+<p><strong>Knowledge Point:</strong> Core method signature, parameter resolution, backend dispatch, and integration with BenchmarkRunner.</p>
 <p>Prose to be written:</p>
 <ul class="simple">
 <li><p>Role of Composer as the top-level orchestrator</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">quick_run()</span></code> as the main user-facing API</p></li>
-<li><p>Support for two backends: native MalthusJAX and evosax strategies</p></li>
+<li><p>Support for external adapters alongside native engines</p></li>
 <li><p>How Composer resolves operator specs → operator instances</p></li>
 <li><p>Integration with BenchmarkRunner for multi-seed experiments</p></li>
 <li><p>Return value (ExperimentResult) and its contents</p></li>
@@ -359,7 +359,6 @@
 <p>Prose to be written:</p>
 <ul class="simple">
 <li><p>Role of BenchmarkRunner in multi-seed loops</p></li>
-<li><p>How seeds are passed to GeneticEngineAdapter or EvosaxEngineAdapter</p></li>
 <li><p>Reproducibility guarantees (same seed → same trajectory)</p></li>
 <li><p>Aggregation of per-seed histories and fitness traces</p></li>
 <li><p>Progress tracking (tqdm integration)</p></li>
@@ -401,7 +400,7 @@
 <section id="fitness-evaluator-resolution">
 <h3>5.2.3. Fitness Evaluator Resolution<a class="headerlink" href="#fitness-evaluator-resolution" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Using the same catalog pattern for fitness functions.</p>
-<p><strong>Knowledge Point:</strong> Registration of continuoustests (Sphere, Rastrigin, BBOB), discrete tests, and custom evaluators.</p>
+<p><strong>Knowledge Point:</strong> Registration of continuous tests (Sphere, Rastrigin, BBOB), discrete tests, and custom evaluators.</p>
 <p>Prose to be written:</p>
 <ul class="simple">
 <li><p>Fitness evaluators follow the same catalog pattern</p></li>
@@ -459,48 +458,32 @@
 </section>
 <section id="engine-factory-building-engines-from-specs">
 <h2>5.4. Engine Factory: Building Engines from Specs<a class="headerlink" href="#engine-factory-building-engines-from-specs" title="Link to this heading">¶</a></h2>
-<p>The engine factory module creates fully configured engines (GeneticEngine or EvosaxEngineAdapter) from string specifications or explicit parameters.</p>
-<section id="geneticengineadapter-malthusjax-backend">
-<h3>5.4.1. GeneticEngineAdapter: MalthusJAX Backend<a class="headerlink" href="#geneticengineadapter-malthusjax-backend" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Wrapping GeneticEngine to match the BenchmarkRunner.Engine protocol.</p>
-<p><strong>Knowledge Point:</strong> Adapter responsibilities; timing; population injection for fair cross-engine comparisons.</p>
+<p>The engine factory module creates fully configured engines from string specifications or explicit parameters. It resolves both native MalthusJAX engines and external adapters.</p>
+<section id="resolving-native-engines-ga-mo-qd-island">
+<h3>5.4.1. Resolving Native Engines (GA, MO, QD, Island)<a class="headerlink" href="#resolving-native-engines-ga-mo-qd-island" title="Link to this heading">¶</a></h3>
+<p><strong>Concept:</strong> Dynamic dispatch to the correct native Engine based on user requests.</p>
+<p><strong>Knowledge Point:</strong> EngineRegistry class; registering new engine builders; resolving engine type strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;mo:num_objectives=2&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;qd:archive_size=1000&quot;</span></code>).</p>
 <p>Prose to be written:</p>
 <ul class="simple">
-<li><p>Role of GeneticEngineAdapter as a protocol bridge</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">run_once(key)</span> <span class="pre">-&gt;</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code> contract</p></li>
-<li><p>Initialization timing and device synchronization</p></li>
-<li><p>Population injection feature (overriding engine-initialized population)</p></li>
-<li><p>History collection per generation (best, mean, std fitness)</p></li>
-<li><p>Timing breakdown (init, evolution, evaluation)</p></li>
-<li><p>Example: creating and running an adapter</p></li>
-</ul>
-</section>
-<section id="evosaxengineadapter-evosax-interoperability">
-<h3>5.4.2. EvosaxEngineAdapter: evosax Interoperability<a class="headerlink" href="#evosaxengineadapter-evosax-interoperability" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Wrapping evosax strategies (ask/tell interface) for benchmark comparison.</p>
-<p><strong>Knowledge Point:</strong> Strategy registry (SimpleGA, MR15_GA, DifferentialEvolution); ask/tell loop; fitness evaluation in evosax style.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Rationale for evosax interop (fair framework comparisons)</p></li>
-<li><p>Supported strategies and their parameters</p></li>
-<li><p>ask/tell interface mechanics (get population → evaluate → tell fitness)</p></li>
-<li><p>How MalthusJAX fitness evaluators integrate with evosax ask/tell</p></li>
-<li><p>Population injection for fair comparison</p></li>
-<li><p>Timing and history collection</p></li>
-<li><p>Example: comparing SimpleGA (evosax) vs. Tournament GA (MalthusJAX)</p></li>
-</ul>
-</section>
-<section id="engine-registry-and-engine-type-specifications">
-<h3>5.4.3. Engine Registry and Engine Type Specifications<a class="headerlink" href="#engine-registry-and-engine-type-specifications" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Extending the factory with custom engine builders.</p>
-<p><strong>Knowledge Point:</strong> EngineRegistry class; registering new engine builders; resolving engine type strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;ga:elitism=4&quot;</span></code>).</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Current engine types (just “ga” but extensible)</p></li>
-<li><p>Registering custom engine builders</p></li>
-<li><p>Parameter parsing in engine type strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;ga:elitism=4,unroll_num=32&quot;</span></code>)</p></li>
+<li><p>The registry of native engines (GeneticEngine, MOEngine, QDEngine, IslandModelEngine)</p></li>
+<li><p>Parameter parsing in engine type strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;qd:archive_size=1000&quot;</span></code>)</p></li>
 <li><p>Engine-specific parameter defaults</p></li>
-<li><p>Example: registering a custom engine (e.g., a multi-objective engine)</p></li>
+<li><p>Example: declaring a Quality-Diversity run in Composer</p></li>
+</ul>
+</section>
+<section id="external-adapters-evosax-qdax-tensorneat">
+<h3>5.4.2. External Adapters (EvoSAX, QDAX, TensorNEAT)<a class="headerlink" href="#external-adapters-evosax-qdax-tensorneat" title="Link to this heading">¶</a></h3>
+<p><strong>Concept:</strong> Wrapping external libraries via Adapter patterns for fair benchmark comparison.</p>
+<p><strong>Knowledge Point:</strong> Adapter responsibilities; bridging the Composer contract to external library semantics; population injection.</p>
+<p>Prose to be written:</p>
+<ul class="simple">
+<li><p>Rationale for interop (fair framework comparisons)</p></li>
+<li><p><strong>EvoSAX Adapter</strong>: Wrapping <code class="docutils literal notranslate"><span class="pre">ask</span></code>/<code class="docutils literal notranslate"><span class="pre">tell</span></code> loops and strategy parameters.</p></li>
+<li><p><strong>QDAX Adapter</strong>: Wrapping emitters, metrics, and Map-Elites containers.</p></li>
+<li><p><strong>TensorNEAT Adapter</strong>: Wrapping node/edge structural mutation semantics.</p></li>
+<li><p>How MalthusJAX fitness evaluators integrate with these external adapters</p></li>
+<li><p>Population injection for fair comparison</p></li>
+<li><p>Example: comparing QDEngine (MalthusJAX) vs. QDAX using Composer</p></li>
 </ul>
 </section>
 </section>
@@ -518,8 +501,6 @@
 <li><p>Required dict keys: <code class="docutils literal notranslate"><span class="pre">history</span></code>, <code class="docutils literal notranslate"><span class="pre">summary</span></code>, <code class="docutils literal notranslate"><span class="pre">timings</span></code></p></li>
 <li><p>History format: list of per-generation dicts</p></li>
 <li><p>Summary format: final fitness, evaluations, etc.</p></li>
-<li><p>Both GeneticEngineAdapter and EvosaxEngineAdapter implement the protocol</p></li>
-<li><p>Example: implementing a custom Engine for a new backend</p></li>
 </ul>
 </section>
 <section id="benchmarkrunner-usage-with-composer">
@@ -637,18 +618,18 @@
 <li><p>Example: random search over 100 random configurations</p></li>
 </ul>
 </section>
-<section id="cross-framework-comparison-evosax-vs-malthusjax">
-<h3>5.7.4. Cross-Framework Comparison (evosax vs. MalthusJAX)<a class="headerlink" href="#cross-framework-comparison-evosax-vs-malthusjax" title="Link to this heading">¶</a></h3>
+<section id="cross-framework-comparison-external-libraries-vs-malthusjax">
+<h3>5.7.4. Cross-Framework Comparison (External Libraries vs. MalthusJAX)<a class="headerlink" href="#cross-framework-comparison-external-libraries-vs-malthusjax" title="Link to this heading">¶</a></h3>
 <p><strong>Concept:</strong> Fair algorithm benchmarking across libraries.</p>
-<p><strong>Knowledge Point:</strong> Using EvosaxEngineAdapter and GeneticEngineAdapter in parallel; controlling for population initialization and seed.</p>
+<p><strong>Knowledge Point:</strong> Using External Adapters alongside native engines; controlling for population initialization and seed.</p>
 <p>Prose to be written:</p>
 <ul class="simple">
 <li><p>Setting up identical experimental conditions</p></li>
 <li><p>Using population injection to ensure fair comparison</p></li>
 <li><p>Seed consistency and PRNG backend specification</p></li>
 <li><p>Interpreting convergence differences</p></li>
-<li><p>Example: SimpleGA (evosax) vs. Tournament GA (MalthusJAX)</p></li>
-<li><p>Fair comparison caveats (elite pool vs. tournament diversity)</p></li>
+<li><p>Example: MAP-Elites (QDAX) vs. QDEngine (MalthusJAX)</p></li>
+<li><p>Fair comparison caveats</p></li>
 </ul>
 </section>
 </section>
@@ -729,9 +710,8 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#engine-factory-building-engines-from-specs">5.4. Engine Factory: Building Engines from Specs</a><ul>
-<li><a class="reference internal" href="#geneticengineadapter-malthusjax-backend">5.4.1. GeneticEngineAdapter: MalthusJAX Backend</a></li>
-<li><a class="reference internal" href="#evosaxengineadapter-evosax-interoperability">5.4.2. EvosaxEngineAdapter: evosax Interoperability</a></li>
-<li><a class="reference internal" href="#engine-registry-and-engine-type-specifications">5.4.3. Engine Registry and Engine Type Specifications</a></li>
+<li><a class="reference internal" href="#resolving-native-engines-ga-mo-qd-island">5.4.1. Resolving Native Engines (GA, MO, QD, Island)</a></li>
+<li><a class="reference internal" href="#external-adapters-evosax-qdax-tensorneat">5.4.2. External Adapters (EvoSAX, QDAX, TensorNEAT)</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#integration-with-benchmarking-infrastructure">5.5. Integration with Benchmarking Infrastructure</a><ul>
@@ -750,7 +730,7 @@
 <li><a class="reference internal" href="#quick-one-off-experiments">5.7.1. Quick One-Off Experiments</a></li>
 <li><a class="reference internal" href="#reproducible-benchmark-suites">5.7.2. Reproducible Benchmark Suites</a></li>
 <li><a class="reference internal" href="#tuning-and-hyperparameter-search">5.7.3. Tuning and Hyperparameter Search</a></li>
-<li><a class="reference internal" href="#cross-framework-comparison-evosax-vs-malthusjax">5.7.4. Cross-Framework Comparison (evosax vs. MalthusJAX)</a></li>
+<li><a class="reference internal" href="#cross-framework-comparison-external-libraries-vs-malthusjax">5.7.4. Cross-Framework Comparison (External Libraries vs. MalthusJAX)</a></li>
 </ul>
 </li>
 </ul>

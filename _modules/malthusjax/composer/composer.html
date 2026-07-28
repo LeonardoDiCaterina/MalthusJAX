@@ -478,7 +478,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Run a full evolutionary experiment with programmatic operator specs.</span>
 
 <span class="sd">        This is the main entry point for interactive exploration and benchmarking.</span>
-<span class="sd">        It accepts operator specifications as string specs (for the ``&quot;malthusjax&quot;&quot;</span>
+<span class="sd">        It accepts operator specifications as string specs (for the ``&quot;malthusjax&quot;``</span>
 <span class="sd">        backend) or strategy names (for the ``&quot;evosax&quot;`` backend), orchestrates</span>
 <span class="sd">        multiple independent runs (one per seed), aggregates results, and returns</span>
 <span class="sd">        an :class:`ExperimentResult`.</span>
@@ -602,6 +602,7 @@
 
 <span class="sd">        backend : str, optional</span>
 <span class="sd">            Execution backend: ``&quot;malthusjax&quot;`` (default) or ``&quot;evosax&quot;``.</span>
+
 <span class="sd">            - ``&quot;malthusjax&quot;``: Uses MalthusJAX operators (requires</span>
 <span class="sd">              fitness/selection/crossover/mutation specs)</span>
 <span class="sd">            - ``&quot;evosax&quot;``: Uses evosax strategy (requires evosax_strategy; ignores</span>
@@ -641,9 +642,9 @@
 <span class="sd">            Directory to write Perfetto-compatible JAX profiler traces.</span>
 <span class="sd">            Default: ``None`` (disabled).</span>
 
-<span class="sd">            Returns</span>
-<span class="sd">            -------</span>
-<span class="sd">            ExperimentResult</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ExperimentResult</span>
 <span class="sd">            Result object containing per-seed run records and aggregation methods:</span>
 
 <span class="sd">            - ``.runs`` : List[:class:`RunResult`] — Individual runs, one per seed</span>
@@ -651,45 +652,45 @@
 <span class="sd">            - ``.combined_history(seed_field=&quot;seed&quot;)`` — All generation records with seed labels</span>
 <span class="sd">            - ``.canonical_summary`` — Best-of metrics from first seed</span>
 
-<span class="sd">            Raises</span>
-<span class="sd">            ------</span>
-<span class="sd">            ValueError</span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
 <span class="sd">            If operator specs have invalid format or unknown operator names.</span>
-<span class="sd">            RuntimeError</span>
+<span class="sd">        RuntimeError</span>
 <span class="sd">            If the underlying engine encounters a critical error during execution.</span>
 
-<span class="sd">            Examples</span>
-<span class="sd">            --------</span>
-<span class="sd">            MalthusJAX backend (default)::</span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        MalthusJAX backend (default)::</span>
 
 <span class="sd">            composer = Composer.create_default()</span>
 <span class="sd">            result = composer.quick_run(</span>
-<span class="sd">            fitness=&quot;sphere:dim=25&quot;,</span>
-<span class="sd">            selection=&quot;tournament:num_selections=25,tournament_size=3&quot;,</span>
-<span class="sd">            crossover=&quot;blend:alpha=0.5&quot;,</span>
-<span class="sd">            mutation=&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;,</span>
-<span class="sd">            pop_size=100,</span>
-<span class="sd">            generations=200,</span>
-<span class="sd">            seeds=(42, 43, 44),</span>
+<span class="sd">                fitness=&quot;sphere:dim=25&quot;,</span>
+<span class="sd">                selection=&quot;tournament:num_selections=25,tournament_size=3&quot;,</span>
+<span class="sd">                crossover=&quot;blend:alpha=0.5&quot;,</span>
+<span class="sd">                mutation=&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;,</span>
+<span class="sd">                pop_size=100,</span>
+<span class="sd">                generations=200,</span>
+<span class="sd">                seeds=(42, 43, 44),</span>
 <span class="sd">            )</span>
 <span class="sd">            print(result.aggregated_summary())</span>
 
-<span class="sd">            Evosax backend::</span>
+<span class="sd">        Evosax backend::</span>
 
 <span class="sd">            result = composer.quick_run(</span>
-<span class="sd">            backend=&quot;evosax&quot;,</span>
-<span class="sd">            evosax_strategy=&quot;OpenES&quot;,</span>
-<span class="sd">            fitness=&quot;sphere:dim=10&quot;,</span>
-<span class="sd">            pop_size=64,</span>
-<span class="sd">            generations=500,</span>
-<span class="sd">            seeds=(1, 2, 3),</span>
+<span class="sd">                backend=&quot;evosax&quot;,</span>
+<span class="sd">                evosax_strategy=&quot;OpenES&quot;,</span>
+<span class="sd">                fitness=&quot;sphere:dim=10&quot;,</span>
+<span class="sd">                pop_size=64,</span>
+<span class="sd">                generations=500,</span>
+<span class="sd">                seeds=(1, 2, 3),</span>
 <span class="sd">            )</span>
 
-<span class="sd">            No operator specs (uses StubEngine for testing the pipeline)::</span>
+<span class="sd">        No operator specs (uses StubEngine for testing the pipeline)::</span>
 
 <span class="sd">            result = composer.quick_run(</span>
-<span class="sd">            generations=50,</span>
-<span class="sd">            seeds=(1, 2),</span>
+<span class="sd">                generations=50,</span>
+<span class="sd">                seeds=(1, 2),</span>
 <span class="sd">            )</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">output_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1007,7 +1008,7 @@
 <span class="sd">            Default: 123.</span>
 <span class="sd">            (Only used if ``shared_initial_population=True``.)</span>
 
-<span class="sd">        **shared_kwargs : Any</span>
+<span class="sd">        \*\*shared_kwargs : Any</span>
 <span class="sd">            Default configuration applied to all pipelines (merged before</span>
 <span class="sd">            pipeline-specific overrides). Use for common settings like</span>
 <span class="sd">            ``fitness``, ``pop_size``, ``generations``, ``bounds``.</span>

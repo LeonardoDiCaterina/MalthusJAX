@@ -318,7 +318,8 @@
         <article role="main" id="furo-main-content">
           <section id="architecture-deep-dive-malthusjax-framework">
 <h1>Architecture Deep Dive: MalthusJAX Framework<a class="headerlink" href="#architecture-deep-dive-malthusjax-framework" title="Link to this heading">¶</a></h1>
-<p>MalthusJAX is architected as a vertical integration spanning six tiers—from low-level genome representations and fitness evaluation through evolutionary operators, orchestration engines, configuration-driven experiment composition, multi-seed benchmarking infrastructure, and finally visualization and analysis. This hierarchical organization establishes standardized interfaces at tier boundaries, permitting independent development of components while maintaining tight interoperability. The framework treats each tier as a distinct responsibility layer, with information flowing both upward (to higher-level abstractions) and downward (to lower-level implementations). By enforcing standardized contracts—PyTree genomes, pure functions for operators and evaluators, symmetric state/output tuples from engines—the design enables researchers to substitute components (e.g., swapping a crossover algorithm or evaluation function) without propagating changes through adjacent layers.</p>
+<p>MalthusJAX is architected as a vertical integration spanning six tiers—from low-level genome representations and fitness evaluation through evolutionary operators, orchestration engines, configuration-driven experiment composition, multi-seed benchmarking infrastructure, and finally visualization and analysis. This hierarchical organization establishes standardized interfaces at tier boundaries, permitting independent development of components while maintaining tight interoperability.</p>
+<p>The framework treats each tier as a distinct responsibility layer, with information flowing both upward (to higher-level abstractions) and downward (to lower-level implementations). By enforcing standardized contracts—PyTree genomes wrapped in batched Populations, generic variation mechanisms via PyTree flattening, symmetric state/output tuples from engines—the design enables researchers to substitute components (e.g., swapping a crossover algorithm or evaluation function) without propagating changes through adjacent layers.</p>
 <p>This chapter explains the foundational philosophy guiding the system’s organization, the concrete responsibilities and boundaries of each tier, how the framework’s six chapters map to these tiers, and the terminology used consistently throughout the thesis.</p>
 <section id="design-principles">
 <h2>1. Design Principles<a class="headerlink" href="#design-principles" title="Link to this heading">¶</a></h2>
@@ -330,12 +331,11 @@
 <h3>1.2 Standardized Contracts<a class="headerlink" href="#standardized-contracts" title="Link to this heading">¶</a></h3>
 <p>Each tier communicates with adjacent tiers through narrow, published interfaces:</p>
 <ul class="simple">
-<li><p><strong>Tier 0 ↔ Tier 1</strong>: Genomes must implement PyTree protocol; fitness evaluators must be pure functions.</p></li>
-<li><p><strong>Tier 1 ↔ Tier 2</strong>: Operators must implement <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">inputs,</span> <span class="pre">generation)</span> <span class="pre">→</span> <span class="pre">outputs</span></code> signature.</p></li>
-<li><p><strong>Tier 2 ↔ Tier 3</strong>: Engines must implement <code class="docutils literal notranslate"><span class="pre">init_state()</span></code> and <code class="docutils literal notranslate"><span class="pre">step()</span></code> returning standardized state/output tuples.</p></li>
-<li><p><strong>Tier 3 ↔ Tier 4</strong>: Experiments are serialized to <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> dataclass with JSON export.</p></li>
+<li><p><strong>Tier 0 ↔ Tier 1</strong>: Genomes must implement PyTree protocol and define their domain constraints via an <code class="docutils literal notranslate"><span class="pre">autocorrect()</span></code> method. Populations act as the batched containers holding these genomes along with engine state.</p></li>
+<li><p><strong>Tier 1 ↔ Tier 2</strong>: Operators must implement a <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method that accepts and returns a batched Population. For the Array-Family, this involves unwrapping the payload via <code class="docutils literal notranslate"><span class="pre">jax.tree_util.tree_leaves</span></code>, mapping Tier-1 kernels, and repacking.</p></li>
+<li><p><strong>Tier 2 ↔ Tier 3</strong>: Engines (whether Genetic, MO, QD, or Island Models) must implement <code class="docutils literal notranslate"><span class="pre">init_state()</span></code> and <code class="docutils literal notranslate"><span class="pre">step()</span></code> returning standardized state/output tuples. <code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code> governs the PRNG budgets for these steps.</p></li>
+<li><p><strong>Tier 3 ↔ Tier 4</strong>: Experiments, constructed either natively or via Composer Adapters (QDAX, EvoSAX), are serialized to <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> dataclasses with JSON export.</p></li>
 </ul>
-<p>These contracts are enforced through type annotations and protocol definitions.</p>
 </section>
 <section id="code-quality-enforcement">
 <h3>1.3 Code Quality Enforcement<a class="headerlink" href="#code-quality-enforcement" title="Link to this heading">¶</a></h3>
@@ -357,19 +357,19 @@
   └─ Single-run and multi-run analysis plots
 
 Tier 4: Benchmarking
-  └─ Multi-seed orchestration, result aggregation, I/O
+  └─ Multi-seed orchestration, statistical tests, sign-normalized metrics
 
 Tier 3: Composer
-  └─ Config-driven experiment specification and resolution
+  └─ MalthusComposer DAGs, Config resolution, External Adapters (QDAX, EvoSAX, TensorNEAT)
 
 Tier 2: Engine
-  └─ Evolutionary loop implementation, JIT compilation
+  └─ Evolution loop (Genetic, NSGA-II, MAP-Elites, IslandModel), ResourceMapper, XLA compilation
 
 Tier 1: Operators
-  └─ Selection, Crossover, Mutation implementations
+  └─ Selection, Crossover, Mutation (Tree-Leaves Generic), Emitters, Parity Ops
 
 Tier 0: Core
-  └─ Genomes, Fitness Evaluators, PRNG utilities
+  └─ Genomes (Real, Series, TensorNEAT), Batched Populations (MO, QD), Fitness Evaluators
 </pre></div>
 </div>
 <p>Information flows bidirectionally: higher tiers use lower-tier abstractions; lower tiers produce data consumed by higher tiers (e.g., history arrays from Tier 2 feed into Tier 4 result objects).</p>
@@ -387,23 +387,23 @@ Tier 0: Core
 <tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.core</span></code></p></td>
-<td><p>Immutable data structures (genomes, populations), fitness evaluation, PRNG state management</p></td>
+<td><p>Immutable data structures (genomes, MO/QD populations), fitness evaluation</p></td>
 </tr>
 <tr class="row-odd"><td><p>1</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.operators</span></code></p></td>
-<td><p>Pure genetic operators implementing standardized call signatures</p></td>
+<td><p>Pure genetic operators and stateful Emitters mapping over batched containers</p></td>
 </tr>
 <tr class="row-even"><td><p>2</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.engine</span></code></p></td>
-<td><p>Evolution loop orchestration, XLA compilation, state threading</p></td>
+<td><p>Orchestrators (Genetic, MO, QD, Islands), PRNG budgeting (<code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>3</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.composer</span></code></p></td>
-<td><p>String-to-operator resolution, TOML parsing, multi-backend support</p></td>
+<td><p>String-to-operator resolution, ecosystem adapters (QDAX, EvoSAX)</p></td>
 </tr>
 <tr class="row-even"><td><p>4</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.benchmarking</span></code></p></td>
-<td><p>Multi-seed experiment execution, result serialization, format-agnostic I/O</p></td>
+<td><p>Multi-seed orchestration, statistical validation, cross-framework normalization</p></td>
 </tr>
 <tr class="row-odd"><td><p>5</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">malthusjax.visualization</span></code></p></td>
@@ -418,11 +418,15 @@ Tier 0: Core
 <h2>3. Terminology<a class="headerlink" href="#terminology" title="Link to this heading">¶</a></h2>
 <p>The following terms are used with consistent meaning throughout this thesis:</p>
 <ul class="simple">
-<li><p><strong>Genome</strong>: An immutable PyTree containing a JAX array and structural metadata. Represents a candidate solution.</p></li>
-<li><p><strong>Population</strong>: A collection of genomes with associated fitness values and optional auxiliary metrics (distance matrices, KPIs).</p></li>
-<li><p><strong>Evaluator</strong>: A pure function computing scalar fitness from a genome.</p></li>
-<li><p><strong>Operator</strong>: A pure function transforming population state (e.g., Selection, Crossover, Mutation).</p></li>
-<li><p><strong>Engine</strong>: The orchestrator implementing the evolution loop via Tier 2.</p></li>
+<li><p><strong>Genome</strong>: An immutable PyTree containing a genetic payload (often accessed via <code class="docutils literal notranslate"><span class="pre">jax.tree_util.tree_leaves</span></code>) and structural metadata. Represents a single, unbatched candidate solution.</p></li>
+<li><p><strong>Population</strong>: A batched container wrapping a Genome instance alongside engine-level state (e.g., scalar <code class="docutils literal notranslate"><span class="pre">fitness</span></code>, MO <code class="docutils literal notranslate"><span class="pre">pareto_rank</span></code>, QD <code class="docutils literal notranslate"><span class="pre">descriptors</span></code>). Operations on populations preserve the underlying genome structure.</p></li>
+<li><p><strong>Evaluator</strong>: A pure function computing fitness from a batched population of genomes.</p></li>
+<li><p><strong>Operator</strong>: A pure function (or stateful struct) transforming a Population (e.g., Selection, Crossover, Mutation).</p></li>
+<li><p><strong>Emitter</strong>: A specialized operator category designed for complex, topological, or stateful variation (e.g., modifying TensorNEAT architectures or maintaining distribution statistics).</p></li>
+<li><p><strong>Engine</strong>: An orchestrator implementing an evolution loop (e.g., standard GA, NSGA-II, MAP-Elites).</p></li>
+<li><p><strong>ResourceMapper</strong>: The deterministic budget manager ensuring all operators receive statically sized PRNG keys, maintaining GSPMD compatibility.</p></li>
+<li><p><strong>Pareto Front</strong>: In Multi-Objective contexts, the set of non-dominated solutions stored within an MO Population.</p></li>
+<li><p><strong>Archive</strong>: In Quality-Diversity contexts, the grid or behavioral space tracking elites, stored within a QD Population.</p></li>
 <li><p><strong>PRNG Key</strong>: JAX’s explicit random state; used exactly once and never reused.</p></li>
 <li><p><strong>Generation</strong>: One iteration of the evolution loop.</p></li>
 <li><p><strong>ExperimentResult</strong>: Serialized container holding all runs, histories, and aggregated metrics from an experiment.</p></li>

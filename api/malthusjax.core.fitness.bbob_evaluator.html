@@ -328,8 +328,15 @@ nicely with our population and maximization conventions.</p>
 <dd><p>Bases: <a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig" title="malthusjax.core.fitness.base.BaseEvaluatorConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEvaluatorConfig</span></code></a></p>
 <p>Configuration for BBOB black-box optimization benchmarks.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>fn_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – BBOB function identifier (lowercase: ‘sphere’, ‘rastrigin’, etc).</p></li>
+<li><p><strong>num_dims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Problem dimensionality.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Seed ID for problem instance (rotation matrices, shifts).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
 <li><p><strong>fn_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
 <li><p><strong>num_dims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
@@ -339,50 +346,17 @@ nicely with our population and maximization conventions.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBConfig.fn_name">
-<span class="sig-name descname"><span class="pre">fn_name</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.fn_name" title="Link to this definition">¶</a></dt>
-<dd><p>BBOB function identifier (lowercase: ‘sphere’, ‘rastrigin’, etc).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">fn_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sphere'</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.fn_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBConfig.num_dims">
-<span class="sig-name descname"><span class="pre">num_dims</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.num_dims" title="Link to this definition">¶</a></dt>
-<dd><p>Problem dimensionality.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">num_dims</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.num_dims" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.bbob_evaluator.BBOBConfig.seed">
-<span class="sig-name descname"><span class="pre">seed</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.seed" title="Link to this definition">¶</a></dt>
-<dd><p>Seed ID for problem instance (rotation matrices, shifts).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">fn_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sphere'</span></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">num_dims</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">seed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.seed" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -568,9 +542,6 @@ not considering maximize flag).</p>
 <li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.fn_name"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.fn_name</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.num_dims"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.num_dims</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.seed"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.seed</span></code></a></li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.fn_name</span></code></a></li>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.num_dims</span></code></a></li>
-<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.seed</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.replace"><code class="docutils literal notranslate"><span class="pre">BBOBConfig.replace()</span></code></a></li>
 </ul>
 </li>

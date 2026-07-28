@@ -322,25 +322,23 @@
 <p>Provides pure-JAX schedule computation that is safe inside jax.lax.scan.
 Replaces Python callable schedules (CV-3/JR-4) which caused
 ConcretizationTypeError or silently froze schedule values.</p>
-<dl>
-<dt>Usage:</dt><dd><p>from malthusjax.engine.schedules import ScheduleType, compute_scheduled_strength</p>
-<p># Inside engine params:
-params = GeneticEngineParams(</p>
-<blockquote>
-<div><p>schedule_type=ScheduleType.LINEAR_DECAY,
-initial_strength=1.0,
-final_strength=0.01,</p>
-</div></blockquote>
-<p>)</p>
-<p># Inside jax.lax.scan (safe — all ops are jnp):
-strength = compute_scheduled_strength(</p>
-<blockquote>
-<div><p>ScheduleType.LINEAR_DECAY, generation, max_generations,
-initial_strength=1.0, final_strength=0.01,</p>
-</div></blockquote>
-<p>)</p>
-</dd>
-</dl>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.schedules</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScheduleType</span><span class="p">,</span> <span class="n">compute_scheduled_strength</span>
+
+<span class="c1"># Inside engine params:</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">GeneticEngineParams</span><span class="p">(</span>
+    <span class="n">schedule_type</span><span class="o">=</span><span class="n">ScheduleType</span><span class="o">.</span><span class="n">LINEAR_DECAY</span><span class="p">,</span>
+    <span class="n">initial_strength</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">final_strength</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Inside jax.lax.scan (safe — all ops are jnp):</span>
+<span class="n">strength</span> <span class="o">=</span> <span class="n">compute_scheduled_strength</span><span class="p">(</span>
+    <span class="n">ScheduleType</span><span class="o">.</span><span class="n">LINEAR_DECAY</span><span class="p">,</span> <span class="n">generation</span><span class="p">,</span> <span class="n">max_generations</span><span class="p">,</span>
+    <span class="n">initial_strength</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">final_strength</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.schedules.ScheduleType">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">ScheduleType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#ScheduleType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType" title="Link to this definition">¶</a></dt>

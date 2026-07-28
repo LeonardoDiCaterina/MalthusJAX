@@ -330,8 +330,16 @@ structural distance metrics, plus the corresponding batched container.</p>
 <p>Defines program structure: L instructions, N external inputs, num_ops
 distinct opcodes, max_arity arguments per operation.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Total instruction count (L).</p></li>
+<li><p><strong>num_inputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of external inputs (N).</p></li>
+<li><p><strong>num_ops</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Size of opcode alphabet.</p></li>
+<li><p><strong>max_arity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum operation arity.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>num_inputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>num_ops</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
@@ -341,66 +349,22 @@ distinct opcodes, max_arity arguments per operation.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.length">
-<span class="sig-name descname"><span class="pre">length</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.length" title="Link to this definition">¶</a></dt>
-<dd><p>Total instruction count (L).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_inputs">
-<span class="sig-name descname"><span class="pre">num_inputs</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_inputs" title="Link to this definition">¶</a></dt>
-<dd><p>Number of external inputs (N).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">num_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_inputs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_ops">
-<span class="sig-name descname"><span class="pre">num_ops</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_ops" title="Link to this definition">¶</a></dt>
-<dd><p>Size of opcode alphabet.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">num_ops</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_ops" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity">
-<span class="sig-name descname"><span class="pre">max_arity</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity" title="Link to this definition">¶</a></dt>
-<dd><p>Maximum operation arity.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">num_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">num_ops</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id3">
-<span class="sig-name descname"><span class="pre">max_arity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">max_arity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -684,10 +648,6 @@ placeholders.</p>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_inputs"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_inputs</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_ops"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_ops</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.max_arity</span></code></a></li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.length</span></code></a></li>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_inputs</span></code></a></li>
-<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_ops</span></code></a></li>
-<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.max_arity</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.replace()</span></code></a></li>
 </ul>
 </li>

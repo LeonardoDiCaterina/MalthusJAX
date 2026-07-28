@@ -477,8 +477,16 @@ placeholders.</p>
 <p>Defines program structure: L instructions, N external inputs, num_ops
 distinct opcodes, max_arity arguments per operation.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Total instruction count (L).</p></li>
+<li><p><strong>num_inputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of external inputs (N).</p></li>
+<li><p><strong>num_ops</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Size of opcode alphabet.</p></li>
+<li><p><strong>max_arity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum operation arity.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>num_inputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>num_ops</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
@@ -488,66 +496,22 @@ distinct opcodes, max_arity arguments per operation.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.LinearGenomeConfig.length">
-<span class="sig-name descname"><span class="pre">length</span></span><a class="headerlink" href="#malthusjax.core.genome.LinearGenomeConfig.length" title="Link to this definition">¶</a></dt>
-<dd><p>Total instruction count (L).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.LinearGenomeConfig.length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.LinearGenomeConfig.num_inputs">
-<span class="sig-name descname"><span class="pre">num_inputs</span></span><a class="headerlink" href="#malthusjax.core.genome.LinearGenomeConfig.num_inputs" title="Link to this definition">¶</a></dt>
-<dd><p>Number of external inputs (N).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">num_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.LinearGenomeConfig.num_inputs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.LinearGenomeConfig.num_ops">
-<span class="sig-name descname"><span class="pre">num_ops</span></span><a class="headerlink" href="#malthusjax.core.genome.LinearGenomeConfig.num_ops" title="Link to this definition">¶</a></dt>
-<dd><p>Size of opcode alphabet.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">num_ops</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.LinearGenomeConfig.num_ops" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.LinearGenomeConfig.max_arity">
-<span class="sig-name descname"><span class="pre">max_arity</span></span><a class="headerlink" href="#malthusjax.core.genome.LinearGenomeConfig.max_arity" title="Link to this definition">¶</a></dt>
-<dd><p>Maximum operation arity.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">num_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">num_ops</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id3">
-<span class="sig-name descname"><span class="pre">max_arity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">max_arity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.LinearGenomeConfig.max_arity" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -841,7 +805,7 @@ The effective genome_length is the product of all dimensions, e.g.:
 - shape=(64,) → length = 64 bits
 - shape=(8, 8) → length = 64 bits
 - shape=(16, 16, 4) → length = 1024 bits</p>
-<p>The <a href="#id4"><span class="problematic" id="id5">:property:`resolved_shape`</span></a> method handles backward-compatibility
+<p>The <a class="reference internal" href="#malthusjax.core.genome.BinaryGenomeConfig.resolved_shape" title="malthusjax.core.genome.BinaryGenomeConfig.resolved_shape"><code class="xref py py-attr docutils literal notranslate"><span class="pre">resolved_shape</span></code></a> method handles backward-compatibility
 by honoring the legacy <cite>length</cite> parameter if provided.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.BinaryGenomeConfig.shape">
@@ -1133,8 +1097,8 @@ Python-side validation so it remains JIT-traceable.</p>
 <p>Static configuration for continuous real-valued genomes.</p>
 <p>This class defines the search space and numerical properties for all genomes
 created with this configuration. All individuals share the same shape and bounds.</p>
-<section id="id6">
-<h2>Parameters<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h2>
+<section id="id1">
+<h2>Parameters<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <dl>
 <dt>shape<span class="classifier">tuple[int, …]</span></dt><dd><p>Shape of the real-valued vector. Defines the dimensionality and array structure.
 Examples:
@@ -1161,8 +1125,8 @@ Default: jnp.float32</p>
 </dd>
 </dl>
 </section>
-<section id="id7">
-<h2>Notes<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h2>
+<section id="id2">
+<h2>Notes<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
 <p>** CRITICAL: Bounds Enforcement**:</p>
 <p>Bounds are <strong>enforced during initialization</strong> (via <a class="reference internal" href="#malthusjax.core.genome.RealGenome.random_init" title="malthusjax.core.genome.RealGenome.random_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">RealGenome.random_init()</span></code></a>).
 However, bounds are <strong>NOT automatically enforced after mutation or crossover</strong>.</p>
@@ -1473,8 +1437,15 @@ JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Configuration for discrete categorical genomes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>num_categories</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Cardinality of the discrete alphabet.</p></li>
+<li><p><strong>shape</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>) – Logical shape of the categorical sequence.</p></li>
+<li><p><strong>dtype</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)"><em>numpy.dtype</em></a><em>[</em><em>Any</em><em>]</em>) – JAX dtype for category indices; typically jnp.int32.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>num_categories</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
 <li><p><strong>dtype</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)"><em>dtype</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
@@ -1483,50 +1454,17 @@ JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.CategoricalGenomeConfig.num_categories">
-<span class="sig-name descname"><span class="pre">num_categories</span></span><a class="headerlink" href="#malthusjax.core.genome.CategoricalGenomeConfig.num_categories" title="Link to this definition">¶</a></dt>
-<dd><p>Cardinality of the discrete alphabet.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">num_categories</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.genome.CategoricalGenomeConfig.num_categories" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.CategoricalGenomeConfig.shape">
-<span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#malthusjax.core.genome.CategoricalGenomeConfig.shape" title="Link to this definition">¶</a></dt>
-<dd><p>Logical shape of the categorical sequence.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …]</p>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.genome.CategoricalGenomeConfig.shape" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.CategoricalGenomeConfig.dtype">
 <span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#malthusjax.core.genome.CategoricalGenomeConfig.dtype" title="Link to this definition">¶</a></dt>
-<dd><p>JAX dtype for category indices; typically jnp.int32.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.5)">numpy.dtype</a>[Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id8">
-<span class="sig-name descname"><span class="pre">num_categories</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id9">
-<span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#id9" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id10">
-<span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#id10" title="Link to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.numpy.int32.html#jax.numpy.int32" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int32</span></code></a></p>
 </dd></dl>
 
@@ -1656,9 +1594,6 @@ JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.num_categories"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#id0"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#id1"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#id2"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.init_population()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.replace()</span></code></a></li>
 </ul>
@@ -1694,10 +1629,6 @@ JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_inputs"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_inputs</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.linear_genome.LinearGenomeConfig.num_ops"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_ops</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.max_arity</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html#id0"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.length</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html#id1"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_inputs</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html#id2"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_ops</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html#id3"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.max_arity</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.linear_genome.LinearGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.replace()</span></code></a></li>
 </ul>
 </li>
@@ -1841,10 +1772,6 @@ JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
 <li><a class="reference internal" href="#malthusjax.core.genome.LinearGenomeConfig.num_inputs"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_inputs</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.LinearGenomeConfig.num_ops"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_ops</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.LinearGenomeConfig.max_arity"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.max_arity</span></code></a></li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.length</span></code></a></li>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_inputs</span></code></a></li>
-<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.num_ops</span></code></a></li>
-<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.max_arity</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.LinearGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">LinearGenomeConfig.replace()</span></code></a></li>
 </ul>
 </li>
@@ -1940,9 +1867,6 @@ JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
 <li><a class="reference internal" href="#malthusjax.core.genome.CategoricalGenomeConfig.num_categories"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.CategoricalGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.CategoricalGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
-<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
-<li><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
-<li><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.CategoricalGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.init_population()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.CategoricalGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.replace()</span></code></a></li>
 </ul>

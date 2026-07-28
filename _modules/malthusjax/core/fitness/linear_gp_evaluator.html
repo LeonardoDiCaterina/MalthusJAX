@@ -502,7 +502,7 @@
 <div class="viewcode-block" id="op_len">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_len">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_len</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Euclidean length sqrt(x**2 + y**2).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Euclidean length ``sqrt(x**2 + y**2)``.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
 
 
@@ -547,7 +547,7 @@
 <div class="viewcode-block" id="op_step">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_step">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_step</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Step function: returns -1 if *x*&lt;0 else 1.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Step function: returns -1 if ``x &lt; 0`` else 1.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
 
 
@@ -556,7 +556,7 @@
 <div class="viewcode-block" id="op_if">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_if">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_if</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ternary conditional: choose *y* if *x*&lt;0 else *z*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ternary conditional: choose *y* if ``x &lt; 0`` else *z*.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
