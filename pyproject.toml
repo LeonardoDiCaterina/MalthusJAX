@@ -28,11 +28,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Optional JAX backends (use via e.g. `pip install -e "[cuda13]"`)
+# Optional JAX backends (use via e.g. `pip install -e ".[cuda13]"`)
 cuda13 = ["jax[cuda13]>=0.4.0"]
 cuda12 = ["jax[cuda12]>=0.4.0"]
 cuda11 = ["jax[cuda11]>=0.4.0"]
 cpu = ["jax[cpu]>=0.4.0"]
+
+# Modular Integrations
+evosax = ["evosax"]
+qdax = ["qdax"]
+tensorneat = ["tensorneat"]
+rl = ["gymnax", "brax", "jumanji"]
+bbobax = ["bbobax"]
+kozax = ["kozax"]
 
 dev = [
     "pytest>=7.0.0",
@@ -61,15 +69,14 @@ examples = [
 benchmarks = [
     "pandas>=2.0.0",
     "scipy>=1.9.0",
-    "evosax",
-    "bbobax",
     "toml",
     "tomli>=2.0.0; python_version < '3.11'",
     "statsmodels>=0.14.0",
     "seaborn>=0.12.0",
     "pingouin>=0.5.0",
 ]
-all = ["malthusjax[dev,docs,examples,benchmarks]"]
+all-integrations = ["malthusjax[evosax,qdax,tensorneat,rl,bbobax,kozax]"]
+all = ["malthusjax[dev,docs,examples,benchmarks,all-integrations]"]
 
 [project.urls]
 Homepage = "https://github.com/LeonardoDiCaterina/MalthusJAX"
