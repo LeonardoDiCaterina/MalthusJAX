@@ -89,3 +89,78 @@ for i in range(3):
         final_gen = result.runs[i].history[-1]
         print(f"Final Best Fitness: {final_gen['best_fitness']}")
 ```
+
+## Integrating External Libraries
+
+MalthusJAX's Composer integrates seamlessly with external optimization libraries. For instance, you can use the **EvoSAX** backend instead of native MalthusJAX operators by simply specifying `backend="evosax"` and selecting a strategy:
+
+```python
+from malthusjax.composer import Composer
+
+composer = Composer.create_default()
+
+result = composer.quick_run(
+    fitness="bbob:fn_name=sphere,dim=10",
+    backend="evosax",                     # Use the EvoSAX backend!
+    evosax_strategy="CMA_ES",             # Select any EvoSAX strategy
+    pop_size=64,
+    generations=100,
+    seeds=(42, 43)
+)
+
+print(result.aggregated_summary())
+```
+
+For advanced Quality-Diversity experiments, MalthusJAX provides native adapter builder functions (e.g., `build_qdax_engine`) that translate MAP-Elites grids seamlessly into the unified `Engine` protocol:
+
+```python
+import jax
+import jax.numpy as jnp
+import functools
+from qdax.core.map_elites import MAPElites
+from qdax.core.emitters.standard_emitters import MixingEmitter
+from qdax.utils.metrics import default_qd_metrics
+from qdax.core.containers.mapelites_repertoire import compute_cvt_centroids
+from malthusjax.composer.qdax_adapter import build_qdax_engine
+
+# We wrap it in a mock object since build_qdax_engine looks for .scoring_function
+class NativeEvaluator:
+    def scoring_function(self, genotypes, random_key):
+        # Sphere function negated for maximization
+        fitnesses = -jnp.sum(jnp.square(genotypes), axis=-1)
+        # Map the first two dimensions of the genotype into the [0, 1] range as descriptors
+        descriptors = jnp.clip(genotypes[:, :2] / 10.0 + 0.5, 0.0, 1.0)
+        return fitnesses, descriptors, {}
+
+# 1. Prepare QDAX Centroids and Emitters
+centroids = compute_cvt_centroids(
+    num_descriptors=2, num_init_cvt_samples=10000, 
+    num_centroids=100, minval=0.0, maxval=1.0, key=jax.random.PRNGKey(0)
+)
+
+emitter = MixingEmitter(
+    mutation_fn=lambda x, key: x + jax.random.normal(key, x.shape) * 0.1,
+    variation_fn=lambda x1, x2, key: x1,
+    variation_percentage=0.5,
+    batch_size=50
+)
+
+# 2. Wrap them directly into a MalthusJAX engine
+engine = build_qdax_engine(
+    strategy_cls=MAPElites,
+    emitter=emitter,
+    metrics_function=functools.partial(default_qd_metrics, qd_offset=0.0),
+    evaluator=NativeEvaluator(),
+    eval_mode="native",
+    init_variables=jnp.ones((50, 10)) * 5.0,
+    centroids=centroids,
+    pop_size=50,
+    generations=100,
+    history_metrics=["qd_score", "coverage"]
+)
+
+# 3. Run on the GPU at maximum speed
+results = engine.run_once(jax.random.PRNGKey(42))
+print(f"Final QD Score: {results['history'][-1]['qd_score']:.2f}")
+print(f"Final Coverage: {results['history'][-1]['coverage']:.2f}")
+```

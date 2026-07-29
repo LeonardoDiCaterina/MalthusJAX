@@ -397,6 +397,78 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
 </pre></div>
 </div>
 </section>
+<section id="integrating-external-libraries">
+<h2>Integrating External Libraries<a class="headerlink" href="#integrating-external-libraries" title="Link to this heading">¶</a></h2>
+<p>MalthusJAX’s Composer integrates seamlessly with external optimization libraries. For instance, you can use the <strong>EvoSAX</strong> backend instead of native MalthusJAX operators by simply specifying <code class="docutils literal notranslate"><span class="pre">backend=&quot;evosax&quot;</span></code> and selecting a strategy:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composer</span>
+
+<span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;bbob:fn_name=sphere,dim=10&quot;</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>                     <span class="c1"># Use the EvoSAX backend!</span>
+    <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">&quot;CMA_ES&quot;</span><span class="p">,</span>             <span class="c1"># Select any EvoSAX strategy</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>For advanced Quality-Diversity experiments, MalthusJAX provides native adapter builder functions (e.g., <code class="docutils literal notranslate"><span class="pre">build_qdax_engine</span></code>) that translate MAP-Elites grids seamlessly into the unified <code class="docutils literal notranslate"><span class="pre">Engine</span></code> protocol:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qdax.core.map_elites</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAPElites</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qdax.core.emitters.standard_emitters</span><span class="w"> </span><span class="kn">import</span> <span class="n">MixingEmitter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qdax.utils.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_qd_metrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qdax.core.containers.mapelites_repertoire</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_cvt_centroids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.qdax_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_qdax_engine</span>
+
+<span class="c1"># We wrap it in a mock object since build_qdax_engine looks for .scoring_function</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NativeEvaluator</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scoring_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genotypes</span><span class="p">,</span> <span class="n">random_key</span><span class="p">):</span>
+        <span class="c1"># Sphere function negated for maximization</span>
+        <span class="n">fitnesses</span> <span class="o">=</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">genotypes</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Map the first two dimensions of the genotype into the [0, 1] range as descriptors</span>
+        <span class="n">descriptors</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mf">10.0</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fitnesses</span><span class="p">,</span> <span class="n">descriptors</span><span class="p">,</span> <span class="p">{}</span>
+
+<span class="c1"># 1. Prepare QDAX Centroids and Emitters</span>
+<span class="n">centroids</span> <span class="o">=</span> <span class="n">compute_cvt_centroids</span><span class="p">(</span>
+    <span class="n">num_descriptors</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_init_cvt_samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> 
+    <span class="n">num_centroids</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">minval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">emitter</span> <span class="o">=</span> <span class="n">MixingEmitter</span><span class="p">(</span>
+    <span class="n">mutation_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">variation_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">x1</span><span class="p">,</span>
+    <span class="n">variation_percentage</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">50</span>
+<span class="p">)</span>
+
+<span class="c1"># 2. Wrap them directly into a MalthusJAX engine</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">build_qdax_engine</span><span class="p">(</span>
+    <span class="n">strategy_cls</span><span class="o">=</span><span class="n">MAPElites</span><span class="p">,</span>
+    <span class="n">emitter</span><span class="o">=</span><span class="n">emitter</span><span class="p">,</span>
+    <span class="n">metrics_function</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">default_qd_metrics</span><span class="p">,</span> <span class="n">qd_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
+    <span class="n">evaluator</span><span class="o">=</span><span class="n">NativeEvaluator</span><span class="p">(),</span>
+    <span class="n">eval_mode</span><span class="o">=</span><span class="s2">&quot;native&quot;</span><span class="p">,</span>
+    <span class="n">init_variables</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">50</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span> <span class="o">*</span> <span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">centroids</span><span class="o">=</span><span class="n">centroids</span><span class="p">,</span>
+    <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">history_metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;qd_score&quot;</span><span class="p">,</span> <span class="s2">&quot;coverage&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># 3. Run on the GPU at maximum speed</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run_once</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final QD Score: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;qd_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final Coverage: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;coverage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 
         </article>
@@ -458,6 +530,7 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
 <li><a class="reference internal" href="#installation">Installation</a></li>
 <li><a class="reference internal" href="#running-your-first-experiment-toml">Running Your First Experiment (TOML)</a></li>
 <li><a class="reference internal" href="#running-via-the-python-api">Running via the Python API</a></li>
+<li><a class="reference internal" href="#integrating-external-libraries">Integrating External Libraries</a></li>
 </ul>
 </li>
 </ul>
