@@ -17,6 +17,10 @@ from malthusjax.engine.genetic_fastengine import (
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
+from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
+from malthusjax.core.fitness.binary_evaluators import BinarySumConfig, BinarySumEvaluator
+from malthusjax.operators.crossover.binary import UniformCrossover
+from malthusjax.operators.mutation.binary import BitFlipMutation
 
 
 @pytest.fixture
@@ -99,3 +103,67 @@ def initialized_state(genetic_engine, prng_key):
     This is the post-baking state after `init_state()` completes.
     """
     return genetic_engine.init_state(prng_key)
+
+
+@pytest.fixture
+def make_engine():
+    """
+    Factory fixture for creating customized genetic engines for tests.
+    
+    This replaces the need for manual `setUp()` boilerplate across tests.
+    """
+    def _make(
+        pop_size=100,
+        genome_shape=(10,),
+        bounds=(-5.0, 5.0),
+        elitism=2,
+        num_generations=10,
+        genome_type="real",
+        maximize=False,
+        mutation_rate=0.1,
+        mutation_strength=0.5,
+        track_best=None,
+        schedule_type=None,
+        **kwargs
+    ):
+        from malthusjax.engine.schedules import TrackBest
+        
+        # Base engine params
+        params_kwargs = {
+            "pop_size": pop_size,
+            "elitism": elitism,
+            "num_generations": num_generations,
+        }
+        if track_best is not None:
+            params_kwargs["track_best"] = track_best
+        if schedule_type is not None:
+            params_kwargs["schedule_type"] = schedule_type
+            
+        params = GeneticEngineParams(**params_kwargs)
+
+        if genome_type == "real":
+            genome_cfg = RealGenomeConfig(shape=genome_shape, bounds=bounds)
+            evaluator = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=genome_shape[0], maximize=maximize))
+            selection = ElitePoolSelection(num_selections=pop_size, elite_k=max(1, elitism))
+            crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)
+            mutation = GaussianMutation(num_offspring=1, mutation_rate=mutation_rate, mutation_strength=mutation_strength, clip=True)
+        elif genome_type == "binary":
+            genome_cfg = BinaryGenomeConfig(shape=genome_shape, p=0.5)
+            evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=maximize))
+            selection = ElitePoolSelection(num_selections=pop_size, elite_k=max(1, elitism))
+            crossover = UniformCrossover(num_offspring=2, crossover_rate=0.5)
+            mutation = BitFlipMutation(num_offspring=1, mutation_rate=mutation_rate)
+        else:
+            raise ValueError(f"Unsupported genome type for factory: {genome_type}")
+
+        return GeneticEngine(
+            engine_params=params,
+            genome_config=genome_cfg,
+            evaluator=evaluator,
+            selection=selection,
+            crossover=crossover,
+            mutation=mutation,
+            enable_progress_bar=False,
+            **kwargs
+        )
+    return _make
