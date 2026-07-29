@@ -468,6 +468,40 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final Coverage: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;coverage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Similarly, we can evolve neural network topologies using <strong>TensorNEAT</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorneat.algorithm.neat</span><span class="w"> </span><span class="kn">import</span> <span class="n">NEAT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorneat.genome.default</span><span class="w"> </span><span class="kn">import</span> <span class="n">DefaultGenome</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.tensorneat_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_tensorneat_engine</span>
+
+<span class="c1"># 1. Define a standard TensorNEAT Problem interface</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MockProblem</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">forward</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="n">forward</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">outputs</span><span class="p">))</span>
+
+<span class="c1"># 2. Setup TensorNEAT algorithm and Problem</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">MockProblem</span><span class="p">()</span>
+<span class="n">problem_state</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+<span class="n">genome</span> <span class="o">=</span> <span class="n">DefaultGenome</span><span class="p">(</span><span class="n">num_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">algorithm</span> <span class="o">=</span> <span class="n">NEAT</span><span class="p">(</span><span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">)</span>
+
+<span class="c1"># 3. Build the engine and run natively on GPU!</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">build_tensorneat_engine</span><span class="p">(</span>
+    <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">evaluator</span><span class="o">=</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">problem_state</span><span class="p">),</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">history_metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;best_fitness_in_generation&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run_once</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final best fitness: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">][</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 
