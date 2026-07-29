@@ -305,6 +305,42 @@ results = engine.run_once(jax.random.PRNGKey(42))
 print(f"Final QD Score: {results['history'][-1]['qd_score']:.2f}")
 print(f"Final Coverage: {results['history'][-1]['coverage']:.2f}")
 ```
+
+Similarly, we can evolve neural network topologies using **TensorNEAT**:
+
+```python
+import jax
+import jax.numpy as jnp
+from tensorneat.algorithm.neat import NEAT
+from tensorneat.genome.default import DefaultGenome
+from malthusjax.composer.tensorneat_adapter import build_tensorneat_engine
+
+# 1. Define a standard TensorNEAT Problem interface
+class MockProblem:
+    def setup(self):
+        return None
+    def evaluate(self, state, key, forward, params):
+        inputs = jnp.array([0.0, 0.0])
+        outputs = forward(state, params, inputs)
+        return -jnp.sum(jnp.square(outputs))
+
+# 2. Setup TensorNEAT algorithm and Problem
+problem = MockProblem()
+problem_state = problem.setup()
+genome = DefaultGenome(num_inputs=2, num_outputs=1)
+algorithm = NEAT(pop_size=50, genome=genome)
+
+# 3. Build the engine and run natively on GPU!
+engine = build_tensorneat_engine(
+    algorithm=algorithm,
+    evaluator=(problem, problem_state),
+    generations=100,
+    history_metrics=["best_fitness_in_generation"]
+)
+
+results = engine.run_once(jax.random.PRNGKey(42))
+print(f"Final best fitness: {results['summary']['best_fitness']:.3f}")
+```
 ---
 
 ## Extending MalthusJAX with Decorators

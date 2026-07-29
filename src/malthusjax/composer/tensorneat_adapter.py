@@ -116,8 +116,12 @@ def build_tensorneat_engine(
     elif pop_size is None:
         pop_size = 100 # Safe fallback
         
+    problem_state = None
     if eval_mode == EvalMode.NATIVE:
-        problem = evaluator
+        if isinstance(evaluator, tuple):
+            problem, problem_state = evaluator
+        else:
+            problem = evaluator
         mjx_evaluator = None
     else:
         problem = None
@@ -127,6 +131,7 @@ def build_tensorneat_engine(
         strategy=algorithm,
         params=None,
         problem=problem,
+        problem_state=problem_state,
         pop_size=pop_size,
         num_generations=generations,
         maximize=maximize,
