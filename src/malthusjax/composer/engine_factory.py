@@ -1,0 +1,311 @@
+"""Helpers for constructing engines from string/catalog specifications.
+
+This module contains adapters and factory functions that bridge the
+low-level :class:`~malthusjax.engine.GeneticEngine` implementation with the
+higher-level Composer infrastructure.  The primary entry points are
+``build_engine`` and ``build_engine_from_catalog`` which take resolved
+operator instances (or strings) along with configuration parameters and
+produce a :class:`GeneticEngineAdapter` conforming to the
+:class:`~malthusjax.benchmarking.runner.Engine` protocol.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from dataclasses import replace
+from typing import cast, Sequence
+
+import chex
+import jax.numpy as jnp
+
+from ..core.genome.binary_genome import BinaryGenomeConfig
+
+# for now it only supports real genomes but it will be extended in the future
+from ..core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from ..core.random import resolve_prng_impl
+from ..engine.base import _get_evolution_kernel
+from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
+from ..engine.schedules import TrackBest
+
+
+class GeneticEngineAdapter:
+    """Adapter to make GeneticEngine compatible with BenchmarkRunner.Engine protocol.
+
+    Accepts an optional `initial_population` (array-like) to override the
+    engine-initialised population for reproducible cross-engine comparisons.
+    """
+
+    def __init__(
+        self,
+        genetic_engine: GeneticEngine,
+        genome_config: Any,
+        initial_population: Any = None,
+        prng_impl: Optional[str] = None,
+        maximize: bool = False,
+        history_metrics: Optional[Sequence[str]] = None,
+    ):
+        self.genetic_engine = genetic_engine
+        self.genome_config = genome_config
+        self.initial_population = initial_population
+        self.prng_impl = prng_impl
+        self.maximize = maximize
+        self.history_metrics = history_metrics
+
+    def run_once(self, key: chex.Array) -> Dict[str, Any]:
+        """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
+
+        Notes
+        -----
+        **Timing methodology**:
+        The method separates JIT compilation cost ("warmup") from pure
+        evolution execution time.  The warmup phase includes state
+        initialization, population setup, and explicit JIT compilation.
+        The execution phase times only the pre-compiled scan loop,
+        matching the EvoSAX adapter's identical timing structure.
+        Both adapters report ``warmup``, ``execution``, and ``total``.
+        """
+        # ---- Warmup phase: state init + JIT compilation ----
+        t_warmup_start = time.perf_counter()
+        state = self.genetic_engine.init_state(key)
+        state.best_fitness.block_until_ready()
+        initial_best = float(state.best_fitness)
+
+        if self.initial_population is not None:
+            arr = jnp.asarray(self.initial_population)
+            pop = RealPopulation.from_array(arr, self.genome_config, RealGenome, axis=0)
+            evaluated_pop = cast(
+                RealPopulation,
+                self.genetic_engine.evaluator.evaluate_population(pop),
+            )
+
+            fitness = evaluated_pop.fitness
+            # Engine internals are minimization-based; evaluator-level maximize
+            # handling is already encoded in the fitness values.
+            best_idx = int(jnp.argmin(fitness))
+            best_fitness = fitness[best_idx]
+            best_genome = evaluated_pop.genes[best_idx]
+
+            state = replace(
+                state,
+                population=replace(evaluated_pop, fitness=fitness),
+                best_genome=best_genome,
+                best_fitness=best_fitness,
+            )
+            # Update initial_best if initial_population was provided
+            initial_best = float(best_fitness)
+
+        # JIT compilation warmup — trigger tracing + XLA optimisation so
+        # the cost is captured in the "warmup" bucket, not "execution".
+        _ws, _ = self.genetic_engine.step(state)
+        _ws.best_fitness.block_until_ready()
+
+        ep = self.genetic_engine.engine_params
+        jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
+        _ = jit_fn.lower(self.genetic_engine, state).compile()
+        t_warmup_end = time.perf_counter()
+
+        # ---- Execution phase: run the pre-compiled scan (JIT cache warm) ----
+        t_exec_start = time.perf_counter()
+        final_state, scan_history, _ = self.genetic_engine.run(state, time_it=True, compile=True)
+        t_exec_end = time.perf_counter()
+
+        num_gens = int(self.genetic_engine.engine_params.num_generations)
+        history = []
+        sign = -1.0 if self.maximize else 1.0
+
+        track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
+
+        fitness_auc = 0.0
+        for g in range(num_gens):
+            gen_stats: Dict[str, Any] = {"generation": g + 1}
+            for k in track_keys:
+                if hasattr(scan_history, k):
+                    val = getattr(scan_history, k)[g]
+                    if k in ("best_fitness", "mean_fitness", "std_fitness"):
+                        val = val * sign
+                    gen_stats[k] = float(val)
+                    if k == "best_fitness":
+                        fitness_auc += float(val)
+            history.append(gen_stats)
+
+        total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
+        report_initial = float(sign * initial_best)
+        report_best = float(sign * final_state.best_fitness)
+        import jax.flatten_util
+
+        best_genome_flat, _ = jax.flatten_util.ravel_pytree(final_state.best_genome)
+        summary = {
+            "initial_fitness": report_initial,
+            "best_fitness": report_best,
+            "fitness_auc": fitness_auc,
+            "best_solution": best_genome_flat.tolist(),
+            "final_generation": int(final_state.generation),
+            "total_evaluations": total_evals,
+        }
+
+        # Add gap to optimum if available
+        gap = self.genetic_engine.evaluator.get_gap_to_optimum(report_best)
+        if gap is not None:
+            summary["gap_to_optimum"] = float(gap)
+
+        timings = {
+            "warmup": t_warmup_end - t_warmup_start,
+            "execution": t_exec_end - t_exec_start,
+            "total": t_exec_end - t_warmup_start,
+        }
+
+        return {
+            "history": history,
+            "summary": summary,
+            "timings": timings,
+        }
+
+
+def build_engine(
+    fitness_evaluator: Any,
+    selection_op: Any,
+    crossover_op: Any,
+    mutation_op: Any,
+    genome_type: str = "real",
+    pop_size: int = 50,
+    generations: int = 100,
+    elitism: int = 2,
+    genome_shape: Tuple[int, ...] = (10,),
+    bounds: Tuple[float, float] = (-5.0, 5.0),
+    unroll_factor: int = 1,
+    history_metrics: Optional[Sequence[str]] = None,
+    **kwargs: Any,
+) -> GeneticEngineAdapter:
+    """Build a :class:`GeneticEngine` from concrete operator instances.
+
+    The caller must supply a fitness evaluator plus selection, crossover and
+    mutation operators. Optional parameters control population size,
+    generations, elitism, genome shape/type and real bounds; any additional
+    keyword arguments are forwarded to the engine constructor (e.g.
+    ``prng_impl`` or strength schedules).  The result is wrapped in a
+    :class:`GeneticEngineAdapter` suitable for use with
+    :class:`~.benchmarking.BenchmarkRunner`.
+    """
+    genome_config: Union[RealGenomeConfig, BinaryGenomeConfig]
+    if "genome_length" in kwargs:
+        genome_shape = (int(kwargs.pop("genome_length")),)
+    if isinstance(genome_shape, int):
+        genome_shape = (genome_shape,)
+
+    if genome_type == "real":
+        genome_config = RealGenomeConfig(
+            shape=genome_shape, bounds=bounds, dtype=kwargs.get("dtype", "float32")
+        )
+    elif genome_type == "binary":
+        genome_config = BinaryGenomeConfig(shape=genome_shape)
+    else:
+        raise ValueError(f"Unsupported genome type: {genome_type}")
+
+    OperatorCatalog: Any = None
+    try:
+        from .catalog import OperatorCatalog as _OperatorCatalog
+
+        OperatorCatalog = _OperatorCatalog
+    except Exception:
+        OperatorCatalog = None
+
+    if isinstance(selection_op, str):
+        if OperatorCatalog is None:
+            raise TypeError("selection_op provided as string but OperatorCatalog is unavailable")
+        selection_op = OperatorCatalog().get(selection_op)
+
+    if isinstance(crossover_op, str):
+        if OperatorCatalog is None:
+            raise TypeError("crossover_op provided as string but OperatorCatalog is unavailable")
+        crossover_op = OperatorCatalog().get(crossover_op)
+
+    if isinstance(mutation_op, str):
+        if OperatorCatalog is None:
+            raise TypeError("mutation_op provided as string but OperatorCatalog is unavailable")
+        mutation_op = OperatorCatalog().get(mutation_op)
+
+    for name, op in [
+        ("selection", selection_op),
+        ("crossover", crossover_op),
+        ("mutation", mutation_op),
+    ]:
+        if not hasattr(op, "replace") or not callable(getattr(op, "replace")):
+            raise TypeError(
+                f"Operator '{name}' lacks required 'replace' method (type {type(op)}). "
+                "Provide operator instance from OperatorCatalog.get(spec)"
+                " or a proper implementation."
+            )
+    prng_impl_str = kwargs.pop("prng_impl", None)
+    prng_extra: Dict[str, Any] = {}
+    if prng_impl_str is not None:
+        prng_extra["prng_impl"] = resolve_prng_impl(prng_impl_str)
+
+    _schedule_keys = [
+        "schedule_type",
+        "initial_strength",
+        "final_strength",
+        "track_best",
+    ]
+    schedule_extra: Dict[str, Any] = {k: v for k, v in kwargs.items() if k in _schedule_keys}
+
+    if "track_best" not in schedule_extra:
+        schedule_extra["track_best"] = TrackBest.LIGHT
+
+    engine_params = GeneticEngineParams(
+        pop_size=pop_size,
+        num_generations=generations,
+        elitism=elitism,
+        unroll_num=unroll_factor,
+        **prng_extra,
+        **schedule_extra,
+    )
+
+    genetic_engine = GeneticEngine(
+        engine_params=engine_params,
+        genome_config=genome_config,
+        evaluator=fitness_evaluator,
+        selection=selection_op,
+        crossover=crossover_op,
+        mutation=mutation_op,
+        enable_progress_bar=kwargs.get("enable_progress_bar", False),
+    )
+
+    initial_population = kwargs.get("initial_population", None)
+
+    # Get maximize flag from kwargs, or infer from fitness evaluator
+    if "maximize" in kwargs:
+        maximize_flag = kwargs["maximize"]
+    elif hasattr(fitness_evaluator, "config") and hasattr(fitness_evaluator.config, "maximize"):
+        maximize_flag = fitness_evaluator.config.maximize
+    else:
+        maximize_flag = False
+
+    return GeneticEngineAdapter(
+        genetic_engine,
+        genome_config,
+        initial_population=initial_population,
+        prng_impl=prng_impl_str,
+        maximize=maximize_flag,
+        history_metrics=history_metrics,
+    )
+
+
+def build_engine_from_catalog(
+    catalog_operators: Dict[str, Any], config: Dict[str, Any]
+) -> GeneticEngineAdapter:
+    """Convenience wrapper that calls :func:`build_engine` using a dict of
+    catalog operator instances and a separate configuration dictionary.
+
+    The *catalog_operators* mapping must contain ``'fitness'``,
+    ``'selection'``, ``'crossover'`` and ``'mutation'`` entries; remaining
+    engine parameters are read from *config*.  Returns a
+    :class:`GeneticEngineAdapter` prepared for benchmarking.
+    """
+    return build_engine(
+        fitness_evaluator=catalog_operators["fitness"],
+        selection_op=catalog_operators["selection"],
+        crossover_op=catalog_operators["crossover"],
+        mutation_op=catalog_operators["mutation"],
+        **config,
+    )

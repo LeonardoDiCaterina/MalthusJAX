@@ -1,0 +1,51 @@
+# BBOB Backend Comparison Experiment - Lunacek Function (Population Size 1024)
+# Tests lunacek function across 6 backend configurations
+# Configuration: real genome (dim=50), 500 generations, 100 seeds, pop_size=1024
+
+[experiment]
+name = "BBOB Lunacek (pop=1024)"
+description = "Comprehensive comparison of MalthusJAX and EvoSAX backends on lunacek function"
+output_dir = "results/bbob_lunacek_pop1024"
+
+[experiment.shared]
+genome_type = "real"
+genome_length = 50
+bounds = [0.0, 1.0]
+generations = 500
+seeds = 100
+
+[pipelines.lunacek_malthusjax_default]
+fitness = "bbob:fn_name=lunacek,num_dims=50,maximize=false"
+backend = "malthusjax"
+description = "Lunacek function with MalthusJAX default operators (pop=1024)"
+
+[pipelines.lunacek_malthusjax_default_evosaxops]
+fitness = "bbob:fn_name=lunacek,num_dims=50,maximize=false"
+backend = "malthusjax"
+crossover = "evosax_uniform_crossover"
+mutation = "evosax_gaussian"
+description = "Lunacek function with MalthusJAX + EvoSAX operators (pop=1024)"
+
+[pipelines.lunacek_malthusjax_roulette]
+fitness = "bbob:fn_name=lunacek,num_dims=50,maximize=false"
+backend = "malthusjax"
+selection = "elite_pool:num_selections=512,elite_k=512"
+description = "Lunacek function with MalthusJAX roulette selection (pop=1024)"
+
+[pipelines.lunacek_malthusjax_tournament]
+fitness = "bbob:fn_name=lunacek,num_dims=50,maximize=false"
+backend = "malthusjax"
+selection = "elite_pool:num_selections=512,elite_k=512"
+description = "Lunacek function with MalthusJAX tournament selection (pop=1024)"
+
+[pipelines.lunacek_evosax_simplega]
+fitness = "bbob:fn_name=lunacek,num_dims=50,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+description = "Lunacek function with EvoSAX SimpleGA (pop=1024)"
+
+[pipelines.lunacek_evosax_differential_evolution]
+fitness = "bbob:fn_name=lunacek,num_dims=50,maximize=false"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+description = "Lunacek function with EvoSAX DifferentialEvolution (pop=1024)"

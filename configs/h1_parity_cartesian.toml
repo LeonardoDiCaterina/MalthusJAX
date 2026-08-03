@@ -1,0 +1,30 @@
+[suite]
+name = "h1_parity_cartesian"
+mode = "cartesian"
+output_dir = "results/h1_parity_cartesian"
+num_seeds = 100
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["sphere", "rosenbrock", "rastrigin", "lunacek", "schwefel", "gallagher_21_hi"]
+dims = [5, 10, 50, 100]
+pops = [64, 256, 1024]
+gens = [50, 200]
+
+[analysis]
+reference_pipeline = "evosax_baseline"
+
+[pipelines.evosax_baseline]
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+
+[pipelines.evosax_baseline.strategy_params]
+crossover_rate = 0.3
+elite_ratio = 0.16666666
+
+[pipelines.malthusjax_wrapper]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0

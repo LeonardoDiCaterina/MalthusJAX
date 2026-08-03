@@ -1,0 +1,1053 @@
+# All 24 BBOB functions, extended exact-match comparison
+[experiment]
+name = "bbob_all_functions_match_simplega_extended_100_seeds"
+output_dir = "results/bbob_allfunctions_match_simplega_extended_100seeds_20260427"
+description = "Compare MalthusJAX default, exact Evosax operator wrappers, and native Evosax engines across all 24 BBOB functions."
+
+[experiment.shared]
+engine_type = "ga"
+genome_type = "real"
+genome_length = 10
+bounds = [-5.0, 5.0]
+pop_size = 1024
+generations = 500
+seeds = [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+]
+maximize = false
+
+[pipelines.attractive_sector_malthusjax_default]
+fitness = "bbob:fn_name=attractive_sector,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.attractive_sector_mjx_evosax_exact]
+fitness = "bbob:fn_name=attractive_sector,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.attractive_sector_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=attractive_sector,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.attractive_sector_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=attractive_sector,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.attractive_sector_evosax_simplega]
+fitness = "bbob:fn_name=attractive_sector,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.attractive_sector_evosax_de]
+fitness = "bbob:fn_name=attractive_sector,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.bent_cigar_malthusjax_default]
+fitness = "bbob:fn_name=bent_cigar,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.bent_cigar_mjx_evosax_exact]
+fitness = "bbob:fn_name=bent_cigar,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.bent_cigar_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=bent_cigar,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.bent_cigar_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=bent_cigar,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.bent_cigar_evosax_simplega]
+fitness = "bbob:fn_name=bent_cigar,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.bent_cigar_evosax_de]
+fitness = "bbob:fn_name=bent_cigar,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.bueche_rastrigin_malthusjax_default]
+fitness = "bbob:fn_name=bueche_rastrigin,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.bueche_rastrigin_mjx_evosax_exact]
+fitness = "bbob:fn_name=bueche_rastrigin,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.bueche_rastrigin_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=bueche_rastrigin,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.bueche_rastrigin_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=bueche_rastrigin,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.bueche_rastrigin_evosax_simplega]
+fitness = "bbob:fn_name=bueche_rastrigin,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.bueche_rastrigin_evosax_de]
+fitness = "bbob:fn_name=bueche_rastrigin,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.different_powers_malthusjax_default]
+fitness = "bbob:fn_name=different_powers,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.different_powers_mjx_evosax_exact]
+fitness = "bbob:fn_name=different_powers,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.different_powers_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=different_powers,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.different_powers_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=different_powers,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.different_powers_evosax_simplega]
+fitness = "bbob:fn_name=different_powers,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.different_powers_evosax_de]
+fitness = "bbob:fn_name=different_powers,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.discus_malthusjax_default]
+fitness = "bbob:fn_name=discus,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.discus_mjx_evosax_exact]
+fitness = "bbob:fn_name=discus,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.discus_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=discus,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.discus_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=discus,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.discus_evosax_simplega]
+fitness = "bbob:fn_name=discus,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.discus_evosax_de]
+fitness = "bbob:fn_name=discus,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.ellipsoidal_malthusjax_default]
+fitness = "bbob:fn_name=ellipsoidal,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.ellipsoidal_mjx_evosax_exact]
+fitness = "bbob:fn_name=ellipsoidal,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.ellipsoidal_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=ellipsoidal,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.ellipsoidal_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=ellipsoidal,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.ellipsoidal_evosax_simplega]
+fitness = "bbob:fn_name=ellipsoidal,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.ellipsoidal_evosax_de]
+fitness = "bbob:fn_name=ellipsoidal,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.ellipsoidal_rotated_malthusjax_default]
+fitness = "bbob:fn_name=ellipsoidal_rotated,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.ellipsoidal_rotated_mjx_evosax_exact]
+fitness = "bbob:fn_name=ellipsoidal_rotated,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.ellipsoidal_rotated_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=ellipsoidal_rotated,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.ellipsoidal_rotated_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=ellipsoidal_rotated,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.ellipsoidal_rotated_evosax_simplega]
+fitness = "bbob:fn_name=ellipsoidal_rotated,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.ellipsoidal_rotated_evosax_de]
+fitness = "bbob:fn_name=ellipsoidal_rotated,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.gallagher_101_me_malthusjax_default]
+fitness = "bbob:fn_name=gallagher_101_me,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.gallagher_101_me_mjx_evosax_exact]
+fitness = "bbob:fn_name=gallagher_101_me,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.gallagher_101_me_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=gallagher_101_me,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.gallagher_101_me_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=gallagher_101_me,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.gallagher_101_me_evosax_simplega]
+fitness = "bbob:fn_name=gallagher_101_me,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.gallagher_101_me_evosax_de]
+fitness = "bbob:fn_name=gallagher_101_me,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.gallagher_21_hi_malthusjax_default]
+fitness = "bbob:fn_name=gallagher_21_hi,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.gallagher_21_hi_mjx_evosax_exact]
+fitness = "bbob:fn_name=gallagher_21_hi,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.gallagher_21_hi_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=gallagher_21_hi,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.gallagher_21_hi_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=gallagher_21_hi,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.gallagher_21_hi_evosax_simplega]
+fitness = "bbob:fn_name=gallagher_21_hi,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.gallagher_21_hi_evosax_de]
+fitness = "bbob:fn_name=gallagher_21_hi,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.griewank_rosenbrock_malthusjax_default]
+fitness = "bbob:fn_name=griewank_rosenbrock,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.griewank_rosenbrock_mjx_evosax_exact]
+fitness = "bbob:fn_name=griewank_rosenbrock,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.griewank_rosenbrock_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=griewank_rosenbrock,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.griewank_rosenbrock_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=griewank_rosenbrock,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.griewank_rosenbrock_evosax_simplega]
+fitness = "bbob:fn_name=griewank_rosenbrock,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.griewank_rosenbrock_evosax_de]
+fitness = "bbob:fn_name=griewank_rosenbrock,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.katsuura_malthusjax_default]
+fitness = "bbob:fn_name=katsuura,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.katsuura_mjx_evosax_exact]
+fitness = "bbob:fn_name=katsuura,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.katsuura_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=katsuura,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.katsuura_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=katsuura,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.katsuura_evosax_simplega]
+fitness = "bbob:fn_name=katsuura,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.katsuura_evosax_de]
+fitness = "bbob:fn_name=katsuura,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.linear_slope_malthusjax_default]
+fitness = "bbob:fn_name=linear_slope,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.linear_slope_mjx_evosax_exact]
+fitness = "bbob:fn_name=linear_slope,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.linear_slope_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=linear_slope,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.linear_slope_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=linear_slope,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.linear_slope_evosax_simplega]
+fitness = "bbob:fn_name=linear_slope,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.linear_slope_evosax_de]
+fitness = "bbob:fn_name=linear_slope,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.lunacek_malthusjax_default]
+fitness = "bbob:fn_name=lunacek,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.lunacek_mjx_evosax_exact]
+fitness = "bbob:fn_name=lunacek,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.lunacek_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=lunacek,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.lunacek_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=lunacek,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.lunacek_evosax_simplega]
+fitness = "bbob:fn_name=lunacek,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.lunacek_evosax_de]
+fitness = "bbob:fn_name=lunacek,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.rastrigin_malthusjax_default]
+fitness = "bbob:fn_name=rastrigin,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.rastrigin_mjx_evosax_exact]
+fitness = "bbob:fn_name=rastrigin,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rastrigin_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=rastrigin,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rastrigin_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=rastrigin,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rastrigin_evosax_simplega]
+fitness = "bbob:fn_name=rastrigin,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.rastrigin_evosax_de]
+fitness = "bbob:fn_name=rastrigin,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.rastrigin_rotated_malthusjax_default]
+fitness = "bbob:fn_name=rastrigin_rotated,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.rastrigin_rotated_mjx_evosax_exact]
+fitness = "bbob:fn_name=rastrigin_rotated,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rastrigin_rotated_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=rastrigin_rotated,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rastrigin_rotated_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=rastrigin_rotated,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rastrigin_rotated_evosax_simplega]
+fitness = "bbob:fn_name=rastrigin_rotated,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.rastrigin_rotated_evosax_de]
+fitness = "bbob:fn_name=rastrigin_rotated,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.rosenbrock_malthusjax_default]
+fitness = "bbob:fn_name=rosenbrock,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.rosenbrock_mjx_evosax_exact]
+fitness = "bbob:fn_name=rosenbrock,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rosenbrock_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=rosenbrock,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rosenbrock_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=rosenbrock,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rosenbrock_evosax_simplega]
+fitness = "bbob:fn_name=rosenbrock,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.rosenbrock_evosax_de]
+fitness = "bbob:fn_name=rosenbrock,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.rosenbrock_rotated_malthusjax_default]
+fitness = "bbob:fn_name=rosenbrock_rotated,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.rosenbrock_rotated_mjx_evosax_exact]
+fitness = "bbob:fn_name=rosenbrock_rotated,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rosenbrock_rotated_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=rosenbrock_rotated,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rosenbrock_rotated_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=rosenbrock_rotated,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.rosenbrock_rotated_evosax_simplega]
+fitness = "bbob:fn_name=rosenbrock_rotated,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.rosenbrock_rotated_evosax_de]
+fitness = "bbob:fn_name=rosenbrock_rotated,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.schaffers_f7_malthusjax_default]
+fitness = "bbob:fn_name=schaffers_f7,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.schaffers_f7_mjx_evosax_exact]
+fitness = "bbob:fn_name=schaffers_f7,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schaffers_f7_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=schaffers_f7,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schaffers_f7_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=schaffers_f7,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schaffers_f7_evosax_simplega]
+fitness = "bbob:fn_name=schaffers_f7,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.schaffers_f7_evosax_de]
+fitness = "bbob:fn_name=schaffers_f7,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.schaffers_f7_ill_cond_malthusjax_default]
+fitness = "bbob:fn_name=schaffers_f7_ill_cond,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.schaffers_f7_ill_cond_mjx_evosax_exact]
+fitness = "bbob:fn_name=schaffers_f7_ill_cond,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schaffers_f7_ill_cond_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=schaffers_f7_ill_cond,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schaffers_f7_ill_cond_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=schaffers_f7_ill_cond,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schaffers_f7_ill_cond_evosax_simplega]
+fitness = "bbob:fn_name=schaffers_f7_ill_cond,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.schaffers_f7_ill_cond_evosax_de]
+fitness = "bbob:fn_name=schaffers_f7_ill_cond,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.schwefel_malthusjax_default]
+fitness = "bbob:fn_name=schwefel,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.schwefel_mjx_evosax_exact]
+fitness = "bbob:fn_name=schwefel,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schwefel_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=schwefel,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schwefel_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=schwefel,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.schwefel_evosax_simplega]
+fitness = "bbob:fn_name=schwefel,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.schwefel_evosax_de]
+fitness = "bbob:fn_name=schwefel,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.sharp_ridge_malthusjax_default]
+fitness = "bbob:fn_name=sharp_ridge,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.sharp_ridge_mjx_evosax_exact]
+fitness = "bbob:fn_name=sharp_ridge,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.sharp_ridge_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=sharp_ridge,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.sharp_ridge_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=sharp_ridge,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.sharp_ridge_evosax_simplega]
+fitness = "bbob:fn_name=sharp_ridge,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.sharp_ridge_evosax_de]
+fitness = "bbob:fn_name=sharp_ridge,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.sphere_malthusjax_default]
+fitness = "bbob:fn_name=sphere,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.sphere_mjx_evosax_exact]
+fitness = "bbob:fn_name=sphere,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.sphere_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=sphere,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.sphere_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=sphere,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.sphere_evosax_simplega]
+fitness = "bbob:fn_name=sphere,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.sphere_evosax_de]
+fitness = "bbob:fn_name=sphere,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.step_ellipsoidal_malthusjax_default]
+fitness = "bbob:fn_name=step_ellipsoidal,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.step_ellipsoidal_mjx_evosax_exact]
+fitness = "bbob:fn_name=step_ellipsoidal,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.step_ellipsoidal_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=step_ellipsoidal,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.step_ellipsoidal_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=step_ellipsoidal,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.step_ellipsoidal_evosax_simplega]
+fitness = "bbob:fn_name=step_ellipsoidal,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.step_ellipsoidal_evosax_de]
+fitness = "bbob:fn_name=step_ellipsoidal,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+
+[pipelines.weierstrass_malthusjax_default]
+fitness = "bbob:fn_name=weierstrass,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=512,elite_k=50"
+crossover = "uniform_real"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=0.05"
+
+[pipelines.weierstrass_mjx_evosax_exact]
+fitness = "bbob:fn_name=weierstrass,dim=10,seed=42"
+elitism = 0
+selection = "elite_pool:num_selections=1024,elite_k=512"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.weierstrass_mjx_evosax_exact_roulette]
+fitness = "bbob:fn_name=weierstrass,dim=10,seed=42"
+elitism = 0
+selection = "roulette:num_selections=1024,temperature=1.0"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.weierstrass_mjx_evosax_exact_tournament]
+fitness = "bbob:fn_name=weierstrass,dim=10,seed=42"
+elitism = 0
+selection = "tournament:num_selections=1024,tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[pipelines.weierstrass_evosax_simplega]
+fitness = "bbob:fn_name=weierstrass,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5 }
+
+[pipelines.weierstrass_evosax_de]
+fitness = "bbob:fn_name=weierstrass,dim=10,seed=42"
+backend = "evosax"
+evosax_strategy = "DifferentialEvolution"
+

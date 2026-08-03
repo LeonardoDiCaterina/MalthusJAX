@@ -1,0 +1,206 @@
+# Multi-Problem Parity Test Suite
+# Tests backend parity across different BBOB landscape types
+# 
+# Usage: python scripts/run_composer.py examples/parity_suite_multiproblems.toml --pop-seed 0
+#
+# Expected Parity Patterns:
+# - Well-Conditioned (Sphere, Rosenbrock, Different Powers): Δ < 0.1 ✅
+# - Anisotropic (Linear Slope, Discus, Ellipsoidal): Δ = 5-80 ⚠️
+# - Complex (Bent Cigar): Δ > 100 ❌
+
+[experiment]
+name = "Multi-Problem Parity Suite"
+description = "Compare MalthusJAX vs EvoSAX backends across different BBOB landscapes"
+output_dir = "results/parity_suite"
+
+[experiment.shared]
+genome_type = "real"
+genome_length = 3
+bounds = [-5.0, 5.0]
+pop_size = 15
+generations = 15
+use_history_for_final = true
+seeds = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+  10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+  20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+  30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+  40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+  50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+]
+
+# ============================================================================
+# PROBLEM 1: SPHERE (Well-Conditioned) ✅
+# Expected: Excellent parity (Δ < 0.1)
+# Landscape: Simple, convex, smooth gradient
+# ============================================================================
+
+[pipelines.sphere_malthusjax]
+fitness = "bbob:fn_name=sphere,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Sphere problem - MalthusJAX backend"
+
+[pipelines.sphere_evosax]
+fitness = "bbob:fn_name=sphere,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Sphere problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 2: ROSENBROCK (Well-Conditioned) ✅
+# Expected: Excellent parity (Δ < 0.1)
+# Landscape: Classic valley-shaped, smooth but non-convex
+# ============================================================================
+
+[pipelines.rosenbrock_malthusjax]
+fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Rosenbrock problem - MalthusJAX backend"
+
+[pipelines.rosenbrock_evosax]
+fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Rosenbrock problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 3: DIFFERENT_POWERS (Well-Conditioned) ✅
+# Expected: Excellent parity (Δ < 0.1)
+# Landscape: Power law of distances, similar to sphere but different scaling
+# ============================================================================
+
+[pipelines.different_powers_malthusjax]
+fitness = "bbob:fn_name=different_powers,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Different Powers problem - MalthusJAX backend"
+
+[pipelines.different_powers_evosax]
+fitness = "bbob:fn_name=different_powers,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Different Powers problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 4: LINEAR_SLOPE (Anisotropic) ⚠️
+# Expected: Good parity (Δ ≈ 5-10)
+# Landscape: Directional bias, one-sided slope
+# ============================================================================
+
+[pipelines.linear_slope_malthusjax]
+fitness = "bbob:fn_name=linear_slope,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Linear Slope problem - MalthusJAX backend"
+
+[pipelines.linear_slope_evosax]
+fitness = "bbob:fn_name=linear_slope,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Linear Slope problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 5: DISCUS (Anisotropic) ⚠️
+# Expected: Moderate parity (Δ ≈ 15-20)
+# Landscape: Highly anisotropic, one dimension dominates
+# ============================================================================
+
+[pipelines.discus_malthusjax]
+fitness = "bbob:fn_name=discus,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Discus problem - MalthusJAX backend"
+
+[pipelines.discus_evosax]
+fitness = "bbob:fn_name=discus,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Discus problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 6: ELLIPSOIDAL (Anisotropic) ⚠️
+# Expected: Moderate parity (Δ ≈ 20-50)
+# Landscape: Axis-aligned ellipsoid, variable scaling per axis
+# ============================================================================
+
+[pipelines.ellipsoidal_malthusjax]
+fitness = "bbob:fn_name=ellipsoidal,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Ellipsoidal problem - MalthusJAX backend"
+
+[pipelines.ellipsoidal_evosax]
+fitness = "bbob:fn_name=ellipsoidal,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Ellipsoidal problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 7: BENT_CIGAR (Complex) ❌
+# Expected: Poor parity (Δ > 100)
+# Landscape: Non-linear curvature, difficult optimization terrain
+# ============================================================================
+
+[pipelines.bent_cigar_malthusjax]
+fitness = "bbob:fn_name=bent_cigar,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Bent Cigar problem - MalthusJAX backend"
+
+[pipelines.bent_cigar_evosax]
+fitness = "bbob:fn_name=bent_cigar,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Bent Cigar problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 8: RASTRIGIN (Multimodal) ⚠️
+# Expected: Good parity (Δ ≈ 5-10)
+# Landscape: Multiple local optima, challenging for small populations
+# ============================================================================
+
+[pipelines.rastrigin_malthusjax]
+fitness = "bbob:fn_name=rastrigin,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Rastrigin problem - MalthusJAX backend"
+
+[pipelines.rastrigin_evosax]
+fitness = "bbob:fn_name=rastrigin,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Rastrigin problem - EvoSAX backend"

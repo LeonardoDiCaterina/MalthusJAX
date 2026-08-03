@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+.gitmodules
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+.venv/
+env/
+.env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Project specific
+results/
+my_local_results/
+artifacts/
+.gemini/
+tests/
+benchmarks/
+docs/build/

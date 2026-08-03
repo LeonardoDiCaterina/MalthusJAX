@@ -1,0 +1,63 @@
+# Parity Sweep: Sphere 5D - Combo 1 (elite_k=2, crossover_rate=0.3, mutation_strength=0.05)
+#
+# This experiment validates parity between MalthusJAX and EvoSAX on a simple benchmark.
+# Configuration matches the validated 100-seed run:
+#   - Function: Sphere (BBOB)
+#   - Dimensions: 5
+#   - Population size: 12
+#   - Generations: 20
+#   - Elite pool size: 2 (elite_k=2, elite_ratio=2/12≈0.167)
+#   - Crossover rate: 0.3
+#   - Mutation strength: 0.05
+#   - Seeds: 0-99 (100 independent runs)
+#
+# Expected outcome: Wins nearly balanced (157 MalthusJAX vs 143 EvoSAX over 300 paired runs)
+# Wilcoxon paired test p-value: ~0.938 (no significant difference)
+# Mean final gap difference: ~-0.00183
+#
+# Run with:
+#   python scripts/run_composer.py examples/parity_sphere_d5_combo1.toml
+
+[experiment]
+name = "Sphere 5D Parity - Combo 1 (elite_k=2)"
+description = "MalthusJAX vs EvoSAX parity validation on Sphere function (dim=5, pop=12, generations=20, elite_k=2)"
+output_dir = "results/parity_sphere_d5_combo1"
+
+[experiment.shared]
+genome_type = "real"
+genome_length = 5
+bounds = [-5.0, 5.0]
+pop_size = 12
+generations = 20
+seeds = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+  10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+  20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+  30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+  40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+  50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+  60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+  70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+  80, 81, 82, 83, 84, 85, 86, 87, 88, 89,
+  90, 91, 92, 93, 94, 95, 96, 97, 98, 99,
+]
+track_best = "NONE"
+use_history_for_final = true
+
+# MalthusJAX backend with elite_k=2
+[pipelines.sphere_d5_malthusjax_combo1]
+fitness = "bbob:fn_name=sphere,num_dims=5,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=12,elite_k=2"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=0.05"
+description = "Sphere 5D - MalthusJAX (elite_k=2, cr=0.3, ms=0.05)"
+
+# EvoSAX backend with matching elite_ratio (2/12 ≈ 0.167)
+[pipelines.sphere_d5_evosax_combo1]
+fitness = "bbob:fn_name=sphere,num_dims=5,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.3, elite_ratio = 0.16666666, mutation_std = 0.05 }
+description = "Sphere 5D - EvoSAX (elite_ratio=0.167, cr=0.3, ms=0.05)"

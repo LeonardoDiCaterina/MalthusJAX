@@ -1,0 +1,21 @@
+# This file tells Read the Docs how to build your documentation.
+
+version: 2
+
+# Set the version of Python to use
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.12"
+
+# Tell Sphinx where to find your conf.py
+sphinx:
+  configuration: docs/source/conf.py
+
+# Tell Read the Docs how to install your project and its doc dependencies
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs

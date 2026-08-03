@@ -1,0 +1,409 @@
+"""Evosax strategy adapter for the BenchmarkRunner.Engine protocol.
+
+Wraps any evosax population-based strategy (ask/tell interface) so it can
+be used interchangeably with GeneticEngineAdapter through Composer.quick_run().
+
+Usage::
+
+    from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
+
+    # build a MalthusJAX evaluator (could be any BaseEvaluator)
+    evalr = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=10, seed=0))
+    adapter = build_evosax_engine(
+        strategy_name="SimpleGA",
+        evaluator=evalr,
+        pop_size=100,
+        generations=200,
+    )
+    result = adapter.run_once(jax.random.PRNGKey(42))
+"""
+
+# TODO: introduce support for mjx evaluators with non-evosax problems
+# by writing a wrapper to translates the problem/eval interface to evosax's expected problem format.
+# This would allow us to use the adapter with any MalthusJAX evaluator, not just BBOB ones.
+
+# TODO: add support for passing distribution_based_algorithms as well,
+# which have a slightly different ask/tell interface
+# (they return a population distribution instead of a population,
+# and the tell() method takes the distribution as input instead of returning an updated state).
+# This would require writing some additional adapter code to handle the differences in interface.
+from __future__ import annotations
+
+import time
+from typing import Any, Dict, Optional, Sequence, Tuple
+
+import chex
+import evosax
+import jax
+import jax.numpy as jnp
+import jax.random as jr
+from evosax.algorithms import population_based_algorithms
+
+from malthusjax.core.fitness.base import BaseEvaluator
+from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+
+EVOSAX_STRATEGIES: Dict[str, type] = population_based_algorithms
+
+
+def list_strategies() -> list[str]:
+    """Return available evosax strategy names."""
+    return sorted(EVOSAX_STRATEGIES.keys())
+
+
+class EvosaxEngineAdapter:
+    """Adapter to make evosax strategies compatible with BenchmarkRunner.Engine protocol.
+
+    Implements the same ``run_once(key) -> Dict`` contract as
+    :class:`GeneticEngineAdapter` so both can be used interchangeably
+    with :class:`BenchmarkRunner`.
+    """
+
+    def __init__(
+        self,
+        strategy: evosax.algorithms.population_based.PopulationBasedAlgorithm,
+        params: Any,  # struct.dataclass with strategy hyper-parameters
+        problem: evosax.problems.problem.Problem,
+        problem_state: Any,  # struct.dataclass with problem state
+        pop_size: int,
+        num_generations: int,
+        num_dims: int,
+        bounds: Tuple[float, float] = (-5.0, 5.0),
+        maximize: bool = False,
+        initial_population: chex.Array = None,
+        prng_impl: Optional[str] = None,
+        evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
+        history_metrics: Optional[Sequence[str]] = None,
+    ) -> None:
+        self.strategy = strategy
+        self.params = params
+        self.problem = problem
+        self.problem_state = problem_state
+        self.pop_size = pop_size
+        self.num_generations = num_generations
+        self.num_dims = num_dims
+        self.bounds = bounds
+        self.maximize = maximize
+        self.initial_population = initial_population
+        self.prng_impl = prng_impl
+        self.evaluator = evaluator
+        self.history_metrics = history_metrics
+        self._jit_run_loop = None  # Cached JIT-compiled evolution loop
+
+    def _build_jit_loop(self):
+        """Build and cache the JIT-compiled evolution loop.
+
+        Moving closure construction out of ``run_once`` ensures the same
+        JIT-compiled function is reused across seeds, avoiding repeated
+        JAX tracing overhead.  The resulting function has signature::
+
+            (rng, pop_init, fit_init, p_state) -> (final_state, metrics)
+
+        Returns
+        -------
+        Callable
+            A ``jax.jit``-compiled function implementing the full
+            ask/tell scan loop.
+        """
+        if self._jit_run_loop is not None:
+            return self._jit_run_loop
+
+        # Capture references for the closure — these do not change between
+        # seeds, so the same compiled kernel can be reused.
+        strategy = self.strategy
+        params = self.params
+        problem = self.problem
+        maximize = self.maximize
+        num_generations = self.num_generations
+
+        def scan_step(carry: Tuple[Any, Any, Any], _: Any) -> Tuple[Tuple[Any, Any, Any], Any]:
+            rng, state, p_state = carry
+            rng, key_ask, key_eval_step, key_tell = jax.random.split(rng, 4)
+
+            population, state = strategy.ask(key_ask, state, params)
+
+            fitness, p_state, _ = problem.eval(key_eval_step, population, p_state)
+
+            mean_fit = jnp.mean(fitness)
+            std_fit = jnp.std(fitness)
+            best_fit_obj = jnp.max(fitness) if maximize else jnp.min(fitness)
+
+            tell_fitness = -fitness if maximize else fitness
+
+            state, metrics = strategy.tell(key_tell, population, tell_fitness, state, params)
+
+            metrics = dict(metrics)  # copy to allow mutation
+            # Normalize adapter outputs to objective space regardless of how a
+            # specific evosax strategy reports internal metrics.
+            best_running_fit = -state.best_fitness if maximize else state.best_fitness
+            metrics["best_fitness"] = best_running_fit
+            metrics["best_fitness_in_generation"] = best_fit_obj
+            metrics["mean_fitness"] = mean_fit
+            metrics["std_fitness"] = std_fit
+
+            return (rng, state, p_state), metrics
+
+        def run_loop(rng: Any, pop_init: Any, fit_init: Any, p_state: Any) -> Tuple[Any, Any]:
+            rng, key_init = jax.random.split(rng)
+            state = strategy.init(key_init, pop_init, fit_init, params)
+
+            carry = (rng, state, p_state)
+            carry, metrics = jax.lax.scan(scan_step, carry, None, length=num_generations, unroll=1)
+            return carry[1], metrics
+
+        self._jit_run_loop = jax.jit(run_loop)
+        return self._jit_run_loop
+
+    def run_once(
+        self, key: chex.Array, unroll_factor: int = 1, compile: bool = True
+    ) -> Dict[str, Any]:
+        """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
+
+        Notes
+        -----
+        **Timing methodology**:
+        The method separates JIT compilation cost ("warmup") from pure
+        evolution execution time, matching the methodology used by
+        :class:`~malthusjax.composer.engine_factory.GeneticEngineAdapter`.
+        A throwaway warmup call triggers JAX tracing and XLA compilation
+        before the execution timer starts, ensuring symmetric timing
+        across backends.  Both adapters now report identical timing keys:
+        ``warmup``, ``execution``, and ``total``.
+
+        Returns
+        -------
+        dict
+            ``history`` : List[Dict] - per-generation stats
+            ``summary`` : Dict       - final summary metrics
+            ``timings`` : Dict       - wall-clock timing breakdown with keys
+                ``warmup``, ``execution``, ``total``
+        """
+        # ---- Warmup phase: setup + JIT compilation ----
+        t_warmup_start = time.perf_counter()
+
+        key, key_pop, key_eval = jax.random.split(key, 3)
+
+        if self.initial_population is not None:
+            population_init = self.initial_population
+        else:
+            keys = jax.random.split(key_pop, self.pop_size)
+            population_init = jax.vmap(self.problem.sample)(keys)
+
+        fitness_init, prob_state_init, _ = self.problem.eval(
+            key_eval, population_init, self.problem_state
+        )
+
+        if self.maximize:
+            initial_best_idx = jnp.argmax(fitness_init)
+            initial_best_fitness = fitness_init[initial_best_idx]
+        else:
+            initial_best_idx = jnp.argmin(fitness_init)
+            initial_best_fitness = fitness_init[initial_best_idx]
+
+        # Evosax algorithms natively minimize.
+        # For minimize problems: pass fitness directly
+        # For maximize problems: negate so evosax minimizes the negative
+        tell_fitness_init = -fitness_init if self.maximize else fitness_init
+
+        # Get or build the cached JIT-compiled evolution loop.
+        run_fn = self._build_jit_loop()
+
+        # Trigger JIT compilation with a throwaway key so the cost is
+        # captured in the "warmup" bucket, not in "execution".
+        key_warmup = jr.PRNGKey(0xDEAD)
+        _ws, _wm = run_fn(key_warmup, population_init, tell_fitness_init, prob_state_init)
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), _ws)
+        del _ws, _wm
+
+        t_warmup_end = time.perf_counter()
+
+        # ---- Execution phase: run with the real key on a warm JIT cache ----
+        t_exec_start = time.perf_counter()
+        final_state, metrics = run_fn(key, population_init, tell_fitness_init, prob_state_init)
+        jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
+        t_exec_end = time.perf_counter()
+
+        # ---- Post-processing: extract history and summary ----
+        history = []
+        track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
+
+        fitness_auc = 0.0
+        for g in range(self.num_generations):
+            gen_stats: Dict[str, Any] = {"generation": g + 1}
+            for k in track_keys:
+                if k in metrics:
+                    val = metrics[k][g]
+                    val_scalar = val.item() if val.ndim == 0 else val.tolist()
+                    gen_stats[k] = val_scalar
+                    if k == "best_fitness":
+                        fitness_auc += val_scalar
+            history.append(gen_stats)
+
+        if history:
+            best_fitness_value = history[-1].get("best_fitness")
+        else:
+            best_fitness_value = float(initial_best_fitness)
+        summary = {
+            "initial_fitness": float(initial_best_fitness),
+            "best_fitness": best_fitness_value,
+            "fitness_auc": fitness_auc,
+            "best_solution": self.strategy._unravel_solution(final_state.best_solution).tolist(),
+            "total_generations": self.num_generations,
+            "final_generation": self.num_generations,
+            "total_evaluations": self.num_generations * self.pop_size,
+            "pop_size": self.pop_size,
+        }
+
+        # Add gap to optimum if available
+        if self.evaluator is not None:
+            gap = self.evaluator.get_gap_to_optimum(best_fitness_value)
+            if gap is not None:
+                summary["gap_to_optimum"] = float(gap)
+
+        timings = {
+            "warmup": t_warmup_end - t_warmup_start,
+            "execution": t_exec_end - t_exec_start,
+            "total": t_exec_end - t_warmup_start,
+        }
+
+        return {"history": history, "summary": summary, "timings": timings}
+
+
+def build_evosax_engine(
+    strategy_name: str = "SimpleGA",
+    *,
+    evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
+    fitness_spec: Optional[str] = None,
+    pop_size: int = 50,
+    generations: int = 100,
+    bounds: Tuple[float, float] = (-5.0, 5.0),
+    maximize: bool = False,
+    seed: int = 42,
+    strategy_params: Optional[Dict[str, Any]] = None,
+    initial_population: Any = None,
+    prng_impl: Optional[str] = None,
+    history_metrics: Optional[Sequence[str]] = None,
+    **kwargs: Any,
+) -> EvosaxEngineAdapter:
+    """Build an :class:`EvosaxEngineAdapter` from high-level specs.
+
+    Parameters
+    ----------
+    strategy_name
+        Name of the evosax strategy (``SimpleGA``, ``MR15_GA``,
+        ``DifferentialEvolution``).
+    evaluator
+        A MalthusJAX :class:`BaseEvaluator` instance describing the
+        fitness function.  If the object is a :class:`BBOBEvaluator` the
+        underlying evosax problem is unwrapped automatically.  Support for
+        other evaluator types is not yet implemented and will raise
+        ``NotImplementedError``.
+    fitness_spec
+        Optional catalog-style spec that may override the configuration of a
+        ``BBOBEvaluator`` when one is provided.  Has no effect for other
+        evaluator types.
+    pop_size
+        Population size.
+    generations
+        Number of generations.
+    bounds
+        Search domain as ``(min, max)``.
+    maximize
+        If ``True``, flip the sign so the adapter reports fitness in
+        maximisation convention (matching MalthusJAX default).
+    seed
+        Seed for the BBOB problem rotation/shift.
+    strategy_params
+        Optional dict of strategy-specific hyper-parameters that will be
+        merged into ``strategy.default_params`` via ``.replace()``.
+
+    Returns
+    -------
+    EvosaxEngineAdapter
+        Ready to call ``.run_once(key)``.
+    """
+    if "num_generations" in kwargs:
+        generations = int(kwargs.pop("num_generations"))
+
+    if evaluator is None:
+        raise ValueError("build_evosax_engine requires an evaluator argument")
+
+    if fitness_spec is not None and isinstance(evaluator, BBOBEvaluator):
+        from .catalog import OperatorCatalog
+
+        cat = OperatorCatalog()
+        parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+        fn = parsed_params.get("fn_name", parsed_name)
+        dims = parsed_params.get("dim", parsed_params.get("num_dims"))
+        if dims is None:
+            dims = evaluator.config.num_dims
+        if "seed" in parsed_params:
+            seed = parsed_params["seed"]
+        if "maximize" in parsed_params:
+            maximize = parsed_params["maximize"]
+        evaluator = BBOBEvaluator.create(
+            BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maximize)
+        )
+
+    if strategy_name not in EVOSAX_STRATEGIES:
+        raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
+
+    rng = jr.PRNGKey(seed)
+
+    if isinstance(evaluator, BBOBEvaluator):
+        problem = evaluator.evosax_problem
+        problem_state = evaluator.problem_state
+        num_dims = evaluator.config.num_dims
+    else:
+        raise NotImplementedError(
+            "Only BBOBEvaluator instances are currently supported by the "
+            "evosax adapter. Generic BaseEvaluator support is not implemented yet."
+        )
+
+    init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])
+
+    strategy_cls = EVOSAX_STRATEGIES[strategy_name]
+    strategy = strategy_cls(population_size=pop_size, solution=init_solution)
+
+    params = strategy.default_params
+    if strategy_params:
+        params_kwargs: dict[str, Any] = {}
+        strategy_kwargs: dict[str, Any] = {}
+        params_fields = set(params.__dict__.keys()) if hasattr(params, "__dict__") else set()
+
+        for key, value in strategy_params.items():
+            # Handle mutation_std as a numeric alias for std_schedule
+            if key == "mutation_std" and isinstance(value, (int, float)):
+                import optax
+
+                strategy_kwargs["std_schedule"] = optax.constant_schedule(value)
+            elif key in params_fields:
+                params_kwargs[key] = value
+            elif hasattr(strategy, key):
+                strategy_kwargs[key] = value
+            else:
+                raise KeyError(
+                    f"Unknown evosax strategy parameter '{key}'. "
+                    f"Valid parameter names are {sorted(params_fields)} or any "
+                    f"attribute on the {strategy_name} strategy."
+                )
+
+        if params_kwargs:
+            params = params.replace(**params_kwargs)
+        for key, value in strategy_kwargs.items():
+            setattr(strategy, key, value)
+
+    return EvosaxEngineAdapter(
+        strategy=strategy,
+        params=params,
+        problem=problem,
+        problem_state=problem_state,
+        pop_size=pop_size,
+        num_generations=generations,
+        num_dims=num_dims,
+        bounds=bounds,
+        maximize=maximize,
+        initial_population=initial_population,
+        prng_impl=prng_impl,
+        evaluator=evaluator,
+        history_metrics=history_metrics,
+    )

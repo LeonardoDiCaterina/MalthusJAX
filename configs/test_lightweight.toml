@@ -1,0 +1,14 @@
+[experiment]
+name = "test_light"
+
+[experiment.shared]
+fitness = "sphere:dim=3"
+selection = "tournament:num_selections=12,tournament_size=3"
+pop_size = 12
+generations = 5
+seeds = [1, 2]
+serialize_history = false
+
+[pipelines.p1]
+crossover = "blend:alpha=0.5"
+mutation = "gaussian:mutation_rate=0.5,mutation_strength=0.1"
