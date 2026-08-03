@@ -454,6 +454,30 @@ h3-representation-full:
 h3-representation-full-nohup:
 	$(call run_nohup,h3-representation-full,$(PYTHON) scripts/parity_working/run_h3_representation.py)
 
+# ============================================================================= #
+# Docker Execution (Cluster)
+# ============================================================================= #
+
+docker-build:
+	@echo "--- Building Docker Image with GPU Support ---"
+	docker build --build-arg EXTRAS="[cuda12,qdax]" -t malthusjax-gpu .
+
+docker-h1-parity-full:
+	@echo "--- Running H1 Parity (Full) via Docker (Detached) ---"
+	docker run -d --gpus all --name h1-parity --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-full
+
+docker-h1-parity-qdax-full:
+	@echo "--- Running H1 Parity QDAX (Full) via Docker (Detached) ---"
+	docker run -d --gpus all --name h1-parity-qdax --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-full
+
+docker-h2-ablation-full:
+	@echo "--- Running H2 Ablation (Full) via Docker (Detached) ---"
+	docker run -d --gpus all --name h2-ablation --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h2-ablation-full
+
+docker-h3-representation-full:
+	@echo "--- Running H3 Representation (Full) via Docker (Detached) ---"
+	docker run -d --gpus all --name h3-representation --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h3-representation-full
+
 # ==============================================================================
 # UNIFIED TOML BENCHMARKING ENGINE
 # ==============================================================================
