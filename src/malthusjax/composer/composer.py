@@ -837,7 +837,7 @@ class Composer:
             Default: 123.
             (Only used if ``shared_initial_population=True``.)
 
-        \*\*shared_kwargs : Any
+        **shared_kwargs : Any
             Default configuration applied to all pipelines (merged before
             pipeline-specific overrides). Use for common settings like
             ``fitness``, ``pop_size``, ``generations``, ``bounds``.
@@ -962,9 +962,13 @@ class Composer:
             #   - maximize=False -> lower is better (no sign flip needed)
             #   - maximize=True  -> higher is better (flip sign for display)
             #
-            # Keep normalization objective-driven (not backend-driven) to
             # avoid regressions when backend internals change.
             negate_map[name] = maximize_flag
+            
+            # Clear JAX compilation caches to prevent RESOURCE_EXHAUSTED OOMs
+            # on large sweeps (e.g., 100+ pipelines)
+            import jax
+            jax.clear_caches()
 
         return ComparisonResult(
             pipelines=results,
@@ -1379,11 +1383,11 @@ class Composer:
         if centroids is None:
             centroids = compute_cvt_centroids(
                 num_descriptors=strategy.num_descriptors,
-                num_init_cvt_samples=10000,
+                num_init_cvt_samples=50000,
                 num_centroids=strategy.num_centroids,
                 minval=0.0,
                 maxval=1.0,
-                key=jr.PRNGKey(0),
+                key=jr.PRNGKey(42),
             )
 
         # 5. Auto-generate init_variables if not provided

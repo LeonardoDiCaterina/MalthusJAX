@@ -2,11 +2,16 @@
 
 import argparse
 import json
+import os
 import shutil
 import sys
 import time
 from pathlib import Path
 from typing import List, Optional
+
+# Disable JAX XLA preallocation to prevent RESOURCE_EXHAUSTED OOMs on clusters
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = ".90"
 
 from malthusjax.composer import Composer
 from malthusjax.composer.catalog import OperatorCatalog
