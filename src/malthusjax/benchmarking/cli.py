@@ -139,11 +139,31 @@ def handle_analyze(args: argparse.Namespace) -> int:
         print("Analysis generated in analysis/")
     else:
         # Just standard mean/std dumps
-        print("Saving standard mean/std dumps...")
+        print("Saving standard mean/std dumps and unified tables...")
         for name, exp in comparison.pipelines.items():
             summary = exp.aggregated_summary()
             with open(analysis_dir / f"{name}_summary.json", "w") as f:
                 json.dump(summary, f, indent=2)
+                
+        try:
+            import pandas as pd
+            table = comparison.summary_table()
+            formatted = {}
+            for pipe, metrics in table.items():
+                formatted[pipe] = {}
+                for k, v in metrics.items():
+                    if v.get("ci_margin", 0.0) > 0.0:
+                        formatted[pipe][k] = f"{v['mean']:.4g} ± {v['ci_margin']:.4g}"
+                    else:
+                        formatted[pipe][k] = f"{v['mean']:.4g}"
+            df = pd.DataFrame(formatted).T
+            df.to_csv(analysis_dir / "comparison_table.csv")
+            df.to_markdown(analysis_dir / "comparison_table.md")
+            
+            with open(analysis_dir / "comparison_table.tex", "w") as f:
+                f.write(comparison.summary_table(latex=True))
+        except Exception as e:
+            print(f"Could not generate unified tables: {e}")
 
     return 0
 
