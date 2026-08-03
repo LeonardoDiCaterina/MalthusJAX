@@ -482,6 +482,10 @@ smoke-all:
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml --smoke
 	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_ablation_lhs.toml --data_dir results/h2_ablation_lhs_smoke
 	
+	@echo "\n=== H2 QDAX Parity Smoke ==="
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_parity_qdax_lhs.toml --data_dir results/h2_parity_qdax_lhs_smoke
+	
 	@echo "\n=== H3 Representation Smoke ==="
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml --smoke
 	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h3_representation_lhs.toml --data_dir results/h3_representation_lhs_smoke
@@ -525,6 +529,7 @@ show-tell:
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_qdax_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml
 	mjax run configs/examples/bbob_backend_comparison_pop1024.toml
 	mjax run configs/examples/scaling_benchmark.toml
 
@@ -534,6 +539,7 @@ show-tell-smoke:
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml --smoke
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml --smoke
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_qdax_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml --smoke
 	mjax run configs/examples/bbob_weierstrass_pop1024_smoke100.toml
 	mjax run configs/examples/scaling_benchmark.toml
 

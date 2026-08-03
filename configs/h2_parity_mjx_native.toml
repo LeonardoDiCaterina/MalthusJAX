@@ -1,0 +1,36 @@
+[suite]
+name = "h2_parity_mjx_native"
+mode = "lhs"
+output_dir = "results/h2_parity_mjx_native"
+num_seeds = 10
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["rastrigin", "rosenbrock"]
+dims_min = 10
+dims_max = 50
+pops_min = 128
+pops_max = 512
+gens_min = 50
+gens_max = 200
+num_samples = 5
+
+[analysis]
+reference_pipeline = "qdax_baseline"
+statistical_test = "wilcoxon"
+alpha = 0.05
+
+[pipelines.qdax_baseline]
+backend = "qdax"
+qdax_strategy = "MAPElites"
+grid_shape = [50, 50]
+bd_extractors = ["identity", "identity"]
+mutation_sigma = 0.1
+variation_percentage = 0.0
+
+[pipelines.malthusjax_native]
+backend = "malthusjax"
+engine_type = "map_elites"
+map_elites_emitter = "genetic_mixing:mutation=gaussian,crossover=blend,variation_percentage=0.0,mutation_rate=1.0,mutation_strength=0.1"
+grid_shape = [50, 50]
+bd_extractors = ["identity", "identity"]

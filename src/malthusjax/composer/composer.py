@@ -65,17 +65,41 @@ class MapElitesEngineAdapter:
             
         init_pop = self.initial_population
         if init_pop is None:
-            # Generate initial population using the emitter's genome config
-            init_pop = self.engine.emitter.genome_config.init_population(k_init, self.pop_size)
+            if hasattr(self.engine.emitter, "genome_config"):
+                init_pop = self.engine.emitter.genome_config.init_population(k_init, self.pop_size)
+            elif hasattr(self.engine.emitter, "genome") and "TensorNeat" in self.engine.emitter.__class__.__name__:
+                from malthusjax.core.genome.tensorneat_genome import TensorNeatGenome, TensorNeatPopulation
+                import jax.numpy as jnp
+                try:
+                    from tensorneat.common import State
+                except ImportError:
+                    State = Any
+                tn_state = State(randkey=k_init, generation=jnp.float32(0))
+                # TensorNEAT initialize creates a single genome. We vmap it to create a population.
+                import jax
+                pop_keys = jax.random.split(k_init, self.pop_size)
+                nodes, conns = jax.vmap(self.engine.emitter.genome.initialize, in_axes=(None, 0))(tn_state, pop_keys)
+                init_pop = TensorNeatPopulation(
+                    genes=TensorNeatGenome(values=(nodes, conns)),
+                    fitness=jnp.full((self.pop_size,), -jnp.inf),
+                    config=None,
+                    info={}
+                )
+            else:
+                raise AttributeError("Emitter lacks genome_config or genome to generate initial population.")
         elif isinstance(init_pop, jax.numpy.ndarray):
             # Wrap the shared array into the correct Population PyTree
             init_pop_copy = jax.numpy.array(init_pop, copy=True)
-            dummy_pop = self.engine.emitter.genome_config.init_population(k_init, self.pop_size)
-            if hasattr(dummy_pop.genes, "replace"):
-                new_genes = dummy_pop.genes.replace(values=init_pop_copy)
-                init_pop = dummy_pop.replace(genes=new_genes)
+            if hasattr(self.engine.emitter, "genome_config"):
+                dummy_pop = self.engine.emitter.genome_config.init_population(k_init, self.pop_size)
+                if hasattr(dummy_pop.genes, "replace"):
+                    new_genes = dummy_pop.genes.replace(values=init_pop_copy)
+                    init_pop = dummy_pop.replace(genes=new_genes)
+                else:
+                    init_pop = dummy_pop.replace(genes=init_pop_copy)
             else:
-                init_pop = dummy_pop.replace(genes=init_pop_copy)
+                # If we passed an ndarray for TensorNEAT, it is not well supported, so fail gracefully
+                raise NotImplementedError("Passing ndarray init_pop to TensorNeatEmitter is not supported yet.")
             
         # Copy centroids to prevent "Buffer has been deleted or donated" error across seeds
         centroids_copy = jax.numpy.array(self.centroids, copy=True) if self.centroids is not None else None
@@ -600,6 +624,8 @@ class Composer:
                     generations=generations,
                     maximize=maximize,
                     history_metrics=history_metrics,
+                    genome_length=genome_length,
+                    bounds=bounds,
                     **kwargs,
                 )
             elif isinstance(strategy, GeneticStrategy):
@@ -1323,14 +1349,25 @@ class Composer:
 
         # 2. Auto-create emitter if not provided
         emitter = strategy.emitter
-        if emitter is None:
+        if isinstance(emitter, str):
+            if emitter.lower() == "mixing":
+                sigma = strategy.mutation_sigma
+                emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size}"
+            else:
+                if ":" in emitter:
+                    emitter_spec = f"{emitter},batch_size={pop_size}"
+                else:
+                    emitter_spec = f"{emitter}:batch_size={pop_size}"
+                
+            from malthusjax.composer.catalog import OperatorCatalog
+            catalog = OperatorCatalog()
+            emitter = catalog.get(emitter_spec)
+        elif emitter is None:
             sigma = strategy.mutation_sigma
-            emitter = MixingEmitter(
-                mutation_fn=lambda x, key: x + jax.random.normal(key, x.shape) * sigma,
-                variation_fn=lambda x1, x2, key: x1,
-                variation_percentage=0.5,
-                batch_size=pop_size,
-            )
+            emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size}"
+            from malthusjax.composer.catalog import OperatorCatalog
+            catalog = OperatorCatalog()
+            emitter = catalog.get(emitter_spec)
 
         # 3. Auto-create metrics function if not provided
         metrics_fn = strategy.metrics_function
@@ -1510,8 +1547,13 @@ class Composer:
         evaluator = None
         if isinstance(strategy.emitter, TensorNeatEmitter):
             from malthusjax.core.fitness.tensorneat import TensorNeatQDEvaluator
+            from malthusjax.core.fitness.base import BaseEvaluatorConfig
             objective_fn = kwargs.get("objective_function")
-            evaluator = TensorNeatQDEvaluator(objective_function=objective_fn)
+            evaluator = TensorNeatQDEvaluator(
+                objective_function=objective_fn,
+                config=BaseEvaluatorConfig(maximize=maximize),
+                data=None
+            )
         else:
             # We use the BaseQDEvaluator composition to match standard evaluation
             from malthusjax.composer.catalog import OperatorCatalog
@@ -1548,7 +1590,23 @@ class Composer:
             evaluator = ComposedQDEvaluator(config=BaseEvaluatorConfig(maximize=maximize), data=None)
 
         emitter = strategy.emitter
-        if emitter is None:
+        if isinstance(emitter, str):
+            bounds = kwargs.get("bounds", (-5.0, 5.0))
+            genome_length = kwargs.get("genome_length", 10)
+            
+            if emitter.lower() == "mixing":
+                sigma = getattr(strategy, "mutation_sigma", 0.1)
+                emitter_spec = f"qdax_replica:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},genome_length={genome_length}"
+            else:
+                if ":" in emitter:
+                    emitter_spec = f"{emitter},batch_size={pop_size},genome_length={genome_length}"
+                else:
+                    emitter_spec = f"{emitter}:batch_size={pop_size},genome_length={genome_length}"
+                
+            from malthusjax.composer.catalog import OperatorCatalog
+            catalog = OperatorCatalog()
+            emitter = catalog.get(emitter_spec)
+        elif emitter is None:
             raise ValueError("MapElitesStrategy requires an explicit emitter.")
             
         centroids = strategy.centroids

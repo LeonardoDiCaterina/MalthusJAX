@@ -43,7 +43,8 @@ def test_map_elites_engine_fold_in():
     engine_params = MapElitesEngineParams(
         pop_size=16,
         num_generations=10,
-        key_derivation="fold_in"
+        key_derivation="fold_in",
+        maximize=True
     )
     
     engine = MapElitesEngine(
@@ -85,7 +86,8 @@ def test_map_elites_engine_split():
     engine_params = MapElitesEngineParams(
         pop_size=16,
         num_generations=2,
-        key_derivation="split"
+        key_derivation="split",
+        maximize=True
     )
     
     engine = MapElitesEngine(
