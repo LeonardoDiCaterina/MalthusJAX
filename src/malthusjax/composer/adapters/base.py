@@ -62,7 +62,7 @@ class UniversalAdapterEngine:
         
         self._jit_run_loop = None
 
-    def _build_jit_loop(self):
+    def _build_jit_loop(self) -> Any:
         """Build and cache the JIT-compiled evolution loop."""
         if self._jit_run_loop is not None:
             return self._jit_run_loop
@@ -95,7 +95,7 @@ class UniversalAdapterEngine:
         self._jit_run_loop = jax.jit(run_loop)
         return self._jit_run_loop
         
-    def _build_python_loop(self):
+    def _build_python_loop(self) -> Any:
         """Build a python loop for non-jittable frameworks."""
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry

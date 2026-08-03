@@ -9,6 +9,8 @@ import chex
 import evosax
 import jax
 import jax.numpy as jnp
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple
+
 from evosax.algorithms import population_based_algorithms, distribution_based_algorithms
 from malthusjax.composer.adapters import EvalMode, adapter
 
