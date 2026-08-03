@@ -33,13 +33,6 @@ if "CUDA_VISIBLE_DEVICES" in os.environ:
 else:
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-# Prevent cuSolver OOM errors by disabling aggressive memory preallocation
-os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
-os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
-os.environ["OPENBLAS_NUM_THREADS"] = "32"
-os.environ["OMP_NUM_THREADS"] = "32"
-os.environ["MKL_NUM_THREADS"] = "32"
-
 from malthusjax.composer import Composer
 from malthusjax.composer.strategies.core import MapElitesStrategy
 from malthusjax.operators.emitters.genetic import GeneticMutationEmitter
