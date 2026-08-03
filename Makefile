@@ -454,6 +454,12 @@ h3-representation-full:
 h3-representation-full-nohup:
 	$(call run_nohup,h3-representation-full,$(PYTHON) scripts/parity_working/run_h3_representation.py)
 
+all-smoke: h1-parity-smoke h1-parity-qdax-smoke h2-ablation-smoke h3-representation-smoke
+	@echo "--- ALL SMOKE TESTS COMPLETED ---"
+
+all-full: h1-parity-full h1-parity-qdax-full h2-ablation-full h3-representation-full
+	@echo "--- ALL FULL RUNS COMPLETED ---"
+
 # ============================================================================= #
 # Docker Execution (Cluster)
 # ============================================================================= #
@@ -462,21 +468,81 @@ docker-build:
 	@echo "--- Building Docker Image with GPU Support ---"
 	docker build --build-arg EXTRAS="[cuda12,qdax]" -t malthusjax-gpu .
 
+# --- Full Runs ---
+
 docker-h1-parity-full:
 	@echo "--- Running H1 Parity (Full) via Docker (Detached) ---"
-	docker run -d --gpus all --name h1-parity --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-full
+	@docker rm -f h1-parity-full 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-full\n"
 
 docker-h1-parity-qdax-full:
 	@echo "--- Running H1 Parity QDAX (Full) via Docker (Detached) ---"
-	docker run -d --gpus all --name h1-parity-qdax --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-full
+	@docker rm -f h1-parity-qdax-full 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-qdax-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-qdax-full\n"
 
 docker-h2-ablation-full:
 	@echo "--- Running H2 Ablation (Full) via Docker (Detached) ---"
-	docker run -d --gpus all --name h2-ablation --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h2-ablation-full
+	@docker rm -f h2-ablation-full 2>/dev/null || true
+	docker run -d --gpus all --name h2-ablation-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h2-ablation-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h2-ablation-full\n"
 
 docker-h3-representation-full:
 	@echo "--- Running H3 Representation (Full) via Docker (Detached) ---"
-	docker run -d --gpus all --name h3-representation --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h3-representation-full
+	@docker rm -f h3-representation-full 2>/dev/null || true
+	docker run -d --gpus all --name h3-representation-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h3-representation-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h3-representation-full\n"
+
+# --- Smoke Tests ---
+
+docker-h1-parity-smoke:
+	@echo "--- Running H1 Parity (Smoke) via Docker (Detached) ---"
+	@docker rm -f h1-parity-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-smoke\n"
+
+docker-h1-parity-qdax-smoke:
+	@echo "--- Running H1 Parity QDAX (Smoke) via Docker (Detached) ---"
+	@docker rm -f h1-parity-qdax-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-qdax-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-qdax-smoke\n"
+
+docker-h2-ablation-smoke:
+	@echo "--- Running H2 Ablation (Smoke) via Docker (Detached) ---"
+	@docker rm -f h2-ablation-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h2-ablation-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h2-ablation-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h2-ablation-smoke\n"
+
+docker-h3-representation-smoke:
+	@echo "--- Running H3 Representation (Smoke) via Docker (Detached) ---"
+	@docker rm -f h3-representation-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h3-representation-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h3-representation-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h3-representation-smoke\n"
+
+# --- All Sequential Suites ---
+
+docker-all-full:
+	@echo "--- Running ALL Experiments Sequentially via Docker (Detached) ---"
+	@docker rm -f all-full-sweep 2>/dev/null || true
+	docker run -d --gpus all --name all-full-sweep --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu all-full
+	@echo "\n>>> SUCCESS: Giant sequential sweep container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f all-full-sweep\n"
+
+docker-all-smoke:
+	@echo "--- Running ALL Smoke Tests Sequentially via Docker (Detached) ---"
+	@docker rm -f all-smoke-sweep 2>/dev/null || true
+	docker run -d --gpus all --name all-smoke-sweep --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu all-smoke
+	@echo "\n>>> SUCCESS: Giant sequential smoke sweep container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f all-smoke-sweep\n"
 
 # ==============================================================================
 # UNIFIED TOML BENCHMARKING ENGINE
