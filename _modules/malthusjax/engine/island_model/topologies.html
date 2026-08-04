@@ -323,49 +323,52 @@
 
 <span class="n">E</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">AbstractEngine</span><span class="p">)</span>
 
+
 <div class="viewcode-block" id="RingTopologyIsland">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.RingTopologyIsland">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">RingTopologyIsland</span><span class="p">(</span><span class="n">BaseIslandModel</span><span class="p">[</span><span class="n">E</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Standard GP distributed topology.</span>
-<span class="sd">    </span>
-<span class="sd">    Extracts the top `num_migrants` elites from each island, and shifts them </span>
+
+<span class="sd">    Extracts the top `num_migrants` elites from each island, and shifts them</span>
 <span class="sd">    exactly one island to the right, injecting them into the worst spots.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
 <div class="viewcode-block" id="RingTopologyIsland.migrate">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.RingTopologyIsland.migrate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">:</span>
         <span class="c1"># multi_pop.fitness shape: (num_islands, island_size)</span>
         <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        
+
         <span class="c1"># We assume lower fitness is better (minimization)</span>
-        <span class="n">elite_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">]</span>
-        <span class="n">worst_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">:]</span>
-        
+        <span class="n">elite_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">]</span>
+        <span class="n">worst_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="p">:]</span>
+
         <span class="k">def</span><span class="w"> </span><span class="nf">gather_elites</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">arr</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-            
+
         <span class="n">elites_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">gather_elites</span><span class="p">)(</span><span class="n">arr</span><span class="p">,</span> <span class="n">elite_indices</span><span class="p">),</span>
-            <span class="n">multi_pop</span><span class="o">.</span><span class="n">genes</span>
+            <span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">gather_elites</span><span class="p">)(</span><span class="n">arr</span><span class="p">,</span> <span class="n">elite_indices</span><span class="p">),</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">genes</span>
         <span class="p">)</span>
         <span class="n">elites_fitness</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">gather_elites</span><span class="p">)(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">elite_indices</span><span class="p">)</span>
-        
+
         <span class="c1"># 2. Shift elites one island to the right</span>
-        <span class="n">migrant_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">elites_genes</span><span class="p">)</span>
+        <span class="n">migrant_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">elites_genes</span>
+        <span class="p">)</span>
         <span class="n">migrant_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">elites_fitness</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        
+
         <span class="c1"># 3. Inject migrants into the worst indices</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">inject_migrants</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">migrants</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">migrants</span><span class="p">)</span>
-            
+
         <span class="n">final_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span>
             <span class="k">lambda</span> <span class="n">arr</span><span class="p">,</span> <span class="n">m_arr</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">inject_migrants</span><span class="p">)(</span><span class="n">arr</span><span class="p">,</span> <span class="n">worst_indices</span><span class="p">,</span> <span class="n">m_arr</span><span class="p">),</span>
-            <span class="n">multi_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="n">migrant_genes</span>
+            <span class="n">multi_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span>
+            <span class="n">migrant_genes</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">final_fitness</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">inject_migrants</span><span class="p">)(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">worst_indices</span><span class="p">,</span> <span class="n">migrant_fitness</span><span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">final_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">final_fitness</span><span class="p">)</span></div>
 </div>
 
@@ -376,54 +379,58 @@
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">FullyConnectedIsland</span><span class="p">(</span><span class="n">BaseIslandModel</span><span class="p">[</span><span class="n">E</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Highly disruptive topology for maximum diffusion.</span>
-<span class="sd">    </span>
-<span class="sd">    Extracts the top elites from all islands into a shared pool, perfectly </span>
+
+<span class="sd">    Extracts the top elites from all islands into a shared pool, perfectly</span>
 <span class="sd">    shuffles them, and redistributes them randomly across all islands.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
 <div class="viewcode-block" id="FullyConnectedIsland.migrate">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.FullyConnectedIsland.migrate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">:</span>
         <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        
-        <span class="n">elite_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">]</span>
-        <span class="n">worst_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">:]</span>
-        
+
+        <span class="n">elite_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">]</span>
+        <span class="n">worst_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="p">:]</span>
+
         <span class="k">def</span><span class="w"> </span><span class="nf">gather_elites</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">arr</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-            
+
         <span class="n">elites_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">gather_elites</span><span class="p">)(</span><span class="n">arr</span><span class="p">,</span> <span class="n">elite_indices</span><span class="p">),</span>
-            <span class="n">multi_pop</span><span class="o">.</span><span class="n">genes</span>
+            <span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">gather_elites</span><span class="p">)(</span><span class="n">arr</span><span class="p">,</span> <span class="n">elite_indices</span><span class="p">),</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">genes</span>
         <span class="p">)</span>
         <span class="n">elites_fitness</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">gather_elites</span><span class="p">)(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">elite_indices</span><span class="p">)</span>
-        
+
         <span class="c1"># 2. Shuffle all elites globally</span>
         <span class="c1"># Reshape to a flat pool of shape (num_islands * num_migrants, ...)</span>
-        <span class="n">flat_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:]),</span> <span class="n">elites_genes</span>
-        <span class="p">)</span>
+        <span class="n">flat_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:]),</span> <span class="n">elites_genes</span><span class="p">)</span>
         <span class="n">flat_fitness</span> <span class="o">=</span> <span class="n">elites_fitness</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        
+
         <span class="n">shuffled_indices</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">flat_fitness</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        
+
         <span class="n">shuffled_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">shuffled_indices</span><span class="p">],</span> <span class="n">flat_genes</span><span class="p">)</span>
         <span class="n">shuffled_fitness</span> <span class="o">=</span> <span class="n">flat_fitness</span><span class="p">[</span><span class="n">shuffled_indices</span><span class="p">]</span>
-        
+
         <span class="c1"># 3. Reshape back and inject</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">inject_shuffled</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">shuffled_pool</span><span class="p">,</span> <span class="n">island_idx</span><span class="p">):</span>
             <span class="c1"># Extract exactly num_migrants from the pool for this island</span>
             <span class="n">start</span> <span class="o">=</span> <span class="n">island_idx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span>
-            <span class="n">island_migrants</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">dynamic_slice_in_dim</span><span class="p">(</span><span class="n">shuffled_pool</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">island_migrants</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">dynamic_slice_in_dim</span><span class="p">(</span>
+                <span class="n">shuffled_pool</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">island_migrants</span><span class="p">)</span>
-            
+
         <span class="n">island_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_islands</span><span class="p">)</span>
         <span class="n">final_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">arr</span><span class="p">,</span> <span class="n">s_arr</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">inject_shuffled</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span><span class="n">arr</span><span class="p">,</span> <span class="n">worst_indices</span><span class="p">,</span> <span class="n">s_arr</span><span class="p">,</span> <span class="n">island_indices</span><span class="p">),</span>
-            <span class="n">multi_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="n">shuffled_genes</span>
+            <span class="k">lambda</span> <span class="n">arr</span><span class="p">,</span> <span class="n">s_arr</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">inject_shuffled</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span>
+                <span class="n">arr</span><span class="p">,</span> <span class="n">worst_indices</span><span class="p">,</span> <span class="n">s_arr</span><span class="p">,</span> <span class="n">island_indices</span>
+            <span class="p">),</span>
+            <span class="n">multi_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span>
+            <span class="n">shuffled_genes</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">final_fitness</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">inject_shuffled</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">worst_indices</span><span class="p">,</span> <span class="n">shuffled_fitness</span><span class="p">,</span> <span class="n">island_indices</span><span class="p">)</span>
-        
+        <span class="n">final_fitness</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">inject_shuffled</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span>
+            <span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">worst_indices</span><span class="p">,</span> <span class="n">shuffled_fitness</span><span class="p">,</span> <span class="n">island_indices</span>
+        <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">final_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">final_fitness</span><span class="p">)</span></div>
 </div>
 

@@ -322,16 +322,18 @@
 
 <span class="n">E</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">AbstractEngine</span><span class="p">)</span>
 
+
 <div class="viewcode-block" id="BaseIslandModel">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.BaseIslandModel">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseIslandModel</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">E</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A Meta-Engine that distributes a standard MalthusJAX Engine across isolated islands.</span>
-<span class="sd">    </span>
-<span class="sd">    This wrapper seamlessly upgrades any 1D `BaseEngine` into a 2D Island Model by </span>
+
+<span class="sd">    This wrapper seamlessly upgrades any 1D `BaseEngine` into a 2D Island Model by</span>
 <span class="sd">    wrapping the engine&#39;s init and step methods in `jax.vmap` across the `num_islands` axis,</span>
 <span class="sd">    and then applying a customizable topological migration policy.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">engine</span><span class="p">:</span> <span class="n">E</span>
     <span class="n">num_islands</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">migration_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -349,11 +351,14 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_island_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">island_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the underlying engine for `migration_interval` generations.&quot;&quot;&quot;</span>
+
         <span class="k">def</span><span class="w"> </span><span class="nf">_step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
             <span class="n">next_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">history</span>
-            
-        <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="n">_step</span><span class="p">,</span> <span class="n">island_state</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">migration_interval</span><span class="p">)</span>
+
+        <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span>
+            <span class="n">_step</span><span class="p">,</span> <span class="n">island_state</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">migration_interval</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span>
 
 <div class="viewcode-block" id="BaseIslandModel.migrate">
@@ -361,32 +366,32 @@
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Applies the specific topological matrix permutation to swap genomes between islands.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Must be implemented by concrete subclasses like `RingTopologyIsland`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-        
+
 <div class="viewcode-block" id="BaseIslandModel.step">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.BaseIslandModel.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">multi_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Outer generation step (1 step = `migration_interval` local generations).&quot;&quot;&quot;</span>
         <span class="c1"># 1. Evolve all islands independently in parallel</span>
         <span class="n">evolved_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_island_loop</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,))(</span><span class="n">multi_state</span><span class="p">)</span>
-        
+
         <span class="c1"># 2. Extract population, migrate, and inject back into state</span>
         <span class="c1"># We need a global key for migration. We can take it from the first island&#39;s rng_key</span>
         <span class="c1"># and split it to ensure diversity.</span>
         <span class="n">migration_key</span><span class="p">,</span> <span class="n">new_island_0_key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">evolved_state</span><span class="o">.</span><span class="n">rng_key</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">migrated_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">migrate</span><span class="p">(</span><span class="n">migration_key</span><span class="p">,</span> <span class="n">evolved_state</span><span class="o">.</span><span class="n">population</span><span class="p">)</span>
-        
+
         <span class="c1"># 3. Update the state with the migrated population</span>
         <span class="n">next_state</span> <span class="o">=</span> <span class="n">evolved_state</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">population</span><span class="o">=</span><span class="n">migrated_pop</span><span class="p">)</span>
-        
+
         <span class="c1"># Replace the first island&#39;s key to advance the rng stream</span>
         <span class="n">new_rng_keys</span> <span class="o">=</span> <span class="n">next_state</span><span class="o">.</span><span class="n">rng_key</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">new_island_0_key</span><span class="p">)</span>
         <span class="n">next_state</span> <span class="o">=</span> <span class="n">next_state</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">rng_key</span><span class="o">=</span><span class="n">new_rng_keys</span><span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">history</span></div>
 </div>
 

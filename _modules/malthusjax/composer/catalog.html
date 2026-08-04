@@ -353,9 +353,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.core.fitness</span>  <span class="c1"># noqa: F401</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.crossover</span>  <span class="c1"># noqa: F401</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.emitters</span>  <span class="c1"># noqa: F401</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.mutation</span>  <span class="c1"># noqa: F401</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.selection</span>  <span class="c1"># noqa: F401</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.emitters</span>  <span class="c1"># noqa: F401</span>
 
 
 <div class="viewcode-block" id="OperatorCatalog">
@@ -502,7 +502,7 @@
 <span class="sd">        ``ValueError`` for invalid parameter combinations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">operator_type</span><span class="p">,</span> <span class="n">user_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
-        
+
         <span class="n">merged_params</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">user_params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">data_registry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;data_id&quot;</span> <span class="ow">in</span> <span class="n">merged_params</span><span class="p">:</span>
@@ -524,10 +524,13 @@
         <span class="n">merged</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">merged_params</span><span class="p">)</span>
 
         <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+
         <span class="n">factory_sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">factory</span><span class="p">)</span>
         <span class="n">valid_keys</span> <span class="o">=</span> <span class="n">factory_sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-        <span class="n">has_kwargs</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">VAR_KEYWORD</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">factory_sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        
+        <span class="n">has_kwargs</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">VAR_KEYWORD</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">factory_sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="p">)</span>
+
         <span class="n">filtered_merged</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">merged</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">valid_keys</span> <span class="ow">or</span> <span class="n">has_kwargs</span><span class="p">}</span>
 
         <span class="k">try</span><span class="p">:</span>

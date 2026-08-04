@@ -317,18 +317,18 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">evosax</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">evosax.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">population_based_algorithms</span><span class="p">,</span> <span class="n">distribution_based_algorithms</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evosax.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">distribution_based_algorithms</span><span class="p">,</span> <span class="n">population_based_algorithms</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvalMode</span><span class="p">,</span> <span class="n">adapter</span>
 
 <span class="n">EVOSAX_STRATEGIES</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="o">**</span><span class="n">population_based_algorithms</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">distribution_based_algorithms</span>
+    <span class="o">**</span><span class="n">distribution_based_algorithms</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -353,11 +353,11 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_evosax_mjx_eval</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Executes MalthusJAX evaluation on raw Evosax populations.&quot;&quot;&quot;</span>
-    
+
     <span class="c1"># 1. Inspect the evaluator&#39;s genome configuration to determine the genome type</span>
     <span class="c1"># For now, Evosax integration strictly assumes RealGenome continuous optimization</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealPopulation</span>
-    
+
     <span class="c1"># Access the config from the evaluator. Depending on the evaluator type,</span>
     <span class="c1"># the config attribute structure might vary, but standard evaluators have config.genome_config</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;genome_config&quot;</span><span class="p">):</span>
@@ -365,46 +365,41 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Fallback if the evaluator uses a different config pattern</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenomeConfig</span>
+
         <span class="n">config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">pop</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-        
+
     <span class="c1"># 2. Reconstruct the MalthusJAX population structure from the raw `pop` tensor</span>
     <span class="n">genomes</span> <span class="o">=</span> <span class="n">RealGenome</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">pop</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
     <span class="n">population</span> <span class="o">=</span> <span class="n">RealPopulation</span><span class="p">(</span>
-        <span class="n">genes</span><span class="o">=</span><span class="n">genomes</span><span class="p">,</span> 
-        <span class="n">fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span> 
-        <span class="n">config</span><span class="o">=</span><span class="n">config</span>
+        <span class="n">genes</span><span class="o">=</span><span class="n">genomes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span>
     <span class="p">)</span>
-    
+
     <span class="c1"># 3. Evaluate using the standard MalthusJAX batched evaluator</span>
     <span class="n">population</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
-    
+
     <span class="k">return</span> <span class="n">population</span><span class="o">.</span><span class="n">fitness</span>
 
 
 <span class="nd">@adapter</span><span class="p">(</span>
     <span class="n">framework</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>
-    <span class="n">state_mapping</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;init&quot;</span><span class="p">:</span> <span class="s2">&quot;_adapter_init&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="s2">&quot;_adapter_step&quot;</span>
-    <span class="p">},</span>
-    <span class="n">eval_translators</span><span class="o">=</span><span class="p">{</span>
-        <span class="n">EvalMode</span><span class="o">.</span><span class="n">NATIVE</span><span class="p">:</span> <span class="n">_evosax_native_eval</span><span class="p">,</span>
-        <span class="n">EvalMode</span><span class="o">.</span><span class="n">MALTHUSJAX</span><span class="p">:</span> <span class="n">_evosax_mjx_eval</span>
-    <span class="p">},</span>
+    <span class="n">state_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;init&quot;</span><span class="p">:</span> <span class="s2">&quot;_adapter_init&quot;</span><span class="p">,</span> <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="s2">&quot;_adapter_step&quot;</span><span class="p">},</span>
+    <span class="n">eval_translators</span><span class="o">=</span><span class="p">{</span><span class="n">EvalMode</span><span class="o">.</span><span class="n">NATIVE</span><span class="p">:</span> <span class="n">_evosax_native_eval</span><span class="p">,</span> <span class="n">EvalMode</span><span class="o">.</span><span class="n">MALTHUSJAX</span><span class="p">:</span> <span class="n">_evosax_mjx_eval</span><span class="p">},</span>
     <span class="n">metrics_mapping</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span>
         <span class="s2">&quot;mean_fitness&quot;</span><span class="p">:</span> <span class="s2">&quot;mean_fitness&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;std_fitness&quot;</span><span class="p">:</span> <span class="s2">&quot;std_fitness&quot;</span>
-    <span class="p">}</span>
+        <span class="s2">&quot;std_fitness&quot;</span><span class="p">:</span> <span class="s2">&quot;std_fitness&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
 <span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">EvosaxEngineAdapter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Universal Evosax Adapter automatically generated by the @adapter decorator.&quot;&quot;&quot;</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">_adapter_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pop_init</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_adapter_init</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pop_init</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="c1"># In MalthusJAX&#39;s universal adapter core, the init phase takes the key and initializes the state.</span>
         <span class="c1"># However, evosax&#39;s strategy.init requires pop_init and fit_init if they are not generated.</span>
         <span class="c1"># Since we decoupled this, we just call strategy.init with dummy/initial values.</span>
-        
+
         <span class="c1"># We need to construct pop_init and fit_init properly if not provided.</span>
         <span class="c1"># But for brevity, we assume the user provides them or the strategy handles it.</span>
         <span class="c1"># If we need the problem to sample the init population:</span>
@@ -414,27 +409,29 @@
             <span class="k">if</span> <span class="n">pop_init</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;pop_size&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
                 <span class="n">pop_init</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">sample</span><span class="p">)(</span><span class="n">keys</span><span class="p">)</span>
-            
+
             <span class="n">fit_init</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;pop_size&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">fit_init</span><span class="p">,</span> <span class="n">p_state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pop_init</span><span class="p">,</span> <span class="n">p_state</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                     <span class="n">fit_init</span> <span class="o">=</span> <span class="o">-</span><span class="n">fit_init</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_framework_evaluator</span> <span class="o">=</span> <span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">p_state</span><span class="p">)</span> <span class="c1"># Update state</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_framework_evaluator</span> <span class="o">=</span> <span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">p_state</span><span class="p">)</span>  <span class="c1"># Update state</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># For MalthusJAX mode, evaluator is stored directly</span>
             <span class="n">evaluator</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_framework_evaluator&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            
+
             <span class="k">if</span> <span class="n">pop_init</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># If no pop_init, evosax typically uses the init_solution provided to the strategy</span>
                 <span class="n">pop_size</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;pop_size&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
                 <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;num_dims&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">bounds</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bounds&quot;</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
                 <span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pop_size</span><span class="p">)</span>
-                <span class="n">pop_init</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">num_dims</span><span class="p">),</span> <span class="n">minval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            
+                <span class="n">pop_init</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
+                    <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">num_dims</span><span class="p">),</span> <span class="n">minval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+
             <span class="n">fit_init</span> <span class="o">=</span> <span class="n">_evosax_mjx_eval</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">pop_init</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-            
+
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">strategy</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="n">distribution_based_algorithms</span><span class="p">:</span>
             <span class="c1"># Distribution-based algorithms expect a mean instead of a population</span>
             <span class="n">mean_init</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pop_init</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -443,38 +440,49 @@
             <span class="n">state</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pop_init</span><span class="p">,</span> <span class="n">fit_init</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">state</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_adapter_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">eval_translator</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_adapter_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">strategy</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">evaluator</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">eval_translator</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
         <span class="n">key_ask</span><span class="p">,</span> <span class="n">key_eval</span><span class="p">,</span> <span class="n">key_tell</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-        
+
         <span class="c1"># 1. Ask</span>
         <span class="n">population</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">key_ask</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-        
+
         <span class="c1"># 2. Evaluate (Delegated to translator)</span>
         <span class="n">fitness</span> <span class="o">=</span> <span class="n">eval_translator</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">key_eval</span><span class="p">)</span>
-        
+
         <span class="c1"># 3. Process metrics for objective direction</span>
         <span class="n">maximize</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="n">mean_fit</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
         <span class="n">std_fit</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
         <span class="n">best_fit_obj</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span> <span class="k">if</span> <span class="n">maximize</span> <span class="k">else</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
-        
+
         <span class="n">tell_fitness</span> <span class="o">=</span> <span class="o">-</span><span class="n">fitness</span> <span class="k">if</span> <span class="n">maximize</span> <span class="k">else</span> <span class="n">fitness</span>
-        
+
         <span class="c1"># 4. Tell</span>
         <span class="n">state</span><span class="p">,</span> <span class="n">metrics</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">tell</span><span class="p">(</span><span class="n">key_tell</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">tell_fitness</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-        
+
         <span class="c1"># Pack metrics</span>
         <span class="n">metrics</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
         <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;best_fitness_in_generation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_fit_obj</span>
         <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;mean_fitness&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_fit</span>
         <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;std_fitness&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">std_fit</span>
-        
+
         <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">metrics</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenomeConfig</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.bbob_evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BBOBConfig</span><span class="p">,</span> <span class="n">BBOBEvaluator</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.bbob_evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BBOBConfig</span><span class="p">,</span> <span class="n">BBOBEvaluator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenomeConfig</span>
+
 
 <div class="viewcode-block" id="build_evosax_engine">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.evosax_adapter.html#malthusjax.composer.build_evosax_engine">[docs]</a>
@@ -534,17 +542,20 @@
         <span class="n">problem_state</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># Infer dimensions from the MalthusJAX evaluator&#39;s genome config</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;genome_config&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;genome_config&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span>
+                <span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span>
+            <span class="p">):</span>
                 <span class="n">num_dims</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">genome_config</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">genome_config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">genome_config</span>
             <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;dim&quot;</span><span class="p">):</span>
                 <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;dim&quot;</span><span class="p">)</span>
-                <span class="n">genome_config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_dims</span><span class="p">,))</span>
+                <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_dims</span><span class="p">,))</span>
             <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;num_dims&quot;</span><span class="p">):</span>
                 <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;num_dims&quot;</span><span class="p">)</span>
-                <span class="n">genome_config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_dims</span><span class="p">,))</span>
+                <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_dims</span><span class="p">,))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="si">}</span><span class="s2"> does not provide a valid genome_config shape.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="si">}</span><span class="s2"> does not provide a valid genome_config shape.&quot;</span>
+                <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="si">}</span><span class="s2"> does not provide a valid genome_config shape.&quot;</span><span class="p">)</span>
         <span class="n">eval_mode</span> <span class="o">=</span> <span class="n">EvalMode</span><span class="o">.</span><span class="n">MALTHUSJAX</span>
@@ -553,8 +564,11 @@
 
     <span class="n">strategy_cls</span> <span class="o">=</span> <span class="n">EVOSAX_STRATEGIES</span><span class="p">[</span><span class="n">strategy_name</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">strategy_name</span> <span class="o">==</span> <span class="s2">&quot;RandomSearch&quot;</span><span class="p">:</span>
-        <span class="n">sampling_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">jr</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">num_dims</span><span class="p">,),</span> <span class="n">minval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy_cls</span><span class="p">(</span><span class="n">population_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="n">init_solution</span><span class="p">,</span> <span class="n">sampling_fn</span><span class="o">=</span><span class="n">sampling_fn</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">sampling_fn</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">jr</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">num_dims</span><span class="p">,),</span> <span class="n">minval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy_cls</span><span class="p">(</span>
+            <span class="n">population_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="n">init_solution</span><span class="p">,</span> <span class="n">sampling_fn</span><span class="o">=</span><span class="n">sampling_fn</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy_cls</span><span class="p">(</span><span class="n">population_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="n">init_solution</span><span class="p">)</span>
 
@@ -567,15 +581,14 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">strategy_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;mutation_std&quot;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
                 <span class="kn">import</span><span class="w"> </span><span class="nn">optax</span>
+
                 <span class="n">strategy_kwargs</span><span class="p">[</span><span class="s2">&quot;std_schedule&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">constant_schedule</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">params_fields</span><span class="p">:</span>
                 <span class="n">params_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
             <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
                 <span class="n">strategy_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Unknown evosax strategy parameter &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
-                <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown evosax strategy parameter &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;. &quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">params_kwargs</span><span class="p">:</span>
             <span class="n">params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="o">**</span><span class="n">params_kwargs</span><span class="p">)</span>

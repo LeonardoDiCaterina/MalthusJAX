@@ -339,11 +339,11 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">KeyDerivationStrategy</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Strategy for deriving RNG keys from master key (resource_map.get_keys).</span>
-<span class="sd">    </span>
+
 <span class="sd">    - SPLIT: Sequential jax.random.split → uncorrelated keys, single-threaded, lower memory.</span>
 <span class="sd">    - FOLD: Parallel jax.random.fold_in with indices → deterministic keys, parallelizable,</span>
 <span class="sd">      scales better to large key budgets (suitable for multi-device).</span>
-<span class="sd">      </span>
+
 <span class="sd">    Trade-off: SPLIT guaranteed uncorrelated (statistical gold standard) but blocks on</span>
 <span class="sd">    split sequencing. FOLD parallelizable but fold_in determinism replaces randomness.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

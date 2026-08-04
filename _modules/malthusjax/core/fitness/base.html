@@ -326,7 +326,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">struct</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.qd.population</span><span class="w"> </span><span class="kn">import</span> <span class="n">QDPopulation</span>
 
 <span class="n">G</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;BaseGenome&quot;</span><span class="p">)</span>
 <span class="n">C</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;BaseEvaluatorConfig&quot;</span><span class="p">)</span>  <span class="c1"># Config type</span>
@@ -435,14 +434,8 @@
 </div>
 
 
+
 <span class="n">RegressionData</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]</span>
-
-
-
-
-
-
-
 </pre></div>
         </article>
       </div>
