@@ -441,6 +441,21 @@ h1-parity-qdax-full:
 h1-parity-qdax-full-nohup:
 	$(call run_nohup,h1-parity-qdax-full,$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py)
 
+# H1: MalthusJAX Native vs TensorNEAT Pure
+h1-parity-tensorneat-smoke:
+	@echo "--- H1 PARITY TENSORNEAT: Smoke Test ---"
+	$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py --smoke
+
+h1-parity-tensorneat-smoke-nohup:
+	$(call run_nohup,h1-parity-tensorneat-smoke,$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py --smoke)
+
+h1-parity-tensorneat-full:
+	@echo "--- H1 PARITY TENSORNEAT: Full Run ---"
+	$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py
+
+h1-parity-tensorneat-full-nohup:
+	$(call run_nohup,h1-parity-tensorneat-full,$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py)
+
 # H2: Ablation (Structural Dissection)
 h2-ablation-smoke:
 	@echo "--- H2 ABLATION: Smoke Test ---"
@@ -471,10 +486,10 @@ h3-representation-full:
 h3-representation-full-nohup:
 	$(call run_nohup,h3-representation-full,$(PYTHON) scripts/parity_working/run_h3_representation.py)
 
-all-smoke: h1-parity-smoke h1-parity-qdax-smoke h2-ablation-smoke h3-representation-smoke
+all-smoke: h1-parity-smoke h1-parity-qdax-smoke h1-parity-tensorneat-smoke h2-ablation-smoke h3-representation-smoke
 	@echo "--- ALL SMOKE TESTS COMPLETED ---"
 
-all-full: h1-parity-full h1-parity-qdax-full h2-ablation-full h3-representation-full
+all-full: h1-parity-full h1-parity-qdax-full h1-parity-tensorneat-full h2-ablation-full h3-representation-full
 	@echo "--- ALL FULL RUNS COMPLETED ---"
 
 # ============================================================================= #
@@ -500,6 +515,13 @@ docker-h1-parity-qdax-full:
 	docker run -d --gpus all --name h1-parity-qdax-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-full
 	@echo "\n>>> SUCCESS: Container started in background!"
 	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-qdax-full\n"
+
+docker-h1-parity-tensorneat-full:
+	@echo "--- Running H1 Parity TensorNEAT (Full) via Docker (Detached) ---"
+	@docker rm -f h1-parity-tensorneat-full 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-tensorneat-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-tensorneat-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-tensorneat-full\n"
 
 docker-h2-ablation-full:
 	@echo "--- Running H2 Ablation (Full) via Docker (Detached) ---"
@@ -530,6 +552,13 @@ docker-h1-parity-qdax-smoke:
 	docker run -d --gpus all --name h1-parity-qdax-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-smoke
 	@echo "\n>>> SUCCESS: Container started in background!"
 	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-qdax-smoke\n"
+
+docker-h1-parity-tensorneat-smoke:
+	@echo "--- Running H1 Parity TensorNEAT (Smoke) via Docker (Detached) ---"
+	@docker rm -f h1-parity-tensorneat-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-tensorneat-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-tensorneat-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-tensorneat-smoke\n"
 
 docker-h2-ablation-smoke:
 	@echo "--- Running H2 Ablation (Smoke) via Docker (Detached) ---"
