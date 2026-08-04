@@ -1,18 +1,20 @@
 """Helpers for constructing MO engines for the Composer."""
 
-from typing import Any, Dict, Sequence, Optional, Tuple, Union, cast
 import time
+from typing import Any, Dict, Optional, Sequence, Tuple
+
+import chex
 import jax
 import jax.numpy as jnp
-import chex
 
 from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
-from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation, RealGenome
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.engine.mo.mo_engine import MOEngine, MOEngineParams
+
 
 class MOEngineAdapter:
     """Adapter to make MOEngine compatible with BenchmarkRunner.Engine protocol."""
-    
+
     def __init__(
         self,
         mo_engine: MOEngine,
@@ -29,7 +31,7 @@ class MOEngineAdapter:
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         t_warmup_start = time.perf_counter()
-        
+
         # Determine population initialization
         if self.initial_population is not None:
             arr = jnp.asarray(self.initial_population)
@@ -37,19 +39,25 @@ class MOEngineAdapter:
         else:
             k_init, key = jax.random.split(key)
             pop = self.genome_config.init_population(k_init, self.mo_engine.engine_params.pop_size)
-            
+
         state = self.mo_engine.init_state(key, pop)
-        
+
         # JIT Warmup
         _ws, _ = self.mo_engine.step(state)
-        
+
         t_exec_start = time.perf_counter()
         final_state, scan_history, _ = self.mo_engine.run(state, time_it=False, compile=True)
         t_exec_end = time.perf_counter()
 
         num_gens = int(self.mo_engine.engine_params.num_generations)
         history = []
-        track_keys = self.history_metrics or ["num_pareto_optimal", "max_crowding_distance", "best_fitness", "mean_fitness", "std_fitness"]
+        track_keys = self.history_metrics or [
+            "num_pareto_optimal",
+            "max_crowding_distance",
+            "best_fitness",
+            "mean_fitness",
+            "std_fitness",
+        ]
 
         for g in range(num_gens):
             gen_stats: Dict[str, Any] = {"generation": g + 1}
@@ -63,7 +71,9 @@ class MOEngineAdapter:
             "best_fitness": float(final_state.best_fitness),
             "final_generation": int(final_state.generation),
             "num_pareto_optimal": int(jnp.sum(final_state.population.pareto_rank == 0)),
-            "total_evaluations": int(final_state.generation * self.mo_engine.engine_params.pop_size),
+            "total_evaluations": int(
+                final_state.generation * self.mo_engine.engine_params.pop_size
+            ),
         }
 
         # Timings
@@ -82,6 +92,7 @@ class MOEngineAdapter:
             "timings": timings,
         }
 
+
 def build_mo_engine(
     fitness_evaluator: Any,
     emitter: Any,
@@ -94,14 +105,16 @@ def build_mo_engine(
     **kwargs: Any,
 ) -> MOEngineAdapter:
     """Build a MOEngine from concrete operator instances."""
-    
+
     if "genome_length" in kwargs:
         genome_shape = (int(kwargs.pop("genome_length")),)
     if isinstance(genome_shape, int):
         genome_shape = (genome_shape,)
-        
+
     if genome_type == "real":
-        genome_config = RealGenomeConfig(shape=genome_shape, bounds=bounds, dtype=kwargs.get("dtype", "float32"))
+        genome_config = RealGenomeConfig(
+            shape=genome_shape, bounds=bounds, dtype=kwargs.get("dtype", "float32")
+        )
     elif genome_type == "binary":
         genome_config = BinaryGenomeConfig(shape=genome_shape)
     else:
@@ -112,11 +125,7 @@ def build_mo_engine(
         num_generations=generations,
     )
 
-    engine = MOEngine(
-        emitter=emitter,
-        evaluator=fitness_evaluator,
-        engine_params=engine_params
-    )
+    engine = MOEngine(emitter=emitter, evaluator=fitness_evaluator, engine_params=engine_params)
 
     maximize_flag = getattr(fitness_evaluator.config, "maximize", False)
 

@@ -39,7 +39,9 @@ class LHSGridConfig:
 @dataclasses.dataclass
 class AnalysisConfig:
     reference_pipeline: str
-    target_metrics: List[str] = dataclasses.field(default_factory=lambda: ["best_fitness", "execution_time"])
+    target_metrics: List[str] = dataclasses.field(
+        default_factory=lambda: ["best_fitness", "execution_time"]
+    )
 
 
 @dataclasses.dataclass

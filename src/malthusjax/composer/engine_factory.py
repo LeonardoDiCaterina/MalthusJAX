@@ -12,9 +12,8 @@ produce a :class:`GeneticEngineAdapter` conforming to the
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from dataclasses import replace
-from typing import cast, Sequence
+from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
 
 import chex
 import jax.numpy as jnp

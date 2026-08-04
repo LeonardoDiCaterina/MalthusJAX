@@ -8,7 +8,7 @@ Optimized for H100:
 """
 
 from dataclasses import replace
-from typing import Any, cast
+from typing import Any
 
 import chex
 import jax

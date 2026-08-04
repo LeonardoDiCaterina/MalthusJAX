@@ -1,8 +1,8 @@
 """Universal adapter core for integrating external JAX evolutionary frameworks.
 
-This module provides the `UniversalAdapterEngine`, which abstracts the JAX 
-lax.scan compilation loop, timing methodology, and fitness evaluation mapping 
-so that any external framework (evosax, qdax, etc.) can be seamlessly dropped 
+This module provides the `UniversalAdapterEngine`, which abstracts the JAX
+lax.scan compilation loop, timing methodology, and fitness evaluation mapping
+so that any external framework (evosax, qdax, etc.) can be seamlessly dropped
 into MalthusJAX's ecosystem.
 """
 
@@ -20,7 +20,7 @@ from malthusjax.core.fitness.base import BaseEvaluator
 
 class UniversalAdapterEngine:
     """Universal adapter to make external frameworks compatible with the BenchmarkRunner.Engine protocol.
-    
+
     Implements the `run_once(key)` contract interchangeably with `GeneticEngineAdapter`.
     """
 
@@ -59,7 +59,7 @@ class UniversalAdapterEngine:
         self.history_metrics = history_metrics
         self.state_has_randkey = state_has_randkey
         self.use_python_loop = use_python_loop
-        
+
         self._jit_run_loop = None
 
     def _build_jit_loop(self) -> Any:
@@ -70,13 +70,27 @@ class UniversalAdapterEngine:
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
             rng, key_step = jax.random.split(rng)
-            
+
             # Step the framework
             if self.state_has_randkey:
-                state, metrics = self.step_fn(self.framework_obj, state, key_step, self.framework_params, self.evaluator, self.eval_translator)
+                state, metrics = self.step_fn(
+                    self.framework_obj,
+                    state,
+                    key_step,
+                    self.framework_params,
+                    self.evaluator,
+                    self.eval_translator,
+                )
             else:
-                state, metrics = self.step_fn(self.framework_obj, state, key_step, self.framework_params, self.evaluator, self.eval_translator)
-                
+                state, metrics = self.step_fn(
+                    self.framework_obj,
+                    state,
+                    key_step,
+                    self.framework_params,
+                    self.evaluator,
+                    self.eval_translator,
+                )
+
             # Process metrics
             normalized_metrics = {}
             for k, v in self.metrics_mapping.items():
@@ -84,26 +98,36 @@ class UniversalAdapterEngine:
                     normalized_metrics[k] = v(metrics)
                 else:
                     normalized_metrics[k] = metrics.get(v, jnp.nan)
-                    
+
             return (rng, state), normalized_metrics
 
         def run_loop(rng: Any, state_init: Any) -> Tuple[Any, Any]:
             carry = (rng, state_init)
-            carry, metrics = jax.lax.scan(scan_step, carry, None, length=self.num_generations, unroll=1)
+            carry, metrics = jax.lax.scan(
+                scan_step, carry, None, length=self.num_generations, unroll=1
+            )
             return carry[1], metrics
 
         self._jit_run_loop = jax.jit(run_loop)
         return self._jit_run_loop
-        
+
     def _build_python_loop(self) -> Any:
         """Build a python loop for non-jittable frameworks."""
+
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
             rng, key_step = jax.random.split(rng)
-            
+
             # Step the framework
-            state, metrics = self.step_fn(self.framework_obj, state, key_step, self.framework_params, self.evaluator, self.eval_translator)
-                
+            state, metrics = self.step_fn(
+                self.framework_obj,
+                state,
+                key_step,
+                self.framework_params,
+                self.evaluator,
+                self.eval_translator,
+            )
+
             # Process metrics
             normalized_metrics = {}
             for k, v in self.metrics_mapping.items():
@@ -111,35 +135,39 @@ class UniversalAdapterEngine:
                     normalized_metrics[k] = v(metrics)
                 else:
                     normalized_metrics[k] = metrics.get(v, jnp.nan)
-                    
+
             return (rng, state), normalized_metrics
 
         def run_loop(rng: Any, state_init: Any) -> Tuple[Any, Any]:
             carry = (rng, state_init)
             metrics_history = []
-            
+
             for _ in range(self.num_generations):
                 carry, metrics = scan_step(carry, None)
                 metrics_history.append(metrics)
-                
+
             # Stack metrics to match lax.scan output format
             stacked_metrics = {}
             if len(metrics_history) > 0:
                 for k in metrics_history[0].keys():
                     stacked_metrics[k] = jnp.stack([m[k] for m in metrics_history])
-                    
+
             return carry[1], stacked_metrics
 
         return run_loop
 
-    def run_once(self, key: chex.Array, unroll_factor: int = 1, compile: bool = True) -> Dict[str, Any]:
+    def run_once(
+        self, key: chex.Array, unroll_factor: int = 1, compile: bool = True
+    ) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results."""
         t_warmup_start = time.perf_counter()
 
         key, key_init, key_eval = jax.random.split(key, 3)
 
         # Initialize framework state
-        state_init = self.init_fn(self.framework_obj, key_init, self.framework_params, self.initial_population)
+        state_init = self.init_fn(
+            self.framework_obj, key_init, self.framework_params, self.initial_population
+        )
 
         # Build JIT loop or Python loop
         if self.use_python_loop:
@@ -148,7 +176,7 @@ class UniversalAdapterEngine:
             run_loop = self._build_jit_loop()
             if compile:
                 _ = run_loop.lower(key, state_init).compile()
-            
+
         t_warmup_end = time.perf_counter()
 
         # Execute
@@ -159,7 +187,7 @@ class UniversalAdapterEngine:
         # Format history output
         history = []
         sign = -1.0 if self.maximize else 1.0
-        
+
         # If history_metrics is explicitly provided, filter by it, else include all available metrics
         if self.history_metrics:
             track_keys = self.history_metrics
@@ -181,7 +209,11 @@ class UniversalAdapterEngine:
                         fitness_auc += float(val)
             history.append(gen_stats)
 
-        report_best = float(scan_history["best_fitness"][-1] * sign) if "best_fitness" in scan_history else 0.0
+        report_best = (
+            float(scan_history["best_fitness"][-1] * sign)
+            if "best_fitness" in scan_history
+            else 0.0
+        )
 
         summary = {
             "best_fitness": report_best,
@@ -189,7 +221,7 @@ class UniversalAdapterEngine:
             "final_generation": self.num_generations,
             "total_evaluations": self.num_generations * self.pop_size,
         }
-        
+
         # Inject any other tracked metrics (e.g. qd_score, coverage) from their final generation
         for k in track_keys:
             if k not in ("best_fitness", "mean_fitness", "std_fitness"):

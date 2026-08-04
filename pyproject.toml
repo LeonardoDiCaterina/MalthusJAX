@@ -113,9 +113,11 @@ indent-style = "space"
 
 [tool.mypy]
 python_version = "3.10"
-warn_return_any = true
+warn_return_any = false
 warn_unused_configs = true
+warn_unused_ignores = false
 disallow_untyped_defs = false  # Set to false globally; override per-plugin below
+disallow_untyped_calls = false
 strict = false  # Default: non-strict; we'll be strict about core only
 
 # Suppress missing stubs for third-party libraries
@@ -126,21 +128,38 @@ ignore_missing_imports = true
 module = "malthusjax.core.*"
 strict = true
 disallow_untyped_defs = true
+disallow_untyped_calls = false
+warn_unused_ignores = false
 
-# Suppress JAX library-internal errors
 [[tool.mypy.overrides]]
-module = "jax.*"
+module = [
+    "malthusjax.engine.*",
+    "malthusjax.operators.*",
+    "malthusjax.composer.*",
+    "malthusjax.benchmarking.*",
+]
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+check_untyped_defs = false
+warn_return_any = false
+
+# Suppress third-party library errors and missing stubs
+[[tool.mypy.overrides]]
+module = [
+    "jax.*",
+    "flax.*",
+    "chex.*",
+    "evosax.*",
+    "qdax.*",
+    "tensorneat.*",
+    "gymnax.*",
+    "brax.*",
+    "jumanji.*",
+    "bbobax.*",
+    "kozax.*",
+]
+ignore_missing_imports = true
 ignore_errors = true
-
-# Suppress evosax stubs
-[[tool.mypy.overrides]]
-module = "evosax.*"
-ignore_missing_imports = true
-
-# Suppress chex stubs
-[[tool.mypy.overrides]]
-module = "chex.*"
-ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]

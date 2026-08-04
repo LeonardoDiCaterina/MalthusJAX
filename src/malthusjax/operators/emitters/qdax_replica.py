@@ -16,13 +16,13 @@ Key design decisions:
 
 from typing import Any, Callable, Optional, Tuple
 
+import chex
 import jax
 import jax.numpy as jnp
-import chex
 from flax import struct
 
 from malthusjax.core.base import BasePopulation
-from malthusjax.core.genome.real_genome import RealGenome, RealPopulation, RealGenomeConfig
+from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
 from malthusjax.operators.emitters.base import BaseEmitter, EmitterState
 
 

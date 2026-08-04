@@ -15,10 +15,16 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import jax
 import jax.random as jr
 
+from malthusjax.composer.strategies.base import BaseStrategy
+from malthusjax.composer.strategies.core import (
+    EvoSAXStrategy,
+    GeneticStrategy,
+    MapElitesStrategy,
+    QDAXStrategy,
+    TensorNEATStrategy,
+)
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 
-from malthusjax.composer.strategies.base import BaseStrategy
-from malthusjax.composer.strategies.core import GeneticStrategy, EvoSAXStrategy, MapElitesStrategy, QDAXStrategy, TensorNEATStrategy
 from ..benchmarking import BenchmarkRunner, ExperimentResult, StubEngine
 from ..benchmarking.results import ComparisonResult
 from .catalog import OperatorCatalog
@@ -32,10 +38,12 @@ except ImportError:  # pragma: no cover - optional dependency
     tqdm = None
 
 
-
 class MapElitesEngineAdapter:
     """Adapter to make Native MapElitesEngine compatible with BenchmarkRunner."""
-    def __init__(self, engine, pop_size, maximize, history_metrics, initial_population=None, centroids=None):
+
+    def __init__(
+        self, engine, pop_size, maximize, history_metrics, initial_population=None, centroids=None
+    ):
         self.engine = engine
         self.pop_size = pop_size
         self.maximize = maximize
@@ -45,12 +53,15 @@ class MapElitesEngineAdapter:
 
     def run_once(self, key):
         import time
+
         import jax
-        
+
         # Check if we are running the exact QDAX replica for bit-parity
-        is_qdax_replica = getattr(self.engine, "engine_params", None) and \
-                          getattr(self.engine.engine_params, "key_derivation", None) == "qdax_replica"
-                          
+        is_qdax_replica = (
+            getattr(self.engine, "engine_params", None)
+            and getattr(self.engine.engine_params, "key_derivation", None) == "qdax_replica"
+        )
+
         if is_qdax_replica:
             # Match UniversalAdapterEngine.run_once exact key flow:
             # key, key_init, key_eval = split(key, 3)
@@ -62,14 +73,22 @@ class MapElitesEngineAdapter:
             k_init, k_run = jax.random.split(key)
         else:
             k_init, k_run = jax.random.split(key)
-            
+
         init_pop = self.initial_population
         if init_pop is None:
             if hasattr(self.engine.emitter, "genome_config"):
                 init_pop = self.engine.emitter.genome_config.init_population(k_init, self.pop_size)
-            elif hasattr(self.engine.emitter, "genome") and "TensorNeat" in self.engine.emitter.__class__.__name__:
-                from malthusjax.core.genome.tensorneat_genome import TensorNeatGenome, TensorNeatPopulation
+            elif (
+                hasattr(self.engine.emitter, "genome")
+                and "TensorNeat" in self.engine.emitter.__class__.__name__
+            ):
                 import jax.numpy as jnp
+
+                from malthusjax.core.genome.tensorneat_genome import (
+                    TensorNeatGenome,
+                    TensorNeatPopulation,
+                )
+
                 try:
                     from tensorneat.common import State
                 except ImportError:
@@ -77,16 +96,21 @@ class MapElitesEngineAdapter:
                 tn_state = State(randkey=k_init, generation=jnp.float32(0))
                 # TensorNEAT initialize creates a single genome. We vmap it to create a population.
                 import jax
+
                 pop_keys = jax.random.split(k_init, self.pop_size)
-                nodes, conns = jax.vmap(self.engine.emitter.genome.initialize, in_axes=(None, 0))(tn_state, pop_keys)
+                nodes, conns = jax.vmap(self.engine.emitter.genome.initialize, in_axes=(None, 0))(
+                    tn_state, pop_keys
+                )
                 init_pop = TensorNeatPopulation(
                     genes=TensorNeatGenome(values=(nodes, conns)),
                     fitness=jnp.full((self.pop_size,), -jnp.inf),
                     config=None,
-                    info={}
+                    info={},
                 )
             else:
-                raise AttributeError("Emitter lacks genome_config or genome to generate initial population.")
+                raise AttributeError(
+                    "Emitter lacks genome_config or genome to generate initial population."
+                )
         elif isinstance(init_pop, jax.numpy.ndarray):
             # Wrap the shared array into the correct Population PyTree
             init_pop_copy = jax.numpy.array(init_pop, copy=True)
@@ -99,25 +123,28 @@ class MapElitesEngineAdapter:
                     init_pop = dummy_pop.replace(genes=init_pop_copy)
             else:
                 # If we passed an ndarray for TensorNEAT, it is not well supported, so fail gracefully
-                raise NotImplementedError("Passing ndarray init_pop to TensorNeatEmitter is not supported yet.")
-            
+                raise NotImplementedError(
+                    "Passing ndarray init_pop to TensorNeatEmitter is not supported yet."
+                )
+
         # Copy centroids to prevent "Buffer has been deleted or donated" error across seeds
-        centroids_copy = jax.numpy.array(self.centroids, copy=True) if self.centroids is not None else None
+        centroids_copy = (
+            jax.numpy.array(self.centroids, copy=True) if self.centroids is not None else None
+        )
         state = self.engine.init_state(k_run, init_pop, centroids_copy)
-        
+
         if is_qdax_replica:
             # Force the exact QDAX key into the state for generation 1
             state = state.replace(rng_key=k_init_qdax)
-        
+
         t_exec_start = time.perf_counter()
         final_state, scan_history, _ = self.engine.run(state, time_it=True, compile=True)
         t_exec_end = time.perf_counter()
-        
+
         num_gens = int(self.engine.engine_params.num_generations)
         history = []
-        sign = -1.0 if self.maximize else 1.0
         track_keys = self.history_metrics or ["best_fitness", "qd_score", "coverage"]
-        
+
         for g in range(num_gens):
             gen_stats = {"generation": g + 1}
             for k in track_keys:
@@ -125,17 +152,17 @@ class MapElitesEngineAdapter:
                     val = getattr(scan_history, k)[g]
                     gen_stats[k] = float(val)
             history.append(gen_stats)
-            
+
         # Safely extract qd_score and coverage. If they exist on final_state use them,
         # otherwise try to get the last element from scan_history.
         qd_score = getattr(final_state, "qd_score", None)
         if qd_score is None and hasattr(scan_history, "qd_score"):
             qd_score = scan_history.qd_score[-1]
-            
+
         coverage = getattr(final_state, "coverage", None)
         if coverage is None and hasattr(scan_history, "coverage"):
             coverage = scan_history.coverage[-1]
-            
+
         summary = {
             "best_fitness": float(final_state.best_fitness),
             "qd_score": float(qd_score) if qd_score is not None else 0.0,
@@ -143,15 +170,15 @@ class MapElitesEngineAdapter:
             "final_generation": int(final_state.generation),
             "total_evaluations": int(final_state.generation * self.pop_size),
         }
-        
+
         return {
             "history": history,
             "summary": summary,
             "timings": {"total": t_exec_end - t_exec_start},
         }
 
-@dataclass
 
+@dataclass
 class Composer:
     """High-level interface for running evolutionary algorithms.
 
@@ -556,7 +583,7 @@ class Composer:
                         num_descriptors=qdax_num_descriptors,
                         num_centroids=qdax_num_centroids,
                         mutation_sigma=qdax_mutation_sigma,
-                        algorithm_kwargs=kwargs
+                        algorithm_kwargs=kwargs,
                     )
                 elif backend == "tensorneat":
                     strategy = TensorNEATStrategy(
@@ -571,7 +598,7 @@ class Composer:
                     strategy = MapElitesStrategy(
                         emitter=kwargs.get("map_elites_emitter", "mixing"),
                         num_descriptors=qdax_num_descriptors,
-                        num_centroids=qdax_num_centroids
+                        num_centroids=qdax_num_centroids,
                     )
                 elif self._has_real_operators(genome, fitness, selection, crossover, mutation):
                     strategy = GeneticStrategy(
@@ -604,7 +631,7 @@ class Composer:
                     bounds=bounds,
                     maximize=maximize,
                     history_metrics=history_metrics,
-                    **kwargs
+                    **kwargs,
                 )
             elif isinstance(strategy, TensorNEATStrategy):
                 engine = self._build_tensorneat_engine(
@@ -614,7 +641,7 @@ class Composer:
                     generations=generations,
                     maximize=maximize,
                     history_metrics=history_metrics,
-                    **kwargs
+                    **kwargs,
                 )
             elif isinstance(strategy, MapElitesStrategy):
                 engine = self._build_map_elites_engine(
@@ -964,10 +991,11 @@ class Composer:
             #
             # avoid regressions when backend internals change.
             negate_map[name] = maximize_flag
-            
+
             # Clear JAX compilation caches to prevent RESOURCE_EXHAUSTED OOMs
             # on large sweeps (e.g., 100+ pipelines)
             import jax
+
             jax.clear_caches()
 
         return ComparisonResult(
@@ -1182,8 +1210,8 @@ class Composer:
         **config: Any,
     ) -> Any:
         """Build engine from operator specs and config via EngineRegistry."""
-        from malthusjax.engine.schedules import TrackBest
         from malthusjax.composer.strategies.core import GeneticStrategy
+        from malthusjax.engine.schedules import TrackBest
 
         catalog = OperatorCatalog()
 
@@ -1205,21 +1233,31 @@ class Composer:
             fitness or f"sphere:dim=10,maximize={maximize_flag},seed={seed_val}",
             data_registry=data_registry,
         )
-        
+
         if isinstance(strategy, GeneticStrategy):
-            resolved_selection = catalog.get(
-                strategy.selection
-                or f"tournament:num_selections={config.get('pop_size', 50) // 2},tournament_size=3",
-                data_registry=data_registry,
-            ) if isinstance(strategy.selection, str) or strategy.selection is None else strategy.selection
-            
-            resolved_crossover = catalog.get(
-                strategy.crossover or "blend:alpha=0.5", data_registry=data_registry
-            ) if isinstance(strategy.crossover, str) or strategy.crossover is None else strategy.crossover
-            
-            resolved_mutation = catalog.get(
-                strategy.mutation or "gaussian:mutation_rate=0.1", data_registry=data_registry
-            ) if isinstance(strategy.mutation, str) or strategy.mutation is None else strategy.mutation
+            resolved_selection = (
+                catalog.get(
+                    strategy.selection
+                    or f"tournament:num_selections={config.get('pop_size', 50) // 2},tournament_size=3",
+                    data_registry=data_registry,
+                )
+                if isinstance(strategy.selection, str) or strategy.selection is None
+                else strategy.selection
+            )
+
+            resolved_crossover = (
+                catalog.get(strategy.crossover or "blend:alpha=0.5", data_registry=data_registry)
+                if isinstance(strategy.crossover, str) or strategy.crossover is None
+                else strategy.crossover
+            )
+
+            resolved_mutation = (
+                catalog.get(
+                    strategy.mutation or "gaussian:mutation_rate=0.1", data_registry=data_registry
+                )
+                if isinstance(strategy.mutation, str) or strategy.mutation is None
+                else strategy.mutation
+            )
         else:
             resolved_selection = None
             resolved_crossover = None
@@ -1325,20 +1363,20 @@ class Composer:
         **kwargs: Any,
     ) -> Any:
         import functools
-        from qdax.core.map_elites import MAPElites
-        from qdax.core.emitters.standard_emitters import MixingEmitter
-        from qdax.utils.metrics import default_qd_metrics
+
         from qdax.core.containers.mapelites_repertoire import compute_cvt_centroids
+        from qdax.utils.metrics import default_qd_metrics
+
         from .qdax_adapter import build_qdax_engine
 
         # 1. Resolve strategy class
         strategy_cls = strategy.strategy_cls
         if isinstance(strategy_cls, str):
-            import qdax.core
-            import pkgutil
             import importlib
-            import inspect
-            
+            import pkgutil
+
+            import qdax.core
+
             resolved_cls = None
             for _, name, is_pkg in pkgutil.iter_modules(qdax.core.__path__):
                 if not is_pkg:
@@ -1346,7 +1384,7 @@ class Composer:
                     if hasattr(mod, strategy_cls):
                         resolved_cls = getattr(mod, strategy_cls)
                         break
-                        
+
             if resolved_cls is None:
                 raise ValueError(f"Unknown QDAX strategy: {strategy_cls}")
             strategy_cls = resolved_cls
@@ -1363,8 +1401,9 @@ class Composer:
                     emitter_spec = f"{emitter},batch_size={pop_size}"
                 else:
                     emitter_spec = f"{emitter}:batch_size={pop_size}"
-                
+
             from malthusjax.composer.catalog import OperatorCatalog
+
             catalog = OperatorCatalog()
             emitter = catalog.get(emitter_spec)
         elif emitter is None:
@@ -1372,6 +1411,7 @@ class Composer:
             var_pct = kwargs.pop("qdax_variation_percentage", 0.5)
             emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},variation_percentage={var_pct}"
             from malthusjax.composer.catalog import OperatorCatalog
+
             catalog = OperatorCatalog()
             emitter = catalog.get(emitter_spec)
 
@@ -1418,9 +1458,11 @@ class Composer:
             **kwargs,
         )
 
-    def _resolve_qdax_evaluator(self, fitness_spec: Optional[str], bounds: Tuple[float, float], maximize: bool) -> Any:
+    def _resolve_qdax_evaluator(
+        self, fitness_spec: Optional[str], bounds: Tuple[float, float], maximize: bool
+    ) -> Any:
         from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
-        
+
         class QDAXNativeEvaluator:
             def __init__(self, fitness_fn, evaluator=None, num_descriptors=2):
                 self._fitness_fn = fitness_fn
@@ -1430,19 +1472,21 @@ class Composer:
             def scoring_function(self, genotypes, random_key):
                 import jax
                 import jax.numpy as jnp
-                
+
                 if self._evaluator is not None:
                     genes = RealGenome(values=genotypes)
                     # We pass config=None since fitness eval might not need full config
-                    pop = RealPopulation(genes=genes, fitness=jnp.zeros(genotypes.shape[0]), config=None)
+                    pop = RealPopulation(
+                        genes=genes, fitness=jnp.zeros(genotypes.shape[0]), config=None
+                    )
                     updated_pop = self._evaluator.evaluate_population(pop)
                     fitnesses = updated_pop.fitness
                     if not maximize:
                         fitnesses = -fitnesses
                 else:
                     fitnesses = jax.vmap(self._fitness_fn)(genotypes)
-                    
-                desc_dims = genotypes[:, :self._num_descriptors]
+
+                desc_dims = genotypes[:, : self._num_descriptors]
                 lo, hi = float(bounds[0]), float(bounds[1])
                 descriptors = (desc_dims - lo) / (hi - lo)
                 return fitnesses, descriptors, {}
@@ -1455,7 +1499,9 @@ class Composer:
             return fitness_spec
         else:
             import jax.numpy as jnp
-            fn = lambda x: -jnp.sum(jnp.square(x))
+
+            def fn(x):
+                return -jnp.sum(jnp.square(x))
             return QDAXNativeEvaluator(fn)
 
     def _build_tensorneat_engine(
@@ -1468,25 +1514,27 @@ class Composer:
         history_metrics: Optional[Sequence[str]],
         **kwargs: Any,
     ) -> Any:
-        from .tensorneat_adapter import build_tensorneat_engine
+        import inspect
 
         # 1. Resolve algorithm
         import tensorneat.algorithm
-        import inspect
-        
+
+        from .tensorneat_adapter import build_tensorneat_engine
+
         algorithm_cls = None
         for name, obj in inspect.getmembers(tensorneat.algorithm, inspect.isclass):
             if name.lower() == strategy.algorithm_name.lower():
                 algorithm_cls = obj
                 break
-                
+
         if algorithm_cls is None:
             raise ValueError(f"Unknown TensorNEAT algorithm: {strategy.algorithm_name}")
 
         # 2. Resolve genome
         import tensorneat.genome
+
         genome_cls = None
-        
+
         # In TensorNEAT, genome classes often end with "Genome" (e.g. DefaultGenome, RecurrentGenome)
         # So if user passes "default", we check for "default" or "defaultgenome"
         target_genome = strategy.genome_name.lower()
@@ -1495,14 +1543,16 @@ class Composer:
             if name_lower == target_genome or name_lower == f"{target_genome}genome":
                 genome_cls = obj
                 break
-                
+
         if genome_cls is None:
             raise ValueError(f"Unknown TensorNEAT genome: {strategy.genome_name}")
 
         genome = genome_cls(num_inputs=strategy.num_inputs, num_outputs=strategy.num_outputs)
         algorithm = algorithm_cls(pop_size=pop_size, genome=genome, **strategy.algorithm_kwargs)
 
-        problem, problem_state = self._resolve_tensorneat_problem(strategy.problem_name, fitness_spec)
+        problem, problem_state = self._resolve_tensorneat_problem(
+            strategy.problem_name, fitness_spec
+        )
 
         return build_tensorneat_engine(
             algorithm=algorithm,
@@ -1513,19 +1563,22 @@ class Composer:
             history_metrics=history_metrics,
         )
 
-    def _resolve_tensorneat_problem(self, problem_name: Optional[str], fitness_spec: Optional[str]) -> Tuple[Any, Any]:
-        import tensorneat.problem
+    def _resolve_tensorneat_problem(
+        self, problem_name: Optional[str], fitness_spec: Optional[str]
+    ) -> Tuple[Any, Any]:
         import inspect
-        
+
+        import tensorneat.problem
+
         name = problem_name or (fitness_spec if isinstance(fitness_spec, str) else "xor")
         base_name = name.split(":")[0].lower()
-        
+
         problem_cls = None
         for cls_name, cls_obj in inspect.getmembers(tensorneat.problem, inspect.isclass):
             if cls_name.lower() == base_name:
                 problem_cls = cls_obj
                 break
-                
+
         if problem_cls is None:
             raise ValueError(f"Unknown TensorNEAT problem: {base_name}.")
 
@@ -1544,43 +1597,50 @@ class Composer:
     ) -> Any:
         import jax.random as jr
         from qdax.core.containers.mapelites_repertoire import compute_cvt_centroids
+
+        # Resolve Evaluator using EngineRegistry or direct resolution (for MAP-Elites parity)
         from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesEngineParams
         from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
-        
-        # Resolve Evaluator using EngineRegistry or direct resolution (for MAP-Elites parity)
-        from malthusjax.composer.engine_catalog import EngineRegistry
-        
+
         evaluator = None
         if isinstance(strategy.emitter, TensorNeatEmitter):
-            from malthusjax.core.fitness.tensorneat import TensorNeatQDEvaluator
             from malthusjax.core.fitness.base import BaseEvaluatorConfig
+            from malthusjax.core.fitness.tensorneat import TensorNeatQDEvaluator
+
             objective_fn = kwargs.get("objective_function")
             evaluator = TensorNeatQDEvaluator(
                 objective_function=objective_fn,
                 config=BaseEvaluatorConfig(maximize=maximize),
-                data=None
+                data=None,
             )
         else:
             # We use the BaseQDEvaluator composition to match standard evaluation
             from malthusjax.composer.catalog import OperatorCatalog
+            from malthusjax.core.fitness.base import BaseEvaluatorConfig
             from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
             from malthusjax.core.genome.qd.population import QDPopulation
-            from malthusjax.core.fitness.base import BaseEvaluatorConfig
-            
+
             cat = OperatorCatalog()
             seed_val = kwargs.get("seed", 42)
             if fitness_spec and "seed=" not in fitness_spec:
-                fitness_spec = f"{fitness_spec}:seed={seed_val}" if ":" not in fitness_spec else f"{fitness_spec},seed={seed_val}"
-            
-            resolved_base_evaluator = cat.get(fitness_spec or f"sphere:dim={kwargs.get('genome_length', 10)},maximize={maximize},seed={seed_val}")
-            
+                fitness_spec = (
+                    f"{fitness_spec}:seed={seed_val}"
+                    if ":" not in fitness_spec
+                    else f"{fitness_spec},seed={seed_val}"
+                )
+
+            resolved_base_evaluator = cat.get(
+                fitness_spec
+                or f"sphere:dim={kwargs.get('genome_length', 10)},maximize={maximize},seed={seed_val}"
+            )
+
             bounds = kwargs.get("bounds", (-5.0, 5.0))
             num_desc = strategy.num_descriptors
-            
+
             class ComposedQDEvaluator(BaseQDEvaluator):
                 def evaluate_qd(self, genome):
                     raise NotImplementedError("Use evaluate_population directly")
-                    
+
                 def evaluate_population(self, population):
                     updated_pop = resolved_base_evaluator.evaluate_population(population)
                     genotypes = getattr(population.genes, "values", population.genes)
@@ -1589,17 +1649,25 @@ class Composer:
                     descriptors = (desc_dims - lo) / (hi - lo)
                     new_info = dict(population.info) if population.info else {}
                     new_info["descriptors"] = descriptors
-                    
+
                     fitness = updated_pop.fitness
-                    
-                    return QDPopulation(genes=population.genes, fitness=fitness, config=population.config, info=new_info)
-            evaluator = ComposedQDEvaluator(config=BaseEvaluatorConfig(maximize=maximize), data=None)
+
+                    return QDPopulation(
+                        genes=population.genes,
+                        fitness=fitness,
+                        config=population.config,
+                        info=new_info,
+                    )
+
+            evaluator = ComposedQDEvaluator(
+                config=BaseEvaluatorConfig(maximize=maximize), data=None
+            )
 
         emitter = strategy.emitter
         if isinstance(emitter, str):
             bounds = kwargs.get("bounds", (-5.0, 5.0))
             genome_length = kwargs.get("genome_length", 10)
-            
+
             if emitter.lower() == "mixing":
                 sigma = getattr(strategy, "mutation_sigma", 0.1)
                 emitter_spec = f"qdax_replica:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},genome_length={genome_length}"
@@ -1608,21 +1676,29 @@ class Composer:
                     emitter_spec = f"{emitter},batch_size={pop_size},genome_length={genome_length}"
                 else:
                     emitter_spec = f"{emitter}:batch_size={pop_size},genome_length={genome_length}"
-                
+
             from malthusjax.composer.catalog import OperatorCatalog
+
             catalog = OperatorCatalog()
             emitter = catalog.get(emitter_spec)
         elif emitter is None:
             raise ValueError("MapElitesStrategy requires an explicit emitter.")
-            
+
         centroids = strategy.centroids
         if centroids is None:
-            centroids = compute_cvt_centroids(num_descriptors=strategy.num_descriptors, num_init_cvt_samples=50000, num_centroids=strategy.num_centroids, minval=0.0, maxval=1.0, key=jr.PRNGKey(42))
-            
+            centroids = compute_cvt_centroids(
+                num_descriptors=strategy.num_descriptors,
+                num_init_cvt_samples=50000,
+                num_centroids=strategy.num_centroids,
+                minval=0.0,
+                maxval=1.0,
+                key=jr.PRNGKey(42),
+            )
+
         engine = MapElitesEngine(
             emitter=emitter,
             evaluator=evaluator,
-            engine_params=MapElitesEngineParams(pop_size=pop_size, num_generations=generations)
+            engine_params=MapElitesEngineParams(pop_size=pop_size, num_generations=generations),
         )
         return MapElitesEngineAdapter(
             engine=engine,
@@ -1630,9 +1706,8 @@ class Composer:
             maximize=maximize,
             history_metrics=history_metrics,
             initial_population=kwargs.get("initial_population", None),
-            centroids=centroids
+            centroids=centroids,
         )
-        
 
     def _build_stub_engine(self, generations: int, **kwargs: Any) -> StubEngine:
         """Build StubEngine with legacy behavior for backward compatibility."""

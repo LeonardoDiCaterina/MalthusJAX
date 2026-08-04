@@ -41,9 +41,9 @@ def _ensure_registered() -> None:
     """
     import malthusjax.core.fitness  # noqa: F401
     import malthusjax.operators.crossover  # noqa: F401
+    import malthusjax.operators.emitters  # noqa: F401
     import malthusjax.operators.mutation  # noqa: F401
     import malthusjax.operators.selection  # noqa: F401
-    import malthusjax.operators.emitters  # noqa: F401
 
 
 class OperatorCatalog:
@@ -183,7 +183,7 @@ class OperatorCatalog:
         ``ValueError`` for invalid parameter combinations.
         """
         operator_type, user_params = self.parse_spec(spec)
-        
+
         merged_params = {**user_params, **kwargs}
 
         if data_registry is not None and "data_id" in merged_params:
@@ -205,10 +205,13 @@ class OperatorCatalog:
         merged.update(merged_params)
 
         import inspect
+
         factory_sig = inspect.signature(factory)
         valid_keys = factory_sig.parameters.keys()
-        has_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in factory_sig.parameters.values())
-        
+        has_kwargs = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD for p in factory_sig.parameters.values()
+        )
+
         filtered_merged = {k: v for k, v in merged.items() if k in valid_keys or has_kwargs}
 
         try:

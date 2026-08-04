@@ -2,13 +2,11 @@
 
 import argparse
 import json
-import os
 import shutil
 import sys
 import time
 from pathlib import Path
 from typing import List, Optional
-
 
 from malthusjax.composer import Composer
 from malthusjax.composer.catalog import OperatorCatalog
@@ -144,9 +142,10 @@ def handle_analyze(args: argparse.Namespace) -> int:
             summary = exp.aggregated_summary()
             with open(analysis_dir / f"{name}_summary.json", "w") as f:
                 json.dump(summary, f, indent=2)
-                
+
         try:
             import pandas as pd
+
             table = comparison.summary_table()
             formatted = {}
             for pipe, metrics in table.items():
@@ -159,7 +158,7 @@ def handle_analyze(args: argparse.Namespace) -> int:
             df = pd.DataFrame(formatted).T
             df.to_csv(analysis_dir / "comparison_table.csv")
             df.to_markdown(analysis_dir / "comparison_table.md")
-            
+
             with open(analysis_dir / "comparison_table.tex", "w") as f:
                 f.write(comparison.summary_table(latex=True))
         except Exception as e:

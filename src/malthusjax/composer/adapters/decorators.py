@@ -1,6 +1,5 @@
 """Universal `@adapter` decorator for wrapping external evolutionary frameworks."""
 
-import functools
 from typing import Any, Callable, Dict, Optional, Sequence
 
 from malthusjax.composer.adapters.base import UniversalAdapterEngine
@@ -17,11 +16,12 @@ def adapter(
     Args:
         framework: Name of the framework (e.g., "evosax", "qdax").
         state_mapping: Dict mapping "init" and "step" keys to the actual framework method names.
-        eval_translators: Dict mapping EvalMode constants ("native", "malthusjax") to callables 
+        eval_translators: Dict mapping EvalMode constants ("native", "malthusjax") to callables
             that handle fitness evaluation for that framework.
-        metrics_mapping: Dict mapping metric names to keys or callables to extract from the 
+        metrics_mapping: Dict mapping metric names to keys or callables to extract from the
             framework's metrics object.
     """
+
     def decorator(cls: type) -> type:
         class AdaptedEngine(cls):
             def __init__(
@@ -38,10 +38,10 @@ def adapter(
                 evaluator: Optional[Any] = None,
                 history_metrics: Optional[Sequence[str]] = None,
                 use_python_loop: bool = False,
-                **kwargs: Any
+                **kwargs: Any,
             ) -> None:
                 super().__init__()
-                
+
                 # Save extra args as attributes for the init/step hooks
                 self.strategy = strategy
                 self.params = params
@@ -57,20 +57,20 @@ def adapter(
                 self.use_python_loop = use_python_loop
                 for k, v in kwargs.items():
                     setattr(self, k, v)
-                
+
                 # Retrieve bridging methods
                 init_fn = getattr(self, "_adapter_init", None)
                 if init_fn is None:
                     raise NotImplementedError(f"Class {cls.__name__} must implement _adapter_init")
-                    
+
                 step_fn = getattr(self, "_adapter_step", None)
                 if step_fn is None:
                     raise NotImplementedError(f"Class {cls.__name__} must implement _adapter_step")
-                
+
                 eval_translator = eval_translators.get(eval_mode)
                 if eval_translator is None:
                     raise ValueError(f"EvalMode '{eval_mode}' is not supported by {cls.__name__}")
-                
+
                 # Bundle the problem for NATIVE evaluation
                 if eval_mode == "native":
                     framework_evaluator = (problem, problem_state)
@@ -98,10 +98,10 @@ def adapter(
                     state_has_randkey=False,
                     use_python_loop=use_python_loop,
                 )
-            
+
             def run_once(self, key: Any, unroll_factor: int = 1, compile: bool = True) -> Any:
                 return self.engine.run_once(key, unroll_factor, compile)
-                
+
         AdaptedEngine.__name__ = f"{cls.__name__}Adapted"
         return AdaptedEngine
 

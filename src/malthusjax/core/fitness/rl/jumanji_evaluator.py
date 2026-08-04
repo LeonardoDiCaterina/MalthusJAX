@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple, cast
 
 import chex
 import flax.linen as nn
 import jax
 import jax.numpy as jnp
+import jumanji
 from flax import struct
 
-import jumanji
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.genome.real_genome import RealGenome
 
@@ -18,6 +18,7 @@ from malthusjax.core.genome.real_genome import RealGenome
 @struct.dataclass
 class JumanjiEvaluatorConfig(BaseEvaluatorConfig):
     """Configuration for Jumanji combinatorial RL environments."""
+
     env_name: str = struct.field(pytree_node=False, default="Snake-v1")
     network_layers: Tuple[int, ...] = struct.field(pytree_node=False, default=(64, 64))
     max_steps: int = struct.field(pytree_node=False, default=1000)
@@ -28,6 +29,7 @@ class JumanjiEvaluatorConfig(BaseEvaluatorConfig):
 
 class GenericMaskedPolicy(nn.Module):
     """Basic MLP policy that attempts to handle Jumanji's masked observations."""
+
     features: Tuple[int, ...]
 
     @nn.compact
@@ -70,7 +72,7 @@ class JumanjiEvaluator(BaseEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
 
     @classmethod
     def create(cls, config: JumanjiEvaluatorConfig) -> JumanjiEvaluator:
-        env = jumanji.make(config.env_name)
+        env = jumanji.make(config.env_name)  # type: ignore[attr-defined]
 
         # Determine action dimension
         action_spec = env.action_spec
@@ -87,7 +89,7 @@ class JumanjiEvaluator(BaseEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
         # Dummy init to get structure
         rng = jax.random.PRNGKey(0)
         _, dummy_timestep = env.reset(rng)
-        
+
         # Policy is evaluated on the observation, not the full timestep
         dummy_params = policy.init(rng, dummy_timestep.observation)
 
@@ -97,12 +99,12 @@ class JumanjiEvaluator(BaseEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
         sizes = [p.size for p in flat_params]
 
         # Precompute static split indices for jnp.split
-        split_indices = []
+        split_idx_list = []
         curr = 0
         for s in sizes[:-1]:
             curr += s
-            split_indices.append(curr)
-        split_indices = tuple(split_indices)
+            split_idx_list.append(curr)
+        split_indices = tuple(split_idx_list)
 
         def unflatten_fn(genome_values: chex.Array) -> Any:
             split_arrays = jnp.split(genome_values, split_indices)
@@ -125,11 +127,13 @@ class JumanjiEvaluator(BaseEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
             rng_reset, rng_episode = jax.random.split(rng_input)
             env_state, timestep = self.env.reset(rng_reset)
 
-            def step_fn(carry: Tuple[Any, Any, chex.Numeric, chex.Array], _: Any) -> Tuple[Tuple[Any, Any, chex.Numeric, chex.Array], Any]:
+            def step_fn(
+                carry: Tuple[Any, Any, chex.Numeric, chex.Array], _: Any
+            ) -> Tuple[Tuple[Any, Any, chex.Numeric, chex.Array], Any]:
                 env_state, timestep, cum_reward, done = carry
 
                 # Forward pass - directly pass observation (no batch dim needed since we flatten inside)
-                action_logits = self.policy.apply(params, timestep.observation)
+                action_logits = cast(chex.Array, self.policy.apply(params, timestep.observation))
                 action = jnp.argmax(action_logits)
 
                 next_state, next_timestep = self.env.step(env_state, action)
@@ -137,7 +141,7 @@ class JumanjiEvaluator(BaseEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
                 # Jumanji timestep has reward
                 reward = next_timestep.reward * (1.0 - done)
                 new_cum_reward = cum_reward + reward
-                
+
                 # Check for termination
                 new_done = jnp.logical_or(done, next_timestep.last())
 

@@ -630,11 +630,12 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             metric_best = new_best_fitness  # monotonic
 
-        final_state = replace(state, 
-                population=new_pop,
-                best_genome=new_best_genome,
-                best_fitness=new_best_fitness,
-                generation=state.generation + 1,
+        final_state = replace(
+            state,
+            population=new_pop,
+            best_genome=new_best_genome,
+            best_fitness=new_best_fitness,
+            generation=state.generation + 1,
             rng_key=k_next,
         )
 
@@ -793,12 +794,13 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
             metric_best = new_best_fitness
 
-        final_state = replace(state, 
-                population=new_pop,
-                best_genome=new_best_genome,
-                best_fitness=new_best_fitness,
-                generation=state.generation + 1,
-                rng_key=k_next,
+        final_state = replace(
+            state,
+            population=new_pop,
+            best_genome=new_best_genome,
+            best_fitness=new_best_fitness,
+            generation=state.generation + 1,
+            rng_key=k_next,
         )
 
         metrics = GeneticGenerationOutput(
@@ -911,9 +913,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             best_idx = jnp.argmax(final_state.population.fitness)
             final_state = cast(
                 GeneticEvolutionState,
-                replace(final_state, 
-                    best_fitness=final_state.population.fitness[best_idx]
-                ),
+                replace(final_state, best_fitness=final_state.population.fitness[best_idx]),
             )
 
         return final_state, history, elapsed_time
@@ -1249,9 +1249,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             state.best_genome,
         )
 
-        state = replace(state, 
-                best_genome=new_best_genome,
-                best_fitness=new_best_fitness,
+        state = replace(
+            state,
+            best_genome=new_best_genome,
+            best_fitness=new_best_fitness,
         )
 
         elites, parent_indices = self._selection_phase(
@@ -1273,8 +1274,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             BasePopulation[Any], cast(Any, state.population).replace(genes=next_genes)
         )
 
-        final_state = replace(state, 
-                population=next_population, generation=state.generation + 1, rng_key=k_next
+        final_state = replace(
+            state, population=next_population, generation=state.generation + 1, rng_key=k_next
         )
 
         # Clear the engine-side entropy buffer to prevent accidental reuse of

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 import time
 from abc import ABC, abstractmethod
 from typing import Any, Generic, List, Optional, Tuple, TypeVar, Union, cast
@@ -78,7 +77,7 @@ class AbstractEvolutionState(Generic[G, P]):
     """
     Mutable state container for evolution across generations (carries data through scan).
     Concrete implementations (GeneticEvolutionState) extend this with resource_map, operators.
-    
+
     Type System Note:
     As of v2.0, the population generic parameter `P` has been decoupled from the
     operators but is preserved here for static typing of the scan state. It

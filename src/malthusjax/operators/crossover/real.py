@@ -5,7 +5,7 @@ Optimized to consume pre-allocated keys directly, avoiding internal splitting.
 """
 
 from dataclasses import replace
-from typing import Any, Tuple, cast
+from typing import Any, Tuple
 
 import chex
 import jax
@@ -284,7 +284,9 @@ class BlendCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeCon
         def per_row(k_row: chex.Array) -> Tuple[chex.Array, chex.Array]:
             k_do, k_val = k_row[0], k_row[1]
             should_cross = jax.random.bernoulli(k_do, p=self.crossover_rate)
-            float_dtype = config.dtype if jnp.issubdtype(config.dtype, jnp.floating) else jnp.float32
+            float_dtype = (
+                config.dtype if jnp.issubdtype(config.dtype, jnp.floating) else jnp.float32
+            )
             random_samples = jax.random.uniform(k_val, shape=config.shape, dtype=float_dtype)
             return should_cross, random_samples
 
@@ -500,7 +502,9 @@ class SimulatedBinaryCrossover_injection(BaseCrossover_injection[RealGenome, Rea
         def per_row(k_row: chex.Array) -> Tuple[chex.Array, chex.Array, chex.Array]:
             k_do, k_beta, k_swap = k_row[0], k_row[1], k_row[2]
             should_cross = jax.random.bernoulli(k_do, p=self.crossover_rate)
-            float_dtype = config.dtype if jnp.issubdtype(config.dtype, jnp.floating) else jnp.float32
+            float_dtype = (
+                config.dtype if jnp.issubdtype(config.dtype, jnp.floating) else jnp.float32
+            )
             u = jax.random.uniform(k_beta, shape=config.shape, dtype=float_dtype)
             swap_mask = jax.random.bernoulli(k_swap, p=0.5, shape=config.shape)
             return should_cross, u, swap_mask

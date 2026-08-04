@@ -8,10 +8,9 @@ import chex
 import flax.linen as nn
 import jax
 import jax.numpy as jnp
+from brax import envs
 from flax import struct
 
-import brax
-from brax import envs
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.genome.real_genome import RealGenome
 
@@ -19,6 +18,7 @@ from malthusjax.core.genome.real_genome import RealGenome
 @struct.dataclass
 class BraxEvaluatorConfig(BaseEvaluatorConfig):
     """Configuration for Brax RL environments."""
+
     env_name: str = struct.field(pytree_node=False, default="ant")
     network_layers: Tuple[int, ...] = struct.field(pytree_node=False, default=(64, 64))
     max_steps: int = struct.field(pytree_node=False, default=1000)
@@ -29,6 +29,7 @@ class BraxEvaluatorConfig(BaseEvaluatorConfig):
 
 class ContinuousMLP(nn.Module):
     """MLP policy with tanh output for continuous control."""
+
     features: Tuple[int, ...]
 
     @nn.compact
@@ -68,12 +69,12 @@ class BraxEvaluator(BaseEvaluator[RealGenome, BraxEvaluatorConfig, Any]):
         sizes = [p.size for p in flat_params]
 
         # Precompute static split indices for jnp.split
-        split_indices = []
+        split_idx_list = []
         curr = 0
         for s in sizes[:-1]:
             curr += s
-            split_indices.append(curr)
-        split_indices = tuple(split_indices)
+            split_idx_list.append(curr)
+        split_indices = tuple(split_idx_list)
 
         def unflatten_fn(genome_values: chex.Array) -> Any:
             split_arrays = jnp.split(genome_values, split_indices)
@@ -95,7 +96,9 @@ class BraxEvaluator(BaseEvaluator[RealGenome, BraxEvaluatorConfig, Any]):
         def rollout_episode(rng_input: chex.PRNGKey) -> chex.Numeric:
             env_state = self.env.reset(rng_input)
 
-            def step_fn(carry: Tuple[Any, chex.Numeric, chex.Array], _: Any) -> Tuple[Tuple[Any, chex.Numeric, chex.Array], Any]:
+            def step_fn(
+                carry: Tuple[Any, chex.Numeric, chex.Array], _: Any
+            ) -> Tuple[Tuple[Any, chex.Numeric, chex.Array], Any]:
                 env_state, cum_reward, done = carry
 
                 # Forward pass

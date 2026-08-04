@@ -14,7 +14,6 @@ import jax
 from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
-from malthusjax.core.genome.qd.population import QDPopulation
 
 G = TypeVar("G", bound="BaseGenome")
 C = TypeVar("C", bound="BaseEvaluatorConfig")  # Config type
@@ -108,11 +107,5 @@ class BaseEvaluator(Generic[G, C, D]):
             return None
         return jax.numpy.abs(fitness_value - self.f_opt)
 
+
 RegressionData = Tuple[chex.Array, chex.Array]
-
-
-
-
-
-
-

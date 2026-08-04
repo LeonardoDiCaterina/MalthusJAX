@@ -6,7 +6,7 @@ This module provides mutation operators for BinaryGenome using the new
 """
 
 from dataclasses import replace
-from typing import Any, Tuple, cast
+from typing import Any, Tuple
 
 import chex
 import jax
