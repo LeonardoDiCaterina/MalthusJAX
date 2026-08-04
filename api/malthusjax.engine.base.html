@@ -353,7 +353,7 @@ Call this before starting evolution to catch configuration errors early.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.base.</span></span><span class="sig-name descname"><span class="pre">AbstractEngineParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unroll_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngineParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.base.</span></span><span class="sig-name descname"><span class="pre">AbstractEngineParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unroll_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">track_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngineParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Base immutable configuration for evolution engines (pytree_node=False).
 All fields remain static during JIT compilation; mutations use .replace().
@@ -368,6 +368,7 @@ All fields remain static during JIT compilation; mutations use .replace().
 <li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 <li><p><strong>unroll_num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>track_metrics</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -389,6 +390,11 @@ All fields remain static during JIT compilation; mutations use .replace().
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams.unroll_num">
 <span class="sig-name descname"><span class="pre">unroll_num</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams.unroll_num" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEngineParams.track_metrics">
+<span class="sig-name descname"><span class="pre">track_metrics</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.engine.base.AbstractEngineParams.track_metrics" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -759,6 +765,7 @@ If optimize=False, shows the raw graph (faster, good for debugging shapes).</p>
 <li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.elitism"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.elitism</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.num_generations"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.num_generations</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.unroll_num"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.unroll_num</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.track_metrics"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.track_metrics</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.base.AbstractEngineParams.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEngineParams.replace()</span></code></a></li>
 </ul>
 </li>

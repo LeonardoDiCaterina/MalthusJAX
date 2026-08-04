@@ -355,6 +355,7 @@
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.crossover</span>  <span class="c1"># noqa: F401</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.mutation</span>  <span class="c1"># noqa: F401</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.selection</span>  <span class="c1"># noqa: F401</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.emitters</span>  <span class="c1"># noqa: F401</span>
 
 
 <div class="viewcode-block" id="OperatorCatalog">
@@ -494,19 +495,21 @@
 
 <div class="viewcode-block" id="OperatorCatalog.get">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.catalog.html#malthusjax.composer.catalog.OperatorCatalog.get">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_registry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_registry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve *spec* to a configured operator instance.  The</span>
 <span class="sd">        spec string may include comma-separated parameter overrides.  A</span>
 <span class="sd">        ``KeyError`` is raised for unknown operator types and a</span>
 <span class="sd">        ``ValueError`` for invalid parameter combinations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">operator_type</span><span class="p">,</span> <span class="n">user_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        
+        <span class="n">merged_params</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">user_params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>
 
-        <span class="k">if</span> <span class="n">data_registry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;data_id&quot;</span> <span class="ow">in</span> <span class="n">user_params</span><span class="p">:</span>
-            <span class="n">data_id</span> <span class="o">=</span> <span class="n">user_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;data_id&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_registry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;data_id&quot;</span> <span class="ow">in</span> <span class="n">merged_params</span><span class="p">:</span>
+            <span class="n">data_id</span> <span class="o">=</span> <span class="n">merged_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;data_id&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">data_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_registry</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data ID &#39;</span><span class="si">{</span><span class="n">data_id</span><span class="si">}</span><span class="s2">&#39; not in registry&quot;</span><span class="p">)</span>
-            <span class="n">user_params</span><span class="p">[</span><span class="s2">&quot;_resolved_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_registry</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span>
+            <span class="n">merged_params</span><span class="p">[</span><span class="s2">&quot;_resolved_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_registry</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">operator_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="p">[</span><span class="n">operator_type</span><span class="p">]</span>
@@ -515,11 +518,20 @@
             <span class="n">available</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown operator type: &#39;</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">&#39;. Available: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">factory</span><span class="p">,</span> <span class="n">defaults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">operator_type</span><span class="p">]</span>
-        <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">defaults</span><span class="p">,</span> <span class="o">**</span><span class="n">user_params</span><span class="p">}</span>
+        <span class="n">factory</span><span class="p">,</span> <span class="n">default_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">operator_type</span><span class="p">]</span>
+
+        <span class="n">merged</span> <span class="o">=</span> <span class="n">default_params</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">merged</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">merged_params</span><span class="p">)</span>
+
+        <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+        <span class="n">factory_sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">factory</span><span class="p">)</span>
+        <span class="n">valid_keys</span> <span class="o">=</span> <span class="n">factory_sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">has_kwargs</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">VAR_KEYWORD</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">factory_sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        
+        <span class="n">filtered_merged</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">merged</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">valid_keys</span> <span class="ow">or</span> <span class="n">has_kwargs</span><span class="p">}</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">factory</span><span class="p">(</span><span class="o">**</span><span class="n">merged</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">factory</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_merged</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid parameters for &#39;</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 

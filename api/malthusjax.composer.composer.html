@@ -324,6 +324,18 @@ helper methods like <code class="xref py py-meth docutils literal notranslate"><
 It orchestrates engine construction, seeding, result aggregation and provides
 sensible defaults for rapid prototyping.</p>
 <dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.MapElitesEngineAdapter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.composer.</span></span><span class="sig-name descname"><span class="pre">MapElitesEngineAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#MapElitesEngineAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.MapElitesEngineAdapter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Adapter to make Native MapElitesEngine compatible with BenchmarkRunner.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.composer.MapElitesEngineAdapter.run_once">
+<span class="sig-name descname"><span class="pre">run_once</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#MapElitesEngineAdapter.run_once"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.MapElitesEngineAdapter.run_once" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.composer.composer.Composer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.composer.</span></span><span class="sig-name descname"><span class="pre">Composer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">registry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
@@ -406,7 +418,7 @@ utilities for statistical summary and visualization.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.composer.composer.Composer.quick_run">
-<span class="sig-name descname"><span class="pre">quick_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quick_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'malthusjax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ga'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evosax_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SimpleGA'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdax_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MAPElites'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prng_impl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_history_for_final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.quick_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer.quick_run" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">quick_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quick_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'malthusjax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ga'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evosax_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SimpleGA'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdax_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MAPElites'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensorneat_algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NEAT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensorneat_genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensorneat_problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensorneat_num_inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensorneat_num_outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdax_num_descriptors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdax_num_centroids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdax_mutation_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prng_impl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_history_for_final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.quick_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer.quick_run" title="Link to this definition">¶</a></dt>
 <dd><p>Run a full evolutionary experiment with programmatic operator specs.</p>
 <p>This is the main entry point for interactive exploration and benchmarking.
 It accepts operator specifications as string specs (for the <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code>
@@ -619,6 +631,14 @@ Default: <code class="docutils literal notranslate"><span class="pre">None</span
 <li><p><strong>engine_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
 <li><p><strong>evosax_strategy</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
 <li><p><strong>qdax_strategy</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>tensorneat_algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>tensorneat_genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>tensorneat_problem</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>tensorneat_num_inputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>tensorneat_num_outputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>qdax_num_descriptors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>qdax_num_centroids</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>qdax_mutation_sigma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
 <li><p><strong>strategy</strong> (<em>BaseStrategy</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
 <li><p><strong>fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
@@ -694,7 +714,7 @@ Default: <code class="docutils literal notranslate"><span class="pre">True</span
 Default: 123.
 (Only used if <code class="docutils literal notranslate"><span class="pre">shared_initial_population=True</span></code>.)</p>
 </dd>
-<dt>**shared_kwargs<span class="classifier">Any</span></dt><dd><p>Default configuration applied to all pipelines (merged before
+<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>shared_kwargs<span class="classifier">Any</span></dt><dd><p>Default configuration applied to all pipelines (merged before
 pipeline-specific overrides). Use for common settings like
 <code class="docutils literal notranslate"><span class="pre">fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">pop_size</span></code>, <code class="docutils literal notranslate"><span class="pre">generations</span></code>, <code class="docutils literal notranslate"><span class="pre">bounds</span></code>.</p>
 <p>Example:</p>
@@ -709,8 +729,8 @@ pipeline-specific overrides). Use for common settings like
 </dd>
 </dl>
 </section>
-<section id="id3">
-<h3>Returns<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<section id="id5">
+<h3>Returns<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ComparisonResult</dt><dd><p>Contains:</p>
 <ul class="simple">
@@ -727,8 +747,8 @@ Raw per-pipeline generation histories for custom plotting.</p></li>
 </dd>
 </dl>
 </section>
-<section id="id4">
-<h3>Raises<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<section id="id6">
+<h3>Raises<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ValueError</dt><dd><p>If pipelines dict is empty or contains invalid operator specs.</p>
 </dd>
@@ -744,8 +764,8 @@ have their fitness values negated before display so that all pipelines
 use a consistent “lower is better” convention. This behavior is
 transparent to the user (controlled by ComparisonResult.negate_map).</p>
 </section>
-<section id="id5">
-<h3>Examples<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<section id="id7">
+<h3>Examples<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
 <p>Three-way comparison with shared fitness:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
@@ -810,8 +830,8 @@ pipeline-specific overrides, and seeds in a human-readable format.
 The method parses the file, runs all pipelines with fair comparison
 settings, and returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">ComparisonResult</span></code> with visualization
 and summary utilities.</p>
-<section id="id6">
-<h3>Parameters<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<section id="id8">
+<h3>Parameters<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>path<span class="classifier">str or pathlib.Path</span></dt><dd><p>Path to a TOML experiment configuration file. The file must contain
 at least <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> section with default settings and
@@ -834,8 +854,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id7">
-<h3>Returns<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<section id="id9">
+<h3>Returns<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ComparisonResult</dt><dd><p>Multi-pipeline result object. Contains:
 - <code class="docutils literal notranslate"><span class="pre">.summary_table()</span></code> : aggregated metrics per pipeline
@@ -845,8 +865,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id8">
-<h3>Raises<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<section id="id10">
+<h3>Raises<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>FileNotFoundError</dt><dd><p>If the specified TOML file does not exist.</p>
 </dd>
@@ -856,8 +876,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id9">
-<h3>Notes<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<section id="id11">
+<h3>Notes<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
 <p><strong>TOML File Structure</strong>:</p>
 <p>The TOML file must follow this schema:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">experiment</span><span class="p">]</span>
@@ -896,8 +916,8 @@ format: <code class="docutils literal notranslate"><span class="pre">&quot;opera
 <p>Each pipeline inherits all keys from <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> and can
 override them. Pipeline-specific values take precedence.</p>
 </section>
-<section id="id10">
-<h3>Examples<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<section id="id12">
+<h3>Examples<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
 <p>Simple TOML-based experiment:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># experiment.toml content:</span>
 <span class="c1"># [experiment.shared]</span>
@@ -954,15 +974,15 @@ override them. Pipeline-specific values take precedence.</p>
 with empty registry and minimal default config. Equivalent to calling
 <code class="docutils literal notranslate"><span class="pre">Composer(config={&quot;version&quot;:</span> <span class="pre">&quot;0.1&quot;})</span></code>. Most users should call this
 before invoking <a class="reference internal" href="#malthusjax.composer.composer.Composer.quick_run" title="malthusjax.composer.composer.Composer.quick_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code></a>, <a class="reference internal" href="#malthusjax.composer.composer.Composer.compare" title="malthusjax.composer.composer.Composer.compare"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compare()</span></code></a>, or <a class="reference internal" href="#malthusjax.composer.composer.Composer.from_toml" title="malthusjax.composer.composer.Composer.from_toml"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_toml()</span></code></a>.</p>
-<section id="id11">
-<h3>Returns<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<section id="id13">
+<h3>Returns<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>Composer</dt><dd><p>A ready-to-use <a class="reference internal" href="#malthusjax.composer.composer.Composer" title="malthusjax.composer.composer.Composer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Composer</span></code></a> instance with defaults applied.</p>
 </dd>
 </dl>
 </section>
-<section id="id12">
-<h3>Examples<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<section id="id14">
+<h3>Examples<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h3>
 <p>Standard initialization:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
@@ -1049,6 +1069,10 @@ before invoking <a class="reference internal" href="#malthusjax.composer.compose
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">malthusjax.composer.composer module</a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.composer.MapElitesEngineAdapter"><code class="docutils literal notranslate"><span class="pre">MapElitesEngineAdapter</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.composer.MapElitesEngineAdapter.run_once"><code class="docutils literal notranslate"><span class="pre">MapElitesEngineAdapter.run_once()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#malthusjax.composer.composer.Composer"><code class="docutils literal notranslate"><span class="pre">Composer</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.composer.composer.Composer.registry"><code class="docutils literal notranslate"><span class="pre">Composer.registry</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.composer.Composer.config"><code class="docutils literal notranslate"><span class="pre">Composer.config</span></code></a></li>
