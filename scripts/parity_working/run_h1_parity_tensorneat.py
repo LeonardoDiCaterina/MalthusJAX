@@ -64,8 +64,8 @@ SMOKE_DEFAULTS = {
 
 FULL_DEFAULTS = {
     "functions": ["xor"],
-    "pops": [512, 1024],
-    "gens": [100, 500],
+    "pops": [1024, 2048, 4096],
+    "gens": [500, 1000, 2000],
     "num_seeds": 10,
     "output_dir": "results/h1_parity_tensorneat",
 }
