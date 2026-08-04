@@ -185,24 +185,36 @@ class MapElitesEngine(AbstractEngine[G, P]):
         )
         
         # 5. Extract KPI metrics
-        # The repertoire fitnesses are stored maximized. So if minimize, they are -raw_fitness.
-        # We extract best_fitness from the repertoire and flip it back if necessary.
-        best_fitness = jnp.max(new_repertoire.fitnesses)
-        if not self.engine_params.maximize:
-            best_fitness = -best_fitness
+        if self.engine_params.track_metrics:
+            # The repertoire fitnesses are stored maximized. So if minimize, they are -raw_fitness.
+            # We extract best_fitness from the repertoire and flip it back if necessary.
+            best_fitness = jnp.max(new_repertoire.fitnesses)
+            if not self.engine_params.maximize:
+                best_fitness = -best_fitness
+                
+            mean_fitness = jnp.mean(jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0))
+            if not self.engine_params.maximize:
+                mean_fitness = -mean_fitness
+                
+            std_fitness = jnp.std(jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0))
+            # std is strictly positive, no need to negate
             
-        mean_fitness = jnp.mean(jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0))
-        if not self.engine_params.maximize:
-            mean_fitness = -mean_fitness
+            coverage = 100 * jnp.sum(new_repertoire.fitnesses > -jnp.inf) / new_repertoire.centroids.shape[0]
             
-        std_fitness = jnp.std(jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0))
-        # std is strictly positive, no need to negate
-        
-        # QD Specific metrics
-        active_cells = new_repertoire.fitnesses > -jnp.inf
-        coverage = jnp.mean(active_cells)
-        qd_score = jnp.sum(jnp.where(active_cells, new_repertoire.fitnesses, 0.0))
-        
+            qd_score = jnp.sum(new_repertoire.fitnesses, where=(new_repertoire.fitnesses > -jnp.inf))
+            if not self.engine_params.maximize:
+                # If minimizing, raw fitnesses are negative.
+                qd_score = -qd_score
+                
+            num_elites = jnp.sum(new_repertoire.fitnesses > -jnp.inf)
+        else:
+            best_fitness = jnp.nan
+            mean_fitness = jnp.nan
+            std_fitness = jnp.nan
+            coverage = jnp.nan
+            qd_score = jnp.nan
+            num_elites = jnp.nan
+            
         best_genome_idx = jnp.argmax(new_repertoire.fitnesses)
         best_genome_values = jax.tree_util.tree_map(lambda x: x[best_genome_idx], new_repertoire.genotypes)
         best_genome = state.best_genome.replace(values=best_genome_values)

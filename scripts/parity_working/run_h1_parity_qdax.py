@@ -97,7 +97,7 @@ def run_single_parity(
     replica_emitter = QDAXReplicaMixingEmitter(
         mutation_fn=lambda x, key: x + jax.random.normal(key, x.shape) * 0.1,
         variation_fn=lambda x1, x2, key: x1,  # NO-OP crossover
-        variation_percentage=0.5,
+        variation_percentage=0.0,
         _batch_size=pop_size,
         genome_config=RealGenomeConfig(shape=(num_dims,), bounds=(-5.0, 5.0)),
     )
@@ -107,20 +107,23 @@ def run_single_parity(
             backend="qdax",
             qdax_strategy="MAPElites",
             qdax_num_centroids=pop_size,
-            qdax_mutation_sigma=0.1
+            qdax_mutation_sigma=0.1,
+            qdax_variation_percentage=0.0
         ),
         "malthusjax_native": dict(
             strategy=MapElitesStrategy(
                 emitter=native_emitter,
                 num_centroids=pop_size
-            )
+            ),
+            track_metrics=False
         ),
         "malthusjax_replica": dict(
             strategy=MapElitesStrategy(
                 emitter=replica_emitter,
                 num_centroids=pop_size,
                 key_derivation="qdax_replica"
-            )
+            ),
+            track_metrics=False
         )
     }
 

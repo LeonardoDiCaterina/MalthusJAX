@@ -1356,7 +1356,8 @@ class Composer:
         if isinstance(emitter, str):
             if emitter.lower() == "mixing":
                 sigma = strategy.mutation_sigma
-                emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size}"
+                var_pct = kwargs.pop("qdax_variation_percentage", 0.5)
+                emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},variation_percentage={var_pct}"
             else:
                 if ":" in emitter:
                     emitter_spec = f"{emitter},batch_size={pop_size}"
@@ -1368,7 +1369,8 @@ class Composer:
             emitter = catalog.get(emitter_spec)
         elif emitter is None:
             sigma = strategy.mutation_sigma
-            emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size}"
+            var_pct = kwargs.pop("qdax_variation_percentage", 0.5)
+            emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},variation_percentage={var_pct}"
             from malthusjax.composer.catalog import OperatorCatalog
             catalog = OperatorCatalog()
             emitter = catalog.get(emitter_spec)
