@@ -6,6 +6,42 @@ from typing import Any, Callable, Dict, Tuple
 from malthusjax.composer.adapters import EvalMode, adapter
 from malthusjax.core.fitness.base import BaseEvaluator
 
+def list_algorithms() -> list[str]:
+    try:
+        import tensorneat.algorithm
+        import inspect
+        algos = []
+        for name, obj in inspect.getmembers(tensorneat.algorithm, inspect.isclass):
+            if hasattr(obj, "ask") and hasattr(obj, "tell") and name != "BaseAlgorithm":
+                algos.append(name)
+        return sorted(algos)
+    except ImportError:
+        return []
+
+def list_genomes() -> list[str]:
+    try:
+        import tensorneat.genome
+        import inspect
+        genomes = []
+        for name, obj in inspect.getmembers(tensorneat.genome, inspect.isclass):
+            if hasattr(obj, "initialize") and name != "BaseGenome":
+                genomes.append(name)
+        return sorted(genomes)
+    except ImportError:
+        return []
+
+def list_problems() -> list[str]:
+    try:
+        import tensorneat.problem
+        import inspect
+        problems = []
+        for name, obj in inspect.getmembers(tensorneat.problem, inspect.isclass):
+            if hasattr(obj, "evaluate") and "Base" not in name:
+                problems.append(name)
+        return sorted(problems)
+    except ImportError:
+        return []
+
 def _tensorneat_native_eval(evaluator, state, transformed_pop, algorithm, key):
     """Executes the TensorNEAT native evaluation function.
     

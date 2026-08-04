@@ -62,7 +62,7 @@ class UniversalAdapterEngine:
         
         self._jit_run_loop = None
 
-    def _build_jit_loop(self):
+    def _build_jit_loop(self) -> Any:
         """Build and cache the JIT-compiled evolution loop."""
         if self._jit_run_loop is not None:
             return self._jit_run_loop
@@ -95,7 +95,7 @@ class UniversalAdapterEngine:
         self._jit_run_loop = jax.jit(run_loop)
         return self._jit_run_loop
         
-    def _build_python_loop(self):
+    def _build_python_loop(self) -> Any:
         """Build a python loop for non-jittable frameworks."""
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
@@ -159,7 +159,14 @@ class UniversalAdapterEngine:
         # Format history output
         history = []
         sign = -1.0 if self.maximize else 1.0
-        track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
+        
+        # If history_metrics is explicitly provided, filter by it, else include all available metrics
+        if self.history_metrics:
+            track_keys = self.history_metrics
+            if "best_fitness" not in track_keys and "best_fitness" in scan_history:
+                track_keys = list(track_keys) + ["best_fitness"]
+        else:
+            track_keys = list(scan_history.keys())
 
         fitness_auc = 0.0
         for g in range(self.num_generations):
@@ -183,6 +190,13 @@ class UniversalAdapterEngine:
             "total_evaluations": self.num_generations * self.pop_size,
         }
         
+        # Inject any other tracked metrics (e.g. qd_score, coverage) from their final generation
+        for k in track_keys:
+            if k not in ("best_fitness", "mean_fitness", "std_fitness"):
+                if k in scan_history:
+                    val = scan_history[k][-1]
+                    summary[k] = float(val)
+
         mjx_evaluator = getattr(self, "malthusjax_evaluator", None) or self.evaluator
         if mjx_evaluator is not None and hasattr(mjx_evaluator, "get_gap_to_optimum"):
             gap = mjx_evaluator.get_gap_to_optimum(report_best)

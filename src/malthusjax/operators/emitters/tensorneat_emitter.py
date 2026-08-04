@@ -45,7 +45,7 @@ class TensorNeatEmitter(AtomicEmitter):
 
     def init(self, key: chex.Array, initial_population: BasePopulation, params: Any = None) -> TensorNeatEmitterState:
         tn_state = State(randkey=key, generation=jnp.float32(0))
-        nodes, conns = initial_population.genes.values
+        nodes, conns = getattr(initial_population.genes, "values", initial_population.genes)
         all_nodes_keys = nodes[:, :, 0]
         max_node_key = jnp.max(all_nodes_keys, where=~jnp.isnan(all_nodes_keys), initial=0)
         

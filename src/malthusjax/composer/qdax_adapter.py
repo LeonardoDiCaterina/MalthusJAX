@@ -5,7 +5,7 @@ Wraps qdax.MAPElites using the universal @adapter decorator.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Tuple, Sequence
 
 import chex
 import jax
@@ -13,6 +13,36 @@ import jax.numpy as jnp
 
 from malthusjax.composer.adapters import EvalMode, adapter
 
+
+def list_strategies() -> list[str]:
+    """Returns a list of available QDAX strategy names by inspecting qdax.core.
+    
+    Dynamically scans the QDAX library for any class that implements the basic
+    MAP-Elites interface (init and update methods), making this future-proof
+    against new QDAX releases.
+    """
+    try:
+        import qdax.core
+        import pkgutil
+        import importlib
+        import inspect
+        
+        strategies = []
+        for _, name, is_pkg in pkgutil.iter_modules(qdax.core.__path__):
+            if not is_pkg:
+                try:
+                    mod = importlib.import_module(f"qdax.core.{name}")
+                    for cls_name, cls_obj in inspect.getmembers(mod, inspect.isclass):
+                        if (cls_obj.__module__ == mod.__name__ and 
+                            hasattr(cls_obj, "init") and 
+                            hasattr(cls_obj, "update")):
+                            strategies.append(cls_name)
+                except Exception:
+                    continue
+                    
+        return sorted(list(set(strategies)))
+    except ImportError:
+        return []
 
 def _qdax_native_eval(evaluator, pop, state, key):
     """Executes the QDAX native scoring function."""
@@ -78,6 +108,26 @@ class QDaxEngineAdapter:
         # For QDAX, strategy is the MAPElites instance.
         # params would contain centroids, initial variables.
         init_variables = params.get("init_variables")
+        
+        # Override with pop_init if provided
+        if pop_init is not None:
+            if hasattr(pop_init, "genes") and hasattr(pop_init.genes, "values"):
+                init_variables = pop_init.genes.values
+            elif isinstance(pop_init, jnp.ndarray):
+                init_variables = pop_init
+        
+        # Or dynamically generate if entirely missing using the true runtime `key`
+        if init_variables is None:
+            bounds = params.get("bounds", (-5.0, 5.0))
+            pop_size = params.get("pop_size", 100)
+            genome_length = params.get("genome_length", 1)
+            init_variables = jax.random.uniform(
+                key,
+                (pop_size, genome_length),
+                minval=float(bounds[0]),
+                maxval=float(bounds[1]),
+            )
+            
         centroids = params.get("centroids")
         
         # In MalthusJAX EvalMode, we can lazily inject the scoring function if the strategy is actually a class
@@ -135,7 +185,11 @@ def build_qdax_engine(
         from malthusjax.core.genome.real_genome import RealGenomeConfig
         genome_config = getattr(evaluator.config, "genome_config", None)
         if genome_config is None:
-            genome_config = RealGenomeConfig(shape=init_variables.shape[1:])
+            if init_variables is not None:
+                shape = init_variables.shape[1:]
+            else:
+                shape = (kwargs.get("genome_length", 1),)
+            genome_config = RealGenomeConfig(shape=shape)
         
         # Build the scoring function wrapper
         scoring_fn = _qdax_malthusjax_eval(evaluator, genome_config, maximize)
@@ -156,7 +210,10 @@ def build_qdax_engine(
     
     params = {
         "init_variables": init_variables,
-        "centroids": centroids
+        "centroids": centroids,
+        "bounds": kwargs.get("bounds", (-5.0, 5.0)),
+        "pop_size": pop_size,
+        "genome_length": init_variables.shape[1] if init_variables is not None else kwargs.get("genome_length", 1)
     }
     
     return QDaxEngineAdapter(

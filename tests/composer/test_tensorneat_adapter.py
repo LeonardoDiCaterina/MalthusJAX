@@ -5,10 +5,6 @@ import chex
 import sys
 from unittest.mock import MagicMock
 
-# Mock TensorNEAT before importing the adapter
-mock_tensorneat = MagicMock()
-mock_state_module = MagicMock()
-
 from flax import struct
 
 @struct.dataclass
@@ -23,10 +19,18 @@ class MockState:
     def update(self, **kwargs):
         return self.register(**kwargs)
 
-mock_state_module.State = MockState
-mock_tensorneat.common = mock_state_module
-sys.modules['tensorneat'] = mock_tensorneat
-sys.modules['tensorneat.common'] = mock_state_module
+@pytest.fixture(autouse=True)
+def mock_tensorneat_modules(monkeypatch):
+    # Only mock if tensorneat is not actually installed, 
+    # or just mock safely for this module
+    mock_tensorneat = MagicMock()
+    mock_state_module = MagicMock()
+    mock_state_module.State = MockState
+    mock_tensorneat.common = mock_state_module
+    
+    monkeypatch.setitem(sys.modules, 'tensorneat', mock_tensorneat)
+    monkeypatch.setitem(sys.modules, 'tensorneat.common', mock_state_module)
+    yield
 
 from malthusjax.composer.tensorneat_adapter import TensorNEATEngineAdapter, build_tensorneat_engine
 from .base_adapter_suite import BaseAdapterTestSuite

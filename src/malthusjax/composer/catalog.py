@@ -43,6 +43,7 @@ def _ensure_registered() -> None:
     import malthusjax.operators.crossover  # noqa: F401
     import malthusjax.operators.mutation  # noqa: F401
     import malthusjax.operators.selection  # noqa: F401
+    import malthusjax.operators.emitters  # noqa: F401
 
 
 class OperatorCatalog:
@@ -175,19 +176,21 @@ class OperatorCatalog:
 
         return value_str
 
-    def get(self, spec: str, data_registry: Optional[Dict[str, Any]] = None) -> Any:
+    def get(self, spec: str, data_registry: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Any:
         """Resolve *spec* to a configured operator instance.  The
         spec string may include comma-separated parameter overrides.  A
         ``KeyError`` is raised for unknown operator types and a
         ``ValueError`` for invalid parameter combinations.
         """
         operator_type, user_params = self.parse_spec(spec)
+        
+        merged_params = {**user_params, **kwargs}
 
-        if data_registry is not None and "data_id" in user_params:
-            data_id = user_params.pop("data_id")
+        if data_registry is not None and "data_id" in merged_params:
+            data_id = merged_params.pop("data_id")
             if data_id not in data_registry:
                 raise KeyError(f"Data ID '{data_id}' not in registry")
-            user_params["_resolved_data"] = data_registry[data_id]
+            merged_params["_resolved_data"] = data_registry[data_id]
 
         if operator_type in self._evosax_strategies:
             return self._evosax_strategies[operator_type]
@@ -196,11 +199,20 @@ class OperatorCatalog:
             available = sorted(list(self._registry.keys()) + list(self._evosax_strategies.keys()))
             raise KeyError(f"Unknown operator type: '{operator_type}'. Available: {available}")
 
-        factory, defaults = self._registry[operator_type]
-        merged = {**defaults, **user_params}
+        factory, default_params = self._registry[operator_type]
+
+        merged = default_params.copy()
+        merged.update(merged_params)
+
+        import inspect
+        factory_sig = inspect.signature(factory)
+        valid_keys = factory_sig.parameters.keys()
+        has_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in factory_sig.parameters.values())
+        
+        filtered_merged = {k: v for k, v in merged.items() if k in valid_keys or has_kwargs}
 
         try:
-            return factory(**merged)
+            return factory(**filtered_merged)
         except TypeError as e:
             raise ValueError(f"Invalid parameters for '{operator_type}': {e}") from e
 

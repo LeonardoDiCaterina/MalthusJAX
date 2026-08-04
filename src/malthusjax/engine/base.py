@@ -70,6 +70,7 @@ class AbstractEngineParams:
     elitism: int = _field(pytree_node=False, default=0)
     num_generations: int = _field(pytree_node=False, default=50)
     unroll_num: int = _field(pytree_node=False, default=1)
+    track_metrics: bool = _field(pytree_node=False, default=True)
 
 
 @struct.dataclass

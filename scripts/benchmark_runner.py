@@ -22,10 +22,6 @@ if "CUDA_VISIBLE_DEVICES" in os.environ:
 else:
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-# Prevent cuSolver OOM errors by disabling aggressive memory preallocation
-os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
-os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
-
 from malthusjax.benchmarking.config import BenchmarkConfig
 from malthusjax.benchmarking.sampling import generate_grid
 from malthusjax.composer import Composer
@@ -142,18 +138,17 @@ def run_suite(toml_path: str, force_smoke: bool = False) -> None:
                 }
 
                 for run in exp_result.runs:
-                    best_fit = run.metrics.get("best_fitness")
-                    final_gen = run.metrics.get("final_generation")
-                    tot_evals = run.metrics.get("total_evaluations")
-
                     seed_data = {
                         "seed": run.seed,
                         "status": run.status,
                         "duration_seconds": run.duration_seconds,
-                        "best_fitness": float(best_fit) if best_fit is not None else None,
-                        "final_generation": int(final_gen) if final_gen is not None else None,
-                        "total_evaluations": int(tot_evals) if tot_evals is not None else None,
                     }
+                    
+                    # Dynamically add all scalar metrics returned by the engine
+                    for k, v in run.metrics.items():
+                        if isinstance(v, (int, float, bool, str)) or v is None:
+                            seed_data[k] = float(v) if isinstance(v, (int, float)) else v
+
                     if run.timings:
                         seed_data["timings"] = run.timings
 
@@ -166,12 +161,9 @@ def run_suite(toml_path: str, force_smoke: bool = False) -> None:
 
                             seed_data["convergence"] = [
                                 {
-                                    "generation": int(h.get("generation"))
-                                    if h.get("generation") is not None
-                                    else None,
-                                    "best_fitness": float(h.get("best_fitness"))
-                                    if h.get("best_fitness") is not None
-                                    else None,
+                                    k: (float(v) if isinstance(v, (int, float)) else v)
+                                    for k, v in h.items()
+                                    if isinstance(v, (int, float, bool, str)) or v is None
                                 }
                                 for h in history_to_save
                             ]

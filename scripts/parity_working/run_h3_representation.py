@@ -32,10 +32,6 @@ if "CUDA_VISIBLE_DEVICES" in os.environ:
 else:
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-# Prevent cuSolver OOM errors by disabling aggressive memory preallocation
-os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
-os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
-
 from pathlib import Path
 from typing import Any
 

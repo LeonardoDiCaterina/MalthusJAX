@@ -52,3 +52,28 @@ class BaseQDEvaluator(BaseEvaluator[G, C, D]):
             config=population.config,
             info=new_info
         )
+
+
+@struct.dataclass
+class SimpleQDEvaluator(BaseQDEvaluator[G, Any, Any]):
+    """Standard wrapper for quality-diversity objective functions.
+    
+    Expects an objective function that takes a single array of genes 
+    and returns a tuple of (fitness, descriptors) or (fitness, descriptors, extra).
+    """
+    objective_function: Any = struct.field(pytree_node=False)
+
+    def evaluate_qd(self, genome: G) -> Tuple[chex.Numeric, chex.Array]:
+        # Unwrap genome to underlying values if applicable
+        gene_values = getattr(genome, "values", genome)
+        result = self.objective_function(gene_values)
+        
+        fitness = result[0]
+        descriptors = result[1]
+
+        # Evosax / Composer convention is lower-is-better by default, 
+        # but QD natively maximizes. If maximize=False, we negate the fitness.
+        if self.config is not None and not self.config.maximize:
+            fitness = -1.0 * fitness
+            
+        return fitness, descriptors

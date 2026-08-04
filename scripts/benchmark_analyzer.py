@@ -35,8 +35,11 @@ from malthusjax.stats.io import suite_to_dict, suite_to_markdown
 from malthusjax.stats.regression_analyzer import OLSRegressionAnalyzer, RegressionSpec
 
 
-def parse_global_data(results_dir: Path) -> pd.DataFrame:
+def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.DataFrame:
     """Parse all JSON artifacts into a single unpivoted dataframe."""
+    if target_metrics is None:
+        target_metrics = ["best_fitness", "execution_time"]
+        
     records = []
 
     # Support both new TOML engine and legacy hardcoded script outputs
@@ -90,34 +93,39 @@ def parse_global_data(results_dir: Path) -> pd.DataFrame:
 
                 for run in runs:
                     seed = run.get("seed", -1)
-                    best_fit = run.get("best_fitness", np.nan)
-                    exec_time = run.get("duration_seconds", np.nan)
+                    
+                    record = {
+                        "experiment": exp_name,
+                        "fn_name": fn_name,
+                        "D": D,
+                        "P": P,
+                        "G": G,
+                        "pipeline": p_name,
+                        "seed": seed,
+                    }
 
-                    if "timings" in run and "total" in run["timings"]:
-                        exec_time = run["timings"]["total"]
+                    for metric in target_metrics:
+                        val = run.get(metric, np.nan)
+                        
+                        # Fallbacks for execution time aliases
+                        if metric == "execution_time" and pd.isna(val):
+                            if "timings" in run and "total" in run["timings"]:
+                                val = run["timings"]["total"]
+                            else:
+                                val = run.get("duration_seconds", np.nan)
+                                
+                        try:
+                            val = float(val) if val is not None else np.nan
+                        except (ValueError, TypeError):
+                            val = np.nan
+                            
+                        record[metric] = val
 
-                    try:
-                        best_fit = float(best_fit) if best_fit is not None else np.nan
-                        exec_time = float(exec_time) if exec_time is not None else np.nan
-                    except (ValueError, TypeError):
-                        best_fit, exec_time = np.nan, np.nan
-
-                    if np.isnan(best_fit) or np.isnan(exec_time):
+                    # Skip if ALL target metrics are nan
+                    if all(pd.isna(record[m]) for m in target_metrics):
                         continue
 
-                    records.append(
-                        {
-                            "experiment": exp_name,
-                            "fn_name": fn_name,
-                            "D": D,
-                            "P": P,
-                            "G": G,
-                            "pipeline": p_name,
-                            "seed": seed,
-                            "best_fitness": best_fit,
-                            "execution_time": exec_time,
-                        }
-                    )
+                    records.append(record)
 
     return pd.DataFrame(records)
 
@@ -125,20 +133,23 @@ def parse_global_data(results_dir: Path) -> pd.DataFrame:
 # synthesize_regression_dataset has been moved to malthusjax.stats.dataset_builder
 
 
-def generate_boxplots(df: pd.DataFrame, output_dir: Path, prefix: str):
-    """Generate side-by-side boxplots for speed and fitness."""
-    plt.figure(figsize=(12, 5))
+def generate_boxplots(df: pd.DataFrame, output_dir: Path, prefix: str, target_metrics: list):
+    """Generate side-by-side boxplots for dynamically specified metrics."""
+    n_metrics = len(target_metrics)
+    plt.figure(figsize=(6 * n_metrics, 5))
 
-    plt.subplot(1, 2, 1)
-    sns.boxplot(data=df, x="pipeline", y="execution_time")
-    plt.yscale("log")
-    plt.title("Execution Time (Seconds)")
-    plt.xticks(rotation=45)
-
-    plt.subplot(1, 2, 2)
-    sns.boxplot(data=df, x="pipeline", y="best_fitness")
-    plt.title("Best Fitness (Lower is Better)")
-    plt.xticks(rotation=45)
+    for i, metric in enumerate(target_metrics):
+        if metric not in df.columns:
+            continue
+            
+        plt.subplot(1, n_metrics, i + 1)
+        sns.boxplot(data=df.dropna(subset=[metric]), x="pipeline", y=metric)
+        
+        if metric == "execution_time":
+            plt.yscale("log")
+        
+        plt.title(f"{metric.replace('_', ' ').title()}")
+        plt.xticks(rotation=45)
 
     plt.tight_layout()
     plt.savefig(output_dir / f"{prefix}_boxplots.png", dpi=300)
@@ -213,7 +224,10 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
     analysis_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Parsing raw results from {results_dir}...")
-    df_global = parse_global_data(results_dir)
+    df_global = parse_global_data(
+        results_dir, 
+        target_metrics=config.analysis.target_metrics
+    )
 
     if df_global.empty:
         print("ERROR: No valid JSON result artifacts found!")
@@ -253,7 +267,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
             df_fn = df_paired[df_paired["fn_name"] == fn_name]
             prefix = f"{target}_vs_{ref_pipeline}_{fn_name}"
 
-            generate_boxplots(df_fn, analysis_dir, prefix)
+            generate_boxplots(df_fn, analysis_dir, prefix, config.analysis.target_metrics)
 
             if (
                 config.suite.mode == "lhs"
@@ -261,8 +275,8 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                 and config.suite.mode != "cartesian"
             ):
                 # OLS Scaling Regressions using malthusjax.stats
-                generate_scaling_plots(df_fn, "execution_time", analysis_dir, prefix)
-                generate_scaling_plots(df_fn, "best_fitness", analysis_dir, prefix)
+                for var in config.analysis.target_metrics:
+                    generate_scaling_plots(df_fn, var, analysis_dir, prefix)
 
                 # The OLS Regressions are now handled globally via the OLSRegressionAnalyzer
                 # Scaling plots are still generated per benchmark fn_name.
@@ -282,9 +296,12 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                     prefix_D = f"{prefix}_d{int(D_val)}"
 
                     datasets = []
-                    for var in ["execution_time", "best_fitness"]:
-                        target_vals = df_target[var].values
-                        ref_vals = df_ref[var].values
+                    for var in config.analysis.target_metrics:
+                        if var not in df_target.columns or var not in df_ref.columns:
+                            continue
+                            
+                        target_vals = df_target[var].dropna().values
+                        ref_vals = df_ref[var].dropna().values
 
                         if len(target_vals) > 0 and len(target_vals) == len(ref_vals):
                             datasets.append(
@@ -370,7 +387,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
     ):
         print("\nRunning Global OLS Regression Analysis...")
         ols_spec = RegressionSpec(
-            dependent_vars=["execution_time", "best_fitness"], apply_multiple_testing=True
+            dependent_vars=config.analysis.target_metrics, apply_multiple_testing=True
         )
         ols_analyzer = OLSRegressionAnalyzer(spec=ols_spec)
         pivot_df = ols_analyzer.analyze_suite(

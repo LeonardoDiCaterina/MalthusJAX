@@ -38,8 +38,8 @@ def adapter(
                 evaluator: Optional[Any] = None,
                 history_metrics: Optional[Sequence[str]] = None,
                 use_python_loop: bool = False,
-                **kwargs
-            ):
+                **kwargs: Any
+            ) -> None:
                 super().__init__()
                 
                 # Save extra args as attributes for the init/step hooks
@@ -99,7 +99,7 @@ def adapter(
                     use_python_loop=use_python_loop,
                 )
             
-            def run_once(self, key, unroll_factor=1, compile=True):
+            def run_once(self, key: Any, unroll_factor: int = 1, compile: bool = True) -> Any:
                 return self.engine.run_once(key, unroll_factor, compile)
                 
         AdaptedEngine.__name__ = f"{cls.__name__}Adapted"

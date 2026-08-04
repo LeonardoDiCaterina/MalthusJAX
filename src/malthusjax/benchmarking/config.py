@@ -39,6 +39,7 @@ class LHSGridConfig:
 @dataclasses.dataclass
 class AnalysisConfig:
     reference_pipeline: str
+    target_metrics: List[str] = dataclasses.field(default_factory=lambda: ["best_fitness", "execution_time"])
 
 
 @dataclasses.dataclass
@@ -64,7 +65,7 @@ class BenchmarkConfig:
 
         grid_data = data["grid"]
         if suite.mode == "cartesian":
-            grid = CartesianGridConfig(
+            grid: Any = CartesianGridConfig(
                 functions=grid_data["functions"],
                 dims=grid_data["dims"],
                 pops=grid_data["pops"],
@@ -87,6 +88,7 @@ class BenchmarkConfig:
         analysis_data = data.get("analysis", {})
         analysis = AnalysisConfig(
             reference_pipeline=analysis_data.get("reference_pipeline", ""),
+            target_metrics=analysis_data.get("target_metrics", ["best_fitness", "execution_time"]),
         )
 
         pipelines = data.get("pipelines", {})

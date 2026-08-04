@@ -313,7 +313,14 @@ class ExperimentResult:
         # Collect numeric metrics across runs
         agg: Dict[str, List[float]] = {}
         for r in self.runs:
-            for k, v in r.metrics.items():
+            virtual_metrics = dict(r.metrics)
+            if r.duration_seconds is not None and "duration_seconds" not in virtual_metrics:
+                virtual_metrics["duration_seconds"] = r.duration_seconds
+            if r.timings:
+                for tk, tv in r.timings.items():
+                    virtual_metrics.setdefault(f"time_{tk}", tv)
+
+            for k, v in virtual_metrics.items():
                 try:
                     val = float(v)
                 except Exception:

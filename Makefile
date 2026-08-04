@@ -4,6 +4,7 @@
         test-bench-group-09 test-bench-group-10 test-bench-group-11 \
 	lint format format-check type-check check-all docs docs-clean docs-open \
 	h1-parity-smoke h1-parity-smoke-nohup h1-parity-full h1-parity-full-nohup \
+	h1-parity-qdax-smoke h1-parity-qdax-smoke-nohup h1-parity-qdax-full h1-parity-qdax-full-nohup \
 	h2-ablation-smoke h2-ablation-smoke-nohup h2-ablation-full h2-ablation-full-nohup \
 	h3-representation-smoke h3-representation-smoke-nohup h3-representation-full h3-representation-full-nohup
 
@@ -57,8 +58,18 @@ help:
 	@echo "  make artifacts-dir RESULTS_DIR=<dir>  Generate artifacts for one results dir"
 	@echo "  make artifacts-batch RESULTS_GLOB=<glob> Generate artifacts for matching dirs"
 	@echo "  make list-toml                      List available TOML experiment files"
-	@echo "  make toy-100seeds                  Run legacy 100-seed toy matrix (d=3)"
-	@echo "  make toy-100seeds-sphere-d5        Run legacy 100-seed toy matrix (sphere d=5)"
+	@echo ""
+	@echo "--- Thesis & Show & Tell ---"
+	@echo "  make show-tell                      Run the full thesis parity evaluation (H1, H2, H3)"
+	@echo "  make show-tell-smoke                Run the smoke test version of the thesis evaluation"
+	@echo "  make smoke-all                      Run smoke tests for all unified TOML benchmarks"
+	@echo ""
+	@echo "--- Docker Execution (Cluster) ---"
+	@echo "  make docker-build                   Build the GPU-enabled Docker image"
+	@echo "  make docker-h<1|2|3>-<...>-full     Run a specific thesis suite in a detached container"
+	@echo "  make docker-all-full                Run ALL thesis suites sequentially in a detached container"
+	@echo "  make docker-all-smoke               Run ALL smoke tests sequentially in a detached container"
+	@echo "  (All docker targets automatically mount results/ and logs/ and print the tail command)"
 	@echo ""
 	@echo "--- Artifact Generation Details ---"
 	@echo "  Artifacts are written to: <results_dir>/artifacts/"
@@ -73,6 +84,7 @@ help:
 	@echo "Example:"
 	@echo "  make run-toml TOML=configs/examples/sphere_experiment.toml"
 	@echo "  make suite-parity CONFIG_DIR=configs/thesis/ OUT_DIR=results/thesis_suite"
+	@echo "  make docker-all-full"
 	@echo ""
 	@echo "--- Documentation Workflow ---"
 	@echo "  make docs                    Build Sphinx HTML docs (picks up all changes)"
@@ -389,6 +401,12 @@ suite-parity:
 	@echo "--- Generating LaTeX table ---"
 	@$(PYTHON) scripts/generate_parity_latex.py --suite_dir $(OUT_DIR) --out $(OUT_DIR)/parity_table.tex
 
+thesis-tables:
+	@test -n "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR variable not set"; echo "Usage: make thesis-tables RESULTS_DIR=results/h1_parity_qdax"; exit 1)
+	@test -d "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR not found: $(RESULTS_DIR)"; exit 1)
+	@echo "--- Generating Thesis Tables for $(RESULTS_DIR) ---"
+	@$(PYTHON) scripts/generate_thesis_tables.py --dir $(RESULTS_DIR)
+
 # ============================================================================= #
 # Thesis Parity Pipeline (Clean — scripts/parity_working/)
 # ============================================================================= #
@@ -407,6 +425,36 @@ h1-parity-full:
 
 h1-parity-full-nohup:
 	$(call run_nohup,h1-parity-full,$(PYTHON) scripts/parity_working/run_h1_parity.py)
+
+# H1: MalthusJAX Native vs QDAX MAP-Elites
+h1-parity-qdax-smoke:
+	@echo "--- H1 PARITY QDAX: Smoke Test ---"
+	$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py --smoke
+
+h1-parity-qdax-smoke-nohup:
+	$(call run_nohup,h1-parity-qdax-smoke,$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py --smoke)
+
+h1-parity-qdax-full:
+	@echo "--- H1 PARITY QDAX: Full Run ---"
+	$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py
+
+h1-parity-qdax-full-nohup:
+	$(call run_nohup,h1-parity-qdax-full,$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py)
+
+# H1: MalthusJAX Native vs TensorNEAT Pure
+h1-parity-tensorneat-smoke:
+	@echo "--- H1 PARITY TENSORNEAT: Smoke Test ---"
+	$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py --smoke
+
+h1-parity-tensorneat-smoke-nohup:
+	$(call run_nohup,h1-parity-tensorneat-smoke,$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py --smoke)
+
+h1-parity-tensorneat-full:
+	@echo "--- H1 PARITY TENSORNEAT: Full Run ---"
+	$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py
+
+h1-parity-tensorneat-full-nohup:
+	$(call run_nohup,h1-parity-tensorneat-full,$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py)
 
 # H2: Ablation (Structural Dissection)
 h2-ablation-smoke:
@@ -438,6 +486,110 @@ h3-representation-full:
 h3-representation-full-nohup:
 	$(call run_nohup,h3-representation-full,$(PYTHON) scripts/parity_working/run_h3_representation.py)
 
+all-smoke: h1-parity-smoke h1-parity-qdax-smoke h1-parity-tensorneat-smoke h2-ablation-smoke h3-representation-smoke
+	@echo "--- ALL SMOKE TESTS COMPLETED ---"
+
+all-full: h1-parity-full h1-parity-qdax-full h1-parity-tensorneat-full h2-ablation-full h3-representation-full
+	@echo "--- ALL FULL RUNS COMPLETED ---"
+
+# ============================================================================= #
+# Docker Execution (Cluster)
+# ============================================================================= #
+
+docker-build:
+	@echo "--- Building Docker Image with GPU Support ---"
+	docker build --build-arg EXTRAS="[cuda12,qdax]" -t malthusjax-gpu .
+
+# --- Full Runs ---
+
+docker-h1-parity-full:
+	@echo "--- Running H1 Parity (Full) via Docker (Detached) ---"
+	@docker rm -f h1-parity-full 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-full\n"
+
+docker-h1-parity-qdax-full:
+	@echo "--- Running H1 Parity QDAX (Full) via Docker (Detached) ---"
+	@docker rm -f h1-parity-qdax-full 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-qdax-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-qdax-full\n"
+
+docker-h1-parity-tensorneat-full:
+	@echo "--- Running H1 Parity TensorNEAT (Full) via Docker (Detached) ---"
+	@docker rm -f h1-parity-tensorneat-full 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-tensorneat-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-tensorneat-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-tensorneat-full\n"
+
+docker-h2-ablation-full:
+	@echo "--- Running H2 Ablation (Full) via Docker (Detached) ---"
+	@docker rm -f h2-ablation-full 2>/dev/null || true
+	docker run -d --gpus all --name h2-ablation-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h2-ablation-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h2-ablation-full\n"
+
+docker-h3-representation-full:
+	@echo "--- Running H3 Representation (Full) via Docker (Detached) ---"
+	@docker rm -f h3-representation-full 2>/dev/null || true
+	docker run -d --gpus all --name h3-representation-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h3-representation-full
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h3-representation-full\n"
+
+# --- Smoke Tests ---
+
+docker-h1-parity-smoke:
+	@echo "--- Running H1 Parity (Smoke) via Docker (Detached) ---"
+	@docker rm -f h1-parity-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-smoke\n"
+
+docker-h1-parity-qdax-smoke:
+	@echo "--- Running H1 Parity QDAX (Smoke) via Docker (Detached) ---"
+	@docker rm -f h1-parity-qdax-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-qdax-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-qdax-smoke\n"
+
+docker-h1-parity-tensorneat-smoke:
+	@echo "--- Running H1 Parity TensorNEAT (Smoke) via Docker (Detached) ---"
+	@docker rm -f h1-parity-tensorneat-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h1-parity-tensorneat-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-tensorneat-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-tensorneat-smoke\n"
+
+docker-h2-ablation-smoke:
+	@echo "--- Running H2 Ablation (Smoke) via Docker (Detached) ---"
+	@docker rm -f h2-ablation-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h2-ablation-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h2-ablation-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h2-ablation-smoke\n"
+
+docker-h3-representation-smoke:
+	@echo "--- Running H3 Representation (Smoke) via Docker (Detached) ---"
+	@docker rm -f h3-representation-smoke 2>/dev/null || true
+	docker run -d --gpus all --name h3-representation-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h3-representation-smoke
+	@echo "\n>>> SUCCESS: Container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f h3-representation-smoke\n"
+
+# --- All Sequential Suites ---
+
+docker-all-full:
+	@echo "--- Running ALL Experiments Sequentially via Docker (Detached) ---"
+	@docker rm -f all-full-sweep 2>/dev/null || true
+	docker run -d --gpus all --name all-full-sweep --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu all-full
+	@echo "\n>>> SUCCESS: Giant sequential sweep container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f all-full-sweep\n"
+
+docker-all-smoke:
+	@echo "--- Running ALL Smoke Tests Sequentially via Docker (Detached) ---"
+	@docker rm -f all-smoke-sweep 2>/dev/null || true
+	docker run -d --gpus all --name all-smoke-sweep --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu all-smoke
+	@echo "\n>>> SUCCESS: Giant sequential smoke sweep container started in background!"
+	@echo ">>> To monitor progress live, run:  docker logs -f all-smoke-sweep\n"
+
 # ==============================================================================
 # UNIFIED TOML BENCHMARKING ENGINE
 # ==============================================================================
@@ -465,6 +617,10 @@ smoke-all:
 	@echo "\n=== H2 Ablation Smoke ==="
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml --smoke
 	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_ablation_lhs.toml --data_dir results/h2_ablation_lhs_smoke
+	
+	@echo "\n=== H2 QDAX Parity Smoke ==="
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_parity_qdax_lhs.toml --data_dir results/h2_parity_qdax_lhs_smoke
 	
 	@echo "\n=== H3 Representation Smoke ==="
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml --smoke
@@ -498,3 +654,33 @@ run-hard-all:
 
 run-hard-all-nohup:
 	$(call run_nohup,run-hard-all,make run-hard-all)
+
+# ==============================================================================
+# SHOW & TELL EXECUTION PIPELINE
+# ==============================================================================
+
+show-tell:
+	@echo "--- RUNNING SHOW & TELL (FULL) ---"
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_qdax_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml
+	mjax run configs/examples/bbob_backend_comparison_pop1024.toml
+	mjax run configs/examples/scaling_benchmark.toml
+
+show-tell-smoke:
+	@echo "--- RUNNING SHOW & TELL (SMOKE) ---"
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_qdax_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml --smoke
+	mjax run configs/examples/bbob_weierstrass_pop1024_smoke100.toml
+	mjax run configs/examples/scaling_benchmark.toml
+
+show-tell-nohup:
+	$(call run_nohup,show-tell,make show-tell)
+
+show-tell-smoke-nohup:
+	$(call run_nohup,show-tell-smoke,make show-tell-smoke)

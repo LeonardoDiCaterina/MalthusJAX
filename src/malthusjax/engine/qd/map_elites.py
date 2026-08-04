@@ -32,6 +32,7 @@ class MapElitesEngineParams(AbstractEngineParams):
     Inherits pop_size (batch_size) and num_generations.
     """
     key_derivation: str = "fold_in"  # "fold_in" or "split"
+    maximize: bool = False
 
 @struct.dataclass
 class MapElitesState(AbstractEvolutionState[G, P]):
@@ -73,12 +74,17 @@ class MapElitesEngine(AbstractEngine[G, P]):
         # 1. Evaluate the initial population to get fitness and descriptors
         eval_pop = self.evaluator.evaluate_population(initial_population)
         
+        # In MalthusJAX, minimization tasks return lower raw fitnesses (lower is better).
+        # However, MapElitesRepertoire ALWAYS maximizes. Therefore, we must flip the sign
+        # of the fitness if we are minimizing.
+        repertoire_fitnesses = eval_pop.fitness if self.engine_params.maximize else -eval_pop.fitness
+        
         # 2. Initialize the QDAX MapElitesRepertoire
         # Notice that MapElitesRepertoire expects genotypes as a PyTree
         # We pass the underlying genome values instead of the wrapper for cleaner JAX tree structures.
         repertoire = MapElitesRepertoire.init(
-            genotypes=eval_pop.genes.values,
-            fitnesses=eval_pop.fitness,
+            genotypes=getattr(eval_pop.genes, "values", eval_pop.genes),
+            fitnesses=repertoire_fitnesses,
             descriptors=eval_pop.info["descriptors"],
             centroids=centroids
         )
@@ -86,11 +92,18 @@ class MapElitesEngine(AbstractEngine[G, P]):
         # 3. Initialize the Emitter state
         emitter_state = self.emitter.init(k2, eval_pop)
         
-        # Extract best fitness from the repertoire
+        # Extract best fitness from the repertoire. Since we flipped the sign if minimizing,
+        # we flip it back to log the true raw fitness correctly.
         best_fitness = jnp.max(repertoire.fitnesses)
+        if not self.engine_params.maximize:
+            best_fitness = -best_fitness
+            
         best_genome_idx = jnp.argmax(repertoire.fitnesses)
-        best_genome_values = jax.tree_util.tree_map(lambda x: x[best_genome_idx], eval_pop.genes.values)
-        best_genome = eval_pop.genes.replace(values=best_genome_values)
+        best_genome_values = jax.tree_util.tree_map(lambda x: x[best_genome_idx], getattr(eval_pop.genes, "values", eval_pop.genes))
+        if hasattr(eval_pop.genes, "replace"):
+            best_genome = eval_pop.genes.replace(values=best_genome_values)
+        else:
+            best_genome = best_genome_values
         
         return MapElitesState(
             population=eval_pop,
@@ -110,18 +123,35 @@ class MapElitesEngine(AbstractEngine[G, P]):
         """
         # --- Centralized RNG Management ---
         emitter_keys = self.emitter.num_keys()
-        total_rng_budget = emitter_keys + 3  # ask(emitter_keys), eval(1), tell(1), next(1)
         
-        if self.engine_params.key_derivation == "fold_in":
-            indices = jnp.arange(total_rng_budget)
-            all_keys = jax.vmap(jax.random.fold_in, in_axes=(None, 0))(state.rng_key, indices)
-        else:
-            all_keys = jax.random.split(state.rng_key, total_rng_budget)
+        if self.engine_params.key_derivation == "qdax_replica":
+            # Replicate QDAX's exact nested key-splitting chain:
+            # 1. adapter_step:  randkey, subkey1 = split(randkey)
+            # 2. update():      key2, subkey2 = split(subkey1)   → subkey2 goes to ask()
+            # 3. ask():         key3, subkey3 = split(subkey2)   → subkey3 goes to emitter.emit()
+            # 4. update() cont: key4, subkey4 = split(key2)      → subkey4 goes to scoring
+            k_next, subkey1 = jax.random.split(state.rng_key)
+            key2, subkey2 = jax.random.split(subkey1)
+            _key3, subkey3 = jax.random.split(subkey2)
+            _key4, k_eval = jax.random.split(key2)
             
-        k_ask = all_keys[:emitter_keys]
-        k_eval = all_keys[emitter_keys]
-        k_tell = all_keys[emitter_keys + 1]
-        k_next = all_keys[emitter_keys + 2]
+            # The emitter gets a single-element array containing the exact key
+            # that QDAX's MixingEmitter.emit() would receive.
+            k_ask = jnp.expand_dims(subkey3, axis=0)
+            k_tell = k_eval  # Not used by stateless emitters
+        else:
+            total_rng_budget = emitter_keys + 3  # ask(emitter_keys), eval(1), tell(1), next(1)
+            
+            if self.engine_params.key_derivation == "fold_in":
+                indices = jnp.arange(total_rng_budget)
+                all_keys = jax.vmap(jax.random.fold_in, in_axes=(None, 0))(state.rng_key, indices)
+            else:
+                all_keys = jax.random.split(state.rng_key, total_rng_budget)
+                
+            k_ask = all_keys[:emitter_keys]
+            k_eval = all_keys[emitter_keys]
+            k_tell = all_keys[emitter_keys + 1]
+            k_next = all_keys[emitter_keys + 2]
         # ----------------------------------
         
         # 1. Ask the emitter for a new batch of offspring
@@ -137,10 +167,11 @@ class MapElitesEngine(AbstractEngine[G, P]):
         eval_pop = self.evaluator.evaluate_population(offspring_pop)
         
         # 3. Add to the repertoire (returns a new updated repertoire)
+        repertoire_fitnesses = eval_pop.fitness if self.engine_params.maximize else -eval_pop.fitness
         new_repertoire = state.repertoire.add(
             eval_pop.genes.values,
             eval_pop.info["descriptors"],
-            eval_pop.fitness
+            repertoire_fitnesses
         )
         
         # 4. Tell the emitter the results
@@ -154,15 +185,36 @@ class MapElitesEngine(AbstractEngine[G, P]):
         )
         
         # 5. Extract KPI metrics
-        best_fitness = jnp.max(new_repertoire.fitnesses)
-        mean_fitness = jnp.mean(jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0))
-        std_fitness = jnp.std(jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0))
-        
-        # QD Specific metrics
-        active_cells = new_repertoire.fitnesses > -jnp.inf
-        coverage = jnp.mean(active_cells)
-        qd_score = jnp.sum(jnp.where(active_cells, new_repertoire.fitnesses, 0.0))
-        
+        if self.engine_params.track_metrics:
+            # The repertoire fitnesses are stored maximized. So if minimize, they are -raw_fitness.
+            # We extract best_fitness from the repertoire and flip it back if necessary.
+            best_fitness = jnp.max(new_repertoire.fitnesses)
+            if not self.engine_params.maximize:
+                best_fitness = -best_fitness
+                
+            mean_fitness = jnp.mean(jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0))
+            if not self.engine_params.maximize:
+                mean_fitness = -mean_fitness
+                
+            std_fitness = jnp.std(jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0))
+            # std is strictly positive, no need to negate
+            
+            coverage = 100 * jnp.sum(new_repertoire.fitnesses > -jnp.inf) / new_repertoire.centroids.shape[0]
+            
+            qd_score = jnp.sum(new_repertoire.fitnesses, where=(new_repertoire.fitnesses > -jnp.inf))
+            if not self.engine_params.maximize:
+                # If minimizing, raw fitnesses are negative.
+                qd_score = -qd_score
+                
+            num_elites = jnp.sum(new_repertoire.fitnesses > -jnp.inf)
+        else:
+            best_fitness = jnp.nan
+            mean_fitness = jnp.nan
+            std_fitness = jnp.nan
+            coverage = jnp.nan
+            qd_score = jnp.nan
+            num_elites = jnp.nan
+            
         best_genome_idx = jnp.argmax(new_repertoire.fitnesses)
         best_genome_values = jax.tree_util.tree_map(lambda x: x[best_genome_idx], new_repertoire.genotypes)
         best_genome = state.best_genome.replace(values=best_genome_values)

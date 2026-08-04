@@ -27,6 +27,8 @@ dependencies = [
     "typing-extensions>=4.0.0",
     "flax>=0.7.0",
     "chex>=0.1.7",
+    "toml",
+    "tomli>=2.0.0; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]
@@ -41,7 +43,7 @@ evosax = ["evosax"]
 qdax = ["qdax"]
 tensorneat = ["tensorneat @ git+https://github.com/EMI-Group/tensorneat.git"]
 rl = ["gymnax", "brax", "jumanji"]
-bbobax = ["bbobax"]
+bbobax = ["bbobax @ git+https://github.com/maxencefaldor/bbobax.git"]
 kozax = ["kozax"]
 stats = [
     "scikit-learn>=1.0.0",
@@ -76,8 +78,6 @@ examples = [
 ]
 benchmarks = [
     "malthusjax[stats]",
-    "toml",
-    "tomli>=2.0.0; python_version < '3.11'",
 ]
 all-integrations = ["malthusjax[evosax,qdax,tensorneat,rl,bbobax,kozax,stats]"]
 all = ["malthusjax[dev,docs,examples,benchmarks,all-integrations]"]

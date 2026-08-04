@@ -17,9 +17,15 @@ class GeneticStrategy(BaseStrategy):
 @struct.dataclass
 class MapElitesStrategy(BaseStrategy):
     """
-    MAP-Elites Engine. Expects an emitter (often a MixingEmitter).
+    Native MAP-Elites Engine. Expects an emitter (often a MixingEmitter).
     """
     emitter: Optional[BaseEmitter] = struct.field(pytree_node=False, default=None)
+    num_descriptors: int = struct.field(pytree_node=False, default=2)
+    num_centroids: int = struct.field(pytree_node=False, default=100)
+    mutation_sigma: float = struct.field(pytree_node=False, default=0.1)
+    key_derivation: str = struct.field(pytree_node=False, default="fold_in")
+    centroids: Any = struct.field(pytree_node=False, default=None)
+    maximize: bool = struct.field(pytree_node=False, default=False)
 
 @struct.dataclass
 class EvoSAXStrategy(BaseStrategy):
@@ -34,9 +40,24 @@ class QDAXStrategy(BaseStrategy):
     """
     Wraps a QDAX algorithm.
     """
-    strategy_cls: Any = struct.field(pytree_node=False)
-    emitter: Any = struct.field(pytree_node=False)
-    metrics_function: Any = struct.field(pytree_node=False)
-    centroids: Any = struct.field(pytree_node=False)
-    init_variables: Any = struct.field(pytree_node=False)
+    strategy_cls: Any = struct.field(pytree_node=False, default="MAPElites")
+    emitter: Any = struct.field(pytree_node=False, default=None)
+    metrics_function: Any = struct.field(pytree_node=False, default=None)
+    centroids: Any = struct.field(pytree_node=False, default=None)
+    init_variables: Any = struct.field(pytree_node=False, default=None)
+    num_descriptors: int = struct.field(pytree_node=False, default=2)
+    num_centroids: int = struct.field(pytree_node=False, default=100)
+    mutation_sigma: float = struct.field(pytree_node=False, default=0.1)
+    algorithm_kwargs: dict = struct.field(pytree_node=False, default_factory=dict)
+
+@struct.dataclass
+class TensorNEATStrategy(BaseStrategy):
+    """
+    Wraps a TensorNEAT NEAT/HyperNEAT algorithm.
+    """
+    algorithm_name: str = struct.field(pytree_node=False, default="NEAT")
+    genome_name: str = struct.field(pytree_node=False, default="default")
+    problem_name: Optional[str] = struct.field(pytree_node=False, default=None)
+    num_inputs: int = struct.field(pytree_node=False, default=2)
+    num_outputs: int = struct.field(pytree_node=False, default=1)
     algorithm_kwargs: dict = struct.field(pytree_node=False, default_factory=dict)

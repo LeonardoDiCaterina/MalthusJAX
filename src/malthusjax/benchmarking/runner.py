@@ -186,11 +186,19 @@ class BenchmarkRunner:
                     metrics["final_generation"] = float(last["generation"])
 
             duration = time.time() - start_time
+            metrics["duration_seconds"] = duration
+            
+            if timings:
+                for tk, tv in timings.items():
+                    try:
+                        metrics[f"time_{tk}"] = float(tv)
+                    except (ValueError, TypeError):
+                        pass
 
             # Discard massive history arrays if Lightweight Mode is enabled
             if not self.serialize_history:
                 history = []
-
+            
             return RunResult(
                 seed=seed,
                 status="success",
