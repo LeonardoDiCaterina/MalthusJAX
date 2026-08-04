@@ -401,6 +401,12 @@ suite-parity:
 	@echo "--- Generating LaTeX table ---"
 	@$(PYTHON) scripts/generate_parity_latex.py --suite_dir $(OUT_DIR) --out $(OUT_DIR)/parity_table.tex
 
+thesis-tables:
+	@test -n "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR variable not set"; echo "Usage: make thesis-tables RESULTS_DIR=results/h1_parity_qdax"; exit 1)
+	@test -d "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR not found: $(RESULTS_DIR)"; exit 1)
+	@echo "--- Generating Thesis Tables for $(RESULTS_DIR) ---"
+	@$(PYTHON) scripts/generate_thesis_tables.py --dir $(RESULTS_DIR)
+
 # ============================================================================= #
 # Thesis Parity Pipeline (Clean — scripts/parity_working/)
 # ============================================================================= #
