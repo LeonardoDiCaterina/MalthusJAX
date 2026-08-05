@@ -46,9 +46,9 @@ from typing import Any
 
 SMOKE_DEFAULTS = {
     "functions": ["sphere"],
-    "dims": [5],
-    "pops": [32],
-    "gens": [10],
+    "dims": [100],
+    "pops": [1024],
+    "gens": [200],
     "num_seeds": 3,
     "output_dir": "results/h1_parity_smoke",
 }
@@ -121,6 +121,7 @@ def run_single_parity(
             "crossover": "evosax_uniform_crossover:crossover_rate=0.3",
             "mutation": "evosax_gaussian:mutation_strength=1.0",
             "elitism": 0,
+            "engine_params": {"track_best": "NONE"},
         },
     }
 
