@@ -102,9 +102,15 @@ EXPECTED_FITNESS = {
     "ellipsoidal_rotated",
 }
 EXPECTED_EVOSAX = {"evosax_simplega", "evosax_mr15", "evosax_de"}
+EXPECTED_EMITTER = {"qdax_replica", "qdax_native", "genetic_mixing"}
 
 ALL_EXPECTED = (
-    EXPECTED_SELECTION | EXPECTED_CROSSOVER | EXPECTED_MUTATION | EXPECTED_FITNESS | EXPECTED_EVOSAX
+    EXPECTED_SELECTION
+    | EXPECTED_CROSSOVER
+    | EXPECTED_MUTATION
+    | EXPECTED_FITNESS
+    | EXPECTED_EVOSAX
+    | EXPECTED_EMITTER
 )
 
 

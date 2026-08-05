@@ -131,9 +131,13 @@ def handle_analyze(args: argparse.Namespace) -> int:
         with open(analysis_dir / "parity_summary.json", "w") as f:
             json.dump(suite.to_dict(), f, indent=2)
 
+        md_text = suite.to_markdown()
         with open(analysis_dir / "parity_summary.md", "w") as f:
-            f.write(suite.to_markdown())
+            f.write(md_text)
 
+        print("\n--- Parity Summary ---")
+        print(md_text)
+        print("----------------------\n")
         print("Analysis generated in analysis/")
     else:
         # Just standard mean/std dumps
@@ -157,7 +161,13 @@ def handle_analyze(args: argparse.Namespace) -> int:
                         formatted[pipe][k] = f"{v['mean']:.4g}"
             df = pd.DataFrame(formatted).T
             df.to_csv(analysis_dir / "comparison_table.csv")
-            df.to_markdown(analysis_dir / "comparison_table.md")
+            md_text = df.to_markdown()
+            with open(analysis_dir / "comparison_table.md", "w") as f:
+                f.write(md_text)
+
+            print("\n--- Comparison Summary ---")
+            print(md_text)
+            print("--------------------------\n")
 
             with open(analysis_dir / "comparison_table.tex", "w") as f:
                 f.write(comparison.summary_table(latex=True))

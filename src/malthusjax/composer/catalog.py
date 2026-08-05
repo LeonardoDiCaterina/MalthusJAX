@@ -212,6 +212,12 @@ class OperatorCatalog:
             p.kind == inspect.Parameter.VAR_KEYWORD for p in factory_sig.parameters.values()
         )
 
+        invalid_keys = [k for k in merged if k not in valid_keys]
+        if invalid_keys and not has_kwargs:
+            raise ValueError(
+                f"Invalid parameters for '{operator_type}': unexpected keyword argument(s) {invalid_keys}"
+            )
+
         filtered_merged = {k: v for k, v in merged.items() if k in valid_keys or has_kwargs}
 
         try:
