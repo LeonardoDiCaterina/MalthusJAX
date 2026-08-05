@@ -182,6 +182,10 @@ class UniversalAdapterEngine:
         # Execute
         t_exec_start = time.perf_counter()
         final_state, scan_history = run_loop(key, state_init)
+        
+        # Block until all GPU computations are finished
+        jax.tree_util.tree_map(lambda x: x.block_until_ready() if hasattr(x, "block_until_ready") else x, (final_state, scan_history))
+        
         t_exec_end = time.perf_counter()
 
         # Format history output
