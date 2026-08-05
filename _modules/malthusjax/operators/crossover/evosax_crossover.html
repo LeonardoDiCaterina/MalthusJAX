@@ -484,6 +484,50 @@
         <span class="n">new_genes</span> <span class="o">=</span> <span class="n">RealGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">offspring_vals</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">p1_pop</span><span class="o">.</span><span class="n">spawn_offspring</span><span class="p">(</span><span class="n">new_genes</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="BatchedEvosaxUniformWrapper">
+<a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.evosax_crossover.html#malthusjax.operators.crossover.BatchedEvosaxUniformWrapper">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BatchedEvosaxUniformWrapper</span><span class="p">(</span><span class="n">EvosaxUniformCrossoverWrapper</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Batched EvoSAX Crossover Wrapper (Monolithic Execution).</span>
+<span class="sd">    </span>
+<span class="sd">    This operator completely bypasses the JAX vmap structure.</span>
+<span class="sd">    It expects to be called on batched RealPopulations, where `genes.values`</span>
+<span class="sd">    is a `(pop_size, d)` array. It generates a single monolithic crossover mask</span>
+<span class="sd">    using the underlying `evosax_crossover` function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="BatchedEvosaxUniformWrapper.num_keys">
+<a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.evosax_crossover.html#malthusjax.operators.crossover.BatchedEvosaxUniformWrapper.num_keys">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">p1_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">],</span>
+        <span class="n">p2_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">],</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
+        <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">]:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="n">p1_vals</span> <span class="o">=</span> <span class="n">p1_pop</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">p2_vals</span> <span class="o">=</span> <span class="n">p2_pop</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">values</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">p1_vals</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">p1_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">p2_vals</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">p2_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            
+        <span class="n">child_vals</span> <span class="o">=</span> <span class="n">evosax_crossover</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">p1_vals</span><span class="p">,</span> <span class="n">p2_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crossover_rate</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">p1_pop</span><span class="o">.</span><span class="n">spawn_offspring</span><span class="p">(</span><span class="n">RealGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">child_vals</span><span class="p">))</span></div>
+
 </pre></div>
         </article>
       </div>

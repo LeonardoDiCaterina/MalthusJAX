@@ -982,7 +982,44 @@
     <span class="s2">&quot;BlendCrossover_injection&quot;</span><span class="p">,</span>
     <span class="s2">&quot;BinomialCrossover_injection&quot;</span><span class="p">,</span>
     <span class="s2">&quot;SimulatedBinaryCrossover_injection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BatchedUniformCrossover&quot;</span><span class="p">,</span>
 <span class="p">]</span>
+
+<div class="viewcode-block" id="BatchedUniformCrossover">
+<a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.BatchedUniformCrossover">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BatchedUniformCrossover</span><span class="p">(</span><span class="n">UniformCrossover</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Batched Uniform Crossover (Monolithic Execution).</span>
+<span class="sd">    </span>
+<span class="sd">    This operator bypasses vmap and generates a monolithic crossover mask</span>
+<span class="sd">    for the entire population, matching EvoSAX&#39;s raw execution speed.</span>
+<span class="sd">    It expects `p1_pop.genes.values` and `p2_pop.genes.values` to be batched arrays.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="BatchedUniformCrossover.num_keys">
+<a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.BatchedUniformCrossover.num_keys">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">p1_pop</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">p2_pop</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">k_mask</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="n">g1</span> <span class="o">=</span> <span class="n">p1_pop</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">g2</span> <span class="o">=</span> <span class="n">p2_pop</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">values</span>
+        
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">k_mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crossover_rate</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">g1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">new_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">p1_pop</span><span class="o">.</span><span class="n">spawn_offspring</span><span class="p">(</span><span class="n">RealGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">new_values</span><span class="p">))</span></div>
+
+
 </pre></div>
         </article>
       </div>

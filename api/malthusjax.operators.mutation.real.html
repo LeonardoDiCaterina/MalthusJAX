@@ -803,6 +803,65 @@ Trade-off: Full delta materialization vs reproducibility (no re-splitting).</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BatchedGaussianMutation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.operators.mutation.real.</span></span><span class="sig-name descname"><span class="pre">BatchedGaussianMutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_offspring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schedule_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ScheduleType.CONSTANT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/real.html#BatchedGaussianMutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.real.BatchedGaussianMutation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#malthusjax.operators.mutation.real.GaussianMutation" title="malthusjax.operators.mutation.real.GaussianMutation"><code class="xref py py-class docutils literal notranslate"><span class="pre">GaussianMutation</span></code></a></p>
+<p>Batched Gaussian Mutation (Monolithic Execution).</p>
+<p>This operator completely bypasses the generic JAX vmap structure.
+It expects to be called on a batched RealPopulation, where <cite>genes.values</cite>
+is a <cite>(pop_size, d)</cite> array. It generates a single monolithic noise tensor
+and applies it all at once, matching EvoSAX’s raw execution speed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_offspring</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>mutation_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>mutation_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>schedule_type</strong> (<a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
+<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BatchedGaussianMutation.num_keys_per_atomic_operation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.mutation.real.BatchedGaussianMutation.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<dd><p>one for the Bernoulli mask and one for Gaussian noise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Requires 2 keys</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BatchedGaussianMutation.num_keys">
+<span class="sig-name descname"><span class="pre">num_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/real.html#BatchedGaussianMutation.num_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.real.BatchedGaussianMutation.num_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Total keys needed: input_length * num_offspring * atomic_keys.</p>
+<p>Returns shape for ResourceMapper pre-allocation:
+(input_length, num_offspring, num_keys_per_atomic_operation, [2]).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.real.BatchedGaussianMutation.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.real.BatchedGaussianMutation.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
         </article>
@@ -915,6 +974,12 @@ Trade-off: Full delta materialization vs reproducibility (no re-splitting).</p>
 <li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.clip"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection.clip</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection.num_keys_per_atomic_operation</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.mutation.real.PolynomialMutation_injection.replace"><code class="docutils literal notranslate"><span class="pre">PolynomialMutation_injection.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BatchedGaussianMutation"><code class="docutils literal notranslate"><span class="pre">BatchedGaussianMutation</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BatchedGaussianMutation.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">BatchedGaussianMutation.num_keys_per_atomic_operation</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BatchedGaussianMutation.num_keys"><code class="docutils literal notranslate"><span class="pre">BatchedGaussianMutation.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.real.BatchedGaussianMutation.replace"><code class="docutils literal notranslate"><span class="pre">BatchedGaussianMutation.replace()</span></code></a></li>
 </ul>
 </li>
 </ul>

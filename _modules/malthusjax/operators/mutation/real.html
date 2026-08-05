@@ -853,7 +853,53 @@
     <span class="s2">&quot;GaussianMutation_injection&quot;</span><span class="p">,</span>
     <span class="s2">&quot;BallMutation_injection&quot;</span><span class="p">,</span>
     <span class="s2">&quot;PolynomialMutation_injection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BatchedGaussianMutation&quot;</span><span class="p">,</span>
 <span class="p">]</span>
+
+<div class="viewcode-block" id="BatchedGaussianMutation">
+<a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.BatchedGaussianMutation">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BatchedGaussianMutation</span><span class="p">(</span><span class="n">GaussianMutation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Batched Gaussian Mutation (Monolithic Execution).</span>
+<span class="sd">    </span>
+<span class="sd">    This operator completely bypasses the generic JAX vmap structure.</span>
+<span class="sd">    It expects to be called on a batched RealPopulation, where `genes.values`</span>
+<span class="sd">    is a `(pop_size, d)` array. It generates a single monolithic noise tensor</span>
+<span class="sd">    and applies it all at once, matching EvoSAX&#39;s raw execution speed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span>
+
+<div class="viewcode-block" id="BatchedGaussianMutation.num_keys">
+<a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.BatchedGaussianMutation.num_keys">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># We only ever need 2 keys, regardless of population size.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">k_mask</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">k_noise</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="n">strength</span> <span class="o">=</span> <span class="n">compute_scheduled_strength</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mutation_strength</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_strength</span><span class="p">,</span> <span class="n">generation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_generations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_type</span>
+        <span class="p">)</span>
+        
+        <span class="n">genes</span> <span class="o">=</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">k_mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutation_rate</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">genes</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">k_noise</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">genes</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">strength</span>
+        
+        <span class="n">new_values</span> <span class="o">=</span> <span class="n">genes</span> <span class="o">+</span> <span class="n">mask</span> <span class="o">*</span> <span class="n">noise</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
+            <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
+            <span class="n">new_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">new_values</span><span class="p">,</span> <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">population</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">RealGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">new_values</span><span class="p">))</span></div>
+
 </pre></div>
         </article>
       </div>
