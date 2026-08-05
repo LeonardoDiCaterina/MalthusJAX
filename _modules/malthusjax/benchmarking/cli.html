@@ -451,9 +451,13 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;parity_summary.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">suite</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
+        <span class="n">md_text</span> <span class="o">=</span> <span class="n">suite</span><span class="o">.</span><span class="n">to_markdown</span><span class="p">()</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;parity_summary.md&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">suite</span><span class="o">.</span><span class="n">to_markdown</span><span class="p">())</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
 
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Parity Summary ---&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;----------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Analysis generated in analysis/&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Just standard mean/std dumps</span>
@@ -477,7 +481,13 @@
                         <span class="n">formatted</span><span class="p">[</span><span class="n">pipe</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">formatted</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
             <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;comparison_table.csv&quot;</span><span class="p">)</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">to_markdown</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;comparison_table.md&quot;</span><span class="p">)</span>
+            <span class="n">md_text</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_markdown</span><span class="p">()</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;comparison_table.md&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Comparison Summary ---&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;comparison_table.tex&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">comparison</span><span class="o">.</span><span class="n">summary_table</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
