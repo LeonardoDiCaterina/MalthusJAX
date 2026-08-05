@@ -646,4 +646,35 @@ __all__ = [
     "BlendCrossover_injection",
     "BinomialCrossover_injection",
     "SimulatedBinaryCrossover_injection",
+    "BatchedUniformCrossover",
 ]
+
+@struct.dataclass
+class BatchedUniformCrossover(UniformCrossover):
+    """Batched Uniform Crossover (Monolithic Execution).
+    
+    This operator bypasses vmap and generates a monolithic crossover mask
+    for the entire population, matching EvoSAX's raw execution speed.
+    It expects `p1_pop.genes.values` and `p2_pop.genes.values` to be batched arrays.
+    """
+    
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 1
+
+    def num_keys(self, input_shape: tuple[int, ...]) -> int:
+        return self.num_keys_per_atomic_operation
+
+    def __call__(
+        self, all_keys: chex.Array, p1_pop: Any, p2_pop: Any, config: RealGenomeConfig, generation: int = 0
+    ) -> Any:
+        k_mask = all_keys[0] if len(all_keys.shape) == 2 else all_keys[0][0]
+        
+        g1 = p1_pop.genes.values
+        g2 = p2_pop.genes.values
+        
+        mask = jax.random.bernoulli(k_mask, self.crossover_rate, shape=g1.shape)
+        new_values = jnp.where(mask, g1, g2)
+        
+        return p1_pop.spawn_offspring(RealGenome(values=new_values))
+

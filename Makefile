@@ -595,6 +595,11 @@ docker-all-smoke:
 # ==============================================================================
 
 # Example: make benchmark-run TOML=configs/h1_parity_lhs.toml
+trace-pipeline:
+	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file (e.g., make trace-pipeline TOML=configs/h2_ablation_lhs.toml)"; exit 1; fi
+	@echo "--- PROFILING PIPELINES FROM TOML: $(TOML) ---"
+	$(PYTHON) scripts/trace_pipelines.py --toml $(TOML)
+
 benchmark-run:
 	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file (e.g., make benchmark-run TOML=configs/h1_parity_lhs.toml)"; exit 1; fi
 	@echo "--- RUNNING BENCHMARK: $(TOML) ---"

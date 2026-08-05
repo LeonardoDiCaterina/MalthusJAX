@@ -523,4 +523,44 @@ __all__ = [
     "GaussianMutation_injection",
     "BallMutation_injection",
     "PolynomialMutation_injection",
+    "BatchedGaussianMutation",
 ]
+
+@struct.dataclass
+class BatchedGaussianMutation(GaussianMutation):
+    """Batched Gaussian Mutation (Monolithic Execution).
+    
+    This operator completely bypasses the generic JAX vmap structure.
+    It expects to be called on a batched RealPopulation, where `genes.values`
+    is a `(pop_size, d)` array. It generates a single monolithic noise tensor
+    and applies it all at once, matching EvoSAX's raw execution speed.
+    """
+    
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 2
+
+    def num_keys(self, input_shape: tuple[int, ...]) -> int:
+        # We only ever need 2 keys, regardless of population size.
+        return self.num_keys_per_atomic_operation
+
+    def __call__(
+        self, all_keys: chex.Array, population: Any, config: RealGenomeConfig, generation: int = 0
+    ) -> Any:
+        k_mask = all_keys[0] if len(all_keys.shape) == 2 else all_keys[0][0]
+        k_noise = all_keys[1] if len(all_keys.shape) == 2 else all_keys[0][1]
+        
+        strength = compute_scheduled_strength(
+            self.mutation_strength, self.final_strength, generation, self.max_generations, self.schedule_type
+        )
+        
+        genes = population.genes.values
+        mask = jax.random.bernoulli(k_mask, self.mutation_rate, shape=genes.shape)
+        noise = jax.random.normal(k_noise, shape=genes.shape) * strength
+        
+        new_values = genes + mask * noise
+        if self.clip:
+            min_val, max_val = config.bounds
+            new_values = jnp.clip(new_values, min_val, max_val)
+            
+        return population.replace(genes=RealGenome(values=new_values))

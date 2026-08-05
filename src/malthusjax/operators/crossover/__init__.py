@@ -7,7 +7,7 @@ All crossover operators inherit from BaseCrossover and return (num_offspring, ge
 
 from .binary import SinglePointCrossover
 from .binary import UniformCrossover as BinaryUniformCrossover
-from .evosax_crossover import EvosaxUniformCrossoverWrapper
+from .evosax_crossover import EvosaxUniformCrossoverWrapper, BatchedEvosaxUniformWrapper
 from .real import (
     BinomialCrossover,
     BinomialCrossover_injection,
@@ -21,6 +21,7 @@ from .real import (
 )
 from .real import (
     UniformCrossover_injection as RealUniformCrossover_injection,
+    BatchedUniformCrossover,
 )
 
 UniformCrossover = BinaryUniformCrossover
@@ -35,9 +36,10 @@ __all__ = [
     "BlendCrossover_injection",
     "BinomialCrossover",
     "BinomialCrossover_injection",
-    "SimulatedBinaryCrossover",
     "SimulatedBinaryCrossover_injection",
     "EvosaxUniformCrossoverWrapper",
+    "BatchedUniformCrossover",
+    "BatchedEvosaxUniformWrapper",
 ]
 
 
@@ -53,9 +55,10 @@ def _register_crossover() -> None:
             ("blend_injection", BlendCrossover_injection, {}),
             ("simulated_binary", SimulatedBinaryCrossover, {}),
             ("simulated_binary_injection", SimulatedBinaryCrossover_injection, {}),
-            ("binomial", BinomialCrossover, {}),
             ("binomial_injection", BinomialCrossover_injection, {}),
             ("evosax_uniform_crossover", EvosaxUniformCrossoverWrapper, {}),
+            ("batched_uniform_crossover", BatchedUniformCrossover, {}),
+            ("batched_evosax_uniform", BatchedEvosaxUniformWrapper, {}),
             ("uniform_binary", BinaryUniformCrossover, {}),
             ("single_point", SinglePointCrossover, {}),
         ],

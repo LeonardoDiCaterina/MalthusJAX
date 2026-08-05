@@ -3,7 +3,7 @@ Mutation Operators Module.
 """
 
 from .binary import BitFlipMutation, ScrambleMutation, SwapMutation
-from .evosax_mutation import EvosaxGaussianWrapper
+from .evosax_mutation import EvosaxGaussianWrapper, BatchedEvosaxGaussianWrapper
 from .real import (
     BallMutation,
     BallMutation_injection,
@@ -11,6 +11,7 @@ from .real import (
     GaussianMutation_injection,
     PolynomialMutation,
     PolynomialMutation_injection,
+    BatchedGaussianMutation,
 )
 
 __all__ = [
@@ -24,6 +25,8 @@ __all__ = [
     "PolynomialMutation",
     "PolynomialMutation_injection",
     "EvosaxGaussianWrapper",
+    "BatchedGaussianMutation",
+    "BatchedEvosaxGaussianWrapper",
 ]
 
 # ---------------------------------------------------------------------------
@@ -45,6 +48,8 @@ def _register_mutation() -> None:
             ("polynomial", PolynomialMutation, {}),
             ("polynomial_injection", PolynomialMutation_injection, {}),
             ("evosax_gaussian", EvosaxGaussianWrapper, {}),
+            ("batched_gaussian", BatchedGaussianMutation, {}),
+            ("batched_evosax_gaussian", BatchedEvosaxGaussianWrapper, {}),
             # Binary mutation
             ("bitflip", BitFlipMutation, {}),
             ("scramble", ScrambleMutation, {}),
