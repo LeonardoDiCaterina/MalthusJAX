@@ -14,6 +14,7 @@ def process_result_json(json_path: Path):
     for name, pdata in pipelines_data.items():
         runs = []
         for seed_data in pdata.get("per_seed", []):
+            # Repack raw keys into metrics dictionary so it matches RunResult spec
             metrics = {}
             for k in ["best_fitness", "final_generation", "total_evaluations", "qd_score", "coverage"]:
                 if k in seed_data and seed_data[k] is not None:
@@ -35,6 +36,8 @@ def process_result_json(json_path: Path):
         print(f"Skipping {json_path}: No valid runs found.")
         return
 
+    # Use negate_map if needed, but since it's already negative/positive we can just let summary_table format it.
+    # By default, MalthusJAX flips fitness, but since the raw data might already be flipped, let's leave negate_map empty
     comparison = ComparisonResult(pipelines=pipelines, shared_config={}, initial_population=None, negate_map={})
     
     analysis_dir = json_path.parent / "analysis"
@@ -61,7 +64,14 @@ def process_result_json(json_path: Path):
                 
     df = pd.DataFrame(formatted).T
     df.to_csv(analysis_dir / "comparison_table.csv")
-    df.to_markdown(analysis_dir / "comparison_table.md")
+    
+    md_text = df.to_markdown()
+    with open(analysis_dir / "comparison_table.md", "w") as f:
+        f.write(md_text)
+        
+    print(f"\n--- Results for {json_path.parent.name} ---")
+    print(md_text)
+    print("------------------------------------------\n")
     print(f"Generated tables in {analysis_dir}")
 
 def main():
@@ -73,7 +83,7 @@ def main():
     print(f"Scanning {base} for results JSONs...")
     count = 0
     for p in base.rglob("*.json"):
-        if "parity_results" in p.name or "ablation_results" in p.name or "representation_results" in p.name:
+        if "parity_results" in p.name or "ablation_results" in p.name:
             print(f"Processing {p}...")
             process_result_json(p)
             count += 1
