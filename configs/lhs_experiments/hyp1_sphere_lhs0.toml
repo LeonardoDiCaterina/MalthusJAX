@@ -29,8 +29,8 @@ mutation = "evosax_gaussian:mutation_strength=0.05"
 backend = "malthusjax"
 engine_type = "batched_ga"
 elitism = 0
-crossover = "evosax_uniform_crossover:crossover_rate=0.3"
-mutation = "evosax_gaussian:mutation_strength=0.05"
+crossover = "uniform_real:crossover_rate=0.3"
+mutation = "gaussian:mutation_strength=0.05"
 
 [pipelines.evosax_baseline]
 backend = "evosax"
