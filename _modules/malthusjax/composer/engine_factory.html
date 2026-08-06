@@ -580,7 +580,12 @@
         <span class="o">**</span><span class="n">schedule_extra</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">genetic_engine</span> <span class="o">=</span> <span class="n">GeneticEngine</span><span class="p">(</span>
+    <span class="n">engine_cls</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;engine_cls&quot;</span><span class="p">,</span> <span class="n">GeneticEngine</span><span class="p">)</span>
+    <span class="n">engine_extra_args</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="s2">&quot;use_vectorized_operators&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">engine_extra_args</span><span class="p">[</span><span class="s2">&quot;use_vectorized_operators&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;use_vectorized_operators&quot;</span><span class="p">)</span>
+
+    <span class="n">genetic_engine</span> <span class="o">=</span> <span class="n">engine_cls</span><span class="p">(</span>
         <span class="n">engine_params</span><span class="o">=</span><span class="n">engine_params</span><span class="p">,</span>
         <span class="n">genome_config</span><span class="o">=</span><span class="n">genome_config</span><span class="p">,</span>
         <span class="n">evaluator</span><span class="o">=</span><span class="n">fitness_evaluator</span><span class="p">,</span>
@@ -588,6 +593,7 @@
         <span class="n">crossover</span><span class="o">=</span><span class="n">crossover_op</span><span class="p">,</span>
         <span class="n">mutation</span><span class="o">=</span><span class="n">mutation_op</span><span class="p">,</span>
         <span class="n">enable_progress_bar</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enable_progress_bar&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="o">**</span><span class="n">engine_extra_args</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">initial_population</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;initial_population&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
