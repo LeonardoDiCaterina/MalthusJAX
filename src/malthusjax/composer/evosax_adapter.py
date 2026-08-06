@@ -234,11 +234,14 @@ def build_evosax_engine(
                 RealGenomeConfig(shape=(num_dims,))
             elif hasattr(evaluator.config, "num_dims"):
                 num_dims = getattr(evaluator.config, "num_dims")
-                RealGenomeConfig(shape=(num_dims,))
+            elif "num_dims" in kwargs or "genome_length" in kwargs:
+                num_dims = kwargs.get("num_dims", kwargs.get("genome_length"))
             else:
                 raise ValueError(
                     f"Evaluator {evaluator} does not provide a valid genome_config shape."
                 )
+        elif "num_dims" in kwargs or "genome_length" in kwargs:
+            num_dims = kwargs.get("num_dims", kwargs.get("genome_length"))
         else:
             raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
         eval_mode = EvalMode.MALTHUSJAX

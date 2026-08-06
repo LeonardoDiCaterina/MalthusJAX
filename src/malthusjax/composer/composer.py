@@ -1223,16 +1223,23 @@ class Composer:
         maximize_flag = config.get("maximize", False)
 
         # We append seed to fitness strings if missing so BBOB etc uses the right seed
-        if fitness and "seed=" not in fitness:
-            if ":" in fitness:
-                fitness = f"{fitness},seed={seed_val}"
-            else:
-                fitness = f"{fitness}:seed={seed_val}"
-
-        resolved_evaluator = catalog.get(
-            fitness or f"sphere:dim=10,maximize={maximize_flag},seed={seed_val}",
-            data_registry=data_registry,
-        )
+        if isinstance(fitness, str):
+            if "seed=" not in fitness:
+                if ":" in fitness:
+                    fitness = f"{fitness},seed={seed_val}"
+                else:
+                    fitness = f"{fitness}:seed={seed_val}"
+            resolved_evaluator = catalog.get(
+                fitness,
+                data_registry=data_registry,
+            )
+        elif fitness is not None:
+            resolved_evaluator = fitness
+        else:
+            resolved_evaluator = catalog.get(
+                f"sphere:dim=10,maximize={maximize_flag},seed={seed_val}",
+                data_registry=data_registry,
+            )
 
         if isinstance(strategy, GeneticStrategy):
             resolved_selection = (
@@ -1291,43 +1298,50 @@ class Composer:
     ) -> Any:
         """Build EvosaxEngineAdapter from strategy name and config."""
         if fitness_spec is not None:
-            from .catalog import OperatorCatalog
+            if isinstance(fitness_spec, str):
+                from .catalog import OperatorCatalog
 
-            cat = OperatorCatalog()
-            parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+                cat = OperatorCatalog()
+                parsed_name, parsed_params = cat.parse_spec(fitness_spec)
 
-            if parsed_name == "bbob":
-                fn_param = parsed_params.get("fn_name", parsed_params.get("fn", None))
-                if isinstance(fn_param, int):
-                    import evosax.problems.bbob.meta_bbob as mb
+                if parsed_name == "bbob":
+                    fn_param = parsed_params.get("fn_name", parsed_params.get("fn", None))
+                    if isinstance(fn_param, int):
+                        import evosax.problems.bbob.meta_bbob as mb
 
-                    bbob_keys = list(mb.bbob_fns.keys())
-                    if fn_param < 1 or fn_param > len(bbob_keys):
+                        bbob_keys = list(mb.bbob_fns.keys())
+                        if fn_param < 1 or fn_param > len(bbob_keys):
+                            raise ValueError(
+                                f"BBOB function index {fn_param} is out of range (1-{len(bbob_keys)})"
+                            )
+                        fn = bbob_keys[fn_param - 1]
+                    elif fn_param is None:
                         raise ValueError(
-                            f"BBOB function index {fn_param} is out of range (1-{len(bbob_keys)})"
+                            "BBOB fitness specification requires either fn_name or fn index"
                         )
-                    fn = bbob_keys[fn_param - 1]
-                elif fn_param is None:
-                    raise ValueError(
-                        "BBOB fitness specification requires either fn_name or fn index"
-                    )
+                    else:
+                        fn = fn_param
                 else:
-                    fn = fn_param
-            else:
-                fn = parsed_params.get("fn_name", parsed_name)
+                    fn = parsed_params.get("fn_name", parsed_name)
 
-            dims = parsed_params.get("dim", parsed_params.get("num_dims", num_dims))
-            seed = parsed_params.get("seed", kwargs.get("seed", 42))
-            maxim = parsed_params.get("maximize", maximize)
+                dims = parsed_params.get("dim", parsed_params.get("num_dims", num_dims))
+                seed = parsed_params.get("seed", kwargs.get("seed", 42))
+                maxim = parsed_params.get("maximize", maximize)
+
+                evalr = BBOBEvaluator.create(
+                    BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maxim)
+                )
+            else:
+                evalr = fitness_spec
+                maxim = getattr(evalr.config, "maximize", maximize) if hasattr(evalr, "config") else maximize
         else:
             fn = "sphere"
             dims = num_dims
             seed = kwargs.get("seed", 42)
             maxim = maximize
-
-        evalr = BBOBEvaluator.create(
-            BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maxim)
-        )
+            evalr = BBOBEvaluator.create(
+                BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maxim)
+            )
 
         # If no initial_population provided and evaluator has sample() method,
         # use it for consistent initialization across backends
@@ -1343,6 +1357,7 @@ class Composer:
             evaluator=evalr,
             pop_size=pop_size,
             generations=generations,
+            num_dims=num_dims,
             bounds=bounds,
             maximize=maxim,
             strategy_params=kwargs.get("strategy_params"),
@@ -1475,7 +1490,6 @@ class Composer:
 
                 if self._evaluator is not None:
                     genes = RealGenome(values=genotypes)
-                    # We pass config=None since fitness eval might not need full config
                     pop = RealPopulation(
                         genes=genes, fitness=jnp.zeros(genotypes.shape[0]), config=None
                     )
@@ -1483,12 +1497,18 @@ class Composer:
                     fitnesses = updated_pop.fitness
                     if not maximize:
                         fitnesses = -fitnesses
+                    if hasattr(updated_pop, "descriptors"):
+                        descriptors = updated_pop.descriptors
+                    else:
+                        desc_dims = genotypes[:, : self._num_descriptors]
+                        lo, hi = float(bounds[0]), float(bounds[1])
+                        descriptors = (desc_dims - lo) / (hi - lo)
                 else:
                     fitnesses = jax.vmap(self._fitness_fn)(genotypes)
+                    desc_dims = genotypes[:, : self._num_descriptors]
+                    lo, hi = float(bounds[0]), float(bounds[1])
+                    descriptors = (desc_dims - lo) / (hi - lo)
 
-                desc_dims = genotypes[:, : self._num_descriptors]
-                lo, hi = float(bounds[0]), float(bounds[1])
-                descriptors = (desc_dims - lo) / (hi - lo)
                 return fitnesses, descriptors, {}
 
         if isinstance(fitness_spec, str):
@@ -1496,7 +1516,7 @@ class Composer:
             resolved = cat.get(fitness_spec)
             return QDAXNativeEvaluator(None, evaluator=resolved)
         elif fitness_spec is not None:
-            return fitness_spec
+            return QDAXNativeEvaluator(None, evaluator=fitness_spec)
         else:
             import jax.numpy as jnp
 
@@ -1604,15 +1624,18 @@ class Composer:
 
         evaluator = None
         if isinstance(strategy.emitter, TensorNeatEmitter):
-            from malthusjax.core.fitness.base import BaseEvaluatorConfig
-            from malthusjax.core.fitness.tensorneat import TensorNeatQDEvaluator
+            if fitness_spec is not None:
+                evaluator = fitness_spec
+            else:
+                from malthusjax.core.fitness.base import BaseEvaluatorConfig
+                from malthusjax.core.fitness.tensorneat import TensorNeatQDEvaluator
 
-            objective_fn = kwargs.get("objective_function")
-            evaluator = TensorNeatQDEvaluator(
-                objective_function=objective_fn,
-                config=BaseEvaluatorConfig(maximize=maximize),
-                data=None,
-            )
+                objective_fn = kwargs.get("objective_function")
+                evaluator = TensorNeatQDEvaluator(
+                    objective_function=objective_fn,
+                    config=BaseEvaluatorConfig(maximize=maximize),
+                    data=None,
+                )
         else:
             # We use the BaseQDEvaluator composition to match standard evaluation
             from malthusjax.composer.catalog import OperatorCatalog
@@ -1622,17 +1645,20 @@ class Composer:
 
             cat = OperatorCatalog()
             seed_val = kwargs.get("seed", 42)
-            if fitness_spec and "seed=" not in fitness_spec:
-                fitness_spec = (
-                    f"{fitness_spec}:seed={seed_val}"
-                    if ":" not in fitness_spec
-                    else f"{fitness_spec},seed={seed_val}"
+            if isinstance(fitness_spec, str):
+                if "seed=" not in fitness_spec:
+                    fitness_spec = (
+                        f"{fitness_spec}:seed={seed_val}"
+                        if ":" not in fitness_spec
+                        else f"{fitness_spec},seed={seed_val}"
+                    )
+                resolved_base_evaluator = cat.get(fitness_spec)
+            elif fitness_spec is not None:
+                resolved_base_evaluator = fitness_spec
+            else:
+                resolved_base_evaluator = cat.get(
+                    f"sphere:dim={kwargs.get('genome_length', 10)},maximize={maximize},seed={seed_val}"
                 )
-
-            resolved_base_evaluator = cat.get(
-                fitness_spec
-                or f"sphere:dim={kwargs.get('genome_length', 10)},maximize={maximize},seed={seed_val}"
-            )
 
             bounds = kwargs.get("bounds", (-5.0, 5.0))
             num_desc = strategy.num_descriptors

@@ -65,9 +65,13 @@ def _tensorneat_native_eval(evaluator, state, transformed_pop, algorithm, key):
     # Depending on the problem, it might take (state, key, forward, params)
     # The signature in TensorNEAT pipeline is usually:
     # vmap(problem.evaluate, in_axes=(None, 0, None, 0))(state, keys, algorithm.forward, transformed_pop)
-    fitness = jax.vmap(problem.evaluate, in_axes=(None, 0, None, 0))(
+    res = jax.vmap(problem.evaluate, in_axes=(None, 0, None, 0))(
         state, keys, algorithm.forward, transformed_pop
     )
+    if isinstance(res, tuple):
+        fitness = res[0]
+    else:
+        fitness = res
 
     # TensorNEAT replaces NaN with -inf
     fitness = jnp.where(jnp.isnan(fitness), -jnp.inf, fitness)
