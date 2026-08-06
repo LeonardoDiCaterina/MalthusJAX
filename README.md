@@ -10,6 +10,8 @@
 
 *No boilerplate. No recompilation between generations. Just fast, scalable evolution.*
 
+> 📖 **Architecture & Benchmark Deep Dive:** Read our [Show & Tell Showcase](docs/SHOWCASE.md) to explore the 5-layer design, empirical H100 scaling benchmarks, and upstream parity verification!
+
 ---
 
 ## Key Features

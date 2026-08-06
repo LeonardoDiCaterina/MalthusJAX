@@ -78,6 +78,70 @@ def _register_engines() -> None:
             **kwargs,
         )
 
+    def _lightened_ga_factory(
+        evaluator: Any,
+        selection: Any,
+        crossover: Any,
+        mutation: Any,
+        genome_type: str = "real",
+        pop_size: int = 50,
+        generations: int = 100,
+        genome_shape: tuple[int, ...] = (10,),
+        bounds: tuple[float, float] = (-5.0, 5.0),
+        elitism: int = 2,
+        **kwargs: Any,
+    ) -> Any:
+        from ..composer.engine_factory import build_engine
+        from .genetic_lightened import LightenedGeneticEngine
+
+        return build_engine(
+            fitness_evaluator=evaluator,
+            selection_op=selection,
+            crossover_op=crossover,
+            mutation_op=mutation,
+            genome_type=genome_type,
+            pop_size=pop_size,
+            generations=generations,
+            genome_shape=genome_shape,
+            bounds=bounds,
+            elitism=elitism,
+            engine_cls=LightenedGeneticEngine,
+            use_vectorized_operators=False,
+            **kwargs,
+        )
+
+    def _batched_ga_factory(
+        evaluator: Any,
+        selection: Any,
+        crossover: Any,
+        mutation: Any,
+        genome_type: str = "real",
+        pop_size: int = 50,
+        generations: int = 100,
+        genome_shape: tuple[int, ...] = (10,),
+        bounds: tuple[float, float] = (-5.0, 5.0),
+        elitism: int = 2,
+        **kwargs: Any,
+    ) -> Any:
+        from ..composer.engine_factory import build_engine
+        from .genetic_lightened import LightenedGeneticEngine
+
+        return build_engine(
+            fitness_evaluator=evaluator,
+            selection_op=selection,
+            crossover_op=crossover,
+            mutation_op=mutation,
+            genome_type=genome_type,
+            pop_size=pop_size,
+            generations=generations,
+            genome_shape=genome_shape,
+            bounds=bounds,
+            elitism=elitism,
+            engine_cls=LightenedGeneticEngine,
+            use_vectorized_operators=True,
+            **kwargs,
+        )
+
     register_table(
         [
             (
@@ -87,6 +151,26 @@ def _register_engines() -> None:
                     "pop_size": 50,
                     "generations": 100,
                     "elitism": 2,
+                    "genome_type": "real",
+                },
+            ),
+            (
+                "lightened_ga",
+                _lightened_ga_factory,
+                {
+                    "pop_size": 50,
+                    "generations": 100,
+                    "elitism": 0,
+                    "genome_type": "real",
+                },
+            ),
+            (
+                "batched_ga",
+                _batched_ga_factory,
+                {
+                    "pop_size": 50,
+                    "generations": 100,
+                    "elitism": 0,
                     "genome_type": "real",
                 },
             ),

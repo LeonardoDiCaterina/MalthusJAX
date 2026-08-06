@@ -260,7 +260,12 @@ def build_engine(
         **schedule_extra,
     )
 
-    genetic_engine = GeneticEngine(
+    engine_cls = kwargs.pop("engine_cls", GeneticEngine)
+    engine_extra_args = {}
+    if "use_vectorized_operators" in kwargs:
+        engine_extra_args["use_vectorized_operators"] = kwargs.pop("use_vectorized_operators")
+
+    genetic_engine = engine_cls(
         engine_params=engine_params,
         genome_config=genome_config,
         evaluator=fitness_evaluator,
@@ -268,6 +273,7 @@ def build_engine(
         crossover=crossover_op,
         mutation=mutation_op,
         enable_progress_bar=kwargs.get("enable_progress_bar", False),
+        **engine_extra_args,
     )
 
     initial_population = kwargs.get("initial_population", None)

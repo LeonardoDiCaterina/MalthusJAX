@@ -18,6 +18,20 @@ elitism = 0
 crossover = "evosax_uniform_crossover:crossover_rate=0.3"
 mutation = "evosax_gaussian:mutation_strength=0.05"
 
+[pipelines.malthusjax_lightened]
+backend = "malthusjax"
+engine_type = "lightened_ga"
+elitism = 0
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=0.05"
+
+[pipelines.malthusjax_batched]
+backend = "malthusjax"
+engine_type = "batched_ga"
+elitism = 0
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=0.05"
+
 [pipelines.evosax_baseline]
 backend = "evosax"
 evosax_strategy = "SimpleGA"
