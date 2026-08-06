@@ -1552,16 +1552,23 @@
         <span class="n">maximize_flag</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
         <span class="c1"># We append seed to fitness strings if missing so BBOB etc uses the right seed</span>
-        <span class="k">if</span> <span class="n">fitness</span> <span class="ow">and</span> <span class="s2">&quot;seed=&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">:</span>
-                <span class="n">fitness</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fitness</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness</span><span class="si">}</span><span class="s2">:seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="n">resolved_evaluator</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="n">fitness</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;sphere:dim=10,maximize=</span><span class="si">{</span><span class="n">maximize_flag</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;seed=&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">:</span>
+                    <span class="n">fitness</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">fitness</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness</span><span class="si">}</span><span class="s2">:seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">resolved_evaluator</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">fitness</span><span class="p">,</span>
+                <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">fitness</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">resolved_evaluator</span> <span class="o">=</span> <span class="n">fitness</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">resolved_evaluator</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;sphere:dim=10,maximize=</span><span class="si">{</span><span class="n">maximize_flag</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">GeneticStrategy</span><span class="p">):</span>
             <span class="n">resolved_selection</span> <span class="o">=</span> <span class="p">(</span>
@@ -1620,43 +1627,50 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build EvosaxEngineAdapter from strategy name and config.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
 
-            <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-            <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
+                <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
+                <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">parsed_name</span> <span class="o">==</span> <span class="s2">&quot;bbob&quot;</span><span class="p">:</span>
-                <span class="n">fn_param</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn_name&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fn_param</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                    <span class="kn">import</span><span class="w"> </span><span class="nn">evosax.problems.bbob.meta_bbob</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mb</span>
+                <span class="k">if</span> <span class="n">parsed_name</span> <span class="o">==</span> <span class="s2">&quot;bbob&quot;</span><span class="p">:</span>
+                    <span class="n">fn_param</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn_name&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fn_param</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                        <span class="kn">import</span><span class="w"> </span><span class="nn">evosax.problems.bbob.meta_bbob</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mb</span>
 
-                    <span class="n">bbob_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mb</span><span class="o">.</span><span class="n">bbob_fns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-                    <span class="k">if</span> <span class="n">fn_param</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">fn_param</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbob_keys</span><span class="p">):</span>
+                        <span class="n">bbob_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mb</span><span class="o">.</span><span class="n">bbob_fns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                        <span class="k">if</span> <span class="n">fn_param</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">fn_param</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbob_keys</span><span class="p">):</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;BBOB function index </span><span class="si">{</span><span class="n">fn_param</span><span class="si">}</span><span class="s2"> is out of range (1-</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bbob_keys</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+                            <span class="p">)</span>
+                        <span class="n">fn</span> <span class="o">=</span> <span class="n">bbob_keys</span><span class="p">[</span><span class="n">fn_param</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">fn_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;BBOB function index </span><span class="si">{</span><span class="n">fn_param</span><span class="si">}</span><span class="s2"> is out of range (1-</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bbob_keys</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+                            <span class="s2">&quot;BBOB fitness specification requires either fn_name or fn index&quot;</span>
                         <span class="p">)</span>
-                    <span class="n">fn</span> <span class="o">=</span> <span class="n">bbob_keys</span><span class="p">[</span><span class="n">fn_param</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="n">fn_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;BBOB fitness specification requires either fn_name or fn index&quot;</span>
-                    <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">fn</span> <span class="o">=</span> <span class="n">fn_param</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">fn</span> <span class="o">=</span> <span class="n">fn_param</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fn</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn_name&quot;</span><span class="p">,</span> <span class="n">parsed_name</span><span class="p">)</span>
+                    <span class="n">fn</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fn_name&quot;</span><span class="p">,</span> <span class="n">parsed_name</span><span class="p">)</span>
 
-            <span class="n">dims</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dim&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_dims&quot;</span><span class="p">,</span> <span class="n">num_dims</span><span class="p">))</span>
-            <span class="n">seed</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span>
-            <span class="n">maxim</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="n">maximize</span><span class="p">)</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dim&quot;</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_dims&quot;</span><span class="p">,</span> <span class="n">num_dims</span><span class="p">))</span>
+                <span class="n">seed</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span>
+                <span class="n">maxim</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="n">maximize</span><span class="p">)</span>
+
+                <span class="n">evalr</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                    <span class="n">BBOBConfig</span><span class="p">(</span><span class="n">fn_name</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">num_dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">evalr</span> <span class="o">=</span> <span class="n">fitness_spec</span>
+                <span class="n">maxim</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evalr</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="n">maximize</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evalr</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">maximize</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fn</span> <span class="o">=</span> <span class="s2">&quot;sphere&quot;</span>
             <span class="n">dims</span> <span class="o">=</span> <span class="n">num_dims</span>
             <span class="n">seed</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
             <span class="n">maxim</span> <span class="o">=</span> <span class="n">maximize</span>
-
-        <span class="n">evalr</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">BBOBConfig</span><span class="p">(</span><span class="n">fn_name</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">num_dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">)</span>
-        <span class="p">)</span>
+            <span class="n">evalr</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">BBOBConfig</span><span class="p">(</span><span class="n">fn_name</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">num_dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="c1"># If no initial_population provided and evaluator has sample() method,</span>
         <span class="c1"># use it for consistent initialization across backends</span>
@@ -1672,6 +1686,7 @@
             <span class="n">evaluator</span><span class="o">=</span><span class="n">evalr</span><span class="p">,</span>
             <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
             <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
+            <span class="n">num_dims</span><span class="o">=</span><span class="n">num_dims</span><span class="p">,</span>
             <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
             <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">,</span>
             <span class="n">strategy_params</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;strategy_params&quot;</span><span class="p">),</span>
@@ -1804,7 +1819,6 @@
 
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">genes</span> <span class="o">=</span> <span class="n">RealGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">genotypes</span><span class="p">)</span>
-                    <span class="c1"># We pass config=None since fitness eval might not need full config</span>
                     <span class="n">pop</span> <span class="o">=</span> <span class="n">RealPopulation</span><span class="p">(</span>
                         <span class="n">genes</span><span class="o">=</span><span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">genotypes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span>
                     <span class="p">)</span>
@@ -1812,12 +1826,18 @@
                     <span class="n">fitnesses</span> <span class="o">=</span> <span class="n">updated_pop</span><span class="o">.</span><span class="n">fitness</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">maximize</span><span class="p">:</span>
                         <span class="n">fitnesses</span> <span class="o">=</span> <span class="o">-</span><span class="n">fitnesses</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">updated_pop</span><span class="p">,</span> <span class="s2">&quot;descriptors&quot;</span><span class="p">):</span>
+                        <span class="n">descriptors</span> <span class="o">=</span> <span class="n">updated_pop</span><span class="o">.</span><span class="n">descriptors</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">desc_dims</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span><span class="p">]</span>
+                        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">descriptors</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc_dims</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">fitnesses</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fitness_fn</span><span class="p">)(</span><span class="n">genotypes</span><span class="p">)</span>
+                    <span class="n">desc_dims</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span><span class="p">]</span>
+                    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">descriptors</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc_dims</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span>
 
-                <span class="n">desc_dims</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span><span class="p">]</span>
-                <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">descriptors</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc_dims</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">fitnesses</span><span class="p">,</span> <span class="n">descriptors</span><span class="p">,</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -1825,7 +1845,7 @@
             <span class="n">resolved</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">QDAXNativeEvaluator</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">resolved</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">fitness_spec</span>
+            <span class="k">return</span> <span class="n">QDAXNativeEvaluator</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">fitness_spec</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 
@@ -1933,15 +1953,18 @@
 
         <span class="n">evaluator</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">emitter</span><span class="p">,</span> <span class="n">TensorNeatEmitter</span><span class="p">):</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluatorConfig</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.tensorneat</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorNeatQDEvaluator</span>
+            <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">evaluator</span> <span class="o">=</span> <span class="n">fitness_spec</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluatorConfig</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.tensorneat</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorNeatQDEvaluator</span>
 
-            <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;objective_function&quot;</span><span class="p">)</span>
-            <span class="n">evaluator</span> <span class="o">=</span> <span class="n">TensorNeatQDEvaluator</span><span class="p">(</span>
-                <span class="n">objective_function</span><span class="o">=</span><span class="n">objective_fn</span><span class="p">,</span>
-                <span class="n">config</span><span class="o">=</span><span class="n">BaseEvaluatorConfig</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">),</span>
-                <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="p">)</span>
+                <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;objective_function&quot;</span><span class="p">)</span>
+                <span class="n">evaluator</span> <span class="o">=</span> <span class="n">TensorNeatQDEvaluator</span><span class="p">(</span>
+                    <span class="n">objective_function</span><span class="o">=</span><span class="n">objective_fn</span><span class="p">,</span>
+                    <span class="n">config</span><span class="o">=</span><span class="n">BaseEvaluatorConfig</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">),</span>
+                    <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># We use the BaseQDEvaluator composition to match standard evaluation</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
@@ -1951,17 +1974,20 @@
 
             <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
             <span class="n">seed_val</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">and</span> <span class="s2">&quot;seed=&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness_spec</span><span class="p">:</span>
-                <span class="n">fitness_spec</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness_spec</span><span class="si">}</span><span class="s2">:seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
-                    <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness_spec</span>
-                    <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness_spec</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">if</span> <span class="s2">&quot;seed=&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness_spec</span><span class="p">:</span>
+                    <span class="n">fitness_spec</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness_spec</span><span class="si">}</span><span class="s2">:seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness_spec</span>
+                        <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fitness_spec</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">resolved_base_evaluator</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">resolved_base_evaluator</span> <span class="o">=</span> <span class="n">fitness_spec</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">resolved_base_evaluator</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;sphere:dim=</span><span class="si">{</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;genome_length&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="si">}</span><span class="s2">,maximize=</span><span class="si">{</span><span class="n">maximize</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-
-            <span class="n">resolved_base_evaluator</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="n">fitness_spec</span>
-                <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;sphere:dim=</span><span class="si">{</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;genome_length&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="si">}</span><span class="s2">,maximize=</span><span class="si">{</span><span class="n">maximize</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
 
             <span class="n">bounds</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bounds&quot;</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
             <span class="n">num_desc</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">num_descriptors</span>
