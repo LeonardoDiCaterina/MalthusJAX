@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import math
 import statistics
+import numpy as np
 
 try:
     from scipy import stats as sp_stats
@@ -333,9 +334,10 @@ class ExperimentResult:
         for k, vals in agg.items():
             if not vals:
                 continue
-            mean = statistics.mean(vals)
-            med = statistics.median(vals)
-            stdev = statistics.stdev(vals) if len(vals) > 1 else 0.0
+            arr = np.array(vals, dtype=np.float64)
+            mean = float(np.mean(arr))
+            med = float(np.median(arr))
+            stdev = float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0
 
             ci_lower = mean
             ci_upper = mean
