@@ -18,6 +18,32 @@ import jax.numpy as jnp
 from malthusjax.core.fitness.base import BaseEvaluator
 
 
+def _has_block_until_ready(obj: Any) -> bool:
+    try:
+        return callable(getattr(obj, "block_until_ready", None))
+    except Exception:
+        return False
+
+
+def _block_all_until_ready(obj: Any) -> None:
+    """Recursively block execution until all JAX arrays inside any object/struct/dict are ready."""
+    if _has_block_until_ready(obj):
+        obj.block_until_ready()
+    elif isinstance(obj, dict):
+        for v in obj.values():
+            _block_all_until_ready(v)
+    elif isinstance(obj, (list, tuple)):
+        for item in obj:
+            _block_all_until_ready(item)
+    else:
+        try:
+            d = vars(obj)
+            for v in d.values():
+                _block_all_until_ready(v)
+        except Exception:
+            pass
+
+
 class UniversalAdapterEngine:
     """Universal adapter to make external frameworks compatible with the BenchmarkRunner.Engine protocol.
 
@@ -184,7 +210,7 @@ class UniversalAdapterEngine:
         final_state, scan_history = run_loop(key, state_init)
         
         # Block until all GPU computations are finished
-        jax.tree_util.tree_map(lambda x: x.block_until_ready() if hasattr(x, "block_until_ready") else x, (final_state, scan_history))
+        _block_all_until_ready((final_state, scan_history))
         
         t_exec_end = time.perf_counter()
 
