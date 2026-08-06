@@ -50,6 +50,14 @@ class LightenedGeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     enable_progress_bar: bool = _field(pytree_node=False, default=False)
     use_vectorized_operators: bool = _field(pytree_node=False, default=False)
 
+    def __hash__(self) -> int:
+        """Make engine hashable for JIT static_argnums."""
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:
+        """Identity-based equality for JIT caching consistency."""
+        return self is other
+
     def init_state(
         self, rng_key: Union[int, chex.PRNGKey], initial_population: Any = None
     ) -> GeneticEvolutionState:
