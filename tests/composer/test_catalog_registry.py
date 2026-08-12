@@ -60,7 +60,7 @@ def catalog() -> OperatorCatalog:
 # 1. Completeness — every expected key is registered
 # ---------------------------------------------------------------------------
 
-# 4 selection + 11 crossover + 10 mutation + 8 fitness + 3 evosax strategies = 36
+# 4 selection + 13 crossover + 12 mutation + 8 fitness + 3 evosax strategies = 40
 EXPECTED_SELECTION = {"tournament", "roulette", "elite_pool", "evosax_mimic_selection"}
 EXPECTED_CROSSOVER = {
     "uniform_real",
@@ -72,6 +72,8 @@ EXPECTED_CROSSOVER = {
     "binomial",
     "binomial_injection",
     "evosax_uniform_crossover",
+    "batched_uniform_crossover",
+    "batched_evosax_uniform",
     "uniform_binary",
     "single_point",
 }
@@ -83,6 +85,8 @@ EXPECTED_MUTATION = {
     "polynomial",
     "polynomial_injection",
     "evosax_gaussian",
+    "batched_gaussian",
+    "batched_evosax_gaussian",
     "bitflip",
     "scramble",
     "swap",

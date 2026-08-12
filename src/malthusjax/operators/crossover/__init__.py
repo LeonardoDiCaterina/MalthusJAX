@@ -55,6 +55,7 @@ def _register_crossover() -> None:
             ("blend_injection", BlendCrossover_injection, {}),
             ("simulated_binary", SimulatedBinaryCrossover, {}),
             ("simulated_binary_injection", SimulatedBinaryCrossover_injection, {}),
+            ("binomial", BinomialCrossover, {}),
             ("binomial_injection", BinomialCrossover_injection, {}),
             ("evosax_uniform_crossover", EvosaxUniformCrossoverWrapper, {}),
             ("batched_uniform_crossover", BatchedUniformCrossover, {}),
