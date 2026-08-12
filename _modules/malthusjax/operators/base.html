@@ -440,6 +440,24 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — Pure mutation arithmetic on raw arrays.</span>
+
+<span class="sd">        Array-native variant of ``_mutate_one`` that operates directly on flat</span>
+<span class="sd">        ``jax.Array`` values, returning a flat ``jax.Array`` without constructing</span>
+<span class="sd">        a PyTree wrapper.  Used by ``VectorizedEngine`` to avoid tuple overhead</span>
+<span class="sd">        in the ``lax.scan`` carry.</span>
+
+<span class="sd">        Concrete subclasses should override this with their specific arithmetic</span>
+<span class="sd">        (typically ``values + noise_data`` with optional clipping).  The default</span>
+<span class="sd">        raises ``NotImplementedError`` to signal that the operator has not yet</span>
+<span class="sd">        opted into array-native support.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not implement _apply_noise. &quot;</span>
+            <span class="s2">&quot;Override this method for VectorizedEngine support.&quot;</span>
+        <span class="p">)</span>
+
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2 — Noise generation: keys → noise PyTree.&quot;&quot;&quot;</span>
@@ -628,6 +646,25 @@
 <span class="sd">        via `num_offspring`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_mask</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">p1_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">p2_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — Pure recombination arithmetic on raw arrays.</span>
+
+<span class="sd">        Array-native variant of ``_recombine_one`` that operates directly on flat</span>
+<span class="sd">        ``jax.Array`` parent values, returning a flat ``jax.Array`` without</span>
+<span class="sd">        constructing a PyTree wrapper.  Used by ``VectorizedEngine`` to avoid</span>
+<span class="sd">        tuple overhead in the ``lax.scan`` carry.</span>
+
+<span class="sd">        Concrete subclasses should override this with their specific arithmetic</span>
+<span class="sd">        (e.g., ``jnp.where(mask, p2_values, p1_values)``).  The default raises</span>
+<span class="sd">        ``NotImplementedError``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not implement _apply_mask. &quot;</span>
+            <span class="s2">&quot;Override this method for VectorizedEngine support.&quot;</span>
+        <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cross_fused</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">p1</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fused RNG + recombination for single (pair, offspring) combination.</span>

@@ -567,8 +567,10 @@
 
     <span class="n">strategy_cls</span> <span class="o">=</span> <span class="n">EVOSAX_STRATEGIES</span><span class="p">[</span><span class="n">strategy_name</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">strategy_name</span> <span class="o">==</span> <span class="s2">&quot;RandomSearch&quot;</span><span class="p">:</span>
+
         <span class="k">def</span><span class="w"> </span><span class="nf">sampling_fn</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">jr</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">num_dims</span><span class="p">,),</span> <span class="n">minval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
         <span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy_cls</span><span class="p">(</span>
             <span class="n">population_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="n">init_solution</span><span class="p">,</span> <span class="n">sampling_fn</span><span class="o">=</span><span class="n">sampling_fn</span>
         <span class="p">)</span>

@@ -460,19 +460,20 @@
         <span class="k">return</span> <span class="n">population</span><span class="o">.</span><span class="n">spawn_offspring</span><span class="p">(</span><span class="n">new_genes</span><span class="p">)</span></div>
 
 
+
 <div class="viewcode-block" id="BatchedEvosaxGaussianWrapper">
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.evosax_mutation.html#malthusjax.operators.mutation.BatchedEvosaxGaussianWrapper">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BatchedEvosaxGaussianWrapper</span><span class="p">(</span><span class="n">EvosaxGaussianWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Batched EvoSAX Gaussian Wrapper (Monolithic Execution).</span>
-<span class="sd">    </span>
+
 <span class="sd">    This operator completely bypasses the JAX vmap structure.</span>
 <span class="sd">    It expects to be called on a batched RealPopulation, where `genes.values`</span>
 <span class="sd">    is a `(pop_size, d)` array. It generates a single monolithic noise tensor</span>
 <span class="sd">    using the underlying `evosax_mutation` function which naturally supports</span>
 <span class="sd">    any array shape.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">1</span>
@@ -488,19 +489,19 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="c1"># Extract the single monolithic key</span>
         <span class="n">k</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        
+
         <span class="n">genes</span> <span class="o">=</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">values</span>
-        
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">genes</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">genes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            
+
         <span class="c1"># evosax_mutation automatically scales the noise shape to match the solution shape!</span>
         <span class="n">mutated_vals</span> <span class="o">=</span> <span class="n">evosax_mutation</span><span class="p">(</span>
             <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
             <span class="n">solution</span><span class="o">=</span><span class="n">genes</span><span class="p">,</span>
             <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mutation_strength</span><span class="p">,</span>
         <span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="n">population</span><span class="o">.</span><span class="n">spawn_offspring</span><span class="p">(</span><span class="n">RealGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">mutated_vals</span><span class="p">))</span></div>
 
 </pre></div>
