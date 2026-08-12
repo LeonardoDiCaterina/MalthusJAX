@@ -911,3 +911,4 @@ scratch/
 # RL Assimilation
 docs/*_assimilation/
 examples/rl/videos/
+docs/phase2_performance_roadmap.md
