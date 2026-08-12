@@ -29,7 +29,9 @@ class MOPopulation(BasePopulation[Any]):
     maximize: bool = struct.field(pytree_node=False, default=False)
 
     @classmethod
-    def from_evaluated(cls, base_pop: BasePopulation[Any], maximize: bool = False) -> "MOPopulation":
+    def from_evaluated(
+        cls, base_pop: BasePopulation[Any], maximize: bool = False
+    ) -> "MOPopulation":
         """Upgrades a standard evaluated population to an MOPopulation by computing fronts."""
         dom_matrix = compute_dominance_matrix(base_pop.fitness, maximize)
         ranks = compute_pareto_ranks(dom_matrix)

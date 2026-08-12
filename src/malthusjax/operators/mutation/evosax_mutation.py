@@ -142,17 +142,18 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
         new_genes = RealGenome(values=mutated_vals)
         return population.spawn_offspring(new_genes)
 
+
 @struct.dataclass
 class BatchedEvosaxGaussianWrapper(EvosaxGaussianWrapper):
     """Batched EvoSAX Gaussian Wrapper (Monolithic Execution).
-    
+
     This operator completely bypasses the JAX vmap structure.
     It expects to be called on a batched RealPopulation, where `genes.values`
     is a `(pop_size, d)` array. It generates a single monolithic noise tensor
     using the underlying `evosax_mutation` function which naturally supports
     any array shape.
     """
-    
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 1
@@ -165,17 +166,17 @@ class BatchedEvosaxGaussianWrapper(EvosaxGaussianWrapper):
     ) -> Any:
         # Extract the single monolithic key
         k = all_keys[0] if len(all_keys.shape) == 2 else all_keys[0][0]
-        
+
         genes = population.genes.values
-        
+
         if self.num_offspring > 1:
             genes = jnp.repeat(genes, self.num_offspring, axis=0)
-            
+
         # evosax_mutation automatically scales the noise shape to match the solution shape!
         mutated_vals = evosax_mutation(
             key=k,
             solution=genes,
             std=self.mutation_strength,
         )
-        
+
         return population.spawn_offspring(RealGenome(values=mutated_vals))

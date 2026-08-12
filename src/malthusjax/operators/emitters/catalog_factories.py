@@ -66,6 +66,7 @@ def build_qdax_replica_emitter(**kwargs: Any) -> QDAXReplicaMixingEmitter:
     # Bind kwargs
     def mut_fn(x, key):
         return mut_base_fn(x, key, **mut_kwargs)
+
     def var_fn(x1, x2, key):
         return var_base_fn(x1, x2, key, **var_kwargs)
 
@@ -104,6 +105,7 @@ def build_qdax_native_emitter(**kwargs: Any) -> Any:
     # Bind kwargs
     def mut_fn(x, key):
         return mut_base_fn(x, key, **mut_kwargs)
+
     def var_fn(x1, x2, key):
         return var_base_fn(x1, x2, key, **var_kwargs)
 

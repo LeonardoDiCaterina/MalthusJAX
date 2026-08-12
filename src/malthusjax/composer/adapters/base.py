@@ -208,10 +208,10 @@ class UniversalAdapterEngine:
         # Execute
         t_exec_start = time.perf_counter()
         final_state, scan_history = run_loop(key, state_init)
-        
+
         # Block until all GPU computations are finished
         _block_all_until_ready((final_state, scan_history))
-        
+
         t_exec_end = time.perf_counter()
 
         # Format history output

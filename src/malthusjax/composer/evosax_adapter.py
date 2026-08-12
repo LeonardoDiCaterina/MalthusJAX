@@ -250,8 +250,10 @@ def build_evosax_engine(
 
     strategy_cls = EVOSAX_STRATEGIES[strategy_name]
     if strategy_name == "RandomSearch":
+
         def sampling_fn(k):
             return jr.uniform(k, (num_dims,), minval=bounds[0], maxval=bounds[1])
+
         strategy = strategy_cls(
             population_size=pop_size, solution=init_solution, sampling_fn=sampling_fn
         )

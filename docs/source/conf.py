@@ -66,19 +66,20 @@ intersphinx_mapping = {
     "flax": ("https://flax.readthedocs.io/en/latest/", None),
 }
 
+
 def skip_member(app, what, name, obj, skip, options):
     if skip:
         return True
-    
+
     # Check if the object is imported from another module
     obj_module = getattr(obj, "__module__", None)
     if obj_module:
-        current_module = app.env.ref_context.get('py:module')
+        current_module = app.env.ref_context.get("py:module")
         if current_module and obj_module != current_module:
             return True
-            
+
     return False
 
-def setup(app):
-    app.connect('autodoc-skip-member', skip_member)
 
+def setup(app):
+    app.connect("autodoc-skip-member", skip_member)

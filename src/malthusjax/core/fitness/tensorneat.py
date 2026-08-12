@@ -20,7 +20,9 @@ class TensorNeatQDEvaluator(BaseQDEvaluator[TensorNeatGenome, Any, Any]):
 
     objective_function: Callable[..., Any] = struct.field(pytree_node=False)
 
-    def evaluate_population(self, population: BasePopulation[TensorNeatGenome]) -> TensorNeatPopulation:
+    def evaluate_population(
+        self, population: BasePopulation[TensorNeatGenome]
+    ) -> TensorNeatPopulation:
         """
         Executes the objective function on the batched TensorNEAT graphs.
         """

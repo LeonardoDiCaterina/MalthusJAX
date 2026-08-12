@@ -167,16 +167,17 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig])
         new_genes = RealGenome(values=offspring_vals)
         return p1_pop.spawn_offspring(new_genes)
 
+
 @struct.dataclass
 class BatchedEvosaxUniformWrapper(EvosaxUniformCrossoverWrapper):
     """Batched EvoSAX Crossover Wrapper (Monolithic Execution).
-    
+
     This operator completely bypasses the JAX vmap structure.
     It expects to be called on batched RealPopulations, where `genes.values`
     is a `(pop_size, d)` array. It generates a single monolithic crossover mask
     using the underlying `evosax_crossover` function.
     """
-    
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 1
@@ -193,14 +194,14 @@ class BatchedEvosaxUniformWrapper(EvosaxUniformCrossoverWrapper):
         generation: int = 0,
     ) -> BasePopulation[RealGenome]:
         k = all_keys[0] if len(all_keys.shape) == 2 else all_keys[0][0]
-        
+
         p1_vals = p1_pop.genes.values
         p2_vals = p2_pop.genes.values
-        
+
         if self.num_offspring > 1:
             p1_vals = jnp.repeat(p1_vals, self.num_offspring, axis=0)
             p2_vals = jnp.repeat(p2_vals, self.num_offspring, axis=0)
-            
+
         child_vals = evosax_crossover(k, p1_vals, p2_vals, self.crossover_rate)
-        
+
         return p1_pop.spawn_offspring(RealGenome(values=child_vals))

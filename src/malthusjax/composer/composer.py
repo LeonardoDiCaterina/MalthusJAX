@@ -1333,7 +1333,11 @@ class Composer:
                 )
             else:
                 evalr = fitness_spec
-                maxim = getattr(evalr.config, "maximize", maximize) if hasattr(evalr, "config") else maximize
+                maxim = (
+                    getattr(evalr.config, "maximize", maximize)
+                    if hasattr(evalr, "config")
+                    else maximize
+                )
         else:
             fn = "sphere"
             dims = num_dims
@@ -1522,6 +1526,7 @@ class Composer:
 
             def fn(x):
                 return -jnp.sum(jnp.square(x))
+
             return QDAXNativeEvaluator(fn)
 
     def _build_tensorneat_engine(

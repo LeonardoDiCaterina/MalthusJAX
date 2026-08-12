@@ -217,7 +217,9 @@ class LightenedGeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         time_it: bool = False,
         compile: bool = True,
         verbose: bool = False,
-    ) -> Tuple[AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any]:
+    ) -> Tuple[
+        AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any
+    ]:
         """Execute full evolution and extract final best genome at the end."""
         final_state, history, elapsed_time = super().run(
             initial_state, time_it=time_it, compile=compile, verbose=verbose
