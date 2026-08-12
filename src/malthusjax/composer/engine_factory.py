@@ -251,6 +251,8 @@ def build_engine(
     if "track_best" not in schedule_extra:
         schedule_extra["track_best"] = TrackBest.LIGHT
 
+    engine_cls = kwargs.pop("engine_cls", GeneticEngine)
+
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
         num_generations=generations,
@@ -259,8 +261,6 @@ def build_engine(
         **prng_extra,
         **schedule_extra,
     )
-
-    engine_cls = kwargs.pop("engine_cls", GeneticEngine)
     engine_extra_args = {}
     if "use_vectorized_operators" in kwargs:
         engine_extra_args["use_vectorized_operators"] = kwargs.pop("use_vectorized_operators")

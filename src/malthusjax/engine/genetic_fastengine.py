@@ -550,6 +550,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         mutants_keep = jax.tree_util.tree_map(lambda x: x[:num_mutants], mutant_genes)
 
         def _fuse(old: jnp.ndarray, elite: jnp.ndarray, mutant: jnp.ndarray) -> jnp.ndarray:
+            if num_elites == 0:
+                return mutant
             buf = old
             if num_elites > 0:
                 start = tuple([0] * len(buf.shape))

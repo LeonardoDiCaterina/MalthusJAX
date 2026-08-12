@@ -67,6 +67,17 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         offspring_values = jnp.where(mask, p2.values, p1.values)
         return replace(p1, values=offspring_values)
 
+    def _apply_mask(
+        self,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        noise_data: chex.Array,
+        config: RealGenomeConfig,
+    ) -> chex.Array:
+        """Tier 1 (array-native) — pure arithmetic selection."""
+        mask = noise_data
+        return jnp.where(mask, p2_values, p1_values)
+
 
 @struct.dataclass
 class UniformCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
@@ -115,6 +126,17 @@ class UniformCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeC
         mask = noise_data
         offspring_values = jnp.where(mask, p2.values, p1.values)
         return replace(p1, values=offspring_values)
+
+    def _apply_mask(
+        self,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        noise_data: chex.Array,
+        config: RealGenomeConfig,
+    ) -> chex.Array:
+        """Tier 1 (array-native) — pure arithmetic selection."""
+        mask = noise_data
+        return jnp.where(mask, p2_values, p1_values)
 
 
 @struct.dataclass
@@ -245,6 +267,27 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
 
         return replace(p1, values=final_values)
 
+    def _apply_mask(
+        self,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        noise_data: Tuple[chex.Array, chex.Array],
+        config: RealGenomeConfig,
+    ) -> chex.Array:
+        """Tier 1 (array-native) — pure blend arithmetic."""
+        should_cross, random_vals = noise_data
+        dtype = p1_values.dtype
+
+        diff = jnp.abs(p1_values - p2_values)
+        alpha_val = jnp.array(self.alpha, dtype=dtype)
+        cmin = jnp.minimum(p1_values, p2_values) - (alpha_val * diff)
+        cmax = jnp.maximum(p1_values, p2_values) + (alpha_val * diff)
+
+        offspring_values = cmin + random_vals * (cmax - cmin)
+        min_b, max_b = config.bounds
+        offspring_values = jnp.clip(offspring_values, min_b, max_b)
+        return jnp.where(should_cross, offspring_values, p1_values)
+
 
 @struct.dataclass
 class BlendCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
@@ -316,6 +359,28 @@ class BlendCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeCon
         offspring_values = jnp.clip(offspring_values, min_b, max_b)
         final_values = jnp.where(should_cross, offspring_values, p1.values)
         return replace(p1, values=final_values)
+
+    def _apply_mask(
+        self,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        noise_data: Tuple[chex.Array, chex.Array],
+        config: RealGenomeConfig,
+    ) -> chex.Array:
+        """Tier 1 (array-native) — pure blend arithmetic."""
+        should_cross, random_vals = noise_data
+        dtype = p1_values.dtype
+
+        diff = jnp.abs(p1_values - p2_values)
+        alpha_val = jnp.array(self.alpha, dtype=dtype)
+
+        cmin = jnp.minimum(p1_values, p2_values) - (alpha_val * diff)
+        cmax = jnp.maximum(p1_values, p2_values) + (alpha_val * diff)
+
+        offspring_values = cmin + random_vals * (cmax - cmin)
+        min_b, max_b = config.bounds
+        offspring_values = jnp.clip(offspring_values, min_b, max_b)
+        return jnp.where(should_cross, offspring_values, p1_values)
 
 
 @struct.dataclass
@@ -462,6 +527,28 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
 
         return replace(p1, values=final_values)
 
+    def _apply_mask(
+        self,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        noise_data: Tuple[chex.Array, chex.Array, chex.Array],
+        config: RealGenomeConfig,
+    ) -> chex.Array:
+        """Tier 1 (array-native) — pure SBX arithmetic."""
+        should_cross, u, swap_mask = noise_data
+        dtype = p1_values.dtype
+
+        exponent = jnp.array(1.0 / (self.eta + 1.0), dtype=dtype)
+        beta = jnp.where(u <= 0.5, (2.0 * u) ** exponent, (1.0 / (2.0 * (1.0 - u))) ** exponent)
+
+        c1 = 0.5 * ((1.0 + beta) * p1_values + (1.0 - beta) * p2_values)
+        c2 = 0.5 * ((1.0 - beta) * p1_values + (1.0 + beta) * p2_values)
+        child_vals = jnp.where(swap_mask, c2, c1)
+
+        min_b, max_b = config.bounds
+        child_vals = jnp.clip(child_vals, min_b, max_b)
+        return jnp.where(should_cross, child_vals, p1_values)
+
 
 @struct.dataclass
 class SimulatedBinaryCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeConfig]):
@@ -537,6 +624,28 @@ class SimulatedBinaryCrossover_injection(BaseCrossover_injection[RealGenome, Rea
 
         return replace(p1, values=final_values)
 
+    def _apply_mask(
+        self,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        noise_data: Tuple[chex.Array, chex.Array, chex.Array],
+        config: RealGenomeConfig,
+    ) -> chex.Array:
+        """Tier 1 (array-native) — pure SBX arithmetic."""
+        should_cross, u, swap_mask = noise_data
+        dtype = p1_values.dtype
+
+        exponent = jnp.array(1.0 / (self.eta + 1.0), dtype=dtype)
+        beta = jnp.where(u <= 0.5, (2.0 * u) ** exponent, (1.0 / (2.0 * (1.0 - u))) ** exponent)
+
+        c1 = 0.5 * ((1.0 + beta) * p1_values + (1.0 - beta) * p2_values)
+        c2 = 0.5 * ((1.0 - beta) * p1_values + (1.0 + beta) * p2_values)
+
+        child_vals = jnp.where(swap_mask, c2, c1)
+        min_b, max_b = config.bounds
+        child_vals = jnp.clip(child_vals, min_b, max_b)
+        return jnp.where(should_cross, child_vals, p1_values)
+
 
 @struct.dataclass
 class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
@@ -583,6 +692,19 @@ class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
         min_val, max_val = config.bounds
         trial_values = jnp.clip(trial_values, min_val, max_val)
         return replace(p1, values=trial_values)
+
+    def _apply_mask(
+        self,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        noise_data: chex.Array,
+        config: RealGenomeConfig,
+    ) -> chex.Array:
+        """Tier 1 (array-native) — pure binomial arithmetic."""
+        cross_mask = noise_data
+        trial_values = jnp.where(cross_mask, p1_values, p2_values)
+        min_val, max_val = config.bounds
+        return jnp.clip(trial_values, min_val, max_val)
 
 
 @struct.dataclass
@@ -636,6 +758,19 @@ class BinomialCrossover_injection(BaseCrossover_injection[RealGenome, RealGenome
         trial_values = jnp.clip(trial_values, min_val, max_val)
         return replace(p1, values=trial_values)
 
+    def _apply_mask(
+        self,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        noise_data: chex.Array,
+        config: RealGenomeConfig,
+    ) -> chex.Array:
+        """Tier 1 (array-native) — pure binomial arithmetic."""
+        cross_mask = noise_data
+        trial_values = jnp.where(cross_mask, p2_values, p1_values)
+        min_val, max_val = config.bounds
+        return jnp.clip(trial_values, min_val, max_val)
+
 
 __all__ = [
     "UniformCrossover",
@@ -649,15 +784,16 @@ __all__ = [
     "BatchedUniformCrossover",
 ]
 
+
 @struct.dataclass
 class BatchedUniformCrossover(UniformCrossover):
     """Batched Uniform Crossover (Monolithic Execution).
-    
+
     This operator bypasses vmap and generates a monolithic crossover mask
     for the entire population, matching EvoSAX's raw execution speed.
     It expects `p1_pop.genes.values` and `p2_pop.genes.values` to be batched arrays.
     """
-    
+
     @property
     def num_keys_per_atomic_operation(self) -> int:
         return 1
@@ -666,15 +802,19 @@ class BatchedUniformCrossover(UniformCrossover):
         return self.num_keys_per_atomic_operation
 
     def __call__(
-        self, all_keys: chex.Array, p1_pop: Any, p2_pop: Any, config: RealGenomeConfig, generation: int = 0
+        self,
+        all_keys: chex.Array,
+        p1_pop: Any,
+        p2_pop: Any,
+        config: RealGenomeConfig,
+        generation: int = 0,
     ) -> Any:
         k_mask = all_keys[0] if len(all_keys.shape) == 2 else all_keys[0][0]
-        
+
         g1 = p1_pop.genes.values
         g2 = p2_pop.genes.values
-        
+
         mask = jax.random.bernoulli(k_mask, self.crossover_rate, shape=g1.shape)
         new_values = jnp.where(mask, g1, g2)
-        
-        return p1_pop.spawn_offspring(RealGenome(values=new_values))
 
+        return p1_pop.spawn_offspring(RealGenome(values=new_values))

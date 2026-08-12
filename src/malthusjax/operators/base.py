@@ -114,6 +114,24 @@ class BaseMutation(Generic[G, C]):
         """
         raise NotImplementedError
 
+    def _apply_noise(self, values: chex.Array, noise_data: Any, config: C) -> chex.Array:
+        """Tier 1 (array-native) — Pure mutation arithmetic on raw arrays.
+
+        Array-native variant of ``_mutate_one`` that operates directly on flat
+        ``jax.Array`` values, returning a flat ``jax.Array`` without constructing
+        a PyTree wrapper.  Used by ``VectorizedEngine`` to avoid tuple overhead
+        in the ``lax.scan`` carry.
+
+        Concrete subclasses should override this with their specific arithmetic
+        (typically ``values + noise_data`` with optional clipping).  The default
+        raises ``NotImplementedError`` to signal that the operator has not yet
+        opted into array-native support.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement _apply_noise. "
+            "Override this method for VectorizedEngine support."
+        )
+
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
         """Tier 2 — Noise generation: keys → noise PyTree."""
@@ -287,6 +305,25 @@ class BaseCrossover(Generic[G, C]):
         via `num_offspring`.
         """
         raise NotImplementedError
+
+    def _apply_mask(
+        self, p1_values: chex.Array, p2_values: chex.Array, noise_data: Any, config: C
+    ) -> chex.Array:
+        """Tier 1 (array-native) — Pure recombination arithmetic on raw arrays.
+
+        Array-native variant of ``_recombine_one`` that operates directly on flat
+        ``jax.Array`` parent values, returning a flat ``jax.Array`` without
+        constructing a PyTree wrapper.  Used by ``VectorizedEngine`` to avoid
+        tuple overhead in the ``lax.scan`` carry.
+
+        Concrete subclasses should override this with their specific arithmetic
+        (e.g., ``jnp.where(mask, p2_values, p1_values)``).  The default raises
+        ``NotImplementedError``.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement _apply_mask. "
+            "Override this method for VectorizedEngine support."
+        )
 
     def _cross_fused(self, keys: chex.Array, p1: G, p2: G, config: C, generation: int = 0) -> G:
         """Fused RNG + recombination for single (pair, offspring) combination.
