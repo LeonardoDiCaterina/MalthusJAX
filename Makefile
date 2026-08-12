@@ -6,7 +6,8 @@
 	h1-parity-smoke h1-parity-smoke-nohup h1-parity-full h1-parity-full-nohup \
 	h1-parity-qdax-smoke h1-parity-qdax-smoke-nohup h1-parity-qdax-full h1-parity-qdax-full-nohup \
 	h2-ablation-smoke h2-ablation-smoke-nohup h2-ablation-full h2-ablation-full-nohup \
-	h3-representation-smoke h3-representation-smoke-nohup h3-representation-full h3-representation-full-nohup
+	h3-representation-smoke h3-representation-smoke-nohup h3-representation-full h3-representation-full-nohup \
+	perf-bench perf-bench-smoke perf-hlo perf-perfetto perf-tb perf-tb-bg perf-all perf-all-nohup
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -86,6 +87,31 @@ help:
 	@echo "  make suite-parity CONFIG_DIR=configs/thesis/ OUT_DIR=results/thesis_suite"
 	@echo "  make docker-all-full"
 	@echo ""
+	@echo "--- Performance Harness (MJX vs EvoSAX) ---"
+	@echo "  make perf-bench         Run quality+timing benchmark (TOML pipelines vs EvoSAX)"
+	@echo "  make perf-bench-smoke   Smoke version: 3 seeds, tiny problem, fast"
+	@echo "  make perf-hlo           Extract & compare XLA HLO graphs for all pipelines"
+	@echo "  make perf-perfetto      Generate Perfetto traces (one per pipeline, isolated)"
+	@echo "  make perf-tb            Launch TensorBoard to view Perfetto traces (blocking)"
+	@echo "  make perf-tb-bg         Same, but launch TensorBoard in background"
+	@echo "  make perf-all           Run bench → hlo → perfetto sequentially"
+	@echo "  make perf-all-nohup     Same, but headless (nohup)"
+	@echo ""
+	@echo "  Key variables (override on command line):"
+	@echo "    PERF_TOML  (default: $(PERF_TOML))"
+	@echo "    PERF_OUT   (default: <suite.output_dir from TOML>)"
+	@echo "    PERF_DIMS  (default: $(PERF_DIMS))"
+	@echo "    PERF_POP   (default: $(PERF_POP))"
+	@echo "    PERF_GENS  (default: $(PERF_GENS))"
+	@echo "    PORT       (default: $(PORT))"
+	@echo ""
+	@echo "  Workflow:"
+	@echo "    1. Add a new engine variant to configs/perf/h1_speed_vs_evosax.toml"
+	@echo "    2. make perf-hlo      → check XLA graph complexity vs EvoSAX baseline"
+	@echo "    3. make perf-bench    → verify solution quality parity"
+	@echo "    4. make perf-perfetto → profile kernel execution"
+	@echo "    5. make perf-tb PORT=<port> → inspect in TensorBoard"
+	@echo ""
 	@echo "--- Documentation Workflow ---"
 	@echo "  make docs                    Build Sphinx HTML docs (picks up all changes)"
 	@echo "  make docs-clean              Remove docs/build/ (clean rebuild)"
@@ -103,6 +129,20 @@ help:
 	@echo "Built site output in:         docs/build/html/"
 
 PYTHON ?= python
+
+# ==============================================================================
+# PERFORMANCE HARNESS — MJX vs EvoSAX speed optimization loop
+# All variables can be overridden on the command line:
+#   make perf-bench PERF_TOML=configs/perf/h1_speed_vs_evosax.toml PORT=6007
+# ==============================================================================
+PERF_TOML  ?= configs/perf/h1_speed_vs_evosax.toml
+PERF_SMOKE ?= configs/perf/smoke_speed_vs_evosax.toml
+PERF_OUT   ?= results/perf/$(shell basename $(PERF_TOML) .toml)
+PERF_DIMS  ?= 9
+PERF_POP   ?= 195
+PERF_GENS  ?= 387
+PORT       ?= 6006
+
 TOY_SEED_START ?= 0
 TOY_SEED_END ?= 99
 TOY_POP_SIZE ?= 12
@@ -659,6 +699,74 @@ run-hard-all:
 
 run-hard-all-nohup:
 	$(call run_nohup,run-hard-all,make run-hard-all)
+
+# ==============================================================================
+# PERFORMANCE HARNESS
+# ==============================================================================
+
+# Run quality + timing benchmark for all perf TOML pipelines.
+# Uses benchmark_runner.py (runs in-process, no subprocess isolation needed;
+# run_once() already separates compile-warmup from timed execution).
+perf-bench:
+	@echo "--- PERF BENCH: $(PERF_TOML) ---"
+	@echo "  Output → $(PERF_OUT)/bench"
+	$(PYTHON) scripts/benchmark_runner.py --toml $(PERF_TOML)
+	@echo "\n>>> Done. Results written to: $(PERF_OUT)/bench"
+
+perf-bench-smoke:
+	@echo "--- PERF BENCH (smoke): $(PERF_SMOKE) ---"
+	$(PYTHON) scripts/benchmark_runner.py --toml $(PERF_SMOKE) --smoke
+	@echo "\n>>> Done. Smoke results written to: results/perf/smoke_speed_vs_evosax"
+
+# Extract and compare optimised XLA HLO for all pipelines.
+# EvoSAX: JITs strategy.ask()+tell() natively (no adapter overhead).
+# MJX:    Calls engine.get_hlo_text() on the compiled scan kernel.
+perf-hlo:
+	@echo "--- PERF HLO: dims=$(PERF_DIMS)  pop=$(PERF_POP)  gens=$(PERF_GENS) ---"
+	@echo "  TOML  → $(PERF_TOML)"
+	@echo "  Output → $(PERF_OUT)/hlo"
+	$(PYTHON) scripts/extract_hlo.py \
+		--toml $(PERF_TOML) \
+		--dims $(PERF_DIMS) \
+		--pop  $(PERF_POP) \
+		--gens $(PERF_GENS) \
+		--out-dir $(PERF_OUT)/hlo
+	@echo "\n>>> HLO summary written to: $(PERF_OUT)/hlo/hlo_summary.md"
+
+# Generate Perfetto traces for all pipelines (one subprocess per pipeline).
+perf-perfetto:
+	@echo "--- PERF PERFETTO: $(PERF_TOML) ---"
+	@echo "  Output → $(PERF_OUT)/perfetto  (port hint: $(PORT))"
+	$(PYTHON) scripts/trace_pipelines.py \
+		--toml $(PERF_TOML) \
+		--out-dir $(PERF_OUT)/perfetto \
+		--port $(PORT)
+	@echo "\n>>> Traces written to: $(PERF_OUT)/perfetto"
+	@echo ">>> Launch TensorBoard: make perf-tb PORT=$(PORT)"
+
+# Launch TensorBoard pointing at the Perfetto traces (blocking).
+perf-tb:
+	@echo "--- TensorBoard → $(PERF_OUT)/perfetto  at port $(PORT) ---"
+	@echo "  URL: http://localhost:$(PORT)"
+	tensorboard --logdir $(PERF_OUT)/perfetto --port $(PORT)
+
+# Same but runs in the background (prints PID).
+perf-tb-bg:
+	@echo "--- TensorBoard (background) → $(PERF_OUT)/perfetto  at port $(PORT) ---"
+	nohup tensorboard --logdir $(PERF_OUT)/perfetto --port $(PORT) \
+		> logs/tensorboard_$(PORT).log 2>&1 & \
+		echo "TensorBoard PID=$$!  URL=http://localhost:$(PORT)"
+
+# Run the full harness chain sequentially (no TensorBoard).
+perf-all:
+	@echo "\n=== PERF HARNESS: $(PERF_TOML) ==="
+	$(MAKE) perf-bench  PERF_TOML=$(PERF_TOML) PORT=$(PORT)
+	$(MAKE) perf-hlo    PERF_TOML=$(PERF_TOML) PERF_DIMS=$(PERF_DIMS) PERF_POP=$(PERF_POP) PERF_GENS=$(PERF_GENS)
+	$(MAKE) perf-perfetto PERF_TOML=$(PERF_TOML) PORT=$(PORT)
+	@echo "\n=== DONE. Launch TensorBoard: make perf-tb PORT=$(PORT) ==="
+
+perf-all-nohup:
+	$(call run_nohup,perf-all,make perf-all PERF_TOML=$(PERF_TOML) PORT=$(PORT))
 
 # ==============================================================================
 # SHOW & TELL EXECUTION PIPELINE

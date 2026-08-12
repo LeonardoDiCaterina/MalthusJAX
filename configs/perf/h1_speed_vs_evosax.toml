@@ -1,0 +1,71 @@
+# configs/perf/h1_speed_vs_evosax.toml
+#
+# Performance optimization harness: MalthusJAX engine variants vs EvoSAX SimpleGA.
+#
+# Fixed parameters (no LHS sampling) so results are directly comparable
+# across iterations. Add new [pipelines.*] sections to test candidate engines.
+#
+# Usage:
+#   make perf-bench          → quality + timing benchmark
+#   make perf-hlo            → HLO extraction + comparison table
+#   make perf-perfetto        → Perfetto traces (view via perf-tb)
+#   make perf-tb PORT=6006   → launch TensorBoard
+
+[suite]
+name             = "h1_speed_vs_evosax"
+mode             = "cartesian"
+output_dir       = "results/perf/h1_speed_vs_evosax"
+num_seeds        = 10
+aggregation_level = "full"
+
+[grid]
+functions = ["sphere"]
+dims      = [9]
+pops      = [195]
+gens      = [387]
+
+[analysis]
+reference_pipeline = "evosax_baseline"
+metrics            = ["best_fitness", "execution_time_ms"]
+
+# ---------------------------------------------------------------------------
+# Baseline: native EvoSAX SimpleGA (the performance target)
+# ---------------------------------------------------------------------------
+[pipelines.evosax_baseline]
+backend          = "evosax"
+evosax_strategy  = "SimpleGA"
+
+[pipelines.evosax_baseline.strategy_params]
+crossover_rate = 0.3
+elite_ratio    = 0.16666666
+
+# ---------------------------------------------------------------------------
+# MJX: GeneticEngine with EvoSAX-equivalent operators (correctness baseline)
+# ---------------------------------------------------------------------------
+[pipelines.mjx_genetic_engine]
+backend   = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation  = "evosax_gaussian:mutation_strength=1.0"
+elitism   = 0
+
+# ---------------------------------------------------------------------------
+# MJX: SimpleGAEngine — hardcoded EvoSAX logic, reference for max MJX speed
+# ---------------------------------------------------------------------------
+[pipelines.mjx_simple_ga]
+backend     = "malthusjax"
+engine_type = "simple_ga"
+selection   = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover   = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation    = "evosax_gaussian:mutation_strength=1.0"
+elitism     = 0
+
+# ---------------------------------------------------------------------------
+# Candidate slot: add new engine variants here and iterate
+# ---------------------------------------------------------------------------
+# [pipelines.mjx_candidate_v1]
+# backend   = "malthusjax"
+# engine_type = "..."
+# selection = "..."
+# crossover = "..."
+# mutation  = "..."
