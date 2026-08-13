@@ -700,7 +700,7 @@ Default: <code class="docutils literal notranslate"><span class="pre">True</span
 Default: 123.
 (Only used if <code class="docutils literal notranslate"><span class="pre">shared_initial_population=True</span></code>.)</p>
 </dd>
-<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>shared_kwargs<span class="classifier">Any</span></dt><dd><p>Default configuration applied to all pipelines (merged before
+<dt>shared_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Default configuration applied to all pipelines (merged before
 pipeline-specific overrides). Use for common settings like
 <code class="docutils literal notranslate"><span class="pre">fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">pop_size</span></code>, <code class="docutils literal notranslate"><span class="pre">generations</span></code>, <code class="docutils literal notranslate"><span class="pre">bounds</span></code>.</p>
 <p>Example:</p>
@@ -715,8 +715,8 @@ pipeline-specific overrides). Use for common settings like
 </dd>
 </dl>
 </section>
-<section id="id5">
-<h3>Returns<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<section id="id3">
+<h3>Returns<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ComparisonResult</dt><dd><p>Contains:</p>
 <ul class="simple">
@@ -733,8 +733,8 @@ Raw per-pipeline generation histories for custom plotting.</p></li>
 </dd>
 </dl>
 </section>
-<section id="id6">
-<h3>Raises<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<section id="id4">
+<h3>Raises<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ValueError</dt><dd><p>If pipelines dict is empty or contains invalid operator specs.</p>
 </dd>
@@ -750,8 +750,8 @@ have their fitness values negated before display so that all pipelines
 use a consistent “lower is better” convention. This behavior is
 transparent to the user (controlled by ComparisonResult.negate_map).</p>
 </section>
-<section id="id7">
-<h3>Examples<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<section id="id5">
+<h3>Examples<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
 <p>Three-way comparison with shared fitness:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
@@ -816,8 +816,8 @@ pipeline-specific overrides, and seeds in a human-readable format.
 The method parses the file, runs all pipelines with fair comparison
 settings, and returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">ComparisonResult</span></code> with visualization
 and summary utilities.</p>
-<section id="id8">
-<h3>Parameters<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<section id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>path<span class="classifier">str or pathlib.Path</span></dt><dd><p>Path to a TOML experiment configuration file. The file must contain
 at least <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> section with default settings and
@@ -840,8 +840,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id9">
-<h3>Returns<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<section id="id7">
+<h3>Returns<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>ComparisonResult</dt><dd><p>Multi-pipeline result object. Contains:
 - <code class="docutils literal notranslate"><span class="pre">.summary_table()</span></code> : aggregated metrics per pipeline
@@ -851,8 +851,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id10">
-<h3>Raises<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<section id="id8">
+<h3>Raises<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>FileNotFoundError</dt><dd><p>If the specified TOML file does not exist.</p>
 </dd>
@@ -862,8 +862,8 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 </dd>
 </dl>
 </section>
-<section id="id11">
-<h3>Notes<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<section id="id9">
+<h3>Notes<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
 <p><strong>TOML File Structure</strong>:</p>
 <p>The TOML file must follow this schema:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">experiment</span><span class="p">]</span>
@@ -902,8 +902,8 @@ format: <code class="docutils literal notranslate"><span class="pre">&quot;opera
 <p>Each pipeline inherits all keys from <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> and can
 override them. Pipeline-specific values take precedence.</p>
 </section>
-<section id="id12">
-<h3>Examples<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<section id="id10">
+<h3>Examples<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
 <p>Simple TOML-based experiment:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># experiment.toml content:</span>
 <span class="c1"># [experiment.shared]</span>
@@ -960,15 +960,15 @@ override them. Pipeline-specific values take precedence.</p>
 with empty registry and minimal default config. Equivalent to calling
 <code class="docutils literal notranslate"><span class="pre">Composer(config={&quot;version&quot;:</span> <span class="pre">&quot;0.1&quot;})</span></code>. Most users should call this
 before invoking <a class="reference internal" href="#malthusjax.composer.Composer.quick_run" title="malthusjax.composer.Composer.quick_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">quick_run()</span></code></a>, <a class="reference internal" href="#malthusjax.composer.Composer.compare" title="malthusjax.composer.Composer.compare"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compare()</span></code></a>, or <a class="reference internal" href="#malthusjax.composer.Composer.from_toml" title="malthusjax.composer.Composer.from_toml"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_toml()</span></code></a>.</p>
-<section id="id13">
-<h3>Returns<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
+<section id="id11">
+<h3>Returns<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>Composer</dt><dd><p>A ready-to-use <a class="reference internal" href="#malthusjax.composer.Composer" title="malthusjax.composer.Composer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Composer</span></code></a> instance with defaults applied.</p>
 </dd>
 </dl>
 </section>
-<section id="id14">
-<h3>Examples<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h3>
+<section id="id12">
+<h3>Examples<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
 <p>Standard initialization:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>

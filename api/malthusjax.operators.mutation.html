@@ -496,8 +496,7 @@ Valid range: (0, ∞), but typically [0.01, 1.0]</p>
 <li><p>mutation_strength=1.0: Large noise (aggressive exploration)</p></li>
 </ul>
 <p>Default: 0.1 (works well when genome is roughly normalized to [-1, 1]).</p>
-<p><strong>Interaction with genome bounds</strong>: If your genome bounds are [low, high],
-set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.</p>
+<p><strong>Interaction with genome bounds</strong>: If your genome bounds are [low, high], set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.</p>
 </dd>
 <dt>clip<span class="classifier">bool, optional</span></dt><dd><p>If True, clip mutated values to genome bounds [min_b, max_b].
 If False, allow violations (clipping happens at evaluation boundary).
