@@ -1,12 +1,13 @@
 """Benchmark: Pure TensorNEAT (Adapter) vs MalthusJAX Native (TensorNeatEmitter)."""
 
 import time
+from typing import Any
 
 import jax
 import jax.numpy as jnp
 
 try:
-    import tensorneat
+    import tensorneat  # noqa: F401
 
     TENSORNEAT_AVAILABLE = True
 except ImportError:

@@ -13,7 +13,7 @@ def test_identical_fitnesses():
     # In minimization, A dominates B if A <= B on all objs AND A < B on at least one.
     # Therefore, identical vectors DO NOT dominate each other.
     dom_matrix = compute_dominance_matrix(fitness, maximize=False)
-    assert jnp.any(dom_matrix) == False
+    assert not jnp.any(dom_matrix)
 
     ranks = compute_pareto_ranks(dom_matrix)
     # They should all be rank 0
@@ -32,12 +32,12 @@ def test_negative_fitnesses():
 
     dom_matrix = compute_dominance_matrix(fitness, maximize=True)
     # C dominates A and B
-    assert dom_matrix[2, 0] == True
-    assert dom_matrix[2, 1] == True
+    assert dom_matrix[2, 0]
+    assert dom_matrix[2, 1]
 
     # A and B do not dominate each other
-    assert dom_matrix[0, 1] == False
-    assert dom_matrix[1, 0] == False
+    assert not dom_matrix[0, 1]
+    assert not dom_matrix[1, 0]
 
     ranks = compute_pareto_ranks(dom_matrix)
     # C is front 0, A and B are front 1

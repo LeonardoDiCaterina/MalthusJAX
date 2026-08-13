@@ -28,7 +28,7 @@ def test_mopopulation_select():
     # If we compare individual 0 (rank 0, cd 0.5) with individual 1 (rank 0, cd 1.5)
     # Individual 1 should win due to higher crowding distance in the same rank.
     # We force the PRNG key to pick 0 and 1
-    key = jax.random.PRNGKey(42)
+    jax.random.PRNGKey(42)
     # MOPopulation select uses randint. To strictly test this, we can override the idx arrays
     # But since it's an internal test, we can just trace the logic:
 

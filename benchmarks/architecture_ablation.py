@@ -171,7 +171,7 @@ def run_ablation(pop_size: int, gens: int, runs: int):
 
     # 4. GeneticEngine (No Tracking/History)
     e_gen_none = setup_engine("ga", pop_size, gens, TrackMetrics.NONE)
-    t_gen_none = bench_engine(
+    bench_engine(
         "4. GeneticEngine (No Tracking/History)", e_gen_none, key, runs, gens, False
     )
 

@@ -29,16 +29,16 @@ def test_compute_dominance_matrix(sample_fitness_min):
     D = compute_dominance_matrix(sample_fitness_min)
 
     # A(0) should dominate E(4) and F(5)
-    assert D[0, 4] == True
-    assert D[0, 5] == True
-    assert D[0, 1] == False  # A does not dominate B
+    assert D[0, 4]
+    assert D[0, 5]
+    assert not D[0, 1]  # A does not dominate B
 
     # E(4) should not dominate anyone but F(5)
-    assert D[4, 0] == False
-    assert D[4, 5] == True
+    assert not D[4, 0]
+    assert D[4, 5]
 
     # F(5) dominates no one
-    assert jnp.any(D[5, :]) == False
+    assert not jnp.any(D[5, :])
 
 
 def test_compute_pareto_ranks(sample_fitness_min):

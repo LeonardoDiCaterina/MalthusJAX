@@ -70,7 +70,7 @@ def extract_evosax_hlo(
     kernel — the gold-standard target for MJX performance parity.
     """
     try:
-        from evosax.algorithms.population_based import simple_ga as sga_mod
+        from evosax.algorithms.population_based import simple_ga as sga_mod  # noqa: F401
         from evosax.algorithms.population_based.simple_ga import SimpleGA
     except ImportError as e:
         raise ImportError("evosax is not installed. Run: pip install evosax") from e

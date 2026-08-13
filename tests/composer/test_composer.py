@@ -112,7 +112,7 @@ class TestComposerQuickRun:
     def test_quick_run_qdax_strategy_obj(self, temp_output):
         composer = Composer.create_default()
         # Mock qdax strategy
-        strategy = QDAXStrategy(
+        QDAXStrategy(
             strategy_cls="MAPElites",
             emitter=None,
             metrics_function=None,
@@ -292,10 +292,10 @@ class TestComposerFromToml:
         pop_size = 4
         generations = 2
         seeds = [1, 2]
-        
+
         [pipelines.alg1]
         crossover = "blend:alpha=0.5"
-        
+
         [pipelines.alg2]
         crossover = "blend:alpha=0.1"
         """
@@ -316,7 +316,7 @@ class TestComposerFromToml:
         pop_size = 4
         generations = 2
         seeds = [1]
-        
+
         [pipelines.alg1]
         [pipelines.alg2]
         """
@@ -335,7 +335,7 @@ class TestComposerFromToml:
 class TestComposerPrivateMethods:
     def test_build_data_registry(self):
         composer = Composer.create_default()
-        res = composer._build_data_registry({"my_data": {"type": "mock_data"}})
+        composer._build_data_registry({"my_data": {"type": "mock_data"}})
         # Given we don't have mock_data in registry, we just ensure it doesn't crash if valid or throws if invalid
         # To avoid dependencies on specific data loaders, we just test empty
         assert composer._build_data_registry({}) == {}

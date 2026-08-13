@@ -70,8 +70,8 @@ def test_engine_base_coverage():
 
     # Interfaces
     engine_with_interfaces = DummyEngineWithInterfaces(engine_params=params)
-    res_ask = engine_with_interfaces.ask_with_key(None, None)
-    res_tell = engine_with_interfaces.tell_with_key(None, None, None)
+    engine_with_interfaces.ask_with_key(None, None)
+    engine_with_interfaces.tell_with_key(None, None, None)
 
     # Run loops
     state = AbstractEvolutionState(

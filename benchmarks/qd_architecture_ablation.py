@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 # Check if QDAX is installed
 try:
-    import qdax
+    import qdax  # noqa: F401
     from qdax.core.containers.mapelites_repertoire import compute_euclidean_centroids
     from qdax.core.emitters.mutation_operators import isoline_variation
     from qdax.core.emitters.standard_emitters import MixingEmitter

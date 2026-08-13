@@ -18,7 +18,7 @@ import jax
 import jax.numpy as jnp
 
 try:
-    import tensorneat
+    import tensorneat  # noqa: F401
     from tensorneat.algorithm import NEAT
     from tensorneat.common import State
     from tensorneat.genome import DefaultGenome
