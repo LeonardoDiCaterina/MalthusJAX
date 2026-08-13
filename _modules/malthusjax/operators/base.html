@@ -475,6 +475,32 @@
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_noise</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mutate_one</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
 
+<div class="viewcode-block" id="BaseMutation.apply_fastpath">
+<a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseMutation.apply_fastpath">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_fastpath</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">flat_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fast path protocol for NativeFastEngine.</span>
+
+<span class="sd">        Takes flat arrays, generates noise, and maps _apply_noise across the batch.</span>
+<span class="sd">        Bypasses PyTree overhead completely.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;apply_fastpath only supports num_offspring=1.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
+            <span class="n">keys_flat</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span><span class="p">,</span> <span class="n">n_keys</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">keys_flat</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span><span class="p">,</span> <span class="n">n_keys</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_flat</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_noise</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_noise</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_mutate_flat</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span><span class="n">keys_flat</span><span class="p">,</span> <span class="n">flat_values</span><span class="p">)</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
@@ -518,7 +544,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mutate_fused</span><span class="p">(</span><span class="n">keys_block</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">_process_population</span><span class="p">(</span><span class="n">k_block</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">G</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_mutate_single</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))(</span><span class="n">k_block</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>  <span class="c1"># type: ignore[no-any-return]</span>
+            <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_mutate_single</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))(</span><span class="n">k_block</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
 
         <span class="n">vmap_process</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_process_population</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
         <span class="n">nested_offspring</span> <span class="o">=</span> <span class="n">vmap_process</span><span class="p">(</span><span class="n">keys_reshaped</span><span class="p">,</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
@@ -675,6 +701,37 @@
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_noise</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recombine_one</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
 
+<div class="viewcode-block" id="BaseCrossover.apply_fastpath">
+<a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseCrossover.apply_fastpath">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_fastpath</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">p1_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">p2_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span>
+        <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fast path protocol for NativeFastEngine.</span>
+
+<span class="sd">        Takes flat arrays, generates noise, and maps _apply_mask across the batch.</span>
+<span class="sd">        Bypasses PyTree overhead completely.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;apply_fastpath only supports num_offspring=1.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
+            <span class="n">keys_flat</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span><span class="p">,</span> <span class="n">n_keys</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">keys_flat</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span><span class="p">,</span> <span class="n">n_keys</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_cross_flat</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">val1</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">val2</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_noise</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_mask</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_cross_flat</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span><span class="n">keys_flat</span><span class="p">,</span> <span class="n">p1_values</span><span class="p">,</span> <span class="n">p2_values</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="BaseCrossover.cross_single_pair">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseCrossover.cross_single_pair">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cross_single_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">p1</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
@@ -696,7 +753,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cross_fused</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
 
         <span class="n">offspring</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_cross_one</span><span class="p">)(</span><span class="n">keys_reshaped</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">offspring</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">offspring</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>

@@ -542,7 +542,8 @@
         <span class="n">time_it</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="nb">compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">AbstractGenerationOutput</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+        <span class="n">return_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the full evolution loop starting from *initial_state*.</span>
 
 <span class="sd">        This method obtains the JIT‑compiled scan kernel and executes it for</span>
@@ -558,7 +559,10 @@
             <span class="p">)</span>
         <span class="c1"># Retrieve the compiled loop function</span>
         <span class="n">evolve_fn</span> <span class="o">=</span> <span class="n">_get_evolution_kernel</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">,</span> <span class="n">compile_jit</span><span class="o">=</span><span class="nb">compile</span><span class="p">,</span> <span class="n">unroll_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">unroll_num</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">,</span>
+            <span class="n">compile_jit</span><span class="o">=</span><span class="nb">compile</span><span class="p">,</span>
+            <span class="n">unroll_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">unroll_num</span><span class="p">,</span>
+            <span class="n">return_history</span><span class="o">=</span><span class="n">return_history</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -671,8 +675,15 @@
 
 
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+
+
+<span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_evolution_kernel</span><span class="p">(</span>
-    <span class="n">params</span><span class="p">:</span> <span class="n">AbstractEngineParams</span><span class="p">,</span> <span class="n">compile_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">unroll_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">params</span><span class="p">:</span> <span class="n">AbstractEngineParams</span><span class="p">,</span>
+    <span class="n">compile_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">unroll_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">return_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory: Builds evolution kernel (jax.lax.scan loop).</span>
@@ -703,8 +714,10 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">_scan_body_closure</span><span class="p">(</span>
             <span class="n">state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">__</span><span class="p">:</span> <span class="n">Any</span>
-        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">AbstractGenerationOutput</span><span class="p">]:</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
             <span class="n">new_state</span><span class="p">,</span> <span class="n">history_item</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">return_history</span><span class="p">:</span>
+                <span class="n">history_item</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="p">())</span>
             <span class="k">return</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">history_item</span>
 
         <span class="n">init_carry</span> <span class="o">=</span> <span class="n">initial_state</span>

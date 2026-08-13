@@ -442,6 +442,27 @@ False = legacy uint32[2].</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.BaseMutation.apply_fastpath">
+<span class="sig-name descname"><span class="pre">apply_fastpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseMutation.apply_fastpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.BaseMutation.apply_fastpath" title="Link to this definition">¶</a></dt>
+<dd><p>Fast path protocol for NativeFastEngine.</p>
+<p>Takes flat arrays, generates noise, and maps _apply_noise across the batch.
+Bypasses PyTree overhead completely.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_keys</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>flat_values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<em>C</em>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.operators.BaseMutation.replace">
 <span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.BaseMutation.replace" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a new object replacing the specified fields with new values.</p>
@@ -567,6 +588,28 @@ False = legacy uint32[2].</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.BaseCrossover.apply_fastpath">
+<span class="sig-name descname"><span class="pre">apply_fastpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover.apply_fastpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.BaseCrossover.apply_fastpath" title="Link to this definition">¶</a></dt>
+<dd><p>Fast path protocol for NativeFastEngine.</p>
+<p>Takes flat arrays, generates noise, and maps _apply_mask across the batch.
+Bypasses PyTree overhead completely.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_keys</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>p1_values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>p2_values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<em>C</em>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1407,8 +1450,7 @@ Valid range: (0, ∞), but typically [0.01, 1.0]</p>
 <li><p>mutation_strength=1.0: Large noise (aggressive exploration)</p></li>
 </ul>
 <p>Default: 0.1 (works well when genome is roughly normalized to [-1, 1]).</p>
-<p><strong>Interaction with genome bounds</strong>: If your genome bounds are [low, high],
-set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.</p>
+<p><strong>Interaction with genome bounds</strong>: If your genome bounds are [low, high], set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.</p>
 </dd>
 <dt>clip<span class="classifier">bool, optional</span></dt><dd><p>If True, clip mutated values to genome bounds [min_b, max_b].
 If False, allow violations (clipping happens at evaluation boundary).
@@ -1425,19 +1467,16 @@ Default: 0.0 (decay to zero).</p>
 <section id="id4">
 <h2>Notes<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
 <p><strong>INTERACTION BETWEEN mutation_rate AND mutation_strength</strong>:
-These two parameters control different aspects of mutation:
-- <cite>mutation_rate</cite>: <strong>Which</strong> genes are modified (controls sparsity)
-- <cite>mutation_strength</cite>: <strong>How much</strong> each modified gene changes (controls perturbation scale)</p>
-<p><strong>Example scenarios</strong>:
-1. <strong>Exploration phase</strong>: Higher mutation_rate (0.2) + higher mutation_strength (0.2)</p>
-<blockquote>
-<div><p>→ Many genes perturbed by large amounts</p>
-</div></blockquote>
-<ol class="arabic simple" start="2">
-<li><p><strong>Exploitation/fine-tuning</strong>: Lower mutation_rate (0.05) + lower mutation_strength (0.05)
-→ Few genes, small noise</p></li>
-<li><p><strong>Balanced default</strong>: mutation_rate=0.1, mutation_strength=0.1
-→ ~10% of genes affected, each by ~0.1 std units</p></li>
+These two parameters control different aspects of mutation:</p>
+<ul class="simple">
+<li><p><cite>mutation_rate</cite>: <strong>Which</strong> genes are modified (controls sparsity)</p></li>
+<li><p><cite>mutation_strength</cite>: <strong>How much</strong> each modified gene changes (controls perturbation scale)</p></li>
+</ul>
+<p><strong>Example scenarios</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Exploration phase</strong>: Higher mutation_rate (0.2) + higher mutation_strength (0.2) → Many genes perturbed by large amounts</p></li>
+<li><p><strong>Exploitation/fine-tuning</strong>: Lower mutation_rate (0.05) + lower mutation_strength (0.05) → Few genes, small noise</p></li>
+<li><p><strong>Balanced default</strong>: mutation_rate=0.1, mutation_strength=0.1 → ~10% of genes affected, each by ~0.1 std units</p></li>
 </ol>
 <p><strong>When to Use</strong>: Gaussian mutation is the recommended operator for continuous
 optimization. It’s simple, effective, and works well across nearly all problem types.
@@ -2021,6 +2060,7 @@ a small elite pool (5-10% of population) mixed with tournament selection.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.crossover.html#malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper.injection_mode"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.injection_mode</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.crossover.html#malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.num_keys_per_atomic_operation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.crossover.html#malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper.num_keys"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.num_keys()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.crossover.html#malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.apply_fastpath()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.crossover.html#malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper.replace"><code class="docutils literal notranslate"><span class="pre">EvosaxUniformCrossoverWrapper.replace()</span></code></a></li>
 </ul>
 </li>
@@ -2143,6 +2183,7 @@ a small elite pool (5-10% of population) mixed with tournament selection.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.injection_mode"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.injection_mode</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.num_keys_per_atomic_operation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.num_keys"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.num_keys()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.apply_fastpath()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.replace"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.replace()</span></code></a></li>
 </ul>
 </li>
@@ -2248,6 +2289,7 @@ a small elite pool (5-10% of population) mixed with tournament selection.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_input_length()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_typed_keys()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_max_generations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">BaseMutation.apply_fastpath()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation.replace"><code class="docutils literal notranslate"><span class="pre">BaseMutation.replace()</span></code></a></li>
 </ul>
 </li>
@@ -2261,6 +2303,7 @@ a small elite pool (5-10% of population) mixed with tournament selection.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_input_length()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_typed_keys()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_max_generations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.apply_fastpath()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover.cross_single_pair"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.cross_single_pair()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover.replace"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.replace()</span></code></a></li>
 </ul>
@@ -2379,6 +2422,7 @@ a small elite pool (5-10% of population) mixed with tournament selection.</p>
 <li><a class="reference internal" href="#malthusjax.operators.BaseMutation.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_input_length()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.BaseMutation.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_typed_keys()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.BaseMutation.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_max_generations()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.BaseMutation.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">BaseMutation.apply_fastpath()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.BaseMutation.replace"><code class="docutils literal notranslate"><span class="pre">BaseMutation.replace()</span></code></a></li>
 </ul>
 </li>
@@ -2392,6 +2436,7 @@ a small elite pool (5-10% of population) mixed with tournament selection.</p>
 <li><a class="reference internal" href="#malthusjax.operators.BaseCrossover.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_input_length()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.BaseCrossover.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_typed_keys()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.BaseCrossover.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_max_generations()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.BaseCrossover.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.apply_fastpath()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.BaseCrossover.cross_single_pair"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.cross_single_pair()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.BaseCrossover.replace"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.replace()</span></code></a></li>
 </ul>

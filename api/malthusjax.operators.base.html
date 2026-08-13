@@ -440,6 +440,27 @@ False = legacy uint32[2].</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.apply_fastpath">
+<span class="sig-name descname"><span class="pre">apply_fastpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseMutation.apply_fastpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.apply_fastpath" title="Link to this definition">¶</a></dt>
+<dd><p>Fast path protocol for NativeFastEngine.</p>
+<p>Takes flat arrays, generates noise, and maps _apply_noise across the batch.
+Bypasses PyTree overhead completely.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_keys</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>flat_values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<em>C</em>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.replace">
 <span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.replace" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a new object replacing the specified fields with new values.</p>
@@ -565,6 +586,28 @@ False = legacy uint32[2].</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a>[<em>G</em>, <em>C</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.apply_fastpath">
+<span class="sig-name descname"><span class="pre">apply_fastpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover.apply_fastpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.apply_fastpath" title="Link to this definition">¶</a></dt>
+<dd><p>Fast path protocol for NativeFastEngine.</p>
+<p>Takes flat arrays, generates noise, and maps _apply_mask across the batch.
+Bypasses PyTree overhead completely.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_keys</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>p1_values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>p2_values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<em>C</em>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -803,6 +846,7 @@ this with parent selection in a single pass.</p>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_input_length()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_typed_keys()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseMutation.set_max_generations()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">BaseMutation.apply_fastpath()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseMutation.replace"><code class="docutils literal notranslate"><span class="pre">BaseMutation.replace()</span></code></a></li>
 </ul>
 </li>
@@ -816,6 +860,7 @@ this with parent selection in a single pass.</p>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.set_input_length"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_input_length()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.set_typed_keys"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_typed_keys()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.set_max_generations"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.set_max_generations()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.apply_fastpath()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.cross_single_pair"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.cross_single_pair()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.base.BaseCrossover.replace"><code class="docutils literal notranslate"><span class="pre">BaseCrossover.replace()</span></code></a></li>
 </ul>

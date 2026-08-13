@@ -324,6 +324,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">statistics</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -889,7 +890,7 @@
 <span class="sd">            latex_code = comparison.summary_table(latex=True)</span>
 <span class="sd">            print(latex_code)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">table</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">table</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">agg</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">(</span><span class="n">optimum</span><span class="o">=</span><span class="n">optimum</span><span class="p">)</span>
             <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sign</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -1028,16 +1029,13 @@
 
         <span class="n">speedups</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">common_seeds</span><span class="p">:</span>
-            <span class="c1"># Drop warmup (highest duration in both, wait, we do this by just removing max if we had lists.</span>
-            <span class="c1"># If we want to be safe, we just use the raw durations here. Actually it&#39;s better to just do pairing.</span>
-            <span class="c1"># Or we can remove the maximum duration seed from the paired list.)</span>
-            <span class="n">speedups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">base_runs</span><span class="p">[</span><span class="n">seed</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="o">/</span> <span class="n">target_runs</span><span class="p">[</span><span class="n">seed</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">)</span>
+            <span class="n">b_dur</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base_runs</span><span class="p">[</span><span class="n">seed</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">t_dur</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">target_runs</span><span class="p">[</span><span class="n">seed</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">or</span> <span class="mf">1e-9</span><span class="p">)</span>
+            <span class="n">speedups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b_dur</span> <span class="o">/</span> <span class="n">t_dur</span><span class="p">)</span>
 
         <span class="c1"># Optional: remove the pair with the highest base_duration (warmup)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">speedups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">_</span> <span class="o">=</span> <span class="n">speedups</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">speedups</span><span class="p">))</span>
-            <span class="c1"># Wait, warmup means highest time, not necessarily highest speedup. Let&#39;s find highest base time.</span>
-            <span class="n">base_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_runs</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">common_seeds</span><span class="p">]</span>
+            <span class="n">base_times</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">base_runs</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">common_seeds</span><span class="p">]</span>
             <span class="n">warmup_idx</span> <span class="o">=</span> <span class="n">base_times</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">base_times</span><span class="p">))</span>
             <span class="n">speedups</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">warmup_idx</span><span class="p">)</span>
 
@@ -1596,7 +1594,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                         <span class="s2">&quot;When seed_index is a list, ax must contain one axis per seed.&quot;</span>
                     <span class="p">)</span>
-                <span class="n">fig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">fig_obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;When seed_index is a list, ax must be an iterable of axes.&quot;</span><span class="p">)</span>
 
@@ -1606,17 +1604,16 @@
                     <span class="n">seed</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">subplot_ax</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">subplot_title</span><span class="p">,</span> <span class="n">negate</span><span class="o">=</span><span class="n">negate</span><span class="p">,</span> <span class="n">optimum</span><span class="o">=</span><span class="n">optimum</span>
                 <span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">save_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">save_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fig_obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
                 <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+                <span class="n">fig_obj</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">axes</span>
 
-        <span class="n">fig</span><span class="p">:</span> <span class="n">Figure</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+            <span class="n">fig_single</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">pass</span>
 
         <span class="n">extra_negate</span> <span class="o">=</span> <span class="n">negate</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="n">conv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convergence_data</span><span class="p">(</span><span class="n">seed_index</span><span class="p">,</span> <span class="n">optimum</span><span class="o">=</span><span class="n">optimum</span><span class="p">)</span>  <span class="c1"># already sign-normalised or gap</span>
@@ -1739,7 +1736,7 @@
 
 <div class="viewcode-block" id="MetaComparison.plot_convergence_grid">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.MetaComparison.plot_convergence_grid">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">plot_convergence_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_convergence_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1774,7 +1771,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>

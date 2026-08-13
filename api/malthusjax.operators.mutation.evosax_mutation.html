@@ -380,6 +380,27 @@ per-individual budget delegated to the base-class fused path.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.apply_fastpath">
+<span class="sig-name descname"><span class="pre">apply_fastpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/evosax_mutation.html#EvosaxGaussianWrapper.apply_fastpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.apply_fastpath" title="Link to this definition">¶</a></dt>
+<dd><p>Fast path protocol for NativeFastEngine.</p>
+<p>Takes flat arrays, generates noise, and maps _apply_noise across the batch.
+Bypasses PyTree overhead completely.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_keys</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>flat_values</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><em>RealGenomeConfig</em></a>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.replace">
 <span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.replace" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a new object replacing the specified fields with new values.</p>
@@ -513,6 +534,7 @@ per-individual budget delegated to the base-class fused path.</p>
 <li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.injection_mode"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.injection_mode</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.num_keys_per_atomic_operation"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.num_keys_per_atomic_operation</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.num_keys"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.num_keys()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.apply_fastpath"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.apply_fastpath()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.operators.mutation.evosax_mutation.EvosaxGaussianWrapper.replace"><code class="docutils literal notranslate"><span class="pre">EvosaxGaussianWrapper.replace()</span></code></a></li>
 </ul>
 </li>

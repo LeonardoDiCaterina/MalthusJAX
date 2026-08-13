@@ -345,7 +345,7 @@
     <span class="n">ShardingManager</span><span class="p">,</span>
     <span class="n">compute_resource_map</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.schedules</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScheduleType</span><span class="p">,</span> <span class="n">TrackBest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.schedules</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScheduleType</span><span class="p">,</span> <span class="n">TrackBest</span><span class="p">,</span> <span class="n">TrackMetrics</span>
 
 <span class="c1"># TODO: update selection docstring with expected input/output contract details.</span>
 
@@ -486,6 +486,7 @@
     <span class="n">prng_impl</span><span class="p">:</span> <span class="n">PRNGImpl</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">PRNGImpl</span><span class="o">.</span><span class="n">THREEFRY</span><span class="p">)</span>
     <span class="n">schedule_type</span><span class="p">:</span> <span class="n">ScheduleType</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ScheduleType</span><span class="o">.</span><span class="n">CONSTANT</span><span class="p">)</span>
     <span class="n">track_best</span><span class="p">:</span> <span class="n">TrackBest</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span><span class="p">)</span>
+    <span class="n">track_metrics</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">TrackMetrics</span><span class="o">.</span><span class="n">ALL</span><span class="p">)</span>
     <span class="n">initial_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
     <span class="n">final_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">debug_tracing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -978,10 +979,20 @@
             <span class="n">rng_key</span><span class="o">=</span><span class="n">k_next</span><span class="p">,</span>
         <span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">track_metrics</span> <span class="o">==</span> <span class="n">TrackMetrics</span><span class="o">.</span><span class="n">NONE</span><span class="p">:</span>
+            <span class="n">mean_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">std_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">track_metrics</span> <span class="o">==</span> <span class="n">TrackMetrics</span><span class="o">.</span><span class="n">BASIC</span><span class="p">:</span>
+            <span class="n">mean_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
+            <span class="n">std_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mean_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
+            <span class="n">std_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
+
         <span class="n">metrics</span> <span class="o">=</span> <span class="n">GeneticGenerationOutput</span><span class="p">(</span>
             <span class="n">best_fitness</span><span class="o">=</span><span class="n">metric_best</span><span class="p">,</span>
-            <span class="n">mean_fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">),</span>
-            <span class="n">std_fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">),</span>
+            <span class="n">mean_fitness</span><span class="o">=</span><span class="n">mean_fitness</span><span class="p">,</span>
+            <span class="n">std_fitness</span><span class="o">=</span><span class="n">std_fitness</span><span class="p">,</span>
             <span class="n">generation</span><span class="o">=</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span><span class="p">,</span>
             <span class="n">random_key</span><span class="o">=</span><span class="n">final_state</span><span class="o">.</span><span class="n">rng_key</span><span class="p">,</span>
         <span class="p">)</span>
@@ -1000,7 +1011,7 @@
 
         <span class="k">def</span><span class="w"> </span><span class="nf">_first_leaf_shape</span><span class="p">(</span><span class="n">tree</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
             <span class="n">leaves</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_leaves</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="k">if</span> <span class="n">leaves</span> <span class="k">else</span> <span class="p">()</span>  <span class="c1"># type: ignore[no-any-return]</span>
+            <span class="k">return</span> <span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="k">if</span> <span class="n">leaves</span> <span class="k">else</span> <span class="p">()</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">_preview_leaf</span><span class="p">(</span><span class="n">tree</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
             <span class="n">leaves</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_leaves</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
@@ -1009,7 +1020,7 @@
             <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="p">[</span><span class="n">arr</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span>
-            <span class="k">return</span> <span class="n">arr</span><span class="p">[:</span> <span class="nb">min</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>  <span class="c1"># type: ignore[no-any-return]</span>
+            <span class="k">return</span> <span class="n">arr</span><span class="p">[:</span> <span class="nb">min</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
         <span class="n">num_pairs</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">input_count</span> <span class="o">//</span> <span class="mi">2</span>
         <span class="n">expected_cross_keys</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">operators</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">num_keys</span><span class="p">(</span><span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_pairs</span><span class="p">,))</span>
@@ -1164,6 +1175,7 @@
         <span class="n">time_it</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="nb">compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span>
         <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]],</span> <span class="n">AbstractGenerationOutput</span><span class="p">,</span> <span class="n">Any</span>
     <span class="p">]:</span>
@@ -1189,6 +1201,9 @@
 
 <span class="sd">        verbose : bool, optional</span>
 <span class="sd">            If True, print progress bar (requires tqdm). Default: False.</span>
+
+<span class="sd">        return_history : bool, optional</span>
+<span class="sd">            If True, return the history of generation metrics. Default: True.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1241,7 +1256,11 @@
 <span class="sd">            plt.show()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">elapsed_time</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="n">initial_state</span><span class="p">,</span> <span class="n">time_it</span><span class="o">=</span><span class="n">time_it</span><span class="p">,</span> <span class="nb">compile</span><span class="o">=</span><span class="nb">compile</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+            <span class="n">initial_state</span><span class="p">,</span>
+            <span class="n">time_it</span><span class="o">=</span><span class="n">time_it</span><span class="p">,</span>
+            <span class="nb">compile</span><span class="o">=</span><span class="nb">compile</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+            <span class="n">return_history</span><span class="o">=</span><span class="n">return_history</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEngineParams</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">track_best</span> <span class="ow">in</span> <span class="p">(</span><span class="n">TrackBest</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span><span class="p">):</span>
@@ -1519,7 +1538,7 @@
 <span class="sd">        overriding ``state.rng_key`` for entropy allocation in this generation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">state_with_key</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">rng_key</span><span class="o">=</span><span class="n">rng_key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">state_with_key</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">state_with_key</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="GeneticEngine.tell">

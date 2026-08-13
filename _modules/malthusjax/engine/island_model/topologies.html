@@ -310,7 +310,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.engine.island_model.topologies</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeVar</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeVar</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
@@ -321,7 +321,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractEngine</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.island_model.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseIslandModel</span>
 
-<span class="n">E</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">AbstractEngine</span><span class="p">)</span>
+<span class="n">E</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">AbstractEngine</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="RingTopologyIsland">
@@ -336,7 +336,7 @@
 
 <div class="viewcode-block" id="RingTopologyIsland.migrate">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.RingTopologyIsland.migrate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="c1"># multi_pop.fitness shape: (num_islands, island_size)</span>
         <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
@@ -369,7 +369,7 @@
         <span class="p">)</span>
         <span class="n">final_fitness</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">inject_migrants</span><span class="p">)(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">worst_indices</span><span class="p">,</span> <span class="n">migrant_fitness</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">final_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">final_fitness</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">final_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">final_fitness</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span></div>
 </div>
 
 
@@ -386,7 +386,7 @@
 
 <div class="viewcode-block" id="FullyConnectedIsland.migrate">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.FullyConnectedIsland.migrate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="n">elite_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">]</span>
@@ -431,7 +431,7 @@
             <span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">worst_indices</span><span class="p">,</span> <span class="n">shuffled_fitness</span><span class="p">,</span> <span class="n">island_indices</span>
         <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">final_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">final_fitness</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">final_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">final_fitness</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span></div>
 </div>
 
 </pre></div>

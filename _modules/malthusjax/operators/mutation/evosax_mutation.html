@@ -404,6 +404,40 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unused — _mutate_fused overrides the full Tier-1/2 pipeline.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;EvosaxGaussianWrapper does not use _mutate_one&quot;</span><span class="p">)</span>
 
+<div class="viewcode-block" id="EvosaxGaussianWrapper.apply_fastpath">
+<a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.evosax_mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.apply_fastpath">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_fastpath</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">flat_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
+        <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No PRNG keys provided to EvosaxGaussianWrapper&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">flat_values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">total_offspring</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span>
+            <span class="n">subkeys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">total_offspring</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">flat_values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
+                <span class="n">subkeys</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">subkeys</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">,</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_call_evosax</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">sol</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">evosax_mutation</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mutation_strength</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_call_evosax</span><span class="p">)(</span><span class="n">subkeys</span><span class="p">,</span> <span class="n">flat_values</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">repeated_vals</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">flat_values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_call_evosax</span><span class="p">)(</span><span class="n">subkeys</span><span class="p">,</span> <span class="n">repeated_vals</span><span class="p">)</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>

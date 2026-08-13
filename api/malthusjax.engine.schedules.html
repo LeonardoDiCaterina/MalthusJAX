@@ -417,6 +417,37 @@ of <code class="docutils literal notranslate"><span class="pre">jax.lax.cond</sp
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackMetrics">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">TrackMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.TrackMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<p>Controls how fitness metrics are tracked during the evolution loop.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">NONE</span></code></dt><dd><p>No metrics are tracked. mean_fitness and std_fitness are dummy zeros.
+Allows XLA’s Dead Code Elimination (DCE) to prune mean/std reduction operations.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">BASIC</span></code></dt><dd><p>Tracks mean_fitness, but std_fitness is dummy zero.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ALL</span></code></dt><dd><p>Tracks both mean_fitness and std_fitness.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackMetrics.NONE">
+<span class="sig-name descname"><span class="pre">NONE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.schedules.TrackMetrics.NONE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackMetrics.BASIC">
+<span class="sig-name descname"><span class="pre">BASIC</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.engine.schedules.TrackMetrics.BASIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackMetrics.ALL">
+<span class="sig-name descname"><span class="pre">ALL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#malthusjax.engine.schedules.TrackMetrics.ALL" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="malthusjax.engine.schedules.compute_scheduled_strength">
 <span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">compute_scheduled_strength</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_generations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_strength</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#compute_scheduled_strength"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.compute_scheduled_strength" title="Link to this definition">¶</a></dt>
@@ -513,6 +544,12 @@ depend on it.</p>
 <li><a class="reference internal" href="#malthusjax.engine.schedules.TrackBest.NONE"><code class="docutils literal notranslate"><span class="pre">TrackBest.NONE</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.schedules.TrackBest.LIGHT"><code class="docutils literal notranslate"><span class="pre">TrackBest.LIGHT</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.schedules.TrackBest.FULL"><code class="docutils literal notranslate"><span class="pre">TrackBest.FULL</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.TrackMetrics"><code class="docutils literal notranslate"><span class="pre">TrackMetrics</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.TrackMetrics.NONE"><code class="docutils literal notranslate"><span class="pre">TrackMetrics.NONE</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.TrackMetrics.BASIC"><code class="docutils literal notranslate"><span class="pre">TrackMetrics.BASIC</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.schedules.TrackMetrics.ALL"><code class="docutils literal notranslate"><span class="pre">TrackMetrics.ALL</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#malthusjax.engine.schedules.compute_scheduled_strength"><code class="docutils literal notranslate"><span class="pre">compute_scheduled_strength()</span></code></a></li>
