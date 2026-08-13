@@ -81,8 +81,7 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
 
         Default: 0.1 (works well when genome is roughly normalized to [-1, 1]).
 
-        **Interaction with genome bounds**: If your genome bounds are [low, high],
-        set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.
+        **Interaction with genome bounds**: If your genome bounds are [low, high], set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.
 
     clip : bool, optional
         If True, clip mutated values to genome bounds [min_b, max_b].

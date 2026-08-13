@@ -81,5 +81,27 @@ def skip_member(app, what, name, obj, skip, options):
     return False
 
 
+import logging
+
+class DuplicateObjectFilter(logging.Filter):
+    def filter(self, record):
+        msg = record.getMessage()
+        return "duplicate object description of" not in msg
+
+
 def setup(app):
     app.connect("autodoc-skip-member", skip_member)
+    
+    # Suppress duplicate object description warnings from re-exported symbols in __init__.py
+    logger = logging.getLogger("sphinx.sphinx.domains.python")
+    if logger:
+        logger.addFilter(DuplicateObjectFilter())
+    
+    logger_std = logging.getLogger("sphinx.sphinx.domains.std")
+    if logger_std:
+        logger_std.addFilter(DuplicateObjectFilter())
+        
+    # Also attach to the root sphinx logger just in case
+    sphinx_logger = logging.getLogger("sphinx")
+    if sphinx_logger:
+        sphinx_logger.addFilter(DuplicateObjectFilter())

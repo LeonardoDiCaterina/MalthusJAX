@@ -864,7 +864,7 @@ class Composer:
             Default: 123.
             (Only used if ``shared_initial_population=True``.)
 
-        **shared_kwargs : Any
+        shared_kwargs : dict, optional
             Default configuration applied to all pipelines (merged before
             pipeline-specific overrides). Use for common settings like
             ``fitness``, ``pop_size``, ``generations``, ``bounds``.
