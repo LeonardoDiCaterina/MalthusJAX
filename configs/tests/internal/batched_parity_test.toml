@@ -1,0 +1,31 @@
+[suite]
+name = "batched_evosax_parity"
+output_dir = "results/batched_evosax_parity"
+mode = "comparison"
+num_seeds = 30
+seeds = [
+    42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
+    62, 63, 64, 65, 66, 67, 68, 69, 70, 71
+]
+engine_type = "ga"
+problem_dim = 9
+population_size = 128
+num_generations = 100
+elitism = 1
+bounds = [-5.0, 5.0]
+
+[problem]
+name = "sphere_minimize"
+
+[[pipelines]]
+name = "Default (vmap)"
+selection = "evosax_mimic_selection:num_selections=128,elite_k=20"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+
+[[pipelines]]
+name = "Batched"
+selection = "evosax_mimic_selection:num_selections=128,elite_k=20"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "batched_evosax_gaussian:mutation_strength=1.0"
