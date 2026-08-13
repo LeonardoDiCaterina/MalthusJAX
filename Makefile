@@ -1,12 +1,6 @@
 .PHONY: help install-dev install-bench test test-fast test-unit test-failing test-fixes test-bench test-bench-snapshot \
-        test-bench-group-01 test-bench-group-02 test-bench-group-03 test-bench-group-04 \
-        test-bench-group-05 test-bench-group-06 test-bench-group-07 test-bench-group-08 \
-        test-bench-group-09 test-bench-group-10 test-bench-group-11 \
 	lint format format-check type-check check-all docs docs-clean docs-open \
-	h1-parity-smoke h1-parity-smoke-nohup h1-parity-full h1-parity-full-nohup \
-	h1-parity-qdax-smoke h1-parity-qdax-smoke-nohup h1-parity-qdax-full h1-parity-qdax-full-nohup \
-	h2-ablation-smoke h2-ablation-smoke-nohup h2-ablation-full h2-ablation-full-nohup \
-	h3-representation-smoke h3-representation-smoke-nohup h3-representation-full h3-representation-full-nohup \
+	demo reproduce reproduce-nohup smoke-all \
 	perf-bench perf-bench-smoke perf-hlo perf-perfetto perf-tb perf-tb-bg perf-all perf-all-nohup
 
 # --- Auto-Detect CUDA Version ---
@@ -129,7 +123,7 @@ help:
 	@echo "Built site output in:         docs/build/html/"
 
 PYTHON ?= python
-
+MJAX_CMD ?= PYTHONPATH=src $(PYTHON) -m malthusjax.benchmarking.cli
 # ==============================================================================
 # PERFORMANCE HARNESS — MJX vs EvoSAX speed optimization loop
 # All variables can be overridden on the command line:
@@ -299,37 +293,37 @@ test-bench-group-11:
 # nohup variants for each group
 
 test-bench-group-01-nohup:
-	$(call run_nohup,test-bench-group-01,make test-bench-group-01)
+	$(call bg_task,test-bench-group-01,make test-bench-group-01)
 
 test-bench-group-02-nohup:
-	$(call run_nohup,test-bench-group-02,make test-bench-group-02)
+	$(call bg_task,test-bench-group-02,make test-bench-group-02)
 
 test-bench-group-03-nohup:
-	$(call run_nohup,test-bench-group-03,make test-bench-group-03)
+	$(call bg_task,test-bench-group-03,make test-bench-group-03)
 
 test-bench-group-04-nohup:
-	$(call run_nohup,test-bench-group-04,make test-bench-group-04)
+	$(call bg_task,test-bench-group-04,make test-bench-group-04)
 
 test-bench-group-05-nohup:
-	$(call run_nohup,test-bench-group-05,make test-bench-group-05)
+	$(call bg_task,test-bench-group-05,make test-bench-group-05)
 
 test-bench-group-06-nohup:
-	$(call run_nohup,test-bench-group-06,make test-bench-group-06)
+	$(call bg_task,test-bench-group-06,make test-bench-group-06)
 
 test-bench-group-07-nohup:
-	$(call run_nohup,test-bench-group-07,make test-bench-group-07)
+	$(call bg_task,test-bench-group-07,make test-bench-group-07)
 
 test-bench-group-08-nohup:
-	$(call run_nohup,test-bench-group-08,make test-bench-group-08)
+	$(call bg_task,test-bench-group-08,make test-bench-group-08)
 
 test-bench-group-09-nohup:
-	$(call run_nohup,test-bench-group-09,make test-bench-group-09)
+	$(call bg_task,test-bench-group-09,make test-bench-group-09)
 
 test-bench-group-10-nohup:
-	$(call run_nohup,test-bench-group-10,make test-bench-group-10)
+	$(call bg_task,test-bench-group-10,make test-bench-group-10)
 
 test-bench-group-11-nohup:
-	$(call run_nohup,test-bench-group-11,make test-bench-group-11)
+	$(call bg_task,test-bench-group-11,make test-bench-group-11)
 
 # ============================================================================= #
 # Documentation targets
@@ -356,24 +350,40 @@ docs-open:
 	@echo "--- Opening docs in browser ---"
 	open docs/build/html/index.html
 
-define run_nohup
-	@logfile=$$(date +%Y%m%d_%H%M%S)_$1__nohup.log; \
-	echo "--- Running $1 (nohup) output -> $$logfile ---"; \
-	nohup $(2) > $$logfile 2>&1 &
+define bg_task
+	@mkdir -p results
+	@TIMESTAMP=$$(date +%Y%m%d_%H%M%S); \
+	LOGFILE="results/$$1_$$TIMESTAMP.log"; \
+	nohup $$2 > $$LOGFILE 2>&1 & \
+	PID=$$!; \
+	echo "
+======================================================="; \
+	echo " BACKGROUND TASK STARTED: $$1"; \
+	echo "======================================================="; \
+	echo " PID: $$PID"; \
+	echo " Log file: $$LOGFILE"; \
+	echo ""; \
+	echo " To watch the logs live, run:"; \
+	echo "    tail -f $$LOGFILE"; \
+	echo ""; \
+	echo " To kill the process, run:"; \
+	echo "    kill $$PID"; \
+	echo "=======================================================
+"
 endef
 
 test-nohup:
-	$(call run_nohup,test,python -m pytest)
+	$(call bg_task,test,python -m pytest)
 
 test-fast-nohup:
-	$(call run_nohup,test-fast,python -m pytest --no-cov -q)
+	$(call bg_task,test-fast,python -m pytest --no-cov -q)
 
 
 test-bench-nohup:
-	$(call run_nohup,test-bench,python -m pytest tests/benchmarks/ --no-cov -v --tb=short --ignore=tests/benchmarks/test_snapshot_benchmark.py)
+	$(call bg_task,test-bench,python -m pytest tests/benchmarks/ --no-cov -v --tb=short --ignore=tests/benchmarks/test_snapshot_benchmark.py)
 
 test-bench-snapshot-nohup:
-	$(call run_nohup,test-bench-snapshot,python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v)
+	$(call bg_task,test-bench-snapshot,python -m pytest tests/benchmarks/test_snapshot_benchmark.py --no-cov -v)
 
 # ============================================================================= #
 # TOML-Based Experiment Execution
@@ -383,12 +393,12 @@ run-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml TOML=configs/examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	@echo "--- Running TOML experiment: $(TOML) ---"
-	mjax run $(TOML)
+	$(MJAX_CMD) run $(TOML)
 
 run-toml-nohup:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-toml-nohup TOML=configs/examples/experiment.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
-	$(call run_nohup,toml_experiment,mjax run $(TOML))
+	$(call bg_task,toml_experiment,$(MJAX_CMD) run $(TOML))
 
 run-benchmark:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-benchmark TOML=configs/h1_parity_cartesian.toml"; exit 1)
@@ -399,19 +409,19 @@ run-benchmark:
 run-benchmark-nohup:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make run-benchmark-nohup TOML=configs/h1_parity_cartesian.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
-	$(call run_nohup,benchmark_suite,python scripts/benchmark_runner.py --toml $(TOML))
+	$(call bg_task,benchmark_suite,python scripts/benchmark_runner.py --toml $(TOML))
 
 parity-toml:
 	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make parity-toml TOML=configs/parity/parity.toml"; exit 1)
 	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
 	@echo "--- Running statistical parity for $(TOML) ---"
-	mjax parity $(TOML)
+	$(MJAX_CMD) parity $(TOML)
 
 artifacts-dir:
 	@test -n "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR variable not set"; echo "Usage: make artifacts-dir RESULTS_DIR=results/my_experiment"; exit 1)
 	@test -d "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR not found: $(RESULTS_DIR)"; exit 1)
 	@echo "--- Generating artifacts for $(RESULTS_DIR) ---"
-	mjax report $(RESULTS_DIR)
+	$(MJAX_CMD) report $(RESULTS_DIR)
 
 list-toml:
 	@echo "--- Available TOML experiment files ---"
@@ -448,91 +458,6 @@ thesis-tables:
 	@$(PYTHON) scripts/generate_thesis_tables.py --dir $(RESULTS_DIR)
 
 # ============================================================================= #
-# Thesis Parity Pipeline (Clean — scripts/parity_working/)
-# ============================================================================= #
-
-# H1: MalthusJAX wrapper vs EvoSAX SimpleGA
-h1-parity-smoke:
-	@echo "--- H1 PARITY: Smoke Test ---"
-	$(PYTHON) scripts/parity_working/run_h1_parity.py --smoke
-
-h1-parity-smoke-nohup:
-	$(call run_nohup,h1-parity-smoke,$(PYTHON) scripts/parity_working/run_h1_parity.py --smoke)
-
-h1-parity-full:
-	@echo "--- H1 PARITY: Full Run ---"
-	$(PYTHON) scripts/parity_working/run_h1_parity.py
-
-h1-parity-full-nohup:
-	$(call run_nohup,h1-parity-full,$(PYTHON) scripts/parity_working/run_h1_parity.py)
-
-# H1: MalthusJAX Native vs QDAX MAP-Elites
-h1-parity-qdax-smoke:
-	@echo "--- H1 PARITY QDAX: Smoke Test ---"
-	$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py --smoke
-
-h1-parity-qdax-smoke-nohup:
-	$(call run_nohup,h1-parity-qdax-smoke,$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py --smoke)
-
-h1-parity-qdax-full:
-	@echo "--- H1 PARITY QDAX: Full Run ---"
-	$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py
-
-h1-parity-qdax-full-nohup:
-	$(call run_nohup,h1-parity-qdax-full,$(PYTHON) scripts/parity_working/run_h1_parity_qdax.py)
-
-# H1: MalthusJAX Native vs TensorNEAT Pure
-h1-parity-tensorneat-smoke:
-	@echo "--- H1 PARITY TENSORNEAT: Smoke Test ---"
-	$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py --smoke
-
-h1-parity-tensorneat-smoke-nohup:
-	$(call run_nohup,h1-parity-tensorneat-smoke,$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py --smoke)
-
-h1-parity-tensorneat-full:
-	@echo "--- H1 PARITY TENSORNEAT: Full Run ---"
-	$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py
-
-h1-parity-tensorneat-full-nohup:
-	$(call run_nohup,h1-parity-tensorneat-full,$(PYTHON) scripts/parity_working/run_h1_parity_tensorneat.py)
-
-# H2: Ablation (Structural Dissection)
-h2-ablation-smoke:
-	@echo "--- H2 ABLATION: Smoke Test ---"
-	$(PYTHON) scripts/parity_working/run_h2_ablation.py --smoke
-
-h2-ablation-smoke-nohup:
-	$(call run_nohup,h2-ablation-smoke,$(PYTHON) scripts/parity_working/run_h2_ablation.py --smoke)
-
-h2-ablation-full:
-	@echo "--- H2 ABLATION: Full Run ---"
-	$(PYTHON) scripts/parity_working/run_h2_ablation.py
-
-h2-ablation-full-nohup:
-	$(call run_nohup,h2-ablation-full,$(PYTHON) scripts/parity_working/run_h2_ablation.py)
-
-# H3: Representation (Precision Scaling)
-h3-representation-smoke:
-	@echo "--- H3 REPRESENTATION: Smoke Test ---"
-	$(PYTHON) scripts/parity_working/run_h3_representation.py --smoke
-
-h3-representation-smoke-nohup:
-	$(call run_nohup,h3-representation-smoke,$(PYTHON) scripts/parity_working/run_h3_representation.py --smoke)
-
-h3-representation-full:
-	@echo "--- H3 REPRESENTATION: Full Run ---"
-	$(PYTHON) scripts/parity_working/run_h3_representation.py
-
-h3-representation-full-nohup:
-	$(call run_nohup,h3-representation-full,$(PYTHON) scripts/parity_working/run_h3_representation.py)
-
-all-smoke: h1-parity-smoke h1-parity-qdax-smoke h1-parity-tensorneat-smoke h2-ablation-smoke h3-representation-smoke
-	@echo "--- ALL SMOKE TESTS COMPLETED ---"
-
-all-full: h1-parity-full h1-parity-qdax-full h1-parity-tensorneat-full h2-ablation-full h3-representation-full
-	@echo "--- ALL FULL RUNS COMPLETED ---"
-
-# ============================================================================= #
 # Docker Execution (Cluster)
 # ============================================================================= #
 
@@ -540,95 +465,19 @@ docker-build:
 	@echo "--- Building Docker Image with GPU Support ---"
 	docker build --build-arg EXTRAS="[cuda12,qdax]" -t malthusjax-gpu .
 
-# --- Full Runs ---
-
-docker-h1-parity-full:
-	@echo "--- Running H1 Parity (Full) via Docker (Detached) ---"
-	@docker rm -f h1-parity-full 2>/dev/null || true
-	docker run -d --gpus all --name h1-parity-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-full
+docker-reproduce:
+	@echo "--- Running Reproduce via Docker (Detached) ---"
+	@docker rm -f docker-reproduce 2>/dev/null || true
+	docker run -d --gpus all --name docker-reproduce --entrypoint make -v $$(pwd)/results:/app/results -v $$(pwd)/logs:/app/logs malthusjax-gpu reproduce
 	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-full\n"
+	@echo ">>> To monitor progress live, run:  docker logs -f docker-reproduce\n"
 
-docker-h1-parity-qdax-full:
-	@echo "--- Running H1 Parity QDAX (Full) via Docker (Detached) ---"
-	@docker rm -f h1-parity-qdax-full 2>/dev/null || true
-	docker run -d --gpus all --name h1-parity-qdax-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-full
+docker-smoke-all:
+	@echo "--- Running Smoke All via Docker (Detached) ---"
+	@docker rm -f docker-smoke-all 2>/dev/null || true
+	docker run -d --gpus all --name docker-smoke-all --entrypoint make -v $$(pwd)/results:/app/results -v $$(pwd)/logs:/app/logs malthusjax-gpu smoke-all
 	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-qdax-full\n"
-
-docker-h1-parity-tensorneat-full:
-	@echo "--- Running H1 Parity TensorNEAT (Full) via Docker (Detached) ---"
-	@docker rm -f h1-parity-tensorneat-full 2>/dev/null || true
-	docker run -d --gpus all --name h1-parity-tensorneat-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-tensorneat-full
-	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-tensorneat-full\n"
-
-docker-h2-ablation-full:
-	@echo "--- Running H2 Ablation (Full) via Docker (Detached) ---"
-	@docker rm -f h2-ablation-full 2>/dev/null || true
-	docker run -d --gpus all --name h2-ablation-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h2-ablation-full
-	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h2-ablation-full\n"
-
-docker-h3-representation-full:
-	@echo "--- Running H3 Representation (Full) via Docker (Detached) ---"
-	@docker rm -f h3-representation-full 2>/dev/null || true
-	docker run -d --gpus all --name h3-representation-full --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h3-representation-full
-	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h3-representation-full\n"
-
-# --- Smoke Tests ---
-
-docker-h1-parity-smoke:
-	@echo "--- Running H1 Parity (Smoke) via Docker (Detached) ---"
-	@docker rm -f h1-parity-smoke 2>/dev/null || true
-	docker run -d --gpus all --name h1-parity-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-smoke
-	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-smoke\n"
-
-docker-h1-parity-qdax-smoke:
-	@echo "--- Running H1 Parity QDAX (Smoke) via Docker (Detached) ---"
-	@docker rm -f h1-parity-qdax-smoke 2>/dev/null || true
-	docker run -d --gpus all --name h1-parity-qdax-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-qdax-smoke
-	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-qdax-smoke\n"
-
-docker-h1-parity-tensorneat-smoke:
-	@echo "--- Running H1 Parity TensorNEAT (Smoke) via Docker (Detached) ---"
-	@docker rm -f h1-parity-tensorneat-smoke 2>/dev/null || true
-	docker run -d --gpus all --name h1-parity-tensorneat-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h1-parity-tensorneat-smoke
-	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h1-parity-tensorneat-smoke\n"
-
-docker-h2-ablation-smoke:
-	@echo "--- Running H2 Ablation (Smoke) via Docker (Detached) ---"
-	@docker rm -f h2-ablation-smoke 2>/dev/null || true
-	docker run -d --gpus all --name h2-ablation-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h2-ablation-smoke
-	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h2-ablation-smoke\n"
-
-docker-h3-representation-smoke:
-	@echo "--- Running H3 Representation (Smoke) via Docker (Detached) ---"
-	@docker rm -f h3-representation-smoke 2>/dev/null || true
-	docker run -d --gpus all --name h3-representation-smoke --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu h3-representation-smoke
-	@echo "\n>>> SUCCESS: Container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f h3-representation-smoke\n"
-
-# --- All Sequential Suites ---
-
-docker-all-full:
-	@echo "--- Running ALL Experiments Sequentially via Docker (Detached) ---"
-	@docker rm -f all-full-sweep 2>/dev/null || true
-	docker run -d --gpus all --name all-full-sweep --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu all-full
-	@echo "\n>>> SUCCESS: Giant sequential sweep container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f all-full-sweep\n"
-
-docker-all-smoke:
-	@echo "--- Running ALL Smoke Tests Sequentially via Docker (Detached) ---"
-	@docker rm -f all-smoke-sweep 2>/dev/null || true
-	docker run -d --gpus all --name all-smoke-sweep --entrypoint make -v $(PWD)/results:/app/results -v $(PWD)/logs:/app/logs malthusjax-gpu all-smoke
-	@echo "\n>>> SUCCESS: Giant sequential smoke sweep container started in background!"
-	@echo ">>> To monitor progress live, run:  docker logs -f all-smoke-sweep\n"
+	@echo ">>> To monitor progress live, run:  docker logs -f docker-smoke-all\n"
 
 # ==============================================================================
 # UNIFIED TOML BENCHMARKING ENGINE
@@ -651,54 +500,37 @@ benchmark-run-smoke:
 
 benchmark-run-nohup:
 	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
-	$(call run_nohup,benchmark_$(shell basename $(TOML) .toml),$(PYTHON) scripts/benchmark_runner.py --toml $(TOML))
+	$(call bg_task,benchmark_$(shell basename $(TOML) .toml),$(PYTHON) scripts/benchmark_runner.py --toml $(TOML))
 
 # Automatically run smoke tests and analysis for all three hypotheses locally
+# ------------------------------------------------------------------------------
+# 1. SHOW & TELL DEMO (Fast Narrative Execution)
+# ------------------------------------------------------------------------------
+demo:
+	@echo "=== 1. MalthusJAX Catalog ==="
+	$(MJAX_CMD) catalog
+	@echo "\n=== 2. Declarative Execution (Sphere 25D) ==="
+	$(MJAX_CMD) run configs/examples/sphere_experiment.toml
+	@echo "\n=== 3. Zero-Overhead Architecture Ablation ==="
+	$(PYTHON) benchmarks/architecture_ablation.py --smoke
+	@echo "\n=== 4. Quality-Diversity (MAP-Elites) Parity ==="
+	$(PYTHON) benchmarks/qd_architecture_ablation.py --smoke
+
+# ------------------------------------------------------------------------------
+# 2. PUBLICATION REPRODUCIBILITY (Thesis Benchmarks)
+# ------------------------------------------------------------------------------
+reproduce:
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_final_lhs.toml
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_precision_lhs.toml
+
+reproduce-nohup:
+	$(call bg_task,reproduce,make reproduce)
+
 smoke-all:
-	@echo "\n=== H1 Parity Smoke ==="
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h1_parity_lhs.toml --data_dir results/h1_parity_lhs_smoke
-	
-	@echo "\n=== H2 Ablation Smoke ==="
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_ablation_lhs.toml --data_dir results/h2_ablation_lhs_smoke
-	
-	@echo "\n=== H2 QDAX Parity Smoke ==="
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_parity_qdax_lhs.toml --data_dir results/h2_parity_qdax_lhs_smoke
-	
-	@echo "\n=== H3 Representation Smoke ==="
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h3_representation_lhs.toml --data_dir results/h3_representation_lhs_smoke
-	@echo "\n=== ALL SMOKE PROXIES GENERATED IN results/ ==="
-
-benchmark-analyze:
-	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
-	@echo "--- ANALYZING BENCHMARK: $(TOML) ---"
-	$(PYTHON) scripts/benchmark_analyzer.py --toml $(TOML)
-
-smoke-hard:
-	@echo "\n=== H1 Parity Hard Smoke ==="
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_hard_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h1_parity_hard_lhs.toml --data_dir results/h1_parity_hard_lhs_smoke
-	
-	@echo "\n=== H2 Ablation Hard Smoke ==="
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_hard_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h2_ablation_hard_lhs.toml --data_dir results/h2_ablation_hard_smoke
-	
-	@echo "\n=== H3 Representation Hard Smoke ==="
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_hard_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_analyzer.py --toml configs/h3_representation_hard_lhs.toml --data_dir results/h3_representation_hard_smoke
-	@echo "\n=== ALL HARD SMOKE PROXIES GENERATED IN results/ ==="
-
-run-hard-all:
-	@echo "\n=== Running All Hard Benchmarks ==="
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_hard_lhs.toml
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_hard_lhs.toml
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_hard_lhs.toml
-
-run-hard-all-nohup:
-	$(call run_nohup,run-hard-all,make run-hard-all)
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_final_lhs.toml --smoke
+	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_precision_lhs.toml --smoke
 
 # ==============================================================================
 # PERFORMANCE HARNESS
@@ -766,34 +598,5 @@ perf-all:
 	@echo "\n=== DONE. Launch TensorBoard: make perf-tb PORT=$(PORT) ==="
 
 perf-all-nohup:
-	$(call run_nohup,perf-all,make perf-all PERF_TOML=$(PERF_TOML) PORT=$(PORT))
+	$(call bg_task,perf-all,make perf-all PERF_TOML=$(PERF_TOML) PORT=$(PORT))
 
-# ==============================================================================
-# SHOW & TELL EXECUTION PIPELINE
-# ==============================================================================
-
-show-tell:
-	@echo "--- RUNNING SHOW & TELL (FULL) ---"
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_lhs.toml
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_qdax_lhs.toml
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml
-	mjax run configs/examples/bbob_backend_comparison_pop1024.toml
-	mjax run configs/examples/scaling_benchmark.toml
-
-show-tell-smoke:
-	@echo "--- RUNNING SHOW & TELL (SMOKE) ---"
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_representation_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h1_parity_qdax_lhs.toml --smoke
-	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_parity_qdax_lhs.toml --smoke
-	mjax run configs/examples/bbob_weierstrass_pop1024_smoke100.toml
-	mjax run configs/examples/scaling_benchmark.toml
-
-show-tell-nohup:
-	$(call run_nohup,show-tell,make show-tell)
-
-show-tell-smoke-nohup:
-	$(call run_nohup,show-tell-smoke,make show-tell-smoke)

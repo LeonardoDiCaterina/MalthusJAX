@@ -129,6 +129,8 @@ def extract_mjx_hlo(
     from malthusjax.composer.engine_factory import build_engine
     from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 
+    from malthusjax.composer.catalog import OperatorCatalog
+    
     evaluator = BBOBEvaluator.create(
         BBOBConfig(fn_name="sphere", num_dims=num_dims, seed=42, maximize=False)
     )
@@ -140,14 +142,32 @@ def extract_mjx_hlo(
         if k
         not in {
             "backend",
-            "engine_type",
             "evosax_strategy",
             "strategy_params",
         }
     }
-
-    adapter = build_engine(
-        fitness_evaluator=evaluator,
+    
+    catalog = OperatorCatalog()
+    sel_str = kwargs.pop("selection", None)
+    cross_str = kwargs.pop("crossover", None)
+    mut_str = kwargs.pop("mutation", None)
+    
+    sel = catalog.get(sel_str) if sel_str else None
+    cross = catalog.get(cross_str) if cross_str else None
+    mut = catalog.get(mut_str) if mut_str else None
+    
+    engine_type = kwargs.pop("engine_type", "ga")
+    
+    # engine_factory.build_engine takes engine_cls, but we just use engine_type through Composer's EngineRegistry
+    from malthusjax.composer.engine_catalog import EngineRegistry
+    registry = EngineRegistry()
+    
+    adapter = registry.get(
+        engine_type,
+        evaluator=evaluator,
+        selection=sel,
+        crossover=cross,
+        mutation=mut,
         genome_type="real",
         pop_size=pop_size,
         generations=gens,
