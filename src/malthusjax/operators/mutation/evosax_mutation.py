@@ -86,6 +86,32 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
     ) -> RealGenome:
         """Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""
         raise NotImplementedError("EvosaxGaussianWrapper does not use _mutate_one")
+    def apply_fastpath(
+        self, all_keys: chex.Array, flat_values: chex.Array, config: RealGenomeConfig, generation: int = 0
+    ) -> chex.Array:
+        if all_keys.size == 0:
+            raise ValueError("No PRNG keys provided to EvosaxGaussianWrapper")
+
+        if all_keys.shape[0] == 1:
+            key = all_keys[0]
+            n = flat_values.shape[0]
+            total_offspring = n * self.num_offspring
+            subkeys = jax.random.split(key, total_offspring)
+        else:
+            n = flat_values.shape[0]
+            if self.typed_keys:
+                subkeys = all_keys.reshape(-1)
+            else:
+                subkeys = all_keys.reshape(n * self.num_offspring, all_keys.shape[-1])
+
+        def _call_evosax(k: chex.Array, sol: chex.Array) -> chex.Array:
+            return evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
+
+        if self.num_offspring == 1:
+            return jax.vmap(_call_evosax)(subkeys, flat_values)
+        else:
+            repeated_vals = jnp.repeat(flat_values, self.num_offspring, axis=0)
+            return jax.vmap(_call_evosax)(subkeys, repeated_vals)
 
     def __call__(
         self,

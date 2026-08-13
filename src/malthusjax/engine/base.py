@@ -196,7 +196,8 @@ class AbstractEngine(Generic[G, P], ABC):
         time_it: bool = False,
         compile: bool = True,
         verbose: bool = False,
-    ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput, Optional[float]]:
+        return_history: bool = True,
+    ) -> Tuple[AbstractEvolutionState[G, P], Any, Optional[float]]:
         """Run the full evolution loop starting from *initial_state*.
 
         This method obtains the JIT‑compiled scan kernel and executes it for
@@ -212,7 +213,7 @@ class AbstractEngine(Generic[G, P], ABC):
             )
         # Retrieve the compiled loop function
         evolve_fn = _get_evolution_kernel(
-            self.engine_params, compile_jit=compile, unroll_num=self.engine_params.unroll_num
+            self.engine_params, compile_jit=compile, unroll_num=self.engine_params.unroll_num, return_history=return_history
         )
 
         start_time = time.time()
@@ -314,8 +315,11 @@ class AbstractEngine(Generic[G, P], ABC):
         return hlo_text
 
 
+import functools
+
+@functools.lru_cache(maxsize=128)
 def _get_evolution_kernel(
-    params: AbstractEngineParams, compile_jit: bool = True, unroll_num: int = 1
+    params: AbstractEngineParams, compile_jit: bool = True, unroll_num: int = 1, return_history: bool = True
 ) -> Any:
     """
     Factory: Builds evolution kernel (jax.lax.scan loop).
@@ -346,8 +350,10 @@ def _get_evolution_kernel(
     ) -> Tuple[AbstractEvolutionState[G, P], Any]:
         def _scan_body_closure(
             state: AbstractEvolutionState[G, P], __: Any
-        ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput]:
+        ) -> Tuple[AbstractEvolutionState[G, P], Any]:
             new_state, history_item = engine.step(state)
+            if not return_history:
+                history_item = ()
             return new_state, history_item
 
         init_carry = initial_state

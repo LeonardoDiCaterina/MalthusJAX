@@ -97,6 +97,38 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig])
 
         return RealGenome.from_tensor(child_vals, config)
 
+    def apply_fastpath(
+        self, all_keys: chex.Array, p1_values: chex.Array, p2_values: chex.Array, config: RealGenomeConfig, generation: int = 0
+    ) -> chex.Array:
+        if all_keys.size == 0:
+            raise ValueError("No PRNG keys provided to EvosaxUniformCrossoverWrapper")
+
+        num_pairs = p1_values.shape[0]
+
+        if all_keys.shape[0] == 1:
+            key = all_keys[0]
+            keys = jax.random.split(key, num_pairs * self.num_offspring)
+        else:
+            if self.typed_keys:
+                keys = all_keys.reshape(-1)
+            else:
+                keys = all_keys.reshape(num_pairs * self.num_offspring, all_keys.shape[-1])
+
+        def _cross_one(k: chex.Array, p1_vals: chex.Array, p2_vals: chex.Array) -> chex.Array:
+            return evosax_crossover(k, p1_vals, p2_vals, self.crossover_rate)
+
+        if self.num_offspring == 1:
+            return jax.vmap(_cross_one, in_axes=(0, 0, 0))(keys, p1_values, p2_values)
+
+        def _process_pairs(k_block: chex.Array, val1: chex.Array, val2: chex.Array) -> chex.Array:
+            def _inner_cross(k: chex.Array) -> chex.Array:
+                return _cross_one(k, val1, val2)
+            return jax.vmap(_inner_cross, in_axes=0)(k_block)
+
+        keys_reshaped = keys.reshape(num_pairs, self.num_offspring, *keys.shape[1:])
+        nested = jax.vmap(_process_pairs, in_axes=(0, 0, 0))(keys_reshaped, p1_values, p2_values)
+        return nested.reshape((-1,) + nested.shape[2:])
+
     def __call__(
         self,
         all_keys: chex.Array,

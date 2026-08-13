@@ -81,6 +81,25 @@ class TrackBest(enum.IntEnum):
     FULL = 2
 
 
+class TrackMetrics(enum.IntEnum):
+    """Controls how fitness metrics are tracked during the evolution loop.
+
+    ``NONE``
+        No metrics are tracked. mean_fitness and std_fitness are dummy zeros.
+        Allows XLA's Dead Code Elimination (DCE) to prune mean/std reduction operations.
+
+    ``BASIC``
+        Tracks mean_fitness, but std_fitness is dummy zero.
+
+    ``ALL``
+        Tracks both mean_fitness and std_fitness.
+    """
+
+    NONE = 0
+    BASIC = 1
+    ALL = 2
+
+
 def compute_scheduled_strength(
     schedule: ScheduleType,
     generation: int,

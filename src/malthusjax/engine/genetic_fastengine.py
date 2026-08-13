@@ -33,7 +33,7 @@ from .resource_mapper import (
     ShardingManager,
     compute_resource_map,
 )
-from .schedules import ScheduleType, TrackBest
+from .schedules import ScheduleType, TrackBest, TrackMetrics
 
 # TODO: update selection docstring with expected input/output contract details.
 
@@ -163,6 +163,7 @@ class GeneticEngineParams(AbstractEngineParams):
     prng_impl: PRNGImpl = _field(pytree_node=False, default=PRNGImpl.THREEFRY)
     schedule_type: ScheduleType = _field(pytree_node=False, default=ScheduleType.CONSTANT)
     track_best: TrackBest = _field(pytree_node=False, default=TrackBest.LIGHT)
+    track_metrics: TrackMetrics = _field(pytree_node=False, default=TrackMetrics.ALL)
     initial_strength: float = 0.1
     final_strength: float = 0.0
     debug_tracing: bool = _field(pytree_node=False, default=False)
@@ -641,10 +642,20 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             rng_key=k_next,
         )
 
+        if params.track_metrics == TrackMetrics.NONE:
+            mean_fitness = jnp.zeros((), dtype=jnp.float32)
+            std_fitness = jnp.zeros((), dtype=jnp.float32)
+        elif params.track_metrics == TrackMetrics.BASIC:
+            mean_fitness = jnp.mean(new_pop.fitness)
+            std_fitness = jnp.zeros((), dtype=jnp.float32)
+        else:
+            mean_fitness = jnp.mean(new_pop.fitness)
+            std_fitness = jnp.std(new_pop.fitness)
+
         metrics = GeneticGenerationOutput(
             best_fitness=metric_best,
-            mean_fitness=jnp.mean(new_pop.fitness),
-            std_fitness=jnp.std(new_pop.fitness),
+            mean_fitness=mean_fitness,
+            std_fitness=std_fitness,
             generation=final_state.generation,
             random_key=final_state.rng_key,
         )
@@ -821,6 +832,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         time_it: bool = False,
         compile: bool = True,
         verbose: bool = False,
+        return_history: bool = True,
     ) -> Tuple[
         AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any
     ]:
@@ -846,6 +858,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         verbose : bool, optional
             If True, print progress bar (requires tqdm). Default: False.
+
+        return_history : bool, optional
+            If True, return the history of generation metrics. Default: True.
 
         Returns
         -------
@@ -898,7 +913,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             plt.show()
         """
         final_state, history, elapsed_time = super().run(
-            initial_state, time_it=time_it, compile=compile, verbose=verbose
+            initial_state,
+            time_it=time_it,
+            compile=compile,
+            verbose=verbose,
+            return_history=return_history,
         )
         params = cast(GeneticEngineParams, self.engine_params)
         if params.track_best in (TrackBest.NONE, TrackBest.LIGHT):

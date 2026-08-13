@@ -11,6 +11,7 @@ from .base import (
     compute_unroll_num,
 )
 from .genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
+from .native_fastengine import NativeFastEngine
 from .schedules import ScheduleType, TrackBest, compute_scheduled_strength
 
 # from .diversity_engine import DiversityAwareEngine
@@ -26,6 +27,7 @@ __all__ = [
     "GeneticEngine",
     "GeneticEngineParams",
     "GeneticGenerationOutput",
+    "NativeFastEngine",
     "ScheduleType",
     "TrackBest",
     "compute_scheduled_strength",
@@ -142,6 +144,37 @@ def _register_engines() -> None:
             **kwargs,
         )
 
+    def _native_fast_ga_factory(
+        evaluator: Any,
+        selection: Any,
+        crossover: Any,
+        mutation: Any,
+        genome_type: str = "real",
+        pop_size: int = 50,
+        generations: int = 100,
+        genome_shape: tuple[int, ...] = (10,),
+        bounds: tuple[float, float] = (-5.0, 5.0),
+        elitism: int = 2,
+        **kwargs: Any,
+    ) -> Any:
+        from ..composer.engine_factory import build_engine
+        from .native_fastengine import NativeFastEngine
+
+        return build_engine(
+            fitness_evaluator=evaluator,
+            selection_op=selection,
+            crossover_op=crossover,
+            mutation_op=mutation,
+            genome_type=genome_type,
+            pop_size=pop_size,
+            generations=generations,
+            genome_shape=genome_shape,
+            bounds=bounds,
+            elitism=elitism,
+            engine_cls=NativeFastEngine,
+            **kwargs,
+        )
+
     register_table(
         [
             (
@@ -171,6 +204,16 @@ def _register_engines() -> None:
                     "pop_size": 50,
                     "generations": 100,
                     "elitism": 0,
+                    "genome_type": "real",
+                },
+            ),
+            (
+                "native_fast",
+                _native_fast_ga_factory,
+                {
+                    "pop_size": 50,
+                    "generations": 100,
+                    "elitism": 2,
                     "genome_type": "real",
                 },
             ),
