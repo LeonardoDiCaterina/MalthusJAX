@@ -383,7 +383,8 @@ Valid range: (0, ∞), but typically [0.01, 1.0]</p>
 <li><p>mutation_strength=1.0: Large noise (aggressive exploration)</p></li>
 </ul>
 <p>Default: 0.1 (works well when genome is roughly normalized to [-1, 1]).</p>
-<p><strong>Interaction with genome bounds</strong>: If your genome bounds are [low, high], set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.</p>
+<p><strong>Interaction with genome bounds</strong>: If your genome bounds are [low, high],
+set mutation_strength ≈ 0.05-0.1 × (high - low) for reasonable perturbations.</p>
 </dd>
 <dt>clip<span class="classifier">bool, optional</span></dt><dd><p>If True, clip mutated values to genome bounds [min_b, max_b].
 If False, allow violations (clipping happens at evaluation boundary).
@@ -400,16 +401,19 @@ Default: 0.0 (decay to zero).</p>
 <section id="notes">
 <h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
 <p><strong>INTERACTION BETWEEN mutation_rate AND mutation_strength</strong>:
-These two parameters control different aspects of mutation:</p>
-<ul class="simple">
-<li><p><cite>mutation_rate</cite>: <strong>Which</strong> genes are modified (controls sparsity)</p></li>
-<li><p><cite>mutation_strength</cite>: <strong>How much</strong> each modified gene changes (controls perturbation scale)</p></li>
-</ul>
-<p><strong>Example scenarios</strong>:</p>
-<ol class="arabic simple">
-<li><p><strong>Exploration phase</strong>: Higher mutation_rate (0.2) + higher mutation_strength (0.2) → Many genes perturbed by large amounts</p></li>
-<li><p><strong>Exploitation/fine-tuning</strong>: Lower mutation_rate (0.05) + lower mutation_strength (0.05) → Few genes, small noise</p></li>
-<li><p><strong>Balanced default</strong>: mutation_rate=0.1, mutation_strength=0.1 → ~10% of genes affected, each by ~0.1 std units</p></li>
+These two parameters control different aspects of mutation:
+- <cite>mutation_rate</cite>: <strong>Which</strong> genes are modified (controls sparsity)
+- <cite>mutation_strength</cite>: <strong>How much</strong> each modified gene changes (controls perturbation scale)</p>
+<p><strong>Example scenarios</strong>:
+1. <strong>Exploration phase</strong>: Higher mutation_rate (0.2) + higher mutation_strength (0.2)</p>
+<blockquote>
+<div><p>→ Many genes perturbed by large amounts</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p><strong>Exploitation/fine-tuning</strong>: Lower mutation_rate (0.05) + lower mutation_strength (0.05)
+→ Few genes, small noise</p></li>
+<li><p><strong>Balanced default</strong>: mutation_rate=0.1, mutation_strength=0.1
+→ ~10% of genes affected, each by ~0.1 std units</p></li>
 </ol>
 <p><strong>When to Use</strong>: Gaussian mutation is the recommended operator for continuous
 optimization. It’s simple, effective, and works well across nearly all problem types.
