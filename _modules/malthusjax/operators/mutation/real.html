@@ -418,12 +418,9 @@
 <span class="sd">    - `mutation_strength`: **How much** each modified gene changes (controls perturbation scale)</span>
 
 <span class="sd">    **Example scenarios**:</span>
-<span class="sd">    1. **Exploration phase**: Higher mutation_rate (0.2) + higher mutation_strength (0.2)</span>
-<span class="sd">       → Many genes perturbed by large amounts</span>
-<span class="sd">    2. **Exploitation/fine-tuning**: Lower mutation_rate (0.05) + lower mutation_strength (0.05)</span>
-<span class="sd">       → Few genes, small noise</span>
-<span class="sd">    3. **Balanced default**: mutation_rate=0.1, mutation_strength=0.1</span>
-<span class="sd">       → ~10% of genes affected, each by ~0.1 std units</span>
+<span class="sd">    1. **Exploration phase**: Higher mutation_rate (0.2) + higher mutation_strength (0.2) → Many genes perturbed by large amounts</span>
+<span class="sd">    2. **Exploitation/fine-tuning**: Lower mutation_rate (0.05) + lower mutation_strength (0.05) → Few genes, small noise</span>
+<span class="sd">    3. **Balanced default**: mutation_rate=0.1, mutation_strength=0.1 → ~10% of genes affected, each by ~0.1 std units</span>
 
 <span class="sd">    **When to Use**: Gaussian mutation is the recommended operator for continuous</span>
 <span class="sd">    optimization. It&#39;s simple, effective, and works well across nearly all problem types.</span>
