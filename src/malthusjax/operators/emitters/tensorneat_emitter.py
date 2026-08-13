@@ -47,10 +47,10 @@ class TensorNeatEmitter(AtomicEmitter):
         return 2
 
     def set_input_length(self, length: int) -> "TensorNeatEmitter":
-        return self.replace(_batch_size=length)
+        return self.replace(_batch_size=length)  # type: ignore[attr-defined]
 
     def init(
-        self, key: chex.Array, initial_population: BasePopulation, params: Any = None
+        self, key: chex.Array, initial_population: BasePopulation[Any], params: Any = None
     ) -> TensorNeatEmitterState:
         tn_state = State(randkey=key, generation=jnp.float32(0))
         nodes, conns = getattr(initial_population.genes, "values", initial_population.genes)
@@ -79,7 +79,7 @@ class TensorNeatEmitter(AtomicEmitter):
         # It was splitting k1, k2 = jax.random.split(keys, 2) in _sample_parents.
         return 2
 
-    def _sample_parents(  # type: ignore[override]
+    def _sample_parents(
         self, state: Optional[EmitterState], repertoire: Any, keys: chex.Array
     ) -> Tuple[Any, Any]:
         """
@@ -140,11 +140,11 @@ class TensorNeatEmitter(AtomicEmitter):
         k_cx, k_mut = keys[0], keys[1]
 
         # 1. Crossover
-        cx_n, cx_c = self.genome.execute_crossover(state.tn_state, k_cx, p1_n, p1_c, p2_n, p2_c)
+        cx_n, cx_c = self.genome.execute_crossover(state.tn_state, k_cx, p1_n, p1_c, p2_n, p2_c)  # type: ignore[attr-defined]
 
         # 2. Mutation
         mut_n, mut_c = self.genome.execute_mutation(
-            state.tn_state, k_mut, cx_n, cx_c, new_node_key, new_conn_markers
+            state.tn_state, k_mut, cx_n, cx_c, new_node_key, new_conn_markers  # type: ignore[attr-defined]
         )
 
         return mut_n, mut_c

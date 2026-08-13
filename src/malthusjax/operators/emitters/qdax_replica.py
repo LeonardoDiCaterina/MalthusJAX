@@ -140,7 +140,7 @@ class QDAXReplicaMixingEmitter(BaseEmitter):
             )
 
         # Wrap raw genotypes into a MalthusJAX RealPopulation
-        offspring_pop = self._wrap_genotypes(genotypes)
+        offspring_pop = self._wrap_genotypes(genotypes)  # type: ignore[arg-type]
         return offspring_pop, state
 
     def _wrap_genotypes(self, genotypes: jnp.ndarray) -> RealPopulation:

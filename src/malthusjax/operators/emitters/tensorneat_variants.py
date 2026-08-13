@@ -59,7 +59,7 @@ class TensorNeatMutationEmitter(AtomicEmitter):
             tn_state=tn_state, max_node_key=max_node_key, max_conn_marker=max_conn_marker
         )
 
-    def _sample_parents(  # type: ignore[override]
+    def _sample_parents(
         self, state: Optional[EmitterState], repertoire: Any, keys: chex.Array
     ) -> Tuple[Any, Any]:
         assert state is not None
@@ -162,7 +162,7 @@ class TensorNeatCrossoverEmitter(AtomicEmitter):
             tn_state=tn_state, max_node_key=max_node_key, max_conn_marker=max_conn_marker
         )
 
-    def _sample_parents(  # type: ignore[override]
+    def _sample_parents(
         self, state: Optional[EmitterState], repertoire: Any, keys: chex.Array
     ) -> Tuple[Any, Any]:
         k1, k2 = keys[0], keys[1]

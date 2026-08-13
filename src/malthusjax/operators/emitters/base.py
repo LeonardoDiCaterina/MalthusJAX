@@ -125,7 +125,7 @@ class AtomicEmitter(BaseEmitter):
         keys: chex.Array,
         generation: int = 0,
         params: Any = None,
-    ) -> Tuple[BasePopulation, Optional[EmitterState]]:
+    ) -> Tuple[BasePopulation[Any], Optional[EmitterState]]:
         """
         Tier 3 - Orchestrator.
         Receives pre-allocated keys block, samples parents, and vmaps the atomic generation.
@@ -137,7 +137,7 @@ class AtomicEmitter(BaseEmitter):
         # 1. Tier 2: Sample parents
         # (parents can be a tuple of PyTrees for crossover, or a single PyTree for mutation)
         # metadata can contain batched variables (e.g. node_keys for TensorNEAT)
-        parents, metadata, new_state = self._sample_parents(state, repertoire, k_sample)
+        parents, metadata, new_state = self._sample_parents(state, repertoire, k_sample)  # type: ignore[misc]
 
         atomic_keys = self.num_keys_per_atomic_operation
 
@@ -179,6 +179,6 @@ class AtomicEmitter(BaseEmitter):
         return offspring_pop, new_state
 
     @abstractmethod
-    def _wrap_population(self, offspring_genes: Any) -> BasePopulation:
-        """Wraps the vmap'd genes into a BasePopulation."""
+    def _wrap_population(self, offspring_genes: Any) -> BasePopulation[Any]:
+        """Wraps the vmap'd genes into a BasePopulation[Any]."""
         pass

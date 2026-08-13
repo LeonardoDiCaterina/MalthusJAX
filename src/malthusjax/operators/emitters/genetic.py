@@ -51,7 +51,7 @@ class GeneticMutationEmitter(BaseEmitter):
         keys: chex.Array,
         generation: int = 0,
         params: Any = None,
-    ) -> Tuple[BasePopulation, Optional[EmitterState]]:
+    ) -> Tuple[BasePopulation[Any], Optional[EmitterState]]:
         k1 = keys[0]
         k2 = keys[1:]
 
@@ -131,21 +131,25 @@ class GeneticCrossoverEmitter(BaseEmitter):
         k1, k2 = keys[:2], keys[2:]
         k1_a, k1_b = jax.random.split(k1[0])
 
-        p1_selection, _ = repertoire.sample(k1_a, self.batch_size)
-        p2_selection, _ = repertoire.sample(k1_b, self.batch_size)
-
-        if hasattr(p1_selection, "genes"):
-            p1_genotypes = p1_selection.genes.values
-            p2_genotypes = p2_selection.genes.values
+        # 1. Sample two sets of parents from repertoire
+        if hasattr(repertoire, "sample") and not hasattr(repertoire, "select"):
+            p1_genotypes, _ = repertoire.sample(k1_a, self.batch_size)
+            p2_genotypes, _ = repertoire.sample(k1_b, self.batch_size)
+            if isinstance(p1_genotypes, tuple):
+                p1_genotypes = p1_genotypes[0]
+            if isinstance(p2_genotypes, tuple):
+                p2_genotypes = p2_genotypes[0]
         else:
+            p1_selection = repertoire.select(k1_a, self.batch_size)
+            p2_selection = repertoire.select(k1_b, self.batch_size)
             p1_genotypes = (
-                p1_selection.genotypes.values
-                if hasattr(p1_selection.genotypes, "values")
+                p1_selection.genes.values
+                if hasattr(p1_selection, "genes")
                 else p1_selection.genotypes
             )
             p2_genotypes = (
-                p2_selection.genotypes.values
-                if hasattr(p2_selection.genotypes, "values")
+                p2_selection.genes.values
+                if hasattr(p2_selection, "genes")
                 else p2_selection.genotypes
             )
 
@@ -217,7 +221,7 @@ class GeneticMixingEmitter(BaseEmitter):
         keys: chex.Array,
         generation: int = 0,
         params: Any = None,
-    ) -> Tuple[BasePopulation, Optional[EmitterState]]:
+    ) -> Tuple[BasePopulation[Any], Optional[EmitterState]]:
         k1_a = keys[0]
         k1_b = keys[1]
         k2 = keys[2:]
@@ -282,5 +286,5 @@ class GeneticMixingEmitter(BaseEmitter):
             mask_expanded * cross_pop.genes.values + (1.0 - mask_expanded) * mut_pop.genes.values
         )
 
-        final_pop = mut_pop.replace(genes=mut_pop.genes.replace(values=blended_genes))
+        final_pop = mut_pop.replace(genes=mut_pop.genes.replace(values=blended_genes))  # type: ignore[attr-defined]
         return final_pop, state
