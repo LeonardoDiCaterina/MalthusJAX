@@ -46,7 +46,7 @@ typehints_document_rtype = True
 always_use_bars_union = True
 
 # Suppress duplicate object description warnings from re-exported symbols
-suppress_warnings = ["autodoc.import_object", "ref.duplicate"]
+suppress_warnings = ["autodoc.import_object", "ref.duplicate", "ref.python"]
 
 # -- MyST settings -----------------------------------------------------------
 source_suffix = {
@@ -93,11 +93,11 @@ def setup(app):
     app.connect("autodoc-skip-member", skip_member)
     
     # Suppress duplicate object description warnings from re-exported symbols in __init__.py
-    logger = logging.getLogger("sphinx.sphinx.domains.python")
+    logger = logging.getLogger("sphinx.domains.python")
     if logger:
         logger.addFilter(DuplicateObjectFilter())
     
-    logger_std = logging.getLogger("sphinx.sphinx.domains.std")
+    logger_std = logging.getLogger("sphinx.domains.std")
     if logger_std:
         logger_std.addFilter(DuplicateObjectFilter())
         
