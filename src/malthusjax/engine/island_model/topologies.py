@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import chex
 import jax
@@ -9,7 +9,7 @@ from malthusjax.core.base import BasePopulation
 from malthusjax.engine.base import AbstractEngine
 from malthusjax.engine.island_model.base import BaseIslandModel
 
-E = TypeVar("E", bound=AbstractEngine)
+E = TypeVar("E", bound=AbstractEngine[Any, Any])
 
 
 @struct.dataclass
@@ -20,7 +20,7 @@ class RingTopologyIsland(BaseIslandModel[E]):
     exactly one island to the right, injecting them into the worst spots.
     """
 
-    def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation) -> BasePopulation:
+    def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation[Any]) -> BasePopulation[Any]:
         # multi_pop.fitness shape: (num_islands, island_size)
         sorted_indices = jnp.argsort(multi_pop.fitness, axis=-1)
 
@@ -53,7 +53,7 @@ class RingTopologyIsland(BaseIslandModel[E]):
         )
         final_fitness = jax.vmap(inject_migrants)(multi_pop.fitness, worst_indices, migrant_fitness)
 
-        return multi_pop.replace(genes=final_genes, fitness=final_fitness)
+        return multi_pop.replace(genes=final_genes, fitness=final_fitness)  # type: ignore[attr-defined]
 
 
 @struct.dataclass

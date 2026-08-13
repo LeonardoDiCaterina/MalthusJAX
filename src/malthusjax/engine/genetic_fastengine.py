@@ -163,7 +163,7 @@ class GeneticEngineParams(AbstractEngineParams):
     prng_impl: PRNGImpl = _field(pytree_node=False, default=PRNGImpl.THREEFRY)
     schedule_type: ScheduleType = _field(pytree_node=False, default=ScheduleType.CONSTANT)
     track_best: TrackBest = _field(pytree_node=False, default=TrackBest.LIGHT)
-    track_metrics: TrackMetrics = _field(pytree_node=False, default=TrackMetrics.ALL)
+    track_metrics: Any = _field(pytree_node=False, default=TrackMetrics.ALL)
     initial_strength: float = 0.1
     final_strength: float = 0.0
     debug_tracing: bool = _field(pytree_node=False, default=False)
@@ -671,7 +671,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         def _first_leaf_shape(tree: Any) -> tuple[int, ...]:
             leaves = jax.tree_util.tree_leaves(tree)
-            return leaves[0].shape if leaves else ()  # type: ignore[no-any-return]
+            return leaves[0].shape if leaves else ()
 
         def _preview_leaf(tree: Any, limit: int = 3) -> list[Any]:
             leaves = jax.tree_util.tree_leaves(tree)
@@ -680,7 +680,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             arr = np.asarray(leaves[0])
             if arr.ndim == 0:
                 return [arr.item()]
-            return arr[: min(limit, arr.shape[0])].tolist()  # type: ignore[no-any-return]
+            return arr[: min(limit, arr.shape[0])].tolist()
 
         num_pairs = state.resource_map.crossover.input_count // 2
         expected_cross_keys = state.operators.crossover.num_keys(input_shape=(num_pairs,))
@@ -1186,7 +1186,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         overriding ``state.rng_key`` for entropy allocation in this generation.
         """
         state_with_key = replace(state, rng_key=rng_key)
-        return self.ask(state_with_key)
+        return self.ask(cast(GeneticEvolutionState, state_with_key))
 
     def tell(
         self, state: GeneticEvolutionState, population: BasePopulation[Any]

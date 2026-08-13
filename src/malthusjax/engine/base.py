@@ -360,7 +360,7 @@ def _get_evolution_kernel(
         ) -> Tuple[AbstractEvolutionState[G, P], Any]:
             new_state, history_item = engine.step(state)
             if not return_history:
-                history_item = ()
+                history_item = cast(Any, ())
             return new_state, history_item
 
         init_carry = initial_state

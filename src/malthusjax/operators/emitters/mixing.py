@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, cast
 
 import chex
 import jax
@@ -46,7 +46,7 @@ class MixingEmitter(BaseEmitter):
         raise NotImplementedError("Set input length on sub-emitters instead of MixingEmitter.")
 
     def init(
-        self, key: chex.Array, initial_population: BasePopulation, params: Any = None
+        self, key: chex.Array, initial_population: BasePopulation[Any], params: Any = None
     ) -> MixingEmitterState:
         k1, k2 = jax.random.split(key)
         state_a = self.emitter_a.init(k1, initial_population, params)
@@ -55,18 +55,19 @@ class MixingEmitter(BaseEmitter):
 
     def ask(
         self,
-        state: Optional[MixingEmitterState],
+        state: Optional[EmitterState],
         repertoire: Any,
         keys: chex.Array,
         generation: int = 0,
         params: Any = None,
-    ) -> Tuple[BasePopulation, Optional[MixingEmitterState]]:
+    ) -> Tuple[BasePopulation[Any], Optional[EmitterState]]:
+        mix_state = cast(Optional[MixingEmitterState], state)
         keys_a = self.emitter_a.num_keys()
         k1 = keys[:keys_a]
         k2 = keys[keys_a:]
 
-        state_a_in = state.state_a if state else None
-        state_b_in = state.state_b if state else None
+        state_a_in = mix_state.state_a if mix_state else None
+        state_b_in = mix_state.state_b if mix_state else None
 
         pop_a, next_state_a = self.emitter_a.ask(state_a_in, repertoire, k1, generation, params)
         pop_b, next_state_b = self.emitter_b.ask(state_b_in, repertoire, k2, generation, params)
@@ -82,7 +83,7 @@ class MixingEmitter(BaseEmitter):
                 [pop_a.info["descriptors"], pop_b.info["descriptors"]], axis=0
             )
 
-        merged_pop = pop_a.replace(
+        merged_pop = pop_a.replace(  # type: ignore[attr-defined]
             genes=merged_genes,
             fitness=jnp.concatenate([pop_a.fitness, pop_b.fitness], axis=0),
             info=merged_info,
@@ -92,13 +93,14 @@ class MixingEmitter(BaseEmitter):
 
     def tell(
         self,
-        state: Optional[MixingEmitterState],
+        state: Optional[EmitterState],
         repertoire: Any,
-        population: BasePopulation,
+        population: BasePopulation[Any],
         fitnesses: chex.Array,
         descriptors: chex.Array,
         key: chex.Array,
-    ) -> Optional[MixingEmitterState]:
+    ) -> Optional[EmitterState]:
+        mix_state = cast(Optional[MixingEmitterState], state)
         k1, k2 = jax.random.split(key)
 
         # Split populations back
@@ -107,11 +109,11 @@ class MixingEmitter(BaseEmitter):
         pop_a_genes = jax.tree_util.tree_map(lambda x: x[:size_a], population.genes)
         pop_b_genes = jax.tree_util.tree_map(lambda x: x[size_a:], population.genes)
 
-        pop_a = population.replace(genes=pop_a_genes, fitness=fitnesses[:size_a])
-        pop_b = population.replace(genes=pop_b_genes, fitness=fitnesses[size_a:])
+        pop_a = population.replace(genes=pop_a_genes, fitness=fitnesses[:size_a])  # type: ignore[attr-defined]
+        pop_b = population.replace(genes=pop_b_genes, fitness=fitnesses[size_a:])  # type: ignore[attr-defined]
 
-        state_a_in = state.state_a if state else None
-        state_b_in = state.state_b if state else None
+        state_a_in = mix_state.state_a if mix_state else None
+        state_b_in = mix_state.state_b if mix_state else None
 
         desc_a = descriptors[:size_a] if descriptors is not None else None
         desc_b = descriptors[size_a:] if descriptors is not None else None

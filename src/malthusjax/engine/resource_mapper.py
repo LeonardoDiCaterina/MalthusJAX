@@ -52,15 +52,14 @@ class ShardingManager:
         self.axis_name: str = axis_name
         self.devices = jax.devices()
         self.mesh = Mesh(self.devices, (self.axis_name,))
-        self.matrix_spec = P(self.axis_name, None)  # type: ignore[no-untyped-call]
+        self.matrix_spec = P(self.axis_name, None)
         self.matrix_sharding = NamedSharding(self.mesh, self.matrix_spec)
-        self.vector_spec = P(self.axis_name)  # type: ignore[no-untyped-call]
+        self.vector_spec = P(self.axis_name)
         self.vector_sharding = NamedSharding(self.mesh, self.vector_spec)
-        self.replicated_spec = P()  # type: ignore[no-untyped-call]
+        self.replicated_spec = P()
         self.replicated_sharding = NamedSharding(self.mesh, self.replicated_spec)
         self.mesh = Mesh(self.devices, (self.axis_name,))
-        self.pop_spec = P(self.axis_name, None)  # type: ignore[no-untyped-call]
-        self.replicated_spec = P()  # type: ignore[no-untyped-call]
+        self.pop_spec = P(self.axis_name, None)
         self.pop_sharding = NamedSharding(self.mesh, self.pop_spec)
         self.replicated_sharding = NamedSharding(self.mesh, self.replicated_spec)
 

@@ -8,7 +8,7 @@ from flax import struct
 from malthusjax.core.base import BasePopulation
 from malthusjax.engine.base import AbstractEngine
 
-E = TypeVar("E", bound=AbstractEngine)
+E = TypeVar("E", bound=AbstractEngine[Any, Any])
 
 
 @struct.dataclass
@@ -45,7 +45,7 @@ class BaseIslandModel(Generic[E]):
         return final_state, history
 
     @abstractmethod
-    def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation) -> BasePopulation:
+    def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation[Any]) -> BasePopulation[Any]:
         """Applies the specific topological matrix permutation to swap genomes between islands.
 
         Must be implemented by concrete subclasses like `RingTopologyIsland`.

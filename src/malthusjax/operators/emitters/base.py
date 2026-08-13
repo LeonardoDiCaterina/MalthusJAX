@@ -50,7 +50,7 @@ class BaseEmitter(ABC):
 
     @abstractmethod
     def init(
-        self, key: chex.Array, initial_population: BasePopulation, params: Any = None
+        self, key: chex.Array, initial_population: BasePopulation[Any], params: Any = None
     ) -> Optional[EmitterState]:
         """Initializes any required internal state using the initial population."""
         pass
@@ -63,7 +63,7 @@ class BaseEmitter(ABC):
         keys: chex.Array,
         generation: int = 0,
         params: Any = None,
-    ) -> Tuple[BasePopulation, Optional[EmitterState]]:
+    ) -> Tuple[BasePopulation[Any], Optional[EmitterState]]:
         """
         Samples parents from the repertoire and generates a batch of mutated offspring.
         Receives a pre-allocated flat buffer of keys from the ResourceMapper.
@@ -74,7 +74,7 @@ class BaseEmitter(ABC):
         self,
         state: Optional[EmitterState],
         repertoire: Any,
-        population: BasePopulation,
+        population: BasePopulation[Any],
         fitnesses: chex.Array,
         descriptors: chex.Array,
         key: chex.Array,
@@ -102,7 +102,7 @@ class AtomicEmitter(BaseEmitter):
         pass
 
     @abstractmethod
-    def _emit_one(self, state: Optional[EmitterState], key: chex.Array, *parents, **kwargs) -> Any:
+    def _emit_one(self, state: Optional[EmitterState], key: chex.Array, *parents: Any, **kwargs: Any) -> Any:
         """
         Tier 1 - Pure atomic generation for a single offspring instance.
         """

@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 import jax
 import jax.numpy as jnp
@@ -34,8 +34,8 @@ class SimpleGAEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     bypassing the modular MalthusJAX pipeline to achieve maximum performance.
     """
 
-    genome_config: Any = struct.field(pytree_node=False)
-    evaluator: BaseEvaluator[Any, Any, Any] = struct.field(pytree_node=False)
+    genome_config: Any = struct.field(default=None, pytree_node=False)
+    evaluator: Any = struct.field(default=None, pytree_node=False)
 
     def __hash__(self) -> int:
         """Make engine hashable for JIT static_argnums."""
@@ -51,7 +51,7 @@ class SimpleGAEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         params = self.engine_params
 
         if isinstance(rng_key, int):
-            rng_key = create_key(rng_key, impl=params.prng_impl)
+            rng_key = create_key(rng_key, impl=getattr(params, "prng_impl", None))
         else:
             validate_key(rng_key, context="SimpleGAEngine.init_state()")
 
@@ -84,7 +84,7 @@ class SimpleGAEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         idx = jnp.argsort(pop.fitness)
         sorted_genes = jax.tree_util.tree_map(lambda x: x[idx], pop.genes)
 
-        num_elites = int(params.pop_size * params.elite_ratio)
+        num_elites = int(params.pop_size * getattr(params, "elite_ratio", 0.1))
         p = jnp.arange(params.pop_size) < num_elites
 
         rng_key, k_cross, k_mut, k_1, k_2 = jax.random.split(state.rng_key, 5)
@@ -146,16 +146,17 @@ class SimpleGAEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         time_it: bool = False,
         compile: bool = True,
         verbose: bool = False,
+        return_history: bool = True,
     ) -> Tuple[
-        AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any
+        AbstractEvolutionState[BaseGenome, BasePopulation[Any]], Any, Optional[float]
     ]:
         """Execute full evolution and extract final best genome at the end."""
         final_state, history, elapsed_time = super().run(
-            initial_state, time_it=time_it, compile=compile, verbose=verbose
+            initial_state, time_it=time_it, compile=compile, verbose=verbose, return_history=return_history
         )
         best_idx = jnp.argmin(final_state.population.fitness)
         final_best_genome = jax.tree_util.tree_map(
             lambda x: x[best_idx], final_state.population.genes
         )
-        final_state = final_state.replace(best_genome=final_best_genome)
+        final_state = final_state.replace(best_genome=final_best_genome)  # type: ignore[attr-defined]
         return final_state, history, elapsed_time

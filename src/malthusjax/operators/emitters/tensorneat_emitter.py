@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, cast
 
 import chex
 import jax
@@ -79,12 +79,15 @@ class TensorNeatEmitter(AtomicEmitter):
         # It was splitting k1, k2 = jax.random.split(keys, 2) in _sample_parents.
         return 2
 
-    def _sample_parents(
-        self, state: Optional[TensorNeatEmitterState], repertoire: Any, keys: chex.Array
-    ) -> Tuple[Any, dict, TensorNeatEmitterState]:
+    def _sample_parents(  # type: ignore[override]
+        self, state: Optional[EmitterState], repertoire: Any, keys: chex.Array
+    ) -> Tuple[Any, Any]:
         """
         Tier 2 - Sampling & Data Prep.
+        Extracts parent genotypes and computes batch-level mutation keys.
         """
+        assert state is not None
+        mix_state = cast(TensorNeatEmitterState, state)
         k1, k2 = keys[0], keys[1]
 
         p1_genotypes = repertoire.select(k1, self.batch_size).genotypes
@@ -96,11 +99,11 @@ class TensorNeatEmitter(AtomicEmitter):
         parents_tuple = (p1_nodes, p1_conns, p2_nodes, p2_conns)
 
         # Batch-level prep for mutation keys
-        next_node_key = state.max_node_key + 1
+        next_node_key = mix_state.max_node_key + 1
         new_node_keys = jnp.arange(self.batch_size) + next_node_key
 
         if "historical_marker" in self.genome.conn_gene.fixed_attrs:
-            next_conn_marker = state.max_conn_marker + 1
+            next_conn_marker = mix_state.max_conn_marker + 1
             new_conn_markers = (
                 jnp.arange(self.batch_size * 3).reshape(self.batch_size, 3) + next_conn_marker
             )
@@ -109,16 +112,16 @@ class TensorNeatEmitter(AtomicEmitter):
 
         metadata_dict = {"new_node_key": new_node_keys, "new_conn_markers": new_conn_markers}
 
-        updated_state = state.replace(
-            max_node_key=state.max_node_key + self.batch_size,
-            max_conn_marker=state.max_conn_marker + (self.batch_size * 3),
+        updated_state = mix_state.replace(  # type: ignore[attr-defined]
+            max_node_key=mix_state.max_node_key + self.batch_size,
+            max_conn_marker=mix_state.max_conn_marker + (self.batch_size * 3),
         )
 
-        return parents_tuple, metadata_dict, updated_state
+        return parents_tuple, metadata_dict, updated_state  # type: ignore[return-value]
 
-    def _emit_one(
+    def _emit_one(  # type: ignore[override]
         self,
-        state: Optional[TensorNeatEmitterState],
+        state: Optional[EmitterState],
         keys: chex.Array,
         p1_n: chex.Array,
         p1_c: chex.Array,
@@ -126,11 +129,14 @@ class TensorNeatEmitter(AtomicEmitter):
         p2_c: chex.Array,
         new_node_key: chex.Array,
         new_conn_markers: chex.Array,
+        *args: Any,
+        **kwargs: Any,
     ) -> Tuple[chex.Array, chex.Array]:
         """
         Tier 1 - Pure Atomic Graph Generation.
         Applies execute_crossover and execute_mutation to a single instance.
         """
+        assert state is not None
         k_cx, k_mut = keys[0], keys[1]
 
         # 1. Crossover
@@ -143,7 +149,7 @@ class TensorNeatEmitter(AtomicEmitter):
 
         return mut_n, mut_c
 
-    def _wrap_population(self, offspring_genes: Tuple[chex.Array, chex.Array]) -> BasePopulation:
+    def _wrap_population(self, offspring_genes: Tuple[chex.Array, chex.Array]) -> BasePopulation[Any]:
         genes = TensorNeatGenome(values=offspring_genes)
         return TensorNeatPopulation(
             genes=genes, fitness=jnp.full(self.batch_size, -jnp.inf), config=None

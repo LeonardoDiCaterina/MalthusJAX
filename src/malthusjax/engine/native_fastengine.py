@@ -14,13 +14,12 @@ from malthusjax.engine.genetic_fastengine import (
     GeneticEngineParams,
     GeneticEvolutionState,
     GeneticGenerationOutput,
-    TrackBest,
-    TrackMetrics,
 )
+from malthusjax.engine.schedules import TrackBest, TrackMetrics
 
 
 @functools.lru_cache(maxsize=128)
-def _get_native_fast_kernel(params, compile_jit: bool = True, return_history: bool = True):
+def _get_native_fast_kernel(params: Any, compile_jit: bool = True, return_history: bool = True) -> Any:
     def _evolve_flat(engine, initial_state, flat_state):
         def flat_step(carry, _):
             c_values, c_fitness, c_best_genes, c_best_fit, c_key, c_gen = carry
@@ -170,9 +169,9 @@ class NativeFastEngine(GeneticEngine):
 
         start_time = time.time()
 
-        initial_flat_values = state.population.genes.values
+        initial_flat_values = getattr(state.population.genes, "values", state.population.genes)
         initial_best_values = (
-            state.best_genome.values if state.best_genome is not None else initial_flat_values[0]
+            getattr(state.best_genome, "values", state.best_genome) if state.best_genome is not None else initial_flat_values[0]
         )
 
         flat_state_in = (
@@ -195,16 +194,16 @@ class NativeFastEngine(GeneticEngine):
 
         f_values, f_fitness, f_best_values, f_best_fit, f_key, f_gen = final_carry
 
-        final_pop = state.population.replace(
-            genes=state.population.genes.replace(values=f_values), fitness=f_fitness
+        final_pop = state.population.replace(  # type: ignore[attr-defined]
+            genes=state.population.genes.replace(values=f_values) if hasattr(state.population.genes, "replace") else f_values, fitness=f_fitness
         )
         final_best_genome = (
-            state.best_genome.replace(values=f_best_values)
-            if state.best_genome is not None
-            else None
+            state.best_genome.replace(values=f_best_values)  # type: ignore[attr-defined]
+            if state.best_genome is not None and hasattr(state.best_genome, "replace")
+            else f_best_values
         )
 
-        final_state = state.replace(
+        final_state = state.replace(  # type: ignore[attr-defined]
             population=final_pop,
             best_genome=final_best_genome,
             best_fitness=f_best_fit,

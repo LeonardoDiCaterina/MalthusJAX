@@ -57,8 +57,8 @@ class QDAXReplicaMixingEmitter(BaseEmitter):
         Genome configuration for wrapping raw arrays into ``RealPopulation``.
     """
 
-    mutation_fn: Callable = struct.field(pytree_node=False)
-    variation_fn: Callable = struct.field(pytree_node=False)
+    mutation_fn: Callable[..., Any] = struct.field(pytree_node=False)
+    variation_fn: Callable[..., Any] = struct.field(pytree_node=False)
     variation_percentage: float = struct.field(pytree_node=False, default=0.5)
     _batch_size: int = struct.field(pytree_node=False, default=100)
     genome_config: Any = struct.field(pytree_node=False, default=None)
@@ -79,12 +79,12 @@ class QDAXReplicaMixingEmitter(BaseEmitter):
         return 1
 
     def set_input_length(self, length: int) -> "QDAXReplicaMixingEmitter":
-        return self.replace(_batch_size=length)
+        return self.replace(_batch_size=length)  # type: ignore[attr-defined]
 
     def init(
         self,
         key: chex.Array,
-        initial_population: BasePopulation,
+        initial_population: BasePopulation[Any],
         params: Any = None,
     ) -> Optional[EmitterState]:
         # MixingEmitter is stateless.
@@ -99,7 +99,7 @@ class QDAXReplicaMixingEmitter(BaseEmitter):
         keys: chex.Array,
         generation: int = 0,
         params: Any = None,
-    ) -> Tuple[BasePopulation, Optional[EmitterState]]:
+    ) -> Tuple[BasePopulation[Any], Optional[EmitterState]]:
         """Generate offspring — exact replica of ``MixingEmitter.emit()``.
 
         The key flow is replicated precisely:

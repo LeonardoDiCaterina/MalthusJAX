@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple, TypeVar
+from typing import Any, Optional, Tuple, TypeVar, cast
 
 import chex
 import jax
@@ -64,10 +64,10 @@ class MapElitesEngine(AbstractEngine[G, P]):
     """
 
     emitter: BaseEmitter = _field(pytree_node=False)
-    evaluator: BaseQDEvaluator = _field(pytree_node=False)
+    evaluator: BaseQDEvaluator[Any, Any, Any] = _field(pytree_node=False)
     engine_params: MapElitesEngineParams = _field(pytree_node=False)
 
-    def init_state(
+    def init_state(  # type: ignore[override]
         self, rng_key: chex.Array, initial_population: P, centroids: chex.Array
     ) -> MapElitesState[G, P]:
         """
@@ -118,7 +118,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
             best_genome = best_genome_values
 
         return MapElitesState(
-            population=eval_pop,
+            population=cast(P, eval_pop),
             best_genome=best_genome,
             generation=0,
             best_fitness=best_fitness,
@@ -127,7 +127,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
             emitter_state=emitter_state,
         )
 
-    def step(self, state: MapElitesState[G, P]) -> Tuple[MapElitesState[G, P], QDGenerationOutput]:
+    def step(self, state: MapElitesState[G, P]) -> Tuple[MapElitesState[G, P], QDGenerationOutput]:  # type: ignore[override]
         """
         Performs a single generation of MAP-Elites.
         """
@@ -228,17 +228,17 @@ class MapElitesEngine(AbstractEngine[G, P]):
 
             jnp.sum(new_repertoire.fitnesses > -jnp.inf)
         else:
-            best_fitness = jnp.nan
-            mean_fitness = jnp.nan
-            std_fitness = jnp.nan
-            coverage = jnp.nan
-            qd_score = jnp.nan
+            best_fitness = cast(chex.Array, jnp.nan)
+            mean_fitness = cast(chex.Array, jnp.nan)
+            std_fitness = cast(chex.Array, jnp.nan)
+            coverage = cast(chex.Array, jnp.nan)
+            qd_score = cast(chex.Array, jnp.nan)
 
         best_genome_idx = jnp.argmax(new_repertoire.fitnesses)
         best_genome_values = jax.tree_util.tree_map(
             lambda x: x[best_genome_idx], new_repertoire.genotypes
         )
-        best_genome = state.best_genome.replace(values=best_genome_values)
+        best_genome = state.best_genome.replace(values=best_genome_values) if hasattr(state.best_genome, "replace") else best_genome_values  # type: ignore[attr-defined]
 
         kpi = QDGenerationOutput(
             best_fitness=best_fitness,
@@ -249,7 +249,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
             coverage=coverage,
         )
 
-        new_state = state.replace(
+        new_state = state.replace(  # type: ignore[attr-defined]
             population=eval_pop,
             best_genome=best_genome,
             generation=state.generation + 1,

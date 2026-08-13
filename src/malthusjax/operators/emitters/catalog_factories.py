@@ -15,12 +15,12 @@ from malthusjax.operators.emitters.qdax_replica import QDAXReplicaMixingEmitter
 # a single PRNGKey for the entire batch.
 # ---------------------------------------------------------------------------
 
-QDAX_MUTATION_LAMBDAS: Dict[str, Callable] = {
+QDAX_MUTATION_LAMBDAS: Dict[str, Callable[..., Any]] = {
     "gaussian": lambda x, key, sigma=0.1: x + jax.random.normal(key, x.shape) * sigma,
     # Additional pure lambda mutations (like polynomial) can be added here
 }
 
-QDAX_VARIATION_LAMBDAS: Dict[str, Callable] = {
+QDAX_VARIATION_LAMBDAS: Dict[str, Callable[..., Any]] = {
     "none": lambda x1, x2, key: x1,
     # Additional pure lambda variations (like iso_dd) can be added here
 }
@@ -32,7 +32,7 @@ def _parse_lambda_spec(spec: str) -> Tuple[str, Dict[str, Any]]:
     if ":" not in spec:
         return spec, {}
     name, params_str = spec.split(":", 1)
-    params = {}
+    params: Dict[str, Any] = {}
     for param_pair in params_str.split(","):
         k, v = param_pair.split("=")
         try:

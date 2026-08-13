@@ -60,10 +60,10 @@ class MOEngine(AbstractEngine[G, P]):
     """
 
     emitter: BaseEmitter = _field(pytree_node=False)
-    evaluator: BaseMOEvaluator = _field(pytree_node=False)
+    evaluator: BaseMOEvaluator[Any, Any, Any] = _field(pytree_node=False)
     engine_params: MOEngineParams = _field(pytree_node=False)
 
-    def init_state(
+    def init_state(  # type: ignore[override]
         self, rng_key: chex.Array, initial_population: BasePopulation[G]
     ) -> MOState[G, P]:
         """
@@ -97,7 +97,7 @@ class MOEngine(AbstractEngine[G, P]):
             emitter_state=emitter_state,
         )
 
-    def step(self, state: MOState[G, P]) -> Tuple[MOState[G, P], MOGenerationOutput]:
+    def step(self, state: MOState[G, P]) -> Tuple[MOState[G, P], MOGenerationOutput]:  # type: ignore[override]
         """
         Performs a single generation of MO Evolution (NSGA-II).
         """

@@ -1,6 +1,7 @@
 from typing import Any, Optional, Tuple
 
 import chex
+import jax
 import jax.numpy as jnp
 from flax import struct
 
@@ -16,7 +17,7 @@ class GeneticMutationEmitter(BaseEmitter):
     It passes the Engine's generation down to the operator to support dynamic mutation rate schedules.
     """
 
-    mutation: BaseMutation = struct.field(pytree_node=False)
+    mutation: BaseMutation[Any, Any] = struct.field(pytree_node=False)
     genome_config: Any = struct.field(pytree_node=False)
     _batch_size: int = struct.field(pytree_node=False)
 
@@ -29,10 +30,10 @@ class GeneticMutationEmitter(BaseEmitter):
         return self.mutation.num_keys_per_atomic_operation
 
     def set_input_length(self, length: int) -> "GeneticMutationEmitter":
-        return self.replace(_batch_size=length)
+        return self.replace(_batch_size=length)  # type: ignore[attr-defined]
 
     def init(
-        self, key: chex.Array, initial_population: BasePopulation, params: Any = None
+        self, key: chex.Array, initial_population: BasePopulation[Any], params: Any = None
     ) -> Optional[EmitterState]:
         return None
 
@@ -90,7 +91,7 @@ class GeneticCrossoverEmitter(BaseEmitter):
     Quality-Diversity Emitter that natively wraps a MalthusJAX BaseCrossover operator.
     """
 
-    crossover: BaseCrossover = struct.field(pytree_node=False)
+    crossover: BaseCrossover[Any, Any] = struct.field(pytree_node=False)
     genome_config: Any = struct.field(pytree_node=False)
     _batch_size: int = struct.field(pytree_node=False)
 
@@ -103,10 +104,10 @@ class GeneticCrossoverEmitter(BaseEmitter):
         return self.crossover.num_keys_per_atomic_operation
 
     def set_input_length(self, length: int) -> "GeneticCrossoverEmitter":
-        return self.replace(_batch_size=length)
+        return self.replace(_batch_size=length)  # type: ignore[attr-defined]
 
     def init(
-        self, key: chex.Array, initial_population: BasePopulation, params: Any = None
+        self, key: chex.Array, initial_population: BasePopulation[Any], params: Any = None
     ) -> Optional[EmitterState]:
         return None
 
@@ -114,7 +115,6 @@ class GeneticCrossoverEmitter(BaseEmitter):
         return 2
 
     def num_keys(self) -> int:
-        # 2 keys for selecting two sets of parents + atomic operation keys
         return self.num_keys_for_sampling() + (self.batch_size * self.num_keys_per_atomic_operation)
 
     def ask(
@@ -124,30 +124,28 @@ class GeneticCrossoverEmitter(BaseEmitter):
         keys: chex.Array,
         generation: int = 0,
         params: Any = None,
-    ) -> Tuple[BasePopulation, Optional[EmitterState]]:
-        k1_a = keys[0]
-        k1_b = keys[1]
-        k2 = keys[2:]
+    ) -> Tuple[BasePopulation[Any], Optional[EmitterState]]:
+        """
+        Samples parent pairs from the repertoire and executes MalthusJAX Tier-3 crossover.
+        """
+        k1, k2 = keys[:2], keys[2:]
+        k1_a, k1_b = jax.random.split(k1[0])
 
-        # 1. Sample two sets of parents from repertoire
-        if hasattr(repertoire, "sample") and not hasattr(repertoire, "select"):
-            p1_genotypes, _ = repertoire.sample(k1_a, self.batch_size)
-            p2_genotypes, _ = repertoire.sample(k1_b, self.batch_size)
-            if isinstance(p1_genotypes, tuple):
-                p1_genotypes = p1_genotypes[0]
-            if isinstance(p2_genotypes, tuple):
-                p2_genotypes = p2_genotypes[0]
+        p1_selection, _ = repertoire.sample(k1_a, self.batch_size)
+        p2_selection, _ = repertoire.sample(k1_b, self.batch_size)
+
+        if hasattr(p1_selection, "genes"):
+            p1_genotypes = p1_selection.genes.values
+            p2_genotypes = p2_selection.genes.values
         else:
-            p1_selection = repertoire.select(k1_a, self.batch_size)
-            p2_selection = repertoire.select(k1_b, self.batch_size)
             p1_genotypes = (
-                p1_selection.genes.values
-                if hasattr(p1_selection, "genes")
+                p1_selection.genotypes.values
+                if hasattr(p1_selection.genotypes, "values")
                 else p1_selection.genotypes
             )
             p2_genotypes = (
-                p2_selection.genes.values
-                if hasattr(p2_selection, "genes")
+                p2_selection.genotypes.values
+                if hasattr(p2_selection.genotypes, "values")
                 else p2_selection.genotypes
             )
 
@@ -180,8 +178,8 @@ class GeneticMixingEmitter(BaseEmitter):
     to fuse the kernel, maximizing SIMT efficiency without relying on AtomicEmitter.
     """
 
-    mutation: BaseMutation = struct.field(pytree_node=False)
-    crossover: BaseCrossover = struct.field(pytree_node=False)
+    mutation: BaseMutation[Any, Any] = struct.field(pytree_node=False)
+    crossover: BaseCrossover[Any, Any] = struct.field(pytree_node=False)
     variation_percentage: float = struct.field(pytree_node=False)
     genome_config: Any = struct.field(pytree_node=False)
     _batch_size: int = struct.field(pytree_node=False)
@@ -198,10 +196,10 @@ class GeneticMixingEmitter(BaseEmitter):
         )
 
     def set_input_length(self, length: int) -> "GeneticMixingEmitter":
-        return self.replace(_batch_size=length)
+        return self.replace(_batch_size=length)  # type: ignore[attr-defined]
 
     def init(
-        self, key: chex.Array, initial_population: BasePopulation, params: Any = None
+        self, key: chex.Array, initial_population: BasePopulation[Any], params: Any = None
     ) -> Optional[EmitterState]:
         return None
 

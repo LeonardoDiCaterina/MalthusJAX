@@ -10,7 +10,7 @@ Achieves ~100% XLA kernel fusion parity with EvoSAX and TensorNEAT by:
 
 from __future__ import annotations
 
-from typing import Any, Tuple, Union, cast
+from typing import Any, Optional, Tuple, Union, cast
 
 import chex
 import jax
@@ -187,14 +187,14 @@ class LightenedGeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             next_genes = jax.tree_util.tree_map(_fuse, pop.genes, elites_genes, mutants_keep)
 
         # Phase 4: Evaluation
-        new_pop = pop.replace(genes=next_genes)
+        new_pop = pop.replace(genes=next_genes)  # type: ignore[attr-defined]
         evaluated_pop = self.evaluator.evaluate_population(new_pop)
 
         # Phase 5: Fast Hall-of-Fame Scalar Update
         gen_best_fitness = jnp.min(evaluated_pop.fitness)
         new_best_fitness = jnp.minimum(gen_best_fitness, state.best_fitness)
 
-        final_state = state.replace(
+        final_state = state.replace(  # type: ignore[attr-defined]
             population=evaluated_pop,
             best_fitness=new_best_fitness,
             generation=state.generation + 1,
@@ -217,12 +217,13 @@ class LightenedGeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         time_it: bool = False,
         compile: bool = True,
         verbose: bool = False,
+        return_history: bool = True,
     ) -> Tuple[
-        AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any
+        AbstractEvolutionState[BaseGenome, BasePopulation[Any]], Any, Optional[float]
     ]:
         """Execute full evolution and extract final best genome at the end."""
         final_state, history, elapsed_time = super().run(
-            initial_state, time_it=time_it, compile=compile, verbose=verbose
+            initial_state, time_it=time_it, compile=compile, verbose=verbose, return_history=return_history
         )
         best_idx = jnp.argmin(final_state.population.fitness)
         final_best_genome = jax.tree_util.tree_map(
@@ -230,6 +231,6 @@ class LightenedGeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
         final_state = cast(
             GeneticEvolutionState,
-            final_state.replace(best_genome=final_best_genome),
+            final_state.replace(best_genome=final_best_genome),  # type: ignore[attr-defined]
         )
         return final_state, history, elapsed_time
