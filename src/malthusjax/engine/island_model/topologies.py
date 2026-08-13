@@ -64,7 +64,7 @@ class FullyConnectedIsland(BaseIslandModel[E]):
     shuffles them, and redistributes them randomly across all islands.
     """
 
-    def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation) -> BasePopulation:
+    def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation[Any]) -> BasePopulation[Any]:
         sorted_indices = jnp.argsort(multi_pop.fitness, axis=-1)
 
         elite_indices = sorted_indices[:, : self.num_migrants]
@@ -109,4 +109,4 @@ class FullyConnectedIsland(BaseIslandModel[E]):
             multi_pop.fitness, worst_indices, shuffled_fitness, island_indices
         )
 
-        return multi_pop.replace(genes=final_genes, fitness=final_fitness)
+        return multi_pop.replace(genes=final_genes, fitness=final_fitness)  # type: ignore[attr-defined]

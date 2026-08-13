@@ -24,7 +24,6 @@ from malthusjax.core.random import create_key, is_new_style_key, validate_key
 from malthusjax.engine.base import (
     AbstractEngine,
     AbstractEvolutionState,
-    AbstractGenerationOutput,
 )
 from malthusjax.engine.genetic_fastengine import (
     GeneticEngineParams,

@@ -198,7 +198,7 @@ class NativeFastEngine(GeneticEngine):
             genes=state.population.genes.replace(values=f_values) if hasattr(state.population.genes, "replace") else f_values, fitness=f_fitness
         )
         final_best_genome = (
-            state.best_genome.replace(values=f_best_values)  # type: ignore[attr-defined]
+            state.best_genome.replace(values=f_best_values)
             if state.best_genome is not None and hasattr(state.best_genome, "replace")
             else f_best_values
         )

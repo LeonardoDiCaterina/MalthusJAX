@@ -161,7 +161,7 @@ class MOEngine(AbstractEngine[G, P]):
             max_crowding_distance=max_crowding_distance,
         )
 
-        new_state = state.replace(
+        new_state = state.replace(  # type: ignore[attr-defined]
             population=cast(P, new_mo_pop),
             best_genome=cast(G, best_genome),
             generation=state.generation + 1,

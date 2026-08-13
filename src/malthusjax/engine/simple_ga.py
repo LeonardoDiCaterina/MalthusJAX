@@ -5,7 +5,6 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
-from malthusjax.core.fitness.base import BaseEvaluator
 from malthusjax.core.random import create_key, validate_key
 from malthusjax.engine.base import (
     AbstractEngine,
@@ -114,7 +113,7 @@ class SimpleGAEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
 
         # 3. Evaluation
-        new_pop = pop.replace(genes=next_genes)
+        new_pop = pop.replace(genes=next_genes)  # type: ignore[attr-defined]
         evaluated_pop = self.evaluator.evaluate_population(new_pop)
 
         # 4. Hall of Fame Update
@@ -132,7 +131,7 @@ class SimpleGAEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             random_key=state.rng_key,
         )
 
-        new_state = state.replace(
+        new_state = state.replace(  # type: ignore[attr-defined]
             population=evaluated_pop,
             best_fitness=new_best_fitness,
             generation=state.generation + 1,

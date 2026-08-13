@@ -127,7 +127,9 @@ class MapElitesEngine(AbstractEngine[G, P]):
             emitter_state=emitter_state,
         )
 
-    def step(self, state: MapElitesState[G, P]) -> Tuple[MapElitesState[G, P], QDGenerationOutput]:  # type: ignore[override]
+    def step(  # type: ignore[override]
+        self, state: MapElitesState[G, P]
+    ) -> Tuple[MapElitesState[G, P], QDGenerationOutput]:
         """
         Performs a single generation of MAP-Elites.
         """
@@ -238,7 +240,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
         best_genome_values = jax.tree_util.tree_map(
             lambda x: x[best_genome_idx], new_repertoire.genotypes
         )
-        best_genome = state.best_genome.replace(values=best_genome_values) if hasattr(state.best_genome, "replace") else best_genome_values  # type: ignore[attr-defined]
+        best_genome = state.best_genome.replace(values=best_genome_values) if hasattr(state.best_genome, "replace") else best_genome_values
 
         kpi = QDGenerationOutput(
             best_fitness=best_fitness,
