@@ -5,7 +5,7 @@ from malthusjax.dash.config import load_config
 from malthusjax.dash.plan import AnalysisPlan
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="MalthusDash: Analytical engine for MalthusJAX.")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 

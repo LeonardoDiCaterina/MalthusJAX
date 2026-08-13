@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -51,7 +51,7 @@ class MetricVector:
 
     @property
     def n(self) -> int:
-        return self.values.shape[0]
+        return int(self.values.shape[0])
 
 
 @dataclass(frozen=True)
@@ -72,7 +72,7 @@ class PairedSample:
 
     @property
     def diffs(self) -> np.ndarray:
-        return self.left.values - self.right.values
+        return cast(np.ndarray, self.left.values - self.right.values)
 
 
 @dataclass(frozen=True)

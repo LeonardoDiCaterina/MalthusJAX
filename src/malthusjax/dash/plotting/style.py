@@ -32,7 +32,7 @@ class PlotStyle:
             elif v is not None:
                 updates[k] = v
 
-        return replace(self, **updates)
+        return replace(self, **updates)  # type: ignore[arg-type]
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "PlotStyle":

@@ -5,7 +5,7 @@ try:
     import tomllib
 except ImportError:
     try:
-        import tomli as tomllib
+        import tomli as tomllib  # type: ignore[no-redef]
     except ImportError:
         raise ImportError(
             "Dash configuration requires TOML support. "

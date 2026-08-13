@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -71,4 +71,4 @@ class ScalingPlot(BasePlotGenerator):
             sns.move_legend(ax, style.legend_loc)
 
         fig.tight_layout()
-        return fig
+        return cast(Figure, fig)

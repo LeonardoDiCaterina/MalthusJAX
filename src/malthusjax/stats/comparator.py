@@ -497,12 +497,12 @@ def paired_dataset_from_experiments(
             if lrun.timings and rrun.timings:
                 common_timing_keys = sorted(set(lrun.timings) & set(rrun.timings))
                 for key in common_timing_keys:
-                    lv = lrun.timings.get(key)
-                    rv = rrun.timings.get(key)
-                    if lv is None or rv is None:
+                    lv_raw = lrun.timings.get(key)
+                    rv_raw = rrun.timings.get(key)
+                    if lv_raw is None or rv_raw is None:
                         continue
-                    left_component_timing.setdefault(key, []).append(float(lv))
-                    right_component_timing.setdefault(key, []).append(float(rv))
+                    left_component_timing.setdefault(key, []).append(float(lv_raw))
+                    right_component_timing.setdefault(key, []).append(float(rv_raw))
 
     source = "experiment_runs"
     if spec.hypothesis_kind == HypothesisKind.CLOSER_TO_OPTIMUM:
@@ -523,7 +523,7 @@ def paired_dataset_from_experiments(
     if left_delta is not None and right_delta is not None:
         delta_diff = float(left_delta - right_delta)
 
-    metadata = {
+    metadata: dict[str, Any] = {
         "left_experiment": left.name,
         "right_experiment": right.name,
         "left_start_mean": left_start_mean,
@@ -777,7 +777,7 @@ def paired_dataset_from_artifacts(
             right_components=right_component_timing,
         )
 
-    metadata = {
+    metadata: dict[str, Any] = {
         "left_dir": str(left_dir),
         "right_dir": str(right_dir),
         "left_start_mean": left_start_mean,

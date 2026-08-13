@@ -1,46 +1,46 @@
-from typing import Callable
+from typing import Any, Callable
 
-_TEST_REGISTRY: dict[str, Callable] = {}
-_EFFECT_REGISTRY: dict[str, Callable] = {}
-_DIAGNOSTIC_REGISTRY: dict[str, Callable] = {}
-_CORRECTION_REGISTRY: dict[str, Callable] = {}
+_TEST_REGISTRY: dict[str, Callable[..., Any]] = {}
+_EFFECT_REGISTRY: dict[str, Callable[..., Any]] = {}
+_DIAGNOSTIC_REGISTRY: dict[str, Callable[..., Any]] = {}
+_CORRECTION_REGISTRY: dict[str, Callable[..., Any]] = {}
 
 
-def register_test(name: str, fn: Callable) -> None:
+def register_test(name: str, fn: Callable[..., Any]) -> None:
     _TEST_REGISTRY[name] = fn
 
 
-def get_test(name: str) -> Callable:
+def get_test(name: str) -> Callable[..., Any]:
     if name not in _TEST_REGISTRY:
         raise KeyError(f"Unknown test: '{name}'. Available: {list(_TEST_REGISTRY)}")
     return _TEST_REGISTRY[name]
 
 
-def register_effect(name: str, fn: Callable) -> None:
+def register_effect(name: str, fn: Callable[..., Any]) -> None:
     _EFFECT_REGISTRY[name] = fn
 
 
-def get_effect(name: str) -> Callable:
+def get_effect(name: str) -> Callable[..., Any]:
     if name not in _EFFECT_REGISTRY:
         raise KeyError(f"Unknown effect: '{name}'. Available: {list(_EFFECT_REGISTRY)}")
     return _EFFECT_REGISTRY[name]
 
 
-def register_diagnostic(name: str, fn: Callable) -> None:
+def register_diagnostic(name: str, fn: Callable[..., Any]) -> None:
     _DIAGNOSTIC_REGISTRY[name] = fn
 
 
-def get_diagnostic(name: str) -> Callable:
+def get_diagnostic(name: str) -> Callable[..., Any]:
     if name not in _DIAGNOSTIC_REGISTRY:
         raise KeyError(f"Unknown diagnostic: '{name}'. Available: {list(_DIAGNOSTIC_REGISTRY)}")
     return _DIAGNOSTIC_REGISTRY[name]
 
 
-def register_correction(name: str, fn: Callable) -> None:
+def register_correction(name: str, fn: Callable[..., Any]) -> None:
     _CORRECTION_REGISTRY[name] = fn
 
 
-def get_correction(name: str) -> Callable:
+def get_correction(name: str) -> Callable[..., Any]:
     if name not in _CORRECTION_REGISTRY:
         raise KeyError(f"Unknown correction: '{name}'. Available: {list(_CORRECTION_REGISTRY)}")
     return _CORRECTION_REGISTRY[name]
