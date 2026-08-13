@@ -8,22 +8,22 @@ from malthusjax.composer.adapters.base import UniversalAdapterEngine
 def adapter(
     framework: str,
     state_mapping: Dict[str, str],
-    eval_translators: Dict[str, Callable],
-    metrics_mapping: Dict[str, str | Callable],
-) -> Callable:
+    eval_translators: Dict[str, Callable[..., Any]],
+    metrics_mapping: Dict[str, str | Callable[..., Any]],
+) -> Callable[..., Any]:
     """Decorator to generate a UniversalAdapterEngine subclass dynamically.
 
     Args:
         framework: Name of the framework (e.g., "evosax", "qdax").
-        state_mapping: Dict mapping "init" and "step" keys to the actual framework method names.
-        eval_translators: Dict mapping EvalMode constants ("native", "malthusjax") to callables
+        state_mapping: Dict[str, Any] mapping "init" and "step" keys to the actual framework method names.
+        eval_translators: Dict[str, Any] mapping EvalMode constants ("native", "malthusjax") to callables
             that handle fitness evaluation for that framework.
-        metrics_mapping: Dict mapping metric names to keys or callables to extract from the
+        metrics_mapping: Dict[str, Any] mapping metric names to keys or callables to extract from the
             framework's metrics object.
     """
 
     def decorator(cls: type) -> type:
-        class AdaptedEngine(cls):
+        class AdaptedEngine(cls):  # type: ignore[misc]
             def __init__(
                 self,
                 strategy: Any,
@@ -72,6 +72,7 @@ def adapter(
                     raise ValueError(f"EvalMode '{eval_mode}' is not supported by {cls.__name__}")
 
                 # Bundle the problem for NATIVE evaluation
+                framework_evaluator: Any
                 if eval_mode == "native":
                     framework_evaluator = (problem, problem_state)
                 else:

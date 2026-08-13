@@ -17,7 +17,7 @@ class MOEngineAdapter:
 
     def __init__(
         self,
-        mo_engine: MOEngine,
+        mo_engine: MOEngine[Any, Any],
         genome_config: Any,
         maximize: bool = True,
         initial_population: Any = None,
@@ -111,6 +111,7 @@ def build_mo_engine(
     if isinstance(genome_shape, int):
         genome_shape = (genome_shape,)
 
+    genome_config: Any
     if genome_type == "real":
         genome_config = RealGenomeConfig(
             shape=genome_shape, bounds=bounds, dtype=kwargs.get("dtype", "float32")
@@ -125,7 +126,7 @@ def build_mo_engine(
         num_generations=generations,
     )
 
-    engine = MOEngine(emitter=emitter, evaluator=fitness_evaluator, engine_params=engine_params)
+    engine: Any = MOEngine(emitter=emitter, evaluator=fitness_evaluator, engine_params=engine_params)
 
     maximize_flag = getattr(fitness_evaluator.config, "maximize", False)
 

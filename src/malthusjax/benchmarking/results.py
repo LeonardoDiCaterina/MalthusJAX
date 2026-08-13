@@ -538,7 +538,7 @@ class ComparisonResult:
             latex_code = comparison.summary_table(latex=True)
             print(latex_code)
         """
-        table: Dict[str, Dict[str, float]] = {}
+        table: Dict[str, Dict[str, Any]] = {}
         for name, exp in self.pipelines.items():
             agg = exp.aggregated_summary(optimum=optimum)
             s = self._sign(name)
@@ -671,16 +671,13 @@ class ComparisonResult:
 
         speedups = []
         for seed in common_seeds:
-            # Drop warmup (highest duration in both, wait, we do this by just removing max if we had lists.
-            # If we want to be safe, we just use the raw durations here. Actually it's better to just do pairing.
-            # Or we can remove the maximum duration seed from the paired list.)
-            speedups.append(base_runs[seed].duration_seconds / target_runs[seed].duration_seconds)
+            b_dur = float(base_runs[seed].duration_seconds or 0.0)
+            t_dur = float(target_runs[seed].duration_seconds or 1e-9)
+            speedups.append(b_dur / t_dur)
 
         # Optional: remove the pair with the highest base_duration (warmup)
         if len(speedups) > 3:
-            _ = speedups.index(max(speedups))
-            # Wait, warmup means highest time, not necessarily highest speedup. Let's find highest base time.
-            base_times = [base_runs[s].duration_seconds for s in common_seeds]
+            base_times = [float(base_runs[s].duration_seconds or 0.0) for s in common_seeds]
             warmup_idx = base_times.index(max(base_times))
             speedups.pop(warmup_idx)
 
@@ -1218,7 +1215,7 @@ class ComparisonResult:
                     raise ValueError(
                         "When seed_index is a list, ax must contain one axis per seed."
                     )
-                fig = getattr(axes[0], "figure", None)
+                fig_obj = getattr(axes[0], "figure", None)
             else:
                 raise ValueError("When seed_index is a list, ax must be an iterable of axes.")
 
@@ -1228,17 +1225,17 @@ class ComparisonResult:
                     seed, ax=subplot_ax, title=subplot_title, negate=negate, optimum=optimum
                 )
 
-            if save_path is not None and fig is not None:
+            if save_path is not None and fig_obj is not None:
                 out_path = Path(save_path)
                 out_path.parent.mkdir(parents=True, exist_ok=True)
-                fig.savefig(out_path, bbox_inches="tight")
+                fig_obj.savefig(out_path, bbox_inches="tight")
             return axes
 
-        fig: Figure | None = None
+        fig_single: Any = None
         if ax is None:
-            fig, ax = plt.subplots(figsize=(8, 4))
+            fig_single, ax = plt.subplots(figsize=(8, 4))
         else:
-            fig = getattr(ax, "figure", None)
+            fig_single = getattr(ax, "figure", None)
 
         extra_negate = negate or {}
         conv = self.convergence_data(seed_index, optimum=optimum)  # already sign-normalised or gap
@@ -1352,7 +1349,7 @@ class MetaComparison:
     def __init__(self, comparisons: Dict[str, ComparisonResult]):
         self.comparisons = comparisons
 
-    def plot_convergence_grid(self, save_path: Optional[Union[str, Path]] = None, **kwargs) -> Any:
+    def plot_convergence_grid(self, save_path: Optional[Union[str, Path]] = None, **kwargs: Any) -> Any:
         try:
             import matplotlib.pyplot as plt
         except ImportError as e:
@@ -1384,7 +1381,7 @@ class MetaComparison:
         self,
         save_path: Optional[Union[str, Path]] = None,
         metric_key: str = "best_fitness",
-        **kwargs,
+        **kwargs: Any,
     ) -> Any:
         try:
             import matplotlib.pyplot as plt

@@ -698,7 +698,7 @@ class Composer:
 
         return experiment
 
-    def _postprocess_experiment_final_from_history(self, experiment, force: bool = False) -> None:
+    def _postprocess_experiment_final_from_history(self, experiment: Any, force: bool = False) -> None:
         """Ensure per-run summary best_fitness is consistent with history.
 
         When engines disable internal best-tracking (for speed), the
@@ -1627,7 +1627,7 @@ class Composer:
         from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesEngineParams
         from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
 
-        evaluator = None
+        evaluator: Any = None
         if isinstance(strategy.emitter, TensorNeatEmitter):
             if fitness_spec is not None:
                 evaluator = fitness_spec
@@ -1637,7 +1637,7 @@ class Composer:
 
                 objective_fn = kwargs.get("objective_function")
                 evaluator = TensorNeatQDEvaluator(
-                    objective_function=objective_fn,
+                    objective_function=objective_fn,  # type: ignore[arg-type]
                     config=BaseEvaluatorConfig(maximize=maximize),
                     data=None,
                 )
@@ -1650,6 +1650,7 @@ class Composer:
 
             cat = OperatorCatalog()
             seed_val = kwargs.get("seed", 42)
+            resolved_base_evaluator: Any
             if isinstance(fitness_spec, str):
                 if "seed=" not in fitness_spec:
                     fitness_spec = (
@@ -1668,7 +1669,7 @@ class Composer:
             bounds = kwargs.get("bounds", (-5.0, 5.0))
             num_desc = strategy.num_descriptors
 
-            class ComposedQDEvaluator(BaseQDEvaluator):
+            class ComposedQDEvaluator(BaseQDEvaluator[Any, Any, Any]):
                 def evaluate_qd(self, genome):
                     raise NotImplementedError("Use evaluate_population directly")
 
@@ -1726,7 +1727,7 @@ class Composer:
                 key=jr.PRNGKey(42),
             )
 
-        engine = MapElitesEngine(
+        engine: Any = MapElitesEngine(
             emitter=emitter,
             evaluator=evaluator,
             engine_params=MapElitesEngineParams(pop_size=pop_size, num_generations=generations),

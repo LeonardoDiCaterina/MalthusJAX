@@ -56,7 +56,7 @@ def _qdax_native_eval(evaluator, pop, state, key):
     pass
 
 
-def _qdax_malthusjax_eval(evaluator: Any, genome_config: Any, maximize: bool = True) -> Callable:
+def _qdax_malthusjax_eval(evaluator: Any, genome_config: Any, maximize: bool = True) -> Callable[..., Any]:
     """Creates a QDax-compatible scoring function from a MalthusJAX evaluator.
 
     QDAX MAPElites expects a scoring_function with signature:
@@ -65,7 +65,7 @@ def _qdax_malthusjax_eval(evaluator: Any, genome_config: Any, maximize: bool = T
 
     def scoring_fn(
         genotypes: chex.Array, random_key: chex.PRNGKey
-    ) -> Tuple[chex.Array, chex.Array, Dict]:
+    ) -> Tuple[chex.Array, chex.Array, Dict[str, Any]]:
         # QDax passes genotypes as a batch array. We wrap it in a MalthusJAX Population.
         # We need the genome_config to know how to instantiate the genome (e.g. RealGenome).
         # Import the correct Genome type based on the config. For now we assume RealGenome since QDax mostly uses continuous spaces.
@@ -82,7 +82,7 @@ def _qdax_malthusjax_eval(evaluator: Any, genome_config: Any, maximize: bool = T
         descriptors = updated_pop.descriptors
 
         # extra_scores can be empty dict
-        extra_scores = {}
+        extra_scores: dict[str, Any] = {}
 
         # Flip fitness if we are minimizing, since QDAX always maximizes
         fit = updated_pop.fitness if maximize else -updated_pop.fitness
@@ -153,8 +153,8 @@ class QDaxEngineAdapter:
         key: chex.Array,
         params: Any,
         evaluator: Any,
-        eval_translator: Callable,
-    ) -> Tuple[Any, Dict]:
+        eval_translator: Callable[..., Any],
+    ) -> Tuple[Any, Dict[str, Any]]:
         repertoire, emitter_state, randkey = state
 
         randkey, subkey = jax.random.split(randkey)
@@ -179,8 +179,8 @@ from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 def build_qdax_engine(
     strategy_cls: Any,
     emitter: Any,
-    metrics_function: Callable,
-    evaluator: BaseQDEvaluator,
+    metrics_function: Callable[..., Any],
+    evaluator: BaseQDEvaluator[Any, Any, Any],
     init_variables: chex.Array,
     centroids: chex.Array,
     pop_size: int = 100,
@@ -191,9 +191,10 @@ def build_qdax_engine(
     history_metrics: Optional[Sequence[str]] = None,
     use_python_loop: bool = False,
     **kwargs: Any,
-):
+) -> Any:
     """Builds a QDaxEngineAdapter from QDAX components and a MalthusJAX evaluator."""
 
+    scoring_fn: Any
     if eval_mode == EvalMode.MALTHUSJAX:
         # We need the genome config to know how to build Populations.
         # In QDax continuous domains, we infer from init_variables shape.
@@ -242,4 +243,4 @@ def build_qdax_engine(
         evaluator=problem_eval,
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
-    )
+    )  # type: ignore[call-arg]

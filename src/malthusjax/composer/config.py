@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, cast
 try:
     import tomllib as _toml
 except ModuleNotFoundError:
-    import tomli as _toml
+    import tomli as _toml  # type: ignore[no-redef]
 
 toml: Any = _toml
 

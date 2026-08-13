@@ -40,7 +40,7 @@ class EvoSAXStrategy(BaseStrategy):
     """
 
     algorithm_name: str = struct.field(pytree_node=False)
-    algorithm_kwargs: dict = struct.field(pytree_node=False, default_factory=dict)
+    algorithm_kwargs: dict[str, Any] = struct.field(pytree_node=False, default_factory=dict)
 
 
 @struct.dataclass
@@ -57,7 +57,7 @@ class QDAXStrategy(BaseStrategy):
     num_descriptors: int = struct.field(pytree_node=False, default=2)
     num_centroids: int = struct.field(pytree_node=False, default=100)
     mutation_sigma: float = struct.field(pytree_node=False, default=0.1)
-    algorithm_kwargs: dict = struct.field(pytree_node=False, default_factory=dict)
+    algorithm_kwargs: dict[str, Any] = struct.field(pytree_node=False, default_factory=dict)
 
 
 @struct.dataclass
@@ -71,4 +71,4 @@ class TensorNEATStrategy(BaseStrategy):
     problem_name: Optional[str] = struct.field(pytree_node=False, default=None)
     num_inputs: int = struct.field(pytree_node=False, default=2)
     num_outputs: int = struct.field(pytree_node=False, default=1)
-    algorithm_kwargs: dict = struct.field(pytree_node=False, default_factory=dict)
+    algorithm_kwargs: dict[str, Any] = struct.field(pytree_node=False, default_factory=dict)

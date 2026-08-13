@@ -22,7 +22,7 @@ def main() -> None:
     print(f"Executing Composer configuration from: {toml_path}")
     result = Composer.from_toml(toml_path, pipelines=pipelines)
     print("\nExecution Completed Successfully!")
-    print(result.summary())
+    print(result.summary() if hasattr(result, "summary") else str(result))
 
 
 if __name__ == "__main__":

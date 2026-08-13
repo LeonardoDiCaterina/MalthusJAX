@@ -132,8 +132,8 @@ class EvosaxEngineAdapter:
         key: chex.Array,
         params: Any,
         evaluator: Any,
-        eval_translator: Callable,
-    ) -> Tuple[Any, Dict]:
+        eval_translator: Callable[..., Any],
+    ) -> Tuple[Any, Dict[str, Any]]:
         key_ask, key_eval, key_tell = jax.random.split(key, 3)
 
         # 1. Ask
@@ -235,13 +235,13 @@ def build_evosax_engine(
             elif hasattr(evaluator.config, "num_dims"):
                 num_dims = getattr(evaluator.config, "num_dims")
             elif "num_dims" in kwargs or "genome_length" in kwargs:
-                num_dims = kwargs.get("num_dims", kwargs.get("genome_length"))
+                num_dims = int(kwargs.get("num_dims", kwargs.get("genome_length")) or 0)
             else:
                 raise ValueError(
                     f"Evaluator {evaluator} does not provide a valid genome_config shape."
                 )
         elif "num_dims" in kwargs or "genome_length" in kwargs:
-            num_dims = kwargs.get("num_dims", kwargs.get("genome_length"))
+            num_dims = int(kwargs.get("num_dims", kwargs.get("genome_length")) or 0)
         else:
             raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
         eval_mode = EvalMode.MALTHUSJAX
@@ -299,4 +299,4 @@ def build_evosax_engine(
         evaluator=evaluator,
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
-    )
+    )  # type: ignore[call-arg]

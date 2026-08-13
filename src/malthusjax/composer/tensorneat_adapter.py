@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 
 import chex
 import jax
@@ -123,8 +123,8 @@ class TensorNEATEngineAdapter:
         key: chex.Array,
         params: Any,
         evaluator: Any,
-        eval_translator: Callable,
-    ) -> Tuple[Any, Dict]:
+        eval_translator: Callable[..., Any],
+    ) -> Tuple[Any, Dict[str, Any]]:
         # Update randkey
         state = state.update(randkey=key)
 
@@ -166,12 +166,12 @@ def build_tensorneat_engine(
     algorithm: Any,
     evaluator: Any,
     generations: int,
-    pop_size: int = None,
+    pop_size: Optional[int] = None,
     maximize: bool = True,
     eval_mode: EvalMode = EvalMode.NATIVE,
-    history_metrics: list[str] = None,
+    history_metrics: Optional[Sequence[str]] = None,
     use_python_loop: bool = False,
-):
+) -> Any:
     """Factory to build a UniversalAdapterEngine for TensorNEAT."""
     # TensorNEAT specifies pop_size at instantiation of the algorithm (e.g. NEAT(pop_size=...))
     if pop_size is None and hasattr(algorithm, "pop_size"):
@@ -203,4 +203,4 @@ def build_tensorneat_engine(
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
         state_has_randkey=True,  # Signal to base adapter that state contains the key
-    )
+    )  # type: ignore[call-arg]

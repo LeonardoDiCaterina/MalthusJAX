@@ -54,11 +54,11 @@ class UniversalAdapterEngine:
         self,
         framework_obj: Any,
         framework_params: Any,
-        init_fn: Callable,
-        step_fn: Callable,
+        init_fn: Callable[..., Any],
+        step_fn: Callable[..., Any],
         eval_mode: str,
-        eval_translator: Callable,
-        metrics_mapping: Dict[str, str | Callable],
+        eval_translator: Callable[..., Any],
+        metrics_mapping: Dict[str, str | Callable[..., Any]],
         pop_size: int,
         num_generations: int,
         maximize: bool = False,
@@ -134,7 +134,7 @@ class UniversalAdapterEngine:
             )
             return carry[1], metrics
 
-        self._jit_run_loop = jax.jit(run_loop)
+        self._jit_run_loop = jax.jit(run_loop)  # type: ignore[assignment]
         return self._jit_run_loop
 
     def _build_python_loop(self) -> Any:

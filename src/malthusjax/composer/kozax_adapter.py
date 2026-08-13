@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import chex
 import jax.numpy as jnp
@@ -50,8 +50,8 @@ class KozaxEngineAdapter:
         key: chex.Array,
         params: Any,
         evaluator: Any,
-        eval_translator: Callable,
-    ) -> Tuple[Any, Dict]:
+        eval_translator: Callable[..., Any],
+    ) -> Tuple[Any, Dict[str, Any]]:
         pop = state
 
         # Evaluate
@@ -82,13 +82,13 @@ def build_kozax_engine(
     strategy_obj: Any,
     evaluator: Any,
     generations: int,
-    pop_size: int = None,
+    pop_size: Optional[int] = None,
     maximize: bool = False,
     initial_population: chex.Array = None,
     eval_mode: EvalMode = EvalMode.NATIVE,
-    history_metrics: list[str] = None,
+    history_metrics: Optional[list[str]] = None,
     use_python_loop: bool = True,
-):
+) -> Any:
     """Factory to build a UniversalAdapterEngine for Kozax."""
     # pop_size can be extracted from strategy_obj
     if pop_size is None:
@@ -106,4 +106,4 @@ def build_kozax_engine(
         evaluator=evaluator if eval_mode != EvalMode.NATIVE else None,
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
-    )
+    )  # type: ignore[call-arg]

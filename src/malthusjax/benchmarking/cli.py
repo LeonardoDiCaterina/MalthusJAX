@@ -6,13 +6,13 @@ import shutil
 import sys
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from malthusjax.composer import Composer
 from malthusjax.composer.catalog import OperatorCatalog
 
 
-def _dump_results(comparison, out_dir: Path, config_path: Path) -> None:
+def _dump_results(comparison: Any, out_dir: Path, config_path: Path) -> None:
     """Helper to save results conforming to the strict CLI structure."""
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -150,27 +150,31 @@ def handle_analyze(args: argparse.Namespace) -> int:
         try:
             import pandas as pd
 
-            table = comparison.summary_table()
-            formatted = {}
-            for pipe, metrics in table.items():
-                formatted[pipe] = {}
-                for k, v in metrics.items():
-                    if v.get("ci_margin", 0.0) > 0.0:
-                        formatted[pipe][k] = f"{v['mean']:.4g} ± {v['ci_margin']:.4g}"
-                    else:
-                        formatted[pipe][k] = f"{v['mean']:.4g}"
-            df = pd.DataFrame(formatted).T
-            df.to_csv(analysis_dir / "comparison_table.csv")
-            md_text = df.to_markdown()
-            with open(analysis_dir / "comparison_table.md", "w") as f:
-                f.write(md_text)
+            table_data: Any = comparison.summary_table()
+            if isinstance(table_data, dict):
+                formatted_dict: dict[str, dict[str, str]] = {}
+                for pipe, metrics in table_data.items():
+                    if isinstance(metrics, dict):
+                        formatted_dict[pipe] = {}
+                        for k, v in metrics.items():
+                            if isinstance(v, dict) and v.get("ci_margin", 0.0) > 0.0:
+                                formatted_dict[pipe][k] = f"{v['mean']:.4g} ± {v['ci_margin']:.4g}"
+                            elif isinstance(v, dict):
+                                formatted_dict[pipe][k] = f"{v['mean']:.4g}"
+                df = pd.DataFrame(formatted_dict).T
+                df.to_csv(analysis_dir / "comparison_table.csv")
+                md_text = str(df.to_markdown())
+                with open(analysis_dir / "comparison_table.md", "w") as f:
+                    f.write(md_text)
 
-            print("\n--- Comparison Summary ---")
-            print(md_text)
-            print("--------------------------\n")
+                print("\n--- Comparison Summary ---")
+                print(md_text)
+                print("--------------------------\n")
 
-            with open(analysis_dir / "comparison_table.tex", "w") as f:
-                f.write(comparison.summary_table(latex=True))
+            latex_str = comparison.summary_table(latex=True)
+            if isinstance(latex_str, str):
+                with open(analysis_dir / "comparison_table.tex", "w") as f:
+                    f.write(latex_str)
         except Exception as e:
             print(f"Could not generate unified tables: {e}")
 
