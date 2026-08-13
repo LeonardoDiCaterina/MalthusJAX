@@ -213,7 +213,10 @@ class AbstractEngine(Generic[G, P], ABC):
             )
         # Retrieve the compiled loop function
         evolve_fn = _get_evolution_kernel(
-            self.engine_params, compile_jit=compile, unroll_num=self.engine_params.unroll_num, return_history=return_history
+            self.engine_params,
+            compile_jit=compile,
+            unroll_num=self.engine_params.unroll_num,
+            return_history=return_history,
         )
 
         start_time = time.time()
@@ -317,9 +320,13 @@ class AbstractEngine(Generic[G, P], ABC):
 
 import functools
 
+
 @functools.lru_cache(maxsize=128)
 def _get_evolution_kernel(
-    params: AbstractEngineParams, compile_jit: bool = True, unroll_num: int = 1, return_history: bool = True
+    params: AbstractEngineParams,
+    compile_jit: bool = True,
+    unroll_num: int = 1,
+    return_history: bool = True,
 ) -> Any:
     """
     Factory: Builds evolution kernel (jax.lax.scan loop).

@@ -1,11 +1,14 @@
-import pytest
-from malthusjax.composer.strategies.core import GeneticStrategy, EvoSAXStrategy, MapElitesStrategy, QDAXStrategy
+from malthusjax.composer.strategies.core import (
+    EvoSAXStrategy,
+    GeneticStrategy,
+    MapElitesStrategy,
+    QDAXStrategy,
+)
+
 
 def test_genetic_strategy():
     strategy = GeneticStrategy(
-        selection="tournament:size=3",
-        crossover="sbx",
-        mutation="polynomial"
+        selection="tournament:size=3", crossover="sbx", mutation="polynomial"
     )
     assert strategy.selection == "tournament:size=3"
     assert strategy.crossover == "sbx"
@@ -16,12 +19,14 @@ def test_genetic_strategy():
     assert strategy_default.crossover is None
     assert strategy_default.mutation is None
 
+
 def test_map_elites_strategy():
     strategy = MapElitesStrategy(emitter="mixing")
     assert strategy.emitter == "mixing"
-    
+
     strategy_default = MapElitesStrategy()
     assert strategy_default.emitter is None
+
 
 def test_evosax_strategy():
     strategy = EvoSAXStrategy(algorithm_name="SimpleGA", algorithm_kwargs={"popsize": 100})
@@ -32,6 +37,7 @@ def test_evosax_strategy():
     assert strategy_no_kwargs.algorithm_name == "CMA_ES"
     assert strategy_no_kwargs.algorithm_kwargs == {}
 
+
 def test_qdax_strategy():
     strategy = QDAXStrategy(
         strategy_cls="MAPElites",
@@ -39,7 +45,7 @@ def test_qdax_strategy():
         metrics_function="dummy_metrics",
         centroids="dummy_centroids",
         init_variables="dummy_init",
-        algorithm_kwargs={"param": "value"}
+        algorithm_kwargs={"param": "value"},
     )
     assert strategy.strategy_cls == "MAPElites"
     assert strategy.emitter == "mixing"

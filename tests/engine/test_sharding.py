@@ -1,19 +1,21 @@
 """
 Tests for sharding, resource mapping, and dtype enforcement in GeneticEngine.
 """
-import pytest
+
 import chex
 import jax.numpy as jnp
+import pytest
+
+from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.resource_mapper import (
-    compute_resource_map,
     ShardingManager,
+    compute_resource_map,
     get_resource_summary,
 )
-from malthusjax.core.genome.real_genome import RealGenomeConfig
-from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.base import BaseSelection
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover, UniformCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
+from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
 
 # --- Mocks for Testing ---
@@ -42,7 +44,7 @@ def test_resource_map_is_computed():
     selection = ElitePoolSelection(num_selections=pop_size, elite_k=4)
     crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)
     mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5)
-    
+
     rmap = compute_resource_map(selection, crossover, mutation, genome_config, pop_size)
     assert rmap is not None
     assert rmap.total_rng_budget > 0
@@ -53,15 +55,17 @@ def test_resource_map_is_computed():
     assert rmap.crossover.output_count == (rmap.crossover.input_count // 2) * 2
     assert rmap.mutation.output_count == rmap.mutation.input_count * 1
 
+
 @pytest.mark.parametrize("pop_size", [10, 30, 50, 100])
 def test_resource_map_consistency(pop_size):
     genome_config = RealGenomeConfig(shape=(5,), bounds=(-5.0, 5.0))
     selection = ElitePoolSelection(num_selections=pop_size, elite_k=4)
     crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)
     mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5)
-    
+
     rmap = compute_resource_map(selection, crossover, mutation, genome_config, pop_size)
     assert rmap.total_rng_budget > 0
+
 
 @pytest.mark.parametrize("num_offspring", [1, 2, 3])
 def test_resource_map_different_crossover_offspring(num_offspring):
@@ -70,9 +74,10 @@ def test_resource_map_different_crossover_offspring(num_offspring):
     selection = ElitePoolSelection(num_selections=pop_size, elite_k=4)
     crossover = SimulatedBinaryCrossover(num_offspring=num_offspring, eta=15.0)
     mutation = GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.5)
-    
+
     rmap = compute_resource_map(selection, crossover, mutation, genome_config, pop_size)
     assert rmap.crossover is not None
+
 
 def test_init_state_enforces_sharding_layout(make_engine, prng_key):
     engine = make_engine(pop_size=32, genome_shape=(4,))
@@ -80,6 +85,7 @@ def test_init_state_enforces_sharding_layout(make_engine, prng_key):
     chex.assert_shape(state.population.fitness, (32,))
     chex.assert_shape(state.population.genes.values, (32, 4))
     chex.assert_shape(state.best_genome.values, (4,))
+
 
 def test_population_maintains_shape_after_evolution(make_engine, prng_key):
     engine = make_engine(pop_size=32, genome_shape=(4,))
@@ -89,11 +95,13 @@ def test_population_maintains_shape_after_evolution(make_engine, prng_key):
         chex.assert_shape(state.population.fitness, (32,))
         chex.assert_shape(state.population.genes.values, (32, 4))
 
+
 def test_dtype_consistency(make_engine, prng_key):
     engine = make_engine(pop_size=30, genome_shape=(3,))
     state = engine.init_state(prng_key)
     assert jnp.issubdtype(state.population.genes.values.dtype, jnp.floating)
     assert jnp.issubdtype(state.population.fitness.dtype, jnp.floating)
+
 
 class TestResourceMapper:
     """Validates RNG budgeting and Cascade Data Flow logic."""

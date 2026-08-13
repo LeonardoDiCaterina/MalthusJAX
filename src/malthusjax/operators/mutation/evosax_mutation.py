@@ -86,8 +86,13 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
     ) -> RealGenome:
         """Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""
         raise NotImplementedError("EvosaxGaussianWrapper does not use _mutate_one")
+
     def apply_fastpath(
-        self, all_keys: chex.Array, flat_values: chex.Array, config: RealGenomeConfig, generation: int = 0
+        self,
+        all_keys: chex.Array,
+        flat_values: chex.Array,
+        config: RealGenomeConfig,
+        generation: int = 0,
     ) -> chex.Array:
         if all_keys.size == 0:
             raise ValueError("No PRNG keys provided to EvosaxGaussianWrapper")

@@ -152,24 +152,24 @@ class BaseMutation(Generic[G, C]):
     def apply_fastpath(
         self, all_keys: chex.Array, flat_values: chex.Array, config: C, generation: int = 0
     ) -> chex.Array:
-        """Fast path protocol for NativeFastEngine. 
-        
+        """Fast path protocol for NativeFastEngine.
+
         Takes flat arrays, generates noise, and maps _apply_noise across the batch.
         Bypasses PyTree overhead completely.
         """
         n_keys = self.num_keys_per_atomic_operation
         if self.num_offspring != 1:
             raise NotImplementedError("apply_fastpath only supports num_offspring=1.")
-            
+
         if self.typed_keys:
             keys_flat = all_keys.reshape(self.input_length, n_keys)
         else:
             keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
-            
+
         def _mutate_flat(k: chex.Array, val: chex.Array) -> chex.Array:
             noise = self._generate_noise(k, config, generation)
             return self._apply_noise(val, noise, config)
-            
+
         return jax.vmap(_mutate_flat, in_axes=(0, 0))(keys_flat, flat_values)
 
     def __call__(
@@ -358,26 +358,31 @@ class BaseCrossover(Generic[G, C]):
         return self._recombine_one(p1, p2, noise, config)
 
     def apply_fastpath(
-        self, all_keys: chex.Array, p1_values: chex.Array, p2_values: chex.Array, config: C, generation: int = 0
+        self,
+        all_keys: chex.Array,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        config: C,
+        generation: int = 0,
     ) -> chex.Array:
-        """Fast path protocol for NativeFastEngine. 
-        
+        """Fast path protocol for NativeFastEngine.
+
         Takes flat arrays, generates noise, and maps _apply_mask across the batch.
         Bypasses PyTree overhead completely.
         """
         n_keys = self.num_keys_per_atomic_operation
         if self.num_offspring != 1:
             raise NotImplementedError("apply_fastpath only supports num_offspring=1.")
-            
+
         if self.typed_keys:
             keys_flat = all_keys.reshape(self.input_length, n_keys)
         else:
             keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
-            
+
         def _cross_flat(k: chex.Array, val1: chex.Array, val2: chex.Array) -> chex.Array:
             noise = self._generate_noise(k, config, generation)
             return self._apply_mask(val1, val2, noise, config)
-            
+
         return jax.vmap(_cross_flat, in_axes=(0, 0, 0))(keys_flat, p1_values, p2_values)
 
     def cross_single_pair(self, key: chex.Array, p1: G, p2: G, config: C, generation: int = 0) -> G:

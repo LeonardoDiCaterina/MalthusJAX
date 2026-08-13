@@ -18,7 +18,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -126,11 +125,9 @@ def extract_mjx_hlo(
     optimize: bool = True,
 ) -> str:
     """Extract HLO for a MalthusJAX pipeline using its built-in get_hlo_text()."""
-    from malthusjax.composer.engine_factory import build_engine
+    from malthusjax.composer.catalog import OperatorCatalog
     from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 
-    from malthusjax.composer.catalog import OperatorCatalog
-    
     evaluator = BBOBEvaluator.create(
         BBOBConfig(fn_name="sphere", num_dims=num_dims, seed=42, maximize=False)
     )
@@ -146,22 +143,23 @@ def extract_mjx_hlo(
             "strategy_params",
         }
     }
-    
+
     catalog = OperatorCatalog()
     sel_str = kwargs.pop("selection", None)
     cross_str = kwargs.pop("crossover", None)
     mut_str = kwargs.pop("mutation", None)
-    
+
     sel = catalog.get(sel_str) if sel_str else None
     cross = catalog.get(cross_str) if cross_str else None
     mut = catalog.get(mut_str) if mut_str else None
-    
+
     engine_type = kwargs.pop("engine_type", "ga")
-    
+
     # engine_factory.build_engine takes engine_cls, but we just use engine_type through Composer's EngineRegistry
     from malthusjax.composer.engine_catalog import EngineRegistry
+
     registry = EngineRegistry()
-    
+
     adapter = registry.get(
         engine_type,
         evaluator=evaluator,
@@ -312,7 +310,7 @@ def main() -> None:
                     k: (v.format(**fmt_vars) if isinstance(v, str) else v)
                     for k, v in pipe_def.items()
                 }
-                print(f"(malthusjax) ... ", end="", flush=True)
+                print("(malthusjax) ... ", end="", flush=True)
                 hlo = extract_mjx_hlo(
                     pipeline_kwargs=formatted_pipe,
                     pop_size=args.pop,

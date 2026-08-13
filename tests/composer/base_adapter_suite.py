@@ -4,10 +4,11 @@ import jax.numpy as jnp
 import jax.random as jr
 import pytest
 
+
 class BaseAdapterTestSuite(abc.ABC):
     """Base test suite for MalthusJAX engine adapters.
-    
-    Any adapter wrapping an external framework (e.g. Evosax, QDax, TensorNEAT) 
+
+    Any adapter wrapping an external framework (e.g. Evosax, QDax, TensorNEAT)
     should inherit from this class and implement `make_adapter`. This ensures
     the adapter perfectly adheres to the MalthusJAX Engine protocol.
     """
@@ -15,12 +16,12 @@ class BaseAdapterTestSuite(abc.ABC):
     @abc.abstractmethod
     def make_adapter(self, maximize: bool = False, eval_mode: str = "native", seed: int = 0):
         """Constructs and returns a minimal, fast-running Engine adapter instance.
-        
+
         Args:
             maximize: Whether the problem is a maximization problem.
             eval_mode: The evaluation mode (e.g. "native" or "malthusjax").
             seed: Random seed for initialization.
-            
+
         Returns:
             An instance of a class that conforms to the MalthusJAX Engine protocol.
         """
@@ -77,7 +78,7 @@ class BaseAdapterTestSuite(abc.ABC):
         assert "best_fitness" in summary
         assert "final_generation" in summary
         assert "total_evaluations" in summary
-        
+
         history = result["history"]
         assert summary["final_generation"] == history[-1]["generation"]
         assert summary["total_evaluations"] > 0
@@ -141,7 +142,7 @@ class BaseAdapterTestSuite(abc.ABC):
         key = jr.PRNGKey(42)
         min_hist = small_adapter.run_once(key)["history"]
         max_hist = small_adapter_max.run_once(key)["history"]
-        
+
         # at least one generation should differ
         assert any(
             hmin["best_fitness"] != hmax["best_fitness"] for hmin, hmax in zip(min_hist, max_hist)
@@ -158,7 +159,7 @@ class BaseAdapterTestSuite(abc.ABC):
         # properly, it should be able to run.
         if small_adapter_mjx is None:
             pytest.skip("EvalMode.MALTHUSJAX not implemented for this adapter.")
-            
+
         result = small_adapter_mjx.run_once(jr.PRNGKey(0))
         assert set(result.keys()) == {"history", "summary", "timings"}
         assert len(result["history"]) > 0

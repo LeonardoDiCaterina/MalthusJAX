@@ -16,7 +16,6 @@ from typing import Any, Tuple
 import chex
 import jax
 import jax.numpy as jnp
-from flax import struct
 
 try:
     import tensorneat
@@ -31,13 +30,11 @@ except ImportError:
     BaseProblem = object  # Fallback for typing
 
 from malthusjax.composer import Composer
-from malthusjax.composer.catalog import OperatorCatalog
 from malthusjax.composer.strategies.core import MapElitesStrategy
 from malthusjax.core.fitness.qd.tensorneat_evaluator import (
     TensorNeatEvaluatorConfig,
     TensorNeatQDEvaluator,
 )
-from malthusjax.core.genome.tensorneat_genome import TensorNeatGenome, TensorNeatPopulation
 from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
 
 
@@ -66,7 +63,9 @@ class CustomJAXQDPendulumProblem(BaseProblem):
     def num_outputs(self) -> int:
         return 1  # Control torque u
 
-    def evaluate(self, state: State, key: chex.PRNGKey, forward_fn: Any, individual: Any) -> Tuple[chex.Numeric, chex.Array]:
+    def evaluate(
+        self, state: State, key: chex.PRNGKey, forward_fn: Any, individual: Any
+    ) -> Tuple[chex.Numeric, chex.Array]:
         """Simulate pendulum dynamics and return (fitness, 2D behavioral descriptors)."""
 
         def step_fn(carry_state: Tuple[chex.Array, chex.Array], _: Any):
@@ -89,7 +88,9 @@ class CustomJAXQDPendulumProblem(BaseProblem):
 
         # Initial state: small perturbation from vertical upright position (theta=0.2 rad)
         init_state = (jnp.array(0.2), jnp.array(0.0))
-        (final_theta, final_theta_dot), step_costs = jax.lax.scan(step_fn, init_state, None, length=self.steps)
+        (final_theta, final_theta_dot), step_costs = jax.lax.scan(
+            step_fn, init_state, None, length=self.steps
+        )
 
         # Return fitness and 2D behavioral descriptors (final physical state)
         fitness = -jnp.sum(step_costs)
@@ -102,7 +103,9 @@ class CustomJAXQDPendulumProblem(BaseProblem):
 # ===========================================================================
 def main() -> None:
     if not TENSORNEAT_AVAILABLE:
-        print("TensorNEAT is not installed. Please run `pip install tensorneat` to run this showcase.")
+        print(
+            "TensorNEAT is not installed. Please run `pip install tensorneat` to run this showcase."
+        )
         return
 
     print("=" * 75)
@@ -111,7 +114,9 @@ def main() -> None:
 
     print("\n[Step 1] Creating Custom Pure-JAX Pendulum Control Problem...")
     problem = CustomJAXQDPendulumProblem(steps=25)
-    print(f"         Problem: Inverted Pendulum (Inputs={problem.num_inputs}, Outputs={problem.num_outputs})")
+    print(
+        f"         Problem: Inverted Pendulum (Inputs={problem.num_inputs}, Outputs={problem.num_outputs})"
+    )
 
     pop_size = 128
     generations = 50
@@ -120,7 +125,9 @@ def main() -> None:
     print("\n[Step 2] Defining Neuroevolution Pipelines:")
     print("         1. TensorNEAT (NEAT)               -> Standard Dynamic Graph Evolution")
     print("         2. TensorNEAT (SubNEAT)            -> Subspecies Topology Search")
-    print("         3. MalthusJAX Native (MAP-Elites)   -> TensorNeatEmitter in MalthusJAX MAP-Elites")
+    print(
+        "         3. MalthusJAX Native (MAP-Elites)   -> TensorNeatEmitter in MalthusJAX MAP-Elites"
+    )
 
     composer = Composer.create_default()
 
@@ -151,12 +158,14 @@ def main() -> None:
             "eval_mode": "native",
         },
         "MalthusJAX Native (TensorNEAT MAP-Elites)": {
-            "strategy": MapElitesStrategy(emitter=native_emitter, num_centroids=pop_size, num_descriptors=2),
+            "strategy": MapElitesStrategy(
+                emitter=native_emitter, num_centroids=pop_size, num_descriptors=2
+            ),
             "fitness": native_evaluator,
         },
     }
 
-    print(f"\n[Step 3] Executing Parallel Neuroevolution Benchmarks:")
+    print("\n[Step 3] Executing Parallel Neuroevolution Benchmarks:")
     print(f"         - Population Size: {pop_size}")
     print(f"         - Generations:     {generations}")
     print(f"         - Random Seeds:    {seeds}\n")

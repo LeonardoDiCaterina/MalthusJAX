@@ -98,7 +98,12 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig])
         return RealGenome.from_tensor(child_vals, config)
 
     def apply_fastpath(
-        self, all_keys: chex.Array, p1_values: chex.Array, p2_values: chex.Array, config: RealGenomeConfig, generation: int = 0
+        self,
+        all_keys: chex.Array,
+        p1_values: chex.Array,
+        p2_values: chex.Array,
+        config: RealGenomeConfig,
+        generation: int = 0,
     ) -> chex.Array:
         if all_keys.size == 0:
             raise ValueError("No PRNG keys provided to EvosaxUniformCrossoverWrapper")
@@ -123,6 +128,7 @@ class EvosaxUniformCrossoverWrapper(BaseCrossover[RealGenome, RealGenomeConfig])
         def _process_pairs(k_block: chex.Array, val1: chex.Array, val2: chex.Array) -> chex.Array:
             def _inner_cross(k: chex.Array) -> chex.Array:
                 return _cross_one(k, val1, val2)
+
             return jax.vmap(_inner_cross, in_axes=0)(k_block)
 
         keys_reshaped = keys.reshape(num_pairs, self.num_offspring, *keys.shape[1:])

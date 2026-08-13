@@ -7,8 +7,9 @@ All crossover operators inherit from BaseCrossover and return (num_offspring, ge
 
 from .binary import SinglePointCrossover
 from .binary import UniformCrossover as BinaryUniformCrossover
-from .evosax_crossover import EvosaxUniformCrossoverWrapper, BatchedEvosaxUniformWrapper
+from .evosax_crossover import BatchedEvosaxUniformWrapper, EvosaxUniformCrossoverWrapper
 from .real import (
+    BatchedUniformCrossover,
     BinomialCrossover,
     BinomialCrossover_injection,
     BlendCrossover,
@@ -21,7 +22,6 @@ from .real import (
 )
 from .real import (
     UniformCrossover_injection as RealUniformCrossover_injection,
-    BatchedUniformCrossover,
 )
 
 UniformCrossover = BinaryUniformCrossover

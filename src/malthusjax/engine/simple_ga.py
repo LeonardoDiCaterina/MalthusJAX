@@ -1,17 +1,18 @@
+from typing import Any, Tuple, Union
+
 import jax
 import jax.numpy as jnp
 from flax import struct
-from typing import Any, Tuple, Union
 
 from malthusjax.core.base import BaseGenome, BasePopulation
 from malthusjax.core.fitness.base import BaseEvaluator
+from malthusjax.core.random import create_key, validate_key
 from malthusjax.engine.base import (
     AbstractEngine,
+    AbstractEngineParams,
     AbstractEvolutionState,
     AbstractGenerationOutput,
-    AbstractEngineParams,
 )
-from malthusjax.core.random import create_key, validate_key
 
 
 @struct.dataclass

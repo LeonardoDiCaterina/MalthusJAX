@@ -1,7 +1,7 @@
-import pytest
 import jax
 import jax.numpy as jnp
 import jax.random as jar
+import pytest
 
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper
@@ -18,12 +18,16 @@ def evosax_mut_setup(prng_key):
 @pytest.mark.parametrize("injection_mode", [True, False])
 def test_evosex_wrapper_mutation(evosax_mut_setup, prng_key, injection_mode):
     config, pop_size, population = evosax_mut_setup
-    
+
     mutator = EvosaxGaussianWrapper(mutation_strength=0.2, injection_mode=injection_mode)
 
     # Resource allocation
     n_keys = mutator.num_keys(input_shape=(pop_size,))
-    expected_keys = 1 if injection_mode else pop_size * mutator.num_offspring * mutator.num_keys_per_atomic_operation
+    expected_keys = (
+        1
+        if injection_mode
+        else pop_size * mutator.num_offspring * mutator.num_keys_per_atomic_operation
+    )
     assert n_keys == expected_keys
 
     k_op, _ = jar.split(prng_key)

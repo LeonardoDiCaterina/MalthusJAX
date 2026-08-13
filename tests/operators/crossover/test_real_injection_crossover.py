@@ -1,8 +1,8 @@
-import pytest
+import chex
 import jax
 import jax.numpy as jnp
 import jax.random as jar
-import chex
+import pytest
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.operators.crossover.real import (
@@ -21,13 +21,13 @@ def real_injection_cx_setup(prng_key):
     parents_1 = RealPopulation.init_random(k1, config, pop_size)
     p2_genes = RealGenome(values=jnp.full((pop_size, 10), 10.0))
     parents_2 = parents_1.spawn_offspring(p2_genes)
-    
+
     return config, pop_size, parents_1, parents_2
 
 
 def _run_injection_crossover(operator_cls, setup_data, prng_key, num_offspring=1, **kwargs):
     config, pop_size, parents_1, parents_2 = setup_data
-    
+
     crossover = operator_cls(num_offspring=num_offspring, **kwargs)
     crossover = crossover.set_input_length(pop_size)
 
@@ -45,29 +45,49 @@ def _run_injection_crossover(operator_cls, setup_data, prng_key, num_offspring=1
     is_same_p2 = jnp.allclose(vals, parents_2.genes.values.repeat(num_offspring, axis=0))
 
     assert not (is_same_p1 and is_same_p2), "Injection offspring are identical to parents"
-    
+
     return offspring_pop
 
 
 def test_uniform_injection(real_injection_cx_setup, prng_key):
-    _run_injection_crossover(UniformCrossover_injection, real_injection_cx_setup, prng_key, num_offspring=1, crossover_rate=0.5)
+    _run_injection_crossover(
+        UniformCrossover_injection,
+        real_injection_cx_setup,
+        prng_key,
+        num_offspring=1,
+        crossover_rate=0.5,
+    )
 
 
 def test_blend_injection(real_injection_cx_setup, prng_key):
-    _run_injection_crossover(BlendCrossover_injection, real_injection_cx_setup, prng_key, num_offspring=1, alpha=0.5)
+    _run_injection_crossover(
+        BlendCrossover_injection, real_injection_cx_setup, prng_key, num_offspring=1, alpha=0.5
+    )
 
 
 def test_sbx_injection(real_injection_cx_setup, prng_key):
-    _run_injection_crossover(SimulatedBinaryCrossover_injection, real_injection_cx_setup, prng_key, num_offspring=2, eta=10.0)
+    _run_injection_crossover(
+        SimulatedBinaryCrossover_injection,
+        real_injection_cx_setup,
+        prng_key,
+        num_offspring=2,
+        eta=10.0,
+    )
 
 
 def test_binomial_injection(real_injection_cx_setup, prng_key):
-    _run_injection_crossover(BinomialCrossover_injection, real_injection_cx_setup, prng_key, num_offspring=1, crossover_rate=0.9)
+    _run_injection_crossover(
+        BinomialCrossover_injection,
+        real_injection_cx_setup,
+        prng_key,
+        num_offspring=1,
+        crossover_rate=0.9,
+    )
 
 
 def test_binomial_injection_rate_edges(real_injection_cx_setup, prng_key):
     config, pop_size, parents_1, parents_2 = real_injection_cx_setup
-    
+
     # Rate=0 => preserve p2 (target)
     op = BinomialCrossover_injection(num_offspring=1, crossover_rate=0.0)
     op = op.set_input_length(pop_size)

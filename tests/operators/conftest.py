@@ -9,8 +9,8 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.core.genome.binary_genome import BinaryGenomeConfig, BinaryPopulation
+from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 
 
 @pytest.fixture

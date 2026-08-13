@@ -17,9 +17,10 @@ from malthusjax.composer.evosax_adapter import (
     build_evosax_engine,
     list_strategies,
 )
-from .base_adapter_suite import BaseAdapterTestSuite
-from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
+from malthusjax.core.fitness.base import BaseEvaluator
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+
+from .base_adapter_suite import BaseAdapterTestSuite
 
 # Check if evosax has the init/tell API (GitHub version only, not PyPI 0.1.6)
 # Some releases export strategies at the top level while others require
@@ -219,20 +220,21 @@ class TestBuildEvosaxEngine:
             def evaluate_population(self, population):
                 # trivial implementation
                 return population
-                
+
             def evaluate(self, genome):
                 return jnp.zeros((), dtype=jnp.float32)
 
-        from malthusjax.core.genome.real_genome import RealGenomeConfig
         from flax import struct
-        
+
+        from malthusjax.core.genome.real_genome import RealGenomeConfig
+
         @struct.dataclass
         class MockConfig:
             genome_config: RealGenomeConfig = struct.field(pytree_node=False)
             maximize: bool = struct.field(pytree_node=False, default=False)
-            
+
         dummy = DummyEval(config=MockConfig(genome_config=RealGenomeConfig(shape=(4,))), data=None)
-        
+
         adapter = build_evosax_engine(
             strategy_name="SimpleGA",
             evaluator=dummy,
@@ -258,22 +260,28 @@ class TestEvosaxAdapter(BaseAdapterTestSuite):
         if eval_mode == "native":
             evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3, maximize=maximize, seed=seed)
         else:
+
             class DummyEval(BaseEvaluator):
                 def evaluate_population(self, population):
                     return population
+
                 def evaluate(self, genome):
                     return jnp.zeros((), dtype=jnp.float32)
 
-            from malthusjax.core.genome.real_genome import RealGenomeConfig
             from flax import struct
-            
+
+            from malthusjax.core.genome.real_genome import RealGenomeConfig
+
             _maximize = maximize
+
             @struct.dataclass
             class MockConfig:
                 genome_config: RealGenomeConfig = struct.field(pytree_node=False)
                 maximize: bool = struct.field(pytree_node=False, default=_maximize)
-                
-            evalr = DummyEval(config=MockConfig(genome_config=RealGenomeConfig(shape=(3,))), data=None)
+
+            evalr = DummyEval(
+                config=MockConfig(genome_config=RealGenomeConfig(shape=(3,))), data=None
+            )
 
         return build_evosax_engine(
             strategy_name="SimpleGA",
@@ -282,6 +290,7 @@ class TestEvosaxAdapter(BaseAdapterTestSuite):
             generations=5,
             maximize=maximize,
         )
+
 
 # ---------------------------------------------------------------------------
 # Maximisation sign-flip (Evosax Specifics)
@@ -364,7 +373,15 @@ class TestStrategySmoke:
     @pytest.mark.parametrize("strategy_name", list_strategies())
     def test_strategy_runs_to_completion(self, strategy_name):
         # Skip due to JAX version compatibility issue with evosax pickling
-        if strategy_name in {"LGA", "EvoTF_ES", "LES", "LM_MA_ES", "SV_CMA_ES", "SV_Open_ES", "DES"}:
+        if strategy_name in {
+            "LGA",
+            "EvoTF_ES",
+            "LES",
+            "LM_MA_ES",
+            "SV_CMA_ES",
+            "SV_Open_ES",
+            "DES",
+        }:
             pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility issue")
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=4)
@@ -384,7 +401,15 @@ class TestStrategySmoke:
     def test_strategy_with_rastrigin(self, strategy_name):
         """Strategies should also work on non-trivial BBOB problems."""
         # Skip due to JAX version compatibility issue with evosax pickling
-        if strategy_name in {"LGA", "EvoTF_ES", "LES", "LM_MA_ES", "SV_CMA_ES", "SV_Open_ES", "DES"}:
+        if strategy_name in {
+            "LGA",
+            "EvoTF_ES",
+            "LES",
+            "LM_MA_ES",
+            "SV_CMA_ES",
+            "SV_Open_ES",
+            "DES",
+        }:
             pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility issue")
 
         evalr = make_bbob_evaluator(fn_name="rastrigin", num_dims=5)

@@ -1,17 +1,14 @@
 """Tests for the Composer class."""
 
-import math
-from pathlib import Path
 
-import jax
 import jax.numpy as jnp
-import jax.random as jr
 import pytest
 
-from malthusjax.composer.composer import Composer
-from malthusjax.composer.strategies.core import GeneticStrategy, EvoSAXStrategy, QDAXStrategy
-from malthusjax.benchmarking.results import ExperimentResult, RunResult, ComparisonResult
 from malthusjax.benchmarking import StubEngine
+from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult
+from malthusjax.composer.composer import Composer
+from malthusjax.composer.strategies.core import EvoSAXStrategy, GeneticStrategy, QDAXStrategy
+
 
 @pytest.fixture
 def temp_output(tmp_path):
@@ -22,15 +19,15 @@ class TestComposerSeeds:
     def test_normalize_seeds_int(self):
         assert Composer._normalize_seeds(3) == (1, 2, 3)
         assert Composer._normalize_seeds(1) == (1,)
-        
+
     def test_normalize_seeds_int_invalid(self):
         with pytest.raises(ValueError, match="must be > 0"):
             Composer._normalize_seeds(0)
-            
+
     def test_normalize_seeds_sequence(self):
         assert Composer._normalize_seeds([10, 20, 30]) == (10, 20, 30)
         assert Composer._normalize_seeds((42,)) == (42,)
-        
+
     def test_normalize_seeds_empty(self):
         with pytest.raises(ValueError, match="must not be empty"):
             Composer._normalize_seeds([])
@@ -59,7 +56,7 @@ class TestComposerQuickRun:
             seeds=(1,),
             output_dir=temp_output,
             serialize_history=False,
-            track_best=True
+            track_best=True,
         )
         assert len(result.runs) == 1
         assert "best_fitness" in result.runs[0].metrics
@@ -69,7 +66,7 @@ class TestComposerQuickRun:
         strategy = GeneticStrategy(
             selection="tournament:num_selections=2,tournament_size=2",
             crossover="blend:alpha=0.5",
-            mutation="gaussian:mutation_rate=0.5,mutation_strength=0.1"
+            mutation="gaussian:mutation_rate=0.5,mutation_strength=0.1",
         )
         result = composer.quick_run(
             backend="malthusjax",
@@ -82,7 +79,7 @@ class TestComposerQuickRun:
             serialize_history=False,
         )
         assert len(result.runs) == 1
-        
+
     def test_quick_run_evosax_backend(self, temp_output):
         composer = Composer.create_default()
         result = composer.quick_run(
@@ -159,16 +156,16 @@ class TestComposerQuickRun:
             serialize_history=False,
         )
         assert len(result.runs) == 1
-        
+
     def test_quick_run_qdax_backend(self, temp_output, monkeypatch):
         composer = Composer.create_default()
-        
+
         # Mock qdax engine build so we don't need real qdax dependencies to test composer routing
         def mock_build(*args, **kwargs):
             return StubEngine(generations=2)
-            
+
         monkeypatch.setattr("malthusjax.composer.qdax_adapter.build_qdax_engine", mock_build)
-        
+
         # QDAX strategy string map
         result = composer.quick_run(
             backend="qdax",
@@ -181,21 +178,21 @@ class TestComposerQuickRun:
             serialize_history=False,
         )
         assert len(result.runs) == 1
-        
+
     def test_quick_run_use_history_for_final(self, temp_output):
         composer = Composer.create_default()
-        
+
         # Test the postprocess function directly
         class DummyRun:
             def __init__(self):
                 self.status = "success"
-                self.metrics = {"best_fitness": float('nan')}
+                self.metrics = {"best_fitness": float("nan")}
                 self.history = [{"best_fitness": 42.0, "generation": 10}]
-        
+
         class DummyExperiment:
             def __init__(self):
                 self.runs = [DummyRun()]
-                
+
         exp = DummyExperiment()
         composer._postprocess_experiment_final_from_history(exp, force=False)
         assert exp.runs[0].metrics["best_fitness"] == 42.0
@@ -203,22 +200,23 @@ class TestComposerQuickRun:
 
     def test_postprocess_empty_history(self):
         composer = Composer.create_default()
+
         class DummyRun:
             def __init__(self):
                 self.status = "success"
                 self.history = []
                 self.metrics = {}
-        
+
         class DummyRunBadHistory:
             def __init__(self):
                 self.status = "success"
                 self.history = [{"best_fitness": "bad_float", "generation": "bad_int"}]
                 self.metrics = {}
-                
+
         class DummyExperiment:
             def __init__(self):
                 self.runs = [DummyRun(), DummyRunBadHistory()]
-                
+
         exp = DummyExperiment()
         composer._postprocess_experiment_final_from_history(exp, force=True)
         # Should not raise exception
@@ -245,7 +243,7 @@ class TestComposerCompare:
         assert isinstance(comparison, ComparisonResult)
         assert "Run_A" in comparison.pipelines
         assert "Run_B" in comparison.pipelines
-        
+
     def test_compare_bbob_shared_init(self, temp_output):
         composer = Composer.create_default()
         comparison = composer.compare(
@@ -264,20 +262,20 @@ class TestComposerCompare:
 
     def test_compare_shared_init_dimension_mismatch(self, temp_output, monkeypatch):
         composer = Composer.create_default()
-        
+
         # Mock _generate_initial_population to return wrong size
         def mock_generate(*args, **kwargs):
             return jnp.zeros((4, 99))
-            
+
         monkeypatch.setattr(composer, "_generate_initial_population", mock_generate)
-        
+
         with pytest.raises(ValueError, match="Shared initial population dimension mismatch"):
             # If pipeline overrides genome length, it clashes with shared init pop
             composer.compare(
                 pipelines={
                     "Run_A": {"genome_length": 5},
                 },
-                fitness="sphere:dim=2", # inferred length is 2
+                fitness="sphere:dim=2",  # inferred length is 2
                 pop_size=4,
                 generations=1,
                 seeds=(1,),
@@ -303,16 +301,14 @@ class TestComposerFromToml:
         """
         toml_path = tmp_path / "exp.toml"
         toml_path.write_text(toml_content)
-        
+
         result = Composer.from_toml(
-            path=toml_path,
-            shared_initial_population=False,
-            trace_dir=tmp_path / "traces"
+            path=toml_path, shared_initial_population=False, trace_dir=tmp_path / "traces"
         )
         assert isinstance(result, ComparisonResult)
         assert "alg1" in result.pipelines
         assert "alg2" in result.pipelines
-        
+
     def test_from_toml_with_pipeline_subset(self, tmp_path):
         toml_content = """
         [experiment.shared]
@@ -326,7 +322,7 @@ class TestComposerFromToml:
         """
         toml_path = tmp_path / "exp.toml"
         toml_path.write_text(toml_content)
-        
+
         result = Composer.from_toml(
             path=toml_path,
             pipelines=["alg1"],
@@ -334,6 +330,7 @@ class TestComposerFromToml:
         )
         assert "alg1" in result.pipelines
         assert "alg2" not in result.pipelines
+
 
 class TestComposerPrivateMethods:
     def test_build_data_registry(self):
@@ -361,7 +358,7 @@ class TestComposerPrivateMethods:
                 bounds=(-5.0, 5.0),
                 maximize=False,
             )
-            
+
         with pytest.raises(ValueError, match="requires either fn_name or fn index"):
             composer._build_evosax_engine(
                 strategy_name="SimpleGA",

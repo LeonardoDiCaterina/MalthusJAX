@@ -112,7 +112,7 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 warn_return_any = false
 warn_unused_configs = true
 warn_unused_ignores = false
@@ -157,6 +157,7 @@ module = [
     "jumanji.*",
     "bbobax.*",
     "kozax.*",
+    "toml.*",
 ]
 ignore_missing_imports = true
 ignore_errors = true

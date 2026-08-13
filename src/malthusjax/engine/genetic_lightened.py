@@ -11,6 +11,7 @@ Achieves ~100% XLA kernel fusion parity with EvoSAX and TensorNEAT by:
 from __future__ import annotations
 
 from typing import Any, Tuple, Union, cast
+
 import chex
 import jax
 import jax.numpy as jnp
@@ -19,7 +20,6 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
 from malthusjax.core.fitness.base import BaseEvaluator
-from malthusjax.operators.base import BaseCrossover, BaseMutation, BaseSelection
 from malthusjax.core.random import create_key, is_new_style_key, validate_key
 from malthusjax.engine.base import (
     AbstractEngine,
@@ -33,7 +33,7 @@ from malthusjax.engine.genetic_fastengine import (
     OperatorState,
 )
 from malthusjax.engine.resource_mapper import compute_resource_map
-from malthusjax.engine.schedules import TrackBest
+from malthusjax.operators.base import BaseCrossover, BaseMutation, BaseSelection
 
 _field: Any = struct.field
 

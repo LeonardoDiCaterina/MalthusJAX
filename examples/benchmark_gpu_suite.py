@@ -16,7 +16,6 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import jax
@@ -58,7 +57,7 @@ def run_benchmark_suite(
     backend = jax.default_backend()
     devices = jax.devices()
     print("=" * 90)
-    print(f"  MALTHUSJAX HIGH-PERFORMANCE GPU BENCHMARK SUITE")
+    print("  MALTHUSJAX HIGH-PERFORMANCE GPU BENCHMARK SUITE")
     print(f"  JAX Device Backend: {backend.upper()} ({devices})")
     print(f"  Genome Dimension:   {dim}D Sphere Problem")
     print(f"  Population Sizes:   {pop_sizes}")
@@ -76,7 +75,9 @@ def run_benchmark_suite(
 
     for pop_size in pop_sizes:
         for num_gens in generations_list:
-            print(f"\n[Benchmarking Configuration] Pop Size: {pop_size:4d} | Generations: {num_gens:4d}")
+            print(
+                f"\n[Benchmarking Configuration] Pop Size: {pop_size:4d} | Generations: {num_gens:4d}"
+            )
             print("-" * 85)
 
             genome_config = RealGenomeConfig(bounds=(-5.0, 5.0), shape=(dim,))
@@ -198,7 +199,7 @@ def run_benchmark_suite(
 
                 evosax_mean_sec = float(np.mean(evo_times))
                 evosax_ms_per_gen = (evosax_mean_sec / num_gens) * 1000
-            except Exception as e:
+            except Exception:
                 pass
 
             # ---------------------------------------------------------------
@@ -207,11 +208,19 @@ def run_benchmark_suite(
             speedup_light = std_mean_sec / light_mean_sec if light_mean_sec > 0 else 0.0
             speedup_batch = std_mean_sec / batch_mean_sec if batch_mean_sec > 0 else 0.0
 
-            print(f"  1. Standard GeneticEngine     | Total: {std_mean_sec*1000:7.2f} ms | Per Gen: {std_ms_per_gen*1000:6.1f} µs")
-            print(f"  2. LightenedEngine (Modular)  | Total: {light_mean_sec*1000:7.2f} ms | Per Gen: {light_ms_per_gen*1000:6.1f} µs (Speedup: {speedup_light:.2f}x)")
-            print(f"  3. Batched Vectorized Engine  | Total: {batch_mean_sec*1000:7.2f} ms | Per Gen: {batch_ms_per_gen*1000:6.1f} µs (Speedup: {speedup_batch:.2f}x)")
+            print(
+                f"  1. Standard GeneticEngine     | Total: {std_mean_sec * 1000:7.2f} ms | Per Gen: {std_ms_per_gen * 1000:6.1f} µs"
+            )
+            print(
+                f"  2. LightenedEngine (Modular)  | Total: {light_mean_sec * 1000:7.2f} ms | Per Gen: {light_ms_per_gen * 1000:6.1f} µs (Speedup: {speedup_light:.2f}x)"
+            )
+            print(
+                f"  3. Batched Vectorized Engine  | Total: {batch_mean_sec * 1000:7.2f} ms | Per Gen: {batch_ms_per_gen * 1000:6.1f} µs (Speedup: {speedup_batch:.2f}x)"
+            )
             if evosax_ms_per_gen is not None and evosax_mean_sec is not None:
-                print(f"  4. EvoSAX (SimpleGA Adapter)  | Total: {evosax_mean_sec*1000:7.2f} ms | Per Gen: {evosax_ms_per_gen*1000:6.1f} µs")
+                print(
+                    f"  4. EvoSAX (SimpleGA Adapter)  | Total: {evosax_mean_sec * 1000:7.2f} ms | Per Gen: {evosax_ms_per_gen * 1000:6.1f} µs"
+                )
 
             exp_entry = {
                 "pop_size": pop_size,
@@ -252,10 +261,14 @@ def run_benchmark_suite(
 # ===========================================================================
 def main() -> None:
     parser = argparse.ArgumentParser(description="MalthusJAX High-Performance GPU Benchmark Suite")
-    parser.add_argument("--pop-sizes", type=int, nargs="+", default=[128, 512, 2048], help="Population sizes")
+    parser.add_argument(
+        "--pop-sizes", type=int, nargs="+", default=[128, 512, 2048], help="Population sizes"
+    )
     parser.add_argument("--generations", type=int, nargs="+", default=[50, 200], help="Generations")
     parser.add_argument("--dim", type=int, default=10, help="Genome problem dimension")
-    parser.add_argument("--output", type=str, default="gpu_benchmark_results.json", help="Output JSON path")
+    parser.add_argument(
+        "--output", type=str, default="gpu_benchmark_results.json", help="Output JSON path"
+    )
     args = parser.parse_args()
 
     run_benchmark_suite(

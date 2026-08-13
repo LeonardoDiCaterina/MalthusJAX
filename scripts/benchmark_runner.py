@@ -143,7 +143,7 @@ def run_suite(toml_path: str, force_smoke: bool = False) -> None:
                         "status": run.status,
                         "duration_seconds": run.duration_seconds,
                     }
-                    
+
                     # Dynamically add all scalar metrics returned by the engine
                     for k, v in run.metrics.items():
                         if isinstance(v, (int, float, bool, str)) or v is None:

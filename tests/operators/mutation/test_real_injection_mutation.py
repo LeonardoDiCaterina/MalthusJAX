@@ -1,7 +1,7 @@
-import pytest
 import jax
 import jax.numpy as jnp
 import jax.random as jar
+import pytest
 
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.real import (
@@ -21,7 +21,7 @@ def real_injection_mut_setup(prng_key):
 
 def _run_injection_mutation(operator_cls, setup_data, prng_key, **kwargs):
     config, pop_size, population = setup_data
-    
+
     mutator = operator_cls(num_offspring=1, **kwargs).set_input_length(pop_size)
 
     n_keys = mutator.num_keys(input_shape=(pop_size,))
@@ -38,12 +38,26 @@ def _run_injection_mutation(operator_cls, setup_data, prng_key, **kwargs):
 
 
 def test_gaussian_injection(real_injection_mut_setup, prng_key):
-    _run_injection_mutation(GaussianMutation_injection, real_injection_mut_setup, prng_key, mutation_rate=1.0, mutation_strength=0.5)
+    _run_injection_mutation(
+        GaussianMutation_injection,
+        real_injection_mut_setup,
+        prng_key,
+        mutation_rate=1.0,
+        mutation_strength=0.5,
+    )
 
 
 def test_ball_injection(real_injection_mut_setup, prng_key):
-    _run_injection_mutation(BallMutation_injection, real_injection_mut_setup, prng_key, mutation_rate=1.0, radius=0.5)
+    _run_injection_mutation(
+        BallMutation_injection, real_injection_mut_setup, prng_key, mutation_rate=1.0, radius=0.5
+    )
 
 
 def test_polynomial_injection(real_injection_mut_setup, prng_key):
-    _run_injection_mutation(PolynomialMutation_injection, real_injection_mut_setup, prng_key, mutation_rate=1.0, eta=20.0)
+    _run_injection_mutation(
+        PolynomialMutation_injection,
+        real_injection_mut_setup,
+        prng_key,
+        mutation_rate=1.0,
+        eta=20.0,
+    )

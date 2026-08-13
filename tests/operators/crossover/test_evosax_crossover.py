@@ -1,8 +1,8 @@
-import pytest
+import chex
 import jax
 import jax.numpy as jnp
 import jax.random as jar
-import chex
+import pytest
 
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
@@ -17,22 +17,24 @@ def evosax_cx_setup(prng_key):
     parents_1 = RealPopulation.init_random(k1, config, pop_size)
     p2_genes = RealGenome(values=jnp.full((pop_size, config.shape[0]), 1.0))
     parents_2 = parents_1.spawn_offspring(p2_genes)
-    
+
     return config, pop_size, parents_1, parents_2
 
 
 @pytest.mark.parametrize("num_offspring", [1, 2])
 @pytest.mark.parametrize("crossover_rate", [0.5, 0.7])
 @pytest.mark.parametrize("injection_mode", [True, False])
-def test_evosax_uniform_crossover_wrapper(evosax_cx_setup, prng_key, num_offspring, crossover_rate, injection_mode):
+def test_evosax_uniform_crossover_wrapper(
+    evosax_cx_setup, prng_key, num_offspring, crossover_rate, injection_mode
+):
     config, pop_size, parents_1, parents_2 = evosax_cx_setup
-    
+
     wrapper = EvosaxUniformCrossoverWrapper(
         num_offspring=num_offspring,
         crossover_rate=crossover_rate,
         injection_mode=injection_mode,
     ).set_input_length(pop_size)
-    
+
     n_keys = wrapper.num_keys(input_shape=(pop_size,))
     if wrapper.injection_mode:
         expected_n = 1

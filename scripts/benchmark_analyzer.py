@@ -39,7 +39,7 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
     """Parse all JSON artifacts into a single unpivoted dataframe."""
     if target_metrics is None:
         target_metrics = ["best_fitness", "execution_time"]
-        
+
     records = []
 
     # Support both new TOML engine and legacy hardcoded script outputs
@@ -93,7 +93,7 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
 
                 for run in runs:
                     seed = run.get("seed", -1)
-                    
+
                     record = {
                         "experiment": exp_name,
                         "fn_name": fn_name,
@@ -106,19 +106,19 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
 
                     for metric in target_metrics:
                         val = run.get(metric, np.nan)
-                        
+
                         # Fallbacks for execution time aliases
                         if metric == "execution_time" and pd.isna(val):
                             if "timings" in run and "total" in run["timings"]:
                                 val = run["timings"]["total"]
                             else:
                                 val = run.get("duration_seconds", np.nan)
-                                
+
                         try:
                             val = float(val) if val is not None else np.nan
                         except (ValueError, TypeError):
                             val = np.nan
-                            
+
                         record[metric] = val
 
                     # Skip if ALL target metrics are nan
@@ -141,13 +141,13 @@ def generate_boxplots(df: pd.DataFrame, output_dir: Path, prefix: str, target_me
     for i, metric in enumerate(target_metrics):
         if metric not in df.columns:
             continue
-            
+
         plt.subplot(1, n_metrics, i + 1)
         sns.boxplot(data=df.dropna(subset=[metric]), x="pipeline", y=metric)
-        
+
         if metric == "execution_time":
             plt.yscale("log")
-        
+
         plt.title(f"{metric.replace('_', ' ').title()}")
         plt.xticks(rotation=45)
 
@@ -224,10 +224,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
     analysis_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Parsing raw results from {results_dir}...")
-    df_global = parse_global_data(
-        results_dir, 
-        target_metrics=config.analysis.target_metrics
-    )
+    df_global = parse_global_data(results_dir, target_metrics=config.analysis.target_metrics)
 
     if df_global.empty:
         print("ERROR: No valid JSON result artifacts found!")
@@ -299,7 +296,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                     for var in config.analysis.target_metrics:
                         if var not in df_target.columns or var not in df_ref.columns:
                             continue
-                            
+
                         target_vals = df_target[var].dropna().values
                         ref_vals = df_ref[var].dropna().values
 

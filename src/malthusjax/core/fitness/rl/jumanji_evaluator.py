@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional, Tuple, cast
+from typing import Any, Callable, Tuple, cast
 
 import chex
 import flax.linen as nn

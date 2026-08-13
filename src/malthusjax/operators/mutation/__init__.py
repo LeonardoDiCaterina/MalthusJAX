@@ -3,15 +3,15 @@ Mutation Operators Module.
 """
 
 from .binary import BitFlipMutation, ScrambleMutation, SwapMutation
-from .evosax_mutation import EvosaxGaussianWrapper, BatchedEvosaxGaussianWrapper
+from .evosax_mutation import BatchedEvosaxGaussianWrapper, EvosaxGaussianWrapper
 from .real import (
     BallMutation,
     BallMutation_injection,
+    BatchedGaussianMutation,
     GaussianMutation,
     GaussianMutation_injection,
     PolynomialMutation,
     PolynomialMutation_injection,
-    BatchedGaussianMutation,
 )
 
 __all__ = [

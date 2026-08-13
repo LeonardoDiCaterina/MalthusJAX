@@ -9,18 +9,18 @@ import jax.random as jar
 import pytest
 
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.binary_evaluators import BinarySumConfig, BinarySumEvaluator
+from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (
     GeneticEngine,
     GeneticEngineParams,
 )
+from malthusjax.operators.crossover.binary import UniformCrossover
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
+from malthusjax.operators.mutation.binary import BitFlipMutation
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
-from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
-from malthusjax.core.fitness.binary_evaluators import BinarySumConfig, BinarySumEvaluator
-from malthusjax.operators.crossover.binary import UniformCrossover
-from malthusjax.operators.mutation.binary import BitFlipMutation
 
 
 @pytest.fixture
@@ -109,9 +109,10 @@ def initialized_state(genetic_engine, prng_key):
 def make_engine():
     """
     Factory fixture for creating customized genetic engines for tests.
-    
+
     This replaces the need for manual `setUp()` boilerplate across tests.
     """
+
     def _make(
         pop_size=100,
         genome_shape=(10,),
@@ -124,10 +125,9 @@ def make_engine():
         mutation_strength=0.5,
         track_best=None,
         schedule_type=None,
-        **kwargs
+        **kwargs,
     ):
-        from malthusjax.engine.schedules import TrackBest
-        
+
         # Base engine params
         params_kwargs = {
             "pop_size": pop_size,
@@ -138,15 +138,22 @@ def make_engine():
             params_kwargs["track_best"] = track_best
         if schedule_type is not None:
             params_kwargs["schedule_type"] = schedule_type
-            
+
         params = GeneticEngineParams(**params_kwargs)
 
         if genome_type == "real":
             genome_cfg = RealGenomeConfig(shape=genome_shape, bounds=bounds)
-            evaluator = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=genome_shape[0], maximize=maximize))
+            evaluator = BBOBEvaluator.create(
+                BBOBConfig(fn_name="sphere", num_dims=genome_shape[0], maximize=maximize)
+            )
             selection = ElitePoolSelection(num_selections=pop_size, elite_k=max(1, elitism))
             crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)
-            mutation = GaussianMutation(num_offspring=1, mutation_rate=mutation_rate, mutation_strength=mutation_strength, clip=True)
+            mutation = GaussianMutation(
+                num_offspring=1,
+                mutation_rate=mutation_rate,
+                mutation_strength=mutation_strength,
+                clip=True,
+            )
         elif genome_type == "binary":
             genome_cfg = BinaryGenomeConfig(shape=genome_shape, p=0.5)
             evaluator = BinarySumEvaluator(config=BinarySumConfig(maximize=maximize))
@@ -164,6 +171,7 @@ def make_engine():
             crossover=crossover,
             mutation=mutation,
             enable_progress_bar=False,
-            **kwargs
+            **kwargs,
         )
+
     return _make

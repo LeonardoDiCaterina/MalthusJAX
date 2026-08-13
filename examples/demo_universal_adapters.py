@@ -13,17 +13,14 @@ import time
 from typing import Tuple
 
 import chex
-import jax
 import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.composer import Composer
 from malthusjax.composer.catalog import OperatorCatalog
 from malthusjax.composer.strategies.core import MapElitesStrategy
-from malthusjax.core.base import BasePopulation
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
-from malthusjax.core.genome.qd.population import QDPopulation
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
 from malthusjax.operators.emitters.genetic import GeneticMutationEmitter
 

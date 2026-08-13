@@ -1,9 +1,11 @@
-import jax
 import argparse
-import sys
 import shutil
 import subprocess
+import sys
 from pathlib import Path
+
+import jax
+
 from malthusjax.benchmarking.config import BenchmarkConfig
 from malthusjax.composer import Composer
 
@@ -78,7 +80,7 @@ def trace_all_pipelines(toml_path: str, trace_dir: str, port: int):
         ]
         subprocess.run(cmd, check=True)
 
-    print(f"\nAll traces complete!")
+    print("\nAll traces complete!")
     print(f"  Launch TensorBoard:  tensorboard --logdir {base_trace_dir} --port {port}")
     print(f"  URL:                 http://localhost:{port}")
 
