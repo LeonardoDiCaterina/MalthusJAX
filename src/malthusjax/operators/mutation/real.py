@@ -100,10 +100,12 @@ class GaussianMutation(BaseMutation[RealGenome, RealGenomeConfig]):
     -----
     **INTERACTION BETWEEN mutation_rate AND mutation_strength**:
     These two parameters control different aspects of mutation:
+
     - `mutation_rate`: **Which** genes are modified (controls sparsity)
     - `mutation_strength`: **How much** each modified gene changes (controls perturbation scale)
 
     **Example scenarios**:
+
     1. **Exploration phase**: Higher mutation_rate (0.2) + higher mutation_strength (0.2) → Many genes perturbed by large amounts
     2. **Exploitation/fine-tuning**: Lower mutation_rate (0.05) + lower mutation_strength (0.05) → Few genes, small noise
     3. **Balanced default**: mutation_rate=0.1, mutation_strength=0.1 → ~10% of genes affected, each by ~0.1 std units

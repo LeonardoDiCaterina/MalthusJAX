@@ -38,8 +38,8 @@ jobs:
 
       - name: Run Tests & Generate Coverage Badge
         run: |
-          # Run tests and generate HTML coverage report inside the docs build directory
-          python -m pytest tests/ --cov=src/malthusjax --cov-report=html:docs/_build/html/coverage || true
+          # Run only fast unit test suites to generate coverage quickly (avoids multi-hour benchmarks)
+          python -m pytest tests/core tests/engine tests/operators tests/composer tests/stats --cov=src/malthusjax --cov-report=html:docs/_build/html/coverage || true
           
           # Generate the SVG badge directly into the docs build directory
           coverage-badge -o docs/_build/html/coverage.svg -f
