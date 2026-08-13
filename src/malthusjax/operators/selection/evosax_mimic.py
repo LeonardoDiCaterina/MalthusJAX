@@ -10,7 +10,7 @@ from malthusjax.operators.base import BaseSelection, C, P
 
 @struct.dataclass
 class EvoSaxMimicSelection(BaseSelection[P, C]):
-    elite_k: int = struct.field(pytree_node=False, default=10)  # type: ignore
+    elite_k: int = struct.field(pytree_node=False, default=10)
 
     @property
     def num_keys_per_atomic_operation(self) -> int:

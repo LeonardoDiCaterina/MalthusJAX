@@ -101,7 +101,7 @@ class BaseMutation_injection(BaseMutation[G, C]):
             def _inner(n: chex.Array) -> G:
                 return self._mutate_one(g, n, config)
 
-            return jax.vmap(_inner, in_axes=0)(noise_block)  # type: ignore[no-any-return]
+            return jax.vmap(_inner, in_axes=0)(noise_block)
 
         nested_offspring = jax.vmap(_process_noise_block, in_axes=(0, 0))(
             noise_nk, population.genes

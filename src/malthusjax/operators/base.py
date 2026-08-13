@@ -215,7 +215,7 @@ class BaseMutation(Generic[G, C]):
             return self._mutate_fused(keys_block, genome, config, generation)
 
         def _process_population(k_block: chex.Array, g: G) -> G:
-            return jax.vmap(_mutate_single, in_axes=(0, None))(k_block, g)  # type: ignore[no-any-return]
+            return jax.vmap(_mutate_single, in_axes=(0, None))(k_block, g)
 
         vmap_process = jax.vmap(_process_population, in_axes=(0, 0))
         nested_offspring = vmap_process(keys_reshaped, population.genes)
@@ -404,7 +404,7 @@ class BaseCrossover(Generic[G, C]):
             return self._cross_fused(k, p1, p2, config, generation)
 
         offspring = jax.vmap(_cross_one)(keys_reshaped)
-        return cast(G, offspring)
+        return offspring
 
     def __call__(
         self,
