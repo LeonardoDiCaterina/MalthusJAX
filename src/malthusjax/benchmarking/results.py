@@ -1231,11 +1231,10 @@ class ComparisonResult:
                 fig_obj.savefig(out_path, bbox_inches="tight")
             return axes
 
-        fig_single: Any = None
         if ax is None:
             fig_single, ax = plt.subplots(figsize=(8, 4))
         else:
-            fig_single = getattr(ax, "figure", None)
+            pass
 
         extra_negate = negate or {}
         conv = self.convergence_data(seed_index, optimum=optimum)  # already sign-normalised or gap

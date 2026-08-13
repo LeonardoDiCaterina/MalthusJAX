@@ -28,7 +28,7 @@ class UniformCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.
     """
 
-    num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
+    num_offspring: int = struct.field(pytree_node=False, default=1)
     crossover_rate: float = 0.5
 
     @property
@@ -90,7 +90,7 @@ class UniformCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeC
     Shape contract: Parent (d,) → Noise (d,), vmapped to (K, d) then flattened to (K*d,)
     """
 
-    num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
+    num_offspring: int = struct.field(pytree_node=False, default=1)
     crossover_rate: float = 0.5
 
     @property
@@ -210,7 +210,7 @@ class BlendCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     - Cons: Less control over distribution shape compared to SBX
     """
 
-    num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
+    num_offspring: int = struct.field(pytree_node=False, default=1)
     crossover_rate: float = 0.9
     alpha: float = 0.5
 
@@ -301,7 +301,7 @@ class BlendCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeCon
     Trade-off: Full materialization enables exact reproducibility.
     """
 
-    num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
+    num_offspring: int = struct.field(pytree_node=False, default=1)
     crossover_rate: float = 0.9
     alpha: float = 0.5
 
@@ -467,7 +467,7 @@ class SimulatedBinaryCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     - Cons: Requires tuning η for different problems/phases
     """
 
-    num_offspring: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
+    num_offspring: int = struct.field(pytree_node=False, default=2)
     crossover_rate: float = 0.9
     eta: float = 20.0
 
@@ -562,7 +562,7 @@ class SimulatedBinaryCrossover_injection(BaseCrossover_injection[RealGenome, Rea
     Trade-off: Full materialization enables exact reproducibility and distinctness.
     """
 
-    num_offspring: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
+    num_offspring: int = struct.field(pytree_node=False, default=2)
     crossover_rate: float = 0.9
     eta: float = 20.0
 
@@ -658,7 +658,7 @@ class BinomialCrossover(BaseCrossover[RealGenome, RealGenomeConfig]):
     Key budget: 1 subkey (Bernoulli mask generation)
     """
 
-    num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
+    num_offspring: int = struct.field(pytree_node=False, default=1)
     crossover_rate: float = 0.9
 
     @property
@@ -719,7 +719,7 @@ class BinomialCrossover_injection(BaseCrossover_injection[RealGenome, RealGenome
     Trade-off: Full materialization enables reproducibility without key re-splitting.
     """
 
-    num_offspring: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
+    num_offspring: int = struct.field(pytree_node=False, default=1)
     crossover_rate: float = 0.9
 
     @property

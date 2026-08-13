@@ -612,11 +612,11 @@ class BatchedGaussianMutation(GaussianMutation):
         k_noise = all_keys[1] if len(all_keys.shape) == 2 else all_keys[0][1]
 
         strength = compute_scheduled_strength(
-            self.mutation_strength,
-            self.final_strength,
+            self.schedule_type,
             generation,
             self.max_generations,
-            self.schedule_type,
+            initial_strength=self.mutation_strength,
+            final_strength=self.final_strength,
         )
 
         genes = population.genes.values
