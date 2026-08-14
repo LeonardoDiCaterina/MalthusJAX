@@ -1553,122 +1553,6 @@ the XLA HLO / profiler output.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="malthusjax.engine.NativeFastEngine">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">NativeFastEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_progress_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_entropy_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/native_fastengine.html#NativeFastEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.NativeFastEngine" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine" title="malthusjax.engine.genetic_fastengine.GeneticEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneticEngine</span></code></a></p>
-<p>An optimized subclass of GeneticEngine that executes a purely flat-array
-scan loop, matching EvoSAX’s raw performance.</p>
-<p>It unwraps the PyTree population before the scan, calls the <cite>apply_fastpath</cite>
-methods on the operators, and reconstructs the PyTree at the end.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>engine_params</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngineParams" title="malthusjax.engine.base.AbstractEngineParams"><em>AbstractEngineParams</em></a>)</p></li>
-<li><p><strong>genome_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>evaluator</strong> (<a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><em>BaseEvaluator</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>selection</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><em>BaseSelection</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>crossover</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>mutation</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><em>BaseMutation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>enable_progress_bar</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>_entropy_buffer</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="malthusjax.engine.NativeFastEngine.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_it</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/native_fastengine.html#NativeFastEngine.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.NativeFastEngine.run" title="Link to this definition">¶</a></dt>
-<dd><p>Execute full evolution from initial state using jax.lax.scan.</p>
-<p>This method runs the genetic algorithm for num_generations by repeatedly
-calling <code class="xref py py-meth docutils literal notranslate"><span class="pre">step()</span></code> inside a <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.lax.scan.html#jax.lax.scan" title="(in JAX)"><code class="xref py py-func docutils literal notranslate"><span class="pre">jax.lax.scan()</span></code></a> loop. It handles both
-internal fitness evaluation and Hall-of-Fame tracking.</p>
-<section id="id17">
-<h2>Parameters<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h2>
-<dl class="simple">
-<dt>initial_state<span class="classifier">GeneticEvolutionState</span></dt><dd><p>Starting state (typically from <code class="xref py py-meth docutils literal notranslate"><span class="pre">init_state()</span></code>). Must contain
-population, resource_map, and baked operators.</p>
-</dd>
-<dt>time_it<span class="classifier">bool, optional</span></dt><dd><p>If True, measure wall-clock time for the entire scan loop (Python-side).
-Default: False. Note: timing includes XLA compilation on first call.</p>
-</dd>
-<dt>compile<span class="classifier">bool, optional</span></dt><dd><p>Deprecated. For compatibility only; has no effect.
-Default: True.</p>
-</dd>
-<dt>verbose<span class="classifier">bool, optional</span></dt><dd><p>If True, print progress bar (requires tqdm). Default: False.</p>
-</dd>
-<dt>return_history<span class="classifier">bool, optional</span></dt><dd><p>If True, return the history of generation metrics. Default: True.</p>
-</dd>
-</dl>
-</section>
-<section id="id18">
-<h2>Returns<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h2>
-<dl class="simple">
-<dt>final_state<span class="classifier">GeneticEvolutionState</span></dt><dd><p>State after num_generations steps. Contains population, best_genome,
-best_fitness, and current generation.</p>
-</dd>
-<dt>history<span class="classifier">List[GeneticGenerationOutput]</span></dt><dd><p>Per-generation KPIs. Each item contains:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> : Best fitness this generation</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mean_fitness</span></code> : Population mean fitness</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">generation</span></code> : Generation counter</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">random_key</span></code> : PRNG key for reproducibility</p></li>
-</ul>
-</dd>
-<dt>elapsed_time<span class="classifier">float or None</span></dt><dd><p>Wall-clock time in seconds (only if time_it=True, else None).</p>
-</dd>
-</dl>
-</section>
-<section id="id19">
-<h2>Notes<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h2>
-<p><strong>Fitness Evaluation</strong>: The engine calls <code class="xref py py-meth docutils literal notranslate"><span class="pre">evaluator.evaluate_population()</span></code>
-internally after each generation’s reproduction phase.</p>
-<p><strong>Hall-of-Fame Tracking</strong>: Best individual tracking strategy
-(from <code class="xref py py-attr docutils literal notranslate"><span class="pre">engine_params.track_best</span></code>)—</p>
-<ul class="simple">
-<li><p>NONE: No per-generation tracking; best_genome computed once at end</p></li>
-<li><p>LIGHT: best_fitness tracked as running max each generation</p></li>
-<li><p>FULL: Both best_fitness and best_genome updated every generation</p></li>
-</ul>
-<p><strong>Compilation</strong>: First call triggers XLA compilation (may take seconds for
-large populations). Subsequent calls use cached compiled kernels.</p>
-</section>
-<section id="id20">
-<h2>Examples<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h2>
-<p>Run a full evolution:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">rng_key</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
-<span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">elapsed</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">time_it</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evolution took </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Best fitness: </span><span class="si">{</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Extract convergence history:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">best_per_gen</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="o">.</span><span class="n">best_fitness</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">best_per_gen</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Generation&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Best Fitness&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>initial_state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
-<li><p><strong>time_it</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>compile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>return_history</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | None]</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.ScheduleType">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">ScheduleType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#ScheduleType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.ScheduleType" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
@@ -2116,10 +2000,6 @@ size. It remains here for backwards compatibility and now always returns
 <li><a class="reference internal" href="#malthusjax.engine.GeneticGenerationOutput"><code class="docutils literal notranslate"><span class="pre">GeneticGenerationOutput</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticGenerationOutput.random_key"><code class="docutils literal notranslate"><span class="pre">GeneticGenerationOutput.random_key</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticGenerationOutput.replace"><code class="docutils literal notranslate"><span class="pre">GeneticGenerationOutput.replace()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#malthusjax.engine.NativeFastEngine"><code class="docutils literal notranslate"><span class="pre">NativeFastEngine</span></code></a><ul>
-<li><a class="reference internal" href="#malthusjax.engine.NativeFastEngine.run"><code class="docutils literal notranslate"><span class="pre">NativeFastEngine.run()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#malthusjax.engine.ScheduleType"><code class="docutils literal notranslate"><span class="pre">ScheduleType</span></code></a><ul>

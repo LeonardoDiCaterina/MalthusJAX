@@ -442,7 +442,7 @@ False = legacy uint32[2].</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.operators.base.BaseMutation.apply_fastpath">
 <span class="sig-name descname"><span class="pre">apply_fastpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseMutation.apply_fastpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseMutation.apply_fastpath" title="Link to this definition">¶</a></dt>
-<dd><p>Fast path protocol for NativeFastEngine.</p>
+<dd><p>Fast path protocol for array-native engines.</p>
 <p>Takes flat arrays, generates noise, and maps _apply_noise across the batch.
 Bypasses PyTree overhead completely.</p>
 <dl class="field-list simple">
@@ -593,7 +593,7 @@ False = legacy uint32[2].</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.operators.base.BaseCrossover.apply_fastpath">
 <span class="sig-name descname"><span class="pre">apply_fastpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/base.html#BaseCrossover.apply_fastpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.base.BaseCrossover.apply_fastpath" title="Link to this definition">¶</a></dt>
-<dd><p>Fast path protocol for NativeFastEngine.</p>
+<dd><p>Fast path protocol for array-native engines.</p>
 <p>Takes flat arrays, generates noise, and maps _apply_mask across the batch.
 Bypasses PyTree overhead completely.</p>
 <dl class="field-list simple">

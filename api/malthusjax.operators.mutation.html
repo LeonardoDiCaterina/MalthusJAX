@@ -513,13 +513,17 @@ Default: 0.0 (decay to zero).</p>
 <section id="notes">
 <h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
 <p><strong>INTERACTION BETWEEN mutation_rate AND mutation_strength</strong>:
-These two parameters control different aspects of mutation:
-- <cite>mutation_rate</cite>: <strong>Which</strong> genes are modified (controls sparsity)
-- <cite>mutation_strength</cite>: <strong>How much</strong> each modified gene changes (controls perturbation scale)</p>
-<p><strong>Example scenarios</strong>:
-1. <strong>Exploration phase</strong>: Higher mutation_rate (0.2) + higher mutation_strength (0.2) → Many genes perturbed by large amounts
-2. <strong>Exploitation/fine-tuning</strong>: Lower mutation_rate (0.05) + lower mutation_strength (0.05) → Few genes, small noise
-3. <strong>Balanced default</strong>: mutation_rate=0.1, mutation_strength=0.1 → ~10% of genes affected, each by ~0.1 std units</p>
+These two parameters control different aspects of mutation:</p>
+<ul class="simple">
+<li><p><cite>mutation_rate</cite>: <strong>Which</strong> genes are modified (controls sparsity)</p></li>
+<li><p><cite>mutation_strength</cite>: <strong>How much</strong> each modified gene changes (controls perturbation scale)</p></li>
+</ul>
+<p><strong>Example scenarios</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Exploration phase</strong>: Higher mutation_rate (0.2) + higher mutation_strength (0.2) → Many genes perturbed by large amounts</p></li>
+<li><p><strong>Exploitation/fine-tuning</strong>: Lower mutation_rate (0.05) + lower mutation_strength (0.05) → Few genes, small noise</p></li>
+<li><p><strong>Balanced default</strong>: mutation_rate=0.1, mutation_strength=0.1 → ~10% of genes affected, each by ~0.1 std units</p></li>
+</ol>
 <p><strong>When to Use</strong>: Gaussian mutation is the recommended operator for continuous
 optimization. It’s simple, effective, and works well across nearly all problem types.
 Use it unless you have a specific reason to prefer other mutations (e.g., Ball mutation
@@ -972,7 +976,7 @@ per-individual budget delegated to the base-class fused path.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.operators.mutation.EvosaxGaussianWrapper.apply_fastpath">
 <span class="sig-name descname"><span class="pre">apply_fastpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/operators/mutation/evosax_mutation.html#EvosaxGaussianWrapper.apply_fastpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.operators.mutation.EvosaxGaussianWrapper.apply_fastpath" title="Link to this definition">¶</a></dt>
-<dd><p>Fast path protocol for NativeFastEngine.</p>
+<dd><p>Fast path protocol for array-native engines.</p>
 <p>Takes flat arrays, generates noise, and maps _apply_noise across the batch.
 Bypasses PyTree overhead completely.</p>
 <dl class="field-list simple">
