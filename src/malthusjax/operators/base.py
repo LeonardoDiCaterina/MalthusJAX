@@ -152,7 +152,7 @@ class BaseMutation(Generic[G, C]):
     def apply_fastpath(
         self, all_keys: chex.Array, flat_values: chex.Array, config: C, generation: int = 0
     ) -> chex.Array:
-        """Fast path protocol for NativeFastEngine.
+        """Fast path protocol for array-native engines.
 
         Takes flat arrays, generates noise, and maps _apply_noise across the batch.
         Bypasses PyTree overhead completely.
@@ -365,7 +365,7 @@ class BaseCrossover(Generic[G, C]):
         config: C,
         generation: int = 0,
     ) -> chex.Array:
-        """Fast path protocol for NativeFastEngine.
+        """Fast path protocol for array-native engines.
 
         Takes flat arrays, generates noise, and maps _apply_mask across the batch.
         Bypasses PyTree overhead completely.
