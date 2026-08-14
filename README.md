@@ -14,6 +14,12 @@
 
 ---
 
+## Realtime Core Coverage
+
+<!-- COVERAGE-START -->
+<!-- COVERAGE-END -->
+
+---
 ## Key Features
 
 - **JIT-Compiled Engines**: Entire generation loops are fused into single JAX kernels executing on GPUs/TPUs.
