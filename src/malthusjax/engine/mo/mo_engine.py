@@ -85,7 +85,7 @@ class MOEngine(AbstractEngine[G, P]):
 
         # Extract best fitness (For MO, we just grab the first individual's first objective as a dummy best,
         # since "best" is ambiguous in pareto fronts. Alternatively, we could pick the one with highest crowding distance in rank 0)
-        best_fitness = jnp.max(mo_pop.fitness[:, 0])
+        best_fitness = mo_pop.fitness[0, 0]
         best_genome = jax.tree_util.tree_map(lambda x: x[0], mo_pop.genes)
 
         return MOState(
@@ -149,7 +149,7 @@ class MOEngine(AbstractEngine[G, P]):
         num_pareto_optimal = jnp.sum(new_mo_pop.pareto_rank == 0)
         max_crowding_distance = jnp.max(new_mo_pop.crowding_distance)
 
-        best_fitness = jnp.max(new_mo_pop.fitness[:, 0])
+        best_fitness = new_mo_pop.fitness[0, 0]
         best_genome = jax.tree_util.tree_map(lambda x: x[0], new_mo_pop.genes)
 
         kpi = MOGenerationOutput(
