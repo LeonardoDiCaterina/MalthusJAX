@@ -1,0 +1,75 @@
+[suite]
+name = "h2_ablation_lhs"
+mode = "lhs"
+output_dir = "results/h2_ablation_lhs"
+num_seeds = 100
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["lunacek", "schwefel", "gallagher_21_hi"]
+dims_min = 10
+dims_max = 100
+pops_min = 64
+pops_max = 1024
+gens_min = 50
+gens_max = 200
+num_samples = 20
+
+[analysis]
+reference_pipeline = "malthusjax_baseline"
+
+[pipelines.malthusjax_baseline]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_ablate_sel_tournament]
+backend = "malthusjax"
+selection = "tournament:num_selections={pop_size},tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_ablate_mutation]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "gaussian:mutation_rate=0.1,mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_ablate_crossover]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "uniform_real"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_ablate_mutation_batched]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "batched_gaussian:mutation_rate=0.1,mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_ablate_crossover_batched]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "batched_uniform_crossover"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_ablate_mutation_evosax_batched]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "batched_evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_ablate_crossover_evosax_batched]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "batched_evosax_uniform:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0

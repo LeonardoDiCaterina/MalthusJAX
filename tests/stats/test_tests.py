@@ -1,0 +1,111 @@
+import numpy as np
+import pytest
+
+from malthusjax.stats.core import TestResult, TOSTResult
+from malthusjax.stats.tests import paired_t, sign_test, tost, wilcoxon
+
+
+def test_wilcoxon_null_not_rejected(paired_equal):
+    res = wilcoxon(paired_equal)
+    assert isinstance(res, TestResult)
+    assert res.name == "wilcoxon"
+    assert res.p_value > 0.05
+
+
+def test_wilcoxon_shift_detected(paired_shifted):
+    res = wilcoxon(paired_shifted, alternative="less")
+    assert res.p_value < 0.05
+
+
+def test_wilcoxon_identical_arrays(paired_identical):
+    res = wilcoxon(paired_identical)
+    assert res.p_value == 1.0
+    assert res.statistic == 0.0
+
+
+def test_wilcoxon_n1(paired_single):
+    res = wilcoxon(paired_single)
+    assert res.p_value == 1.0
+
+
+def test_wilcoxon_empty(paired_empty):
+    with pytest.raises(ValueError, match="empty sample"):
+        wilcoxon(paired_empty)
+
+
+def test_wilcoxon_with_nans(paired_equal):
+    arr = paired_equal.left.values.copy()
+    arr[0] = np.nan
+    from malthusjax.stats.core import MetricVector, PairedSample
+
+    ps = PairedSample(MetricVector("l", arr), paired_equal.right)
+    with pytest.raises(ValueError, match="finite"):
+        wilcoxon(ps)
+
+
+def test_paired_t_null_not_rejected(paired_equal):
+    res = paired_t(paired_equal)
+    assert res.p_value > 0.05
+
+
+def test_paired_t_shift_detected(paired_shifted):
+    res = paired_t(paired_shifted, alternative="less")
+    assert res.p_value < 0.05
+
+
+def test_paired_t_n1(paired_single):
+    res = paired_t(paired_single)
+    assert res.p_value is None
+
+
+def test_paired_t_constant_diffs(paired_identical):
+    res = paired_t(paired_identical)
+    assert res.p_value is None or np.isnan(res.p_value)
+
+
+def test_sign_all_positive_diffs():
+    from malthusjax.stats.core import MetricVector, PairedSample
+
+    ps = PairedSample(
+        MetricVector("l", np.array([2.0, 3.0, 4.0])), MetricVector("r", np.array([1.0, 1.0, 1.0]))
+    )
+    res = sign_test(ps, alternative="greater")
+    assert res.p_value < 0.2  # 1/8
+
+
+def test_sign_all_ties(paired_identical):
+    res = sign_test(paired_identical)
+    assert res.statistic is None
+    assert res.p_value is None
+
+
+def test_sign_n1(paired_single):
+    res = sign_test(paired_single)
+    assert res.p_value == 1.0
+
+
+def test_tost_equivalent_small_diff(paired_equal):
+    res = tost(paired_equal, margin=1.0)
+    assert isinstance(res, TOSTResult)
+    assert res.equivalent is True
+
+
+def test_tost_not_equivalent_large_diff(paired_shifted):
+    res = tost(paired_shifted, margin=0.5)
+    assert res.equivalent is False
+
+
+def test_tost_margin_zero_raises(paired_equal):
+    with pytest.raises(ValueError, match="margin must be > 0"):
+        tost(paired_equal, margin=0.0)
+
+
+def test_tost_n1(paired_single):
+    res = tost(paired_single, margin=1.0)
+    assert res.p_value_max is None
+    assert res.equivalent is None
+
+
+def test_tost_identical_arrays(paired_identical):
+    res = tost(paired_identical, margin=1.0)
+    assert res.equivalent is True

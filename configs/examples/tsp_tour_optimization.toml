@@ -1,0 +1,99 @@
+[experiment]
+name = "tsp_benchmark"
+description = "Traveling Salesman Problem: compare algorithms on standard and synthetic instances"
+output_dir = "results/tsp_benchmark"
+
+[experiment.shared]
+genome_type = "categorical"
+pop_size = 120
+generations = 400
+seeds = [42, 43, 44, 45, 46]
+maximize = false
+elitism = 2
+
+# --- Data Sources ---
+
+# Standard TSPLIB instance: Berlin 52 cities
+[data.berlin52]
+source = "file"
+path = "data/tsp/berlin52.tsp"
+description = "Standard TSPLIB instance: 52 cities in Berlin"
+
+# Synthetic instances for controlled scaling
+[data.synthetic_25]
+source = "synthetic"
+num_cities = 25
+random_seed = 42
+description = "Synthetic TSP: 25 random cities"
+
+[data.synthetic_50]
+source = "synthetic"
+num_cities = 50
+random_seed = 42
+description = "Synthetic TSP: 50 random cities"
+
+[data.synthetic_100]
+source = "synthetic"
+num_cities = 100
+random_seed = 42
+description = "Synthetic TSP: 100 random cities"
+
+# --- Pipelines ---
+
+# Pipeline 1: Baseline on Berlin 52
+# Swap mutation, tournament selection, no crossover (standard for TSP)
+[pipelines.berlin_baseline_swap]
+fitness = "tsp:data_id=berlin52"
+selection = "tournament:num_selections=60,tournament_size=3"
+mutation = "swap:mutation_rate=0.1"
+description = "Berlin 52: baseline with swap mutation"
+
+# Pipeline 2: Synthetic 25 cities (warm-up problem)
+# Larger tournament for faster convergence
+[pipelines.synthetic_25_aggressive]
+fitness = "tsp:data_id=synthetic_25"
+selection = "tournament:num_selections=60,tournament_size=4"
+mutation = "swap:mutation_rate=0.15"
+description = "Synthetic 25-city problem with aggressive selection"
+
+# Pipeline 3: Scaling to 50 cities
+# Moderate population, standard mutation
+[pipelines.synthetic_50_standard]
+fitness = "tsp:data_id=synthetic_50"
+selection = "tournament:num_selections=60,tournament_size=3"
+mutation = "swap:mutation_rate=0.1"
+description = "Synthetic 50-city problem, tuned for this scale"
+
+# Pipeline 4: Scaling to 100 cities
+# Larger population needed for harder problem
+[pipelines.synthetic_100_large_pop]
+fitness = "tsp:data_id=synthetic_100"
+pop_size = 200
+selection = "tournament:num_selections=100,tournament_size=3"
+mutation = "swap:mutation_rate=0.08"
+description = "Synthetic 100-city problem with larger population"
+
+# Pipeline 5: Berlin 52 with Roulette Selection
+# Smoother selection pressure as diversity decreases
+[pipelines.berlin_roulette_swap]
+fitness = "tsp:data_id=berlin52"
+selection = "roulette:num_selections=60"
+mutation = "swap:mutation_rate=0.1"
+description = "Berlin 52: roulette selection with swap"
+
+# Pipeline 6: Berlin 52 with Elite Pool
+# Preserve best solutions for local exploitation
+[pipelines.berlin_elite_pool]
+fitness = "tsp:data_id=berlin52"
+selection = "elite_pool:num_selections=60,elite_k=8"
+mutation = "swap:mutation_rate=0.12"
+description = "Berlin 52: elite pool selection with increased mutation"
+
+# Pipeline 7: Light Mutation (Exploitation)
+# Heavy reliance on crossover for new solutions
+[pipelines.berlin_light_mutation_crossover]
+fitness = "tsp:data_id=berlin52"
+selection = "tournament:num_selections=60,tournament_size=3"
+crossover = "uniform_binary"
+mutation = "swap:mutation_rate=0.05"
+description = "Berlin 52: light mutation, uniform binary crossover for TSP"

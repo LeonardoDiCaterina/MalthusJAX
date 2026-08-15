@@ -1,0 +1,21 @@
+[experiment]
+name = "smoke_test"
+output_dir = "results/smoke_test"
+
+[experiment.shared]
+fitness       = "sphere:dim=5"
+selection     = "elite_pool:num_selections=16,elite_k=4"
+pop_size      = 32
+generations   = 50
+genome_length = 5
+seeds         = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+[pipelines.uniform_crossover]
+backend   = "malthusjax"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation  = "evosax_gaussian:mutation_strength=0.1"
+
+[pipelines.single_point_crossover]
+backend   = "malthusjax"
+crossover = "single_point"
+mutation  = "evosax_gaussian:mutation_strength=0.1"

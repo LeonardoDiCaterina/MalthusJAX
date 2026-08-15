@@ -1,0 +1,48 @@
+# configs/perf/smoke_speed_vs_evosax.toml
+#
+# Smoke version of h1_speed_vs_evosax — 3 seeds, tiny dims, fast iteration.
+# Use this to verify the harness works before running the full suite.
+#
+# Usage:
+#   make perf-bench-smoke
+
+[suite]
+name              = "smoke_speed_vs_evosax"
+mode              = "cartesian"
+output_dir        = "results/perf/smoke_speed_vs_evosax"
+num_seeds         = 3
+aggregation_level = "full"
+
+[grid]
+functions = ["sphere"]
+dims      = [9]
+pops      = [64]
+gens      = [50]
+
+[analysis]
+reference_pipeline = "evosax_baseline"
+
+[pipelines.evosax_baseline]
+backend         = "evosax"
+evosax_strategy = "SimpleGA"
+
+[pipelines.evosax_baseline.strategy_params]
+crossover_rate = 0.3
+elite_ratio    = 0.16666666
+
+[pipelines.mjx_genetic_engine]
+backend   = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation  = "evosax_gaussian:mutation_strength=1.0"
+elitism   = 0
+
+
+
+[pipelines.mjx_native_fast]
+backend   = "malthusjax"
+engine_type = "native_fast"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation  = "evosax_gaussian:mutation_strength=1.0"
+elitism   = 0

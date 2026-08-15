@@ -1,0 +1,233 @@
+[build-system]
+requires = ["hatchling>=1.8.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[project]
+name = "malthusjax"
+version = "0.1.0"
+description = "JAX-native evolutionary computation framework with composable operators, config-driven experiments, and GPU-speed multi-seed benchmarking"
+readme = "README.md"
+license = {file = "LICENSE"}
+
+keywords = ["genetic-algorithms", "evolutionary-computation", "jax", "machine-learning", "evosax"]
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "jax>=0.4.0",
+    "numpy>=2.0.0",
+    "typing-extensions>=4.0.0",
+    "flax>=0.7.0",
+    "chex>=0.1.7",
+    "toml",
+    "tomli>=2.0.0; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+# Optional JAX backends (use via e.g. `pip install -e ".[cuda13]"`)
+cuda13 = ["jax[cuda13]>=0.4.0"]
+cuda12 = ["jax[cuda12]>=0.4.0"]
+cuda11 = ["jax[cuda11]>=0.4.0"]
+cpu = ["jax[cpu]>=0.4.0"]
+
+# Modular Integrations
+evosax = ["evosax"]
+qdax = ["qdax"]
+tensorneat = ["tensorneat @ git+https://github.com/EMI-Group/tensorneat.git"]
+rl = ["gymnax", "brax", "jumanji"]
+bbobax = ["bbobax @ git+https://github.com/maxencefaldor/bbobax.git"]
+kozax = ["kozax"]
+stats = [
+    "scikit-learn>=1.0.0",
+    "statsmodels>=0.14.0",
+    "scipy>=1.9.0",
+    "pandas>=2.0.0",
+    "pingouin>=0.5.0",
+    "seaborn>=0.12.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+    "pytest-benchmark>=4.0.0",
+    "hypothesis>=6.80.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+    "ruff>=0.5.0",
+]
+docs = [
+    "sphinx>=7",
+    "furo",
+    "sphinx-rtd-theme",
+    "numpydoc",
+    "sphinx-copybutton",
+    "myst-parser>=0.18.0",
+]
+examples = [
+    "matplotlib>=3.6.0",
+    "seaborn>=0.12.0",
+    "jupyter>=1.0.0",
+]
+benchmarks = [
+    "malthusjax[stats]",
+]
+all-integrations = ["malthusjax[evosax,qdax,tensorneat,rl,bbobax,kozax,stats]"]
+all = ["malthusjax[dev,docs,examples,benchmarks,all-integrations]"]
+
+[project.urls]
+Homepage = "https://github.com/LeonardoDiCaterina/MalthusJAX"
+Documentation = "https://malthusjax.readthedocs.io"
+Repository = "https://github.com/LeonardoDiCaterina/MalthusJAX"
+Issues = "https://github.com/LeonardoDiCaterina/MalthusJAX/issues"
+
+# === Tool Configurations ===
+
+[tool.ruff]
+# Replaces [tool.black] and [tool.isort]
+line-length = 100
+target-version = 'py39'
+exclude = ["*.ipynb"]
+
+[tool.ruff.lint]
+# Replaces flake8
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+]
+ignore = ["E501", "E402"]
+
+[tool.ruff.format]
+# Enable Ruff's formatter (replaces Black)
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = false
+warn_unused_configs = true
+warn_unused_ignores = false
+disallow_untyped_defs = false  # Set to false globally; override per-plugin below
+disallow_untyped_calls = false
+strict = false  # Default: non-strict; we'll be strict about core only
+
+# Suppress missing stubs for third-party libraries
+ignore_missing_imports = true
+
+# Per-module configurations: strict checking for core, lenient for others
+[[tool.mypy.overrides]]
+module = "malthusjax.core.*"
+strict = true
+disallow_untyped_defs = true
+disallow_untyped_calls = false
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+module = [
+    "malthusjax.engine.*",
+    "malthusjax.operators.*",
+    "malthusjax.composer.*",
+    "malthusjax.benchmarking.*",
+]
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+check_untyped_defs = false
+warn_return_any = false
+
+# Suppress third-party library errors and missing stubs
+[[tool.mypy.overrides]]
+module = [
+    "jax.*",
+    "flax.*",
+    "chex.*",
+    "evosax.*",
+    "qdax.*",
+    "tensorneat.*",
+    "gymnax.*",
+    "brax.*",
+    "jumanji.*",
+    "bbobax.*",
+    "kozax.*",
+    "toml.*",
+]
+ignore_missing_imports = true
+ignore_errors = true
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = [
+    "--strict-markers",
+    "--cov=src/malthusjax",
+    "--cov-report=term-missing",
+]
+markers = [
+    "slow: marks tests as slow (deselect with -m 'not slow')",
+    "integration: marks tests as full-pipeline integration tests",
+    "benchmark: marks tests as performance benchmarks",
+    "invariant: marks tests as property-based invariant tests",
+    "regression: marks tests as regression tests for specific bug fixes",
+    "gpu: marks tests requiring GPU hardware",
+]
+
+[tool.coverage.run]
+source = ["src/malthusjax"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "src/malthusjax/visualization/**",
+    "src/malthusjax/visualization/*",
+    "src/malthusjax/engine/pbil_engine.py",
+    "src/malthusjax/engine/random_search.py",
+    "src/malthusjax/engine/inspector.py",
+    "src/malthusjax/engine/strategy.py",
+    "src/malthusjax/operators/crossover/adaptive.py",
+    "src/malthusjax/operators/mutation/adaptive.py",
+    "src/malthusjax/core/genome/adaptive.py",
+]
+
+[tool.coverage.report]
+# Replaces --cov-report=term-missing and --cov-report=html
+show_missing = true
+skip_covered = true
+fail_under = 80  # Optional: Enforce a minimum coverage
+
+
+[tool.hatch.envs.bench]
+description = "Environment for running benchmarks and analysis"
+dependencies = [
+    "malthusjax[dev]",
+    "pandas",
+    "toml",
+    "scipy",
+    "evosax",
+    "matplotlib",
+]
+
+[tool.hatch.envs.bench.scripts]
+# Quick smoke benchmark
+smoke = "python benchmarks/run_benchmark.py --config benchmarks/smoke_test.toml"
+# Full benchmark using the gecco config
+full = "python benchmarks/run_benchmark.py --config benchmarks/gecco_benchmark.toml"
+# Configurable benchmark runner
+configurable = "python benchmarks/run_benchmark_configurable.py --config {args}"
+# Engine comparison / experiment runner
+compare = "python benchmarks/run_engine_comparison.py"
+# Generate reports and plots from local results
+analyze = "python my_local_results/generate_report.py"
+plot = "python my_local_results/plot.py"
+# Clean generated local results (be careful: this removes files)
+clean = "bash -lc 'rm -rf my_local_results/* results/*.csv'"
+
+
+[project.scripts]
+mjax = "malthusjax.benchmarking.cli:main"
+malthusdash = "malthusjax.dash.cli:main"

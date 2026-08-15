@@ -1,0 +1,113 @@
+# Four-problem parity sanity check
+#
+# This is a reduced subset of the larger parity suite focused on the
+# standard sanity-check landscapes:
+# - Sphere
+# - Rosenbrock
+# - Different Powers
+# - Rastrigin
+#
+# Run with:
+#   python scripts/run_composer.py examples/parity_suite_4problems.toml --pop-seed 0
+
+[experiment]
+name = "Four-Problem Parity Suite"
+description = "Compare MalthusJAX vs EvoSAX across four representative BBOB landscapes"
+output_dir = "results/parity_suite_4problems"
+
+[experiment.shared]
+genome_type = "real"
+genome_length = 3
+bounds = [-5.0, 5.0]
+pop_size = 15
+generations = 15
+seeds = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+  10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+  20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+  30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+  40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+  50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+]
+track_best = "NONE"
+use_history_for_final = true
+
+# ============================================================================
+# PROBLEM 1: SPHERE
+# ============================================================================
+
+[pipelines.sphere_malthusjax]
+fitness = "bbob:fn_name=sphere,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Sphere problem - MalthusJAX backend"
+
+[pipelines.sphere_evosax]
+fitness = "bbob:fn_name=sphere,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Sphere problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 2: ROSENBROCK
+# ============================================================================
+
+[pipelines.rosenbrock_malthusjax]
+fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Rosenbrock problem - MalthusJAX backend"
+
+[pipelines.rosenbrock_evosax]
+fitness = "bbob:fn_name=rosenbrock,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Rosenbrock problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 3: DIFFERENT_POWERS
+# ============================================================================
+
+[pipelines.different_powers_malthusjax]
+fitness = "bbob:fn_name=different_powers,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Different Powers problem - MalthusJAX backend"
+
+[pipelines.different_powers_evosax]
+fitness = "bbob:fn_name=different_powers,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Different Powers problem - EvoSAX backend"
+
+# ============================================================================
+# PROBLEM 4: RASTRIGIN
+# ============================================================================
+
+[pipelines.rastrigin_malthusjax]
+fitness = "bbob:fn_name=rastrigin,num_dims=3,seed=0,maximize=false"
+backend = "malthusjax"
+elitism = 0
+selection = "evosax_mimic_selection:num_selections=15,elite_k=7"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5"
+mutation = "evosax_gaussian:mutation_strength=0.1"
+description = "Rastrigin problem - MalthusJAX backend"
+
+[pipelines.rastrigin_evosax]
+fitness = "bbob:fn_name=rastrigin,num_dims=3,seed=0,maximize=false"
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+strategy_params = { crossover_rate = 0.5, elite_ratio = 0.46666667, mutation_std = 0.1 }
+description = "Rastrigin problem - EvoSAX backend"

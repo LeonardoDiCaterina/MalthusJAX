@@ -1,0 +1,42 @@
+[suite]
+name = "h1_parity_hard_lhs"
+mode = "lhs"
+output_dir = "results/h1_parity_hard_lhs"
+num_seeds = 30
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["lunacek", "schwefel", "gallagher_21_hi"]
+dims_min = 2
+dims_max = 100
+pops_min = 10
+pops_max = 1000
+gens_min = 10
+gens_max = 1000
+num_samples = 30
+
+[analysis]
+reference_pipeline = "evosax_baseline"
+
+[pipelines.evosax_baseline]
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+
+[pipelines.evosax_baseline.strategy_params]
+crossover_rate = 0.5
+mutation_std = 0.5
+
+[pipelines.malthusjax_wrapper]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.5,num_offspring=1"
+mutation = "evosax_gaussian:mutation_strength=0.5"
+elitism = 0
+
+[pipelines.malthusjax_batched_wrapper]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "batched_evosax_uniform:crossover_rate=0.5,num_offspring=1"
+mutation = "batched_evosax_gaussian:mutation_strength=0.5"
+elitism = 0
+

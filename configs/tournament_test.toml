@@ -1,0 +1,33 @@
+[suite]
+name = "tournament_test"
+mode = "cartesian"
+output_dir = "results/tournament_test"
+num_seeds = 10
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["sphere"]
+dims = [50]
+pops = [256]
+gens = [100]
+
+[pipelines.mjx_baseline]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_tournament_k3]
+backend = "malthusjax"
+selection = "tournament:num_selections={pop_size},tournament_size=3"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+
+[pipelines.mjx_tournament_k6]
+backend = "malthusjax"
+selection = "tournament:num_selections={pop_size},tournament_size=6"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
