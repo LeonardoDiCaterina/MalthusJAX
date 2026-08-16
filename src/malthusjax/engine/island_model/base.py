@@ -25,6 +25,19 @@ class BaseIslandModel(Generic[E]):
     migration_interval: int = struct.field(pytree_node=False)
     num_migrants: int = struct.field(pytree_node=False)
 
+    @property
+    def maximize(self) -> bool:
+        """Auto-derive the optimization direction from the underlying engine."""
+        if hasattr(self.engine, "maximize"):
+            return self.engine.maximize
+        if hasattr(self.engine, "evaluator") and hasattr(self.engine.evaluator, "config"):
+            if hasattr(self.engine.evaluator.config, "maximize"):
+                return self.engine.evaluator.config.maximize
+        raise ValueError(
+            f"Cannot determine optimization direction (maximize) for engine of type {type(self.engine).__name__}. "
+            "Engine must expose a '.maximize' attribute or property, or provide it via '.evaluator.config.maximize'."
+        )
+
     def init_state(self, key: chex.PRNGKey) -> Any:
         """Initializes the engine perfectly mapped across independent islands."""
         keys = jax.random.split(key, self.num_islands)
