@@ -18,6 +18,7 @@
 
 <!-- COVERAGE-START -->
 <!-- COVERAGE-END -->
+*(Note: The coverage block above reflects the core native test suite `pytest --cov=src/malthusjax tests/`. Tests for optional integrations like EvoSAX, QDAX, TensorNEAT, Brax, Gymnax, and Jumanji are skipped gracefully unless the respective optional dependency packages are explicitly installed.)*
 
 ---
 ## Key Features

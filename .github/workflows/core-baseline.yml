@@ -9,6 +9,8 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - 'main'
+      - 'framework-core'
       - 'refactor/level1-core'
 
 jobs:

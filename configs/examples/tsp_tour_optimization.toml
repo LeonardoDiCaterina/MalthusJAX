@@ -4,7 +4,7 @@ description = "Traveling Salesman Problem: compare algorithms on standard and sy
 output_dir = "results/tsp_benchmark"
 
 [experiment.shared]
-genome_type = "categorical"
+genome_type = "real"
 pop_size = 120
 generations = 400
 seeds = [42, 43, 44, 45, 46]
