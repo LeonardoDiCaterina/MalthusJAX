@@ -8,6 +8,7 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
+from malthusjax.core.fitness.base import dispatch_evaluate_population
 from malthusjax.core.fitness.mo.evaluator import BaseMOEvaluator
 from malthusjax.core.genome.mo.population import MOPopulation
 from malthusjax.engine.base import (
@@ -44,7 +45,15 @@ class MOState(AbstractEvolutionState[G, P]):
 
 @struct.dataclass
 class MOGenerationOutput(AbstractGenerationOutput):
-    """KPI payload returned at every MO evolution step."""
+    """
+    KPI payload returned at every MO evolution step.
+    
+    Note on `best_fitness`: Unlike single-objective engines where this tracks a 
+    true population extremum, for the MO engine this represents the objective-0 
+    value of a representative individual from the first Pareto front (specifically, 
+    the individual at index 0 after rank and crowding distance sorting). This value 
+    may fluctuate non-monotonically between generations.
+    """
 
     num_pareto_optimal: chex.Numeric
     max_crowding_distance: chex.Numeric
@@ -63,6 +72,10 @@ class MOEngine(AbstractEngine[G, P]):
     evaluator: BaseMOEvaluator[Any, Any, Any] = _field(pytree_node=False)
     engine_params: MOEngineParams = _field(pytree_node=False)
 
+    @property
+    def maximize(self) -> bool:
+        return self.evaluator.config.maximize
+
     def init_state(  # type: ignore[override]
         self, rng_key: chex.Array, initial_population: BasePopulation[G]
     ) -> MOState[G, P]:
@@ -76,8 +89,9 @@ class MOEngine(AbstractEngine[G, P]):
         k1, k2 = jax.random.split(rng_key)
 
         # 1. Evaluate the initial population
-        # BaseMOEvaluator natively upgrades it to a sorted MOPopulation
-        mo_pop = self.evaluator.evaluate_population(initial_population)
+        # BaseMOEvaluator natively upgrades
+        # Returns an MOPopulation
+        mo_pop = dispatch_evaluate_population(self.evaluator, initial_population, k1)
 
         # 2. Initialize the Emitter state
         # The emitter is passed the mo_pop, allowing it to perform tournament selection on ranks
@@ -112,6 +126,7 @@ class MOEngine(AbstractEngine[G, P]):
             all_keys = jax.random.split(state.rng_key, total_rng_budget)
 
         k_ask = all_keys[:emitter_keys]
+        k_eval = all_keys[emitter_keys]
         k_tell = all_keys[emitter_keys + 1]
         k_next = all_keys[emitter_keys + 2]
         # ----------------------------------
@@ -128,7 +143,7 @@ class MOEngine(AbstractEngine[G, P]):
 
         # 2. Evaluate the offspring
         # Returns an MOPopulation
-        eval_pop = self.evaluator.evaluate_population(offspring_pop)
+        eval_pop = dispatch_evaluate_population(self.evaluator, offspring_pop, k_eval)
 
         # 3. Survival Mechanism (NSGA-II $\mu+\lambda$ Elitism)
         # The MOPopulation natively handles merging and truncating via non-dominated sorting!
