@@ -10,6 +10,7 @@ from pathlib import Path
 import jax.numpy as jnp
 import jax.random as jr
 import pytest
+pytest.importorskip('evosax')
 
 from malthusjax.composer.evosax_adapter import (
     EVOSAX_STRATEGIES,

@@ -3,6 +3,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
+pytest.importorskip('tensorneat')
 
 try:
     import tensorneat  # noqa: F401

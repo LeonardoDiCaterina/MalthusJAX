@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
+pytest.importorskip('kozax')
 
 from malthusjax.composer.kozax_adapter import build_kozax_engine
 

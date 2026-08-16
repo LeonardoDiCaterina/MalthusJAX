@@ -3,6 +3,7 @@ import jax.numpy as jnp
 import jax.random as jr
 import numpy as np
 import pytest
+pytest.importorskip('evosax')
 from evosax.algorithms.population_based.simple_ga import mutation as evosax_func
 
 # from malthusjax.compat.evosax_mimic import mutation as evosax_func

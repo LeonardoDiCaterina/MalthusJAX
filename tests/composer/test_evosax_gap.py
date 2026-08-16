@@ -1,5 +1,6 @@
 import jax
 import pytest
+pytest.importorskip('evosax')
 
 from malthusjax.composer.evosax_adapter import build_evosax_engine
 from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator

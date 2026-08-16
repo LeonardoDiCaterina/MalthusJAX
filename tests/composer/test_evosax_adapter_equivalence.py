@@ -10,6 +10,7 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 import pytest
+pytest.importorskip('evosax')
 from evosax.problems import BBOBProblem
 
 from malthusjax.composer.evosax_adapter import (

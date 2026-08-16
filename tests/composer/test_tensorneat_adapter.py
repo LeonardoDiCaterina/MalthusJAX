@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 import jax
 import jax.numpy as jnp
 import pytest
+pytest.importorskip('tensorneat')
 from flax import struct
 
 

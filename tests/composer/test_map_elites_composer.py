@@ -1,3 +1,6 @@
+
+import pytest
+pytest.importorskip('tensorneat')
 import jax.numpy as jnp
 from tensorneat.genome import DefaultConn, DefaultGenome, DefaultNode
 from tensorneat.genome.operations.crossover import DefaultCrossover
