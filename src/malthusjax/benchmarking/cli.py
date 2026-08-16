@@ -122,7 +122,7 @@ def handle_analyze(args: argparse.Namespace) -> int:
             sidedness=Sidedness("two_sided"),
             expected_direction=ExpectedDirection("left_lt_right"),
             alpha=0.05,
-            multiple_testing=MultipleTestingPolicy("none"),
+            multiple_testing=MultipleTestingPolicy("holm"),
         )
         dataset = paired_dataset_from_comparison(comparison, left, right, spec)
         comparator = StatisticalComparator()

@@ -35,6 +35,13 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
         }
 
     def _result_to_dict(result: StatisticalComparisonResult) -> dict[str, Any]:
+        def _annotate_test(k: str, v: TestResult) -> dict[str, Any]:
+            d = _test_to_dict(v)
+            d["is_decision_basis"] = (
+                result.decision_basis is not None and result.decision_basis.startswith(k)
+            )
+            return d
+
         return {
             "label": result.label,
             "hypothesis_text": result.hypothesis_text,
@@ -46,7 +53,7 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
             "right_mean": result.right_mean,
             "mean_diff_left_minus_right": result.mean_diff_left_minus_right,
             "median_diff_left_minus_right": result.median_diff_left_minus_right,
-            "tests": {k: _test_to_dict(v) for k, v in result.tests.items()},
+            "tests": {k: _annotate_test(k, v) for k, v in result.tests.items()},
             "tost": _tost_to_dict(result.tost),
             "effects": {
                 "cohen_dz": result.effects.cohen_dz,
@@ -54,6 +61,7 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
             },
             "alpha": result.alpha,
             "decision_pass": result.decision_pass,
+            "decision_reliable": result.decision_reliable,
             "decision_basis": result.decision_basis,
             "metadata": result.metadata,
         }
@@ -90,6 +98,13 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
     lines: list[str] = []
     lines.append("# Statistical Suite Summary")
     lines.append("")
+    
+    if any(r.decision_reliable is False for r in suite.results):
+        lines.append("> [!WARNING]")
+        lines.append("> The primary decision basis was set to a parametric test, but the data significantly violates normality.")
+        lines.append("> The formal pass/fail decision is invalid for tests marked with ⚠. Consider using `wilcoxon` instead.")
+        lines.append("")
+
     if suite.spec.include_mean_summary:
         lines.append(
             "| Label | n | Left Start | Right Start | Left End | Right End | "
@@ -111,6 +126,9 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
             primary_p = r.tests["paired_t"].p_value
 
         p_text = "n/a" if primary_p is None else f"{primary_p:.6g}"
+        if r.decision_reliable is False:
+            p_text += " ⚠"
+            
         if r.decision_pass is True:
             decision = "pass"
         elif r.decision_pass is False:

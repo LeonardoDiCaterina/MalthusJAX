@@ -18,7 +18,7 @@ def wilcoxon(sample: PairedSample, alternative: str = "two-sided") -> TestResult
 
     try:
         res = stats.wilcoxon(
-            sample.left.values, sample.right.values, alternative=alternative, zero_method="wilcox"
+            sample.left.values, sample.right.values, alternative=alternative, zero_method="pratt"
         )
         return TestResult(
             name="wilcoxon",
@@ -43,6 +43,9 @@ def paired_t(sample: PairedSample, alternative: str = "two-sided") -> TestResult
 
     if sample.n == 0:
         raise ValueError("Cannot compute paired t-test on empty sample")
+
+    if not np.isfinite(sample.left.values).all() or not np.isfinite(sample.right.values).all():
+        raise ValueError("Inputs must be finite")
 
     if sample.n < 2:
         return TestResult(
@@ -109,6 +112,9 @@ def tost(sample: PairedSample, margin: float, alpha: float = 0.05) -> TOSTResult
 
     if sample.n == 0:
         raise ValueError("Cannot compute TOST on empty sample")
+
+    if not np.isfinite(sample.left.values).all() or not np.isfinite(sample.right.values).all():
+        raise ValueError("Inputs must be finite")
 
     if sample.n < 2:
         return TOSTResult(

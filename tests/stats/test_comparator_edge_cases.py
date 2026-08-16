@@ -262,3 +262,69 @@ def test_comparator_decision_error():
         spec=spec,
     )
     assert "decision_error" in res.metadata
+
+def test_comparator_shapiro_normality():
+    from malthusjax.stats.comparator import compare_paired_arrays
+    from malthusjax.stats.core import StatisticalComparisonSpec
+
+    # Create a non-normal distribution of differences
+    # E.g., one huge outlier
+    left = np.zeros(20)
+    right = np.zeros(20)
+    left[0] = 100.0  # Outlier to break normality
+    
+    spec_parametric = StatisticalComparisonSpec(min_paired_seeds=10, include_tests=("paired_t",), alpha=0.05)
+    # The default decision_basis for this spec would be "paired_t_two-sided"
+    
+    res = compare_paired_arrays(
+        label="test_normality",
+        left_name="L",
+        right_name="R",
+        left=left,
+        right=right,
+        spec=spec_parametric,
+    )
+    
+    assert "shapiro_wilk" in res.tests
+    shapiro_p = res.tests["shapiro_wilk"].p_value
+    assert shapiro_p < 0.05
+    assert res.decision_reliable is False
+    
+    # Non-parametric decision basis should still be reliable even if non-normal
+    spec_nonparametric = StatisticalComparisonSpec(min_paired_seeds=10, include_tests=("wilcoxon",), alpha=0.05)
+    res_np = compare_paired_arrays(
+        label="test_normality_np",
+        left_name="L",
+        right_name="R",
+        left=left,
+        right=right,
+        spec=spec_nonparametric,
+    )
+    assert res_np.decision_reliable is True
+
+def test_comparator_shapiro_zero_variance():
+    from malthusjax.stats.comparator import compare_paired_arrays
+    from malthusjax.stats.core import StatisticalComparisonSpec
+
+    # Create an identical distribution of differences
+    # E.g., zero variance
+    left = np.zeros(20)
+    right = np.zeros(20)
+    
+    spec_parametric = StatisticalComparisonSpec(min_paired_seeds=10, include_tests=("paired_t",), alpha=0.05)
+    
+    res = compare_paired_arrays(
+        label="test_zero_variance",
+        left_name="L",
+        right_name="R",
+        left=left,
+        right=right,
+        spec=spec_parametric,
+    )
+    
+    # Shapiro-Wilk should not crash on zero variance; p-value should be forced to 1.0
+    assert "shapiro_wilk" in res.tests
+    shapiro_p = res.tests["shapiro_wilk"].p_value
+    assert shapiro_p == 1.0
+    # Because shapiro_p >= 0.05, the decision basis remains reliable
+    assert res.decision_reliable is True

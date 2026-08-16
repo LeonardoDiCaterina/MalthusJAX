@@ -100,6 +100,40 @@ def compare_paired_arrays(
     )
 
     diffs = left_arr - right_arr
+    
+    # Shapiro-Wilk normality check on paired differences
+    # Note: Shapiro-Wilk has known low statistical power at small sample sizes (tens of seeds).
+    # A result of "fails to reject normality" (p >= 0.05) is a weak confirmation at small N.
+    import scipy.stats as scipy_stats
+    import warnings
+    
+    if float(np.var(diffs)) == 0.0:
+        shapiro_p = 1.0
+        shapiro_stat = 1.0
+    else:
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                shapiro_res = scipy_stats.shapiro(diffs)
+                shapiro_p = float(shapiro_res.pvalue)
+                shapiro_stat = float(shapiro_res.statistic)
+        except ValueError:
+            shapiro_p = None
+            shapiro_stat = None
+        
+    if shapiro_p is not None:
+        tests = dict(tests)
+        tests["shapiro_wilk"] = TestResult(
+            name="shapiro_wilk",
+            statistic=shapiro_stat,
+            p_value=shapiro_p,
+            alternative="two-sided",
+        )
+        
+    decision_reliable = True
+    if decision_basis.startswith("paired_t") or decision_basis == "tost":
+        if shapiro_p is not None and shapiro_p < 0.05:
+            decision_reliable = False
     wins_left = int(np.sum(left_arr < right_arr))
     wins_right = int(np.sum(right_arr < left_arr))
     ties = int(np.sum(left_arr == right_arr))
@@ -211,6 +245,7 @@ def compare_paired_arrays(
         effects=effects,
         alpha=spec.alpha,
         decision_pass=decision_pass,
+        decision_reliable=decision_reliable,
         decision_basis=decision_basis,
         metadata=out_metadata,
     )

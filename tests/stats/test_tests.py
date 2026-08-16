@@ -33,14 +33,42 @@ def test_wilcoxon_empty(paired_empty):
         wilcoxon(paired_empty)
 
 
-def test_wilcoxon_with_nans(paired_equal):
+@pytest.mark.parametrize("test_fn", [wilcoxon, paired_t, lambda s: tost(s, margin=1.0)])
+def test_tests_with_nans(paired_equal, test_fn):
     arr = paired_equal.left.values.copy()
     arr[0] = np.nan
     from malthusjax.stats.core import MetricVector, PairedSample
 
     ps = PairedSample(MetricVector("l", arr), paired_equal.right)
     with pytest.raises(ValueError, match="finite"):
-        wilcoxon(ps)
+        test_fn(ps)
+
+
+def test_wilcoxon_ties_pratt_method():
+    """Verify wilcoxon correctly uses zero_method='pratt' to penalize exact ties."""
+    from malthusjax.stats.core import MetricVector, PairedSample
+    from scipy import stats
+
+    # 10 ties, 5 differing elements to ensure pratt and wilcox diverge
+    left_vals = np.zeros(15)
+    right_vals = np.array([0.0]*10 + [1.1, 2.1, 3.1, 4.1, 5.1])
+    ps = PairedSample(
+        left=MetricVector("left", left_vals),
+        right=MetricVector("right", right_vals)
+    )
+
+    # Calculate truth using direct scipy call with pratt
+    expected_res = stats.wilcoxon(left_vals, right_vals, alternative="two-sided", zero_method="pratt")
+    
+    # Calculate truth using direct scipy call with wilcox for comparison (not used in assertion)
+    wilcox_res = stats.wilcoxon(left_vals, right_vals, alternative="two-sided", zero_method="wilcox")
+
+    res = wilcoxon(ps, alternative="two-sided")
+    
+    assert res.statistic == float(expected_res.statistic)
+    assert res.p_value == float(expected_res.pvalue)
+    # Confirm it actively differs from the 'wilcox' method's result
+    assert res.p_value != float(wilcox_res.pvalue)
 
 
 def test_paired_t_null_not_rejected(paired_equal):

@@ -98,7 +98,7 @@ class StatisticalComparisonSpec:
     equivalence_margin: float | None = None
     min_paired_seeds: int = 10
     alpha: float = 0.05
-    multiple_testing: MultipleTestingPolicy = MultipleTestingPolicy.NONE
+    multiple_testing: MultipleTestingPolicy = MultipleTestingPolicy.HOLM
     include_tests: tuple[str, ...] = ("wilcoxon", "paired_t", "sign")
     include_value_lists: bool = False
     include_timing_stats: bool = True
@@ -203,6 +203,7 @@ class StatisticalComparisonResult:
     effects: EffectSizeResult
     alpha: float
     decision_pass: bool | None
+    decision_reliable: bool | None
     decision_basis: str
     metadata: dict[str, Any] = field(default_factory=dict)
 
