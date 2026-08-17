@@ -98,11 +98,15 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
     lines: list[str] = []
     lines.append("# Statistical Suite Summary")
     lines.append("")
-    
+
     if any(r.decision_reliable is False for r in suite.results):
         lines.append("> [!WARNING]")
-        lines.append("> The primary decision basis was set to a parametric test, but the data significantly violates normality.")
-        lines.append("> The formal pass/fail decision is invalid for tests marked with ⚠. Consider using `wilcoxon` instead.")
+        lines.append(
+            "> The primary decision basis was set to a parametric test, but the data significantly violates normality."
+        )
+        lines.append(
+            "> The formal pass/fail decision is invalid for tests marked with ⚠. Consider using `wilcoxon` instead."
+        )
         lines.append("")
 
     if suite.spec.include_mean_summary:
@@ -128,7 +132,7 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
         p_text = "n/a" if primary_p is None else f"{primary_p:.6g}"
         if r.decision_reliable is False:
             p_text += " ⚠"
-            
+
         if r.decision_pass is True:
             decision = "pass"
         elif r.decision_pass is False:

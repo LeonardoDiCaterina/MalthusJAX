@@ -100,13 +100,14 @@ def compare_paired_arrays(
     )
 
     diffs = left_arr - right_arr
-    
+
     # Shapiro-Wilk normality check on paired differences
     # Note: Shapiro-Wilk has known low statistical power at small sample sizes (tens of seeds).
     # A result of "fails to reject normality" (p >= 0.05) is a weak confirmation at small N.
-    import scipy.stats as scipy_stats
     import warnings
-    
+
+    import scipy.stats as scipy_stats
+
     if float(np.var(diffs)) == 0.0:
         shapiro_p = 1.0
         shapiro_stat = 1.0
@@ -120,7 +121,7 @@ def compare_paired_arrays(
         except ValueError:
             shapiro_p = None
             shapiro_stat = None
-        
+
     if shapiro_p is not None:
         tests = dict(tests)
         tests["shapiro_wilk"] = TestResult(
@@ -129,7 +130,7 @@ def compare_paired_arrays(
             p_value=shapiro_p,
             alternative="two-sided",
         )
-        
+
     decision_reliable = True
     if decision_basis.startswith("paired_t") or decision_basis == "tost":
         if shapiro_p is not None and shapiro_p < 0.05:

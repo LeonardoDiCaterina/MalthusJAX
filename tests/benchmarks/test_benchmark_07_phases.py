@@ -58,7 +58,7 @@ class TestStepPhaseBreakdown:
         benchmark.pedantic(_run, iterations=1, rounds=5, warmup_rounds=2)
 
     def test_phase0_entropy(self, benchmark):
-        """Phase 0: 4-way PRNG split (_allocate_entropy)."""
+        """Phase 0: 5-way PRNG split (_allocate_entropy)."""
         state = self.state
         jit_entropy = jax.jit(self.engine._allocate_entropy)
         out = jit_entropy(state)
@@ -77,7 +77,7 @@ class TestStepPhaseBreakdown:
         state = self.state
         engine = self.engine
 
-        k_sel, _, _, _ = engine._allocate_entropy(state)
+        k_sel, _, _, _, _ = engine._allocate_entropy(state)
 
         jit_sel = jax.jit(lambda k, pop, ops, params: engine._selection_phase(k, pop, ops, params))
         _, idx = jit_sel(k_sel, state.population, state.operators, engine.engine_params)
@@ -96,7 +96,7 @@ class TestStepPhaseBreakdown:
         state = self.state
         engine = self.engine
 
-        k_sel, k_cross, k_mut, _ = engine._allocate_entropy(state)
+        k_sel, k_cross, k_mut, _, _ = engine._allocate_entropy(state)
         _, parent_indices = engine._selection_phase(
             k_sel, state.population, state.operators, engine.engine_params
         )
@@ -136,12 +136,13 @@ class TestStepPhaseBreakdown:
         state = self.state
         engine = self.engine
 
-        jit_eval = jax.jit(lambda genes, s: engine._evaluate_phase(genes, s))
-        out = jit_eval(state.population.genes, state)
+        _, _, _, k_eval, _ = engine._allocate_entropy(state)
+        jit_eval = jax.jit(lambda pop, k: engine._evaluate_phase(pop, k))
+        out = jit_eval(state.population, k_eval)
         out.fitness.block_until_ready()
 
         def _run():
-            pop = jit_eval(state.population.genes, state)
+            pop = jit_eval(state.population, k_eval)
             pop.fitness.block_until_ready()
 
         benchmark.group = f"phase_breakdown/pop{self._POP}_d{self._DIMS}"

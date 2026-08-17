@@ -1348,7 +1348,9 @@ class MetaComparison:
     def __init__(self, comparisons: Dict[str, ComparisonResult]):
         self.comparisons = comparisons
 
-    def plot_convergence_grid(self, save_path: Optional[Union[str, Path]] = None, **kwargs: Any) -> Any:
+    def plot_convergence_grid(
+        self, save_path: Optional[Union[str, Path]] = None, **kwargs: Any
+    ) -> Any:
         try:
             import matplotlib.pyplot as plt
         except ImportError as e:
