@@ -128,7 +128,7 @@ class StochasticEvaluator(BaseEvaluator[G, C, D]):
                 f"{self.__class__.__name__} is a StochasticEvaluator and requires an "
                 "`rng` key for evaluation, but None was provided."
             )
-        rngs = jax.random.split(rng, population.size)
+        rngs = jax.random.split(rng, population.fitness.shape[0])
         fitness_scores = jax.vmap(self.evaluate)(population.genes, rngs)
         return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
 

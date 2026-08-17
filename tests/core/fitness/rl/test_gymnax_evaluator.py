@@ -63,3 +63,22 @@ def test_gymnax_evaluator_jittable(evaluator_and_genome_size):
 
     fitness = jitted_eval(genome, jax.random.PRNGKey(0))
     assert fitness.shape == ()
+
+
+def test_gymnax_evaluator_maximize_sign_polarity(evaluator_and_genome_size):
+    _, genome_size = evaluator_and_genome_size
+
+    config_max = GymnaxEvaluatorConfig(env_name="CartPole-v1", max_steps=10, maximize=True)
+    eval_max = GymnaxEvaluator.create(config_max)
+
+    config_min = GymnaxEvaluatorConfig(env_name="CartPole-v1", max_steps=10, maximize=False)
+    eval_min = GymnaxEvaluator.create(config_min)
+
+    genome = RealGenome(values=jnp.zeros(genome_size))
+    key = jax.random.PRNGKey(0)
+
+    fit_max = eval_max.evaluate(genome, key)
+    fit_min = eval_min.evaluate(genome, key)
+
+    assert jnp.allclose(fit_max, -fit_min)
+

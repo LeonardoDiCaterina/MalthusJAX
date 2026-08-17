@@ -128,4 +128,4 @@ class BraxEvaluator(StochasticEvaluator[RealGenome, BraxEvaluatorConfig, Any]):
         rewards = jax.vmap(rollout_episode)(rngs)
         mean_reward = jnp.mean(rewards)
 
-        return mean_reward if self.config.maximize else -mean_reward
+        return -mean_reward if self.config.maximize else mean_reward
