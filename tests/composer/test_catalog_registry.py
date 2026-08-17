@@ -90,6 +90,8 @@ EXPECTED_MUTATION = {
     "bitflip",
     "scramble",
     "swap",
+    "categorical_scramble",
+    "categorical_swap",
 }
 EXPECTED_FITNESS = {
     "sphere",
