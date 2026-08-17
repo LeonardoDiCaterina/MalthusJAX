@@ -20,15 +20,15 @@ def test_linear_decay_endpoints():
     )
     assert abs(float(s0) - 1.0) < 1e-5
 
-    s100 = compute_scheduled_strength(
-        ScheduleType.LINEAR_DECAY, 100, 100, initial_strength=1.0, final_strength=0.1
+    s99 = compute_scheduled_strength(
+        ScheduleType.LINEAR_DECAY, 99, 100, initial_strength=1.0, final_strength=0.1
     )
-    assert abs(float(s100) - 0.1) < 1e-5
+    assert abs(float(s99) - 0.1) < 1e-5
 
 
 def test_linear_decay_midpoint():
     s50 = compute_scheduled_strength(
-        ScheduleType.LINEAR_DECAY, 50, 100, initial_strength=1.0, final_strength=0.0
+        ScheduleType.LINEAR_DECAY, 50, 101, initial_strength=1.0, final_strength=0.0
     )
     assert abs(float(s50) - 0.5) < 1e-5
 
@@ -39,10 +39,10 @@ def test_cosine_anneal_endpoints():
     )
     assert abs(float(s0) - 1.0) < 1e-4
 
-    s100 = compute_scheduled_strength(
-        ScheduleType.COSINE_ANNEAL, 100, 100, initial_strength=1.0, final_strength=0.0
+    s99 = compute_scheduled_strength(
+        ScheduleType.COSINE_ANNEAL, 99, 100, initial_strength=1.0, final_strength=0.0
     )
-    assert abs(float(s100) - 0.0) < 1e-4
+    assert abs(float(s99) - 0.0) < 1e-4
 
 
 def test_exponential_decay_decreases():
@@ -55,7 +55,7 @@ def test_jit_safe():
     @jax.jit
     def _compute(gen):
         return compute_scheduled_strength(
-            ScheduleType.LINEAR_DECAY, gen, 100, initial_strength=1.0, final_strength=0.0
+            ScheduleType.LINEAR_DECAY, gen, 101, initial_strength=1.0, final_strength=0.0
         )
 
     result = _compute(50)

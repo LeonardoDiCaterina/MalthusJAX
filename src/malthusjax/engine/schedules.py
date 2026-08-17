@@ -121,7 +121,9 @@ def compute_scheduled_strength(
     if schedule == ScheduleType.CONSTANT:
         return jnp.asarray(initial_strength)
 
-    t = jnp.asarray(generation) / max_generations
+    # Normalise generation to [0, 1] range across the entire run.
+    # We use max(1, ...) to avoid division by zero if max_generations=1
+    t = jnp.asarray(generation) / jnp.maximum(1, max_generations - 1)
 
     if schedule == ScheduleType.LINEAR_DECAY:
         return jnp.asarray(initial_strength + (final_strength - initial_strength) * t)
