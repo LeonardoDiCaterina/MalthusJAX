@@ -17,7 +17,7 @@ def test_ask_returns_engine_and_population(make_engine, prng_key):
 
     engine_with_entropy, population = engine.ask(state)
     assert engine_with_entropy._entropy_buffer is not None
-    assert len(engine_with_entropy._entropy_buffer) == 4
+    assert len(engine_with_entropy._entropy_buffer) == 5
     assert population is not None
     chex.assert_shape(population.fitness, (30,))
 
@@ -27,8 +27,8 @@ def test_ask_entropy_buffer_contains_keys(make_engine, prng_key):
     state = engine.init_state(prng_key)
     engine_with_entropy, _ = engine.ask(state)
 
-    k_sel, k_cross, k_mut, k_next = engine_with_entropy._entropy_buffer
-    for key in [k_sel, k_cross, k_mut]:
+    k_sel, k_cross, k_mut, k_eval, k_next = engine_with_entropy._entropy_buffer
+    for key in [k_sel, k_cross, k_mut, k_eval]:
         assert key.shape[-1] == 2
         assert len(key.shape) >= 1
     assert k_next.shape == (2,)

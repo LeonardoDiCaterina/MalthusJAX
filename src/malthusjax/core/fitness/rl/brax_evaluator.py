@@ -11,7 +11,7 @@ import jax.numpy as jnp
 from brax import envs
 from flax import struct
 
-from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
+from malthusjax.core.fitness.base import BaseEvaluatorConfig, StochasticEvaluator
 from malthusjax.core.genome.real_genome import RealGenome
 
 
@@ -42,7 +42,7 @@ class ContinuousMLP(nn.Module):
 
 
 @struct.dataclass
-class BraxEvaluator(BaseEvaluator[RealGenome, BraxEvaluatorConfig, Any]):
+class BraxEvaluator(StochasticEvaluator[RealGenome, BraxEvaluatorConfig, Any]):
     """Brax fitness evaluation interface."""
 
     env: Any = struct.field(pytree_node=False)
@@ -89,9 +89,15 @@ class BraxEvaluator(BaseEvaluator[RealGenome, BraxEvaluatorConfig, Any]):
             unflatten_fn=unflatten_fn,
         )
 
-    def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        rng = jax.random.PRNGKey(self.config.seed)
-        params = self.unflatten_fn(genome.values)
+    def evaluate(self, genome: RealGenome, rng: chex.PRNGKey | None = None) -> chex.Numeric:
+        if rng is None:
+            raise ValueError(
+                f"{self.__class__.__name__} requires an `rng` key for evaluation, "
+                "but None was provided."
+            )
+        
+        # 1. Decode genome weights
+        weights = self.unflatten_fn(genome.values)
 
         def rollout_episode(rng_input: chex.PRNGKey) -> chex.Numeric:
             env_state = self.env.reset(rng_input)
@@ -102,7 +108,7 @@ class BraxEvaluator(BaseEvaluator[RealGenome, BraxEvaluatorConfig, Any]):
                 env_state, cum_reward, done = carry
 
                 # Forward pass
-                action = self.policy.apply(params, env_state.obs[None, ...])[0]
+                action = self.policy.apply(weights, env_state.obs[None, ...])[0]
 
                 next_state = self.env.step(env_state, action)
 

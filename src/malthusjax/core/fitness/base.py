@@ -109,3 +109,39 @@ class BaseEvaluator(Generic[G, C, D]):
 
 
 RegressionData = Tuple[chex.Array, chex.Array]
+
+
+@struct.dataclass
+class StochasticEvaluator(BaseEvaluator[G, C, D]):
+    """Base class for evaluators that require a PRNGKey (e.g., RL environments)."""
+
+    def evaluate(self, genome: G, rng: chex.PRNGKey | None = None) -> chex.Numeric:
+        """Compute fitness for a single genome, requiring an RNG key."""
+        raise NotImplementedError
+
+    def evaluate_population(
+        self, population: BasePopulation[G], rng: chex.PRNGKey | None = None
+    ) -> BasePopulation[G]:
+        """Vectorized stochastic population evaluation."""
+        if rng is None:
+            raise ValueError(
+                f"{self.__class__.__name__} is a StochasticEvaluator and requires an "
+                "`rng` key for evaluation, but None was provided."
+            )
+        rngs = jax.random.split(rng, population.size)
+        fitness_scores = jax.vmap(self.evaluate)(population.genes, rngs)
+        return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
+
+
+def dispatch_evaluate_population(
+    evaluator: BaseEvaluator[G, C, D], population: BasePopulation[G], key: chex.PRNGKey | None = None
+) -> BasePopulation[G]:
+    """Dynamically dispatch population evaluation based on evaluator type."""
+    if isinstance(evaluator, StochasticEvaluator):
+        if key is None:
+            raise ValueError(
+                f"Evaluator {evaluator.__class__.__name__} is stochastic, but no key was provided "
+                "to dispatch_evaluate_population."
+            )
+        return evaluator.evaluate_population(population, key)
+    return evaluator.evaluate_population(population)

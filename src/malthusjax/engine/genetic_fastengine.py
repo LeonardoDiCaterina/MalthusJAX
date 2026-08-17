@@ -16,6 +16,7 @@ import jax.random as jar
 import numpy as np
 from flax import struct
 
+from malthusjax.core.fitness.base import BaseEvaluator, dispatch_evaluate_population
 from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, validate_key
 
 from ..core.base import BaseGenome, BasePopulation
@@ -318,7 +319,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     @traceable("Phase_0_Allocate_Entropy")
     def _allocate_entropy(
         self, state: GeneticEvolutionState
-    ) -> Tuple[chex.Array, chex.Array, chex.Array, chex.Array]:
+    ) -> Tuple[chex.Array, chex.Array, chex.Array, chex.Array, chex.Array]:
         """Phase 0 — slice the master RNG buffer into operator subkeys.
 
         The state contains a precomputed ``ResourceMap``. This method pulls the
@@ -331,10 +332,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         k_sel_slice = all_keys[rmap.get_key_slice("selection")]
         k_cross = all_keys[rmap.get_key_slice("crossover")]
         k_mut = all_keys[rmap.get_key_slice("mutation")]
-
+        k_eval = all_keys[rmap.get_key_slice("evaluation")][0]
         k_next = all_keys[rmap.get_key_slice("next_key")][0]
 
-        return k_sel_slice, k_cross, k_mut, k_next
+        return k_sel_slice, k_cross, k_mut, k_eval, k_next
 
     @traceable("Phase_1_Selection_Read")
     def _selection_phase(
@@ -566,12 +567,15 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         return next_genes
 
-    @traceable("Phase_3b_Evaluate")
-    def _evaluate(
-        self, new_genes: Any, old_state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]]
+    @traceable("Phase_4_Evaluation")
+    def _evaluate_phase(
+        self, new_population: BasePopulation[Any], k_eval: chex.Array
     ) -> BasePopulation[Any]:
-        new_population = cast(Any, old_state.population).replace(genes=new_genes)
-        evaluated_pop = self.evaluator.evaluate_population(new_population)
+        """Phase 4 — Score offspring.
+
+        Executes the problem-specific fitness function over the new batch of genomes.
+        """
+        evaluated_pop = dispatch_evaluate_population(self.evaluator, new_population, k_eval)
         return evaluated_pop
 
     @traceable("GeneticEngine_Step")
@@ -581,7 +585,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         state = cast(GeneticEvolutionState, state)
         params = cast(GeneticEngineParams, self.engine_params)
 
-        k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
+        (k_sel, k_cross, k_mut, k_eval, k_next) = self._allocate_entropy(state)
 
         elites, parent_indices = self._selection_phase(
             k_sel, state.population, state.operators, self.engine_params
@@ -598,7 +602,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
         next_genes = self._merge(elites, mutants.genes, state)
 
-        new_pop = self._evaluate(next_genes, state)
+        new_pop_unrated = state.population.replace(genes=next_genes)
+        new_pop = self._evaluate_phase(new_pop_unrated, k_eval)
 
         # ------------------------------------------------------------------
         # Inline HOF update (replaces _update_hof — FB-4)
@@ -713,7 +718,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             f"num_pairs={num_pairs}"
         )
 
-        k_sel, k_cross, k_mut, k_next = self._allocate_entropy(state)
+        (k_sel, k_cross, k_mut, k_eval, k_next) = self._allocate_entropy(state)
         print(
             "phase 0 allocate entropy: "
             f"selection={k_sel.shape}, crossover={k_cross.shape}, "
@@ -774,7 +779,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         print(f"phase 3a merge: next_genes={next_shape}")
         print(f"phase 3a merge preview: first_gene={_preview_leaf(next_genes)}")
 
-        new_pop = self._evaluate(next_genes, state)
+        new_pop = self._evaluate_phase(state.population.replace(genes=next_genes), k_eval)
         print(
             f"phase 3b evaluate: population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
         )
@@ -939,7 +944,15 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         return final_state, history, elapsed_time
 
-    def init_state(self, rng_key: Union[int, chex.Array]) -> GeneticEvolutionState:
+    def __post_init__(self):
+        """Validate components that require instantiation."""
+        # Validation could be added here if necessary
+
+    @property
+    def maximize(self) -> bool:
+        return self.evaluator.config.maximize
+
+    def init_state(self, rng_key: Union[int, jnp.ndarray]) -> GeneticEvolutionState[G, P]:
         """Initialize evolution and compile the inference plan (Init-Phase Compilation).
 
         This method performs the expensive one-time setup that all :meth:`step` calls
@@ -1092,7 +1105,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         population = population.replace(genes=sharded_genes, fitness=sharded_fitness)
 
-        evaluated_pop = self.evaluator.evaluate_population(population)
+        evaluated_pop = dispatch_evaluate_population(self.evaluator, population, init_pop_key)
         best_idx = jnp.argmin(evaluated_pop.fitness)
 
         best_genome = jax.tree_util.tree_map(
@@ -1141,7 +1154,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
             engine, population = engine.ask(state)
             # ... evaluate population externally ...
-            evaluated_pop = evaluator.evaluate_population(population)
+            evaluated_pop = dispatch_evaluate_population(evaluator, population, state.rng_key)
             new_state = engine.tell(state, evaluated_pop)
 
         **Critical**: The engine instance returned from :meth:`ask` carries entropy

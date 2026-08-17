@@ -11,7 +11,7 @@ import jax.numpy as jnp
 import jumanji
 from flax import struct
 
-from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
+from malthusjax.core.fitness.base import BaseEvaluatorConfig, StochasticEvaluator
 from malthusjax.core.genome.real_genome import RealGenome
 
 
@@ -63,7 +63,7 @@ class GenericMaskedPolicy(nn.Module):
 
 
 @struct.dataclass
-class JumanjiEvaluator(BaseEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
+class JumanjiEvaluator(StochasticEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
     """Jumanji fitness evaluation interface."""
 
     env: Any = struct.field(pytree_node=False)
@@ -119,9 +119,15 @@ class JumanjiEvaluator(BaseEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
             unflatten_fn=unflatten_fn,
         )
 
-    def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        rng = jax.random.PRNGKey(self.config.seed)
-        params = self.unflatten_fn(genome.values)
+    def evaluate(self, genome: RealGenome, rng: chex.PRNGKey | None = None) -> chex.Numeric:
+        if rng is None:
+            raise ValueError(
+                f"{self.__class__.__name__} requires an `rng` key for evaluation, "
+                "but None was provided."
+            )
+
+        # 1. Decode genome weights
+        weights = self.unflatten_fn(genome.values)
 
         def rollout_episode(rng_input: chex.PRNGKey) -> chex.Numeric:
             rng_reset, rng_episode = jax.random.split(rng_input)
@@ -133,7 +139,7 @@ class JumanjiEvaluator(BaseEvaluator[RealGenome, JumanjiEvaluatorConfig, Any]):
                 env_state, timestep, cum_reward, done = carry
 
                 # Forward pass - directly pass observation (no batch dim needed since we flatten inside)
-                action_logits = cast(chex.Array, self.policy.apply(params, timestep.observation))
+                action_logits = cast(chex.Array, self.policy.apply(weights, timestep.observation))
                 action = jnp.argmax(action_logits)
 
                 next_state, next_timestep = self.env.step(env_state, action)

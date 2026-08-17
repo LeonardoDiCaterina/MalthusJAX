@@ -11,7 +11,7 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
+from malthusjax.core.fitness.base import BaseEvaluatorConfig, StochasticEvaluator
 from malthusjax.core.genome.real_genome import RealGenome
 
 
@@ -42,7 +42,7 @@ class MLP(nn.Module):
 
 
 @struct.dataclass
-class GymnaxEvaluator(BaseEvaluator[RealGenome, GymnaxEvaluatorConfig, Any]):
+class GymnaxEvaluator(StochasticEvaluator[RealGenome, GymnaxEvaluatorConfig, Any]):
     """Gymnax fitness evaluation interface."""
 
     env: Any = struct.field(pytree_node=False)
@@ -95,9 +95,15 @@ class GymnaxEvaluator(BaseEvaluator[RealGenome, GymnaxEvaluatorConfig, Any]):
             unflatten_fn=unflatten_fn,
         )
 
-    def evaluate(self, genome: RealGenome) -> chex.Numeric:
-        rng = jax.random.PRNGKey(self.config.seed)
-        params = self.unflatten_fn(genome.values)
+    def evaluate(self, genome: RealGenome, rng: chex.PRNGKey | None = None) -> chex.Numeric:
+        if rng is None:
+            raise ValueError(
+                f"{self.__class__.__name__} requires an `rng` key for evaluation, "
+                "but None was provided."
+            )
+
+        # 1. Decode genome weights
+        weights = self.unflatten_fn(genome.values)
 
         def rollout_episode(rng_input: chex.PRNGKey) -> chex.Numeric:
             rng_reset, rng_episode = jax.random.split(rng_input)
@@ -110,7 +116,7 @@ class GymnaxEvaluator(BaseEvaluator[RealGenome, GymnaxEvaluatorConfig, Any]):
                 rng, rng_step = jax.random.split(rng, 2)
 
                 # Forward pass
-                action_logits = self.policy.apply(params, obs[None, ...])[0]
+                action_logits = self.policy.apply(weights, obs[None, ...])[0]
 
                 if hasattr(self.env.action_space(self.env_params), "n"):
                     action = jnp.argmax(action_logits)

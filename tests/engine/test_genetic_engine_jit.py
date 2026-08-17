@@ -84,7 +84,7 @@ def test_entropy_keys_never_repeated(make_engine, prng_key):
 
     for _ in range(5):
         engine_with_entropy, _ = engine.ask(state)
-        k_sel, k_cross, k_mut, k_next = engine_with_entropy._entropy_buffer
+        k_sel, k_cross, k_mut, k_eval, k_next = engine_with_entropy._entropy_buffer
         keys_list.append((k_sel.tobytes(), k_cross.tobytes(), k_mut.tobytes(), k_next.tobytes()))
         state, _ = engine.step(state)
 

@@ -4,6 +4,8 @@ import jax
 import jax.numpy as jnp
 import pytest
 
+pytest.importorskip("jumanji")
+
 from malthusjax.core.base import BasePopulation
 from malthusjax.core.fitness.rl.jumanji_evaluator import JumanjiEvaluator, JumanjiEvaluatorConfig
 from malthusjax.core.genome.real_genome import RealGenome
@@ -30,7 +32,7 @@ def test_jumanji_evaluator_evaluate(evaluator_and_genome_size):
     evaluator, genome_size = evaluator_and_genome_size
 
     genome = RealGenome(values=jnp.zeros(genome_size))
-    fitness = evaluator.evaluate(genome)
+    fitness = evaluator.evaluate(genome, jax.random.PRNGKey(0))
 
     assert fitness.shape == ()
 
@@ -44,7 +46,7 @@ def test_jumanji_evaluator_evaluate_population(evaluator_and_genome_size):
     genomes = RealGenome(values=genes_values)
     population = BasePopulation(genes=genomes, fitness=jnp.zeros(pop_size), config=None)
 
-    evaluated_pop = evaluator.evaluate_population(population)
+    evaluated_pop = evaluator.evaluate_population(population, jax.random.PRNGKey(0))
 
     assert evaluated_pop.fitness.shape == (pop_size,)
 
@@ -55,5 +57,5 @@ def test_jumanji_evaluator_jittable(evaluator_and_genome_size):
     genome = RealGenome(values=jnp.zeros(genome_size))
     jitted_eval = jax.jit(evaluator.evaluate)
 
-    fitness = jitted_eval(genome)
+    fitness = jitted_eval(genome, jax.random.PRNGKey(0))
     assert fitness.shape == ()

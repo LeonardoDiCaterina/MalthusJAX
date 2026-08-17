@@ -144,6 +144,12 @@ class AbstractEngine(Generic[G, P], ABC):
         """Identity-based equality for JIT caching consistency."""
         return self is other
 
+    @property
+    @abstractmethod
+    def maximize(self) -> bool:
+        """Return True if the engine is maximizing, False if minimizing."""
+        pass
+
     @abstractmethod
     def init_state(self, rng_key: Union[int, jnp.ndarray]) -> AbstractEvolutionState[G, P]:
         """Build and return the initial evolution state.

@@ -116,7 +116,7 @@ def test_allocate_entropy_preserves_impl(make_engine, prng_key):
     engine = make_engine()
     state = engine.init_state(prng_key)
 
-    k_sel, k_cross, k_mut, k_next = engine._allocate_entropy(state)
+    k_sel, k_cross, k_mut, k_eval, k_next = engine._allocate_entropy(state)
 
     # Check that shapes are correct, implying preservation of underlying impl's data shape (usually 2 uint32s)
     assert k_sel.shape[-1] == 2

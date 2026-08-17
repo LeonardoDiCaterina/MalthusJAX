@@ -106,6 +106,7 @@ class ResourceMap:
     selection: OperatorAllocation = _field(pytree_node=False)
     crossover: OperatorAllocation = _field(pytree_node=False)
     mutation: OperatorAllocation = _field(pytree_node=False)
+    evaluation: OperatorAllocation = _field(pytree_node=False)
     next_key: OperatorAllocation = _field(pytree_node=False)
 
     pop_size: int = _field(pytree_node=False)
@@ -266,6 +267,16 @@ def compute_resource_map(
     )
     current_key_idx += mut_keys_needed
 
+    evaluation_alloc = OperatorAllocation(
+        num_keys=1,
+        start_idx=current_key_idx,
+        end_idx=current_key_idx + 1,
+        input_count=pop_size,
+        output_count=pop_size,
+        operator_type="evaluation",
+    )
+    current_key_idx += 1
+
     next_key_alloc = OperatorAllocation(
         num_keys=1,
         start_idx=current_key_idx,
@@ -281,6 +292,7 @@ def compute_resource_map(
         selection=selection_alloc,
         crossover=crossover_alloc,
         mutation=mutation_alloc,
+        evaluation=evaluation_alloc,
         next_key=next_key_alloc,
         pop_size=pop_size,
         num_pairs=num_pairs,

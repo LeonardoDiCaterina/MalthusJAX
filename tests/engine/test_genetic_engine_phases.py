@@ -11,7 +11,7 @@ def test_entropy_allocation_returns_four_keys(make_engine, prng_key):
     engine = make_engine(pop_size=50)
     state = engine.init_state(prng_key)
 
-    k_sel, k_cross, k_mut, k_next = engine._allocate_entropy(state)
+    k_sel, k_cross, k_mut, k_eval, k_next = engine._allocate_entropy(state)
     assert isinstance(k_sel, jax.Array)
     assert isinstance(k_cross, jax.Array)
     assert isinstance(k_mut, jax.Array)
@@ -56,7 +56,7 @@ def test_elite_genes_are_best_fitness(make_engine, prng_key):
 def test_reproduction_produces_correct_population_size(make_engine, prng_key):
     engine = make_engine(pop_size=30, elitism=2)
     state = engine.init_state(prng_key)
-    k_sel, k_cross, k_mut, k_next = engine._allocate_entropy(state)
+    k_sel, k_cross, k_mut, k_eval, k_next = engine._allocate_entropy(state)
 
     _, parent_indices = engine._selection_phase(
         k_sel, state.population, state.operators, engine.engine_params
@@ -72,7 +72,7 @@ def test_reproduction_produces_correct_population_size(make_engine, prng_key):
 def test_reproduction_produces_different_offspring(make_engine, prng_key):
     engine = make_engine(pop_size=30, elitism=2)
     state = engine.init_state(prng_key)
-    k_sel, k_cross, k_mut, k_next = engine._allocate_entropy(state)
+    k_sel, k_cross, k_mut, k_eval, k_next = engine._allocate_entropy(state)
 
     _, parent_indices = engine._selection_phase(
         k_sel, state.population, state.operators, engine.engine_params
@@ -92,7 +92,7 @@ def test_reproduction_produces_different_offspring(make_engine, prng_key):
 def test_merge_preserves_elite_at_top(make_engine, prng_key):
     engine = make_engine(pop_size=40, elitism=4)
     state = engine.init_state(prng_key)
-    k_sel, k_cross, k_mut, k_next = engine._allocate_entropy(state)
+    k_sel, k_cross, k_mut, k_eval, k_next = engine._allocate_entropy(state)
 
     elites, parent_indices = engine._selection_phase(
         k_sel, state.population, state.operators, engine.engine_params
@@ -110,7 +110,7 @@ def test_merge_preserves_elite_at_top(make_engine, prng_key):
 def test_evaluation_produces_fitness_for_all(make_engine, prng_key):
     engine = make_engine(pop_size=30, elitism=2)
     state = engine.init_state(prng_key)
-    k_sel, k_cross, k_mut, k_next = engine._allocate_entropy(state)
+    k_sel, k_cross, k_mut, k_eval, k_next = engine._allocate_entropy(state)
 
     elites, parent_indices = engine._selection_phase(
         k_sel, state.population, state.operators, engine.engine_params

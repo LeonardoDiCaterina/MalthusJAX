@@ -5,6 +5,8 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
+from malthusjax.core.fitness.base import dispatch_evaluate_population
+
 from malthusjax.core.base import BaseGenome, BasePopulation
 from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 from malthusjax.engine.base import (
@@ -67,6 +69,10 @@ class MapElitesEngine(AbstractEngine[G, P]):
     evaluator: BaseQDEvaluator[Any, Any, Any] = _field(pytree_node=False)
     engine_params: MapElitesEngineParams = _field(pytree_node=False)
 
+    @property
+    def maximize(self) -> bool:
+        return self.engine_params.maximize
+
     def init_state(  # type: ignore[override]
         self, rng_key: chex.Array, initial_population: P, centroids: chex.Array
     ) -> MapElitesState[G, P]:
@@ -80,7 +86,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
         k1, k2 = jax.random.split(rng_key)
 
         # 1. Evaluate the initial population to get fitness and descriptors
-        eval_pop = self.evaluator.evaluate_population(initial_population)
+        eval_pop = dispatch_evaluate_population(self.evaluator, initial_population, k1)
 
         # In MalthusJAX, minimization tasks return lower raw fitnesses (lower is better).
         # However, MapElitesRepertoire ALWAYS maximizes. Therefore, we must flip the sign
@@ -175,8 +181,8 @@ class MapElitesEngine(AbstractEngine[G, P]):
             params=self.engine_params,
         )
 
-        # 2. Evaluate the offspring
-        eval_pop = self.evaluator.evaluate_population(offspring_pop)
+        # Returns a standard BasePopulation
+        eval_pop = dispatch_evaluate_population(self.evaluator, offspring_pop, k_eval)
 
         # 3. Add to the repertoire (returns a new updated repertoire)
         repertoire_fitnesses = (

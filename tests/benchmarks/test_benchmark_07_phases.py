@@ -136,7 +136,7 @@ class TestStepPhaseBreakdown:
         state = self.state
         engine = self.engine
 
-        jit_eval = jax.jit(lambda genes, s: engine._evaluate(genes, s))
+        jit_eval = jax.jit(lambda genes, s: engine._evaluate_phase(genes, s))
         out = jit_eval(state.population.genes, state)
         out.fitness.block_until_ready()
 

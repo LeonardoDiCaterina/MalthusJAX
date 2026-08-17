@@ -38,6 +38,10 @@ class MockOutput(AbstractGenerationOutput):
 class ConcreteEngine(AbstractEngine):
     """Minimal concrete implementation for testing AbstractEngine logic."""
 
+    @property
+    def maximize(self) -> bool:
+        return False
+
     def init_state(self, rng_key: chex.Array) -> AbstractEvolutionState:
         return MockState(
             population=None,  # type: ignore
@@ -68,6 +72,10 @@ class ConcreteEngine(AbstractEngine):
 
 @struct.dataclass
 class EngineWithoutAskTell(AbstractEngine):
+    @property
+    def maximize(self) -> bool:
+        return False
+
     def init_state(self, rng_key: chex.Array) -> AbstractEvolutionState:
         return MockState(
             population=None,  # type: ignore
