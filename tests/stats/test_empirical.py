@@ -40,6 +40,8 @@ def test_empirical_per_test_fpr():
         
         # Check decisions
         for test_name, res in metrics.tests.items():
+            if test_name not in rejects:
+                continue
             if res.p_value is not None and res.p_value < alpha:
                 rejects[test_name] += 1
                 

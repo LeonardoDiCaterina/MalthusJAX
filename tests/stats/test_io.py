@@ -41,6 +41,7 @@ def test_suite_to_dict_roundtrip():
         effects=eff,
         alpha=0.05,
         decision_pass=True,
+        decision_reliable=True,
         decision_basis="wilcoxon_two_sided",
         metadata={"extra": "data"},
     )
@@ -74,6 +75,7 @@ def test_none_values_in_results():
         effects=EffectSizeResult(None, None),
         alpha=0.05,
         decision_pass=None,
+        decision_reliable=None,
         decision_basis="none",
         metadata={},
     )

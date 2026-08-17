@@ -113,6 +113,7 @@ def test_result_types_constructible():
         effects=effects,
         alpha=0.05,
         decision_pass=True,
+        decision_reliable=True,
         decision_basis="wilcoxon",
     )
     suite = StatisticalSuiteResult(spec=StatisticalComparisonSpec(), results=[result])
