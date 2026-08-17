@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.genome.linear_genome</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Linear genetic programming genome and population definitions.</span>
+<span></span><span class="sd">"""Linear genetic programming genome and population definitions.</span>
 
 <span class="sd">Encodes programs as sequences of opcode/argument pairs with DAG validity.</span>
 <span class="sd">Includes utilities for random initialization, autocorrection, rendering and</span>
 <span class="sd">structural distance metrics, plus the corresponding batched container.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -334,7 +334,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.LinearGenomeConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">LinearGenomeConfig</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for Linear Genetic Programming (LGP) genomes.</span>
+<span class="w">    </span><span class="sd">"""Configuration for Linear Genetic Programming (LGP) genomes.</span>
 
 <span class="sd">    Defines program structure: L instructions, N external inputs, num_ops</span>
 <span class="sd">    distinct opcodes, max_arity arguments per operation.</span>
@@ -344,7 +344,7 @@
 <span class="sd">        num_inputs: Number of external inputs (N).</span>
 <span class="sd">        num_ops: Size of opcode alphabet.</span>
 <span class="sd">        max_arity: Maximum operation arity.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">num_inputs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -357,32 +357,32 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.LinearGenome">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">LinearGenome</span><span class="p">(</span><span class="n">BaseGenome</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Linear Genetic Programming genome with topological DAG constraint.</span>
+<span class="w">    </span><span class="sd">"""Linear Genetic Programming genome with topological DAG constraint.</span>
 
 <span class="sd">    Encodes a program as a sequence of (op, args) pairs. Maintains DAG</span>
 <span class="sd">    validity: instruction i references only external inputs (indices 0:N)</span>
 <span class="sd">    or prior instructions (indices N:N+i). This prevents cycles and enables</span>
 <span class="sd">    single-pass evaluation without control-flow analysis during tracing.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">ops</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>  <span class="c1"># Shape (L,) - Integer operation codes</span>
     <span class="n">args</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>  <span class="c1"># Shape (L, max_arity) - Integer argument indices</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for compatibility with BaseGenome interface.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Alias for compatibility with BaseGenome interface."""</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ops</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
 
 <div class="viewcode-block" id="LinearGenome.random_init">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.LinearGenome.random_init">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">random_init</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">LinearGenomeConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinearGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize LGP genome with topological DAG validity.</span>
+<span class="w">        </span><span class="sd">"""Initialize LGP genome with topological DAG validity.</span>
 
 <span class="sd">        Opcodes are drawn uniformly while argument indices are sampled such</span>
 <span class="sd">        that each instruction can only reference earlier instructions or</span>
 <span class="sd">        external inputs, ensuring acyclic topology.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">k_ops</span><span class="p">,</span> <span class="n">k_args</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
         <span class="n">ops</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">k_ops</span><span class="p">,</span> <span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">length</span><span class="p">,),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">num_ops</span><span class="p">)</span>
@@ -401,12 +401,12 @@
 <div class="viewcode-block" id="LinearGenome.autocorrect">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.LinearGenome.autocorrect">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">autocorrect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">LinearGenomeConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinearGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restore topological DAG validity via per-instruction index clipping.</span>
+<span class="w">        </span><span class="sd">"""Restore topological DAG validity via per-instruction index clipping.</span>
 
 <span class="sd">        Clips opcodes to [0, num_ops) and argument indices to per-instruction</span>
 <span class="sd">        limits [0, N+i). Ensures correctness post-mutation without conditional</span>
 <span class="sd">        branching (XLA-safe).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">valid_ops</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ops</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">num_ops</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># Re-calculate legal index limits for each row</span>
@@ -420,10 +420,10 @@
 <div class="viewcode-block" id="LinearGenome.distance">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.LinearGenome.distance">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DistanceMetric</span><span class="o">.</span><span class="n">HAMMING</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Computes the structural Hamming distance between two programs.</span>
 <span class="sd">        Sums mismatches in both operation codes and argument indices.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">other_lin</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">LinearGenome</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
         <span class="n">d_ops</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ops</span> <span class="o">!=</span> <span class="n">other_lin</span><span class="o">.</span><span class="n">ops</span><span class="p">)</span>
@@ -438,30 +438,30 @@
                 <span class="o">+</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">-</span> <span class="n">other_lin</span><span class="o">.</span><span class="n">args</span><span class="p">))</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported metric: </span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported metric: </span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the total number of instructions (L).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the total number of instructions (L)."""</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the logical dimensions of the genome data.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the logical dimensions of the genome data."""</span>
         <span class="c1"># Combining instruction count and arity</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
 <div class="viewcode-block" id="LinearGenome.from_tensor">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.LinearGenome.from_tensor">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;LinearGenome&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct LinearGenome from an (ops, args) tensor pair.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"LinearGenome"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Construct LinearGenome from an (ops, args) tensor pair.</span>
 
 <span class="sd">        The input tuple may be batched along a leading population dimension.</span>
 <span class="sd">        The optional *config* argument is ignored and exists purely for</span>
 <span class="sd">        interface consistency.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">ops</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">arr</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">ops</span><span class="o">=</span><span class="n">ops</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span></div>
 
@@ -469,37 +469,37 @@
 <div class="viewcode-block" id="LinearGenome.render">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.LinearGenome.render">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">LinearGenomeConfig</span><span class="p">,</span> <span class="n">op_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format the genome as human‑readable assembly text.</span>
+<span class="w">        </span><span class="sd">"""Format the genome as human‑readable assembly text.</span>
 
 <span class="sd">        Uses *config* to label inputs and temporaries. If *op_names* is</span>
 <span class="sd">        provided, those symbols will be used instead of generic ``OP_N``</span>
 <span class="sd">        placeholders.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">ops_cpu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ops</span><span class="p">)</span>
         <span class="n">args_cpu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Row&#39;</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">&#39;Expression&#39;</span><span class="si">:</span><span class="s2">&lt;30</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">&#39;Raw&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Row'</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">'Expression'</span><span class="si">:</span><span class="s2">&lt;30</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">'Raw'</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"-"</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">length</span><span class="p">):</span>
             <span class="n">op_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ops_cpu</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-            <span class="n">op_str</span> <span class="o">=</span> <span class="n">op_names</span><span class="p">[</span><span class="n">op_idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">op_names</span> <span class="ow">and</span> <span class="n">op_idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_names</span><span class="p">)</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;OP_</span><span class="si">{</span><span class="n">op_idx</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">op_str</span> <span class="o">=</span> <span class="n">op_names</span><span class="p">[</span><span class="n">op_idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">op_names</span> <span class="ow">and</span> <span class="n">op_idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_names</span><span class="p">)</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"OP_</span><span class="si">{</span><span class="n">op_idx</span><span class="si">}</span><span class="s2">"</span>
 
             <span class="n">decoded_args</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">arg_idx</span> <span class="ow">in</span> <span class="n">args_cpu</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
                 <span class="k">if</span> <span class="n">arg_idx</span> <span class="o">&lt;</span> <span class="n">config</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">:</span>
-                    <span class="n">decoded_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x_</span><span class="si">{</span><span class="n">arg_idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">decoded_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"x_</span><span class="si">{</span><span class="n">arg_idx</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">decoded_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;v_</span><span class="si">{</span><span class="n">arg_idx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">num_inputs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">decoded_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"v_</span><span class="si">{</span><span class="n">arg_idx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">num_inputs</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-            <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;v_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">op_str</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded_args</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
-            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">expr</span><span class="si">:</span><span class="s2">&lt;30</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">args_cpu</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"v_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">op_str</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded_args</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">expr</span><span class="si">:</span><span class="s2">&lt;30</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">args_cpu</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compact representation: instruction count and arity.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;LinearGenome(L=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">, max_arity=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">)&gt;&quot;</span></div>
+<span class="w">        </span><span class="sd">"""Compact representation: instruction count and arity."""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"&lt;LinearGenome(L=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">, max_arity=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">)&gt;"</span></div>
 
 
 
@@ -507,7 +507,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.LinearPopulation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">LinearPopulation</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">LinearGenome</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Population container for batch-optimized LinearGenomes.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Population container for batch-optimized LinearGenomes."""</span>
 
     <span class="n">genes</span><span class="p">:</span> <span class="n">LinearGenome</span>
     <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
@@ -521,7 +521,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">init_random</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">LinearGenomeConfig</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinearPopulation</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parallelized initialization of LGP programs.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Parallelized initialization of LGP programs."""</span>
         <span class="n">batched_genes</span> <span class="o">=</span> <span class="n">LinearGenome</span><span class="o">.</span><span class="n">create_population</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
         <span class="n">initial_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">size</span><span class="p">,),</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">batched_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">initial_fitness</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span></div>

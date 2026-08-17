@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.genome.binary_genome</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Binary genome and population types.</span>
+<span></span><span class="sd">"""Binary genome and population types.</span>
 
 <span class="sd">Defines the representation for bit‑string genomes along with helper methods</span>
 <span class="sd">for conversion, distance computation and simple bit tricks. Includes the</span>
 <span class="sd">corresponding population container and random initialization logic.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -335,7 +335,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenomeConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BinaryGenomeConfig</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Static configuration for discrete binary string genomes.</span>
+<span class="w">    </span><span class="sd">"""Static configuration for discrete binary string genomes.</span>
 
 <span class="sd">    This class defines the genome length and initialization properties for all</span>
 <span class="sd">    binary genomes created with this configuration. All individuals share the same</span>
@@ -401,7 +401,7 @@
 
 <span class="sd">    The :attr:`resolved_shape` method handles backward-compatibility</span>
 <span class="sd">    by honoring the legacy `length` parameter if provided.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># Prefer an explicit 1-D shape default to avoid accidental scalar genomes.</span>
     <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
@@ -417,7 +417,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">resolved_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the effective shape, honoring legacy `length` if present.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return the effective shape, honoring legacy `length` if present."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
@@ -425,7 +425,7 @@
 <div class="viewcode-block" id="BinaryGenomeConfig.init_population">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenomeConfig.init_population">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">BinaryGenome</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a random population from this config (protocol method for JR-2).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Create a random population from this config (protocol method for JR-2)."""</span>
         <span class="k">return</span> <span class="n">BinaryPopulation</span><span class="o">.</span><span class="n">init_random</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span></div>
 </div>
 
@@ -435,15 +435,15 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenome">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BinaryGenome</span><span class="p">(</span><span class="n">BaseGenome</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A discrete, binary bit-string genome representation.</span>
 
 <span class="sd">    Represents candidate solutions as sequences of 0s and 1s. This is the</span>
 <span class="sd">    standard representation for combinatorial problems like the Knapsack</span>
 <span class="sd">    Problem, Feature Selection, and Boolean Satisfiability (SAT).</span>
 
-<span class="sd">    In a BinaryPopulation, the &#39;bits&#39; array is promoted to shape (N, length).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    In a BinaryPopulation, the 'bits' array is promoted to shape (N, length).</span>
+<span class="sd">    """</span>
 
     <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>  <span class="c1"># Shape: (length,) for individuals, (N, length) for populations</span>
     <span class="c1"># Enable Pythonic indexing/iteration by default for convenience</span>
@@ -453,11 +453,11 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenome.random_init">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">random_init</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize bit-string via Bernoulli sampling at probability *p*.</span>
+<span class="w">        </span><span class="sd">"""Initialize bit-string via Bernoulli sampling at probability *p*.</span>
 
 <span class="sd">        The returned genome has dtype and shape determined by the provided</span>
 <span class="sd">        configuration.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">resolved_shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">)</span></div>
 
@@ -465,66 +465,66 @@
 <div class="viewcode-block" id="BinaryGenome.autocorrect">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenome.autocorrect">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">autocorrect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Enforce bit domain [0, 1] via clipping and dtype conversion.</span>
+<span class="w">        </span><span class="sd">"""Enforce bit domain [0, 1] via clipping and dtype conversion.</span>
 
 <span class="sd">        Called post-mutation/crossover to guarantee discrete binary values</span>
 <span class="sd">        in case floating-point operations introduced out-of-bounds values.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">corrected_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">corrected_values</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="BinaryGenome.distance">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenome.distance">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hamming&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute distance between binary genomes.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"hamming"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Compute distance between binary genomes.</span>
 
 <span class="sd">        The other genome is cast to :class:`BinaryGenome`. Available metrics</span>
 <span class="sd">        are Hamming (bitwise mismatch count) or Euclidean norm.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">other_bin</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">&quot;hamming&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"hamming"</span><span class="p">:</span>
             <span class="c1"># XOR equivalent logic for JAX arrays</span>
             <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">!=</span> <span class="n">other_bin</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">&quot;euclidean&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"euclidean"</span><span class="p">:</span>
             <span class="c1"># Distance in the embedding space</span>
             <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">other_bin</span><span class="o">.</span><span class="n">values</span><span class="p">)))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported metric: </span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported metric: </span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of bits in the genome.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The number of bits in the genome."""</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The logical shape of the bit-string.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The logical shape of the bit-string."""</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BinaryGenome.from_tensor">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenome.from_tensor">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BinaryGenome&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a batched BinaryGenome from a raw array.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BinaryGenome"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Construct a batched BinaryGenome from a raw array.</span>
 
 <span class="sd">        Keeps implementation minimal and JIT-safe: simply wraps the provided</span>
 <span class="sd">        array in the `BinaryGenome` dataclass.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">arr</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BinaryGenome.to_int">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenome.to_int">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msb_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert the bit-string to an integer using positional weights.</span>
+<span class="w">        </span><span class="sd">"""Convert the bit-string to an integer using positional weights.</span>
 
 <span class="sd">        The *msb_first* flag controls bit significance ordering. The result is</span>
 <span class="sd">        a scalar JAX array which may exceed native integer precision for long</span>
 <span class="sd">        genomes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">msb_first</span><span class="p">:</span>
             <span class="c1"># Treat values[0] as the most significant bit (MSB)</span>
             <span class="n">powers</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -537,14 +537,14 @@
 <div class="viewcode-block" id="BinaryGenome.count_ones">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenome.count_ones">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">count_ones</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sum of bits; Hamming weight. Scalar JAX array.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Sum of bits; Hamming weight. Scalar JAX array."""</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BinaryGenome.flip_bit">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryGenome.flip_bit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flip_bit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Toggle bit at index via JAX .at[index].set() functional update.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Toggle bit at index via JAX .at[index].set() functional update."""</span>
         <span class="n">new_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">new_values</span><span class="p">))</span></div>
 
@@ -553,12 +553,12 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># We slice to avoid huge strings in debug logs</span>
             <span class="n">sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
-            <span class="n">bits_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">sample</span><span class="p">)</span>
+            <span class="n">bits_str</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">sample</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
-                <span class="n">bits_str</span> <span class="o">+=</span> <span class="s2">&quot;...&quot;</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;BinaryGenome(</span><span class="si">{</span><span class="n">bits_str</span><span class="si">}</span><span class="s2">, len=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">)&gt;&quot;</span>
+                <span class="n">bits_str</span> <span class="o">+=</span> <span class="s2">"..."</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"&lt;BinaryGenome(</span><span class="si">{</span><span class="n">bits_str</span><span class="si">}</span><span class="s2">, len=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">)&gt;"</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;BinaryGenome(traced, len=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">)&gt;&quot;</span></div>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"&lt;BinaryGenome(traced, len=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">)&gt;"</span></div>
 
 
 
@@ -566,14 +566,14 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.binary_genome.html#malthusjax.BinaryPopulation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BinaryPopulation</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">BinaryGenome</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Parallel population container specialized for BinaryGenome bitstrings.</span>
 
 <span class="sd">    As of v2.0, this class does not override core population mechanics or</span>
 <span class="sd">    intercept `.values` properties. It serves strictly as a strongly-typed</span>
 <span class="sd">    alias/subclass of `BasePopulation[BinaryGenome]` to provide convenient</span>
 <span class="sd">    initialization helpers and IDE completion.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">genes</span><span class="p">:</span> <span class="n">BinaryGenome</span>
     <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
@@ -585,9 +585,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">init_random</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryPopulation</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Orchestrates parallel Bernoulli sampling for the initial population.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">batched_genes</span> <span class="o">=</span> <span class="n">BinaryGenome</span><span class="o">.</span><span class="n">create_population</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
         <span class="n">initial_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">size</span><span class="p">,),</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">batched_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">initial_fitness</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span></div>

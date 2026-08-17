@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.fitness.base</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Core fitness evaluation interfaces and configurations.</span>
+<span></span><span class="sd">"""Core fitness evaluation interfaces and configurations.</span>
 
 <span class="sd">Defines the abstract base classes that concrete evaluators inherit from.</span>
 <span class="sd">Includes helper types such as regression data tuples and the static</span>
 <span class="sd">configuration dataclass used across the evaluator hierarchy.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -327,23 +327,23 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span>
 
-<span class="n">G</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;BaseGenome&quot;</span><span class="p">)</span>
-<span class="n">C</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;BaseEvaluatorConfig&quot;</span><span class="p">)</span>  <span class="c1"># Config type</span>
-<span class="n">D</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">)</span>  <span class="c1"># Data type (e.g., training data, environment params)</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"G"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">"BaseGenome"</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"C"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">"BaseEvaluatorConfig"</span><span class="p">)</span>  <span class="c1"># Config type</span>
+<span class="n">D</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"D"</span><span class="p">)</span>  <span class="c1"># Data type (e.g., training data, environment params)</span>
 
 
 <div class="viewcode-block" id="BaseEvaluatorConfig">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.BaseEvaluatorConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseEvaluatorConfig</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base configuration for fitness evaluation.</span>
+<span class="w">    </span><span class="sd">"""Base configuration for fitness evaluation.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        maximize: Optimization direction. If True, higher fitness is better;</span>
 <span class="sd">            otherwise, lower is better (default). Follows evosax convention:</span>
 <span class="sd">            lower-is-better (minimize) is the default. Controls jax.lax.select</span>
 <span class="sd">            branching in single and batch evaluators.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span></div>
 
@@ -353,7 +353,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.BaseEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseEvaluator</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;JAX-native fitness evaluation interface with vmap composition.</span>
+<span class="w">    </span><span class="sd">"""JAX-native fitness evaluation interface with vmap composition.</span>
 
 <span class="sd">    Defines single-genome evaluate(genome) -&gt; scalar, which vmaps into</span>
 <span class="sd">    evaluate_population(population) -&gt; population for Struct-of-Arrays (SoA)</span>
@@ -364,7 +364,7 @@
 <span class="sd">        G: Genome type (e.g., RealGenome, BinaryGenome).</span>
 <span class="sd">        C: Config type; typically pytree_node=False (static across vmap).</span>
 <span class="sd">        D: Data type (e.g., training data, problem parameters); static.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">config</span><span class="p">:</span> <span class="n">C</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">D</span>
@@ -372,7 +372,7 @@
 <div class="viewcode-block" id="BaseEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.BaseEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fitness for a single genome.</span>
+<span class="w">        </span><span class="sd">"""Compute fitness for a single genome.</span>
 
 <span class="sd">        The provided genome (`G`) is an unbatched PyTree instance. Evaluators</span>
 <span class="sd">        should extract necessary fields (e.g., `.values`) themselves according</span>
@@ -381,45 +381,45 @@
 <span class="sd">        The return value is a scalar (or a small vector for multiobjective cases)</span>
 <span class="sd">        suitable for JIT‑compiled pipelines. Implementations may use ``self.config``</span>
 <span class="sd">        and ``self.data`` during evaluation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
 <div class="viewcode-block" id="BaseEvaluator.evaluate_population">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.BaseEvaluator.evaluate_population">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized population evaluation via :func:`jax.vmap`.</span>
+<span class="w">        </span><span class="sd">"""Vectorized population evaluation via :func:`jax.vmap`.</span>
 
 <span class="sd">        Each member of *population.genes* is passed through ``evaluate``; the</span>
 <span class="sd">        resulting fitness array replaces the old values in a new population</span>
 <span class="sd">        object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">fitness_scores</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">)(</span><span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">fitness</span><span class="o">=</span><span class="n">fitness_scores</span><span class="p">))</span></div>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">f_opt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference optimal fitness value (e.g., global minimum).</span>
+<span class="w">        </span><span class="sd">"""Reference optimal fitness value (e.g., global minimum).</span>
 
 <span class="sd">        Returns None if the evaluator does not have a known reference optimum.</span>
 <span class="sd">        Concrete evaluators (e.g., BBOBEvaluator) override this property.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">x_opt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference optimal solution location.</span>
+<span class="w">        </span><span class="sd">"""Reference optimal solution location.</span>
 
 <span class="sd">        Returns None if the evaluator does not have a known reference optimum.</span>
 <span class="sd">        Concrete evaluators (e.g., BBOBEvaluator) override this property.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="BaseEvaluator.get_gap_to_optimum">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.BaseEvaluator.get_gap_to_optimum">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_gap_to_optimum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitness_value</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute gap between a fitness value and the known optimum.</span>
+<span class="w">        </span><span class="sd">"""Compute gap between a fitness value and the known optimum.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            fitness_value: The fitness value to compare.</span>
@@ -427,7 +427,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The absolute gap to the optimum, or None if no optimum reference exists.</span>
 <span class="sd">            A gap of 0 means the value is optimal.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_opt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fitness_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_opt</span><span class="p">)</span></div>
@@ -436,6 +436,54 @@
 
 
 <span class="n">RegressionData</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="StochasticEvaluator">
+<a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.StochasticEvaluator">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StochasticEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""Base class for evaluators that require a PRNGKey (e.g., RL environments)."""</span>
+
+<div class="viewcode-block" id="StochasticEvaluator.evaluate">
+<a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.StochasticEvaluator.evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Compute fitness for a single genome, requiring an RNG key."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="StochasticEvaluator.evaluate_population">
+<a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.StochasticEvaluator.evaluate_population">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_population</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">rng</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Vectorized stochastic population evaluation."""</span>
+        <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is a StochasticEvaluator and requires an "</span>
+                <span class="s2">"`rng` key for evaluation, but None was provided."</span>
+            <span class="p">)</span>
+        <span class="n">rngs</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">population</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">fitness_scores</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">)(</span><span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="n">rngs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">fitness</span><span class="o">=</span><span class="n">fitness_scores</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="dispatch_evaluate_population">
+<a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.dispatch_evaluate_population">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dispatch_evaluate_population</span><span class="p">(</span>
+    <span class="n">evaluator</span><span class="p">:</span> <span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">],</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Dynamically dispatch population evaluation based on evaluator type."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">StochasticEvaluator</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is stochastic, but no key was provided "</span>
+                <span class="s2">"to dispatch_evaluate_population."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">)</span></div>
+
 </pre></div>
         </article>
       </div>

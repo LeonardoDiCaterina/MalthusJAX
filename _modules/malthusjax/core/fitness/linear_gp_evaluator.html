@@ -310,13 +310,13 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.fitness.linear_gp_evaluator</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Linear genetic programming evaluator and primitive operations.</span>
+<span></span><span class="sd">"""Linear genetic programming evaluator and primitive operations.</span>
 
 <span class="sd">Provides the LinearGPEvaluator implementation along with a suite of</span>
 <span class="sd">vectorized arithmetic, logical and ternary operators used by the</span>
 <span class="sd">interpreter. Operators maintain a uniform signature to facilitate</span>
 <span class="sd">jax.lax.switch dispatch.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -340,11 +340,11 @@
 <div class="viewcode-block" id="op_add">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_add">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_add</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the sum of *x* and *y*.</span>
+<span class="w">    </span><span class="sd">"""Return the sum of *x* and *y*.</span>
 
 <span class="sd">    The third parameter is ignored but kept for a consistent function</span>
 <span class="sd">    signature required by the LGP instruction dispatcher.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span></div>
 
 
@@ -352,7 +352,7 @@
 <div class="viewcode-block" id="op_sub">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_sub">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_sub</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subtract *y* from *x*; *z* is ignored.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Subtract *y* from *x*; *z* is ignored."""</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span></div>
 
 
@@ -360,7 +360,7 @@
 <div class="viewcode-block" id="op_mult">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_mult">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_mult</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Multiply *x* and *y*; third argument disregarded.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Multiply *x* and *y*; third argument disregarded."""</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span></div>
 
 
@@ -368,10 +368,10 @@
 <div class="viewcode-block" id="op_div">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_div">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_div</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protected division of *x* by *y* with epsilon guard.</span>
+<span class="w">    </span><span class="sd">"""Protected division of *x* by *y* with epsilon guard.</span>
 
 <span class="sd">    Returns zero when *y* is very small to avoid numerical issues.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">PROTECTED_DIV_EPS</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">x</span> <span class="o">/</span> <span class="n">y</span><span class="p">)</span></div>
 
 
@@ -379,7 +379,7 @@
 <div class="viewcode-block" id="op_abs">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_abs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_abs</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the absolute value of *x* (ignore other args).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Return the absolute value of *x* (ignore other args)."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
@@ -387,7 +387,7 @@
 <div class="viewcode-block" id="op_neg">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_neg">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_neg</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Negate *x*; signature preserved for dispatcher.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Negate *x*; signature preserved for dispatcher."""</span>
     <span class="k">return</span> <span class="o">-</span><span class="n">x</span></div>
 
 
@@ -395,7 +395,7 @@
 <div class="viewcode-block" id="op_sin">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_sin">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_sin</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sine of *x* scaled by π; others unused.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Sine of *x* scaled by π; others unused."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span></div>
 
 
@@ -403,7 +403,7 @@
 <div class="viewcode-block" id="op_cos">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_cos">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_cos</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cosine of *x* scaled by π.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Cosine of *x* scaled by π."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span></div>
 
 
@@ -411,7 +411,7 @@
 <div class="viewcode-block" id="op_tan">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_tan">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_tan</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tangent of *x* with infinities or NaNs clipped to zero.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Tangent of *x* with infinities or NaNs clipped to zero."""</span>
     <span class="n">val</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">|</span> <span class="n">jnp</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
@@ -420,7 +420,7 @@
 <div class="viewcode-block" id="op_log">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_log">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_log</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Natural logarithm of *x* if positive, else -1.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Natural logarithm of *x* if positive, else -1."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span></div>
 
 
@@ -428,7 +428,7 @@
 <div class="viewcode-block" id="op_sqrt">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_sqrt">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Square root of positive *x*, otherwise zero.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Square root of positive *x*, otherwise zero."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span></div>
 
 
@@ -436,7 +436,7 @@
 <div class="viewcode-block" id="op_pow">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_pow">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_pow</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise ``|x|`` to the power ``|y|``, returning zero when base is zero.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Raise ``|x|`` to the power ``|y|``, returning zero when base is zero."""</span>
     <span class="n">base</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="n">exp</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">base</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">exp</span><span class="p">))</span></div>
@@ -446,7 +446,7 @@
 <div class="viewcode-block" id="op_exp">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_exp">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_exp</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute e to the power of *x*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Compute e to the power of *x*."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
@@ -454,7 +454,7 @@
 <div class="viewcode-block" id="op_sign">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_sign">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_sign</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Signum of *x* (-1, 0, or 1).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Signum of *x* (-1, 0, or 1)."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
@@ -462,7 +462,7 @@
 <div class="viewcode-block" id="op_max">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_max">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_max</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Elementwise maximum of *x* and *y*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Elementwise maximum of *x* and *y*."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
 
 
@@ -470,7 +470,7 @@
 <div class="viewcode-block" id="op_min">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_min">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_min</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Elementwise minimum of *x* and *y*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Elementwise minimum of *x* and *y*."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
 
 
@@ -478,7 +478,7 @@
 <div class="viewcode-block" id="op_mod">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_mod">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_mod</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Modulo operation *x* mod *y*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Modulo operation *x* mod *y*."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
 
 
@@ -486,7 +486,7 @@
 <div class="viewcode-block" id="op_frac">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_frac">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_frac</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fractional component of *x* (x - floor(x)).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Fractional component of *x* (x - floor(x))."""</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
@@ -494,7 +494,7 @@
 <div class="viewcode-block" id="op_mdist">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_mdist">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_mdist</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean distance: compute (x + y)/2.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Mean distance: compute (x + y)/2."""</span>
     <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span></div>
 
 
@@ -502,19 +502,19 @@
 <div class="viewcode-block" id="op_len">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_len">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_len</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Euclidean length ``sqrt(x**2 + y**2)``.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Compute Euclidean length ``sqrt(x**2 + y**2)``."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
 
 
 
 <span class="c1"># --- 2. Logic / Bitwise Operators ---</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_bitwise_helper</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert float inputs to scaled ints, apply *func*, and rescale.</span>
+<span class="w">    </span><span class="sd">"""Convert float inputs to scaled ints, apply *func*, and rescale.</span>
 
 <span class="sd">    This helper permits bitwise operations on floating‑point values by</span>
 <span class="sd">    temporarily casting to integers. It is considered internal hence the</span>
 <span class="sd">    leading underscore.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">a_int</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
     <span class="n">b_int</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">a_int</span><span class="p">,</span> <span class="n">b_int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1e6</span>
@@ -523,7 +523,7 @@
 <div class="viewcode-block" id="op_and">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_and">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_and</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bitwise AND of *x* and *y* via helper conversion.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Bitwise AND of *x* and *y* via helper conversion."""</span>
     <span class="k">return</span> <span class="n">_bitwise_helper</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">bitwise_and</span><span class="p">)</span></div>
 
 
@@ -531,7 +531,7 @@
 <div class="viewcode-block" id="op_or">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_or">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_or</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bitwise OR of *x* and *y*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Bitwise OR of *x* and *y*."""</span>
     <span class="k">return</span> <span class="n">_bitwise_helper</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">bitwise_or</span><span class="p">)</span></div>
 
 
@@ -539,7 +539,7 @@
 <div class="viewcode-block" id="op_xor">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_xor">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_xor</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bitwise XOR of *x* and *y*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Bitwise XOR of *x* and *y*."""</span>
     <span class="k">return</span> <span class="n">_bitwise_helper</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">bitwise_xor</span><span class="p">)</span></div>
 
 
@@ -547,7 +547,7 @@
 <div class="viewcode-block" id="op_step">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_step">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_step</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Step function: returns -1 if ``x &lt; 0`` else 1.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Step function: returns -1 if ``x &lt; 0`` else 1."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
 
 
@@ -556,7 +556,7 @@
 <div class="viewcode-block" id="op_if">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_if">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_if</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ternary conditional: choose *y* if ``x &lt; 0`` else *z*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Ternary conditional: choose *y* if ``x &lt; 0`` else *z*."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
@@ -564,7 +564,7 @@
 <div class="viewcode-block" id="op_lerp">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_lerp">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_lerp</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Linear interpolation between *x* and *y* controlled by *z*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Linear interpolation between *x* and *y* controlled by *z*."""</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">z</span></div>
 
 
@@ -572,7 +572,7 @@
 <div class="viewcode-block" id="op_clip">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_clip">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_clip</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Clip *x* between bounds *y* and *z*.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Clip *x* between bounds *y* and *z*."""</span>
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
@@ -581,7 +581,7 @@
 <div class="viewcode-block" id="op_sstep">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_sstep">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_sstep</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Smoothstep function: cubic polynomial in [0,1] range.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Smoothstep function: cubic polynomial in [0,1] range."""</span>
     <span class="n">x_c</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x_c</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mf">3.0</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x_c</span><span class="p">)</span></div>
 
@@ -590,7 +590,7 @@
 <div class="viewcode-block" id="op_sstepp">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.op_sstepp">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">op_sstepp</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Smoothstep‑prime: quintic easing polynomial between 0 and 1.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Smoothstep‑prime: quintic easing polynomial between 0 and 1."""</span>
     <span class="n">x_c</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x_c</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_c</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_c</span> <span class="o">*</span> <span class="mf">6.0</span> <span class="o">-</span> <span class="mf">15.0</span><span class="p">)</span> <span class="o">+</span> <span class="mf">10.0</span><span class="p">)</span></div>
 
@@ -629,35 +629,35 @@
 <span class="p">)</span>
 
 <span class="n">TENSORGP_NAMES</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;ADD&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SUB&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;MUL&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;DIV&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ABS&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;NEG&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SIN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;COS&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;TAN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;LOG&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SQRT&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;POW&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;EXP&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SIGN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;MAX&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;MIN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;MOD&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;FRAC&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;MDIST&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;LEN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;AND&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;OR&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;XOR&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;STEP&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;IF&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;LERP&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;CLIP&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SSTEP&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SSTEPP&quot;</span><span class="p">,</span>
+    <span class="s2">"ADD"</span><span class="p">,</span>
+    <span class="s2">"SUB"</span><span class="p">,</span>
+    <span class="s2">"MUL"</span><span class="p">,</span>
+    <span class="s2">"DIV"</span><span class="p">,</span>
+    <span class="s2">"ABS"</span><span class="p">,</span>
+    <span class="s2">"NEG"</span><span class="p">,</span>
+    <span class="s2">"SIN"</span><span class="p">,</span>
+    <span class="s2">"COS"</span><span class="p">,</span>
+    <span class="s2">"TAN"</span><span class="p">,</span>
+    <span class="s2">"LOG"</span><span class="p">,</span>
+    <span class="s2">"SQRT"</span><span class="p">,</span>
+    <span class="s2">"POW"</span><span class="p">,</span>
+    <span class="s2">"EXP"</span><span class="p">,</span>
+    <span class="s2">"SIGN"</span><span class="p">,</span>
+    <span class="s2">"MAX"</span><span class="p">,</span>
+    <span class="s2">"MIN"</span><span class="p">,</span>
+    <span class="s2">"MOD"</span><span class="p">,</span>
+    <span class="s2">"FRAC"</span><span class="p">,</span>
+    <span class="s2">"MDIST"</span><span class="p">,</span>
+    <span class="s2">"LEN"</span><span class="p">,</span>
+    <span class="s2">"AND"</span><span class="p">,</span>
+    <span class="s2">"OR"</span><span class="p">,</span>
+    <span class="s2">"XOR"</span><span class="p">,</span>
+    <span class="s2">"STEP"</span><span class="p">,</span>
+    <span class="s2">"IF"</span><span class="p">,</span>
+    <span class="s2">"LERP"</span><span class="p">,</span>
+    <span class="s2">"CLIP"</span><span class="p">,</span>
+    <span class="s2">"SSTEP"</span><span class="p">,</span>
+    <span class="s2">"SSTEPP"</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -665,7 +665,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.LinearGPEvaluatorConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">LinearGPEvaluatorConfig</span><span class="p">(</span><span class="n">BaseEvaluatorConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for Linear GP Evaluator.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Configuration for Linear GP Evaluator."""</span>
 
     <span class="n">num_inputs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span></div>
@@ -676,15 +676,15 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.LinearGPEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">LinearGPEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">LinearGenome</span><span class="p">,</span> <span class="n">LinearGPEvaluatorConfig</span><span class="p">,</span> <span class="n">RegressionData</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Evaluates linear genomes using symbiotic selection, treating each</span>
 <span class="sd">    instruction as a potential terminal output.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="LinearGPEvaluator.predict_one">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.LinearGPEvaluator.predict_one">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">LinearGenome</span><span class="p">,</span> <span class="n">x_input</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute one genome on one input vector to get all intermediate results.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Execute one genome on one input vector to get all intermediate results."""</span>
         <span class="n">total_mem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">num_inputs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">length</span>
         <span class="n">memory</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">total_mem</span><span class="p">)</span><span class="o">.</span><span class="n">at</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">x_input</span><span class="p">)</span>
 
@@ -709,10 +709,10 @@
 <div class="viewcode-block" id="LinearGPEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.LinearGPEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">LinearGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the MSE of the best instruction (Symbiotic Selection).</span>
+<span class="w">        </span><span class="sd">"""Returns the MSE of the best instruction (Symbiotic Selection).</span>
 
 <span class="sd">        Minimization convention: lower fitness is better (lower MSE = better fit).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
         <span class="n">all_preds</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">predict_one</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span><span class="n">genome</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
 
@@ -727,7 +727,7 @@
 <div class="viewcode-block" id="LinearGPEvaluator.get_best_instruction_fitness">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.LinearGPEvaluator.get_best_instruction_fitness">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_best_instruction_fitness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns scalar fitness of the best performing instruction.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns scalar fitness of the best performing instruction."""</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span></div>
 
 
@@ -736,7 +736,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_program_prediction</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">LinearGenome</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">instruction_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves data-wide predictions from a target instruction index.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Retrieves data-wide predictions from a target instruction index."""</span>
         <span class="n">all_outputs</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">predict_one</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span><span class="n">genome</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">all_outputs</span><span class="p">[:,</span> <span class="n">instruction_idx</span><span class="p">]</span></div>
 </div>

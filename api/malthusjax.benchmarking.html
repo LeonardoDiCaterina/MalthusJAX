@@ -497,32 +497,32 @@ provides methods to extract summary statistics and convergence histories.</p>
 <h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
 <p>Access aggregated fitness metrics:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=10"</span><span class="p">,</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">),</span>
 <span class="p">)</span>
 <span class="n">agg</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">()</span>
 <span class="c1"># agg = {</span>
-<span class="c1">#   &quot;best_fitness&quot;: {&quot;mean&quot;: 0.5, &quot;median&quot;: 0.48, &quot;stdev&quot;: 0.05},</span>
-<span class="c1">#   &quot;mean_fitness&quot;: {&quot;mean&quot;: 2.3, ...},</span>
+<span class="c1">#   "best_fitness": {"mean": 0.5, "median": 0.48, "stdev": 0.05},</span>
+<span class="c1">#   "mean_fitness": {"mean": 2.3, ...},</span>
 <span class="c1"># }</span>
 <span class="nb">print</span><span class="p">(</span>
-    <span class="sa">f</span><span class="s2">&quot;Best fitness: </span><span class="si">{</span><span class="n">agg</span><span class="p">[</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &quot;</span>
-    <span class="sa">f</span><span class="s2">&quot;± </span><span class="si">{</span><span class="n">agg</span><span class="p">[</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">][</span><span class="s1">&#39;stdev&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="sa">f</span><span class="s2">"Best fitness: </span><span class="si">{</span><span class="n">agg</span><span class="p">[</span><span class="s1">'best_fitness'</span><span class="p">][</span><span class="s1">'mean'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> "</span>
+    <span class="sa">f</span><span class="s2">"± </span><span class="si">{</span><span class="n">agg</span><span class="p">[</span><span class="s1">'best_fitness'</span><span class="p">][</span><span class="s1">'stdev'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 <p>Inspect per-seed runs:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">runs</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Seed </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">seed</span><span class="si">}</span><span class="s2">: status=</span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">, duration=</span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">duration_seconds</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Final best fitness: </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Seed </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">seed</span><span class="si">}</span><span class="s2">: status=</span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">, duration=</span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">duration_seconds</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Final best fitness: </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'best_fitness'</span><span class="p">,</span><span class="w"> </span><span class="s1">'N/A'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="c1"># run.history is a list of dicts, one per generation</span>
 </pre></div>
 </div>
 <p>Export convergence history to pandas:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="n">history</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">combined_history</span><span class="p">(</span><span class="n">seed_field</span><span class="o">=</span><span class="s2">&quot;seed_id&quot;</span><span class="p">)</span>
+<span class="n">history</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">combined_history</span><span class="p">(</span><span class="n">seed_field</span><span class="o">=</span><span class="s2">"seed_id"</span><span class="p">)</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">history</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s1">&#39;generation&#39;</span><span class="p">,</span> <span class="s1">&#39;best_fitness&#39;</span><span class="p">,</span> <span class="s1">&#39;seed_id&#39;</span><span class="p">]])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s1">'generation'</span><span class="p">,</span> <span class="s1">'best_fitness'</span><span class="p">,</span> <span class="s1">'seed_id'</span><span class="p">]])</span>
 <span class="c1"># Rows can now be grouped by seed_id and plotted</span>
 </pre></div>
 </div>
@@ -613,14 +613,14 @@ Each dict includes original history keys plus the seed identifier.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="n">history</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">combined_history</span><span class="p">()</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">history</span><span class="p">)</span>
-<span class="c1"># Columns: &#39;generation&#39;, &#39;best_fitness&#39;, &#39;seed&#39;, ...</span>
-<span class="n">per_seed</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;seed&#39;</span><span class="p">)[</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+<span class="c1"># Columns: 'generation', 'best_fitness', 'seed', ...</span>
+<span class="n">per_seed</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'seed'</span><span class="p">)[</span><span class="s1">'best_fitness'</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Write to CSV:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
-<span class="n">history</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">combined_history</span><span class="p">(</span><span class="n">seed_field</span><span class="o">=</span><span class="s2">&quot;run_seed&quot;</span><span class="p">)</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;convergence.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="n">history</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">combined_history</span><span class="p">(</span><span class="n">seed_field</span><span class="o">=</span><span class="s2">"run_seed"</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"convergence.csv"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">history</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">history</span><span class="p">)</span>
@@ -676,17 +676,17 @@ definition). For robust statistics, use at least 3 seeds.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">))</span>
 <span class="n">agg</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">()</span>
 <span class="c1"># Returns: {</span>
-<span class="c1">#   &#39;best_fitness&#39;: {&#39;mean&#39;: 0.123, &#39;median&#39;: 0.110, &#39;stdev&#39;: 0.045},</span>
-<span class="c1">#   &#39;mean_fitness&#39;: {&#39;mean&#39;: 2.345, &#39;median&#39;: 2.310, &#39;stdev&#39;: 0.120},</span>
+<span class="c1">#   'best_fitness': {'mean': 0.123, 'median': 0.110, 'stdev': 0.045},</span>
+<span class="c1">#   'mean_fitness': {'mean': 2.345, 'median': 2.310, 'stdev': 0.120},</span>
 <span class="c1"># }</span>
 </pre></div>
 </div>
 <p>Report results:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">agg</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">metric</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">agg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="n">mean_val</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span>
-    <span class="n">std_val</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;stdev&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">std_val</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">mean_val</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">]</span>
+    <span class="n">std_val</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">'stdev'</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">std_val</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -776,10 +776,10 @@ in <a class="reference internal" href="#malthusjax.benchmarking.ComparisonResult
 <p>Compare two algorithms:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
     <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;GA+Blend&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">),</span>
-        <span class="s2">&quot;GA+SBX&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;simulated_binary:eta=20&quot;</span><span class="p">),</span>
+        <span class="s2">"GA+Blend"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">crossover</span><span class="o">=</span><span class="s2">"blend:alpha=0.5"</span><span class="p">),</span>
+        <span class="s2">"GA+SBX"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">crossover</span><span class="o">=</span><span class="s2">"simulated_binary:eta=20"</span><span class="p">),</span>
     <span class="p">},</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=10"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">),</span>
@@ -789,11 +789,11 @@ in <a class="reference internal" href="#malthusjax.benchmarking.ComparisonResult
 <p>Extract summary statistics:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">.</span><span class="n">summary_table</span><span class="p">()</span>
 <span class="c1"># table = {</span>
-<span class="c1">#   &quot;GA+Blend&quot;: {&quot;best_fitness&quot;: 0.123, &quot;mean_fitness&quot;: 2.345},</span>
-<span class="c1">#   &quot;GA+SBX&quot;: {&quot;best_fitness&quot;: 0.089, &quot;mean_fitness&quot;: 1.987},</span>
+<span class="c1">#   "GA+Blend": {"best_fitness": 0.123, "mean_fitness": 2.345},</span>
+<span class="c1">#   "GA+SBX": {"best_fitness": 0.089, "mean_fitness": 1.987},</span>
 <span class="c1"># }</span>
 <span class="k">for</span> <span class="n">pipeline_name</span><span class="p">,</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pipeline_name</span><span class="si">}</span><span class="s2">: best=</span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pipeline_name</span><span class="si">}</span><span class="s2">: best=</span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">'best_fitness'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Visualize convergence:</p>
@@ -801,7 +801,7 @@ in <a class="reference internal" href="#malthusjax.benchmarking.ComparisonResult
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">seed_idx</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axes</span><span class="p">):</span>
     <span class="n">comparison</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span><span class="n">seed_index</span><span class="o">=</span><span class="n">seed_idx</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Seed </span><span class="si">{</span><span class="n">seed_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Seed </span><span class="si">{</span><span class="n">seed_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -879,9 +879,9 @@ Default: <code class="docutils literal notranslate"><span class="pre">False</spa
 <p>View aggregated performance:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">.</span><span class="n">summary_table</span><span class="p">()</span>
 <span class="c1"># table = {</span>
-<span class="c1">#   &quot;GA+Blend&quot;: {&quot;best_fitness&quot;: 0.123, &quot;mean_fitness&quot;: 2.34},</span>
-<span class="c1">#   &quot;GA+SBX&quot;: {&quot;best_fitness&quot;: 0.089, &quot;mean_fitness&quot;: 1.98},</span>
-<span class="c1">#   &quot;Evosax CMA-ES&quot;: {&quot;best_fitness&quot;: 0.045, &quot;mean_fitness&quot;: 1.23},</span>
+<span class="c1">#   "GA+Blend": {"best_fitness": 0.123, "mean_fitness": 2.34},</span>
+<span class="c1">#   "GA+SBX": {"best_fitness": 0.089, "mean_fitness": 1.98},</span>
+<span class="c1">#   "Evosax CMA-ES": {"best_fitness": 0.045, "mean_fitness": 1.23},</span>
 <span class="c1"># }</span>
 </pre></div>
 </div>
@@ -889,7 +889,7 @@ Default: <code class="docutils literal notranslate"><span class="pre">False</spa
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="n">table</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">.</span><span class="n">summary_table</span><span class="p">()</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">)</span>  <span class="c1"># Rank by fitness</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">"best_fitness"</span><span class="p">)</span>  <span class="c1"># Rank by fitness</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1165,11 +1165,11 @@ random initializations.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">.</span><span class="n">convergence_data</span><span class="p">(</span><span class="n">seed_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">pipeline_name</span><span class="p">,</span> <span class="n">history</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="n">gens</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s2">&quot;generation&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
-    <span class="n">fitness</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
+    <span class="n">gens</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s2">"generation"</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
+    <span class="n">fitness</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gens</span><span class="p">,</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">pipeline_name</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Generation&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Best Fitness&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"Generation"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Best Fitness"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -1179,8 +1179,8 @@ random initializations.</p>
 <span class="n">data</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">.</span><span class="n">convergence_data</span><span class="p">(</span><span class="n">seed_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">pipeline_name</span><span class="p">,</span> <span class="n">history</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">history</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pipeline_name</span><span class="si">}</span><span class="s2"> convergence:&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;generation&quot;</span><span class="p">,</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pipeline_name</span><span class="si">}</span><span class="s2"> convergence:"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s2">"generation"</span><span class="p">,</span> <span class="s2">"best_fitness"</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>
@@ -1271,8 +1271,8 @@ figure showing robustness across seeds.</p>
 <p>Simple convergence comparison:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
     <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;GA+Blend&quot;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">},</span>
-        <span class="s2">&quot;GA+SBX&quot;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">},</span>
+        <span class="s2">"GA+Blend"</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">},</span>
+        <span class="s2">"GA+SBX"</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">},</span>
     <span class="p">},</span>
     <span class="o">...</span>
 <span class="p">)</span>
@@ -1285,7 +1285,7 @@ figure showing robustness across seeds.</p>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">seed_idx</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axes</span><span class="p">):</span>
     <span class="n">comparison</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span><span class="n">seed_index</span><span class="o">=</span><span class="n">seed_idx</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Seed </span><span class="si">{</span><span class="n">seed_idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Seed </span><span class="si">{</span><span class="n">seed_idx</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -1293,10 +1293,10 @@ figure showing robustness across seeds.</p>
 <p>Customize plot:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span>
     <span class="n">seed_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;GA Benchmark on Sphere Function&quot;</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"GA Benchmark on Sphere Function"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Force y-axis to start at 0</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>    <span class="c1"># Log scale for faster-converging algorithms</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>    <span class="c1"># Log scale for faster-converging algorithms</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1306,7 +1306,7 @@ figure showing robustness across seeds.</p>
     <span class="n">seed_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">negate</span><span class="o">=</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="kc">True</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">comparison</span><span class="o">.</span><span class="n">names</span><span class="p">},</span>
 <span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Best Fitness (higher is better)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Best Fitness (higher is better)"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

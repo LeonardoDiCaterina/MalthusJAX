@@ -1047,15 +1047,15 @@ between them.</p>
 <li><p>Apply boundary clipping and optional crossover gating</p></li>
 </ol>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;blend:alpha=FLOAT[,crossover_rate=FLOAT]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"blend:alpha=FLOAT[,crossover_rate=FLOAT]"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;blend&quot;</span>                                     <span class="c1"># Defaults (alpha=0.5, crossover_rate=0.9)</span>
-<span class="s2">&quot;blend:alpha=0.5&quot;</span>                          <span class="c1"># Classic BLX-0.5</span>
-<span class="s2">&quot;blend:alpha=0.0&quot;</span>                          <span class="c1"># Uniform crossover (no expansion)</span>
-<span class="s2">&quot;blend:alpha=1.0&quot;</span>                          <span class="c1"># Aggressive expansion (more exploration)</span>
-<span class="s2">&quot;blend:alpha=0.25,crossover_rate=0.8&quot;</span>      <span class="c1"># Both custom</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"blend"</span>                                     <span class="c1"># Defaults (alpha=0.5, crossover_rate=0.9)</span>
+<span class="s2">"blend:alpha=0.5"</span>                          <span class="c1"># Classic BLX-0.5</span>
+<span class="s2">"blend:alpha=0.0"</span>                          <span class="c1"># Uniform crossover (no expansion)</span>
+<span class="s2">"blend:alpha=1.0"</span>                          <span class="c1"># Aggressive expansion (more exploration)</span>
+<span class="s2">"blend:alpha=0.25,crossover_rate=0.8"</span>      <span class="c1"># Both custom</span>
 </pre></div>
 </div>
 <section id="parameters">
@@ -1165,15 +1165,15 @@ index η controls concentration strength.</p>
 <li><p>Conditionally apply (based on crossover_rate)</p></li>
 </ol>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;simulated_binary:eta=FLOAT[,crossover_rate=FLOAT]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"simulated_binary:eta=FLOAT[,crossover_rate=FLOAT]"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;simulated_binary&quot;</span>                          <span class="c1"># Defaults (eta=20.0, crossover_rate=0.9)</span>
-<span class="s2">&quot;simulated_binary:eta=10&quot;</span>                   <span class="c1"># Less concentrated, more exploration</span>
-<span class="s2">&quot;simulated_binary:eta=20&quot;</span>                   <span class="c1"># Standard (balanced exploitation/exploration)</span>
-<span class="s2">&quot;simulated_binary:eta=50&quot;</span>                   <span class="c1"># Very concentrated near parents (exploitation)</span>
-<span class="s2">&quot;simulated_binary:eta=5,crossover_rate=1.0&quot;</span> <span class="c1"># Always apply, explore more</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"simulated_binary"</span>                          <span class="c1"># Defaults (eta=20.0, crossover_rate=0.9)</span>
+<span class="s2">"simulated_binary:eta=10"</span>                   <span class="c1"># Less concentrated, more exploration</span>
+<span class="s2">"simulated_binary:eta=20"</span>                   <span class="c1"># Standard (balanced exploitation/exploration)</span>
+<span class="s2">"simulated_binary:eta=50"</span>                   <span class="c1"># Very concentrated near parents (exploitation)</span>
+<span class="s2">"simulated_binary:eta=5,crossover_rate=1.0"</span> <span class="c1"># Always apply, explore more</span>
 </pre></div>
 </div>
 <section id="id1">
@@ -1412,15 +1412,15 @@ in continuous-domain evolutionary algorithms.</p>
 <li><p>Return mutated genome</p></li>
 </ol>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;gaussian:mutation_rate=FLOAT[,mutation_strength=FLOAT]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"gaussian:mutation_rate=FLOAT[,mutation_strength=FLOAT]"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;gaussian&quot;</span>                                              <span class="c1"># Defaults (rate=0.1, strength=0.1)</span>
-<span class="s2">&quot;gaussian:mutation_rate=0.05&quot;</span>                         <span class="c1"># Lower rate, less mutations</span>
-<span class="s2">&quot;gaussian:mutation_rate=0.2,mutation_strength=0.2&quot;</span>    <span class="c1"># Both custom</span>
-<span class="s2">&quot;gaussian:mutation_strength=0.05&quot;</span>                     <span class="c1"># Milder mutations</span>
-<span class="s2">&quot;gaussian:mutation_rate=1.0,mutation_strength=0.01&quot;</span>   <span class="c1"># All genes affected, small noise</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"gaussian"</span>                                              <span class="c1"># Defaults (rate=0.1, strength=0.1)</span>
+<span class="s2">"gaussian:mutation_rate=0.05"</span>                         <span class="c1"># Lower rate, less mutations</span>
+<span class="s2">"gaussian:mutation_rate=0.2,mutation_strength=0.2"</span>    <span class="c1"># Both custom</span>
+<span class="s2">"gaussian:mutation_strength=0.05"</span>                     <span class="c1"># Milder mutations</span>
+<span class="s2">"gaussian:mutation_rate=1.0,mutation_strength=0.01"</span>   <span class="c1"># All genes affected, small noise</span>
 </pre></div>
 </div>
 <section id="id3">
@@ -1689,15 +1689,15 @@ and u≥0.5 regions, producing offspring concentrated near parent (small η).</p
 <p>This provides a good middle ground between pure elite selection (high exploitation)
 and fitness-proportional selection (fitness-weighted exploration).</p>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;tournament:num_selections=INT,tournament_size=INT&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"tournament:num_selections=INT,tournament_size=INT"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;tournament&quot;</span>  <span class="c1"># Use defaults (num_selections=4,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"tournament"</span>  <span class="c1"># Use defaults (num_selections=4,</span>
              <span class="c1">#                tournament_size=3)</span>
-<span class="s2">&quot;tournament:num_selections=25&quot;</span>  <span class="c1"># Custom num_selections, default tournament_size</span>
-<span class="s2">&quot;tournament:num_selections=50,tournament_size=5&quot;</span>  <span class="c1"># Both custom</span>
-<span class="s2">&quot;tournament:tournament_size=7&quot;</span>  <span class="c1"># Custom tournament size, default num_selections</span>
+<span class="s2">"tournament:num_selections=25"</span>  <span class="c1"># Custom num_selections, default tournament_size</span>
+<span class="s2">"tournament:num_selections=50,tournament_size=5"</span>  <span class="c1"># Both custom</span>
+<span class="s2">"tournament:tournament_size=7"</span>  <span class="c1"># Custom tournament size, default num_selections</span>
 </pre></div>
 </div>
 <section id="id5">
@@ -1776,14 +1776,14 @@ probability distribution, with temperature controlling selection pressure.</p>
 <p>This approach allows the algorithm to adaptively adjust selection pressure based
 on fitness diversity across generations.</p>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;roulette:num_selections=INT[,temperature=FLOAT]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"roulette:num_selections=INT[,temperature=FLOAT]"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;roulette&quot;</span>  <span class="c1"># Defaults (num_selections=4, temperature=1.0)</span>
-<span class="s2">&quot;roulette:num_selections=25&quot;</span>  <span class="c1"># Custom num_selections, default temperature</span>
-<span class="s2">&quot;roulette:num_selections=50,temperature=0.5&quot;</span>  <span class="c1"># Both custom (lower temp = more pressure)</span>
-<span class="s2">&quot;roulette:temperature=2.0&quot;</span>  <span class="c1"># Custom temperature, default num_selections</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"roulette"</span>  <span class="c1"># Defaults (num_selections=4, temperature=1.0)</span>
+<span class="s2">"roulette:num_selections=25"</span>  <span class="c1"># Custom num_selections, default temperature</span>
+<span class="s2">"roulette:num_selections=50,temperature=0.5"</span>  <span class="c1"># Both custom (lower temp = more pressure)</span>
+<span class="s2">"roulette:temperature=2.0"</span>  <span class="c1"># Custom temperature, default num_selections</span>
 </pre></div>
 </div>
 <section id="id7">
@@ -1897,14 +1897,14 @@ use <a class="reference internal" href="#malthusjax.operators.TournamentSelectio
 <p>This provides maximum exploitation of high-fitness solutions but with limited
 diversity (all selected parents come from a small elite pool).</p>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;elite_pool:num_selections=INT[,elite_k=INT]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"elite_pool:num_selections=INT[,elite_k=INT]"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;elite_pool&quot;</span>  <span class="c1"># Defaults (num_selections=4, elite_k=2)</span>
-<span class="s2">&quot;elite_pool:num_selections=50&quot;</span>  <span class="c1"># Custom num_selections, default elite_k</span>
-<span class="s2">&quot;elite_pool:num_selections=50,elite_k=10&quot;</span>  <span class="c1"># Both custom</span>
-<span class="s2">&quot;elite_pool:elite_k=5&quot;</span>  <span class="c1"># Custom elite pool size, default num_selections</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"elite_pool"</span>  <span class="c1"># Defaults (num_selections=4, elite_k=2)</span>
+<span class="s2">"elite_pool:num_selections=50"</span>  <span class="c1"># Custom num_selections, default elite_k</span>
+<span class="s2">"elite_pool:num_selections=50,elite_k=10"</span>  <span class="c1"># Both custom</span>
+<span class="s2">"elite_pool:elite_k=5"</span>  <span class="c1"># Custom elite pool size, default num_selections</span>
 </pre></div>
 </div>
 <section id="id9">

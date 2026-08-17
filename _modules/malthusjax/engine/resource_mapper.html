@@ -310,13 +310,13 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.engine.resource_mapper</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Resource Mapper - Static RNG Budget Allocator &amp; Data Flow Calculator.</span>
 
 <span class="sd">Step 3 of Optimization Roadmap:</span>
 <span class="sd">Pre-calculates exact RNG requirements and operator output shapes</span>
-<span class="sd">to enable static allocation and precise &quot;cascade&quot; data flow.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">to enable static allocation and precise "cascade" data flow.</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
@@ -337,7 +337,7 @@
 <div class="viewcode-block" id="KeyDerivationStrategy">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.KeyDerivationStrategy">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">KeyDerivationStrategy</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Strategy for deriving RNG keys from master key (resource_map.get_keys).</span>
 
 <span class="sd">    - SPLIT: Sequential jax.random.split → uncorrelated keys, single-threaded, lower memory.</span>
@@ -346,26 +346,26 @@
 
 <span class="sd">    Trade-off: SPLIT guaranteed uncorrelated (statistical gold standard) but blocks on</span>
 <span class="sd">    split sequencing. FOLD parallelizable but fold_in determinism replaces randomness.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">SPLIT</span> <span class="o">=</span> <span class="s2">&quot;split&quot;</span>
-    <span class="n">FOLD</span> <span class="o">=</span> <span class="s2">&quot;fold_in&quot;</span></div>
+    <span class="n">SPLIT</span> <span class="o">=</span> <span class="s2">"split"</span>
+    <span class="n">FOLD</span> <span class="o">=</span> <span class="s2">"fold_in"</span></div>
 
 
 
 <div class="viewcode-block" id="ShardingManager">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ShardingManager">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ShardingManager</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    GSPMD (General and Simplified Parallelization) layout for population sharding.</span>
 <span class="sd">    Optimizes memory layout for both single-device (layout optimization) and</span>
 <span class="sd">    multi-device (parallelism) execution.</span>
 <span class="sd">    Axes: matrix (pop_size, features) sharded on pop_size for data parallelism.</span>
 <span class="sd">    vector (pop_size,) sharded on pop_size (fitness array).</span>
 <span class="sd">    replicated: Metadata (best_genome, scalars) replicated across devices.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;batch&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"batch"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">axis_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">axis_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">devices</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">devices</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">devices</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_name</span><span class="p">,))</span>
@@ -383,22 +383,22 @@
 <div class="viewcode-block" id="ShardingManager.alloc_population">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ShardingManager.alloc_population">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">alloc_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a zero-initialized array for a population using the configured sharding.</span>
+<span class="w">        </span><span class="sd">"""Create a zero-initialized array for a population using the configured sharding.</span>
 
 <span class="sd">        The tensor is immediately placed on device with the desired layout</span>
 <span class="sd">        to avoid host‑device transfers during execution.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">device_put</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_sharding</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="ShardingManager.split_key_sharded">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ShardingManager.split_key_sharded">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">split_key_sharded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Produce a sharded sequence of RNG keys for multi‑device execution.</span>
+<span class="w">        </span><span class="sd">"""Produce a sharded sequence of RNG keys for multi‑device execution.</span>
 
 <span class="sd">        The resulting array is placed on the population sharding mesh so that</span>
 <span class="sd">        each device receives its own independent key stream.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">device_put</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_sharding</span><span class="p">)</span></div>
@@ -409,9 +409,9 @@
 <div class="viewcode-block" id="OperatorAllocation">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.OperatorAllocation">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OperatorAllocation</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Allocation details for a single operator stage.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_keys</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">start_idx</span><span class="p">:</span> <span class="nb">int</span>
@@ -426,15 +426,16 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ResourceMap</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Master plan for RNG distribution and Data Flow in one generation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">total_rng_budget</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="n">selection</span><span class="p">:</span> <span class="n">OperatorAllocation</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">crossover</span><span class="p">:</span> <span class="n">OperatorAllocation</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">mutation</span><span class="p">:</span> <span class="n">OperatorAllocation</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">evaluation</span><span class="p">:</span> <span class="n">OperatorAllocation</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">next_key</span><span class="p">:</span> <span class="n">OperatorAllocation</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -447,7 +448,7 @@
 <div class="viewcode-block" id="ResourceMap.get_key_slice">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.get_key_slice">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_key_slice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">slice</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the slice to extract this operator&#39;s keys from the master buffer.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the slice to extract this operator's keys from the master buffer."""</span>
         <span class="n">alloc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">slice</span><span class="p">(</span><span class="n">alloc</span><span class="o">.</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">alloc</span><span class="o">.</span><span class="n">end_idx</span><span class="p">)</span></div>
 
@@ -455,7 +456,7 @@
 <div class="viewcode-block" id="ResourceMap.get_output_count">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.get_output_count">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_output_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of items produced by this operator.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the number of items produced by this operator."""</span>
         <span class="n">alloc</span><span class="p">:</span> <span class="n">OperatorAllocation</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">alloc</span><span class="o">.</span><span class="n">output_count</span><span class="p">)</span></div>
 
@@ -463,12 +464,12 @@
 <div class="viewcode-block" id="ResourceMap.get_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.get_keys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Derive a flat buffer of RNG keys according to the selected strategy.</span>
+<span class="w">        </span><span class="sd">"""Derive a flat buffer of RNG keys according to the selected strategy.</span>
 
 <span class="sd">        For ``SPLIT`` the method simply calls ``jax.random.split``; for</span>
 <span class="sd">        ``FOLD`` it vmap‑folds the master key over integer indices. In either</span>
 <span class="sd">        case the output length matches ``total_rng_budget``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_derivation</span> <span class="o">==</span> <span class="n">KeyDerivationStrategy</span><span class="o">.</span><span class="n">SPLIT</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">master_key</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_rng_budget</span><span class="p">))</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_derivation</span> <span class="o">==</span> <span class="n">KeyDerivationStrategy</span><span class="o">.</span><span class="n">FOLD</span><span class="p">:</span>
@@ -479,7 +480,7 @@
             <span class="n">indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_rng_budget</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_fold_in</span><span class="p">)(</span><span class="n">indices</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown key derivation strategy: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_derivation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown key derivation strategy: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_derivation</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 </div>
 
 
@@ -495,7 +496,7 @@
     <span class="n">elitism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="n">key_derivation</span><span class="p">:</span> <span class="n">KeyDerivationStrategy</span> <span class="o">=</span> <span class="n">KeyDerivationStrategy</span><span class="o">.</span><span class="n">SPLIT</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResourceMap</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate RNG budget and data-flow allocations for one generation.</span>
+<span class="w">    </span><span class="sd">"""Calculate RNG budget and data-flow allocations for one generation.</span>
 
 <span class="sd">    The function computes how many parents, pairs and offspring will be</span>
 <span class="sd">    produced and allocates key ranges for each operator accordingly. It also</span>
@@ -512,36 +513,36 @@
 <span class="sd">    users are advised to adjust parameters to minimize waste.</span>
 <span class="sd">    in case of odd population size in crossover, the last parent may be duplicated to form a pair;</span>
 <span class="sd">    this results in the self-crossover of the last parent</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">key_derivation</span> <span class="o">==</span> <span class="n">KeyDerivationStrategy</span><span class="o">.</span><span class="n">FOLD</span><span class="p">:</span>
-        <span class="n">prng_impl</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;jax_default_prng_impl&quot;</span><span class="p">,</span> <span class="s2">&quot;threefry2x32&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">prng_impl</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;rbg&quot;</span><span class="p">,</span> <span class="s2">&quot;unsafe_rbg&quot;</span><span class="p">):</span>
+        <span class="n">prng_impl</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">"jax_default_prng_impl"</span><span class="p">,</span> <span class="s2">"threefry2x32"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prng_impl</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"rbg"</span><span class="p">,</span> <span class="s2">"unsafe_rbg"</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;KeyDerivationStrategy.FOLD is incompatible with PRNG impl &#39;</span><span class="si">{</span><span class="n">prng_impl</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
-                <span class="s2">&quot;fold_in is not supported for RBG/UNSAFE_RBG backends. &quot;</span>
-                <span class="s2">&quot;Use KeyDerivationStrategy.SPLIT or switch to &#39;threefry2x32&#39;.&quot;</span>
+                <span class="sa">f</span><span class="s2">"KeyDerivationStrategy.FOLD is incompatible with PRNG impl '</span><span class="si">{</span><span class="n">prng_impl</span><span class="si">}</span><span class="s2">'. "</span>
+                <span class="s2">"fold_in is not supported for RBG/UNSAFE_RBG backends. "</span>
+                <span class="s2">"Use KeyDerivationStrategy.SPLIT or switch to 'threefry2x32'."</span>
             <span class="p">)</span>
 
     <span class="n">current_key_idx</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="n">genome_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">&quot;resolved_shape&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">"resolved_shape"</span><span class="p">):</span>
         <span class="n">genome_shape</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">genome_config</span><span class="o">.</span><span class="n">resolved_shape</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">&quot;length&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">"length"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">genome_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">genome_config</span><span class="o">.</span><span class="n">length</span><span class="p">),)</span>
-    <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">&quot;size&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">"size"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">genome_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">genome_config</span><span class="o">.</span><span class="n">size</span><span class="p">),)</span>
-    <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">genome_shape</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">genome_config</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">genome_shape</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="p">())</span>
 
     <span class="c1"># Plan offspring only for slots not occupied by elites.</span>
     <span class="c1"># If callers do not provide `elitism`, fallback to selection.n_elites.</span>
-    <span class="n">effective_elitism</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">elitism</span> <span class="k">if</span> <span class="n">elitism</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="s2">&quot;n_elites&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="n">effective_elitism</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">elitism</span> <span class="k">if</span> <span class="n">elitism</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="s2">"n_elites"</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
     <span class="n">target_offspring</span> <span class="o">=</span> <span class="n">pop_size</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">effective_elitism</span><span class="p">)</span>
 
-    <span class="n">offspring_per_pair</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">crossover</span><span class="p">,</span> <span class="s2">&quot;num_offspring&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">offspring_per_pair</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">crossover</span><span class="p">,</span> <span class="s2">"num_offspring"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">pairs_needed</span> <span class="o">=</span> <span class="p">(</span><span class="n">target_offspring</span> <span class="o">+</span> <span class="n">offspring_per_pair</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">offspring_per_pair</span>
     <span class="n">parents_needed</span> <span class="o">=</span> <span class="n">pairs_needed</span> <span class="o">*</span> <span class="mi">2</span>
 
@@ -560,7 +561,7 @@
         <span class="n">end_idx</span><span class="o">=</span><span class="n">current_key_idx</span> <span class="o">+</span> <span class="n">sel_keys_needed</span><span class="p">,</span>
         <span class="n">input_count</span><span class="o">=</span><span class="n">sel_input_count</span><span class="p">,</span>
         <span class="n">output_count</span><span class="o">=</span><span class="n">sel_output_count</span><span class="p">,</span>
-        <span class="n">operator_type</span><span class="o">=</span><span class="s2">&quot;selection&quot;</span><span class="p">,</span>
+        <span class="n">operator_type</span><span class="o">=</span><span class="s2">"selection"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">current_key_idx</span> <span class="o">+=</span> <span class="n">sel_keys_needed</span>
 
@@ -573,8 +574,8 @@
     <span class="n">overproduction</span> <span class="o">=</span> <span class="n">cross_output_count</span> <span class="o">-</span> <span class="n">target_offspring</span>
     <span class="k">if</span> <span class="n">overproduction</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">target_offspring</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">overproduction</span> <span class="o">/</span> <span class="n">target_offspring</span> <span class="o">&gt;</span> <span class="mf">0.10</span><span class="p">:</span>
         <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="s2">&quot;Crossover overproduction ratio </span><span class="si">%.1f%%</span><span class="s2"> (producing </span><span class="si">%d</span><span class="s2"> offspring for target_offspring=</span><span class="si">%d</span><span class="s2">)&quot;</span>
-            <span class="s2">&quot; Consider adjusting pop_size or num_offspring to reduce waste.&quot;</span><span class="p">,</span>
+            <span class="s2">"Crossover overproduction ratio </span><span class="si">%.1f%%</span><span class="s2"> (producing </span><span class="si">%d</span><span class="s2"> offspring for target_offspring=</span><span class="si">%d</span><span class="s2">)"</span>
+            <span class="s2">" Consider adjusting pop_size or num_offspring to reduce waste."</span><span class="p">,</span>
             <span class="mf">100.0</span> <span class="o">*</span> <span class="n">overproduction</span> <span class="o">/</span> <span class="n">target_offspring</span><span class="p">,</span>
             <span class="n">cross_output_count</span><span class="p">,</span>
             <span class="n">target_offspring</span><span class="p">,</span>
@@ -588,7 +589,7 @@
         <span class="n">end_idx</span><span class="o">=</span><span class="n">current_key_idx</span> <span class="o">+</span> <span class="n">cross_keys_needed</span><span class="p">,</span>
         <span class="n">input_count</span><span class="o">=</span><span class="n">cross_input_count</span><span class="p">,</span>  <span class="c1"># Total parents entering</span>
         <span class="n">output_count</span><span class="o">=</span><span class="n">cross_output_count</span><span class="p">,</span>
-        <span class="n">operator_type</span><span class="o">=</span><span class="s2">&quot;crossover&quot;</span><span class="p">,</span>
+        <span class="n">operator_type</span><span class="o">=</span><span class="s2">"crossover"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">current_key_idx</span> <span class="o">+=</span> <span class="n">cross_keys_needed</span>
 
@@ -603,9 +604,19 @@
         <span class="n">end_idx</span><span class="o">=</span><span class="n">current_key_idx</span> <span class="o">+</span> <span class="n">mut_keys_needed</span><span class="p">,</span>
         <span class="n">input_count</span><span class="o">=</span><span class="n">mut_input_count</span><span class="p">,</span>
         <span class="n">output_count</span><span class="o">=</span><span class="n">mut_output_count</span><span class="p">,</span>
-        <span class="n">operator_type</span><span class="o">=</span><span class="s2">&quot;mutation&quot;</span><span class="p">,</span>
+        <span class="n">operator_type</span><span class="o">=</span><span class="s2">"mutation"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">current_key_idx</span> <span class="o">+=</span> <span class="n">mut_keys_needed</span>
+
+    <span class="n">evaluation_alloc</span> <span class="o">=</span> <span class="n">OperatorAllocation</span><span class="p">(</span>
+        <span class="n">num_keys</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">start_idx</span><span class="o">=</span><span class="n">current_key_idx</span><span class="p">,</span>
+        <span class="n">end_idx</span><span class="o">=</span><span class="n">current_key_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">input_count</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
+        <span class="n">output_count</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
+        <span class="n">operator_type</span><span class="o">=</span><span class="s2">"evaluation"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">current_key_idx</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="n">next_key_alloc</span> <span class="o">=</span> <span class="n">OperatorAllocation</span><span class="p">(</span>
         <span class="n">num_keys</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -613,7 +624,7 @@
         <span class="n">end_idx</span><span class="o">=</span><span class="n">current_key_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">input_count</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># N/A</span>
         <span class="n">output_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># N/A</span>
-        <span class="n">operator_type</span><span class="o">=</span><span class="s2">&quot;next_key&quot;</span><span class="p">,</span>
+        <span class="n">operator_type</span><span class="o">=</span><span class="s2">"next_key"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">current_key_idx</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -622,6 +633,7 @@
         <span class="n">selection</span><span class="o">=</span><span class="n">selection_alloc</span><span class="p">,</span>
         <span class="n">crossover</span><span class="o">=</span><span class="n">crossover_alloc</span><span class="p">,</span>
         <span class="n">mutation</span><span class="o">=</span><span class="n">mutation_alloc</span><span class="p">,</span>
+        <span class="n">evaluation</span><span class="o">=</span><span class="n">evaluation_alloc</span><span class="p">,</span>
         <span class="n">next_key</span><span class="o">=</span><span class="n">next_key_alloc</span><span class="p">,</span>
         <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
         <span class="n">num_pairs</span><span class="o">=</span><span class="n">num_pairs</span><span class="p">,</span>
@@ -634,33 +646,33 @@
 <div class="viewcode-block" id="get_resource_summary">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.get_resource_summary">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_resource_summary</span><span class="p">(</span><span class="n">rmap</span><span class="p">:</span> <span class="n">ResourceMap</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a cascade data flow summary.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Generate a cascade data flow summary."""</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">rmap</span><span class="o">.</span><span class="n">selection</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">rmap</span><span class="o">.</span><span class="n">mutation</span>
 
     <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;Pipeline Resource &amp; Flow Summary:&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;  Total RNG Budget: </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">total_rng_budget</span><span class="si">}</span><span class="s2"> keys&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [1. SELECTION]&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     In: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2"> (Pop Size) -&gt; Out: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2"> indices (Parents needed)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     Keys: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">num_keys</span><span class="si">}</span><span class="s2"> (Slice </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">end_idx</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [2. CROSSOVER]&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     In: </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2"> parents (</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">input_count</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s2"> pairs) -&gt; &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;Out: </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2"> offspring&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     Keys: </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">num_keys</span><span class="si">}</span><span class="s2"> (Slice </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">end_idx</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [3. MUTATION]&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     In: </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2"> -&gt; Out: </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2"> mutants&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     Keys: </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">num_keys</span><span class="si">}</span><span class="s2"> (Slice </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">end_idx</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [4. NEXT GENERATION KEY]&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     Keys: </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">next_key</span><span class="o">.</span><span class="n">num_keys</span><span class="si">}</span><span class="s2"> &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;(Slice </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">next_key</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">next_key</span><span class="o">.</span><span class="n">end_idx</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="s2">"Pipeline Resource &amp; Flow Summary:"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  Total RNG Budget: </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">total_rng_budget</span><span class="si">}</span><span class="s2"> keys"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [1. SELECTION]"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     In: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2"> (Pop Size) -&gt; Out: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2"> indices (Parents needed)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     Keys: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">num_keys</span><span class="si">}</span><span class="s2"> (Slice </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">end_idx</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [2. CROSSOVER]"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     In: </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2"> parents (</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">input_count</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s2"> pairs) -&gt; "</span>
+        <span class="sa">f</span><span class="s2">"Out: </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2"> offspring"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     Keys: </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">num_keys</span><span class="si">}</span><span class="s2"> (Slice </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">end_idx</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [3. MUTATION]"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     In: </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2"> -&gt; Out: </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2"> mutants"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     Keys: </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">num_keys</span><span class="si">}</span><span class="s2"> (Slice </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">end_idx</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [4. NEXT GENERATION KEY]"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     Keys: </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">next_key</span><span class="o">.</span><span class="n">num_keys</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"(Slice </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">next_key</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">next_key</span><span class="o">.</span><span class="n">end_idx</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
     <span class="p">]</span>
-    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 
 
@@ -669,16 +681,16 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">get_step_dimension_flow</span><span class="p">(</span>
     <span class="n">rmap</span><span class="p">:</span> <span class="n">ResourceMap</span><span class="p">,</span>
     <span class="n">elitism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">pop_symbol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span>
-    <span class="n">genome_symbol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span>
+    <span class="n">pop_symbol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"n"</span><span class="p">,</span>
+    <span class="n">genome_symbol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"d"</span><span class="p">,</span>
     <span class="n">genome_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate an exact phase-by-phase dimension flow for one step.</span>
+<span class="w">    </span><span class="sd">"""Generate an exact phase-by-phase dimension flow for one step.</span>
 
 <span class="sd">    The flow is symbolic in the population size ``n`` and genome width ``d``.</span>
 <span class="sd">    It uses the concrete allocations in ``rmap`` to parameterize the pair count</span>
 <span class="sd">    and offspring sizes used by the engine.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">n</span> <span class="o">=</span> <span class="n">pop_symbol</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">genome_symbol</span>
     <span class="n">d_exact</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">genome_width</span><span class="p">)</span> <span class="k">if</span> <span class="n">genome_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">d</span>
@@ -687,45 +699,45 @@
     <span class="n">offspring_per_pair</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">output_count</span> <span class="o">//</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
     <span class="n">mutation_per_item</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rmap</span><span class="o">.</span><span class="n">mutation</span><span class="o">.</span><span class="n">output_count</span> <span class="o">//</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">rmap</span><span class="o">.</span><span class="n">mutation</span><span class="o">.</span><span class="n">input_count</span><span class="p">))</span>
     <span class="n">target_keep</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rmap</span><span class="o">.</span><span class="n">pop_size</span> <span class="o">-</span> <span class="n">e</span><span class="p">)</span>
-    <span class="n">pair_formula</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;p = ceil((</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">) / </span><span class="si">{</span><span class="n">offspring_per_pair</span><span class="si">}</span><span class="s2">) = </span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">pair_formula</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"p = ceil((</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">) / </span><span class="si">{</span><span class="n">offspring_per_pair</span><span class="si">}</span><span class="s2">) = </span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">"</span>
 
     <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;Step Dimension Flow:&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  Let n = pop size, d = genome width, e = elitism.&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">pair_formula</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [0. ENTROPY ALLOCATION]&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;     master key -&gt; 4 sub-buffers&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;     selection keys: (1, 2)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;     crossover keys: (1, 2)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;     mutation keys:   (1, 2)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;     next key:        (2,)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [1. SELECTION]&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     fitness:        (</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">,)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     parent_idx:      (2p,) = (</span><span class="si">{</span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="si">}</span><span class="s2">,)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     elite_idx:       (e,) = (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">,)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     elites_genes:    (e, d) = (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [2. REPRODUCTION]&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     p1_idx/p2_idx:   (p,) = (</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">,)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     p1_pop/p2_pop:   (p, d) = (</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     crossover in:    (p, d) -&gt; out: (p * </span><span class="si">{</span><span class="n">offspring_per_pair</span><span class="si">}</span><span class="s2">, d)&quot;</span><span class="p">,</span>
+        <span class="s2">"Step Dimension Flow:"</span><span class="p">,</span>
+        <span class="s2">"  Let n = pop size, d = genome width, e = elitism."</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">pair_formula</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [0. ENTROPY ALLOCATION]"</span><span class="p">,</span>
+        <span class="s2">"     master key -&gt; 4 sub-buffers"</span><span class="p">,</span>
+        <span class="s2">"     selection keys: (1, 2)"</span><span class="p">,</span>
+        <span class="s2">"     crossover keys: (1, 2)"</span><span class="p">,</span>
+        <span class="s2">"     mutation keys:   (1, 2)"</span><span class="p">,</span>
+        <span class="s2">"     next key:        (2,)"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [1. SELECTION]"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     fitness:        (</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">,)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     parent_idx:      (2p,) = (</span><span class="si">{</span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="si">}</span><span class="s2">,)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     elite_idx:       (e,) = (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">,)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     elites_genes:    (e, d) = (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [2. REPRODUCTION]"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     p1_idx/p2_idx:   (p,) = (</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">,)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     p1_pop/p2_pop:   (p, d) = (</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     crossover in:    (p, d) -&gt; out: (p * </span><span class="si">{</span><span class="n">offspring_per_pair</span><span class="si">}</span><span class="s2">, d)"</span><span class="p">,</span>
         <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;     mutation in:     (p * </span><span class="si">{</span><span class="n">offspring_per_pair</span><span class="si">}</span><span class="s2">, d) -&gt; out: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;(p * </span><span class="si">{</span><span class="n">offspring_per_pair</span><span class="si">}</span><span class="s2"> * </span><span class="si">{</span><span class="n">mutation_per_item</span><span class="si">}</span><span class="s2">, d)&quot;</span>
+            <span class="sa">f</span><span class="s2">"     mutation in:     (p * </span><span class="si">{</span><span class="n">offspring_per_pair</span><span class="si">}</span><span class="s2">, d) -&gt; out: "</span>
+            <span class="sa">f</span><span class="s2">"(p * </span><span class="si">{</span><span class="n">offspring_per_pair</span><span class="si">}</span><span class="s2"> * </span><span class="si">{</span><span class="n">mutation_per_item</span><span class="si">}</span><span class="s2">, d)"</span>
         <span class="p">),</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [3a. MERGE]&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     keep elites:     (e, d) = (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     keep mutants:    (n - e, d) = (</span><span class="si">{</span><span class="n">target_keep</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     next_genes:      (n, d) = (</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;  [3b. EVALUATE]&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     genes:           (n, d) = (</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;     fitness:         (n,) = (</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">,)&quot;</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [3a. MERGE]"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     keep elites:     (e, d) = (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     keep mutants:    (n - e, d) = (</span><span class="si">{</span><span class="n">target_keep</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     next_genes:      (n, d) = (</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  [3b. EVALUATE]"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     genes:           (n, d) = (</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d_exact</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"     fitness:         (n,) = (</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">,)"</span><span class="p">,</span>
     <span class="p">]</span>
-    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 </pre></div>
         </article>

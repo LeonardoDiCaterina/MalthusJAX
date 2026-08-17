@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.genome.categorical_genome</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Categorical genome representation for discrete search spaces.</span>
+<span></span><span class="sd">"""Categorical genome representation for discrete search spaces.</span>
 
 <span class="sd">Provides integer‑indexed sequence genomes along with permutation helpers</span>
 <span class="sd">and distance metrics. A matching population class offers batched</span>
 <span class="sd">operations and initialization.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -333,13 +333,13 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenomeConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CategoricalGenomeConfig</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for discrete categorical genomes.</span>
+<span class="w">    </span><span class="sd">"""Configuration for discrete categorical genomes.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        num_categories: Cardinality of the discrete alphabet.</span>
 <span class="sd">        shape: Logical shape of the categorical sequence.</span>
 <span class="sd">        dtype: JAX dtype for category indices; typically jnp.int32.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_categories</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">())</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -351,7 +351,7 @@
 <div class="viewcode-block" id="CategoricalGenomeConfig.init_population">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenomeConfig.init_population">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">CategoricalGenome</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a random population from this config (protocol method for JR-2).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Create a random population from this config (protocol method for JR-2)."""</span>
         <span class="k">return</span> <span class="n">CategoricalPopulation</span><span class="o">.</span><span class="n">init_random</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span></div>
 </div>
 
@@ -361,11 +361,11 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CategoricalGenome</span><span class="p">(</span><span class="n">BaseGenome</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Categorical sequence genome for discrete optimization.</span>
+<span class="w">    </span><span class="sd">"""Categorical sequence genome for discrete optimization.</span>
 
 <span class="sd">    Values are integer indices in [0, num_categories). Suitable for</span>
 <span class="sd">    permutation-based and combinatorial problems.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>  <span class="c1"># Shape: (length,) for individuals, (N, length) for populations</span>
 
@@ -373,7 +373,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome.random_init">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">random_init</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">CategoricalGenomeConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CategoricalGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create random categorical genome using discrete uniform sampling.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Create random categorical genome using discrete uniform sampling."""</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">num_categories</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
             <span class="n">config</span><span class="o">.</span><span class="n">dtype</span>
         <span class="p">)</span>
@@ -383,7 +383,7 @@
 <div class="viewcode-block" id="CategoricalGenome.autocorrect">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome.autocorrect">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">autocorrect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">CategoricalGenomeConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CategoricalGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure all categories are within [0, num_categories-1].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Ensure all categories are within [0, num_categories-1]."""</span>
         <span class="n">corrected_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">num_categories</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">CategoricalGenome</span><span class="p">,</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">corrected_values</span><span class="p">))</span></div>
 
@@ -391,12 +391,12 @@
 <div class="viewcode-block" id="CategoricalGenome.distance">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome.distance">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DistanceMetric</span><span class="o">.</span><span class="n">HAMMING</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute distance between categorical genomes.</span>
+<span class="w">        </span><span class="sd">"""Compute distance between categorical genomes.</span>
 
 <span class="sd">        The *other* genome is treated as a :class:`CategoricalGenome`. Supported</span>
 <span class="sd">        metrics are Hamming, Euclidean and Manhattan; the result is a scalar</span>
 <span class="sd">        suitable for downstream vectorized computations.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">other_cat</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">CategoricalGenome</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="n">DistanceMetric</span><span class="o">.</span><span class="n">HAMMING</span><span class="p">:</span>
@@ -406,39 +406,39 @@
         <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="n">DistanceMetric</span><span class="o">.</span><span class="n">MANHATTAN</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">other_cat</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported metric: </span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported metric: </span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return number of categorical positions.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return number of categorical positions."""</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return shape of the genome array.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return shape of the genome array."""</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CategoricalGenome.from_tensor">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome.from_tensor">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CategoricalGenome&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a batched CategoricalGenome from a raw array.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"CategoricalGenome"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Construct a batched CategoricalGenome from a raw array.</span>
 
 <span class="sd">        Implementation is intentionally trivial and JIT-safe.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">arr</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CategoricalGenome.is_permutation">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome.is_permutation">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_permutation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if all categorical values are unique (valid permutation).</span>
+<span class="w">        </span><span class="sd">"""Check if all categorical values are unique (valid permutation).</span>
 
 <span class="sd">        Uses jnp.unique(size=self.size, fill_value=-1) to pad uniques to</span>
 <span class="sd">        expected length, then verifies absence of sentinel (-1). Returns</span>
 <span class="sd">        JAX scalar boolean (JIT-safe; avoids Python control flow).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">unique_vals</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">unique_vals</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 
@@ -446,7 +446,7 @@
 <div class="viewcode-block" id="CategoricalGenome.to_permutation">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome.to_permutation">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_permutation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">CategoricalGenomeConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CategoricalGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate permutation via argsort; deterministic and JIT-safe.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Generate permutation via argsort; deterministic and JIT-safe."""</span>
         <span class="c1"># This is a standard JAX trick to generate a permutation from any vector</span>
         <span class="n">permutation</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">CategoricalGenome</span><span class="p">,</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">permutation</span><span class="p">))</span></div>
@@ -455,7 +455,7 @@
 <div class="viewcode-block" id="CategoricalGenome.swap_positions">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome.swap_positions">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">swap_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos1</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pos2</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CategoricalGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exchange values at two indices via functional .at updates.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Exchange values at two indices via functional .at updates."""</span>
         <span class="n">val1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">pos1</span><span class="p">]</span>
         <span class="n">val2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">pos2</span><span class="p">]</span>
         <span class="n">new_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">pos1</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">val2</span><span class="p">)</span>
@@ -466,19 +466,19 @@
 <div class="viewcode-block" id="CategoricalGenome.count_category">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalGenome.count_category">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">count_category</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return count of a specific category value. Scalar JAX array.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return count of a specific category value. Scalar JAX array."""</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">category</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span>
-            <span class="n">cats_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sample</span><span class="p">)</span>
+            <span class="n">cats_str</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sample</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">8</span><span class="p">:</span>
-                <span class="n">cats_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;, ..., </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;CategoricalGenome([</span><span class="si">{</span><span class="n">cats_str</span><span class="si">}</span><span class="s2">], len=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">)&gt;&quot;</span>
+                <span class="n">cats_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">", ..., </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"&lt;CategoricalGenome([</span><span class="si">{</span><span class="n">cats_str</span><span class="si">}</span><span class="s2">], len=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">)&gt;"</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;CategoricalGenome(traced, len=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">)&gt;&quot;</span></div>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"&lt;CategoricalGenome(traced, len=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">)&gt;"</span></div>
 
 
 
@@ -486,7 +486,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.categorical_genome.html#malthusjax.CategoricalPopulation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CategoricalPopulation</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">CategoricalGenome</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Population container for CategoricalGenome objects.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Population container for CategoricalGenome objects."""</span>
 
     <span class="n">genes</span><span class="p">:</span> <span class="n">CategoricalGenome</span>
     <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
@@ -498,7 +498,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">init_random</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">CategoricalGenomeConfig</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CategoricalPopulation</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create random population of categorical genomes.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Create random population of categorical genomes."""</span>
         <span class="n">batched_genes</span> <span class="o">=</span> <span class="n">CategoricalGenome</span><span class="o">.</span><span class="n">create_population</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
         <span class="n">initial_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">size</span><span class="p">,),</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">batched_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">initial_fitness</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span></div>

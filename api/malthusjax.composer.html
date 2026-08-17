@@ -353,10 +353,10 @@ utilities for statistical summary and visualization.</p></li>
 <p>Quick exploration:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=5&quot;</span><span class="p">,</span>
-    <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;tournament:num_selections=25,tournament_size=3&quot;</span><span class="p">,</span>
-    <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
-    <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.1,mutation_strength=0.2&quot;</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=5"</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="s2">"tournament:num_selections=25,tournament_size=3"</span><span class="p">,</span>
+    <span class="n">crossover</span><span class="o">=</span><span class="s2">"blend:alpha=0.5"</span><span class="p">,</span>
+    <span class="n">mutation</span><span class="o">=</span><span class="s2">"gaussian:mutation_rate=0.1,mutation_strength=0.2"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">),</span>
@@ -366,8 +366,8 @@ utilities for statistical summary and visualization.</p></li>
 </div>
 <p>Reproducible TOML-based experiment:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span>
-    <span class="s2">&quot;experiment.toml&quot;</span><span class="p">,</span>
-    <span class="n">trace_dir</span><span class="o">=</span><span class="s2">&quot;results/traces&quot;</span>
+    <span class="s2">"experiment.toml"</span><span class="p">,</span>
+    <span class="n">trace_dir</span><span class="o">=</span><span class="s2">"results/traces"</span>
 <span class="p">)</span>
 <span class="n">result</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span><span class="n">seed_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
@@ -375,16 +375,16 @@ utilities for statistical summary and visualization.</p></li>
 <p>Benchmarking multiple pipelines:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
     <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;Blend+Gaussian&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
-            <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.1&quot;</span><span class="p">,</span>
+        <span class="s2">"Blend+Gaussian"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="s2">"blend:alpha=0.5"</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="s2">"gaussian:mutation_rate=0.1"</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="s2">&quot;SBX+Polynomial&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;simulated_binary:eta=2&quot;</span><span class="p">,</span>
-            <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;polynomial:mutation_rate=0.1&quot;</span><span class="p">,</span>
+        <span class="s2">"SBX+Polynomial"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="s2">"simulated_binary:eta=2"</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="s2">"polynomial:mutation_rate=0.1"</span><span class="p">,</span>
         <span class="p">),</span>
     <span class="p">},</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=10"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
 <span class="p">)</span>
@@ -576,10 +576,10 @@ Default: <code class="docutils literal notranslate"><span class="pre">None</span
 <p>MalthusJAX backend (default):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=25&quot;</span><span class="p">,</span>
-    <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;tournament:num_selections=25,tournament_size=3&quot;</span><span class="p">,</span>
-    <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
-    <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=25"</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="s2">"tournament:num_selections=25,tournament_size=3"</span><span class="p">,</span>
+    <span class="n">crossover</span><span class="o">=</span><span class="s2">"blend:alpha=0.5"</span><span class="p">,</span>
+    <span class="n">mutation</span><span class="o">=</span><span class="s2">"gaussian:mutation_rate=0.5,mutation_strength=0.1"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">),</span>
@@ -589,9 +589,9 @@ Default: <code class="docutils literal notranslate"><span class="pre">None</span
 </div>
 <p>Evosax backend:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
-    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>
-    <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">&quot;OpenES&quot;</span><span class="p">,</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">"evosax"</span><span class="p">,</span>
+    <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">"OpenES"</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=10"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
@@ -669,17 +669,17 @@ the shared configuration. Keys determine plot legend labels and table
 headers in results.</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipelines</span><span class="o">=</span><span class="p">{</span>
-    <span class="s2">&quot;Blend+Gaussian&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
-        <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.1&quot;</span><span class="p">,</span>
+    <span class="s2">"Blend+Gaussian"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">crossover</span><span class="o">=</span><span class="s2">"blend:alpha=0.5"</span><span class="p">,</span>
+        <span class="n">mutation</span><span class="o">=</span><span class="s2">"gaussian:mutation_rate=0.1"</span><span class="p">,</span>
     <span class="p">),</span>
-    <span class="s2">&quot;SBX+Polynomial&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;simulated_binary:eta=2.0&quot;</span><span class="p">,</span>
-        <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;polynomial:mutation_rate=0.1,eta=20&quot;</span><span class="p">,</span>
+    <span class="s2">"SBX+Polynomial"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">crossover</span><span class="o">=</span><span class="s2">"simulated_binary:eta=2.0"</span><span class="p">,</span>
+        <span class="n">mutation</span><span class="o">=</span><span class="s2">"polynomial:mutation_rate=0.1,eta=20"</span><span class="p">,</span>
     <span class="p">),</span>
-    <span class="s2">&quot;Evosax CMA-ES&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>
-        <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">&quot;CMA_ES&quot;</span><span class="p">,</span>
+    <span class="s2">"Evosax CMA-ES"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">backend</span><span class="o">=</span><span class="s2">"evosax"</span><span class="p">,</span>
+        <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">"CMA_ES"</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">}</span>
 </pre></div>
@@ -706,7 +706,7 @@ pipeline-specific overrides). Use for common settings like
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">compare</span><span class="p">(</span>
     <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>  <span class="c1"># shared</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=10"</span><span class="p">,</span>  <span class="c1"># shared</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>               <span class="c1"># shared</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>           <span class="c1"># shared</span>
 <span class="p">)</span>
@@ -756,20 +756,20 @@ transparent to the user (controlled by ComparisonResult.negate_map).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">comparison</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
     <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;Blend+Gaussian&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;blend:alpha=0.5&quot;</span><span class="p">,</span>
-            <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;</span><span class="p">,</span>
+        <span class="s2">"Blend+Gaussian"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="s2">"blend:alpha=0.5"</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="s2">"gaussian:mutation_rate=0.5,mutation_strength=0.1"</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="s2">&quot;SBX+Polynomial&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">crossover</span><span class="o">=</span><span class="s2">&quot;simulated_binary:eta=20&quot;</span><span class="p">,</span>
-            <span class="n">mutation</span><span class="o">=</span><span class="s2">&quot;polynomial:mutation_rate=0.1,eta=20&quot;</span><span class="p">,</span>
+        <span class="s2">"SBX+Polynomial"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">crossover</span><span class="o">=</span><span class="s2">"simulated_binary:eta=20"</span><span class="p">,</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="s2">"polynomial:mutation_rate=0.1,eta=20"</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="s2">&quot;Evosax OpenES&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>
-            <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">&quot;OpenES&quot;</span><span class="p">,</span>
+        <span class="s2">"Evosax OpenES"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">backend</span><span class="o">=</span><span class="s2">"evosax"</span><span class="p">,</span>
+            <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">"OpenES"</span><span class="p">,</span>
         <span class="p">),</span>
     <span class="p">},</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>           <span class="c1"># shared across all</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=10"</span><span class="p">,</span>           <span class="c1"># shared across all</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>                     <span class="c1"># shared</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>                  <span class="c1"># shared</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">,</span> <span class="mi">45</span><span class="p">),</span>          <span class="c1"># shared</span>
@@ -783,7 +783,7 @@ transparent to the user (controlled by ComparisonResult.negate_map).</p>
     <span class="n">pipelines</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>
     <span class="n">shared_initial_population</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="c1"># use same init pop</span>
     <span class="n">pop_seed</span><span class="o">=</span><span class="mi">999</span><span class="p">,</span>                     <span class="c1"># populate seed</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;rastrigin:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"rastrigin:dim=10"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="c1"># All pipelines start from identical population</span>
@@ -867,11 +867,11 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 <p><strong>TOML File Structure</strong>:</p>
 <p>The TOML file must follow this schema:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">experiment</span><span class="p">]</span>
-<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_experiment&quot;</span>           <span class="c1"># optional</span>
+<span class="n">name</span> <span class="o">=</span> <span class="s2">"my_experiment"</span>           <span class="c1"># optional</span>
 
 <span class="p">[</span><span class="n">experiment</span><span class="o">.</span><span class="n">shared</span><span class="p">]</span>
-<span class="n">fitness</span> <span class="o">=</span> <span class="s2">&quot;sphere:dim=10&quot;</span>
-<span class="n">selection</span> <span class="o">=</span> <span class="s2">&quot;tournament:num_selections=25,tournament_size=3&quot;</span>
+<span class="n">fitness</span> <span class="o">=</span> <span class="s2">"sphere:dim=10"</span>
+<span class="n">selection</span> <span class="o">=</span> <span class="s2">"tournament:num_selections=25,tournament_size=3"</span>
 <span class="n">pop_size</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="n">generations</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="n">seeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">]</span>             <span class="c1"># list of seeds</span>
@@ -879,16 +879,16 @@ run. Default: <code class="docutils literal notranslate"><span class="pre">None<
 <span class="n">maximize</span> <span class="o">=</span> <span class="n">false</span>                 <span class="c1"># optional</span>
 
 <span class="p">[</span><span class="n">pipelines</span><span class="o">.</span><span class="n">blend_gaussian</span><span class="p">]</span>
-<span class="n">crossover</span> <span class="o">=</span> <span class="s2">&quot;blend:alpha=0.5&quot;</span>
-<span class="n">mutation</span> <span class="o">=</span> <span class="s2">&quot;gaussian:mutation_rate=0.5,mutation_strength=0.1&quot;</span>
+<span class="n">crossover</span> <span class="o">=</span> <span class="s2">"blend:alpha=0.5"</span>
+<span class="n">mutation</span> <span class="o">=</span> <span class="s2">"gaussian:mutation_rate=0.5,mutation_strength=0.1"</span>
 
 <span class="p">[</span><span class="n">pipelines</span><span class="o">.</span><span class="n">sbx_polynomial</span><span class="p">]</span>
-<span class="n">crossover</span> <span class="o">=</span> <span class="s2">&quot;simulated_binary:eta=20&quot;</span>
-<span class="n">mutation</span> <span class="o">=</span> <span class="s2">&quot;polynomial:mutation_rate=0.1,eta=20&quot;</span>
+<span class="n">crossover</span> <span class="o">=</span> <span class="s2">"simulated_binary:eta=20"</span>
+<span class="n">mutation</span> <span class="o">=</span> <span class="s2">"polynomial:mutation_rate=0.1,eta=20"</span>
 
 <span class="p">[</span><span class="n">pipelines</span><span class="o">.</span><span class="n">evosax_cmaes</span><span class="p">]</span>
-<span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;evosax&quot;</span>
-<span class="n">evosax_strategy</span> <span class="o">=</span> <span class="s2">&quot;CMA_ES&quot;</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="s2">"evosax"</span>
+<span class="n">evosax_strategy</span> <span class="o">=</span> <span class="s2">"CMA_ES"</span>
 </pre></div>
 </div>
 <p><strong>Operator Spec Format</strong>:</p>
@@ -907,31 +907,31 @@ override them. Pipeline-specific values take precedence.</p>
 <p>Simple TOML-based experiment:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># experiment.toml content:</span>
 <span class="c1"># [experiment.shared]</span>
-<span class="c1"># fitness = &quot;sphere:dim=10&quot;</span>
+<span class="c1"># fitness = "sphere:dim=10"</span>
 <span class="c1"># pop_size = 100</span>
 <span class="c1"># generations = 200</span>
 <span class="c1"># seeds = [42, 43, 44]</span>
 <span class="c1"># [pipelines.ga_blend]</span>
-<span class="c1"># crossover = &quot;blend:alpha=0.5&quot;</span>
+<span class="c1"># crossover = "blend:alpha=0.5"</span>
 <span class="c1"># [pipelines.ga_sbx]</span>
-<span class="c1"># crossover = &quot;simulated_binary:eta=20&quot;</span>
+<span class="c1"># crossover = "simulated_binary:eta=20"</span>
 
-<span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="s2">&quot;experiment.toml&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="s2">"experiment.toml"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">summary_table</span><span class="p">())</span>
 <span class="n">result</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Execute selected pipelines:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span>
-    <span class="s2">&quot;experiment.toml&quot;</span><span class="p">,</span>
-    <span class="n">pipelines</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ga_blend&quot;</span><span class="p">,</span> <span class="s2">&quot;ga_sbx&quot;</span><span class="p">],</span>  <span class="c1"># skip others</span>
-    <span class="n">trace_dir</span><span class="o">=</span><span class="s2">&quot;results/traces&quot;</span><span class="p">,</span>
+    <span class="s2">"experiment.toml"</span><span class="p">,</span>
+    <span class="n">pipelines</span><span class="o">=</span><span class="p">[</span><span class="s2">"ga_blend"</span><span class="p">,</span> <span class="s2">"ga_sbx"</span><span class="p">],</span>  <span class="c1"># skip others</span>
+    <span class="n">trace_dir</span><span class="o">=</span><span class="s2">"results/traces"</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 <p>Reproducible benchmark (same TOML used in paper):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># experiment.toml is versioned in git</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="s2">&quot;experiment.toml&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="s2">"experiment.toml"</span><span class="p">)</span>
 <span class="n">result</span><span class="o">.</span><span class="n">summary_table</span><span class="p">()</span>  <span class="c1"># Reproducible: same config -&gt; same results</span>
 </pre></div>
 </div>
@@ -972,7 +972,7 @@ before invoking <a class="reference internal" href="#malthusjax.composer.Compose
 <p>Standard initialization:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=10"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
 <span class="p">)</span>
@@ -1011,9 +1011,9 @@ before invoking <a class="reference internal" href="#malthusjax.composer.Compose
 </dl>
 <p>Examples:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">registry</span> <span class="o">=</span> <span class="n">EngineRegistry</span><span class="p">()</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ga&quot;</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">ev</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="n">sel</span><span class="p">,</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ga"</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">ev</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="n">sel</span><span class="p">,</span>
                       <span class="n">crossover</span><span class="o">=</span><span class="n">cx</span><span class="p">,</span> <span class="n">mutation</span><span class="o">=</span><span class="n">mut</span><span class="p">)</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ga:pop_size=200,elitism=4&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ga:pop_size=200,elitism=4"</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">

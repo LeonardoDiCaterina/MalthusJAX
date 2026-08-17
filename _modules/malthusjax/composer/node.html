@@ -310,13 +310,13 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.node</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Elementary component of a Composer pipeline.</span>
+<span></span><span class="sd">"""Elementary component of a Composer pipeline.</span>
 
 <span class="sd">Nodes are frozen dataclasses containing an identifier, a type string that</span>
 <span class="sd">resolves via a :class:`~.registry.Registry`, and a dictionary of parameters</span>
 <span class="sd">passed to the factory.  The ``build()`` method executes the factory with a</span>
 <span class="sd">supplied PRNG key and any upstream outputs.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
@@ -333,12 +333,12 @@
 <div class="viewcode-block" id="Node.build">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.node.html#malthusjax.composer.node.Node.build">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">registry</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Invoke the registered factory to produce node output.</span>
+<span class="w">        </span><span class="sd">"""Invoke the registered factory to produce node output.</span>
 
 <span class="sd">        The factory is responsible for interpreting *params* and combining any</span>
 <span class="sd">        values from *inputs*; this class deliberately avoids embedding any</span>
 <span class="sd">        logic beyond lookup and call dispatch.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">factory</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">factory</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span></div>
 </div>

@@ -310,14 +310,14 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.operators.mutation.real</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Real-valued Mutation Operators.</span>
 <span class="sd">Optimized for H100:</span>
 
 <span class="sd">1. Uses Masked Arithmetic (genome + noise * mask) instead of Branching (jnp.where).</span>
 <span class="sd">2. Explicit casting to ensure correct dtypes (e.g., BF16)</span>
 <span class="sd">   during random number generation and arithmetic operations.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
@@ -338,7 +338,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.GaussianMutation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GaussianMutation</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gaussian (Normal) Mutation — Independent Per-Gene Perturbation.</span>
+<span class="w">    </span><span class="sd">"""Gaussian (Normal) Mutation — Independent Per-Gene Perturbation.</span>
 
 <span class="sd">    Gaussian mutation applies independent additive Gaussian noise to each gene,</span>
 <span class="sd">    with per-gene probability control. This is the most common mutation operator</span>
@@ -356,15 +356,15 @@
 
 <span class="sd">    **String Specification Format**::</span>
 
-<span class="sd">        &quot;gaussian:mutation_rate=FLOAT[,mutation_strength=FLOAT]&quot;</span>
+<span class="sd">        "gaussian:mutation_rate=FLOAT[,mutation_strength=FLOAT]"</span>
 
 <span class="sd">    Examples::</span>
 
-<span class="sd">        &quot;gaussian&quot;                                              # Defaults (rate=0.1, strength=0.1)</span>
-<span class="sd">        &quot;gaussian:mutation_rate=0.05&quot;                         # Lower rate, less mutations</span>
-<span class="sd">        &quot;gaussian:mutation_rate=0.2,mutation_strength=0.2&quot;    # Both custom</span>
-<span class="sd">        &quot;gaussian:mutation_strength=0.05&quot;                     # Milder mutations</span>
-<span class="sd">        &quot;gaussian:mutation_rate=1.0,mutation_strength=0.01&quot;   # All genes affected, small noise</span>
+<span class="sd">        "gaussian"                                              # Defaults (rate=0.1, strength=0.1)</span>
+<span class="sd">        "gaussian:mutation_rate=0.05"                         # Lower rate, less mutations</span>
+<span class="sd">        "gaussian:mutation_rate=0.2,mutation_strength=0.2"    # Both custom</span>
+<span class="sd">        "gaussian:mutation_strength=0.05"                     # Milder mutations</span>
+<span class="sd">        "gaussian:mutation_rate=1.0,mutation_strength=0.01"   # All genes affected, small noise</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -425,7 +425,7 @@
 <span class="sd">    3. **Balanced default**: mutation_rate=0.1, mutation_strength=0.1 → ~10% of genes affected, each by ~0.1 std units</span>
 
 <span class="sd">    **When to Use**: Gaussian mutation is the recommended operator for continuous</span>
-<span class="sd">    optimization. It&#39;s simple, effective, and works well across nearly all problem types.</span>
+<span class="sd">    optimization. It's simple, effective, and works well across nearly all problem types.</span>
 <span class="sd">    Use it unless you have a specific reason to prefer other mutations (e.g., Ball mutation</span>
 <span class="sd">    for constrained, high-dimensional problems).</span>
 
@@ -437,7 +437,7 @@
 <span class="sd">    - Tune mutation_strength based on your problem scale (not genome dimension)</span>
 <span class="sd">    - Use scheduling to decrease strength over generations for fine-tuning</span>
 <span class="sd">    - Monitor diversity and adjust rate if offspring differ too little from parents</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
     <span class="n">mutation_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
@@ -447,17 +447,17 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Requires 2 keys: one for the Bernoulli mask and one for Gaussian noise.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Requires 2 keys: one for the Bernoulli mask and one for Gaussian noise."""</span>
         <span class="k">return</span> <span class="mi">2</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 2 — Noise generation for Gaussian mutation.</span>
 <span class="sd">        This produces a noise array shaped like the genome that already includes</span>
 <span class="sd">        strength scaling and masking, allowing the arithmetic kernel to simply add it.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">k_mask</span><span class="p">,</span> <span class="n">k_noise</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -479,10 +479,10 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 1 — Arithmetic Kernel.</span>
 <span class="sd">        Fused addition: genome + (noise * strength * mask). Clip if enabled.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">mutated_values</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
             <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -492,7 +492,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — values + noise with optional clip.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — values + noise with optional clip."""</span>
         <span class="n">mutated</span> <span class="o">=</span> <span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
             <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -505,13 +505,13 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.GaussianMutation_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GaussianMutation_injection</span><span class="p">(</span><span class="n">BaseMutation_injection</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Injection-mode Gaussian Mutation (single-key variant).</span>
 <span class="sd">    Splits single key to (n*K) subkeys, reshaped (n, K, -1) for vmap.</span>
 <span class="sd">    Vmap generates all (n*num_offspring) noise arrays in parallel.</span>
 <span class="sd">    Shape contract: (d,) noise per (pair, offspring) → (n, d) flattened output.</span>
 <span class="sd">    Trade-off: Full noise materialization vs no re-splitting (reproducibility).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
     <span class="n">mutation_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
@@ -521,17 +521,17 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Requires 2 keys:</span>
+<span class="w">        </span><span class="sd">"""Requires 2 keys:</span>
 <span class="sd">        - one for the Bernoulli mask</span>
 <span class="sd">        - one for Gaussian noise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="mi">2</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Set `input_length` and `num_offspring` before calling _generate_noise.&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Set `input_length` and `num_offspring` before calling _generate_noise."</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">)</span>
         <span class="n">total</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
@@ -563,9 +563,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 1 — Arithmetic Kernel (same as fused version).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">mutated_values</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
@@ -577,7 +577,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — values + noise with optional clip.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — values + noise with optional clip."""</span>
         <span class="n">mutated</span> <span class="o">=</span> <span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
             <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -590,15 +590,15 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.BallMutation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BallMutation</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Ball Mutation (3-Tier Paradigm).</span>
-<span class="sd">    Tier 2: Muller&#39;s Method—Gaussian direction normalized, scaled by u^(1/d).</span>
+<span class="sd">    Tier 2: Muller's Method—Gaussian direction normalized, scaled by u^(1/d).</span>
 <span class="sd">    Tier 1: Masked addition (genome + ball_delta * mask).</span>
 <span class="sd">    Shape contract: (d,) genome + (d,) ball_delta → (d,) mutated genome.</span>
 <span class="sd">    Key budget: 3 pre-allocated subkeys (mask, direction, magnitude scaling).</span>
-<span class="sd">    Muller&#39;s Method ensures uniform spatial distribution within ball volume</span>
+<span class="sd">    Muller's Method ensures uniform spatial distribution within ball volume</span>
 <span class="sd">    via power-law radial scaling u^(1/d) to counter dimension bias.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
@@ -608,17 +608,17 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Requires 3 keys: 1 for Bernoulli mask, 1 for Gaussian vector, 1 for Magnitude scaling.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Requires 3 keys: 1 for Bernoulli mask, 1 for Gaussian vector, 1 for Magnitude scaling."""</span>
         <span class="k">return</span> <span class="mi">3</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Tier 2 — Noise generation using Muller&#39;s method.</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Tier 2 — Noise generation using Muller's method.</span>
 <span class="sd">        The returned array encodes a uniformly distributed perturbation within</span>
 <span class="sd">        a hypersphere, already masked by the mutation rate.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">k_mask</span><span class="p">,</span> <span class="n">k_vector</span><span class="p">,</span> <span class="n">k_mag</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">dtype</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">shape</span>
@@ -646,7 +646,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 — Arithmetic Kernel.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 — Arithmetic Kernel."""</span>
         <span class="n">mutated_values</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
@@ -658,7 +658,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — values + noise with optional clip.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — values + noise with optional clip."""</span>
         <span class="n">mutated</span> <span class="o">=</span> <span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
             <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -671,13 +671,13 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.BallMutation_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BallMutation_injection</span><span class="p">(</span><span class="n">BaseMutation_injection</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Injection-mode Ball Mutation (single-key variant).</span>
 <span class="sd">    Splits single key to (n*3) subkeys, reshaped (n, 3, -1) for vmap.</span>
 <span class="sd">    Vmap generates all (n*num_offspring) ball deltas in parallel.</span>
 <span class="sd">    Shape contract: (d,) ball_delta per (pair, offspring) → (n, d) flattened.</span>
 <span class="sd">    Trade-off: Full vector/magnitude materialization vs reproducibility.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
@@ -693,7 +693,7 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Set `input_length` and `num_offspring` before calling _generate_noise.&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Set `input_length` and `num_offspring` before calling _generate_noise."</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">)</span>
         <span class="n">total</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
@@ -742,7 +742,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — values + noise with optional clip.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — values + noise with optional clip."""</span>
         <span class="n">mutated</span> <span class="o">=</span> <span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
             <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -755,7 +755,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.PolynomialMutation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">PolynomialMutation</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Polynomial Mutation (3-Tier Paradigm).</span>
 <span class="sd">    Tier 2: Masks delta via jnp.where(u≤0.5, (2u)^(1/(η+1))-1, 1-(2(1-u))^(1/(η+1))).</span>
 <span class="sd">    Tier 1: Scaled addition (genome + delta * bound_range * mask).</span>
@@ -763,7 +763,7 @@
 <span class="sd">    Key budget: 2 pre-allocated subkeys (mask, uniform u for polynomial spread).</span>
 <span class="sd">    Delta branching ensures symmetric distribution around parent for both u&lt;0.5</span>
 <span class="sd">    and u≥0.5 regions, producing offspring concentrated near parent (small η).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
     <span class="n">eta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
@@ -771,18 +771,18 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Requires 2 keys: one for the Bernoulli mask and one for the &#39;u&#39; value.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Requires 2 keys: one for the Bernoulli mask and one for the 'u' value."""</span>
         <span class="k">return</span> <span class="mi">2</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 2 — Noise generation for polynomial mutation.</span>
 <span class="sd">        Produces an array of deltas scaled by the genome’s bound range and</span>
 <span class="sd">        masked by the mutation rate, ready for addition in the arithmetic</span>
 <span class="sd">        kernel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">k_mask</span><span class="p">,</span> <span class="n">k_val</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">dtype</span>
         <span class="n">eta</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eta</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
@@ -806,7 +806,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 — Arithmetic Kernel.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 — Arithmetic Kernel."""</span>
         <span class="n">mutated_values</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
@@ -818,7 +818,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — values + noise with optional clip.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — values + noise with optional clip."""</span>
         <span class="n">mutated</span> <span class="o">=</span> <span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
             <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -831,13 +831,13 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.PolynomialMutation_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">PolynomialMutation_injection</span><span class="p">(</span><span class="n">BaseMutation_injection</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Injection-mode Polynomial Mutation (single-key variant).</span>
 <span class="sd">    Splits single key to (n*2) subkeys, reshaped (n, 2, -1) for vmap.</span>
 <span class="sd">    Vmap generates all (n*num_offspring) delta_q arrays in parallel.</span>
 <span class="sd">    Shape contract: (d,) delta per (pair, offspring) → (n, d) flattened.</span>
 <span class="sd">    Trade-off: Full delta materialization vs reproducibility (no re-splitting).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
     <span class="n">eta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
@@ -851,7 +851,7 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Set `input_length` and `num_offspring` before calling _generate_noise.&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Set `input_length` and `num_offspring` before calling _generate_noise."</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">)</span>
         <span class="n">total</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
@@ -895,7 +895,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — values + noise with optional clip.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — values + noise with optional clip."""</span>
         <span class="n">mutated</span> <span class="o">=</span> <span class="n">values</span> <span class="o">+</span> <span class="n">noise_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">:</span>
             <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -905,13 +905,13 @@
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;GaussianMutation&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BallMutation&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;PolynomialMutation&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;GaussianMutation_injection&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BallMutation_injection&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;PolynomialMutation_injection&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BatchedGaussianMutation&quot;</span><span class="p">,</span>
+    <span class="s2">"GaussianMutation"</span><span class="p">,</span>
+    <span class="s2">"BallMutation"</span><span class="p">,</span>
+    <span class="s2">"PolynomialMutation"</span><span class="p">,</span>
+    <span class="s2">"GaussianMutation_injection"</span><span class="p">,</span>
+    <span class="s2">"BallMutation_injection"</span><span class="p">,</span>
+    <span class="s2">"PolynomialMutation_injection"</span><span class="p">,</span>
+    <span class="s2">"BatchedGaussianMutation"</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -919,13 +919,13 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.real.html#malthusjax.operators.BatchedGaussianMutation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BatchedGaussianMutation</span><span class="p">(</span><span class="n">GaussianMutation</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Batched Gaussian Mutation (Monolithic Execution).</span>
+<span class="w">    </span><span class="sd">"""Batched Gaussian Mutation (Monolithic Execution).</span>
 
 <span class="sd">    This operator completely bypasses the generic JAX vmap structure.</span>
 <span class="sd">    It expects to be called on a batched RealPopulation, where `genes.values`</span>
 <span class="sd">    is a `(pop_size, d)` array. It generates a single monolithic noise tensor</span>
-<span class="sd">    and applies it all at once, matching EvoSAX&#39;s raw execution speed.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    and applies it all at once, matching EvoSAX's raw execution speed.</span>
+<span class="sd">    """</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>

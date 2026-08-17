@@ -324,7 +324,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.selection.roulette.html#malthusjax.operators.RouletteSelection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">RouletteSelection</span><span class="p">(</span><span class="n">BaseSelection</span><span class="p">[</span><span class="n">P</span><span class="p">,</span> <span class="n">C</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fitness-Proportional Roulette Selection (Adaptive Paths).</span>
+<span class="w">    </span><span class="sd">"""Fitness-Proportional Roulette Selection (Adaptive Paths).</span>
 
 <span class="sd">    In roulette selection, individuals are selected with probability proportional</span>
 <span class="sd">    to their fitness. A softmax transformation converts fitness values to a valid</span>
@@ -335,14 +335,14 @@
 
 <span class="sd">    **String Specification Format**::</span>
 
-<span class="sd">        &quot;roulette:num_selections=INT[,temperature=FLOAT]&quot;</span>
+<span class="sd">        "roulette:num_selections=INT[,temperature=FLOAT]"</span>
 
 <span class="sd">    Examples::</span>
 
-<span class="sd">        &quot;roulette&quot;  # Defaults (num_selections=4, temperature=1.0)</span>
-<span class="sd">        &quot;roulette:num_selections=25&quot;  # Custom num_selections, default temperature</span>
-<span class="sd">        &quot;roulette:num_selections=50,temperature=0.5&quot;  # Both custom (lower temp = more pressure)</span>
-<span class="sd">        &quot;roulette:temperature=2.0&quot;  # Custom temperature, default num_selections</span>
+<span class="sd">        "roulette"  # Defaults (num_selections=4, temperature=1.0)</span>
+<span class="sd">        "roulette:num_selections=25"  # Custom num_selections, default temperature</span>
+<span class="sd">        "roulette:num_selections=50,temperature=0.5"  # Both custom (lower temp = more pressure)</span>
+<span class="sd">        "roulette:temperature=2.0"  # Custom temperature, default num_selections</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -374,7 +374,7 @@
 
 <span class="sd">    1. **Shift fitness**: Add a constant to all fitness values to make them positive</span>
 <span class="sd">    2. **Transform fitness**: Use ``1.0 / (1.0 + loss)`` or similar</span>
-<span class="sd">    3. **Use tournament selection instead**: Recommended if you&#39;re unsure about fitness range</span>
+<span class="sd">    3. **Use tournament selection instead**: Recommended if you're unsure about fitness range</span>
 
 <span class="sd">    Violating this requirement will cause NaN values in the softmax and invalid</span>
 <span class="sd">    selection behavior.</span>
@@ -400,9 +400,9 @@
 <span class="sd">    - Diversity is maintained through other mechanisms (mutation, crossover)</span>
 <span class="sd">    - All fitness values are guaranteed non-negative</span>
 
-<span class="sd">    **Recommendation**: If you&#39;re unsure about fitness ranges or want robustness,</span>
+<span class="sd">    **Recommendation**: If you're unsure about fitness ranges or want robustness,</span>
 <span class="sd">    use :class:`TournamentSelection` instead (works with any fitness function).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
     <span class="n">use_gumbel_trick</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -415,14 +415,14 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_select</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Draw parents proportional to fitness using a softmax or Gumbel-Max.</span>
+<span class="w">        </span><span class="sd">"""Draw parents proportional to fitness using a softmax or Gumbel-Max.</span>
 
 <span class="sd">        In minimization convention (lower=better), fitness values are negated to create</span>
 <span class="sd">        a proper probability distribution where lower original fitness gets higher selection probability.</span>
 <span class="sd">        When ``num_selections == pop_size`` and the Gumbel trick is enabled,</span>
 <span class="sd">        a parallel variant computes all samples in one shot; otherwise a</span>
 <span class="sd">        categorical draw is performed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
             <span class="n">rng</span> <span class="o">=</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">keys</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>

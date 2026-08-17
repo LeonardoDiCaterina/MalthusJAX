@@ -310,14 +310,14 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.benchmarking.results</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Data structures for storing and manipulating benchmark outcomes.</span>
+<span></span><span class="sd">"""Data structures for storing and manipulating benchmark outcomes.</span>
 
 <span class="sd">This module defines :class:`RunResult` and :class:`ExperimentResult` which</span>
 <span class="sd">record per-seed histories, summary metrics, errors, and timing information.</span>
 <span class="sd">Utilities for serialization/deserialization and simple aggregation are</span>
 <span class="sd">provided, along with :class:`ComparisonResult` for aligning multiple</span>
 <span class="sd">pipelines.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -344,15 +344,15 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.RunResult">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">RunResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Immutable record of a single seeded engine execution.</span>
+<span class="w">    </span><span class="sd">"""Immutable record of a single seeded engine execution.</span>
 
 <span class="sd">    Instances capture the seed value, success status, computed numeric</span>
 <span class="sd">    metrics and generation history, plus optional timing data, artifact paths</span>
 <span class="sd">    and error messages.  A UTC timestamp is recorded on creation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># e.g., &quot;success&quot;, &quot;failure&quot;, &quot;timeout&quot;, &quot;error&quot;</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># e.g., "success", "failure", "timeout", "error"</span>
     <span class="n">metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
     <span class="n">history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">artifacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
@@ -364,20 +364,20 @@
 <div class="viewcode-block" id="RunResult.to_dict">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.RunResult.to_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialize the object to a JSON-friendly dictionary.</span>
+<span class="w">        </span><span class="sd">"""Serialize the object to a JSON-friendly dictionary.</span>
 
 <span class="sd">        The ISO-formatted ``created_at`` timestamp is included directly.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
-            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
-            <span class="s2">&quot;metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span>
-            <span class="s2">&quot;history&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
-            <span class="s2">&quot;artifacts&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">artifacts</span><span class="p">,</span>
-            <span class="s2">&quot;duration_seconds&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">,</span>
-            <span class="s2">&quot;timings&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
-            <span class="s2">&quot;created_at&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s2">"seed"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+            <span class="s2">"status"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
+            <span class="s2">"metrics"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span>
+            <span class="s2">"history"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
+            <span class="s2">"artifacts"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">artifacts</span><span class="p">,</span>
+            <span class="s2">"duration_seconds"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">,</span>
+            <span class="s2">"timings"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
+            <span class="s2">"created_at"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
         <span class="p">}</span></div>
 
 
@@ -389,47 +389,47 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Backward-compatible accessor returning the numeric metrics.</span>
+<span class="w">        </span><span class="sd">"""Backward-compatible accessor returning the numeric metrics.</span>
 
 <span class="sd">        Some callers expect a ``.summary`` attribute on run objects; expose</span>
 <span class="sd">        it as a simple mapping to the already-stored ``metrics`` dict.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span>
 
 <div class="viewcode-block" id="RunResult.from_dict">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.RunResult.from_dict">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;RunResult&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reconstruct a :class:`RunResult` from a dictionary produced by</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">"RunResult"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Reconstruct a :class:`RunResult` from a dictionary produced by</span>
 <span class="sd">        :meth:`to_dict`.</span>
 
 <span class="sd">        The *created_at* field is parsed from ISO format if present, or</span>
 <span class="sd">        defaulted to the current UTC time.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">created</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;created_at&quot;</span><span class="p">)</span>
+        <span class="n">created</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"created_at"</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">created</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">created</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">"created_at"</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">created</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">created</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">"created_at"</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-            <span class="n">seed</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">],</span>
-            <span class="n">status</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">],</span>
-            <span class="n">metrics</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metrics&quot;</span><span class="p">,</span> <span class="p">{}),</span>
-            <span class="n">history</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;history&quot;</span><span class="p">,</span> <span class="p">[]),</span>
-            <span class="n">artifacts</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;artifacts&quot;</span><span class="p">,</span> <span class="p">{}),</span>
-            <span class="n">duration_seconds</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_seconds&quot;</span><span class="p">),</span>
-            <span class="n">timings</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;timings&quot;</span><span class="p">),</span>
-            <span class="n">error</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">),</span>
-            <span class="n">created_at</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">],</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">"seed"</span><span class="p">],</span>
+            <span class="n">status</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">"status"</span><span class="p">],</span>
+            <span class="n">metrics</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metrics"</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="n">history</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"history"</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="n">artifacts</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"artifacts"</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="n">duration_seconds</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration_seconds"</span><span class="p">),</span>
+            <span class="n">timings</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timings"</span><span class="p">),</span>
+            <span class="n">error</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"error"</span><span class="p">),</span>
+            <span class="n">created_at</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">"created_at"</span><span class="p">],</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="RunResult.from_json">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.RunResult.from_json">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;RunResult&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a :class:`RunResult` from a JSON string.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"RunResult"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Create a :class:`RunResult` from a JSON string."""</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 </div>
 
@@ -439,7 +439,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ExperimentResult">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExperimentResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Result object from a single experiment run with multiple seeds.</span>
+<span class="w">    </span><span class="sd">"""Result object from a single experiment run with multiple seeds.</span>
 
 <span class="sd">    Returned by :meth:`Composer.quick_run`, an :class:`ExperimentResult`</span>
 <span class="sd">    aggregates multiple independent evolutionary runs (one per seed) and</span>
@@ -457,7 +457,7 @@
 <span class="sd">    created_at : datetime</span>
 <span class="sd">        UTC timestamp of result creation.</span>
 <span class="sd">    schema_version : str</span>
-<span class="sd">        Version string for serialization format (default: &quot;0.1&quot;).</span>
+<span class="sd">        Version string for serialization format (default: "0.1").</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -481,50 +481,50 @@
 <span class="sd">    Access aggregated fitness metrics::</span>
 
 <span class="sd">        result = composer.quick_run(</span>
-<span class="sd">            fitness=&quot;sphere:dim=10&quot;,</span>
+<span class="sd">            fitness="sphere:dim=10",</span>
 <span class="sd">            seeds=(42, 43, 44),</span>
 <span class="sd">        )</span>
 <span class="sd">        agg = result.aggregated_summary()</span>
 <span class="sd">        # agg = {</span>
-<span class="sd">        #   &quot;best_fitness&quot;: {&quot;mean&quot;: 0.5, &quot;median&quot;: 0.48, &quot;stdev&quot;: 0.05},</span>
-<span class="sd">        #   &quot;mean_fitness&quot;: {&quot;mean&quot;: 2.3, ...},</span>
+<span class="sd">        #   "best_fitness": {"mean": 0.5, "median": 0.48, "stdev": 0.05},</span>
+<span class="sd">        #   "mean_fitness": {"mean": 2.3, ...},</span>
 <span class="sd">        # }</span>
 <span class="sd">        print(</span>
-<span class="sd">            f&quot;Best fitness: {agg[&#39;best_fitness&#39;][&#39;mean&#39;]:.3f} &quot;</span>
-<span class="sd">            f&quot;± {agg[&#39;best_fitness&#39;][&#39;stdev&#39;]:.3f}&quot;</span>
+<span class="sd">            f"Best fitness: {agg['best_fitness']['mean']:.3f} "</span>
+<span class="sd">            f"± {agg['best_fitness']['stdev']:.3f}"</span>
 <span class="sd">        )</span>
 
 <span class="sd">    Inspect per-seed runs::</span>
 
 <span class="sd">        for i, run in enumerate(result.runs):</span>
-<span class="sd">            print(f&quot;Seed {run.seed}: status={run.status}, duration={run.duration_seconds}s&quot;)</span>
-<span class="sd">            print(f&quot;  Final best fitness: {run.metrics.get(&#39;best_fitness&#39;, &#39;N/A&#39;)}&quot;)</span>
+<span class="sd">            print(f"Seed {run.seed}: status={run.status}, duration={run.duration_seconds}s")</span>
+<span class="sd">            print(f"  Final best fitness: {run.metrics.get('best_fitness', 'N/A')}")</span>
 <span class="sd">            # run.history is a list of dicts, one per generation</span>
 
 <span class="sd">    Export convergence history to pandas::</span>
 
 <span class="sd">        import pandas as pd</span>
-<span class="sd">        history = result.combined_history(seed_field=&quot;seed_id&quot;)</span>
+<span class="sd">        history = result.combined_history(seed_field="seed_id")</span>
 <span class="sd">        df = pd.DataFrame(history)</span>
-<span class="sd">        print(df[[&#39;generation&#39;, &#39;best_fitness&#39;, &#39;seed_id&#39;]])</span>
+<span class="sd">        print(df[['generation', 'best_fitness', 'seed_id']])</span>
 <span class="sd">        # Rows can now be grouped by seed_id and plotted</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">runs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RunResult</span><span class="p">]</span>
     <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
-    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;0.1&quot;</span>
+    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"0.1"</span>
 
 <div class="viewcode-block" id="ExperimentResult.to_dict">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ExperimentResult.to_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="s2">&quot;runs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">],</span>
-            <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
-            <span class="s2">&quot;created_at&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
-            <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_version</span><span class="p">,</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s2">"runs"</span><span class="p">:</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">],</span>
+            <span class="s2">"metadata"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
+            <span class="s2">"created_at"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s2">"schema_version"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_version</span><span class="p">,</span>
         <span class="p">}</span></div>
 
 
@@ -537,27 +537,27 @@
 <div class="viewcode-block" id="ExperimentResult.from_dict">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ExperimentResult.from_dict">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;ExperimentResult&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">"ExperimentResult"</span><span class="p">:</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">created</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;created_at&quot;</span><span class="p">)</span>
+        <span class="n">created</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"created_at"</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">created</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">created</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">"created_at"</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">created</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">created</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-        <span class="n">runs</span> <span class="o">=</span> <span class="p">[</span><span class="n">RunResult</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;runs&quot;</span><span class="p">,</span> <span class="p">[])]</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">"created_at"</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="n">runs</span> <span class="o">=</span> <span class="p">[</span><span class="n">RunResult</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"runs"</span><span class="p">,</span> <span class="p">[])]</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span>
             <span class="n">runs</span><span class="o">=</span><span class="n">runs</span><span class="p">,</span>
-            <span class="n">metadata</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadata&quot;</span><span class="p">,</span> <span class="p">{}),</span>
-            <span class="n">created_at</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">],</span>
-            <span class="n">schema_version</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;schema_version&quot;</span><span class="p">,</span> <span class="s2">&quot;0.1&quot;</span><span class="p">),</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="n">created_at</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">"created_at"</span><span class="p">],</span>
+            <span class="n">schema_version</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"schema_version"</span><span class="p">,</span> <span class="s2">"0.1"</span><span class="p">),</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ExperimentResult.combined_history">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ExperimentResult.combined_history">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">combined_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;seed&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Flatten all run histories into a single list with seed labels.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">combined_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"seed"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Flatten all run histories into a single list with seed labels.</span>
 
 <span class="sd">        Concatenates every generation record from every seed into one list,</span>
 <span class="sd">        adding a seed identifier to each row. Useful for exporting to pandas,</span>
@@ -566,7 +566,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        seed_field : str, optional</span>
-<span class="sd">            Name of the key to add to each row (default: ``&quot;seed&quot;``).</span>
+<span class="sd">            Name of the key to add to each row (default: ``"seed"``).</span>
 <span class="sd">            The value is ``run.seed`` from the originating :class:`RunResult`.</span>
 
 <span class="sd">        Returns</span>
@@ -582,18 +582,18 @@
 <span class="sd">            import pandas as pd</span>
 <span class="sd">            history = result.combined_history()</span>
 <span class="sd">            df = pd.DataFrame(history)</span>
-<span class="sd">            # Columns: &#39;generation&#39;, &#39;best_fitness&#39;, &#39;seed&#39;, ...</span>
-<span class="sd">            per_seed = df.groupby(&#39;seed&#39;)[&#39;best_fitness&#39;].apply(list)</span>
+<span class="sd">            # Columns: 'generation', 'best_fitness', 'seed', ...</span>
+<span class="sd">            per_seed = df.groupby('seed')['best_fitness'].apply(list)</span>
 
 <span class="sd">        Write to CSV::</span>
 
 <span class="sd">            import csv</span>
-<span class="sd">            history = result.combined_history(seed_field=&quot;run_seed&quot;)</span>
-<span class="sd">            with open(&quot;convergence.csv&quot;, &quot;w&quot;) as f:</span>
+<span class="sd">            history = result.combined_history(seed_field="run_seed")</span>
+<span class="sd">            with open("convergence.csv", "w") as f:</span>
 <span class="sd">                writer = csv.DictWriter(f, fieldnames=history[0].keys())</span>
 <span class="sd">                writer.writeheader()</span>
 <span class="sd">                writer.writerows(history)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">rows</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">run</span><span class="o">.</span><span class="n">history</span><span class="p">:</span>
@@ -611,7 +611,7 @@
 <div class="viewcode-block" id="ExperimentResult.aggregated_summary">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ExperimentResult.aggregated_summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">aggregated_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute aggregated statistics for each metric across all seeds.</span>
+<span class="w">        </span><span class="sd">"""Compute aggregated statistics for each metric across all seeds.</span>
 
 <span class="sd">        This is the primary method for summarizing multi-seed experimental</span>
 <span class="sd">        results. For each numeric metric (e.g., best_fitness, mean_fitness),</span>
@@ -624,9 +624,9 @@
 <span class="sd">            Mapping of metric name to statistics dict. Each statistics dict</span>
 <span class="sd">            contains:</span>
 
-<span class="sd">            - ``&quot;mean&quot;`` : arithmetic mean across seeds</span>
-<span class="sd">            - ``&quot;median&quot;`` : median value across seeds</span>
-<span class="sd">            - ``&quot;stdev&quot;`` : standard deviation (0.0 if only one seed)</span>
+<span class="sd">            - ``"mean"`` : arithmetic mean across seeds</span>
+<span class="sd">            - ``"median"`` : median value across seeds</span>
+<span class="sd">            - ``"stdev"`` : standard deviation (0.0 if only one seed)</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -643,34 +643,34 @@
 <span class="sd">            result = composer.quick_run(..., seeds=(42, 43, 44))</span>
 <span class="sd">            agg = result.aggregated_summary()</span>
 <span class="sd">            # Returns: {</span>
-<span class="sd">            #   &#39;best_fitness&#39;: {&#39;mean&#39;: 0.123, &#39;median&#39;: 0.110, &#39;stdev&#39;: 0.045},</span>
-<span class="sd">            #   &#39;mean_fitness&#39;: {&#39;mean&#39;: 2.345, &#39;median&#39;: 2.310, &#39;stdev&#39;: 0.120},</span>
+<span class="sd">            #   'best_fitness': {'mean': 0.123, 'median': 0.110, 'stdev': 0.045},</span>
+<span class="sd">            #   'mean_fitness': {'mean': 2.345, 'median': 2.310, 'stdev': 0.120},</span>
 <span class="sd">            # }</span>
 
 <span class="sd">        Report results::</span>
 
 <span class="sd">            agg = result.aggregated_summary()</span>
 <span class="sd">            for metric, stats in agg.items():</span>
-<span class="sd">                mean_val = stats[&#39;mean&#39;]</span>
-<span class="sd">                std_val = stats[&#39;stdev&#39;]</span>
-<span class="sd">                print(f&quot;{metric}: {mean_val:.4f} ± {std_val:.4f}&quot;)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">                mean_val = stats['mean']</span>
+<span class="sd">                std_val = stats['stdev']</span>
+<span class="sd">                print(f"{metric}: {mean_val:.4f} ± {std_val:.4f}")</span>
+<span class="sd">        """</span>
         <span class="c1"># Collect numeric metrics across runs</span>
         <span class="n">agg</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
             <span class="n">virtual_metrics</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;duration_seconds&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">virtual_metrics</span><span class="p">:</span>
-                <span class="n">virtual_metrics</span><span class="p">[</span><span class="s2">&quot;duration_seconds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">duration_seconds</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"duration_seconds"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">virtual_metrics</span><span class="p">:</span>
+                <span class="n">virtual_metrics</span><span class="p">[</span><span class="s2">"duration_seconds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">duration_seconds</span>
             <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">timings</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">tk</span><span class="p">,</span> <span class="n">tv</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">timings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">virtual_metrics</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;time_</span><span class="si">{</span><span class="n">tk</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">tv</span><span class="p">)</span>
+                    <span class="n">virtual_metrics</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="sa">f</span><span class="s2">"time_</span><span class="si">{</span><span class="n">tk</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">tv</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">virtual_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="k">continue</span>
-                <span class="k">if</span> <span class="n">optimum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;fitness&quot;</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">optimum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"fitness"</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
                     <span class="n">val</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">val</span> <span class="o">-</span> <span class="n">optimum</span><span class="p">)</span>
                 <span class="n">agg</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
 
@@ -693,12 +693,12 @@
                 <span class="n">ci_upper</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">ci_margin</span>
 
             <span class="n">summary</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span>
-                <span class="s2">&quot;median&quot;</span><span class="p">:</span> <span class="n">med</span><span class="p">,</span>
-                <span class="s2">&quot;stdev&quot;</span><span class="p">:</span> <span class="n">stdev</span><span class="p">,</span>
-                <span class="s2">&quot;ci_lower&quot;</span><span class="p">:</span> <span class="n">ci_lower</span><span class="p">,</span>
-                <span class="s2">&quot;ci_upper&quot;</span><span class="p">:</span> <span class="n">ci_upper</span><span class="p">,</span>
-                <span class="s2">&quot;ci_margin&quot;</span><span class="p">:</span> <span class="n">ci_margin</span><span class="p">,</span>
+                <span class="s2">"mean"</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span>
+                <span class="s2">"median"</span><span class="p">:</span> <span class="n">med</span><span class="p">,</span>
+                <span class="s2">"stdev"</span><span class="p">:</span> <span class="n">stdev</span><span class="p">,</span>
+                <span class="s2">"ci_lower"</span><span class="p">:</span> <span class="n">ci_lower</span><span class="p">,</span>
+                <span class="s2">"ci_upper"</span><span class="p">:</span> <span class="n">ci_upper</span><span class="p">,</span>
+                <span class="s2">"ci_margin"</span><span class="p">:</span> <span class="n">ci_margin</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="k">return</span> <span class="n">summary</span></div>
 
@@ -706,13 +706,13 @@
 <div class="viewcode-block" id="ExperimentResult.gap_summary">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ExperimentResult.gap_summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">gap_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convenience summary for the final gap-to-optimum metric.</span>
+<span class="w">        </span><span class="sd">"""Convenience summary for the final gap-to-optimum metric.</span>
 
 <span class="sd">        This returns the aggregated statistics for ``gap_to_optimum`` when the</span>
 <span class="sd">        metric is present in one or more run summaries; otherwise it returns an</span>
 <span class="sd">        empty dictionary.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gap_to_optimum&quot;</span><span class="p">,</span> <span class="p">{})</span></div>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"gap_to_optimum"</span><span class="p">,</span> <span class="p">{})</span></div>
 </div>
 
 
@@ -726,7 +726,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ComparisonResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aligned results from multiple algorithm pipelines for direct comparison.</span>
+<span class="w">    </span><span class="sd">"""Aligned results from multiple algorithm pipelines for direct comparison.</span>
 
 <span class="sd">    Returned by :meth:`Composer.compare` and :meth:`Composer.from_toml`, a</span>
 <span class="sd">    :class:`ComparisonResult` contains multiple :class:`ExperimentResult`</span>
@@ -747,7 +747,7 @@
 <span class="sd">        with its own random population.</span>
 <span class="sd">    negate_map : Dict[str, bool]</span>
 <span class="sd">        Per-pipeline fitness sign-flip flag. When ``True``, fitness values</span>
-<span class="sd">        are negated before display so all pipelines use &quot;lower is better&quot;</span>
+<span class="sd">        are negated before display so all pipelines use "lower is better"</span>
 <span class="sd">        convention (e.g., for Evosax which uses positive fitness values).</span>
 
 <span class="sd">    Notes</span>
@@ -762,8 +762,8 @@
 <span class="sd">    **Backend Normalization**:</span>
 
 <span class="sd">    The ``negate_map`` is automatically populated by :meth:`Composer.compare`</span>
-<span class="sd">    based on the backend used per pipeline (``&quot;malthusjax&quot;`` vs ``&quot;evosax&quot;``).</span>
-<span class="sd">    Users typically don&#39;t need to set this manually; it&#39;s applied transparently</span>
+<span class="sd">    based on the backend used per pipeline (``"malthusjax"`` vs ``"evosax"``).</span>
+<span class="sd">    Users typically don't need to set this manually; it's applied transparently</span>
 <span class="sd">    in :meth:`summary_table` and :meth:`plot_convergence`.</span>
 
 <span class="sd">    Examples</span>
@@ -772,10 +772,10 @@
 
 <span class="sd">        comparison = composer.compare(</span>
 <span class="sd">            pipelines={</span>
-<span class="sd">                &quot;GA+Blend&quot;: dict(crossover=&quot;blend:alpha=0.5&quot;),</span>
-<span class="sd">                &quot;GA+SBX&quot;: dict(crossover=&quot;simulated_binary:eta=20&quot;),</span>
+<span class="sd">                "GA+Blend": dict(crossover="blend:alpha=0.5"),</span>
+<span class="sd">                "GA+SBX": dict(crossover="simulated_binary:eta=20"),</span>
 <span class="sd">            },</span>
-<span class="sd">            fitness=&quot;sphere:dim=10&quot;,</span>
+<span class="sd">            fitness="sphere:dim=10",</span>
 <span class="sd">            pop_size=50,</span>
 <span class="sd">            generations=200,</span>
 <span class="sd">            seeds=(42, 43, 44),</span>
@@ -785,11 +785,11 @@
 
 <span class="sd">        table = comparison.summary_table()</span>
 <span class="sd">        # table = {</span>
-<span class="sd">        #   &quot;GA+Blend&quot;: {&quot;best_fitness&quot;: 0.123, &quot;mean_fitness&quot;: 2.345},</span>
-<span class="sd">        #   &quot;GA+SBX&quot;: {&quot;best_fitness&quot;: 0.089, &quot;mean_fitness&quot;: 1.987},</span>
+<span class="sd">        #   "GA+Blend": {"best_fitness": 0.123, "mean_fitness": 2.345},</span>
+<span class="sd">        #   "GA+SBX": {"best_fitness": 0.089, "mean_fitness": 1.987},</span>
 <span class="sd">        # }</span>
 <span class="sd">        for pipeline_name, metrics in table.items():</span>
-<span class="sd">            print(f&quot;{pipeline_name}: best={metrics[&#39;best_fitness&#39;]:.4f}&quot;)</span>
+<span class="sd">            print(f"{pipeline_name}: best={metrics['best_fitness']:.4f}")</span>
 
 <span class="sd">    Visualize convergence::</span>
 
@@ -797,40 +797,40 @@
 <span class="sd">        fig, axes = plt.subplots(1, 3, figsize=(12, 4))</span>
 <span class="sd">        for seed_idx, ax in enumerate(axes):</span>
 <span class="sd">            comparison.plot_convergence(seed_index=seed_idx, ax=ax)</span>
-<span class="sd">            ax.set_title(f&quot;Seed {seed_idx + 1}&quot;)</span>
+<span class="sd">            ax.set_title(f"Seed {seed_idx + 1}")</span>
 <span class="sd">        plt.tight_layout()</span>
 <span class="sd">        plt.show()</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">pipelines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ExperimentResult</span><span class="p">]</span>
     <span class="n">shared_config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">initial_population</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">negate_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Per-pipeline sign-flip flag.</span>
+<span class="w">    </span><span class="sd">"""Per-pipeline sign-flip flag.</span>
 
 <span class="sd">    When ``True`` for a pipeline, fitness values are **negated** before</span>
-<span class="sd">    display so that all pipelines share a unified &quot;lower is better&quot;</span>
+<span class="sd">    display so that all pipelines share a unified "lower is better"</span>
 <span class="sd">    convention (more negative is better).</span>
 
 <span class="sd">    This is typically used for pipelines where the raw reported fitness is</span>
 <span class="sd">    a standard minimisation value (lower is better) but stored as a positive</span>
-<span class="sd">    quantity (e.g., evosax &quot;fitness&quot; values).  The flag is usually set by</span>
+<span class="sd">    quantity (e.g., evosax "fitness" values).  The flag is usually set by</span>
 <span class="sd">    :meth:`Composer.compare` based on the backend in use.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># -- internal helper ---------------------------------------------------</span>
 
-    <span class="n">_FITNESS_KEYS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span> <span class="s2">&quot;mean_fitness&quot;</span><span class="p">,</span> <span class="s2">&quot;fitness_auc&quot;</span><span class="p">})</span>
+    <span class="n">_FITNESS_KEYS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="s2">"fitness_auc"</span><span class="p">})</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_sign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ``-1.0`` if *pipeline_name* should be negated, else ``1.0``.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return ``-1.0`` if *pipeline_name* should be negated, else ``1.0``."""</span>
         <span class="k">return</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">negate_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="mf">1.0</span>
 
     <span class="c1"># -- Convenience accessors --------------------------------------------</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pipeline names in insertion order.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Pipeline names in insertion order."""</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
 <div class="viewcode-block" id="ComparisonResult.summary_table">
@@ -838,12 +838,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">summary_table</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">latex</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute per-pipeline aggregated metrics across all seeds.</span>
+<span class="w">        </span><span class="sd">"""Compute per-pipeline aggregated metrics across all seeds.</span>
 
 <span class="sd">        This is the main method for comparing algorithm performance. Returns</span>
 <span class="sd">        one row per pipeline, with columns for each metric (best_fitness,</span>
 <span class="sd">        mean_fitness, etc.). Fitness values are automatically sign-normalized</span>
-<span class="sd">        so that all pipelines use &quot;lower is better&quot; convention (controlled by</span>
+<span class="sd">        so that all pipelines use "lower is better" convention (controlled by</span>
 <span class="sd">        :attr:`negate_map`).</span>
 
 <span class="sd">        Parameters</span>
@@ -872,9 +872,9 @@
 
 <span class="sd">            table = comparison.summary_table()</span>
 <span class="sd">            # table = {</span>
-<span class="sd">            #   &quot;GA+Blend&quot;: {&quot;best_fitness&quot;: 0.123, &quot;mean_fitness&quot;: 2.34},</span>
-<span class="sd">            #   &quot;GA+SBX&quot;: {&quot;best_fitness&quot;: 0.089, &quot;mean_fitness&quot;: 1.98},</span>
-<span class="sd">            #   &quot;Evosax CMA-ES&quot;: {&quot;best_fitness&quot;: 0.045, &quot;mean_fitness&quot;: 1.23},</span>
+<span class="sd">            #   "GA+Blend": {"best_fitness": 0.123, "mean_fitness": 2.34},</span>
+<span class="sd">            #   "GA+SBX": {"best_fitness": 0.089, "mean_fitness": 1.98},</span>
+<span class="sd">            #   "Evosax CMA-ES": {"best_fitness": 0.045, "mean_fitness": 1.23},</span>
 <span class="sd">            # }</span>
 
 <span class="sd">        Convert to pandas for ranking::</span>
@@ -882,14 +882,14 @@
 <span class="sd">            import pandas as pd</span>
 <span class="sd">            table = comparison.summary_table()</span>
 <span class="sd">            df = pd.DataFrame(table).T</span>
-<span class="sd">            df = df.sort_values(&quot;best_fitness&quot;)  # Rank by fitness</span>
+<span class="sd">            df = df.sort_values("best_fitness")  # Rank by fitness</span>
 <span class="sd">            print(df)</span>
 
 <span class="sd">        Get a LaTeX table::</span>
 
 <span class="sd">            latex_code = comparison.summary_table(latex=True)</span>
 <span class="sd">            print(latex_code)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">table</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">agg</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">(</span><span class="n">optimum</span><span class="o">=</span><span class="n">optimum</span><span class="p">)</span>
@@ -898,13 +898,13 @@
             <span class="n">table_row</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">agg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">mean_val</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">v</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">s</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FITNESS_KEYS</span> <span class="ow">and</span> <span class="n">optimum</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+                    <span class="n">v</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span> <span class="o">*</span> <span class="n">s</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FITNESS_KEYS</span> <span class="ow">and</span> <span class="n">optimum</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">v</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="n">table_row</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">mean_val</span><span class="p">,</span>
-                    <span class="s2">&quot;ci_margin&quot;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ci_margin&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
-                    <span class="s2">&quot;ci_lower&quot;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ci_lower&quot;</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">),</span>
-                    <span class="s2">&quot;ci_upper&quot;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ci_upper&quot;</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">),</span>
+                    <span class="s2">"mean"</span><span class="p">:</span> <span class="n">mean_val</span><span class="p">,</span>
+                    <span class="s2">"ci_margin"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_margin"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                    <span class="s2">"ci_lower"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_lower"</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">),</span>
+                    <span class="s2">"ci_upper"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_upper"</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">),</span>
                 <span class="p">}</span>
             <span class="n">table</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">table_row</span>
 
@@ -913,16 +913,16 @@
 
         <span class="k">def</span><span class="w"> </span><span class="nf">_latex_escape</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span>
-                <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">textbackslash</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">%&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">$&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">#&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">_&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">{&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">}&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&amp;&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">textasciitilde</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">textasciicircum</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">textbackslash</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"%"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">%"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"$"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">$"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"#"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">#"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">_"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"{"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">{"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"}"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">}"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&amp;"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">&amp;"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"~"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">textasciitilde</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"^"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">textasciicircum</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="n">metric_names</span> <span class="o">=</span> <span class="p">[]</span>
@@ -931,52 +931,52 @@
                 <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metric_names</span><span class="p">:</span>
                     <span class="n">metric_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
-        <span class="n">header_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Pipeline&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">metric_names</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">begin</span><span class="si">{tabular}</span><span class="s2">{l&quot;</span> <span class="o">+</span> <span class="s2">&quot;r&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">metric_names</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">hline&quot;</span><span class="p">]</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; &amp; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_latex_escape</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">header_cols</span><span class="p">)</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">&quot; </span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">hline&quot;</span><span class="p">)</span>
+        <span class="n">header_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Pipeline"</span><span class="p">]</span> <span class="o">+</span> <span class="n">metric_names</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"</span><span class="se">\\</span><span class="s2">begin</span><span class="si">{tabular}</span><span class="s2">{l"</span> <span class="o">+</span> <span class="s2">"r"</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">metric_names</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"}"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">hline"</span><span class="p">]</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">" &amp; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_latex_escape</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">header_cols</span><span class="p">)</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">" </span><span class="se">\\</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">hline"</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">pipeline_name</span><span class="p">,</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="n">_latex_escape</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">)]</span>
             <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metric_names</span><span class="p">:</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+                    <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"NaN"</span><span class="p">)</span>
                     <span class="k">continue</span>
 
                 <span class="c1"># If the metric is a dict (like from our new summary_table), try to format it</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;mean&quot;</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
-                    <span class="n">mean_val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>
-                    <span class="n">margin</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ci_margin&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"mean"</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                    <span class="n">mean_val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span>
+                    <span class="n">margin</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_margin"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">margin</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
-                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> $</span><span class="se">\\</span><span class="s2">pm$ </span><span class="si">{</span><span class="n">margin</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> $</span><span class="se">\\</span><span class="s2">pm$ </span><span class="si">{</span><span class="n">margin</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                     <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
-            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; &amp; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">&quot; </span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"NaN"</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">" &amp; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">" </span><span class="se">\\</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">hline&quot;</span><span class="p">)</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">end</span><span class="si">{tabular}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">hline"</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">end</span><span class="si">{tabular}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ComparisonResult.normalized_runs">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult.normalized_runs">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">normalized_runs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RunResult</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return per-seed runs with sign-normalized fitness metrics.</span>
+<span class="w">        </span><span class="sd">"""Return per-seed runs with sign-normalized fitness metrics.</span>
 
 <span class="sd">        When comparing pipelines from different backends, raw run metrics may</span>
 <span class="sd">        use different sign conventions for minimization or maximization.</span>
-<span class="sd">        This helper returns a copy of the selected pipeline&#39;s runs where all</span>
+<span class="sd">        This helper returns a copy of the selected pipeline's runs where all</span>
 <span class="sd">        fitness-related metrics and history entries are normalized according</span>
-<span class="sd">        to the comparison&#39;s ``negate_map``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        to the comparison's ``negate_map``.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">pipeline_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown pipeline &#39;</span><span class="si">{</span><span class="n">pipeline_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown pipeline '</span><span class="si">{</span><span class="n">pipeline_name</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
         <span class="n">sign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sign</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">sign</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
@@ -1013,9 +1013,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">statistical_speedup</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">base_pipeline</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_pipeline</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conf_level</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.95</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute paired speedup (Base / Target) across seeds with confidence intervals.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Compute paired speedup (Base / Target) across seeds with confidence intervals."""</span>
         <span class="k">if</span> <span class="n">sp_stats</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;scipy is required for statistical tests.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"scipy is required for statistical tests."</span><span class="p">)</span>
 
         <span class="n">base_exp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="p">[</span><span class="n">base_pipeline</span><span class="p">]</span>
         <span class="n">target_exp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="p">[</span><span class="n">target_pipeline</span><span class="p">]</span>
@@ -1025,7 +1025,7 @@
 
         <span class="n">common_seeds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">base_runs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">target_runs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">common_seeds</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No common seeds with duration data found.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No common seeds with duration data found."</span><span class="p">)</span>
 
         <span class="n">speedups</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">common_seeds</span><span class="p">:</span>
@@ -1050,11 +1050,11 @@
             <span class="n">ci_margin</span> <span class="o">=</span> <span class="n">sp_stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sem</span>
 
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;mean_speedup&quot;</span><span class="p">:</span> <span class="n">mean_speedup</span><span class="p">,</span>
-            <span class="s2">&quot;ci_lower&quot;</span><span class="p">:</span> <span class="n">mean_speedup</span> <span class="o">-</span> <span class="n">ci_margin</span><span class="p">,</span>
-            <span class="s2">&quot;ci_upper&quot;</span><span class="p">:</span> <span class="n">mean_speedup</span> <span class="o">+</span> <span class="n">ci_margin</span><span class="p">,</span>
-            <span class="s2">&quot;stdev&quot;</span><span class="p">:</span> <span class="n">stdev</span><span class="p">,</span>
-            <span class="s2">&quot;n_samples&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span>
+            <span class="s2">"mean_speedup"</span><span class="p">:</span> <span class="n">mean_speedup</span><span class="p">,</span>
+            <span class="s2">"ci_lower"</span><span class="p">:</span> <span class="n">mean_speedup</span> <span class="o">-</span> <span class="n">ci_margin</span><span class="p">,</span>
+            <span class="s2">"ci_upper"</span><span class="p">:</span> <span class="n">mean_speedup</span> <span class="o">+</span> <span class="n">ci_margin</span><span class="p">,</span>
+            <span class="s2">"stdev"</span><span class="p">:</span> <span class="n">stdev</span><span class="p">,</span>
+            <span class="s2">"n_samples"</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span>
         <span class="p">}</span></div>
 
 
@@ -1064,13 +1064,13 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">base_pipeline</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">target_pipeline</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span>
+        <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"best_fitness"</span><span class="p">,</span>
         <span class="n">conf_level</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.95</span><span class="p">,</span>
         <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute paired fitness delta (Target - Base) across seeds with confidence intervals.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Compute paired fitness delta (Target - Base) across seeds with confidence intervals."""</span>
         <span class="k">if</span> <span class="n">sp_stats</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;scipy is required for statistical tests.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"scipy is required for statistical tests."</span><span class="p">)</span>
 
         <span class="n">base_runs</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">r</span><span class="o">.</span><span class="n">seed</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalized_runs</span><span class="p">(</span><span class="n">base_pipeline</span><span class="p">)</span> <span class="k">if</span> <span class="n">metric_key</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">metrics</span>
@@ -1081,7 +1081,7 @@
 
         <span class="n">common_seeds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">base_runs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">target_runs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">common_seeds</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No common seeds with metric &#39;</span><span class="si">{</span><span class="n">metric_key</span><span class="si">}</span><span class="s2">&#39; found.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No common seeds with metric '</span><span class="si">{</span><span class="n">metric_key</span><span class="si">}</span><span class="s2">' found."</span><span class="p">)</span>
         <span class="n">deltas</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">common_seeds</span><span class="p">:</span>
             <span class="n">b_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base_runs</span><span class="p">[</span><span class="n">seed</span><span class="p">]</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">metric_key</span><span class="p">])</span>
@@ -1103,37 +1103,37 @@
             <span class="n">ci_margin</span> <span class="o">=</span> <span class="n">sp_stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sem</span>
 
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;mean_delta&quot;</span><span class="p">:</span> <span class="n">mean_delta</span><span class="p">,</span>
-            <span class="s2">&quot;ci_lower&quot;</span><span class="p">:</span> <span class="n">mean_delta</span> <span class="o">-</span> <span class="n">ci_margin</span><span class="p">,</span>
-            <span class="s2">&quot;ci_upper&quot;</span><span class="p">:</span> <span class="n">mean_delta</span> <span class="o">+</span> <span class="n">ci_margin</span><span class="p">,</span>
-            <span class="s2">&quot;stdev&quot;</span><span class="p">:</span> <span class="n">stdev</span><span class="p">,</span>
-            <span class="s2">&quot;n_samples&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span>
+            <span class="s2">"mean_delta"</span><span class="p">:</span> <span class="n">mean_delta</span><span class="p">,</span>
+            <span class="s2">"ci_lower"</span><span class="p">:</span> <span class="n">mean_delta</span> <span class="o">-</span> <span class="n">ci_margin</span><span class="p">,</span>
+            <span class="s2">"ci_upper"</span><span class="p">:</span> <span class="n">mean_delta</span> <span class="o">+</span> <span class="n">ci_margin</span><span class="p">,</span>
+            <span class="s2">"stdev"</span><span class="p">:</span> <span class="n">stdev</span><span class="p">,</span>
+            <span class="s2">"n_samples"</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span>
         <span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="ComparisonResult.timing_data">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult.timing_data">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">timing_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timing_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;duration_seconds&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Collect timing values for each pipeline across all seeds.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">timing_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timing_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"duration_seconds"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Collect timing values for each pipeline across all seeds.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        timing_key : str, optional</span>
-<span class="sd">            Which timing channel to collect. ``&quot;duration_seconds&quot;`` gathers</span>
+<span class="sd">            Which timing channel to collect. ``"duration_seconds"`` gathers</span>
 <span class="sd">            the per-run wall-clock duration. Other keys may be taken from</span>
 <span class="sd">            ``RunResult.timings`` if present.</span>
-<span class="sd">            Default: ``&quot;duration_seconds&quot;``.</span>
+<span class="sd">            Default: ``"duration_seconds"``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Dict[str, List[float]]</span>
 <span class="sd">            Mapping of pipeline name to a list of timing values.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">values</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">exp</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">timing_key</span> <span class="o">==</span> <span class="s2">&quot;duration_seconds&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">timing_key</span> <span class="o">==</span> <span class="s2">"duration_seconds"</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1152,26 +1152,26 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult.plot_timing_boxplot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_timing_boxplot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">timing_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;duration_seconds&quot;</span><span class="p">,</span>
+        <span class="n">timing_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"duration_seconds"</span><span class="p">,</span>
         <span class="n">ax</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Draw a per-pipeline boxplot for timing values.</span>
+<span class="w">        </span><span class="sd">"""Draw a per-pipeline boxplot for timing values.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        timing_key : str, optional</span>
-<span class="sd">            Timing channel to plot. ``&quot;duration_seconds&quot;`` uses the per-run</span>
+<span class="sd">            Timing channel to plot. ``"duration_seconds"`` uses the per-run</span>
 <span class="sd">            wall-clock runtime. Other values may come from the</span>
 <span class="sd">            per-run ``RunResult.timings`` dictionary.</span>
-<span class="sd">            Default: ``&quot;duration_seconds&quot;``.</span>
+<span class="sd">            Default: ``"duration_seconds"``.</span>
 
 <span class="sd">        ax : matplotlib.axes.Axes, optional</span>
 <span class="sd">            Axis to draw on. If ``None``, a new figure and axis pair is created.</span>
 
 <span class="sd">        title : str, optional</span>
-<span class="sd">            Plot title. If ``None``, defaults to ``&quot;Timing boxplot&quot;``.</span>
+<span class="sd">            Plot title. If ``None``, defaults to ``"Timing boxplot"``.</span>
 
 <span class="sd">        save_path : str or pathlib.Path, optional</span>
 <span class="sd">            If provided, save the generated figure to this path.</span>
@@ -1181,13 +1181,13 @@
 <span class="sd">        -------</span>
 <span class="sd">        matplotlib.axes.Axes</span>
 <span class="sd">            The axis containing the boxplot.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;matplotlib is required for plot_timing_boxplot(). &quot;</span>
-                <span class="s2">&quot;Install it with: pip install matplotlib&quot;</span>
+                <span class="s2">"matplotlib is required for plot_timing_boxplot(). "</span>
+                <span class="s2">"Install it with: pip install matplotlib"</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_data</span><span class="p">(</span><span class="n">timing_key</span><span class="o">=</span><span class="n">timing_key</span><span class="p">)</span>
@@ -1199,28 +1199,28 @@
                 <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timings</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">values</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No timing values available for timing_key=&#39;</span><span class="si">{</span><span class="n">timing_key</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No timing values available for timing_key='</span><span class="si">{</span><span class="n">timing_key</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
         <span class="n">fig</span><span class="p">:</span> <span class="n">Figure</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">),</span> <span class="mi">5</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">"figure"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">tick_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">patch_artist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">patch_artist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Timing boxplot&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timing_key</span><span class="si">}</span><span class="s2"> (seconds)&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Pipeline&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">labelrotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">"Timing boxplot"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">timing_key</span><span class="si">}</span><span class="s2"> (seconds)"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Pipeline"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">labelrotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">save_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
             <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">"tight"</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ax</span></div>
 
@@ -1228,15 +1228,15 @@
 <div class="viewcode-block" id="ComparisonResult.final_metric_data">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult.final_metric_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">final_metric_data</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span> <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"best_fitness"</span><span class="p">,</span> <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Collect final metric values for each pipeline across all seeds.</span>
+<span class="w">        </span><span class="sd">"""Collect final metric values for each pipeline across all seeds.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        metric_key : str, optional</span>
-<span class="sd">            Metric value to gather from each run&#39;s ``RunResult.metrics``.</span>
-<span class="sd">            Default: ``&quot;best_fitness&quot;``.</span>
+<span class="sd">            Metric value to gather from each run's ``RunResult.metrics``.</span>
+<span class="sd">            Default: ``"best_fitness"``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1244,7 +1244,7 @@
 <span class="sd">            Mapping of pipeline name to a list of final metric values.</span>
 <span class="sd">            Values are sign-normalized for pipelines marked in</span>
 <span class="sd">            ``negate_map``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">values</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1255,7 +1255,7 @@
 
             <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">sorted_runs</span><span class="p">:</span>
                 <span class="n">raw_val</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="n">metric_key</span> <span class="o">==</span> <span class="s2">&quot;duration_seconds&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">metric_key</span> <span class="o">==</span> <span class="s2">"duration_seconds"</span><span class="p">:</span>
                     <span class="n">raw_val</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">duration_seconds</span>
                 <span class="k">elif</span> <span class="n">run</span><span class="o">.</span><span class="n">timings</span> <span class="ow">and</span> <span class="n">metric_key</span> <span class="ow">in</span> <span class="n">run</span><span class="o">.</span><span class="n">timings</span><span class="p">:</span>
                     <span class="n">raw_val</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">timings</span><span class="p">[</span><span class="n">metric_key</span><span class="p">]</span>
@@ -1276,7 +1276,7 @@
                 <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span>
-                <span class="n">metric_key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;duration_seconds&quot;</span><span class="p">,</span> <span class="s2">&quot;execution&quot;</span><span class="p">,</span> <span class="s2">&quot;total&quot;</span><span class="p">,</span> <span class="s2">&quot;warmup&quot;</span><span class="p">)</span>
+                <span class="n">metric_key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"duration_seconds"</span><span class="p">,</span> <span class="s2">"execution"</span><span class="p">,</span> <span class="s2">"total"</span><span class="p">,</span> <span class="s2">"warmup"</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
             <span class="p">):</span>
                 <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
@@ -1289,26 +1289,26 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult.plot_final_metric_boxplot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_final_metric_boxplot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span>
+        <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"best_fitness"</span><span class="p">,</span>
         <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">ax</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Draw a per-pipeline boxplot for final run metric values.</span>
+<span class="w">        </span><span class="sd">"""Draw a per-pipeline boxplot for final run metric values.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        metric_key : str, optional</span>
 <span class="sd">            Metric to plot from the final results of each run. By default,</span>
-<span class="sd">            ``&quot;best_fitness&quot;`` is used.</span>
+<span class="sd">            ``"best_fitness"`` is used.</span>
 
 <span class="sd">        ax : matplotlib.axes.Axes, optional</span>
 <span class="sd">            Axis to draw on. If ``None``, a new figure and axis pair is created.</span>
 
 <span class="sd">        title : str, optional</span>
 <span class="sd">            Plot title. If ``None``, defaults to</span>
-<span class="sd">            ``&quot;Final {metric_key} distribution&quot;``.</span>
+<span class="sd">            ``"Final {metric_key} distribution"``.</span>
 
 <span class="sd">        save_path : str or pathlib.Path, optional</span>
 <span class="sd">            If provided, save the generated figure to this path.</span>
@@ -1318,13 +1318,13 @@
 <span class="sd">        -------</span>
 <span class="sd">        matplotlib.axes.Axes</span>
 <span class="sd">            The axis containing the boxplot.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;matplotlib is required for plot_final_metric_boxplot(). &quot;</span>
-                <span class="s2">&quot;Install it with: pip install matplotlib&quot;</span>
+                <span class="s2">"matplotlib is required for plot_final_metric_boxplot(). "</span>
+                <span class="s2">"Install it with: pip install matplotlib"</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_metric_data</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="n">metric_key</span><span class="p">,</span> <span class="n">optimum</span><span class="o">=</span><span class="n">optimum</span><span class="p">)</span>
@@ -1336,29 +1336,29 @@
                 <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metric_vals</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">values</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No metric values available for metric_key=&#39;</span><span class="si">{</span><span class="n">metric_key</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No metric values available for metric_key='</span><span class="si">{</span><span class="n">metric_key</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
         <span class="n">fig</span><span class="p">:</span> <span class="n">Figure</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">),</span> <span class="mi">5</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">"figure"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">tick_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">patch_artist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">patch_artist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;Final </span><span class="si">{</span><span class="n">metric_key</span><span class="si">}</span><span class="s2"> distribution&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">metric_key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Pipeline&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">labelrotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">"Final </span><span class="si">{</span><span class="n">metric_key</span><span class="si">}</span><span class="s2"> distribution"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">metric_key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Pipeline"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">labelrotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">save_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
             <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">"tight"</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ax</span></div>
 
@@ -1370,7 +1370,7 @@
         <span class="n">seed_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
         <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract per-pipeline convergence histories for a single seed.</span>
+<span class="w">        </span><span class="sd">"""Extract per-pipeline convergence histories for a single seed.</span>
 
 <span class="sd">        Returns generation-by-generation records for the chosen seed across</span>
 <span class="sd">        all pipelines. Fitness values are automatically sign-normalized</span>
@@ -1380,7 +1380,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        seed_index : int, optional</span>
-<span class="sd">            Which seed&#39;s history to use (0-indexed). If ``seed_index`` exceeds</span>
+<span class="sd">            Which seed's history to use (0-indexed). If ``seed_index`` exceeds</span>
 <span class="sd">            the number of available seeds for a pipeline, that pipeline receives</span>
 <span class="sd">            an empty list.</span>
 <span class="sd">            Default: 0 (first seed).</span>
@@ -1391,9 +1391,9 @@
 <span class="sd">            Mapping of pipeline name -&gt; list of generation dicts.</span>
 <span class="sd">            Each dict in the list contains:</span>
 
-<span class="sd">            - ``&quot;generation&quot;`` : generation number (0, 1, 2, ...)</span>
-<span class="sd">            - ``&quot;best_fitness&quot;`` : best fitness in population (sign-normalized)</span>
-<span class="sd">            - ``&quot;mean_fitness&quot;`` : mean population fitness</span>
+<span class="sd">            - ``"generation"`` : generation number (0, 1, 2, ...)</span>
+<span class="sd">            - ``"best_fitness"`` : best fitness in population (sign-normalized)</span>
+<span class="sd">            - ``"mean_fitness"`` : mean population fitness</span>
 <span class="sd">            - (any other per-generation metrics)</span>
 
 <span class="sd">            Fitness values are already sign-normalized (via :attr:`negate_map`).</span>
@@ -1411,11 +1411,11 @@
 <span class="sd">            import matplotlib.pyplot as plt</span>
 <span class="sd">            data = comparison.convergence_data(seed_index=0)</span>
 <span class="sd">            for pipeline_name, history in data.items():</span>
-<span class="sd">                gens = [h[&quot;generation&quot;] for h in history]</span>
-<span class="sd">                fitness = [h[&quot;best_fitness&quot;] for h in history]</span>
+<span class="sd">                gens = [h["generation"] for h in history]</span>
+<span class="sd">                fitness = [h["best_fitness"] for h in history]</span>
 <span class="sd">                plt.plot(gens, fitness, label=pipeline_name)</span>
-<span class="sd">            plt.xlabel(&quot;Generation&quot;)</span>
-<span class="sd">            plt.ylabel(&quot;Best Fitness&quot;)</span>
+<span class="sd">            plt.xlabel("Generation")</span>
+<span class="sd">            plt.ylabel("Best Fitness")</span>
 <span class="sd">            plt.legend()</span>
 <span class="sd">            plt.show()</span>
 
@@ -1425,9 +1425,9 @@
 <span class="sd">            data = comparison.convergence_data(seed_index=0)</span>
 <span class="sd">            for pipeline_name, history in data.items():</span>
 <span class="sd">                df = pd.DataFrame(history)</span>
-<span class="sd">                print(f&quot;{pipeline_name} convergence:&quot;)</span>
-<span class="sd">                print(df[[&quot;generation&quot;, &quot;best_fitness&quot;]].head(10))</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">                print(f"{pipeline_name} convergence:")</span>
+<span class="sd">                print(df[["generation", "best_fitness"]].head(10))</span>
+<span class="sd">        """</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">seed_index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">runs</span><span class="p">):</span>
@@ -1459,12 +1459,12 @@
         <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Visualize convergence of all pipelines on a matplotlib axis.</span>
+<span class="w">        </span><span class="sd">"""Visualize convergence of all pipelines on a matplotlib axis.</span>
 
 <span class="sd">        Creates an overlaid line plot with one curve per pipeline, showing</span>
 <span class="sd">        best fitness vs. generation for the selected seed. Fitness values are</span>
 <span class="sd">        automatically sign-normalized (via :attr:`negate_map`) so that all</span>
-<span class="sd">        pipelines use &quot;lower is better&quot; convention.</span>
+<span class="sd">        pipelines use "lower is better" convention.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1483,16 +1483,16 @@
 <span class="sd">            Default: ``None``.</span>
 
 <span class="sd">        title : str, optional</span>
-<span class="sd">            Plot title. If ``None``, defaults to ``&quot;Convergence comparison&quot;``.</span>
+<span class="sd">            Plot title. If ``None``, defaults to ``"Convergence comparison"``.</span>
 <span class="sd">            When plotting multiple seeds, the seed number is appended to each</span>
 <span class="sd">            subplot title.</span>
 <span class="sd">            Default: ``None``.</span>
 
 <span class="sd">        negate : Dict[str, bool], optional</span>
 <span class="sd">            Additional per-pipeline sign-flip after automatic normalization.</span>
-<span class="sd">            Use this to switch between &quot;lower is better&quot; and &quot;higher is better&quot;</span>
-<span class="sd">            display. Example: ``negate={&quot;Pipeline A&quot;: True}`` flips only</span>
-<span class="sd">            &quot;Pipeline A&quot;&#39;s curve.</span>
+<span class="sd">            Use this to switch between "lower is better" and "higher is better"</span>
+<span class="sd">            display. Example: ``negate={"Pipeline A": True}`` flips only</span>
+<span class="sd">            "Pipeline A"'s curve.</span>
 <span class="sd">            Default: ``None`` (no additional flips).</span>
 
 <span class="sd">        save_path : str or pathlib.Path, optional</span>
@@ -1519,7 +1519,7 @@
 
 <span class="sd">        **Sign Normalization**:</span>
 <span class="sd">        Fitness values are automatically negated (if ``negate_map[pipeline]``)</span>
-<span class="sd">        so that all pipelines use &quot;lower is better&quot;. The sign map is set by</span>
+<span class="sd">        so that all pipelines use "lower is better". The sign map is set by</span>
 <span class="sd">        :meth:`Composer.compare` and :meth:`Composer.from_toml` based on backend</span>
 <span class="sd">        conventions.</span>
 
@@ -1533,8 +1533,8 @@
 
 <span class="sd">            comparison = composer.compare(</span>
 <span class="sd">                pipelines={</span>
-<span class="sd">                    &quot;GA+Blend&quot;: {...},</span>
-<span class="sd">                    &quot;GA+SBX&quot;: {...},</span>
+<span class="sd">                    "GA+Blend": {...},</span>
+<span class="sd">                    "GA+SBX": {...},</span>
 <span class="sd">                },</span>
 <span class="sd">                ...</span>
 <span class="sd">            )</span>
@@ -1547,7 +1547,7 @@
 <span class="sd">            fig, axes = plt.subplots(1, 3, figsize=(15, 4))</span>
 <span class="sd">            for seed_idx, ax in enumerate(axes):</span>
 <span class="sd">                comparison.plot_convergence(seed_index=seed_idx, ax=ax)</span>
-<span class="sd">                ax.set_title(f&quot;Seed {seed_idx}&quot;)</span>
+<span class="sd">                ax.set_title(f"Seed {seed_idx}")</span>
 <span class="sd">            plt.tight_layout()</span>
 <span class="sd">            plt.show()</span>
 
@@ -1555,27 +1555,27 @@
 
 <span class="sd">            ax = comparison.plot_convergence(</span>
 <span class="sd">                seed_index=0,</span>
-<span class="sd">                title=&quot;GA Benchmark on Sphere Function&quot;,</span>
+<span class="sd">                title="GA Benchmark on Sphere Function",</span>
 <span class="sd">            )</span>
 <span class="sd">            ax.set_ylim(bottom=0)  # Force y-axis to start at 0</span>
-<span class="sd">            ax.set_yscale(&quot;log&quot;)    # Log scale for faster-converging algorithms</span>
+<span class="sd">            ax.set_yscale("log")    # Log scale for faster-converging algorithms</span>
 <span class="sd">            plt.show()</span>
 
-<span class="sd">        Switch to &quot;higher is better&quot; display (for maximization)::</span>
+<span class="sd">        Switch to "higher is better" display (for maximization)::</span>
 
 <span class="sd">            # After automatic normalization, flip all curves</span>
 <span class="sd">            ax = comparison.plot_convergence(</span>
 <span class="sd">                seed_index=0,</span>
 <span class="sd">                negate={name: True for name in comparison.names},</span>
 <span class="sd">            )</span>
-<span class="sd">            ax.set_ylabel(&quot;Best Fitness (higher is better)&quot;)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            ax.set_ylabel("Best Fitness (higher is better)")</span>
+<span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;matplotlib is required for plot_convergence(). &quot;</span>
-                <span class="s2">&quot;Install it with: pip install matplotlib&quot;</span>
+                <span class="s2">"matplotlib is required for plot_convergence(). "</span>
+                <span class="s2">"Install it with: pip install matplotlib"</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed_index</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
@@ -1588,18 +1588,18 @@
                     <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">axes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">axes_array</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">"__iter__"</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
                 <span class="n">axes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">seed_list</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;When seed_index is a list, ax must contain one axis per seed.&quot;</span>
+                        <span class="s2">"When seed_index is a list, ax must contain one axis per seed."</span>
                     <span class="p">)</span>
-                <span class="n">fig_obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">fig_obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"figure"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;When seed_index is a list, ax must be an iterable of axes.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"When seed_index is a list, ax must be an iterable of axes."</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">subplot_ax</span><span class="p">,</span> <span class="n">seed</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">seed_list</span><span class="p">):</span>
-                <span class="n">subplot_title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2"> (seed </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Seed </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">subplot_title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2"> (seed </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">)"</span> <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"Seed </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">"</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span>
                     <span class="n">seed</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">subplot_ax</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">subplot_title</span><span class="p">,</span> <span class="n">negate</span><span class="o">=</span><span class="n">negate</span><span class="p">,</span> <span class="n">optimum</span><span class="o">=</span><span class="n">optimum</span>
                 <span class="p">)</span>
@@ -1607,7 +1607,7 @@
             <span class="k">if</span> <span class="n">save_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fig_obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
                 <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">fig_obj</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+                <span class="n">fig_obj</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">"tight"</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">axes</span>
 
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1621,22 +1621,22 @@
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">history</span> <span class="ow">in</span> <span class="n">conv</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">history</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="n">gens</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s2">&quot;generation&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
-            <span class="n">best</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
+            <span class="n">gens</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s2">"generation"</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">extra_negate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                 <span class="n">best</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">best</span><span class="p">]</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gens</span><span class="p">,</span> <span class="n">best</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Generation&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Best Fitness&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Convergence comparison&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Generation"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Best Fitness"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">"Convergence comparison"</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">save_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
             <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">"tight"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ax</span></div>
 
 
@@ -1644,18 +1644,18 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult.plot_boxplots">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_boxplots</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span>
+        <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"best_fitness"</span><span class="p">,</span>
         <span class="n">ax</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">optimum</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Visualize the distribution of final metrics as side-by-side boxplots.</span>
+<span class="w">        </span><span class="sd">"""Visualize the distribution of final metrics as side-by-side boxplots.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        metric_key : str, optional</span>
-<span class="sd">            The metric to plot. Default: ``&quot;best_fitness&quot;``.</span>
+<span class="sd">            The metric to plot. Default: ``"best_fitness"``.</span>
 <span class="sd">        ax : matplotlib.axes.Axes, optional</span>
 <span class="sd">            An existing matplotlib axes to plot on.</span>
 <span class="sd">        title : str, optional</span>
@@ -1667,16 +1667,16 @@
 <span class="sd">        -------</span>
 <span class="sd">        matplotlib.axes.Axes</span>
 <span class="sd">            The axes containing the plot.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;matplotlib is required for plot_boxplots(). &quot;</span>
-                <span class="s2">&quot;Install it with: pip install matplotlib&quot;</span>
+                <span class="s2">"matplotlib is required for plot_boxplots(). "</span>
+                <span class="s2">"Install it with: pip install matplotlib"</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
-        <span class="n">fig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">"figure"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 
@@ -1694,33 +1694,33 @@
 
         <span class="c1"># Add colors if possible</span>
         <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#2ca02c&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#d62728&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#9467bd&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#8c564b&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#e377c2&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#7f7f7f&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#bcbd22&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;#17becf&quot;</span><span class="p">,</span>
+            <span class="s2">"#1f77b4"</span><span class="p">,</span>
+            <span class="s2">"#ff7f0e"</span><span class="p">,</span>
+            <span class="s2">"#2ca02c"</span><span class="p">,</span>
+            <span class="s2">"#d62728"</span><span class="p">,</span>
+            <span class="s2">"#9467bd"</span><span class="p">,</span>
+            <span class="s2">"#8c564b"</span><span class="p">,</span>
+            <span class="s2">"#e377c2"</span><span class="p">,</span>
+            <span class="s2">"#7f7f7f"</span><span class="p">,</span>
+            <span class="s2">"#bcbd22"</span><span class="p">,</span>
+            <span class="s2">"#17becf"</span><span class="p">,</span>
         <span class="p">]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">patch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bplot</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">patch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bplot</span><span class="p">[</span><span class="s2">"boxes"</span><span class="p">]):</span>
             <span class="n">patch</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)])</span>
             <span class="n">patch</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">0.7</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">median</span> <span class="ow">in</span> <span class="n">bplot</span><span class="p">[</span><span class="s2">&quot;medians&quot;</span><span class="p">]:</span>
-            <span class="n">median</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">median</span> <span class="ow">in</span> <span class="n">bplot</span><span class="p">[</span><span class="s2">"medians"</span><span class="p">]:</span>
+            <span class="n">median</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">"black"</span><span class="p">)</span>
             <span class="n">median</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric_key</span><span class="si">}</span><span class="s2"> Distribution Over Seeds&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">metric_key</span><span class="si">}</span><span class="s2"> Distribution Over Seeds"</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">metric_key</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">save_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
             <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">"tight"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ax</span></div>
 </div>
 
@@ -1729,7 +1729,7 @@
 <div class="viewcode-block" id="MetaComparison">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.MetaComparison">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MetaComparison</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregate suite for comparing multiple experiments natively.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Aggregate suite for comparing multiple experiments natively."""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comparisons</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ComparisonResult</span><span class="p">]):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">comparisons</span> <span class="o">=</span> <span class="n">comparisons</span>
@@ -1741,7 +1741,7 @@
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;matplotlib is required. Install it with: pip install matplotlib&quot;</span>
+                <span class="s2">"matplotlib is required. Install it with: pip install matplotlib"</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comparisons</span><span class="p">)</span>
@@ -1756,12 +1756,12 @@
             <span class="n">comp</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">exp_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="c1"># Handle sphere log scaling if needed or keep default behavior</span>
 
-        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Convergence Parity Suite&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Convergence Parity Suite"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">save_path</span><span class="p">:</span>
             <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
             <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">"tight"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">axes</span></div>
 
 
@@ -1770,13 +1770,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_boxplot_grid</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span>
+        <span class="n">metric_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"best_fitness"</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;matplotlib is required.&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"matplotlib is required."</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comparisons</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1789,12 +1789,12 @@
         <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comparisons</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
             <span class="n">comp</span><span class="o">.</span><span class="n">plot_boxplots</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="n">metric_key</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">exp_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric_key</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2"> Distribution Suite&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">metric_key</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2"> Distribution Suite"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">save_path</span><span class="p">:</span>
             <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
             <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">"tight"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">axes</span></div>
 
 

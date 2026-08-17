@@ -310,7 +310,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.benchmarking.cli</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Unified CLI interface for MalthusJAX benchmarking and analysis.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""Unified CLI interface for MalthusJAX benchmarking and analysis."""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
@@ -325,42 +325,42 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_dump_results</span><span class="p">(</span><span class="n">comparison</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper to save results conforming to the strict CLI structure.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Helper to save results conforming to the strict CLI structure."""</span>
     <span class="n">out_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Metadata</span>
-    <span class="n">meta_dir</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="s2">&quot;metadata&quot;</span>
+    <span class="n">meta_dir</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="s2">"metadata"</span>
     <span class="n">meta_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">meta_dir</span> <span class="o">/</span> <span class="s2">&quot;config_snapshot.toml&quot;</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">meta_dir</span> <span class="o">/</span> <span class="s2">"config_snapshot.toml"</span><span class="p">)</span>
 
     <span class="c1"># Data</span>
-    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="s2">"data"</span>
     <span class="n">data_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">pipe_name</span><span class="p">,</span> <span class="n">exp_result</span> <span class="ow">in</span> <span class="n">comparison</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">pipe_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;pipeline_</span><span class="si">{</span><span class="n">pipe_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">pipe_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pipeline_</span><span class="si">{</span><span class="n">pipe_name</span><span class="si">}</span><span class="s2">"</span>
         <span class="n">pipe_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">run_result</span> <span class="ow">in</span> <span class="n">exp_result</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
             <span class="n">seed</span> <span class="o">=</span> <span class="n">run_result</span><span class="o">.</span><span class="n">seed</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pipe_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;seed_</span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pipe_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"seed_</span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">run_result</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="handle_run">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_run">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_run</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle `mjax run`.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Handle `mjax run`."""</span>
     <span class="n">config_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running experiment from </span><span class="si">{</span><span class="n">config_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running experiment from </span><span class="si">{</span><span class="n">config_path</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
     <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
     <span class="n">comparison</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">shared_initial_population</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">dur</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
 
-    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_path</span><span class="o">.</span><span class="n">stem</span>
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results"</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_path</span><span class="o">.</span><span class="n">stem</span>
     <span class="n">_dump_results</span><span class="p">(</span><span class="n">comparison</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Experiment complete in </span><span class="si">{</span><span class="n">dur</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s.&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Raw data saved to </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Experiment complete in </span><span class="si">{</span><span class="n">dur</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Raw data saved to </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">/data"</span><span class="p">)</span>
     <span class="k">return</span> <span class="mi">0</span></div>
 
 
@@ -368,19 +368,19 @@
 <div class="viewcode-block" id="handle_parity">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_parity">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_parity</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle `mjax parity`.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Handle `mjax parity`."""</span>
     <span class="n">config_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running statistical parity execution from </span><span class="si">{</span><span class="n">config_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running statistical parity execution from </span><span class="si">{</span><span class="n">config_path</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
     <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
     <span class="c1"># parity implies enforcing a shared initial pop for exact alignment</span>
     <span class="n">comparison</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">shared_initial_population</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">dur</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
 
-    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_path</span><span class="o">.</span><span class="n">stem</span>
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results"</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_path</span><span class="o">.</span><span class="n">stem</span>
     <span class="n">_dump_results</span><span class="p">(</span><span class="n">comparison</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parity execution complete in </span><span class="si">{</span><span class="n">dur</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s.&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Raw data saved to </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Parity execution complete in </span><span class="si">{</span><span class="n">dur</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Raw data saved to </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">/data"</span><span class="p">)</span>
     <span class="k">return</span> <span class="mi">0</span></div>
 
 
@@ -403,14 +403,14 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_load_comparison</span><span class="p">(</span><span class="n">results_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComparisonResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rebuild a ComparisonResult from the disk schema.&quot;&quot;&quot;</span>
-    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span>
+<span class="w">    </span><span class="sd">"""Rebuild a ComparisonResult from the disk schema."""</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">"data"</span>
     <span class="n">pipelines</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">pipe_dir</span> <span class="ow">in</span> <span class="n">data_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;pipeline_*&quot;</span><span class="p">):</span>
-        <span class="n">pipe_name</span> <span class="o">=</span> <span class="n">pipe_dir</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;pipeline_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pipe_dir</span> <span class="ow">in</span> <span class="n">data_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"pipeline_*"</span><span class="p">):</span>
+        <span class="n">pipe_name</span> <span class="o">=</span> <span class="n">pipe_dir</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"pipeline_"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
         <span class="n">runs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">seed_file</span> <span class="ow">in</span> <span class="n">pipe_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;seed_*.json&quot;</span><span class="p">):</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">seed_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">seed_file</span> <span class="ow">in</span> <span class="n">pipe_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"seed_*.json"</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">seed_file</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                 <span class="c1"># handle if it was just dumped via run_result.to_dict()</span>
                 <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RunResult</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
@@ -423,48 +423,48 @@
 <div class="viewcode-block" id="handle_analyze">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_analyze">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_analyze</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle `mjax analyze`.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Handle `mjax analyze`."""</span>
     <span class="n">results_dir</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">results_dir</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analyzing results in </span><span class="si">{</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Analyzing results in </span><span class="si">{</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
     <span class="n">comparison</span> <span class="o">=</span> <span class="n">_load_comparison</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)</span>
 
     <span class="n">pipe_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">comparison</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
-    <span class="n">analysis_dir</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">&quot;analysis&quot;</span>
+    <span class="n">analysis_dir</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">"analysis"</span>
     <span class="n">analysis_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipe_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">pipe_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pipe_names</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running statistical parity analysis for </span><span class="si">{</span><span class="n">left</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">right</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running statistical parity analysis for </span><span class="si">{</span><span class="n">left</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">right</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">StatisticalComparisonSpec</span><span class="p">(</span>
-            <span class="n">metric_name</span><span class="o">=</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span>
-            <span class="n">hypothesis_kind</span><span class="o">=</span><span class="n">HypothesisKind</span><span class="p">(</span><span class="s2">&quot;location_shift&quot;</span><span class="p">),</span>
-            <span class="n">sidedness</span><span class="o">=</span><span class="n">Sidedness</span><span class="p">(</span><span class="s2">&quot;two_sided&quot;</span><span class="p">),</span>
-            <span class="n">expected_direction</span><span class="o">=</span><span class="n">ExpectedDirection</span><span class="p">(</span><span class="s2">&quot;left_lt_right&quot;</span><span class="p">),</span>
+            <span class="n">metric_name</span><span class="o">=</span><span class="s2">"best_fitness"</span><span class="p">,</span>
+            <span class="n">hypothesis_kind</span><span class="o">=</span><span class="n">HypothesisKind</span><span class="p">(</span><span class="s2">"location_shift"</span><span class="p">),</span>
+            <span class="n">sidedness</span><span class="o">=</span><span class="n">Sidedness</span><span class="p">(</span><span class="s2">"two_sided"</span><span class="p">),</span>
+            <span class="n">expected_direction</span><span class="o">=</span><span class="n">ExpectedDirection</span><span class="p">(</span><span class="s2">"left_lt_right"</span><span class="p">),</span>
             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
-            <span class="n">multiple_testing</span><span class="o">=</span><span class="n">MultipleTestingPolicy</span><span class="p">(</span><span class="s2">&quot;none&quot;</span><span class="p">),</span>
+            <span class="n">multiple_testing</span><span class="o">=</span><span class="n">MultipleTestingPolicy</span><span class="p">(</span><span class="s2">"holm"</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">dataset</span> <span class="o">=</span> <span class="n">paired_dataset_from_comparison</span><span class="p">(</span><span class="n">comparison</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
         <span class="n">comparator</span> <span class="o">=</span> <span class="n">StatisticalComparator</span><span class="p">()</span>
         <span class="n">suite</span> <span class="o">=</span> <span class="n">comparator</span><span class="o">.</span><span class="n">compare_suite</span><span class="p">([</span><span class="n">dataset</span><span class="p">],</span> <span class="n">spec</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;parity_summary.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">"parity_summary.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">suite</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
         <span class="n">md_text</span> <span class="o">=</span> <span class="n">suite</span><span class="o">.</span><span class="n">to_markdown</span><span class="p">()</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;parity_summary.md&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">"parity_summary.md"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Parity Summary ---&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">--- Parity Summary ---"</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;----------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Analysis generated in analysis/&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"----------------------</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Analysis generated in analysis/"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Just standard mean/std dumps</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving standard mean/std dumps and unified tables...&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Saving standard mean/std dumps and unified tables..."</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="n">comparison</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">summary</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">()</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_summary.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_summary.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -477,26 +477,26 @@
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                         <span class="n">formatted_dict</span><span class="p">[</span><span class="n">pipe</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
                         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ci_margin&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
-                                <span class="n">formatted_dict</span><span class="p">[</span><span class="n">pipe</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;ci_margin&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_margin"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                                <span class="n">formatted_dict</span><span class="p">[</span><span class="n">pipe</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'ci_margin'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">"</span>
                             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                                <span class="n">formatted_dict</span><span class="p">[</span><span class="n">pipe</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span>
+                                <span class="n">formatted_dict</span><span class="p">[</span><span class="n">pipe</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">"</span>
                 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">formatted_dict</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-                <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;comparison_table.csv&quot;</span><span class="p">)</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">"comparison_table.csv"</span><span class="p">)</span>
                 <span class="n">md_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">to_markdown</span><span class="p">())</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;comparison_table.md&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">"comparison_table.md"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
 
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Comparison Summary ---&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">--- Comparison Summary ---"</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"--------------------------</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="n">latex_str</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">.</span><span class="n">summary_table</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">latex_str</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">&quot;comparison_table.tex&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">"comparison_table.tex"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">latex_str</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not generate unified tables: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not generate unified tables: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="mi">0</span></div>
 
@@ -505,34 +505,34 @@
 <div class="viewcode-block" id="handle_plot">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_plot">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_plot</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle `mjax plot`.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Handle `mjax plot`."""</span>
     <span class="n">results_dir</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">results_dir</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plotting results for </span><span class="si">{</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Plotting results for </span><span class="si">{</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
 
     <span class="n">comparison</span> <span class="o">=</span> <span class="n">_load_comparison</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)</span>
-    <span class="n">plot_dir</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">&quot;plots&quot;</span>
+    <span class="n">plot_dir</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">"plots"</span>
     <span class="n">plot_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Try to generate the combined convergence plot</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">comparison</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">&quot;convergence.png&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generated plots/convergence.png&quot;</span><span class="p">)</span>
+        <span class="n">comparison</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"convergence.png"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Generated plots/convergence.png"</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not generate convergence plot: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not generate convergence plot: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Try to generate the boxplot comparison</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">comparison</span><span class="o">.</span><span class="n">plot_boxplots</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">&quot;fitness_distribution.png&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generated plots/fitness_distribution.png&quot;</span><span class="p">)</span>
+        <span class="n">comparison</span><span class="o">.</span><span class="n">plot_boxplots</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"fitness_distribution.png"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Generated plots/fitness_distribution.png"</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not generate boxplots: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not generate boxplots: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Try to generate the timings boxplot</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">comparison</span><span class="o">.</span><span class="n">plot_boxplots</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="s2">&quot;duration_seconds&quot;</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">&quot;timings.png&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generated plots/timings.png&quot;</span><span class="p">)</span>
+        <span class="n">comparison</span><span class="o">.</span><span class="n">plot_boxplots</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="s2">"duration_seconds"</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"timings.png"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Generated plots/timings.png"</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not generate timings boxplot: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not generate timings boxplot: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="mi">0</span></div>
 
@@ -541,8 +541,8 @@
 <div class="viewcode-block" id="handle_report">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_report">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_report</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle `mjax report`.&quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generating full report for </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Handle `mjax report`."""</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Generating full report for </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="c1"># TODO: Chain analyze and plot</span>
     <span class="n">handle_analyze</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
     <span class="n">handle_plot</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
@@ -553,46 +553,46 @@
 <div class="viewcode-block" id="handle_aggregate">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_aggregate">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_aggregate</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle `mjax aggregate`.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Handle `mjax aggregate`."""</span>
     <span class="n">out_dir</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">out_dir</span>
     <span class="n">results_dirs</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">results_dirs</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Aggregating </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results_dirs</span><span class="p">)</span><span class="si">}</span><span class="s2"> experiments into </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Aggregating </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results_dirs</span><span class="p">)</span><span class="si">}</span><span class="s2"> experiments into </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
 
     <span class="n">comparisons</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">results_dirs</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Loading </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Loading </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">comp</span> <span class="o">=</span> <span class="n">_load_comparison</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
             <span class="n">comparisons</span><span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Failed to load </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Failed to load </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">comparisons</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No valid experiments loaded.&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"No valid experiments loaded."</span><span class="p">)</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="n">meta</span> <span class="o">=</span> <span class="n">MetaComparison</span><span class="p">(</span><span class="n">comparisons</span><span class="p">)</span>
 
     <span class="n">out_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">plot_dir</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="s2">&quot;plots&quot;</span>
+    <span class="n">plot_dir</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="s2">"plots"</span>
     <span class="n">plot_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating aggregate convergence grid...&quot;</span><span class="p">)</span>
-    <span class="n">meta</span><span class="o">.</span><span class="n">plot_convergence_grid</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">&quot;convergence_grid.png&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Generating aggregate convergence grid..."</span><span class="p">)</span>
+    <span class="n">meta</span><span class="o">.</span><span class="n">plot_convergence_grid</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"convergence_grid.png"</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating aggregate boxplot grid...&quot;</span><span class="p">)</span>
-    <span class="n">meta</span><span class="o">.</span><span class="n">plot_boxplot_grid</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">&quot;fitness_distribution_grid.png&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Generating aggregate boxplot grid..."</span><span class="p">)</span>
+    <span class="n">meta</span><span class="o">.</span><span class="n">plot_boxplot_grid</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"fitness_distribution_grid.png"</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating aggregate timings grid...&quot;</span><span class="p">)</span>
-    <span class="n">meta</span><span class="o">.</span><span class="n">plot_boxplot_grid</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="s2">&quot;duration_seconds&quot;</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">&quot;timings_grid.png&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Generating aggregate timings grid..."</span><span class="p">)</span>
+    <span class="n">meta</span><span class="o">.</span><span class="n">plot_boxplot_grid</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="s2">"duration_seconds"</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"timings_grid.png"</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating aggregate summary JSON...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Generating aggregate summary JSON..."</span><span class="p">)</span>
     <span class="n">summary</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">summary_table</span><span class="p">()</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_dir</span> <span class="o">/</span> <span class="s2">&quot;aggregate_summary.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_dir</span> <span class="o">/</span> <span class="s2">"aggregate_summary.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Aggregate report complete. Results saved in </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Aggregate report complete. Results saved in </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="mi">0</span></div>
 
 
@@ -600,12 +600,12 @@
 <div class="viewcode-block" id="handle_catalog">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_catalog">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_catalog</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle `mjax catalog`.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Handle `mjax catalog`."""</span>
     <span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
     <span class="n">available</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">list_available</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--- MalthusJAX Operator Catalog ---&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"--- MalthusJAX Operator Catalog ---"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">available</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="mi">0</span></div>
 
 
@@ -613,71 +613,71 @@
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.main">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main CLI entry point.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Main CLI entry point."""</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-        <span class="n">prog</span><span class="o">=</span><span class="s2">&quot;mjax&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;MalthusJAX Unified Benchmarking &amp; Analysis CLI&quot;</span>
+        <span class="n">prog</span><span class="o">=</span><span class="s2">"mjax"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"MalthusJAX Unified Benchmarking &amp; Analysis CLI"</span>
     <span class="p">)</span>
-    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s2">&quot;command&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s2">"command"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># 1. RUN</span>
-    <span class="n">parser_run</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Run an experiment from a TOML config&quot;</span><span class="p">)</span>
-    <span class="n">parser_run</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to experiment TOML config&quot;</span><span class="p">)</span>
+    <span class="n">parser_run</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"run"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Run an experiment from a TOML config"</span><span class="p">)</span>
+    <span class="n">parser_run</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"config"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Path to experiment TOML config"</span><span class="p">)</span>
     <span class="n">parser_run</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_run</span><span class="p">)</span>
 
     <span class="c1"># 2. PARITY</span>
     <span class="n">parser_parity</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="s2">&quot;parity&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Run seed-aligned statistical parity between pipelines&quot;</span>
+        <span class="s2">"parity"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Run seed-aligned statistical parity between pipelines"</span>
     <span class="p">)</span>
-    <span class="n">parser_parity</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to parity TOML config&quot;</span><span class="p">)</span>
+    <span class="n">parser_parity</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"config"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Path to parity TOML config"</span><span class="p">)</span>
     <span class="n">parser_parity</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_parity</span><span class="p">)</span>
 
     <span class="c1"># 3. ANALYZE</span>
     <span class="n">parser_analyze</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="s2">&quot;analyze&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Calculate statistical summaries from raw data&quot;</span>
+        <span class="s2">"analyze"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Calculate statistical summaries from raw data"</span>
     <span class="p">)</span>
-    <span class="n">parser_analyze</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;results_dir&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory containing raw JSON data&quot;</span><span class="p">)</span>
+    <span class="n">parser_analyze</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"results_dir"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Directory containing raw JSON data"</span><span class="p">)</span>
     <span class="n">parser_analyze</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_analyze</span><span class="p">)</span>
 
     <span class="c1"># 4. PLOT</span>
     <span class="n">parser_plot</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="s2">&quot;plot&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Generate diagnostic plots from raw data and analysis&quot;</span>
+        <span class="s2">"plot"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Generate diagnostic plots from raw data and analysis"</span>
     <span class="p">)</span>
-    <span class="n">parser_plot</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;results_dir&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory containing raw JSON data&quot;</span><span class="p">)</span>
+    <span class="n">parser_plot</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"results_dir"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Directory containing raw JSON data"</span><span class="p">)</span>
     <span class="n">parser_plot</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_plot</span><span class="p">)</span>
 
     <span class="c1"># 5. REPORT (Analyze + Plot)</span>
     <span class="n">parser_report</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="s2">&quot;report&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Generate both statistical summaries and diagnostic plots&quot;</span>
+        <span class="s2">"report"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Generate both statistical summaries and diagnostic plots"</span>
     <span class="p">)</span>
-    <span class="n">parser_report</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;results_dir&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory containing raw JSON data&quot;</span><span class="p">)</span>
+    <span class="n">parser_report</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"results_dir"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Directory containing raw JSON data"</span><span class="p">)</span>
     <span class="n">parser_report</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_report</span><span class="p">)</span>
 
     <span class="c1"># 6. AGGREGATE</span>
     <span class="n">parser_aggregate</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="s2">&quot;aggregate&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Aggregate multiple experiments into a suite report&quot;</span>
+        <span class="s2">"aggregate"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Aggregate multiple experiments into a suite report"</span>
     <span class="p">)</span>
     <span class="n">parser_aggregate</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--out_dir&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output directory for the aggregate suite&quot;</span>
+        <span class="s2">"--out_dir"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Output directory for the aggregate suite"</span>
     <span class="p">)</span>
     <span class="n">parser_aggregate</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;results_dirs&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;One or more experiment result directories&quot;</span>
+        <span class="s2">"results_dirs"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"+"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"One or more experiment result directories"</span>
     <span class="p">)</span>
     <span class="n">parser_aggregate</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_aggregate</span><span class="p">)</span>
 
     <span class="c1"># 7. CATALOG</span>
-    <span class="n">parser_catalog</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">&quot;catalog&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List registered framework operators&quot;</span><span class="p">)</span>
+    <span class="n">parser_catalog</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"catalog"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"List registered framework operators"</span><span class="p">)</span>
     <span class="n">parser_catalog</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_catalog</span><span class="p">)</span>
 
     <span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">parsed</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
         <span class="k">return</span> <span class="mi">1</span></div>
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
         </article>

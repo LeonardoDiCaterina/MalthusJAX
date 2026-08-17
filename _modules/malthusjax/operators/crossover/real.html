@@ -310,11 +310,11 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.operators.crossover.real</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Real-valued Crossover Operators.</span>
 <span class="sd">Refactored to be purely atomic consumers.</span>
 <span class="sd">Optimized to consume pre-allocated keys directly, avoiding internal splitting.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
@@ -333,33 +333,33 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.UniformCrossover">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">UniformCrossover</span><span class="p">(</span><span class="n">BaseCrossover</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Uniform Crossover (Fused 3-Tier Paradigm).</span>
 <span class="sd">    Per-gene independent selection from parents via Bernoulli mask. XLA fuses mask generation</span>
 <span class="sd">    (Tier 2) with selection kernel (Tier 1) into single compiled operation.</span>
 
 <span class="sd">    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)</span>
 <span class="sd">    Key budget: 1 pre-allocated subkey (from ResourceMapper) per pair.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">crossover_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bernoulli mask generation requires 1 PRNG subkey.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Bernoulli mask generation requires 1 PRNG subkey."""</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 2 — Bernoulli Mask (Binary noise).</span>
 <span class="sd">        Generates (d,) boolean array via Bernoulli(p=crossover_rate). Pre-allocated key</span>
 <span class="sd">        ensures deterministic, reproducible masking per pair (key determinism).</span>
 
 <span class="sd">        Returns: (d,) boolean array</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crossover_rate</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_recombine_one</span><span class="p">(</span>
@@ -370,13 +370,13 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 1 — XLA-Fused Recombination Kernel.</span>
 <span class="sd">        Pure arithmetic: select parent values using per-gene mask (True=p2, False=p1).</span>
 <span class="sd">        XLA fuses this selection with Tier 2 mask generation for single kernel launch.</span>
 
 <span class="sd">        Returns: Offspring RealGenome with (d,) values</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">offspring_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">p2</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">p1</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">offspring_values</span><span class="p">)</span>
@@ -388,7 +388,7 @@
         <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — pure arithmetic selection.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — pure arithmetic selection."""</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">p2_values</span><span class="p">,</span> <span class="n">p1_values</span><span class="p">)</span></div>
 
@@ -398,30 +398,30 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.UniformCrossover_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">UniformCrossover_injection</span><span class="p">(</span><span class="n">BaseCrossover_injection</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Injection-mode Uniform Crossover.</span>
 <span class="sd">    Single key splits into (n_pairs * n_offspring) subkeys; jax.vmap(per_row) generates all masks</span>
 <span class="sd">    in parallel, returning (n_pairs * n_offspring, d) flattened array for base wrapper to unfold.</span>
 <span class="sd">    Trade-off: Full noise materialization enables reproducibility without key re-splitting.</span>
 
 <span class="sd">    Shape contract: Parent (d,) → Noise (d,), vmapped to (K, d) then flattened to (K*d,)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">crossover_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Single key for Bernoulli mask generation (split internally).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Single key for Bernoulli mask generation (split internally)."""</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate all (pair, offspring) masks upfront. Shape: (n_pairs * n_offspring, d).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Generate all (pair, offspring) masks upfront. Shape: (n_pairs * n_offspring, d)."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Set `input_length` and `num_offspring` before calling _generate_noise.&quot;</span>
+                <span class="s2">"Set `input_length` and `num_offspring` before calling _generate_noise."</span>
             <span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">)</span>
         <span class="n">subkeys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
@@ -439,7 +439,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;XLA-fused recombination: select using per-gene pre-generated mask.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""XLA-fused recombination: select using per-gene pre-generated mask."""</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">offspring_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">p2</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">p1</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">offspring_values</span><span class="p">)</span>
@@ -451,7 +451,7 @@
         <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — pure arithmetic selection.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — pure arithmetic selection."""</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">p2_values</span><span class="p">,</span> <span class="n">p1_values</span><span class="p">)</span></div>
 
@@ -461,7 +461,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.BlendCrossover">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BlendCrossover</span><span class="p">(</span><span class="n">BaseCrossover</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Blend Crossover (BLX-α) — Adaptive Parent-Centered Exploration.</span>
+<span class="w">    </span><span class="sd">"""Blend Crossover (BLX-α) — Adaptive Parent-Centered Exploration.</span>
 
 <span class="sd">    Blend crossover expands the interval [min(p1,p2), max(p1,p2)] by a factor proportional</span>
 <span class="sd">    to the parent distance, then uniformly samples offspring within this expanded range.</span>
@@ -477,15 +477,15 @@
 
 <span class="sd">    **String Specification Format**::</span>
 
-<span class="sd">        &quot;blend:alpha=FLOAT[,crossover_rate=FLOAT]&quot;</span>
+<span class="sd">        "blend:alpha=FLOAT[,crossover_rate=FLOAT]"</span>
 
 <span class="sd">    Examples::</span>
 
-<span class="sd">        &quot;blend&quot;                                     # Defaults (alpha=0.5, crossover_rate=0.9)</span>
-<span class="sd">        &quot;blend:alpha=0.5&quot;                          # Classic BLX-0.5</span>
-<span class="sd">        &quot;blend:alpha=0.0&quot;                          # Uniform crossover (no expansion)</span>
-<span class="sd">        &quot;blend:alpha=1.0&quot;                          # Aggressive expansion (more exploration)</span>
-<span class="sd">        &quot;blend:alpha=0.25,crossover_rate=0.8&quot;      # Both custom</span>
+<span class="sd">        "blend"                                     # Defaults (alpha=0.5, crossover_rate=0.9)</span>
+<span class="sd">        "blend:alpha=0.5"                          # Classic BLX-0.5</span>
+<span class="sd">        "blend:alpha=0.0"                          # Uniform crossover (no expansion)</span>
+<span class="sd">        "blend:alpha=1.0"                          # Aggressive expansion (more exploration)</span>
+<span class="sd">        "blend:alpha=0.25,crossover_rate=0.8"      # Both custom</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -528,7 +528,7 @@
 <span class="sd">    **Trade-offs**:</span>
 <span class="sd">    - Pros: Simple, adaptive to parent distance, less bias than uniform crossover</span>
 <span class="sd">    - Cons: Less control over distribution shape compared to SBX</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">crossover_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.9</span>
@@ -536,7 +536,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Requires 2 PRNG subkeys: decision (Bernoulli) and sampling (Uniform).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Requires 2 PRNG subkeys: decision (Bernoulli) and sampling (Uniform)."""</span>
         <span class="k">return</span> <span class="mi">2</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
@@ -545,11 +545,11 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 2 — Stochastic Payload (Heterogeneous).</span>
 <span class="sd">        Returns tuple: (should_cross: scalar bool, random_samples: (d,) uniform[0,1]).</span>
 <span class="sd">        Pre-allocated keys ensure deterministic noise per pair.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">k_do</span><span class="p">,</span> <span class="n">k_val</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">should_cross</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">k_do</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crossover_rate</span><span class="p">)</span>
         <span class="n">float_dtype</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">dtype</span> <span class="k">if</span> <span class="n">jnp</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">floating</span><span class="p">)</span> <span class="k">else</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span>
@@ -564,14 +564,14 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 1 — XLA-Fused Blend Kernel.</span>
 <span class="sd">        Interval expansion: [cmin, cmax] = [min(p1,p2) - α·diff, max(p1,p2) + α·diff];</span>
 <span class="sd">        sampling: cmin + u·(cmax-cmin); boundary clipping; conditional selection (should_cross).</span>
 <span class="sd">        XLA fuses all arithmetic into single kernel.</span>
 
 <span class="sd">        Returns: Offspring RealGenome with (d,) clipped values</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">should_cross</span><span class="p">,</span> <span class="n">random_vals</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -594,7 +594,7 @@
         <span class="n">noise_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — pure blend arithmetic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — pure blend arithmetic."""</span>
         <span class="n">should_cross</span><span class="p">,</span> <span class="n">random_vals</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">p1_values</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -614,7 +614,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.BlendCrossover_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BlendCrossover_injection</span><span class="p">(</span><span class="n">BaseCrossover_injection</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Injection-mode Blend Crossover.</span>
 <span class="sd">    Single key splits to (n_pairs * n_offspring * 2) subkeys, reshaped (n, 2, -1).</span>
 <span class="sd">    jax.vmap(per_row, in_axes=0) generates all masks and samples, returning tuple of</span>
@@ -622,7 +622,7 @@
 
 <span class="sd">    Shape contract: Noise = (tuple of (n,) scalars, (n, d) uniform)</span>
 <span class="sd">    Trade-off: Full materialization enables exact reproducibility.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">crossover_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.9</span>
@@ -630,7 +630,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;2 keys per (pair, offspring) — split into (n*2) total, reshaped for vmap.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""2 keys per (pair, offspring) — split into (n*2) total, reshaped for vmap."""</span>
         <span class="k">return</span> <span class="mi">2</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
@@ -639,10 +639,10 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate all (pair, offspring) decisions and samples in parallel. Returns tuple.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Generate all (pair, offspring) decisions and samples in parallel. Returns tuple."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Set `input_length` and `num_offspring` before calling _generate_noise.&quot;</span>
+                <span class="s2">"Set `input_length` and `num_offspring` before calling _generate_noise."</span>
             <span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">)</span>
         <span class="n">subkeys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">n</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
@@ -667,7 +667,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;XLA-fused blend kernel matching fused variant logic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""XLA-fused blend kernel matching fused variant logic."""</span>
         <span class="n">should_cross</span><span class="p">,</span> <span class="n">random_vals</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -690,7 +690,7 @@
         <span class="n">noise_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — pure blend arithmetic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — pure blend arithmetic."""</span>
         <span class="n">should_cross</span><span class="p">,</span> <span class="n">random_vals</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">p1_values</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -711,7 +711,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.SimulatedBinaryCrossover">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SimulatedBinaryCrossover</span><span class="p">(</span><span class="n">BaseCrossover</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simulated Binary Crossover (SBX) — Distribution-Aware Recombination.</span>
+<span class="w">    </span><span class="sd">"""Simulated Binary Crossover (SBX) — Distribution-Aware Recombination.</span>
 
 <span class="sd">    SBX simulates the behavior of single-point binary crossover on real-valued genomes.</span>
 <span class="sd">    It generates two candidate offspring (c1, c2) via a spread factor β that concentrates</span>
@@ -732,15 +732,15 @@
 
 <span class="sd">    **String Specification Format**::</span>
 
-<span class="sd">        &quot;simulated_binary:eta=FLOAT[,crossover_rate=FLOAT]&quot;</span>
+<span class="sd">        "simulated_binary:eta=FLOAT[,crossover_rate=FLOAT]"</span>
 
 <span class="sd">    Examples::</span>
 
-<span class="sd">        &quot;simulated_binary&quot;                          # Defaults (eta=20.0, crossover_rate=0.9)</span>
-<span class="sd">        &quot;simulated_binary:eta=10&quot;                   # Less concentrated, more exploration</span>
-<span class="sd">        &quot;simulated_binary:eta=20&quot;                   # Standard (balanced exploitation/exploration)</span>
-<span class="sd">        &quot;simulated_binary:eta=50&quot;                   # Very concentrated near parents (exploitation)</span>
-<span class="sd">        &quot;simulated_binary:eta=5,crossover_rate=1.0&quot; # Always apply, explore more</span>
+<span class="sd">        "simulated_binary"                          # Defaults (eta=20.0, crossover_rate=0.9)</span>
+<span class="sd">        "simulated_binary:eta=10"                   # Less concentrated, more exploration</span>
+<span class="sd">        "simulated_binary:eta=20"                   # Standard (balanced exploitation/exploration)</span>
+<span class="sd">        "simulated_binary:eta=50"                   # Very concentrated near parents (exploitation)</span>
+<span class="sd">        "simulated_binary:eta=5,crossover_rate=1.0" # Always apply, explore more</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -791,7 +791,7 @@
 <span class="sd">    **Trade-offs**:</span>
 <span class="sd">    - Pros: Theoretically grounded, distribution-aware, proven track record</span>
 <span class="sd">    - Cons: Requires tuning η for different problems/phases</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">crossover_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.9</span>
@@ -799,7 +799,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Requires 3 PRNG subkeys: decision (Bernoulli), spread (Uniform), swap (Bernoulli).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Requires 3 PRNG subkeys: decision (Bernoulli), spread (Uniform), swap (Bernoulli)."""</span>
         <span class="k">return</span> <span class="mi">3</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
@@ -808,12 +808,12 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 2 — Stochastic Payload (Heterogeneous).</span>
 <span class="sd">        Returns: (should_cross: scalar bool, u: (d,) uniform, swap_mask: (d,) bool).</span>
 <span class="sd">        Per-offspring key allocation ensures swap_mask varies across kernel calls,</span>
 <span class="sd">        enabling distinct children even with identical parents.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">k_do</span><span class="p">,</span> <span class="n">k_beta</span><span class="p">,</span> <span class="n">k_swap</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">should_cross</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">k_do</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crossover_rate</span><span class="p">)</span>
         <span class="n">float_dtype</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">dtype</span> <span class="k">if</span> <span class="n">jnp</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">floating</span><span class="p">)</span> <span class="k">else</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span>
@@ -829,14 +829,14 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 1 — XLA-Fused SBX Kernel (Pure, returns single offspring).</span>
 <span class="sd">        Per-offspring keys in base class ensure swap_mask differs across num_offspring calls,</span>
 <span class="sd">        yielding distinct children from identical parents. XLA fuses spread factor calculation,</span>
 <span class="sd">        child generation, selection, clipping, and conditional application.</span>
 
 <span class="sd">        Returns: Offspring RealGenome with (d,) clipped values</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">should_cross</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">swap_mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -860,7 +860,7 @@
         <span class="n">noise_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — pure SBX arithmetic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — pure SBX arithmetic."""</span>
         <span class="n">should_cross</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">swap_mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">p1_values</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -881,7 +881,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.SimulatedBinaryCrossover_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SimulatedBinaryCrossover_injection</span><span class="p">(</span><span class="n">BaseCrossover_injection</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Injection-mode Simulated Binary Crossover (SBX).</span>
 <span class="sd">    Single key splits to (n_pairs * n_offspring * 3) subkeys, reshaped (n, 3, -1).</span>
 <span class="sd">    jax.vmap(per_row, in_axes=0) generates decisions, spreads, and swaps in parallel,</span>
@@ -889,7 +889,7 @@
 
 <span class="sd">    Shape contract: Noise = (tuple of (n,) scalars, (n, d) uniform, (n, d) bools)</span>
 <span class="sd">    Trade-off: Full materialization enables exact reproducibility and distinctness.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">crossover_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.9</span>
@@ -897,7 +897,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;3 keys per (pair, offspring) — split into (n*3) total, reshaped for vmap.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""3 keys per (pair, offspring) — split into (n*3) total, reshaped for vmap."""</span>
         <span class="k">return</span> <span class="mi">3</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
@@ -906,10 +906,10 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate all (pair, offspring) decisions, spreads, and swaps in parallel.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Generate all (pair, offspring) decisions, spreads, and swaps in parallel."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Set `input_length` and `num_offspring` before calling _generate_noise.&quot;</span>
+                <span class="s2">"Set `input_length` and `num_offspring` before calling _generate_noise."</span>
             <span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">)</span>
         <span class="n">total</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
@@ -936,7 +936,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;XLA-fused SBX kernel matching fused variant logic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""XLA-fused SBX kernel matching fused variant logic."""</span>
         <span class="n">should_cross</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">swap_mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -960,7 +960,7 @@
         <span class="n">noise_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — pure SBX arithmetic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — pure SBX arithmetic."""</span>
         <span class="n">should_cross</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">swap_mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">p1_values</span><span class="o">.</span><span class="n">dtype</span>
 
@@ -981,27 +981,27 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.BinomialCrossover">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BinomialCrossover</span><span class="p">(</span><span class="n">BaseCrossover</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    DE Binomial Crossover — Fused 3-Tier Paradigm.</span>
 <span class="sd">    Per-gene selection between mutant (p1) and target (p2) via Bernoulli mask, followed by</span>
 <span class="sd">    boundary clipping. Typical use in differential evolution context (mutant ↔ candidate).</span>
 
 <span class="sd">    Shape contract: Parent (d,) × Parent (d,) → Offspring (d,)</span>
 <span class="sd">    Key budget: 1 subkey (Bernoulli mask generation)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">crossover_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.9</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bernoulli mask requires 1 PRNG subkey.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Bernoulli mask requires 1 PRNG subkey."""</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2 — Bernoulli Mask. Returns (d,) boolean array for per-gene selection.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 2 — Bernoulli Mask. Returns (d,) boolean array for per-gene selection."""</span>
         <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crossover_rate</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_recombine_one</span><span class="p">(</span>
@@ -1012,13 +1012,13 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Tier 1 — XLA-Fused Binomial Kernel.</span>
 <span class="sd">        Per-gene selection (True=mutant p1, False=target p2) fused with boundary clipping</span>
 <span class="sd">        into single XLA kernel.</span>
 
 <span class="sd">        Returns: Offspring RealGenome with (d,) clipped values</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">cross_mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">trial_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cross_mask</span><span class="p">,</span> <span class="n">p1</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">p2</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -1032,7 +1032,7 @@
         <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — pure binomial arithmetic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — pure binomial arithmetic."""</span>
         <span class="n">cross_mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">trial_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cross_mask</span><span class="p">,</span> <span class="n">p1_values</span><span class="p">,</span> <span class="n">p2_values</span><span class="p">)</span>
         <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -1044,7 +1044,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.BinomialCrossover_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BinomialCrossover_injection</span><span class="p">(</span><span class="n">BaseCrossover_injection</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Injection-mode Binomial Crossover.</span>
 <span class="sd">    Single key splits into (n_pairs * n_offspring) subkeys; jax.vmap(per_row) generates all</span>
 <span class="sd">    masks in parallel, returning (n_pairs * n_offspring, d) flattened array for base wrapper</span>
@@ -1052,23 +1052,23 @@
 
 <span class="sd">    Shape contract: Noise (K, d) flattened for (pair, offspring) application</span>
 <span class="sd">    Trade-off: Full materialization enables reproducibility without key re-splitting.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">crossover_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.9</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Single key for Bernoulli mask generation (split internally).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Single key for Bernoulli mask generation (split internally)."""</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate all (pair, offspring) masks upfront. Shape: (n_pairs * n_offspring, d).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Generate all (pair, offspring) masks upfront. Shape: (n_pairs * n_offspring, d)."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Set `input_length` and `num_offspring` before calling _generate_noise.&quot;</span>
+                <span class="s2">"Set `input_length` and `num_offspring` before calling _generate_noise."</span>
             <span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">)</span>
         <span class="n">subkeys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
@@ -1086,7 +1086,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;XLA-fused binomial kernel: per-gene selection fused with clipping.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""XLA-fused binomial kernel: per-gene selection fused with clipping."""</span>
         <span class="n">cross_mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">trial_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cross_mask</span><span class="p">,</span> <span class="n">p2</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">p1</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -1100,7 +1100,7 @@
         <span class="n">noise_data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — pure binomial arithmetic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — pure binomial arithmetic."""</span>
         <span class="n">cross_mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">trial_values</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cross_mask</span><span class="p">,</span> <span class="n">p2_values</span><span class="p">,</span> <span class="n">p1_values</span><span class="p">)</span>
         <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">bounds</span>
@@ -1109,15 +1109,15 @@
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;UniformCrossover&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SimulatedBinaryCrossover&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BlendCrossover&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BinomialCrossover&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;UniformCrossover_injection&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BlendCrossover_injection&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BinomialCrossover_injection&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SimulatedBinaryCrossover_injection&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BatchedUniformCrossover&quot;</span><span class="p">,</span>
+    <span class="s2">"UniformCrossover"</span><span class="p">,</span>
+    <span class="s2">"SimulatedBinaryCrossover"</span><span class="p">,</span>
+    <span class="s2">"BlendCrossover"</span><span class="p">,</span>
+    <span class="s2">"BinomialCrossover"</span><span class="p">,</span>
+    <span class="s2">"UniformCrossover_injection"</span><span class="p">,</span>
+    <span class="s2">"BlendCrossover_injection"</span><span class="p">,</span>
+    <span class="s2">"BinomialCrossover_injection"</span><span class="p">,</span>
+    <span class="s2">"SimulatedBinaryCrossover_injection"</span><span class="p">,</span>
+    <span class="s2">"BatchedUniformCrossover"</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -1125,12 +1125,12 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.crossover.real.html#malthusjax.operators.BatchedUniformCrossover">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BatchedUniformCrossover</span><span class="p">(</span><span class="n">UniformCrossover</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Batched Uniform Crossover (Monolithic Execution).</span>
+<span class="w">    </span><span class="sd">"""Batched Uniform Crossover (Monolithic Execution).</span>
 
 <span class="sd">    This operator bypasses vmap and generates a monolithic crossover mask</span>
-<span class="sd">    for the entire population, matching EvoSAX&#39;s raw execution speed.</span>
+<span class="sd">    for the entire population, matching EvoSAX's raw execution speed.</span>
 <span class="sd">    It expects `p1_pop.genes.values` and `p2_pop.genes.values` to be batched arrays.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>

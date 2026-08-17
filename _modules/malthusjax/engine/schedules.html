@@ -310,7 +310,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.engine.schedules</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">JAX-native mutation strength schedules.</span>
 
 <span class="sd">Provides pure-JAX schedule computation that is safe inside jax.lax.scan.</span>
@@ -333,7 +333,7 @@
 <span class="sd">        ScheduleType.LINEAR_DECAY, generation, max_generations,</span>
 <span class="sd">        initial_strength=1.0, final_strength=0.01,</span>
 <span class="sd">    )</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -345,14 +345,14 @@
 <div class="viewcode-block" id="ScheduleType">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.schedules.html#malthusjax.ScheduleType">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ScheduleType</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">IntEnum</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mutation strength schedule type.</span>
+<span class="w">    </span><span class="sd">"""Mutation strength schedule type.</span>
 
 <span class="sd">    Each variant maps to a row in the vectorized schedule lookup table</span>
 <span class="sd">    inside ``compute_scheduled_strength``.  Using IntEnum ensures the</span>
 <span class="sd">    value is a concrete Python int usable as a ``pytree_node=False``</span>
 <span class="sd">    field — the JIT static fingerprint changes only if the schedule</span>
 <span class="sd">    *type* changes, not its parameters.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">CONSTANT</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">LINEAR_DECAY</span> <span class="o">=</span> <span class="mi">1</span>
@@ -364,7 +364,7 @@
 <div class="viewcode-block" id="TrackBest">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.schedules.html#malthusjax.TrackBest">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TrackBest</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">IntEnum</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Controls how the Hall-of-Fame (best individual) is tracked during</span>
+<span class="w">    </span><span class="sd">"""Controls how the Hall-of-Fame (best individual) is tracked during</span>
 <span class="sd">    the ``jax.lax.scan`` evolution loop.</span>
 
 <span class="sd">    Selecting a lighter mode reduces scan-carry size and eliminates</span>
@@ -372,7 +372,7 @@
 
 <span class="sd">    ``NONE``</span>
 <span class="sd">        Zero extra ops per step.  ``best_fitness`` / ``best_genome`` in</span>
-<span class="sd">        the scan carry are passed through unchanged.  The history&#39;s</span>
+<span class="sd">        the scan carry are passed through unchanged.  The history's</span>
 <span class="sd">        ``best_fitness`` reports *per-generation* best (NOT monotonic).</span>
 <span class="sd">        After ``run()`` completes, a one-shot post-scan finalization</span>
 <span class="sd">        populates ``best_genome`` and ``best_fitness`` on the final</span>
@@ -391,7 +391,7 @@
 <span class="sd">        ``jnp.where`` on genome leaves.  ``best_genome`` is maintained</span>
 <span class="sd">        in the carry across all generations.  Uses ``jnp.where`` instead</span>
 <span class="sd">        of ``jax.lax.cond`` to avoid the XLA fusion barrier.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">NONE</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">LIGHT</span> <span class="o">=</span> <span class="mi">1</span>
@@ -402,18 +402,18 @@
 <div class="viewcode-block" id="TrackMetrics">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.schedules.html#malthusjax.TrackMetrics">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TrackMetrics</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">IntEnum</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Controls how fitness metrics are tracked during the evolution loop.</span>
+<span class="w">    </span><span class="sd">"""Controls how fitness metrics are tracked during the evolution loop.</span>
 
 <span class="sd">    ``NONE``</span>
 <span class="sd">        No metrics are tracked. mean_fitness and std_fitness are dummy zeros.</span>
-<span class="sd">        Allows XLA&#39;s Dead Code Elimination (DCE) to prune mean/std reduction operations.</span>
+<span class="sd">        Allows XLA's Dead Code Elimination (DCE) to prune mean/std reduction operations.</span>
 
 <span class="sd">    ``BASIC``</span>
 <span class="sd">        Tracks mean_fitness, but std_fitness is dummy zero.</span>
 
 <span class="sd">    ``ALL``</span>
 <span class="sd">        Tracks both mean_fitness and std_fitness.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">NONE</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">BASIC</span> <span class="o">=</span> <span class="mi">1</span>
@@ -430,7 +430,7 @@
     <span class="n">initial_strength</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">final_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the mutation strength corresponding to a generation.</span>
+<span class="w">    </span><span class="sd">"""Return the mutation strength corresponding to a generation.</span>
 
 <span class="sd">    The implementation relies exclusively on ``jnp`` operations so that</span>
 <span class="sd">    ``generation`` may be a tracer inside a JAX scan. The schedule type and</span>
@@ -440,7 +440,7 @@
 <span class="sd">    Supported schedules include constant, linear decay, cosine annealing and</span>
 <span class="sd">    exponential decay. ``final_strength`` is ignored for types that do not</span>
 <span class="sd">    depend on it.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">schedule</span> <span class="o">==</span> <span class="n">ScheduleType</span><span class="o">.</span><span class="n">CONSTANT</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initial_strength</span><span class="p">)</span>
 
@@ -455,7 +455,7 @@
     <span class="k">elif</span> <span class="n">schedule</span> <span class="o">==</span> <span class="n">ScheduleType</span><span class="o">.</span><span class="n">EXPONENTIAL_DECAY</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initial_strength</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span> <span class="o">*</span> <span class="n">t</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown schedule type: </span><span class="si">{</span><span class="n">schedule</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown schedule type: </span><span class="si">{</span><span class="n">schedule</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 
 </pre></div>
         </article>

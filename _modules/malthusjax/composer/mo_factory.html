@@ -310,7 +310,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.mo_factory</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Helpers for constructing MO engines for the Composer.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""Helpers for constructing MO engines for the Composer."""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
@@ -327,7 +327,7 @@
 <div class="viewcode-block" id="MOEngineAdapter">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.html#malthusjax.composer.MOEngineAdapter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MOEngineAdapter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adapter to make MOEngine compatible with BenchmarkRunner.Engine protocol.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Adapter to make MOEngine compatible with BenchmarkRunner.Engine protocol."""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -368,15 +368,15 @@
         <span class="n">num_gens</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">num_generations</span><span class="p">)</span>
         <span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">track_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">[</span>
-            <span class="s2">&quot;num_pareto_optimal&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;max_crowding_distance&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;mean_fitness&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;std_fitness&quot;</span><span class="p">,</span>
+            <span class="s2">"num_pareto_optimal"</span><span class="p">,</span>
+            <span class="s2">"max_crowding_distance"</span><span class="p">,</span>
+            <span class="s2">"best_fitness"</span><span class="p">,</span>
+            <span class="s2">"mean_fitness"</span><span class="p">,</span>
+            <span class="s2">"std_fitness"</span><span class="p">,</span>
         <span class="p">]</span>
 
         <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_gens</span><span class="p">):</span>
-            <span class="n">gen_stats</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;generation&quot;</span><span class="p">:</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
+            <span class="n">gen_stats</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"generation"</span><span class="p">:</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">track_keys</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
                     <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">)[</span><span class="n">g</span><span class="p">]</span>
@@ -384,10 +384,10 @@
             <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gen_stats</span><span class="p">)</span>
 
         <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">),</span>
-            <span class="s2">&quot;final_generation&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span><span class="p">),</span>
-            <span class="s2">&quot;num_pareto_optimal&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">pareto_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)),</span>
-            <span class="s2">&quot;total_evaluations&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">),</span>
+            <span class="s2">"final_generation"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span><span class="p">),</span>
+            <span class="s2">"num_pareto_optimal"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">pareto_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)),</span>
+            <span class="s2">"total_evaluations"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
                 <span class="n">final_state</span><span class="o">.</span><span class="n">generation</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span>
             <span class="p">),</span>
         <span class="p">}</span>
@@ -395,17 +395,17 @@
         <span class="c1"># Timings</span>
         <span class="c1"># We did not strictly isolate JIT from execution for brevity in the adapter,</span>
         <span class="c1"># but time_it=False compile=True internally compiles inside run().</span>
-        <span class="c1"># Actually, let&#39;s just record total time.</span>
+        <span class="c1"># Actually, let's just record total time.</span>
         <span class="n">t_total_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
         <span class="n">timings</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;execution&quot;</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_exec_start</span><span class="p">,</span>
-            <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="n">t_total_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
+            <span class="s2">"execution"</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_exec_start</span><span class="p">,</span>
+            <span class="s2">"total"</span><span class="p">:</span> <span class="n">t_total_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;history&quot;</span><span class="p">:</span> <span class="n">history</span><span class="p">,</span>
-            <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
-            <span class="s2">&quot;timings&quot;</span><span class="p">:</span> <span class="n">timings</span><span class="p">,</span>
+            <span class="s2">"history"</span><span class="p">:</span> <span class="n">history</span><span class="p">,</span>
+            <span class="s2">"summary"</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
+            <span class="s2">"timings"</span><span class="p">:</span> <span class="n">timings</span><span class="p">,</span>
         <span class="p">}</span></div>
 </div>
 
@@ -416,7 +416,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">build_mo_engine</span><span class="p">(</span>
     <span class="n">fitness_evaluator</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">emitter</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="n">genome_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;real&quot;</span><span class="p">,</span>
+    <span class="n">genome_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"real"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
     <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">genome_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,),</span>
@@ -424,22 +424,22 @@
     <span class="n">history_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MOEngineAdapter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a MOEngine from concrete operator instances.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Build a MOEngine from concrete operator instances."""</span>
 
-    <span class="k">if</span> <span class="s2">&quot;genome_length&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">genome_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;genome_length&quot;</span><span class="p">)),)</span>
+    <span class="k">if</span> <span class="s2">"genome_length"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">genome_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"genome_length"</span><span class="p">)),)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">genome_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
         <span class="n">genome_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">genome_shape</span><span class="p">,)</span>
 
     <span class="n">genome_config</span><span class="p">:</span> <span class="n">Any</span>
-    <span class="k">if</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">&quot;real&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">"real"</span><span class="p">:</span>
         <span class="n">genome_config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dtype"</span><span class="p">,</span> <span class="s2">"float32"</span><span class="p">)</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">&quot;binary&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">"binary"</span><span class="p">:</span>
         <span class="n">genome_config</span> <span class="o">=</span> <span class="n">BinaryGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported genome type: </span><span class="si">{</span><span class="n">genome_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported genome type: </span><span class="si">{</span><span class="n">genome_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="n">engine_params</span> <span class="o">=</span> <span class="n">MOEngineParams</span><span class="p">(</span>
         <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
@@ -448,9 +448,9 @@
 
     <span class="n">engine</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">MOEngine</span><span class="p">(</span><span class="n">emitter</span><span class="o">=</span><span class="n">emitter</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">fitness_evaluator</span><span class="p">,</span> <span class="n">engine_params</span><span class="o">=</span><span class="n">engine_params</span><span class="p">)</span>
 
-    <span class="n">maximize_flag</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fitness_evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">maximize_flag</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fitness_evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">"maximize"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
-    <span class="n">initial_population</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;initial_population&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">initial_population</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">MOEngineAdapter</span><span class="p">(</span>
         <span class="n">engine</span><span class="p">,</span>

@@ -310,7 +310,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.engine_factory</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Helpers for constructing engines from string/catalog specifications.</span>
+<span></span><span class="sd">"""Helpers for constructing engines from string/catalog specifications.</span>
 
 <span class="sd">This module contains adapters and factory functions that bridge the</span>
 <span class="sd">low-level :class:`~malthusjax.engine.GeneticEngine` implementation with the</span>
@@ -319,7 +319,7 @@
 <span class="sd">operator instances (or strings) along with configuration parameters and</span>
 <span class="sd">produce a :class:`GeneticEngineAdapter` conforming to the</span>
 <span class="sd">:class:`~malthusjax.benchmarking.runner.Engine` protocol.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -343,11 +343,11 @@
 <div class="viewcode-block" id="GeneticEngineAdapter">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.GeneticEngineAdapter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeneticEngineAdapter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adapter to make GeneticEngine compatible with BenchmarkRunner.Engine protocol.</span>
+<span class="w">    </span><span class="sd">"""Adapter to make GeneticEngine compatible with BenchmarkRunner.Engine protocol.</span>
 
 <span class="sd">    Accepts an optional `initial_population` (array-like) to override the</span>
 <span class="sd">    engine-initialised population for reproducible cross-engine comparisons.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -368,18 +368,18 @@
 <div class="viewcode-block" id="GeneticEngineAdapter.run_once">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.GeneticEngineAdapter.run_once">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">run_once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run one evolutionary experiment and return BenchmarkRunner-compatible results.</span>
+<span class="w">        </span><span class="sd">"""Run one evolutionary experiment and return BenchmarkRunner-compatible results.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        **Timing methodology**:</span>
-<span class="sd">        The method separates JIT compilation cost (&quot;warmup&quot;) from pure</span>
+<span class="sd">        The method separates JIT compilation cost ("warmup") from pure</span>
 <span class="sd">        evolution execution time.  The warmup phase includes state</span>
 <span class="sd">        initialization, population setup, and explicit JIT compilation.</span>
 <span class="sd">        The execution phase times only the pre-compiled scan loop,</span>
-<span class="sd">        matching the EvoSAX adapter&#39;s identical timing structure.</span>
+<span class="sd">        matching the EvoSAX adapter's identical timing structure.</span>
 <span class="sd">        Both adapters report ``warmup``, ``execution``, and ``total``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># ---- Warmup phase: state init + JIT compilation ----</span>
         <span class="n">t_warmup_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
         <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
@@ -411,7 +411,7 @@
             <span class="n">initial_best</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">best_fitness</span><span class="p">)</span>
 
         <span class="c1"># JIT compilation warmup — trigger tracing + XLA optimisation so</span>
-        <span class="c1"># the cost is captured in the &quot;warmup&quot; bucket, not &quot;execution&quot;.</span>
+        <span class="c1"># the cost is captured in the "warmup" bucket, not "execution".</span>
         <span class="n">_ws</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="n">_ws</span><span class="o">.</span><span class="n">best_fitness</span><span class="o">.</span><span class="n">block_until_ready</span><span class="p">()</span>
 
@@ -429,18 +429,18 @@
         <span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="mf">1.0</span>
 
-        <span class="n">track_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span> <span class="s2">&quot;mean_fitness&quot;</span><span class="p">,</span> <span class="s2">&quot;std_fitness&quot;</span><span class="p">]</span>
+        <span class="n">track_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="s2">"std_fitness"</span><span class="p">]</span>
 
         <span class="n">fitness_auc</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_gens</span><span class="p">):</span>
-            <span class="n">gen_stats</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;generation&quot;</span><span class="p">:</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
+            <span class="n">gen_stats</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"generation"</span><span class="p">:</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">track_keys</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
                     <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">)[</span><span class="n">g</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;best_fitness&quot;</span><span class="p">,</span> <span class="s2">&quot;mean_fitness&quot;</span><span class="p">,</span> <span class="s2">&quot;std_fitness&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="s2">"std_fitness"</span><span class="p">):</span>
                         <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">*</span> <span class="n">sign</span>
                     <span class="n">gen_stats</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"best_fitness"</span><span class="p">:</span>
                         <span class="n">fitness_auc</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
             <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gen_stats</span><span class="p">)</span>
 
@@ -451,29 +451,29 @@
 
         <span class="n">best_genome_flat</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">flatten_util</span><span class="o">.</span><span class="n">ravel_pytree</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_genome</span><span class="p">)</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;initial_fitness&quot;</span><span class="p">:</span> <span class="n">report_initial</span><span class="p">,</span>
-            <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="n">report_best</span><span class="p">,</span>
-            <span class="s2">&quot;fitness_auc&quot;</span><span class="p">:</span> <span class="n">fitness_auc</span><span class="p">,</span>
-            <span class="s2">&quot;best_solution&quot;</span><span class="p">:</span> <span class="n">best_genome_flat</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
-            <span class="s2">&quot;final_generation&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span><span class="p">),</span>
-            <span class="s2">&quot;total_evaluations&quot;</span><span class="p">:</span> <span class="n">total_evals</span><span class="p">,</span>
+            <span class="s2">"initial_fitness"</span><span class="p">:</span> <span class="n">report_initial</span><span class="p">,</span>
+            <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="n">report_best</span><span class="p">,</span>
+            <span class="s2">"fitness_auc"</span><span class="p">:</span> <span class="n">fitness_auc</span><span class="p">,</span>
+            <span class="s2">"best_solution"</span><span class="p">:</span> <span class="n">best_genome_flat</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="s2">"final_generation"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span><span class="p">),</span>
+            <span class="s2">"total_evaluations"</span><span class="p">:</span> <span class="n">total_evals</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="c1"># Add gap to optimum if available</span>
         <span class="n">gap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">get_gap_to_optimum</span><span class="p">(</span><span class="n">report_best</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;gap_to_optimum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gap</span><span class="p">)</span>
+            <span class="n">summary</span><span class="p">[</span><span class="s2">"gap_to_optimum"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gap</span><span class="p">)</span>
 
         <span class="n">timings</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;warmup&quot;</span><span class="p">:</span> <span class="n">t_warmup_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
-            <span class="s2">&quot;execution&quot;</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_exec_start</span><span class="p">,</span>
-            <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
+            <span class="s2">"warmup"</span><span class="p">:</span> <span class="n">t_warmup_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
+            <span class="s2">"execution"</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_exec_start</span><span class="p">,</span>
+            <span class="s2">"total"</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;history&quot;</span><span class="p">:</span> <span class="n">history</span><span class="p">,</span>
-            <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
-            <span class="s2">&quot;timings&quot;</span><span class="p">:</span> <span class="n">timings</span><span class="p">,</span>
+            <span class="s2">"history"</span><span class="p">:</span> <span class="n">history</span><span class="p">,</span>
+            <span class="s2">"summary"</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
+            <span class="s2">"timings"</span><span class="p">:</span> <span class="n">timings</span><span class="p">,</span>
         <span class="p">}</span></div>
 </div>
 
@@ -486,7 +486,7 @@
     <span class="n">selection_op</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">crossover_op</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">mutation_op</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="n">genome_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;real&quot;</span><span class="p">,</span>
+    <span class="n">genome_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"real"</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
     <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">elitism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
@@ -496,7 +496,7 @@
     <span class="n">history_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GeneticEngineAdapter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a :class:`GeneticEngine` from concrete operator instances.</span>
+<span class="w">    </span><span class="sd">"""Build a :class:`GeneticEngine` from concrete operator instances.</span>
 
 <span class="sd">    The caller must supply a fitness evaluator plus selection, crossover and</span>
 <span class="sd">    mutation operators. Optional parameters control population size,</span>
@@ -505,21 +505,21 @@
 <span class="sd">    ``prng_impl`` or strength schedules).  The result is wrapped in a</span>
 <span class="sd">    :class:`GeneticEngineAdapter` suitable for use with</span>
 <span class="sd">    :class:`~.benchmarking.BenchmarkRunner`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">genome_config</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">BinaryGenomeConfig</span><span class="p">]</span>
-    <span class="k">if</span> <span class="s2">&quot;genome_length&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">genome_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;genome_length&quot;</span><span class="p">)),)</span>
+    <span class="k">if</span> <span class="s2">"genome_length"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">genome_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"genome_length"</span><span class="p">)),)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">genome_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
         <span class="n">genome_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">genome_shape</span><span class="p">,)</span>
 
-    <span class="k">if</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">&quot;real&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">"real"</span><span class="p">:</span>
         <span class="n">genome_config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dtype"</span><span class="p">,</span> <span class="s2">"float32"</span><span class="p">)</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">&quot;binary&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">"binary"</span><span class="p">:</span>
         <span class="n">genome_config</span> <span class="o">=</span> <span class="n">BinaryGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported genome type: </span><span class="si">{</span><span class="n">genome_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported genome type: </span><span class="si">{</span><span class="n">genome_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="n">OperatorCatalog</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
@@ -531,47 +531,47 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selection_op</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">OperatorCatalog</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;selection_op provided as string but OperatorCatalog is unavailable&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"selection_op provided as string but OperatorCatalog is unavailable"</span><span class="p">)</span>
         <span class="n">selection_op</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">selection_op</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">crossover_op</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">OperatorCatalog</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;crossover_op provided as string but OperatorCatalog is unavailable&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"crossover_op provided as string but OperatorCatalog is unavailable"</span><span class="p">)</span>
         <span class="n">crossover_op</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">crossover_op</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mutation_op</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">OperatorCatalog</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;mutation_op provided as string but OperatorCatalog is unavailable&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"mutation_op provided as string but OperatorCatalog is unavailable"</span><span class="p">)</span>
         <span class="n">mutation_op</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mutation_op</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s2">&quot;selection&quot;</span><span class="p">,</span> <span class="n">selection_op</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">&quot;crossover&quot;</span><span class="p">,</span> <span class="n">crossover_op</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">&quot;mutation&quot;</span><span class="p">,</span> <span class="n">mutation_op</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"selection"</span><span class="p">,</span> <span class="n">selection_op</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"crossover"</span><span class="p">,</span> <span class="n">crossover_op</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"mutation"</span><span class="p">,</span> <span class="n">mutation_op</span><span class="p">),</span>
     <span class="p">]:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="s2">&quot;replace&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="s2">&quot;replace&quot;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="s2">"replace"</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="s2">"replace"</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Operator &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; lacks required &#39;replace&#39; method (type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">op</span><span class="p">)</span><span class="si">}</span><span class="s2">). &quot;</span>
-                <span class="s2">&quot;Provide operator instance from OperatorCatalog.get(spec)&quot;</span>
-                <span class="s2">&quot; or a proper implementation.&quot;</span>
+                <span class="sa">f</span><span class="s2">"Operator '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' lacks required 'replace' method (type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">op</span><span class="p">)</span><span class="si">}</span><span class="s2">). "</span>
+                <span class="s2">"Provide operator instance from OperatorCatalog.get(spec)"</span>
+                <span class="s2">" or a proper implementation."</span>
             <span class="p">)</span>
-    <span class="n">prng_impl_str</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;prng_impl&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">prng_impl_str</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"prng_impl"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">prng_extra</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">prng_impl_str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">prng_extra</span><span class="p">[</span><span class="s2">&quot;prng_impl&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolve_prng_impl</span><span class="p">(</span><span class="n">prng_impl_str</span><span class="p">)</span>
+        <span class="n">prng_extra</span><span class="p">[</span><span class="s2">"prng_impl"</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolve_prng_impl</span><span class="p">(</span><span class="n">prng_impl_str</span><span class="p">)</span>
 
     <span class="n">_schedule_keys</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;schedule_type&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;initial_strength&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;final_strength&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;track_best&quot;</span><span class="p">,</span>
+        <span class="s2">"schedule_type"</span><span class="p">,</span>
+        <span class="s2">"initial_strength"</span><span class="p">,</span>
+        <span class="s2">"final_strength"</span><span class="p">,</span>
+        <span class="s2">"track_best"</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">schedule_extra</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_schedule_keys</span><span class="p">}</span>
 
-    <span class="k">if</span> <span class="s2">&quot;track_best&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">schedule_extra</span><span class="p">:</span>
-        <span class="n">schedule_extra</span><span class="p">[</span><span class="s2">&quot;track_best&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span>
+    <span class="k">if</span> <span class="s2">"track_best"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">schedule_extra</span><span class="p">:</span>
+        <span class="n">schedule_extra</span><span class="p">[</span><span class="s2">"track_best"</span><span class="p">]</span> <span class="o">=</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span>
 
-    <span class="n">engine_cls</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;engine_cls&quot;</span><span class="p">,</span> <span class="n">GeneticEngine</span><span class="p">)</span>
+    <span class="n">engine_cls</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"engine_cls"</span><span class="p">,</span> <span class="n">GeneticEngine</span><span class="p">)</span>
 
     <span class="n">engine_params</span> <span class="o">=</span> <span class="n">GeneticEngineParams</span><span class="p">(</span>
         <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
@@ -582,8 +582,8 @@
         <span class="o">**</span><span class="n">schedule_extra</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">engine_extra_args</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="s2">&quot;use_vectorized_operators&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">engine_extra_args</span><span class="p">[</span><span class="s2">&quot;use_vectorized_operators&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;use_vectorized_operators&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">"use_vectorized_operators"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">engine_extra_args</span><span class="p">[</span><span class="s2">"use_vectorized_operators"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"use_vectorized_operators"</span><span class="p">)</span>
 
     <span class="n">genetic_engine</span> <span class="o">=</span> <span class="n">engine_cls</span><span class="p">(</span>
         <span class="n">engine_params</span><span class="o">=</span><span class="n">engine_params</span><span class="p">,</span>
@@ -592,16 +592,16 @@
         <span class="n">selection</span><span class="o">=</span><span class="n">selection_op</span><span class="p">,</span>
         <span class="n">crossover</span><span class="o">=</span><span class="n">crossover_op</span><span class="p">,</span>
         <span class="n">mutation</span><span class="o">=</span><span class="n">mutation_op</span><span class="p">,</span>
-        <span class="n">enable_progress_bar</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enable_progress_bar&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="n">enable_progress_bar</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"enable_progress_bar"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
         <span class="o">**</span><span class="n">engine_extra_args</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">initial_population</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;initial_population&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">initial_population</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="c1"># Get maximize flag from kwargs, or infer from fitness evaluator</span>
-    <span class="k">if</span> <span class="s2">&quot;maximize&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">maximize_flag</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;maximize&quot;</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fitness_evaluator</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fitness_evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;maximize&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s2">"maximize"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">maximize_flag</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"maximize"</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fitness_evaluator</span><span class="p">,</span> <span class="s2">"config"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fitness_evaluator</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">"maximize"</span><span class="p">):</span>
         <span class="n">maximize_flag</span> <span class="o">=</span> <span class="n">fitness_evaluator</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">maximize</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">maximize_flag</span> <span class="o">=</span> <span class="kc">False</span>
@@ -622,19 +622,19 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">build_engine_from_catalog</span><span class="p">(</span>
     <span class="n">catalog_operators</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GeneticEngineAdapter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convenience wrapper that calls :func:`build_engine` using a dict of</span>
+<span class="w">    </span><span class="sd">"""Convenience wrapper that calls :func:`build_engine` using a dict of</span>
 <span class="sd">    catalog operator instances and a separate configuration dictionary.</span>
 
-<span class="sd">    The *catalog_operators* mapping must contain ``&#39;fitness&#39;``,</span>
-<span class="sd">    ``&#39;selection&#39;``, ``&#39;crossover&#39;`` and ``&#39;mutation&#39;`` entries; remaining</span>
+<span class="sd">    The *catalog_operators* mapping must contain ``'fitness'``,</span>
+<span class="sd">    ``'selection'``, ``'crossover'`` and ``'mutation'`` entries; remaining</span>
 <span class="sd">    engine parameters are read from *config*.  Returns a</span>
 <span class="sd">    :class:`GeneticEngineAdapter` prepared for benchmarking.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">build_engine</span><span class="p">(</span>
-        <span class="n">fitness_evaluator</span><span class="o">=</span><span class="n">catalog_operators</span><span class="p">[</span><span class="s2">&quot;fitness&quot;</span><span class="p">],</span>
-        <span class="n">selection_op</span><span class="o">=</span><span class="n">catalog_operators</span><span class="p">[</span><span class="s2">&quot;selection&quot;</span><span class="p">],</span>
-        <span class="n">crossover_op</span><span class="o">=</span><span class="n">catalog_operators</span><span class="p">[</span><span class="s2">&quot;crossover&quot;</span><span class="p">],</span>
-        <span class="n">mutation_op</span><span class="o">=</span><span class="n">catalog_operators</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">],</span>
+        <span class="n">fitness_evaluator</span><span class="o">=</span><span class="n">catalog_operators</span><span class="p">[</span><span class="s2">"fitness"</span><span class="p">],</span>
+        <span class="n">selection_op</span><span class="o">=</span><span class="n">catalog_operators</span><span class="p">[</span><span class="s2">"selection"</span><span class="p">],</span>
+        <span class="n">crossover_op</span><span class="o">=</span><span class="n">catalog_operators</span><span class="p">[</span><span class="s2">"crossover"</span><span class="p">],</span>
+        <span class="n">mutation_op</span><span class="o">=</span><span class="n">catalog_operators</span><span class="p">[</span><span class="s2">"mutation"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">config</span><span class="p">,</span>
     <span class="p">)</span></div>
 

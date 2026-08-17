@@ -326,7 +326,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_injection.html#malthusjax.operators.BaseMutation_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseMutation_injection</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vectorized mutation with external noise injection (single-key mode).</span>
+<span class="w">    </span><span class="sd">"""Vectorized mutation with external noise injection (single-key mode).</span>
 
 <span class="sd">    Differs from BaseMutation: consumes single PRNG key, expects _generate_noise</span>
 <span class="sd">    to return fully materialized noise tensor shaped (input_length, num_offspring, ...).</span>
@@ -342,28 +342,28 @@
 
 <span class="sd">    Architecture: Tier 1 (_mutate_one, pure) → Tier 2 (_generate_noise, RNG) →</span>
 <span class="sd">    Tier 3 (__call__, vmap nesting with single-pass arithmetic).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Injection mode: single key budgeted, split internally.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Injection mode: single key budgeted, split internally."""</span>
         <span class="k">return</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="BaseMutation_injection.num_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_injection.html#malthusjax.operators.BaseMutation_injection.num_keys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns 1 key; _generate_noise responsible for internal splitting.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns 1 key; _generate_noise responsible for internal splitting."""</span>
         <span class="k">return</span> <span class="mi">1</span></div>
 
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 — Pure mutation kernel: genome + noise → mutated genome.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 — Pure mutation kernel: genome + noise → mutated genome."""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2 — Noise generation from single PRNG key.</span>
+<span class="w">        </span><span class="sd">"""Tier 2 — Noise generation from single PRNG key.</span>
 
 <span class="sd">        Contract:</span>
 <span class="sd">        - Input: Single PRNG key, shape (2,).</span>
@@ -376,27 +376,27 @@
 <span class="sd">        - Determinism: Exact same noise produced for identical key (replay capability).</span>
 <span class="sd">        - XLA: Noise generation happens outside vmap; large tensors may not fuse</span>
 <span class="sd">          with arithmetic. Use when noise complexity justifies explicit control.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_fused</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2 implementation unsupported in injection mode; use _generate_noise.&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Injection mode: override _generate_noise instead&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Tier 2 implementation unsupported in injection mode; use _generate_noise."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Injection mode: override _generate_noise instead"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 3 — Vectorized bulk mutation via vmap.</span>
+<span class="w">        </span><span class="sd">"""Tier 3 — Vectorized bulk mutation via vmap.</span>
 
 <span class="sd">        Input: Single key (flattened to shape (2,)).</span>
 <span class="sd">        Output: Population with shape (input_length * num_offspring, ...)</span>
 
 <span class="sd">        For num_offspring=1 uses a single flat vmap (no reshape, no tree_map).</span>
 <span class="sd">        For num_offspring&gt;1 uses nested vmap with a pair-major flatten at the end.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">flat_keys</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
         <span class="k">if</span> <span class="n">flat_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No RNG keys provided to BaseMutation_injection&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No RNG keys provided to BaseMutation_injection"</span><span class="p">)</span>
         <span class="n">single_key</span> <span class="o">=</span> <span class="n">flat_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_noise</span><span class="p">(</span><span class="n">single_key</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>  <span class="c1"># leading dim: (N*K, ...)</span>
@@ -436,7 +436,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_injection.html#malthusjax.operators.BaseCrossover_injection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseCrossover_injection</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vectorized crossover with external noise injection (single-key mode).</span>
+<span class="w">    </span><span class="sd">"""Vectorized crossover with external noise injection (single-key mode).</span>
 
 <span class="sd">    Mirrors mutation injection: consumes single key, expects _generate_noise</span>
 <span class="sd">    to return masks/indices with shape (input_length, num_offspring, ...).</span>
@@ -451,7 +451,7 @@
 
 <span class="sd">    Architecture: Tier 1 (_recombine_one, pure) → Tier 2 (_generate_noise, RNG) →</span>
 <span class="sd">    Tier 3 (__call__, triple nested vmap: pairs, offspring, elements).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_offspring</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">input_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -461,40 +461,40 @@
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Budget requirement (injection uses 1 key total).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Budget requirement (injection uses 1 key total)."""</span>
         <span class="k">return</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="BaseCrossover_injection.num_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_injection.html#malthusjax.operators.BaseCrossover_injection.num_keys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns 1 key; _generate_noise handles internal splitting.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns 1 key; _generate_noise handles internal splitting."""</span>
         <span class="k">return</span> <span class="mi">1</span></div>
 
 
 <div class="viewcode-block" id="BaseCrossover_injection.set_typed_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_injection.html#malthusjax.operators.BaseCrossover_injection.set_typed_keys">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_typed_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseCrossover_injection[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the PRNG key format flag (new-style typed vs legacy uint32).&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_typed_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseCrossover_injection[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Set the PRNG key format flag (new-style typed vs legacy uint32)."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed_keys</span><span class="o">=</span><span class="n">typed</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseCrossover_injection.set_input_length">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_injection.html#malthusjax.operators.BaseCrossover_injection.set_input_length">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_input_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseCrossover_injection[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Locks pair count for static budgeting.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_input_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseCrossover_injection[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Locks pair count for static budgeting."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_length</span><span class="o">=</span><span class="n">length</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseCrossover_injection.set_max_generations">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_injection.html#malthusjax.operators.BaseCrossover_injection.set_max_generations">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_max_generations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseCrossover_injection[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set total generation count for operator-level scheduling.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_max_generations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseCrossover_injection[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Set total generation count for operator-level scheduling."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_generations</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
 
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2 — Mask/index generation from single PRNG key.</span>
+<span class="w">        </span><span class="sd">"""Tier 2 — Mask/index generation from single PRNG key.</span>
 
 <span class="sd">        Contract:</span>
 <span class="sd">        - Input: Single PRNG key, shape (2,).</span>
@@ -503,17 +503,17 @@
 
 <span class="sd">        Example: For uniform crossover, _generate_noise(key, config) might return</span>
 <span class="sd">        Bernoulli mask array shaped (input_length, num_offspring, genome_length).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_recombine_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p1</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 — Pure recombination kernel: p1 + p2 + noise → offspring.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1 — Pure recombination kernel: p1 + p2 + noise → offspring."""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cross_fused</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">p1</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2 unsupported; override _generate_noise instead.&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Injection mode: override _generate_noise instead&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Tier 2 unsupported; override _generate_noise instead."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Injection mode: override _generate_noise instead"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -523,7 +523,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 3 — Vectorized bulk crossover via vmap.</span>
+<span class="w">        </span><span class="sd">"""Tier 3 — Vectorized bulk crossover via vmap.</span>
 
 <span class="sd">        Input: Single key (flattened to shape (2,)).</span>
 <span class="sd">        Output: Population of offspring shape (input_length * num_offspring, ...)</span>
@@ -533,10 +533,10 @@
 <span class="sd">        — no transpose needed (FB-1).</span>
 
 <span class="sd">        Note: _recombine_one must return a single genome G, not a tuple.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">flat_keys</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
         <span class="k">if</span> <span class="n">flat_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No RNG keys provided to BaseCrossover_injection&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No RNG keys provided to BaseCrossover_injection"</span><span class="p">)</span>
         <span class="n">single_key</span> <span class="o">=</span> <span class="n">flat_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_noise</span><span class="p">(</span><span class="n">single_key</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
@@ -573,8 +573,8 @@
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;BaseMutation_injection&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;BaseCrossover_injection&quot;</span><span class="p">,</span>
+    <span class="s2">"BaseMutation_injection"</span><span class="p">,</span>
+    <span class="s2">"BaseCrossover_injection"</span><span class="p">,</span>
 <span class="p">]</span>
 </pre></div>
         </article>

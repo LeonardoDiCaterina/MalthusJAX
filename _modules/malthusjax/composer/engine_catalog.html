@@ -310,7 +310,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.engine_catalog</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Engine Catalog — string-spec → engine instance resolution.</span>
+<span></span><span class="sd">"""Engine Catalog — string-spec → engine instance resolution.</span>
 
 <span class="sd">The catalog is a thin wrapper around the global :mod:`engine_registry`.</span>
 <span class="sd">Engine modules register themselves at import time (see</span>
@@ -320,25 +320,25 @@
 <span class="sd">Public API</span>
 <span class="sd">~~~~~~~~~~</span>
 
-<span class="sd">* ``catalog.get(&quot;ga&quot;, evaluator=ev, selection=sel, crossover=cx, mutation=mut)``</span>
-<span class="sd">* ``catalog.get(&quot;ga:pop_size=200&quot;, ...)``</span>
-<span class="sd">* ``catalog.parse_spec(&quot;nsga2:pop_size=100,generations=200&quot;)``</span>
+<span class="sd">* ``catalog.get("ga", evaluator=ev, selection=sel, crossover=cx, mutation=mut)``</span>
+<span class="sd">* ``catalog.get("ga:pop_size=200", ...)``</span>
+<span class="sd">* ``catalog.parse_spec("nsga2:pop_size=100,generations=200")``</span>
 <span class="sd">* ``catalog.list_available()``</span>
-<span class="sd">* ``catalog.get_help(&quot;ga&quot;)``</span>
-<span class="sd">* ``catalog.register(&quot;custom&quot;, factory)``</span>
+<span class="sd">* ``catalog.get_help("ga")``</span>
+<span class="sd">* ``catalog.register("custom", factory)``</span>
 
 <span class="sd">Examples::</span>
 
 <span class="sd">    registry = EngineRegistry()</span>
 <span class="sd">    engine = registry.get(</span>
-<span class="sd">        &quot;ga:pop_size=100&quot;,</span>
+<span class="sd">        "ga:pop_size=100",</span>
 <span class="sd">        evaluator=sphere_eval,</span>
 <span class="sd">        selection=tournament,</span>
 <span class="sd">        crossover=blend,</span>
 <span class="sd">        mutation=gaussian,</span>
 <span class="sd">        generations=200,</span>
 <span class="sd">    )</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -349,20 +349,20 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_engines_registered</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Force-import the engine package so that its</span>
+<span class="w">    </span><span class="sd">"""Force-import the engine package so that its</span>
 <span class="sd">    ``_register_engines()`` call runs and populates the global registry.</span>
 
 <span class="sd">    Idempotent — repeated calls are cheap (Python caches imports).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.engine</span>  <span class="c1"># noqa: F401</span>
 
 
 <div class="viewcode-block" id="EngineRegistry">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.engine_catalog.html#malthusjax.composer.EngineRegistry">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EngineRegistry</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Catalog for resolving engine specifications.</span>
+<span class="w">    </span><span class="sd">"""Catalog for resolving engine specifications.</span>
 
-<span class="sd">    Supports format: ``&quot;engine_name:param1=value1,param2=value2&quot;``</span>
+<span class="sd">    Supports format: ``"engine_name:param1=value1,param2=value2"``</span>
 
 <span class="sd">    Available Engines:</span>
 <span class="sd">        - ga: Standard genetic algorithm (GeneticEngine)</span>
@@ -370,10 +370,10 @@
 <span class="sd">    Examples::</span>
 
 <span class="sd">        registry = EngineRegistry()</span>
-<span class="sd">        engine = registry.get(&quot;ga&quot;, evaluator=ev, selection=sel,</span>
+<span class="sd">        engine = registry.get("ga", evaluator=ev, selection=sel,</span>
 <span class="sd">                              crossover=cx, mutation=mut)</span>
-<span class="sd">        engine = registry.get(&quot;ga:pop_size=200,elitism=4&quot;, ...)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        engine = registry.get("ga:pop_size=200,elitism=4", ...)</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_ensure_engines_registered</span><span class="p">()</span>
@@ -382,30 +382,30 @@
 <div class="viewcode-block" id="EngineRegistry.parse_spec">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.engine_catalog.html#malthusjax.composer.EngineRegistry.parse_spec">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">parse_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse an engine specification such as ``&quot;ga&quot;`` or</span>
-<span class="sd">        ``&quot;nsga2:pop_size=100,generations=200&quot;`` and return the</span>
+<span class="w">        </span><span class="sd">"""Parse an engine specification such as ``"ga"`` or</span>
+<span class="sd">        ``"nsga2:pop_size=100,generations=200"`` and return the</span>
 <span class="sd">        ``(engine_name, params_dict)`` tuple.  A ``ValueError`` is raised when</span>
 <span class="sd">        the string cannot be interpreted.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">spec</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Empty engine specification&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Empty engine specification"</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">":"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">spec</span><span class="p">,</span> <span class="p">{}</span>
 
-        <span class="n">engine_name</span><span class="p">,</span> <span class="n">params_str</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">engine_name</span><span class="p">,</span> <span class="n">params_str</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">engine_name</span> <span class="o">=</span> <span class="n">engine_name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">params_str</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">param_pair</span> <span class="ow">in</span> <span class="n">params_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">param_pair</span> <span class="ow">in</span> <span class="n">params_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">):</span>
                 <span class="n">param_pair</span> <span class="o">=</span> <span class="n">param_pair</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="k">if</span> <span class="s2">&quot;=&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">param_pair</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">"="</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">param_pair</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Invalid parameter format: &#39;</span><span class="si">{</span><span class="n">param_pair</span><span class="si">}</span><span class="s2">&#39;. Expected &#39;key=value&#39;&quot;</span>
+                        <span class="sa">f</span><span class="s2">"Invalid parameter format: '</span><span class="si">{</span><span class="n">param_pair</span><span class="si">}</span><span class="s2">'. Expected 'key=value'"</span>
                     <span class="p">)</span>
-                <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">param_pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">param_pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_value</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">params</span></div>
@@ -413,12 +413,12 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_convert_value</span><span class="p">(</span><span class="n">value_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert string value to appropriate Python type.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Convert string value to appropriate Python type."""</span>
         <span class="n">value_str</span> <span class="o">=</span> <span class="n">value_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="n">value_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"true"</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="n">value_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;false&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"false"</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -431,8 +431,8 @@
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="k">pass</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">value_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
-            <span class="n">value_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">value_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'"'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">'"'</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">value_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"'"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"'"</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="k">return</span> <span class="n">value_str</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
@@ -449,7 +449,7 @@
         <span class="n">mutation</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve *spec* to a concrete engine instance.</span>
+<span class="w">        </span><span class="sd">"""Resolve *spec* to a concrete engine instance.</span>
 
 <span class="sd">        The specification string and any ``**kwargs`` are merged with registry</span>
 <span class="sd">        defaults before invoking the underlying factory.  The caller must</span>
@@ -458,12 +458,12 @@
 <span class="sd">        forwarded transparently.  Errors during construction are re‑raised as</span>
 <span class="sd">        ``KeyError`` (unknown engine name) or ``ValueError`` (invalid</span>
 <span class="sd">        parameters).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">engine_name</span><span class="p">,</span> <span class="n">spec_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">engine_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">:</span>
-            <span class="n">available</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_available</span><span class="p">())</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown engine &#39;</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s2">&#39;. Available: [</span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+            <span class="n">available</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_available</span><span class="p">())</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown engine '</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s2">'. Available: [</span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
 
         <span class="n">factory</span><span class="p">,</span> <span class="n">defaults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">engine_name</span><span class="p">]</span>
         <span class="n">merged_params</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">defaults</span><span class="p">,</span> <span class="o">**</span><span class="n">spec_params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>
@@ -477,7 +477,7 @@
                 <span class="o">**</span><span class="n">merged_params</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid parameters for engine &#39;</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid parameters for engine '</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
 <div class="viewcode-block" id="EngineRegistry.register">
@@ -489,15 +489,15 @@
         <span class="n">defaults</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">override</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register a new engine type in the catalog.</span>
+<span class="w">        </span><span class="sd">"""Register a new engine type in the catalog.</span>
 
-<span class="sd">        *engine_name* gives the string key (e.g. ``&quot;nsga2&quot;``) and *factory*</span>
+<span class="sd">        *engine_name* gives the string key (e.g. ``"nsga2"``) and *factory*</span>
 <span class="sd">        is a callable that constructs instances when invoked.  Optional</span>
 <span class="sd">        *defaults* provide baseline parameters; set *override* if you wish to</span>
 <span class="sd">        replace an existing registration.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">override</span> <span class="ow">and</span> <span class="n">engine_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Engine &#39;</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s2">&#39; is already registered&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Engine '</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s2">' is already registered"</span><span class="p">)</span>
 
         <span class="n">_engine_register</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">engine_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">defaults</span> <span class="ow">or</span> <span class="p">{})</span></div>
@@ -506,30 +506,30 @@
 <div class="viewcode-block" id="EngineRegistry.list_available">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.engine_catalog.html#malthusjax.composer.EngineRegistry.list_available">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return sorted list of all registered engine names.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return sorted list of all registered engine names."""</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="EngineRegistry.get_help">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.engine_catalog.html#malthusjax.composer.EngineRegistry.get_help">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_help</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a formatted help string for a registered engine.</span>
+<span class="w">        </span><span class="sd">"""Return a formatted help string for a registered engine.</span>
 
-<span class="sd">        The output includes the engine&#39;s docstring and its default parameters.</span>
-<span class="sd">        A ``KeyError`` is raised if *engine_name* isn&#39;t present in the catalog.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        The output includes the engine's docstring and its default parameters.</span>
+<span class="sd">        A ``KeyError`` is raised if *engine_name* isn't present in the catalog.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">engine_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown engine: &#39;</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown engine: '</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
         <span class="n">factory</span><span class="p">,</span> <span class="n">defaults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">engine_name</span><span class="p">]</span>
-        <span class="n">doc</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">or</span> <span class="s2">&quot;No documentation available.&quot;</span>
-        <span class="n">defaults_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">defaults</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">or</span> <span class="s2">"No documentation available."</span>
+        <span class="n">defaults_str</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">defaults</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;-&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">doc</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;Defaults: </span><span class="si">{</span><span class="n">defaults_str</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">defaults_str</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;(none)&#39;</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">engine_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'-'</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">doc</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Defaults: </span><span class="si">{</span><span class="n">defaults_str</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">defaults_str</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'(none)'</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span></div>
 </div>
 

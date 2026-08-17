@@ -329,14 +329,14 @@ probability distribution, with temperature controlling selection pressure.</p>
 <p>This approach allows the algorithm to adaptively adjust selection pressure based
 on fitness diversity across generations.</p>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;roulette:num_selections=INT[,temperature=FLOAT]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"roulette:num_selections=INT[,temperature=FLOAT]"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;roulette&quot;</span>  <span class="c1"># Defaults (num_selections=4, temperature=1.0)</span>
-<span class="s2">&quot;roulette:num_selections=25&quot;</span>  <span class="c1"># Custom num_selections, default temperature</span>
-<span class="s2">&quot;roulette:num_selections=50,temperature=0.5&quot;</span>  <span class="c1"># Both custom (lower temp = more pressure)</span>
-<span class="s2">&quot;roulette:temperature=2.0&quot;</span>  <span class="c1"># Custom temperature, default num_selections</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"roulette"</span>  <span class="c1"># Defaults (num_selections=4, temperature=1.0)</span>
+<span class="s2">"roulette:num_selections=25"</span>  <span class="c1"># Custom num_selections, default temperature</span>
+<span class="s2">"roulette:num_selections=50,temperature=0.5"</span>  <span class="c1"># Both custom (lower temp = more pressure)</span>
+<span class="s2">"roulette:temperature=2.0"</span>  <span class="c1"># Custom temperature, default num_selections</span>
 </pre></div>
 </div>
 <section id="parameters">

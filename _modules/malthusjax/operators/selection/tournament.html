@@ -326,7 +326,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.selection.tournament.html#malthusjax.operators.TournamentSelection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">TournamentSelection</span><span class="p">(</span><span class="n">BaseSelection</span><span class="p">[</span><span class="n">P</span><span class="p">,</span> <span class="n">C</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tournament Selection (Balanced Exploitation &amp; Exploration).</span>
+<span class="w">    </span><span class="sd">"""Tournament Selection (Balanced Exploitation &amp; Exploration).</span>
 
 <span class="sd">    In tournament selection, the algorithm repeatedly:</span>
 <span class="sd">    1. Randomly sample ``tournament_size`` individuals from the population</span>
@@ -338,15 +338,15 @@
 
 <span class="sd">    **String Specification Format**::</span>
 
-<span class="sd">        &quot;tournament:num_selections=INT,tournament_size=INT&quot;</span>
+<span class="sd">        "tournament:num_selections=INT,tournament_size=INT"</span>
 
 <span class="sd">    Examples::</span>
 
-<span class="sd">        &quot;tournament&quot;  # Use defaults (num_selections=4,</span>
+<span class="sd">        "tournament"  # Use defaults (num_selections=4,</span>
 <span class="sd">                     #                tournament_size=3)</span>
-<span class="sd">        &quot;tournament:num_selections=25&quot;  # Custom num_selections, default tournament_size</span>
-<span class="sd">        &quot;tournament:num_selections=50,tournament_size=5&quot;  # Both custom</span>
-<span class="sd">        &quot;tournament:tournament_size=7&quot;  # Custom tournament size, default num_selections</span>
+<span class="sd">        "tournament:num_selections=25"  # Custom num_selections, default tournament_size</span>
+<span class="sd">        "tournament:num_selections=50,tournament_size=5"  # Both custom</span>
+<span class="sd">        "tournament:tournament_size=7"  # Custom tournament size, default num_selections</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -385,7 +385,7 @@
 <span class="sd">    - Simpler than fitness-proportional selection (no averaging)</span>
 <span class="sd">    - Works with any fitness function (unlike roulette selection)</span>
 <span class="sd">    - Consistent selection pressure across generations</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">tournament_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
@@ -396,12 +396,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_select</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select parents through competitive tournaments.</span>
+<span class="w">        </span><span class="sd">"""Select parents through competitive tournaments.</span>
 
 <span class="sd">        Each of the ``num_selections`` tournaments samples ``tournament_size``</span>
 <span class="sd">        candidates and picks the fittest (lowest fitness in minimization convention).</span>
 <span class="sd">        The returned array contains the winning indices.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
             <span class="n">rng</span> <span class="o">=</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">keys</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>

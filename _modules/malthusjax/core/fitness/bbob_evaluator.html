@@ -310,14 +310,14 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.fitness.bbob_evaluator</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Wrapper around evosax BBOB benchmark problems.</span>
+<span></span><span class="sd">"""Wrapper around evosax BBOB benchmark problems.</span>
 
 <span class="sd">Exposes a MalthusJAX-friendly evaluator that leverages the evosax</span>
 <span class="sd">BBOBProblem API for deterministic black‑box function evaluation. Plays</span>
 <span class="sd">nicely with our population and maximization conventions.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
-<span class="c1"># TODO: stop relying on evosax&#39;s internal problem registry</span>
+<span class="c1"># TODO: stop relying on evosax's internal problem registry</span>
 <span class="c1"># use https://github.com/maxencefaldor/bbobax/tree/main/src/bbobax</span>
 <span class="c1"># keep the evosax wrapper though to benchmark evosax implementation</span>
 <span class="c1"># in their own benchmark suite</span>
@@ -341,49 +341,49 @@
 
 <span class="n">BBOB_NAME_ALIASES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1"># Part 1: Separable functions</span>
-    <span class="s2">&quot;sphere&quot;</span><span class="p">:</span> <span class="s2">&quot;sphere&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ellipsoidal&quot;</span><span class="p">:</span> <span class="s2">&quot;ellipsoidal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rastrigin&quot;</span><span class="p">:</span> <span class="s2">&quot;rastrigin&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;bueche_rastrigin&quot;</span><span class="p">:</span> <span class="s2">&quot;bueche_rastrigin&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;bueche-rastrigin&quot;</span><span class="p">:</span> <span class="s2">&quot;bueche_rastrigin&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;linear_slope&quot;</span><span class="p">:</span> <span class="s2">&quot;linear_slope&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;linear slope&quot;</span><span class="p">:</span> <span class="s2">&quot;linear_slope&quot;</span><span class="p">,</span>
+    <span class="s2">"sphere"</span><span class="p">:</span> <span class="s2">"sphere"</span><span class="p">,</span>
+    <span class="s2">"ellipsoidal"</span><span class="p">:</span> <span class="s2">"ellipsoidal"</span><span class="p">,</span>
+    <span class="s2">"rastrigin"</span><span class="p">:</span> <span class="s2">"rastrigin"</span><span class="p">,</span>
+    <span class="s2">"bueche_rastrigin"</span><span class="p">:</span> <span class="s2">"bueche_rastrigin"</span><span class="p">,</span>
+    <span class="s2">"bueche-rastrigin"</span><span class="p">:</span> <span class="s2">"bueche_rastrigin"</span><span class="p">,</span>
+    <span class="s2">"linear_slope"</span><span class="p">:</span> <span class="s2">"linear_slope"</span><span class="p">,</span>
+    <span class="s2">"linear slope"</span><span class="p">:</span> <span class="s2">"linear_slope"</span><span class="p">,</span>
     <span class="c1"># Part 2: Functions with low or moderate conditioning</span>
-    <span class="s2">&quot;attractive_sector&quot;</span><span class="p">:</span> <span class="s2">&quot;attractive_sector&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;attractive sector&quot;</span><span class="p">:</span> <span class="s2">&quot;attractive_sector&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;step_ellipsoidal&quot;</span><span class="p">:</span> <span class="s2">&quot;step_ellipsoidal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;step ellipsoidal&quot;</span><span class="p">:</span> <span class="s2">&quot;step_ellipsoidal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rosenbrock&quot;</span><span class="p">:</span> <span class="s2">&quot;rosenbrock&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rosenbrock_original&quot;</span><span class="p">:</span> <span class="s2">&quot;rosenbrock&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rosenbrock_rotated&quot;</span><span class="p">:</span> <span class="s2">&quot;rosenbrock_rotated&quot;</span><span class="p">,</span>
+    <span class="s2">"attractive_sector"</span><span class="p">:</span> <span class="s2">"attractive_sector"</span><span class="p">,</span>
+    <span class="s2">"attractive sector"</span><span class="p">:</span> <span class="s2">"attractive_sector"</span><span class="p">,</span>
+    <span class="s2">"step_ellipsoidal"</span><span class="p">:</span> <span class="s2">"step_ellipsoidal"</span><span class="p">,</span>
+    <span class="s2">"step ellipsoidal"</span><span class="p">:</span> <span class="s2">"step_ellipsoidal"</span><span class="p">,</span>
+    <span class="s2">"rosenbrock"</span><span class="p">:</span> <span class="s2">"rosenbrock"</span><span class="p">,</span>
+    <span class="s2">"rosenbrock_original"</span><span class="p">:</span> <span class="s2">"rosenbrock"</span><span class="p">,</span>
+    <span class="s2">"rosenbrock_rotated"</span><span class="p">:</span> <span class="s2">"rosenbrock_rotated"</span><span class="p">,</span>
     <span class="c1"># Part 3: Functions with high conditioning and unimodal</span>
-    <span class="s2">&quot;ellipsoidal_original&quot;</span><span class="p">:</span> <span class="s2">&quot;ellipsoidal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ellipsoidal_rotated&quot;</span><span class="p">:</span> <span class="s2">&quot;ellipsoidal_rotated&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;discus&quot;</span><span class="p">:</span> <span class="s2">&quot;discus&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;bent_cigar&quot;</span><span class="p">:</span> <span class="s2">&quot;bent_cigar&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;bent cigar&quot;</span><span class="p">:</span> <span class="s2">&quot;bent_cigar&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;sharp_ridge&quot;</span><span class="p">:</span> <span class="s2">&quot;sharp_ridge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;sharp ridge&quot;</span><span class="p">:</span> <span class="s2">&quot;sharp_ridge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;different_powers&quot;</span><span class="p">:</span> <span class="s2">&quot;different_powers&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;different powers&quot;</span><span class="p">:</span> <span class="s2">&quot;different_powers&quot;</span><span class="p">,</span>
+    <span class="s2">"ellipsoidal_original"</span><span class="p">:</span> <span class="s2">"ellipsoidal"</span><span class="p">,</span>
+    <span class="s2">"ellipsoidal_rotated"</span><span class="p">:</span> <span class="s2">"ellipsoidal_rotated"</span><span class="p">,</span>
+    <span class="s2">"discus"</span><span class="p">:</span> <span class="s2">"discus"</span><span class="p">,</span>
+    <span class="s2">"bent_cigar"</span><span class="p">:</span> <span class="s2">"bent_cigar"</span><span class="p">,</span>
+    <span class="s2">"bent cigar"</span><span class="p">:</span> <span class="s2">"bent_cigar"</span><span class="p">,</span>
+    <span class="s2">"sharp_ridge"</span><span class="p">:</span> <span class="s2">"sharp_ridge"</span><span class="p">,</span>
+    <span class="s2">"sharp ridge"</span><span class="p">:</span> <span class="s2">"sharp_ridge"</span><span class="p">,</span>
+    <span class="s2">"different_powers"</span><span class="p">:</span> <span class="s2">"different_powers"</span><span class="p">,</span>
+    <span class="s2">"different powers"</span><span class="p">:</span> <span class="s2">"different_powers"</span><span class="p">,</span>
     <span class="c1"># Part 4: Multi-modal functions with adequate global structure</span>
-    <span class="s2">&quot;rastrigin_original&quot;</span><span class="p">:</span> <span class="s2">&quot;rastrigin&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rastrigin_rotated&quot;</span><span class="p">:</span> <span class="s2">&quot;rastrigin_rotated&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;weierstrass&quot;</span><span class="p">:</span> <span class="s2">&quot;weierstrass&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;schaffers_f7&quot;</span><span class="p">:</span> <span class="s2">&quot;schaffers_f7&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;schaffers f7&quot;</span><span class="p">:</span> <span class="s2">&quot;schaffers_f7&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;schaffers_f7_ill_cond&quot;</span><span class="p">:</span> <span class="s2">&quot;schaffers_f7_ill_cond&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;schaffers f7 ill-cond&quot;</span><span class="p">:</span> <span class="s2">&quot;schaffers_f7_ill_cond&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;griewank_rosenbrock&quot;</span><span class="p">:</span> <span class="s2">&quot;griewank_rosenbrock&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;griewank-rosenbrock&quot;</span><span class="p">:</span> <span class="s2">&quot;griewank_rosenbrock&quot;</span><span class="p">,</span>
+    <span class="s2">"rastrigin_original"</span><span class="p">:</span> <span class="s2">"rastrigin"</span><span class="p">,</span>
+    <span class="s2">"rastrigin_rotated"</span><span class="p">:</span> <span class="s2">"rastrigin_rotated"</span><span class="p">,</span>
+    <span class="s2">"weierstrass"</span><span class="p">:</span> <span class="s2">"weierstrass"</span><span class="p">,</span>
+    <span class="s2">"schaffers_f7"</span><span class="p">:</span> <span class="s2">"schaffers_f7"</span><span class="p">,</span>
+    <span class="s2">"schaffers f7"</span><span class="p">:</span> <span class="s2">"schaffers_f7"</span><span class="p">,</span>
+    <span class="s2">"schaffers_f7_ill_cond"</span><span class="p">:</span> <span class="s2">"schaffers_f7_ill_cond"</span><span class="p">,</span>
+    <span class="s2">"schaffers f7 ill-cond"</span><span class="p">:</span> <span class="s2">"schaffers_f7_ill_cond"</span><span class="p">,</span>
+    <span class="s2">"griewank_rosenbrock"</span><span class="p">:</span> <span class="s2">"griewank_rosenbrock"</span><span class="p">,</span>
+    <span class="s2">"griewank-rosenbrock"</span><span class="p">:</span> <span class="s2">"griewank_rosenbrock"</span><span class="p">,</span>
     <span class="c1"># Part 5: Multi-modal functions with weak global structure</span>
-    <span class="s2">&quot;schwefel&quot;</span><span class="p">:</span> <span class="s2">&quot;schwefel&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;gallagher_101_me&quot;</span><span class="p">:</span> <span class="s2">&quot;gallagher_101_me&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;gallagher 101-me&quot;</span><span class="p">:</span> <span class="s2">&quot;gallagher_101_me&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;gallagher_21_hi&quot;</span><span class="p">:</span> <span class="s2">&quot;gallagher_21_hi&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;gallagher 21-hi&quot;</span><span class="p">:</span> <span class="s2">&quot;gallagher_21_hi&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;katsuura&quot;</span><span class="p">:</span> <span class="s2">&quot;katsuura&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;lunacek&quot;</span><span class="p">:</span> <span class="s2">&quot;lunacek&quot;</span><span class="p">,</span>
+    <span class="s2">"schwefel"</span><span class="p">:</span> <span class="s2">"schwefel"</span><span class="p">,</span>
+    <span class="s2">"gallagher_101_me"</span><span class="p">:</span> <span class="s2">"gallagher_101_me"</span><span class="p">,</span>
+    <span class="s2">"gallagher 101-me"</span><span class="p">:</span> <span class="s2">"gallagher_101_me"</span><span class="p">,</span>
+    <span class="s2">"gallagher_21_hi"</span><span class="p">:</span> <span class="s2">"gallagher_21_hi"</span><span class="p">,</span>
+    <span class="s2">"gallagher 21-hi"</span><span class="p">:</span> <span class="s2">"gallagher_21_hi"</span><span class="p">,</span>
+    <span class="s2">"katsuura"</span><span class="p">:</span> <span class="s2">"katsuura"</span><span class="p">,</span>
+    <span class="s2">"lunacek"</span><span class="p">:</span> <span class="s2">"lunacek"</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -391,15 +391,15 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BBOBConfig</span><span class="p">(</span><span class="n">BaseEvaluatorConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for BBOB black-box optimization benchmarks.</span>
+<span class="w">    </span><span class="sd">"""Configuration for BBOB black-box optimization benchmarks.</span>
 
 <span class="sd">    Attributes:</span>
-<span class="sd">        fn_name: BBOB function identifier (lowercase: &#39;sphere&#39;, &#39;rastrigin&#39;, etc).</span>
+<span class="sd">        fn_name: BBOB function identifier (lowercase: 'sphere', 'rastrigin', etc).</span>
 <span class="sd">        num_dims: Problem dimensionality.</span>
 <span class="sd">        seed: Seed ID for problem instance (rotation matrices, shifts).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">fn_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;sphere&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+    <span class="n">fn_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"sphere"</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">num_dims</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span></div>
 
@@ -409,13 +409,13 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BBOBEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">BBOBConfig</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;BBOB benchmark wrapper for MalthusJAX RealGenome optimization.</span>
+<span class="w">    </span><span class="sd">"""BBOB benchmark wrapper for MalthusJAX RealGenome optimization.</span>
 
 <span class="sd">    Wraps evosax BBOBProblem for standard black-box test functions. The problem</span>
 <span class="sd">    instance and its state are stored as non-PyTree fields (static).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="c1"># Evosax problem is static (doesn&#39;t change)</span>
+    <span class="c1"># Evosax problem is static (doesn't change)</span>
     <span class="n">evosax_problem</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">flax</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">problem_state</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">flax</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
 
@@ -423,7 +423,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.create">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BBOBConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BBOBEvaluator</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Factory method to initialize the evosax BBOBProblem.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Factory method to initialize the evosax BBOBProblem."""</span>
         <span class="n">fn_name_lower</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">fn_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">fn_name_normalized</span> <span class="o">=</span> <span class="n">BBOB_NAME_ALIASES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fn_name_lower</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">fn_name</span><span class="p">)</span>
 
@@ -442,11 +442,11 @@
 <div class="viewcode-block" id="BBOBEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Single genome evaluation via the evosax fitness function.</span>
+<span class="w">        </span><span class="sd">"""Single genome evaluation via the evosax fitness function.</span>
 
 <span class="sd">        The input vector is reshaped to match evosax expectations and evaluated</span>
 <span class="sd">        deterministically. Returns raw minimization objective (lower=better).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -464,11 +464,11 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_population</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized batch evaluation using evosax native evaluation.</span>
+<span class="w">        </span><span class="sd">"""Vectorized batch evaluation using evosax native evaluation.</span>
 
 <span class="sd">        The population genes array is fed directly into the fitness function with</span>
 <span class="sd">        deterministic evaluation. Returns raw minimization objectives (lower=better).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">values</span>
 
         <span class="n">rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -486,24 +486,24 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">f_opt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference minimum value (optimal function value) for this problem.</span>
+<span class="w">        </span><span class="sd">"""Reference minimum value (optimal function value) for this problem.</span>
 
 <span class="sd">        This is the known global optimum from the BBOB benchmark suite.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evosax_problem</span><span class="o">.</span><span class="n">f_opt</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">x_opt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference optimal solution location for this problem.</span>
+<span class="w">        </span><span class="sd">"""Reference optimal solution location for this problem.</span>
 
 <span class="sd">        This is the known global optimum location from the BBOB benchmark suite.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evosax_problem</span><span class="o">.</span><span class="n">x_opt</span>
 
 <div class="viewcode-block" id="BBOBEvaluator.get_gap_to_optimum">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.get_gap_to_optimum">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_gap_to_optimum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitness_value</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute gap between a fitness value and the known optimum.</span>
+<span class="w">        </span><span class="sd">"""Compute gap between a fitness value and the known optimum.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            fitness_value: The fitness value to compare (should be raw BBOB value,</span>
@@ -511,7 +511,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The absolute gap to the optimum (always positive, 0 means optimal).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fitness_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_opt</span><span class="p">)</span></div>
 </div>
 

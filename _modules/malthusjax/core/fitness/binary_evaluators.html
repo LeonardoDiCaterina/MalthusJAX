@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.fitness.binary_evaluators</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Binary genome fitness evaluators.</span>
+<span></span><span class="sd">"""Binary genome fitness evaluators.</span>
 
 <span class="sd">Contains classic combinatorial objectives like OneMax (binary sum) and</span>
 <span class="sd">0/1 knapsack. Each evaluator adheres to the</span>
 <span class="sd">:class:`BaseEvaluator` interface and supports optional maximization.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -334,7 +334,7 @@
 <div class="viewcode-block" id="KnapsackData">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.binary_evaluators.html#malthusjax.KnapsackData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">KnapsackData</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for knapsack problem data (weights and values).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Container for knapsack problem data (weights and values)."""</span>
 
     <span class="n">weights</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>  <span class="c1"># Item weights, shape (n_items,)</span>
     <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>  <span class="c1"># Item values, shape (n_items,)</span></div>
@@ -345,7 +345,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.binary_evaluators.html#malthusjax.BinarySumConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BinarySumConfig</span><span class="p">(</span><span class="n">BaseEvaluatorConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for BinarySum (OneMax) fitness evaluator.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Configuration for BinarySum (OneMax) fitness evaluator."""</span>
 
     <span class="k">pass</span></div>
 
@@ -355,11 +355,11 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.binary_evaluators.html#malthusjax.BinarySumEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BinarySumEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">BinarySumConfig</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;OneMax fitness evaluator: count set bits (binary sum).</span>
+<span class="w">    </span><span class="sd">"""OneMax fitness evaluator: count set bits (binary sum).</span>
 
 <span class="sd">    Minimizes the count of 0s (equivalently, maximizes the count of 1s).</span>
 <span class="sd">    Using minimization convention: lower fitness is better.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">config</span><span class="p">:</span> <span class="n">BinarySumConfig</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -367,10 +367,10 @@
 <div class="viewcode-block" id="BinarySumEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.binary_evaluators.html#malthusjax.BinarySumEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">BinaryGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate a single binary genome by counting zeros.</span>
+<span class="w">        </span><span class="sd">"""Evaluate a single binary genome by counting zeros.</span>
 
 <span class="sd">        Minimization convention: fewer zeros = better fitness (lower value).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">ones_count</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="n">zeros_count</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">ones_count</span>
         <span class="k">return</span> <span class="n">ones_count</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="n">zeros_count</span></div>
@@ -382,7 +382,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.binary_evaluators.html#malthusjax.KnapsackConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">KnapsackConfig</span><span class="p">(</span><span class="n">BaseEvaluatorConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for 0/1 Knapsack problem fitness evaluation.</span>
+<span class="w">    </span><span class="sd">"""Configuration for 0/1 Knapsack problem fitness evaluation.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        n_items: Number of items in the knapsack problem.</span>
@@ -390,7 +390,7 @@
 <span class="sd">        values: Item values array, shape (n_items,).</span>
 <span class="sd">        capacity: Maximum weight capacity (scalar).</span>
 <span class="sd">        penalty_factor: Linear constraint penalty coefficient (default 1000.0).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">n_items</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">weights</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -404,7 +404,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.binary_evaluators.html#malthusjax.KnapsackEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">KnapsackEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">KnapsackConfig</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">KnapsackData</span><span class="p">]]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Knapsack problem fitness evaluator with linear constraint penalties.</span>
+<span class="w">    </span><span class="sd">"""Knapsack problem fitness evaluator with linear constraint penalties.</span>
 
 <span class="sd">    Computes total value minus linear penalty for weight constraint violation.</span>
 <span class="sd">    Penalty = excess_weight * penalty_factor (jax.lax.select, XLA-safe).</span>
@@ -412,7 +412,7 @@
 <span class="sd">    Data is stored as KnapsackData containing weights and values arrays.</span>
 <span class="sd">    Use create_synthetic() to generate random problems or create_from_data()</span>
 <span class="sd">    to load pre-computed weights/values (matching TSP interface).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">config</span><span class="p">:</span> <span class="n">KnapsackConfig</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">KnapsackData</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -420,12 +420,12 @@
 <div class="viewcode-block" id="KnapsackEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.binary_evaluators.html#malthusjax.KnapsackEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">BinaryGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate a binary genome representing item selection.</span>
+<span class="w">        </span><span class="sd">"""Evaluate a binary genome representing item selection.</span>
 
 <span class="sd">        The returned value equals total item value minus a linear penalty for</span>
 <span class="sd">        any capacity violation. This method is JAX‑safe and avoids Python</span>
 <span class="sd">        control flow.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">weights</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">weights</span>
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">values</span>
 
@@ -450,7 +450,7 @@
         <span class="n">capacity_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KnapsackConfig</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a random knapsack configuration with synthetic weights and values.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Create a random knapsack configuration with synthetic weights and values."""</span>
         <span class="n">key1</span><span class="p">,</span> <span class="n">key2</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">rng_key</span><span class="p">)</span>
 
         <span class="n">weights</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="p">(</span><span class="n">n_items</span><span class="p">,),</span> <span class="n">minval</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
@@ -477,11 +477,11 @@
         <span class="n">capacity_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
         <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;KnapsackEvaluator&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Factory: create random 0/1 knapsack instance with synthetic data.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"KnapsackEvaluator"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Factory: create random 0/1 knapsack instance with synthetic data.</span>
 
 <span class="sd">        Matches TSP interface: generates random weights and values procedurally.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">rng_key</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">config</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">create_random_problem</span><span class="p">(</span>
             <span class="n">rng_key</span><span class="p">,</span>
@@ -504,8 +504,8 @@
         <span class="n">capacity</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span>
         <span class="n">penalty_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1000.0</span><span class="p">,</span>
         <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;KnapsackEvaluator&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Factory: create knapsack evaluator from pre-loaded weights and values.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"KnapsackEvaluator"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Factory: create knapsack evaluator from pre-loaded weights and values.</span>
 
 <span class="sd">        Matches TSP interface: accepts pre-computed problem data.</span>
 
@@ -518,7 +518,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Initialized KnapsackEvaluator with loaded data.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n_items</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">KnapsackConfig</span><span class="p">(</span>
             <span class="n">n_items</span><span class="o">=</span><span class="n">n_items</span><span class="p">,</span>

@@ -323,15 +323,15 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Level 3 Engine Architecture - Abstract Base Classes</span>
 
 <span class="sd">This module defines the core abstractions that all Level 3 engines must follow.</span>
 <span class="sd">Provides type safety, JIT compatibility, and universal visualization support.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
-<span class="n">G</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseGenome</span><span class="p">)</span>  <span class="c1"># Genome type</span>
-<span class="n">P</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span>  <span class="c1"># Population type (parameterized with Any)</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"G"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseGenome</span><span class="p">)</span>  <span class="c1"># Genome type</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"P"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span>  <span class="c1"># Population type (parameterized with Any)</span>
 
 <span class="n">_field</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span>  <span class="c1"># Helper alias for typed field calls</span>
 
@@ -339,35 +339,35 @@
 <div class="viewcode-block" id="compute_unroll_num">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.compute_unroll_num">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_unroll_num</span><span class="p">(</span><span class="n">num_generations</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the scan unroll factor for an evolution loop.</span>
+<span class="w">    </span><span class="sd">"""Return the scan unroll factor for an evolution loop.</span>
 
 <span class="sd">    Historically this adjusted XLA scan unrolling, but the mechanism was</span>
 <span class="sd">    deprecated after benchmarks showed no benefit and a linear growth in IR</span>
 <span class="sd">    size. It remains here for backwards compatibility and now always returns</span>
 <span class="sd">    ``1`` regardless of *num_generations*.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="mi">1</span></div>
 
 
 
 <div class="viewcode-block" id="validate_engine_params">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.validate_engine_params">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">validate_engine_params</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="s2">&quot;AbstractEngineParams&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_engine_params</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="s2">"AbstractEngineParams"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Validate engine parameters outside of JIT context.</span>
 <span class="sd">    Call this before starting evolution to catch configuration errors early.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">pop_size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pop_size must be positive, got </span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"pop_size must be positive, got </span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">num_generations</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;num_generations must be positive, got </span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">num_generations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"num_generations must be positive, got </span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">num_generations</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Elitism checks (optional based on algorithm)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">params</span><span class="o">.</span><span class="n">elitism</span> <span class="o">&lt;</span> <span class="n">params</span><span class="o">.</span><span class="n">pop_size</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;elitism must satisfy 0 &lt;= elitism &lt; pop_size, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;got elitism=</span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">elitism</span><span class="si">}</span><span class="s2">, pop_size=</span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"elitism must satisfy 0 &lt;= elitism &lt; pop_size, "</span>
+            <span class="sa">f</span><span class="s2">"got elitism=</span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">elitism</span><span class="si">}</span><span class="s2">, pop_size=</span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span></div>
 
 
@@ -376,14 +376,14 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.AbstractEngineParams">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AbstractEngineParams</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Base immutable configuration for evolution engines (pytree_node=False).</span>
 <span class="sd">    All fields remain static during JIT compilation; mutations use .replace().</span>
 <span class="sd">    - pop_size: Population size (must be &gt; 0).</span>
 <span class="sd">    - elitism: Number of elite individuals preserved each generation (0 ≤ elitism &lt; pop_size).</span>
 <span class="sd">    - num_generations: Number of evolution steps (must be &gt; 0).</span>
 <span class="sd">    - unroll_num: JAX scan unroll factor for latency/memory trade-off (default 1).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">elitism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -397,7 +397,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.AbstractEvolutionState">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AbstractEvolutionState</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Mutable state container for evolution across generations (carries data through scan).</span>
 <span class="sd">    Concrete implementations (GeneticEvolutionState) extend this with resource_map, operators.</span>
 
@@ -405,7 +405,7 @@
 <span class="sd">    As of v2.0, the population generic parameter `P` has been decoupled from the</span>
 <span class="sd">    operators but is preserved here for static typing of the scan state. It</span>
 <span class="sd">    universally binds to `BasePopulation[G]` or a structural subclass like</span>
-<span class="sd">    `RealPopulation`. The engine is completely agnostic of the genome&#39;s internal</span>
+<span class="sd">    `RealPopulation`. The engine is completely agnostic of the genome's internal</span>
 <span class="sd">    structure (e.g., `.values`).</span>
 
 <span class="sd">    - population (P): Current population (shape: (pop_size, ...genome_shape)).</span>
@@ -413,7 +413,7 @@
 <span class="sd">    - generation (int): Current generation counter (increments each step).</span>
 <span class="sd">    - best_fitness (Array): Scalar fitness of best_genome.</span>
 <span class="sd">    - rng_key (Array): Master PRNG key for next generation (shape: (2,)).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">population</span><span class="p">:</span> <span class="n">P</span>
     <span class="n">best_genome</span><span class="p">:</span> <span class="n">G</span>
@@ -428,7 +428,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.AbstractGenerationOutput">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AbstractGenerationOutput</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    KPI payload returned at every evolution step (collected by JAX scan).</span>
 <span class="sd">    Foundation for universal dashboard generation.</span>
 <span class="sd">    - best_fitness: Scalar best fitness this generation.</span>
@@ -436,7 +436,7 @@
 <span class="sd">    - generation: Current generation counter.</span>
 <span class="sd">    History: scan returns tuple of (final_state, jax.lax.scan output), where output</span>
 <span class="sd">    stacks all KPI instances into (num_generations,) shaped arrays per field.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">best_fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
     <span class="n">mean_fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
@@ -447,7 +447,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.AbstractGenerationOutput.get_kpi_names">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_kpi_names</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__dataclass_fields__&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">"__dataclass_fields__"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 </div>
 
 
@@ -456,37 +456,43 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.AbstractEngine">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AbstractEngine</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">ABC</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Abstract base class for all evolutionary engines.</span>
 
 <span class="sd">    Standardizes the evolution loop using JAX scan.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">engine_params</span><span class="p">:</span> <span class="n">AbstractEngineParams</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make engine hashable for JIT static_argnums.</span>
+<span class="w">        </span><span class="sd">"""Make engine hashable for JIT static_argnums.</span>
 
-<span class="sd">        Uses id() since engine contains JAX arrays that aren&#39;t hashable.</span>
+<span class="sd">        Uses id() since engine contains JAX arrays that aren't hashable.</span>
 <span class="sd">        This means each engine instance is treated as unique by JIT caching.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Identity-based equality for JIT caching consistency.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Identity-based equality for JIT caching consistency."""</span>
         <span class="k">return</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">maximize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return True if the engine is maximizing, False if minimizing."""</span>
+        <span class="k">pass</span>
 
 <div class="viewcode-block" id="AbstractEngine.init_state">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.AbstractEngine.init_state">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build and return the initial evolution state.</span>
+<span class="w">        </span><span class="sd">"""Build and return the initial evolution state.</span>
 
 <span class="sd">        This first-phase compilation step sets up the resource mapper, operators,</span>
 <span class="sd">        and initial population. If *rng_key* is an integer, implementations</span>
 <span class="sd">        should convert it to a typed PRNG key using the configured backend.</span>
 <span class="sd">        The returned state is cached and reused by ``step`` and ``run``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">validate_engine_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
@@ -497,13 +503,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">AbstractGenerationOutput</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform a single evolutionary generation update.</span>
+<span class="w">        </span><span class="sd">"""Perform a single evolutionary generation update.</span>
 
 <span class="sd">        Engines typically perform entropy allocation, selection, reproduction,</span>
 <span class="sd">        merging, evaluation, and high‑order‑function updates. The input *state*</span>
 <span class="sd">        carries the current population, PRNG key, and other resources. The</span>
 <span class="sd">        method returns the updated state together with a KPI payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
@@ -512,11 +518,11 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">debug_step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">AbstractGenerationOutput</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run one step and print the resulting population length.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Run one step and print the resulting population length."""</span>
         <span class="n">new_state</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="n">population</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">new_state</span><span class="p">,</span> <span class="s2">&quot;population&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">population</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">new_state</span><span class="p">,</span> <span class="s2">"population"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">population</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;population len: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">population</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"population len: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">population</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">output</span></div>
 
 
@@ -525,7 +531,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">debug_run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">AbstractGenerationOutput</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the engine in a Python loop using `debug_step`.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Run the engine in a Python loop using `debug_step`."""</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">initial_state</span>
         <span class="n">history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AbstractGenerationOutput</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">num_generations</span><span class="p">):</span>
@@ -544,18 +550,18 @@
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">return_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the full evolution loop starting from *initial_state*.</span>
+<span class="w">        </span><span class="sd">"""Run the full evolution loop starting from *initial_state*.</span>
 
 <span class="sd">        This method obtains the JIT‑compiled scan kernel and executes it for</span>
 <span class="sd">        the configured number of generations. If *time_it* is true the method</span>
 <span class="sd">        measures wall‑clock duration, optionally printing progress when</span>
 <span class="sd">        *verbose* is enabled. Returns the final state, the stacked KPI history,</span>
 <span class="sd">        and an optional elapsed time.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Starting evolution: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">num_generations</span><span class="si">}</span><span class="s2"> generations, &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;population size </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">, compile=</span><span class="si">{</span><span class="nb">compile</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Starting evolution: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">num_generations</span><span class="si">}</span><span class="s2"> generations, "</span>
+                <span class="sa">f</span><span class="s2">"population size </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">, compile=</span><span class="si">{</span><span class="nb">compile</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="c1"># Retrieve the compiled loop function</span>
         <span class="n">evolve_fn</span> <span class="o">=</span> <span class="n">_get_evolution_kernel</span><span class="p">(</span>
@@ -576,13 +582,13 @@
                 <span class="n">_</span> <span class="o">=</span> <span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="o">.</span><span class="n">block_until_ready</span><span class="p">()</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evolution failed: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Evolution failed: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="n">elapsed_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">time_it</span><span class="p">:</span>
             <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done in </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Done in </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">elapsed_time</span></div>
 
@@ -591,19 +597,19 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.base.html#malthusjax.AbstractEngine.ask_with_key">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">ask_with_key</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">rng_key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;AbstractEngine[G, P]&quot;</span><span class="p">,</span> <span class="n">P</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Optional key-aware ask interface.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">"AbstractEngine[G, P]"</span><span class="p">,</span> <span class="n">P</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Optional key-aware ask interface.</span>
 
 <span class="sd">        Default behavior delegates to ``ask(state)`` when implemented by the</span>
 <span class="sd">        concrete engine. Engines that need explicit key control can override</span>
 <span class="sd">        this method.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">_</span> <span class="o">=</span> <span class="n">rng_key</span>
-        <span class="n">ask_fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;ask&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">ask_fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"ask"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">ask_fn</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;AbstractEngine[G, P]&quot;</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">ask_fn</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Tuple</span><span class="p">[</span><span class="s2">"AbstractEngine[G, P]"</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">ask_fn</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s2">&quot;ask_with_key() is not implemented for this engine and no ask() method is available.&quot;</span>
+            <span class="s2">"ask_with_key() is not implemented for this engine and no ask() method is available."</span>
         <span class="p">)</span></div>
 
 
@@ -612,18 +618,18 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">tell_with_key</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">population</span><span class="p">:</span> <span class="n">P</span><span class="p">,</span> <span class="n">rng_key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Optional key-aware tell interface.</span>
+<span class="w">        </span><span class="sd">"""Optional key-aware tell interface.</span>
 
 <span class="sd">        Default behavior delegates to ``tell(state, population)`` when</span>
 <span class="sd">        implemented by the concrete engine. Engines that need explicit key</span>
 <span class="sd">        control can override this method.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">_</span> <span class="o">=</span> <span class="n">rng_key</span>
-        <span class="n">tell_fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;tell&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">tell_fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"tell"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">tell_fn</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">],</span> <span class="n">tell_fn</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">population</span><span class="p">))</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s2">&quot;tell_with_key() is not implemented for this engine and no tell() method is available.&quot;</span>
+            <span class="s2">"tell_with_key() is not implemented for this engine and no tell() method is available."</span>
         <span class="p">)</span></div>
 
 
@@ -635,12 +641,12 @@
         <span class="n">optimize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>  <span class="c1"># &lt;--- NEW FLAG</span>
         <span class="n">print_analysis</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Extracts HLO text.</span>
 <span class="sd">        If optimize=True, runs the full XLA compiler to show FUSION.</span>
 <span class="sd">        If optimize=False, shows the raw graph (faster, good for debugging shapes).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--- Extracting HLO (Optimize=</span><span class="si">{</span><span class="n">optimize</span><span class="si">}</span><span class="s2">) ---&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"--- Extracting HLO (Optimize=</span><span class="si">{</span><span class="n">optimize</span><span class="si">}</span><span class="s2">) ---"</span><span class="p">)</span>
 
         <span class="c1"># 1. Get JIT Kernel</span>
         <span class="n">jit_kernel</span> <span class="o">=</span> <span class="n">_get_evolution_kernel</span><span class="p">(</span>
@@ -659,16 +665,16 @@
             <span class="n">hlo_text</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">lowered</span><span class="o">.</span><span class="n">as_text</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">print_analysis</span><span class="p">:</span>
-            <span class="n">line_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hlo_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
-            <span class="n">fusion_count</span> <span class="o">=</span> <span class="n">hlo_text</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;fusion&quot;</span><span class="p">)</span>
-            <span class="n">loop_count</span> <span class="o">=</span> <span class="n">hlo_text</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;while&quot;</span><span class="p">)</span>
-            <span class="c1"># Note: &#39;while&#39; may be transformed (e.g., to &#39;custom-call&#39;) by the backend optimizations</span>
+            <span class="n">line_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hlo_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">))</span>
+            <span class="n">fusion_count</span> <span class="o">=</span> <span class="n">hlo_text</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">"fusion"</span><span class="p">)</span>
+            <span class="n">loop_count</span> <span class="o">=</span> <span class="n">hlo_text</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">"while"</span><span class="p">)</span>
+            <span class="c1"># Note: 'while' may be transformed (e.g., to 'custom-call') by the backend optimizations</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;HLO Analysis:&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Total Lines of IR: </span><span class="si">{</span><span class="n">line_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Fusion Kernels:    </span><span class="si">{</span><span class="n">fusion_count</span><span class="si">}</span><span class="s2"> (Higher is better)&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Explicit Loops:    </span><span class="si">{</span><span class="n">loop_count</span><span class="si">}</span><span class="s2"> (Should be 1 for the main scan)&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"HLO Analysis:"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - Total Lines of IR: </span><span class="si">{</span><span class="n">line_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - Fusion Kernels:    </span><span class="si">{</span><span class="n">fusion_count</span><span class="si">}</span><span class="s2"> (Higher is better)"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - Explicit Loops:    </span><span class="si">{</span><span class="n">loop_count</span><span class="si">}</span><span class="s2"> (Should be 1 for the main scan)"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"-"</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">hlo_text</span></div>
 </div>
@@ -685,26 +691,26 @@
     <span class="n">unroll_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">return_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Factory: Builds evolution kernel (jax.lax.scan loop).</span>
-<span class="sd">    JAX&#39;s own compilation cache (keyed on static args + input shapes) handles</span>
+<span class="sd">    JAX's own compilation cache (keyed on static args + input shapes) handles</span>
 <span class="sd">    deduplication — an additional lru_cache is redundant and can leak memory</span>
 <span class="sd">    by preventing GC of closed-over engine/state references (JR-3).</span>
 <span class="sd">    Closure pattern: _evolve_loop captures engine as compile-time constant (static_argnums=0).</span>
-<span class="sd">    This avoids passing engine in scan carry (&quot;light carry&quot;), reducing memory.</span>
+<span class="sd">    This avoids passing engine in scan carry ("light carry"), reducing memory.</span>
 <span class="sd">    donate_argnums=1 donates initial_state arrays (JIT donation optimization).</span>
 <span class="sd">    unroll_num: Deprecated no-op — always overridden to 1.  Benchmarks show</span>
 <span class="sd">    scan unrolling grows XLA IR linearly (unroll_5 → 2.3×, unroll_25 → 9×)</span>
 <span class="sd">    with zero throughput benefit on GPU.  XLA fuses across scan iterations</span>
 <span class="sd">    automatically.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">unroll_num</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;unroll_num=</span><span class="si">{</span><span class="n">unroll_num</span><span class="si">}</span><span class="s2"> has no performance benefit on GPU and increases &quot;</span>
-            <span class="s2">&quot;XLA compile time linearly. It has been overridden to 1. &quot;</span>
-            <span class="s2">&quot;See GeneticEngineParams docstring for details.&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"unroll_num=</span><span class="si">{</span><span class="n">unroll_num</span><span class="si">}</span><span class="s2"> has no performance benefit on GPU and increases "</span>
+            <span class="s2">"XLA compile time linearly. It has been overridden to 1. "</span>
+            <span class="s2">"See GeneticEngineParams docstring for details."</span><span class="p">,</span>
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
         <span class="p">)</span>

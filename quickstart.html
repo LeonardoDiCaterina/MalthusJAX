@@ -340,12 +340,12 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
 <p>MalthusJAX’s Composer allows you to define complex, multi-seed benchmarks using a single declarative TOML file.</p>
 <p>Create a file named <code class="docutils literal notranslate"><span class="pre">experiment.toml</span></code>:</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment]</span>
-<span class="n">name</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;sphere_test&quot;</span>
-<span class="n">output_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;results/sphere&quot;</span>
+<span class="n">name</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"sphere_test"</span>
+<span class="n">output_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"results/sphere"</span>
 
 <span class="k">[experiment.shared]</span>
-<span class="n">fitness</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;sphere:dim=10&quot;</span>
-<span class="n">genome_type</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;real&quot;</span>
+<span class="n">fitness</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"sphere:dim=10"</span>
+<span class="n">genome_type</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"real"</span>
 <span class="n">genome_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
 <span class="n">bounds</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="mf">-5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="w"> </span><span class="p">]</span>
 <span class="n">pop_size</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span>
@@ -353,16 +353,16 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
 <span class="n">seeds</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="mi">43</span><span class="p">,</span><span class="w"> </span><span class="mi">44</span><span class="w"> </span><span class="p">]</span>
 
 <span class="k">[pipelines.ga]</span>
-<span class="n">engine_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ga&quot;</span>
-<span class="n">selection</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;tournament:num_selections=64,tournament_size=3&quot;</span>
-<span class="n">crossover</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;simulated_binary:eta=15&quot;</span>
-<span class="n">mutation</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gaussian:mutation_rate=0.1&quot;</span>
+<span class="n">engine_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ga"</span>
+<span class="n">selection</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"tournament:num_selections=64,tournament_size=3"</span>
+<span class="n">crossover</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"simulated_binary:eta=15"</span>
+<span class="n">mutation</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"gaussian:mutation_rate=0.1"</span>
 </pre></div>
 </div>
 <p>Then, load and execute the experiment in Python:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composer</span>
 
-<span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="s2">&quot;experiment.toml&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="s2">"experiment.toml"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">summary_table</span><span class="p">())</span>
 <span class="n">result</span><span class="o">.</span><span class="n">plot_convergence</span><span class="p">()</span>
 </pre></div>
@@ -378,10 +378,10 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">[</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">],</span> 
-    <span class="n">experiment_name</span><span class="o">=</span><span class="s2">&quot;fast_sphere_opt&quot;</span><span class="p">,</span> 
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> 
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;sphere:dim=10&quot;</span><span class="p">,</span>
-    <span class="n">genome_type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span>
+    <span class="n">experiment_name</span><span class="o">=</span><span class="s2">"fast_sphere_opt"</span><span class="p">,</span> 
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">"./results"</span><span class="p">,</span> 
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"sphere:dim=10"</span><span class="p">,</span>
+    <span class="n">genome_type</span><span class="o">=</span><span class="s2">"real"</span><span class="p">,</span>
     <span class="n">genome_length</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
     <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">),</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
@@ -390,10 +390,10 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
 <span class="p">)</span>
 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Run Status: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">runs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Run Status: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">runs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">runs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">history</span><span class="p">:</span>
         <span class="n">final_gen</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">runs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final Best Fitness: </span><span class="si">{</span><span class="n">final_gen</span><span class="p">[</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Final Best Fitness: </span><span class="si">{</span><span class="n">final_gen</span><span class="p">[</span><span class="s1">'best_fitness'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -405,9 +405,9 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
 <span class="n">composer</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span>
-    <span class="n">fitness</span><span class="o">=</span><span class="s2">&quot;bbob:fn_name=sphere,dim=10&quot;</span><span class="p">,</span>
-    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;evosax&quot;</span><span class="p">,</span>                     <span class="c1"># Use the EvoSAX backend!</span>
-    <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">&quot;CMA_ES&quot;</span><span class="p">,</span>             <span class="c1"># Select any EvoSAX strategy</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="s2">"bbob:fn_name=sphere,dim=10"</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">"evosax"</span><span class="p">,</span>                     <span class="c1"># Use the EvoSAX backend!</span>
+    <span class="n">evosax_strategy</span><span class="o">=</span><span class="s2">"CMA_ES"</span><span class="p">,</span>             <span class="c1"># Select any EvoSAX strategy</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">)</span>
@@ -454,18 +454,18 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
     <span class="n">emitter</span><span class="o">=</span><span class="n">emitter</span><span class="p">,</span>
     <span class="n">metrics_function</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">default_qd_metrics</span><span class="p">,</span> <span class="n">qd_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
     <span class="n">evaluator</span><span class="o">=</span><span class="n">NativeEvaluator</span><span class="p">(),</span>
-    <span class="n">eval_mode</span><span class="o">=</span><span class="s2">&quot;native&quot;</span><span class="p">,</span>
+    <span class="n">eval_mode</span><span class="o">=</span><span class="s2">"native"</span><span class="p">,</span>
     <span class="n">init_variables</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">50</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span> <span class="o">*</span> <span class="mf">5.0</span><span class="p">,</span>
     <span class="n">centroids</span><span class="o">=</span><span class="n">centroids</span><span class="p">,</span>
     <span class="n">pop_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">history_metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;qd_score&quot;</span><span class="p">,</span> <span class="s2">&quot;coverage&quot;</span><span class="p">]</span>
+    <span class="n">history_metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">"qd_score"</span><span class="p">,</span> <span class="s2">"coverage"</span><span class="p">]</span>
 <span class="p">)</span>
 
 <span class="c1"># 3. Run on the GPU at maximum speed</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run_once</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final QD Score: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;qd_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final Coverage: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;coverage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Final QD Score: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">'history'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">'qd_score'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Final Coverage: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">'history'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">'coverage'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Similarly, we can evolve neural network topologies using <strong>TensorNEAT</strong>:</p>
@@ -495,11 +495,11 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Leona
     <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">,</span>
     <span class="n">evaluator</span><span class="o">=</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">problem_state</span><span class="p">),</span>
     <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">history_metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;best_fitness_in_generation&quot;</span><span class="p">]</span>
+    <span class="n">history_metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">"best_fitness_in_generation"</span><span class="p">]</span>
 <span class="p">)</span>
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run_once</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final best fitness: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">][</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Final best fitness: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">'summary'</span><span class="p">][</span><span class="s1">'best_fitness'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

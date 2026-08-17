@@ -310,7 +310,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.fitness.tsp_evaluator</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;TSP (Traveling Salesman Problem) fitness evaluator.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""TSP (Traveling Salesman Problem) fitness evaluator."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -329,7 +329,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.TSPConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">TSPConfig</span><span class="p">(</span><span class="n">BaseEvaluatorConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;TSP configuration.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""TSP configuration."""</span>
 
     <span class="n">num_cities</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call] # TSP is naturally minimization</span></div>
@@ -340,7 +340,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.TSPEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">TSPEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">TSPConfig</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;TSP evaluator using random keys (argsort) on RealGenome.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""TSP evaluator using random keys (argsort) on RealGenome."""</span>
 
     <span class="n">config</span><span class="p">:</span> <span class="n">TSPConfig</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -348,8 +348,8 @@
 <div class="viewcode-block" id="TSPEvaluator.create_synthetic">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.TSPEvaluator.create_synthetic">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_synthetic</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">num_cities</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TSPEvaluator&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a synthetic TSP instance with random Euclidean points.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_synthetic</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">num_cities</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"TSPEvaluator"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Create a synthetic TSP instance with random Euclidean points."""</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">TSPConfig</span><span class="p">(</span><span class="n">num_cities</span><span class="o">=</span><span class="n">num_cities</span><span class="p">)</span>
 
         <span class="c1"># Consistent synthetic generation</span>
@@ -366,15 +366,15 @@
 <div class="viewcode-block" id="TSPEvaluator.create_from_data">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.TSPEvaluator.create_from_data">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_from_data</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">distance_matrix</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TSPEvaluator&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create evaluator from loaded distance matrix.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_from_data</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">distance_matrix</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"TSPEvaluator"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Create evaluator from loaded distance matrix."""</span>
         <span class="c1"># if distance_matrix is passed directly</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">TSPConfig</span><span class="p">):</span>
             <span class="c1"># If a dictionary (e.g. from registry) was passed</span>
             <span class="n">num_cities</span> <span class="o">=</span> <span class="n">distance_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">TSPConfig</span><span class="p">(</span>
                 <span class="n">num_cities</span><span class="o">=</span><span class="n">num_cities</span><span class="p">,</span>
-                <span class="n">maximize</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="n">maximize</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"maximize"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">distance_matrix</span><span class="p">)</span></div>
@@ -383,11 +383,11 @@
 <div class="viewcode-block" id="TSPEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.TSPEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate a genome&#39;s fitness on TSP.</span>
+<span class="w">        </span><span class="sd">"""Evaluate a genome's fitness on TSP.</span>
 
 <span class="sd">        Uses Random Key encoding: the argsort of the real-valued array</span>
 <span class="sd">        gives the permutation of cities.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Decode real array to permutation</span>
         <span class="n">tour</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 

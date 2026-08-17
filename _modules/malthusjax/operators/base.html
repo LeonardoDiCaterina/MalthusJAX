@@ -323,13 +323,13 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_new_style_key</span>
 
-<span class="n">G</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseGenome</span><span class="p">)</span>  <span class="c1"># Genome Data</span>
-<span class="n">C</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>  <span class="c1"># Config Data</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"G"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseGenome</span><span class="p">)</span>  <span class="c1"># Genome Data</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"C"</span><span class="p">)</span>  <span class="c1"># Config Data</span>
 
 <span class="c1"># Backward compatibility: P is kept as a module-level name so that existing</span>
 <span class="c1"># code using ``from malthusjax.operators.base import P`` continues to work,</span>
 <span class="c1"># but it is no longer used in operator class definitions.</span>
-<span class="n">P</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"P"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span>
 
 <span class="n">_field</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span>
 
@@ -338,7 +338,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseMutation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseMutation</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vectorized mutation operator with pre-allocated key budgeting.</span>
+<span class="w">    </span><span class="sd">"""Vectorized mutation operator with pre-allocated key budgeting.</span>
 
 <span class="sd">    Tier 3 of the 3-tier architecture: separates RNG (_generate_noise, Tier 2)</span>
 <span class="sd">    from pure arithmetic (_mutate_one, Tier 1). Fuses both into single vmap</span>
@@ -363,20 +363,20 @@
 <span class="sd">        The third type parameter ``P`` (population type) has been removed.</span>
 <span class="sd">        Use ``BaseMutation[G, C]`` instead of ``BaseMutation[G, C, P]``.</span>
 <span class="sd">        Old signatures continue to work but emit a deprecation warning.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># Detect old-style 3-arg Generic usage in class bases.</span>
-        <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__orig_bases__&quot;</span><span class="p">,</span> <span class="p">()):</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">&quot;__args__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">"__orig_bases__"</span><span class="p">,</span> <span class="p">()):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">"__args__"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="n">origin</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">&quot;__origin__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">origin</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">"__origin__"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">origin</span> <span class="ow">is</span> <span class="n">BaseMutation</span><span class="p">:</span>
                     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__qualname__</span><span class="si">}</span><span class="s2"> uses BaseMutation[G, C, P] which is &quot;</span>
-                        <span class="s2">&quot;deprecated. Use BaseMutation[G, C] instead — the population &quot;</span>
-                        <span class="s2">&quot;type P is now inferred from G.&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__qualname__</span><span class="si">}</span><span class="s2"> uses BaseMutation[G, C, P] which is "</span>
+                        <span class="s2">"deprecated. Use BaseMutation[G, C] instead — the population "</span>
+                        <span class="s2">"type P is now inferred from G."</span><span class="p">,</span>
                         <span class="ne">DeprecationWarning</span><span class="p">,</span>
                         <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                     <span class="p">)</span>
@@ -390,58 +390,58 @@
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Keys required per (individual, offspring) pair. Budgeted by ResourceMapper.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Keys required per (individual, offspring) pair. Budgeted by ResourceMapper."""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="BaseMutation.num_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseMutation.num_keys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Total keys needed: input_length * num_offspring * atomic_keys.</span>
+<span class="w">        </span><span class="sd">"""Total keys needed: input_length * num_offspring * atomic_keys.</span>
 
 <span class="sd">        Returns shape for ResourceMapper pre-allocation:</span>
 <span class="sd">        (input_length, num_offspring, num_keys_per_atomic_operation, [2]).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span></div>
 
 
 <div class="viewcode-block" id="BaseMutation.set_input_length">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseMutation.set_input_length">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_input_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseMutation[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lock population size for static key budgeting.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_input_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseMutation[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Lock population size for static key budgeting."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_length</span><span class="o">=</span><span class="n">length</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseMutation.set_typed_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseMutation.set_typed_keys">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_typed_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseMutation[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_typed_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseMutation[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set key format based on PRNG impl.</span>
 <span class="sd">        True = new-style typed keys,</span>
 <span class="sd">        False = legacy uint32[2].</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed_keys</span><span class="o">=</span><span class="n">typed</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseMutation.set_max_generations">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseMutation.set_max_generations">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_max_generations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseMutation[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set total generation count for operator-level scheduling.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_max_generations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseMutation[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Set total generation count for operator-level scheduling."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_generations</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
 
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 — Pure mutation arithmetic: genome + noise → mutated genome.</span>
+<span class="w">        </span><span class="sd">"""Tier 1 — Pure mutation arithmetic: genome + noise → mutated genome.</span>
 
 <span class="sd">        This method operates on a single `G` structural instance. It should manipulate</span>
 <span class="sd">        the PyTree directly (e.g., via `jax.tree_util.tree_map`) rather than assuming</span>
 <span class="sd">        a rigid `.values` attribute. The Tier-3 `__call__` orchestrates the vmap to</span>
 <span class="sd">        map this operation across population batches without manual array slicing.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — Pure mutation arithmetic on raw arrays.</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — Pure mutation arithmetic on raw arrays.</span>
 
 <span class="sd">        Array-native variant of ``_mutate_one`` that operates directly on flat</span>
 <span class="sd">        ``jax.Array`` values, returning a flat ``jax.Array`` without constructing</span>
@@ -452,26 +452,26 @@
 <span class="sd">        (typically ``values + noise_data`` with optional clipping).  The default</span>
 <span class="sd">        raises ``NotImplementedError`` to signal that the operator has not yet</span>
 <span class="sd">        opted into array-native support.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not implement _apply_noise. &quot;</span>
-            <span class="s2">&quot;Override this method for VectorizedEngine support.&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not implement _apply_noise. "</span>
+            <span class="s2">"Override this method for VectorizedEngine support."</span>
         <span class="p">)</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2 — Noise generation: keys → noise PyTree.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 2 — Noise generation: keys → noise PyTree."""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_fused</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fused RNG + arithmetic for single (individual, offspring) pair.</span>
+<span class="w">        </span><span class="sd">"""Fused RNG + arithmetic for single (individual, offspring) pair.</span>
 
 <span class="sd">        Combines Tier 1 and Tier 2 into a single traceable unit for XLA</span>
 <span class="sd">        kernel fusion: RNG (bernoulli, normal, etc.) and arithmetic (add,</span>
 <span class="sd">        multiply, clip) fused into one kernel without intermediate materialization.</span>
 
 <span class="sd">        Input key shape: (num_keys_per_atomic_operation, 2)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_noise</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mutate_one</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
 
@@ -480,14 +480,14 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">apply_fastpath</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">flat_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fast path protocol for array-native engines.</span>
+<span class="w">        </span><span class="sd">"""Fast path protocol for array-native engines.</span>
 
 <span class="sd">        Takes flat arrays, generates noise, and maps _apply_noise across the batch.</span>
 <span class="sd">        Bypasses PyTree overhead completely.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;apply_fastpath only supports num_offspring=1.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"apply_fastpath only supports num_offspring=1."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
             <span class="n">keys_flat</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span><span class="p">,</span> <span class="n">n_keys</span><span class="p">)</span>
@@ -504,21 +504,21 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 3 — Population-level mutation using JAX vmaps.</span>
+<span class="w">        </span><span class="sd">"""Tier 3 — Population-level mutation using JAX vmaps.</span>
 
 <span class="sd">        This method orchestrates either a flat or nested vmap over the provided</span>
 <span class="sd">        pre‑allocated keys to mutate an entire population. When</span>
-<span class="sd">        ``num_offspring == 1`` it mirrors evosax&#39;s simple structure; when</span>
+<span class="sd">        ``num_offspring == 1`` it mirrors evosax's simple structure; when</span>
 <span class="sd">        &gt;1 it reshapes and flattens the result so that offspring are stacked</span>
 <span class="sd">        behind their parents.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""</span>
 <span class="sd">            Fast path: flat single vmap — same structure as evosax mutation.</span>
 <span class="sd">            Eliminates inner vmap, (N,1,d)→(N,d) reshape, and tree_map traversal</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            """</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
                 <span class="n">keys_flat</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span><span class="p">,</span> <span class="n">n_keys</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -530,11 +530,11 @@
             <span class="n">new_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">_mutate_flat</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span><span class="n">keys_flat</span><span class="p">,</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">population</span><span class="o">.</span><span class="n">spawn_offspring</span><span class="p">(</span><span class="n">new_genes</span><span class="p">)</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        General path: nested vmap for num_offspring &gt; 1.</span>
 <span class="sd">        typed_keys=True (new-style): keys are 1D array of typed scalars → 3D reshape.</span>
 <span class="sd">        typed_keys=False (legacy): keys are (N,2) uint32 arrays → 4D reshape.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
             <span class="n">keys_reshaped</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span><span class="p">,</span> <span class="n">n_keys</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -550,7 +550,7 @@
         <span class="n">nested_offspring</span> <span class="o">=</span> <span class="n">vmap_process</span><span class="p">(</span><span class="n">keys_reshaped</span><span class="p">,</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">flatten_fn</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;flatten (individuals, offspring, ...d) → (individuals * offspring, ...d)&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""flatten (individuals, offspring, ...d) → (individuals * offspring, ...d)"""</span>
             <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
 
         <span class="n">new_genes_flat</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="n">flatten_fn</span><span class="p">,</span> <span class="n">nested_offspring</span><span class="p">))</span>
@@ -562,7 +562,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseCrossover">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseCrossover</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vectorized crossover operator with pre-allocated key budgeting.</span>
+<span class="w">    </span><span class="sd">"""Vectorized crossover operator with pre-allocated key budgeting.</span>
 
 <span class="sd">    Tier 3 of the 3-tier architecture: separates RNG (_generate_noise, Tier 2)</span>
 <span class="sd">    from pure recombination (_recombine_one, Tier 1). Fuses both via _cross_fused</span>
@@ -588,19 +588,19 @@
 <span class="sd">        The third type parameter ``P`` (population type) has been removed.</span>
 <span class="sd">        Use ``BaseCrossover[G, C]`` instead of ``BaseCrossover[G, C, P]``.</span>
 <span class="sd">        Old signatures continue to work but emit a deprecation warning.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__orig_bases__&quot;</span><span class="p">,</span> <span class="p">()):</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">&quot;__args__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">"__orig_bases__"</span><span class="p">,</span> <span class="p">()):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">"__args__"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="n">origin</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">&quot;__origin__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">origin</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">"__origin__"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">origin</span> <span class="ow">is</span> <span class="n">BaseCrossover</span><span class="p">:</span>
                     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__qualname__</span><span class="si">}</span><span class="s2"> uses BaseCrossover[G, C, P] which is &quot;</span>
-                        <span class="s2">&quot;deprecated. Use BaseCrossover[G, C] instead — the population &quot;</span>
-                        <span class="s2">&quot;type P is now inferred from G.&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__qualname__</span><span class="si">}</span><span class="s2"> uses BaseCrossover[G, C, P] which is "</span>
+                        <span class="s2">"deprecated. Use BaseCrossover[G, C] instead — the population "</span>
+                        <span class="s2">"type P is now inferred from G."</span><span class="p">,</span>
                         <span class="ne">DeprecationWarning</span><span class="p">,</span>
                         <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                     <span class="p">)</span>
@@ -614,54 +614,54 @@
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Keys required per (pair, offspring) combo. Budgeted by ResourceMapper.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Keys required per (pair, offspring) combo. Budgeted by ResourceMapper."""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="BaseCrossover.num_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseCrossover.num_keys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Total keys needed: num_pairs * num_offspring * atomic_keys.</span>
+<span class="w">        </span><span class="sd">"""Total keys needed: num_pairs * num_offspring * atomic_keys.</span>
 
 <span class="sd">        Returns shape for ResourceMapper:</span>
 <span class="sd">        (input_length, num_offspring, num_keys_per_atomic_operation, [2]).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">num_pairs</span> <span class="o">=</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">num_pairs</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span></div>
 
 
 <div class="viewcode-block" id="BaseCrossover.set_input_length">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseCrossover.set_input_length">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_input_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseCrossover[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lock pair count for static key budgeting.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_input_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseCrossover[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Lock pair count for static key budgeting."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_length</span><span class="o">=</span><span class="n">length</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseCrossover.set_typed_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseCrossover.set_typed_keys">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_typed_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseCrossover[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_typed_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseCrossover[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set key format based on PRNG impl.</span>
 <span class="sd">        True = new-style typed keys,</span>
 <span class="sd">        False = legacy uint32[2].</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed_keys</span><span class="o">=</span><span class="n">typed</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseCrossover.set_max_generations">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseCrossover.set_max_generations">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_max_generations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseCrossover[G, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set total generation count for operator-level scheduling.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_max_generations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseCrossover[G, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Set total generation count for operator-level scheduling."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_generations</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
 
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2 — Recombination mask/index generation: keys → noise PyTree.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 2 — Recombination mask/index generation: keys → noise PyTree."""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_recombine_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p1</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 — Pure recombination: p1 + p2 + noise → offspring genome.</span>
+<span class="w">        </span><span class="sd">"""Tier 1 — Pure recombination: p1 + p2 + noise → offspring genome.</span>
 
 <span class="sd">        This method operates on single `G` structural instances representing parents.</span>
 <span class="sd">        It should manipulate the PyTrees directly rather than assuming a rigid `.values`</span>
@@ -670,13 +670,13 @@
 
 <span class="sd">        Returns a single genome `G`, not a tuple. The base class handles replication</span>
 <span class="sd">        via `num_offspring`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_mask</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">p1_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">p2_values</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1 (array-native) — Pure recombination arithmetic on raw arrays.</span>
+<span class="w">        </span><span class="sd">"""Tier 1 (array-native) — Pure recombination arithmetic on raw arrays.</span>
 
 <span class="sd">        Array-native variant of ``_recombine_one`` that operates directly on flat</span>
 <span class="sd">        ``jax.Array`` parent values, returning a flat ``jax.Array`` without</span>
@@ -686,18 +686,18 @@
 <span class="sd">        Concrete subclasses should override this with their specific arithmetic</span>
 <span class="sd">        (e.g., ``jnp.where(mask, p2_values, p1_values)``).  The default raises</span>
 <span class="sd">        ``NotImplementedError``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not implement _apply_mask. &quot;</span>
-            <span class="s2">&quot;Override this method for VectorizedEngine support.&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not implement _apply_mask. "</span>
+            <span class="s2">"Override this method for VectorizedEngine support."</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cross_fused</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">p1</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fused RNG + recombination for single (pair, offspring) combination.</span>
+<span class="w">        </span><span class="sd">"""Fused RNG + recombination for single (pair, offspring) combination.</span>
 
 <span class="sd">        Input key shape: (num_keys_per_atomic_operation, 2).</span>
 <span class="sd">        Combines Tier 1 and 2 for XLA kernel fusion.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_noise</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recombine_one</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
 
@@ -711,14 +711,14 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fast path protocol for array-native engines.</span>
+<span class="w">        </span><span class="sd">"""Fast path protocol for array-native engines.</span>
 
 <span class="sd">        Takes flat arrays, generates noise, and maps _apply_mask across the batch.</span>
 <span class="sd">        Bypasses PyTree overhead completely.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;apply_fastpath only supports num_offspring=1.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"apply_fastpath only supports num_offspring=1."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
             <span class="n">keys_flat</span> <span class="o">=</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_length</span><span class="p">,</span> <span class="n">n_keys</span><span class="p">)</span>
@@ -735,13 +735,13 @@
 <div class="viewcode-block" id="BaseCrossover.cross_single_pair">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseCrossover.cross_single_pair">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cross_single_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">p1</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform crossover on a single parent pair outside of __call__.</span>
+<span class="w">        </span><span class="sd">"""Perform crossover on a single parent pair outside of __call__.</span>
 
 <span class="sd">        This helper is handy for on‑the‑fly debugging or visualization when</span>
 <span class="sd">        parents are not drawn from a batched population. It internally splits</span>
 <span class="sd">        the provided *key* into the required format and then applies the</span>
 <span class="sd">        fused crossover logic.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span><span class="p">)</span>
         <span class="n">typed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span> <span class="ow">or</span> <span class="n">is_new_style_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">typed</span><span class="p">:</span>
@@ -764,14 +764,14 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 3 — Population-level crossover executed via JAX vmaps.</span>
+<span class="w">        </span><span class="sd">"""Tier 3 — Population-level crossover executed via JAX vmaps.</span>
 
 <span class="sd">        Handles both the single‑offspring fast path and the general nested vmap</span>
 <span class="sd">        case, reshaping keys appropriately and flattening the resulting offspring</span>
 <span class="sd">        into a single batch.</span>
 <span class="sd">        for num_offspring == 1, performs a simple vmap over pairs with no reshape.</span>
 <span class="sd">        for num_offspring &gt; 1, performs a nested vmap and then flattens</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -818,7 +818,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseSelection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseSelection</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">P</span><span class="p">,</span> <span class="n">C</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stateless selection operator for fitness-based index sampling.</span>
+<span class="w">    </span><span class="sd">"""Stateless selection operator for fitness-based index sampling.</span>
 
 <span class="sd">    Selects indices from a population based on fitness values. Optional PRNG key</span>
 <span class="sd">    enables stochastic selection (tournament, rank-based); deterministic selectors</span>
@@ -832,7 +832,7 @@
 <span class="sd">    The ``n_elites`` field controls how many elite indices the operator</span>
 <span class="sd">    returns alongside parents.  It is set once during engine init via</span>
 <span class="sd">    ``set_n_elites()`` and is static (pytree_node=False).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">num_selections</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">input_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -841,39 +841,39 @@
 
 <div class="viewcode-block" id="BaseSelection.set_input_length">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseSelection.set_input_length">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_input_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseSelection[P, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lock population size for static budgeting.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_input_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseSelection[P, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Lock population size for static budgeting."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_length</span><span class="o">=</span><span class="n">length</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseSelection.set_typed_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseSelection.set_typed_keys">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_typed_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseSelection[P, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_typed_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseSelection[P, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set key format based on PRNG impl.</span>
 <span class="sd">        True = new-style typed keys,</span>
 <span class="sd">        False = legacy uint32[2].</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typed_keys</span><span class="o">=</span><span class="n">typed</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseSelection.set_n_elites">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseSelection.set_n_elites">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_n_elites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseSelection[P, C]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set elite count for preservation (called once at engine init).&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_n_elites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BaseSelection[P, C]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Set elite count for preservation (called once at engine init)."""</span>
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_elites</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Keys required per selection (0 for deterministic, ≥1 for stochastic).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Keys required per selection (0 for deterministic, ≥1 for stochastic)."""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="BaseSelection.num_keys">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseSelection.num_keys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Total keys needed for one selection pass (typically ≤ atomic_keys).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Total keys needed for one selection pass (typically ≤ atomic_keys)."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span></div>
 
 
@@ -881,23 +881,23 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_select</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select parent indices from a fitness vector.</span>
+<span class="w">        </span><span class="sd">"""Select parent indices from a fitness vector.</span>
 
 <span class="sd">        Concrete subclasses implement the selection logic, using *keys* when a</span>
 <span class="sd">        stochastic mechanism is required. The returned array has length</span>
 <span class="sd">        ``num_selections``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="BaseSelection.get_elite_indices">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base.html#malthusjax.operators.BaseSelection.get_elite_indices">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_elite_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return indices of the top ``n_elites`` individuals.</span>
+<span class="w">        </span><span class="sd">"""Return indices of the top ``n_elites`` individuals.</span>
 
 <span class="sd">        Default implementation: O(N) ``jnp.argpartition``.  Subclasses</span>
 <span class="sd">        (e.g. ``ElitePoolSelection``) may override ``__call__`` to fuse</span>
 <span class="sd">        this with parent selection in a single pass.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_elites</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="n">pop_size</span> <span class="o">=</span> <span class="n">fitness</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -911,13 +911,13 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">P</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run a selection pass returning parents and elites.</span>
+<span class="w">        </span><span class="sd">"""Run a selection pass returning parents and elites.</span>
 
 <span class="sd">        This wrapper extracts fitness from the provided *population* (or uses</span>
 <span class="sd">        the array directly), then calls ``_select`` followed by</span>
 <span class="sd">        ``get_elite_indices`` to produce both parent and elite index arrays.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fitness</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="s2">&quot;fitness&quot;</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">fitness</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="s2">"fitness"</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
         <span class="n">parent_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">elite_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_elite_indices</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">parent_idx</span><span class="p">,</span> <span class="n">elite_idx</span></div>

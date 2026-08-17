@@ -310,13 +310,13 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.config</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Simple TOML-based configuration loader for Composer experiments.</span>
+<span></span><span class="sd">"""Simple TOML-based configuration loader for Composer experiments.</span>
 
 <span class="sd">This lightweight utility exposes ``load_config`` and</span>
 <span class="sd">``load_experiment_config`` for parsing pipeline and experiment definitions</span>
 <span class="sd">without pulling in heavier dependencies; validation and schema handling are</span>
 <span class="sd">performed at call sites.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -334,51 +334,51 @@
 <div class="viewcode-block" id="load_config">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.config.html#malthusjax.composer.config.load_config">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_config</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pipeline_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Very small TOML loader that returns the raw pipeline section.</span>
+<span class="w">    </span><span class="sd">"""Very small TOML loader that returns the raw pipeline section.</span>
 <span class="sd">    (Keep this lightweight—validation and pydantic will come later.)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">cfg</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file not found: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-    <span class="n">pipelines</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pipelines&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Config file not found: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">pipelines</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pipelines"</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">pipeline</span> <span class="o">=</span> <span class="n">pipelines</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">pipeline</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pipeline &#39;</span><span class="si">{</span><span class="n">pipeline_name</span><span class="si">}</span><span class="s2">&#39; not found in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Pipeline '</span><span class="si">{</span><span class="n">pipeline_name</span><span class="si">}</span><span class="s2">' not found in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">pipeline</span><span class="p">)</span></div>
 
 
 
-<span class="n">_EXPERIMENT_META_KEYS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;output_dir&quot;</span><span class="p">}</span>
+<span class="n">_EXPERIMENT_META_KEYS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"output_dir"</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="ExperimentLoadResult">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.config.html#malthusjax.composer.config.ExperimentLoadResult">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExperimentLoadResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Backward compatible config load result.</span>
+<span class="w">    </span><span class="sd">"""Backward compatible config load result.</span>
 
 <span class="sd">    Can be unpacked as `meta, pipelines = result` to support</span>
 <span class="sd">    legacy code, or accessed directly via attributes for</span>
 <span class="sd">    `data_registry`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">meta</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
     <span class="n">pipelines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
     <span class="n">data_registry</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Allow unpacking: meta, pipelines = result&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Allow unpacking: meta, pipelines = result"""</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parse_data_section</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract [data.*] sections from TOML.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Extract [data.*] sections from TOML."""</span>
     <span class="n">data_registry</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">data_section</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">data_section</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="p">{})</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_section</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">data_registry</span>
 
@@ -394,7 +394,7 @@
     <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pipelines</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentLoadResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a Composer-style experiment TOML file.</span>
+<span class="w">    </span><span class="sd">"""Load a Composer-style experiment TOML file.</span>
 
 <span class="sd">    The configuration should define an ``[experiment]`` section with</span>
 <span class="sd">    metadata and a ``[pipelines.*]`` subsection for each pipeline. Shared</span>
@@ -404,50 +404,50 @@
 <span class="sd">    The *path* argument names the TOML file to read; if *pipelines* is</span>
 <span class="sd">    supplied only those sections are returned, otherwise every pipeline in</span>
 <span class="sd">    the file is processed. The function returns a pair consisting of</span>
-<span class="sd">    experiment metadata (including a merged ``&quot;shared&quot;`` dict) and a</span>
+<span class="sd">    experiment metadata (including a merged ``"shared"`` dict) and a</span>
 <span class="sd">    mapping from pipeline names to kwargs dictionaries that can be passed</span>
 <span class="sd">    directly to :meth:`Composer.quick_run`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">cfg</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file not found: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Config file not found: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
-    <span class="n">experiment_raw</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;experiment&quot;</span><span class="p">,</span> <span class="p">{})</span>
-    <span class="n">shared</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">experiment_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shared&quot;</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="n">experiment_raw</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"experiment"</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">shared</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">experiment_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"shared"</span><span class="p">,</span> <span class="p">{}))</span>
 
-    <span class="k">if</span> <span class="s2">&quot;bounds&quot;</span> <span class="ow">in</span> <span class="n">shared</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="n">shared</span><span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="s2">&quot;seeds&quot;</span> <span class="ow">in</span> <span class="n">shared</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">&quot;seeds&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="n">shared</span><span class="p">[</span><span class="s2">&quot;seeds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">&quot;seeds&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">"bounds"</span> <span class="ow">in</span> <span class="n">shared</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">shared</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">"seeds"</span> <span class="ow">in</span> <span class="n">shared</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">shared</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">])</span>
 
     <span class="n">experiment_meta</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">experiment_raw</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_EXPERIMENT_META_KEYS</span>
     <span class="p">}</span>
-    <span class="n">experiment_meta</span><span class="p">[</span><span class="s2">&quot;shared&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shared</span>
+    <span class="n">experiment_meta</span><span class="p">[</span><span class="s2">"shared"</span><span class="p">]</span> <span class="o">=</span> <span class="n">shared</span>
 
-    <span class="n">raw_pipelines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pipelines&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">raw_pipelines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pipelines"</span><span class="p">,</span> <span class="p">{})</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">raw_pipelines</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No [pipelines.*] sections found in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No [pipelines.*] sections found in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">pipelines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pipelines</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">raw_pipelines</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Pipelines not found in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2">. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Available: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">raw_pipelines</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Pipelines not found in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2">. "</span>
+                <span class="sa">f</span><span class="s2">"Available: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">raw_pipelines</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="n">raw_pipelines</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">raw_pipelines</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pipelines</span><span class="p">}</span>
 
     <span class="n">resolved</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pipeline_cfg</span> <span class="ow">in</span> <span class="n">raw_pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">shared</span><span class="p">,</span> <span class="o">**</span><span class="n">pipeline_cfg</span><span class="p">}</span>
-        <span class="k">if</span> <span class="s2">&quot;bounds&quot;</span> <span class="ow">in</span> <span class="n">merged</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">merged</span><span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="s2">&quot;seeds&quot;</span> <span class="ow">in</span> <span class="n">merged</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">&quot;seeds&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">merged</span><span class="p">[</span><span class="s2">&quot;seeds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">&quot;seeds&quot;</span><span class="p">])</span>
-        <span class="n">merged</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;experiment_name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">"bounds"</span> <span class="ow">in</span> <span class="n">merged</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">merged</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s2">"seeds"</span> <span class="ow">in</span> <span class="n">merged</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">merged</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">])</span>
+        <span class="n">merged</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"experiment_name"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="n">resolved</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged</span>
 
     <span class="n">data_registry</span> <span class="o">=</span> <span class="n">_parse_data_section</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>

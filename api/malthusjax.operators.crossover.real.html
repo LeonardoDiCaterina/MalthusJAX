@@ -388,15 +388,15 @@ index η controls concentration strength.</p>
 <li><p>Conditionally apply (based on crossover_rate)</p></li>
 </ol>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;simulated_binary:eta=FLOAT[,crossover_rate=FLOAT]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"simulated_binary:eta=FLOAT[,crossover_rate=FLOAT]"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;simulated_binary&quot;</span>                          <span class="c1"># Defaults (eta=20.0, crossover_rate=0.9)</span>
-<span class="s2">&quot;simulated_binary:eta=10&quot;</span>                   <span class="c1"># Less concentrated, more exploration</span>
-<span class="s2">&quot;simulated_binary:eta=20&quot;</span>                   <span class="c1"># Standard (balanced exploitation/exploration)</span>
-<span class="s2">&quot;simulated_binary:eta=50&quot;</span>                   <span class="c1"># Very concentrated near parents (exploitation)</span>
-<span class="s2">&quot;simulated_binary:eta=5,crossover_rate=1.0&quot;</span> <span class="c1"># Always apply, explore more</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"simulated_binary"</span>                          <span class="c1"># Defaults (eta=20.0, crossover_rate=0.9)</span>
+<span class="s2">"simulated_binary:eta=10"</span>                   <span class="c1"># Less concentrated, more exploration</span>
+<span class="s2">"simulated_binary:eta=20"</span>                   <span class="c1"># Standard (balanced exploitation/exploration)</span>
+<span class="s2">"simulated_binary:eta=50"</span>                   <span class="c1"># Very concentrated near parents (exploitation)</span>
+<span class="s2">"simulated_binary:eta=5,crossover_rate=1.0"</span> <span class="c1"># Always apply, explore more</span>
 </pre></div>
 </div>
 <section id="parameters">
@@ -507,15 +507,15 @@ between them.</p>
 <li><p>Apply boundary clipping and optional crossover gating</p></li>
 </ol>
 <p><strong>String Specification Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;blend:alpha=FLOAT[,crossover_rate=FLOAT]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"blend:alpha=FLOAT[,crossover_rate=FLOAT]"</span>
 </pre></div>
 </div>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;blend&quot;</span>                                     <span class="c1"># Defaults (alpha=0.5, crossover_rate=0.9)</span>
-<span class="s2">&quot;blend:alpha=0.5&quot;</span>                          <span class="c1"># Classic BLX-0.5</span>
-<span class="s2">&quot;blend:alpha=0.0&quot;</span>                          <span class="c1"># Uniform crossover (no expansion)</span>
-<span class="s2">&quot;blend:alpha=1.0&quot;</span>                          <span class="c1"># Aggressive expansion (more exploration)</span>
-<span class="s2">&quot;blend:alpha=0.25,crossover_rate=0.8&quot;</span>      <span class="c1"># Both custom</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"blend"</span>                                     <span class="c1"># Defaults (alpha=0.5, crossover_rate=0.9)</span>
+<span class="s2">"blend:alpha=0.5"</span>                          <span class="c1"># Classic BLX-0.5</span>
+<span class="s2">"blend:alpha=0.0"</span>                          <span class="c1"># Uniform crossover (no expansion)</span>
+<span class="s2">"blend:alpha=1.0"</span>                          <span class="c1"># Aggressive expansion (more exploration)</span>
+<span class="s2">"blend:alpha=0.25,crossover_rate=0.8"</span>      <span class="c1"># Both custom</span>
 </pre></div>
 </div>
 <section id="id1">

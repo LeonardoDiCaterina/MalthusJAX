@@ -463,6 +463,79 @@ A gap of 0 means the value is optimal.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.StochasticEvaluator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.base.</span></span><span class="sig-name descname"><span class="pre">StochasticEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#StochasticEvaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.StochasticEvaluator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEvaluator</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">C</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">D</span></code>]</p>
+<p>Base class for evaluators that require a PRNGKey (e.g., RL environments).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>C</em>)</p></li>
+<li><p><strong>data</strong> (<em>D</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.StochasticEvaluator.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#StochasticEvaluator.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.StochasticEvaluator.evaluate" title="Link to this definition">¶</a></dt>
+<dd><p>Compute fitness for a single genome, requiring an RNG key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<em>G</em>)</p></li>
+<li><p><strong>rng</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.StochasticEvaluator.evaluate_population">
+<span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#StochasticEvaluator.evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.StochasticEvaluator.evaluate_population" title="Link to this definition">¶</a></dt>
+<dd><p>Vectorized stochastic population evaluation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p></li>
+<li><p><strong>rng</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.StochasticEvaluator.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.base.StochasticEvaluator.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.base.dispatch_evaluate_population">
+<span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.base.</span></span><span class="sig-name descname"><span class="pre">dispatch_evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#dispatch_evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.dispatch_evaluate_population" title="Link to this definition">¶</a></dt>
+<dd><p>Dynamically dispatch population evaluation based on evaluator type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>evaluator</strong> (<a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><em>BaseEvaluator</em></a><em>[</em><em>G</em><em>, </em><em>C</em><em>, </em><em>D</em><em>]</em>)</p></li>
+<li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p></li>
+<li><p><strong>key</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -537,6 +610,13 @@ A gap of 0 means the value is optimal.</p>
 <li><a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">BaseEvaluator.replace()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.StochasticEvaluator"><code class="docutils literal notranslate"><span class="pre">StochasticEvaluator</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.StochasticEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">StochasticEvaluator.evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.StochasticEvaluator.evaluate_population"><code class="docutils literal notranslate"><span class="pre">StochasticEvaluator.evaluate_population()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.StochasticEvaluator.replace"><code class="docutils literal notranslate"><span class="pre">StochasticEvaluator.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.base.dispatch_evaluate_population"><code class="docutils literal notranslate"><span class="pre">dispatch_evaluate_population()</span></code></a></li>
 </ul>
 </li>
 </ul>

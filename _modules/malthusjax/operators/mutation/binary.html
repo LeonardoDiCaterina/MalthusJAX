@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.operators.mutation.binary</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Binary mutation operators using the new paradigm.</span>
 
 <span class="sd">This module provides mutation operators for BinaryGenome using the new</span>
 <span class="sd">@struct.dataclass factory pattern for JIT compilation and vectorization.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
@@ -334,13 +334,13 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.binary.html#malthusjax.operators.BitFlipMutation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BitFlipMutation</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">BinaryGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Bit Flip Mutation (3-Tier Paradigm).</span>
 <span class="sd">    Tier 2: Bernoulli flip mask (N,) where N is bit-string length.</span>
 <span class="sd">    Tier 1: Bitwise XOR with dtype-conditional logic (bool vs numeric).</span>
 <span class="sd">    Shape contract: (N,) genome + (N,) flip_mask → (N,) mutated bit-string.</span>
 <span class="sd">    Key budget: 1 pre-allocated subkey (Bernoulli mask generation).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
 
@@ -351,7 +351,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2: Generate the flip mask.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 2: Generate the flip mask."""</span>
         <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mutation_rate</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span>
@@ -361,7 +361,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1: Bitwise XOR. Handles bool and numeric (uint8, int32) dtypes.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1: Bitwise XOR. Handles bool and numeric (uint8, int32) dtypes."""</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="k">if</span> <span class="n">jnp</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">):</span>
             <span class="n">mutated</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">logical_xor</span><span class="p">(</span><span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
@@ -376,14 +376,14 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.binary.html#malthusjax.operators.ScrambleMutation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ScrambleMutation</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">BinaryGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Scramble Mutation (3-Tier Paradigm).</span>
 <span class="sd">    Tier 2: Bernoulli decision + permutation indices (N,) reordering.</span>
 <span class="sd">    Tier 1: Apply permutation conditionally via jax.lax.select (branchless XLA).</span>
 <span class="sd">    Shape contract: (N,) genome → (N,) permuted_or_original_genome.</span>
 <span class="sd">    Key budget: 2 pre-allocated subkeys (decision mask, permutation generation).</span>
 <span class="sd">    Jax.lax.select ensures XLA traces without control flow (scalars broadcast).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
 
@@ -394,7 +394,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2: Decision mask and permutation indices.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 2: Decision mask and permutation indices."""</span>
         <span class="n">should_mutate</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mutation_rate</span><span class="p">)</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
         <span class="k">return</span> <span class="n">should_mutate</span><span class="p">,</span> <span class="n">indices</span>
@@ -406,7 +406,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1: Branchless conditional permutation via jax.lax.select.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1: Branchless conditional permutation via jax.lax.select."""</span>
         <span class="n">should_mutate</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">scrambled</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
         <span class="n">new_values</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
@@ -420,14 +420,14 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.binary.html#malthusjax.operators.SwapMutation">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SwapMutation</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">BinaryGenome</span><span class="p">,</span> <span class="n">BinaryGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Swap Mutation (3-Tier Paradigm).</span>
 <span class="sd">    Tier 2: Bernoulli decision + two random bit positions (idx1, idx2).</span>
 <span class="sd">    Tier 1: Conditional swap via jax.array.at[].set() chaining (immutable arrays).</span>
 <span class="sd">    Shape contract: (N,) genome → (N,) swapped_or_original_genome.</span>
 <span class="sd">    Key budget: 3 pre-allocated subkeys (decision, idx1 randint, idx2 randint).</span>
 <span class="sd">    Functional swap via .at[] preserves JAX immutability for JIT compilation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
 
@@ -438,7 +438,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 2: Decision mask and swap positions.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 2: Decision mask and swap positions."""</span>
         <span class="n">should_mutate</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mutation_rate</span><span class="p">)</span>
         <span class="n">idx1</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">idx2</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
@@ -451,7 +451,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">BinaryGenomeConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tier 1: Immutable functional swap via .at[] chaining.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Tier 1: Immutable functional swap via .at[] chaining."""</span>
         <span class="n">should_mutate</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">noise_data</span>
         <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx1</span><span class="p">],</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx2</span><span class="p">]</span>
         <span class="n">swapped</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx2</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
@@ -460,7 +460,7 @@
 
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;BitFlipMutation&quot;</span><span class="p">,</span> <span class="s2">&quot;ScrambleMutation&quot;</span><span class="p">,</span> <span class="s2">&quot;SwapMutation&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"BitFlipMutation"</span><span class="p">,</span> <span class="s2">"ScrambleMutation"</span><span class="p">,</span> <span class="s2">"SwapMutation"</span><span class="p">]</span>
 </pre></div>
         </article>
       </div>

@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.random</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">PRNG key factory and helpers for MalthusJAX.</span>
 
 <span class="sd">Centralizes creation of typed JAX PRNG keys and helper utilities for</span>
 <span class="sd">legacy/compat detection and warnings.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -330,15 +330,15 @@
 <div class="viewcode-block" id="PRNGImpl">
 <a class="viewcode-back" href="../../../api/malthusjax.core.random.html#malthusjax.core.PRNGImpl">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PRNGImpl</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Available JAX PRNG implementations.</span>
+<span class="w">    </span><span class="sd">"""Available JAX PRNG implementations.</span>
 
 <span class="sd">    Mirrors the pattern used by other enums in the codebase.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">THREEFRY</span> <span class="o">=</span> <span class="s2">&quot;threefry2x32&quot;</span>
-    <span class="n">PHILOX</span> <span class="o">=</span> <span class="s2">&quot;philox4x32_10&quot;</span>
-    <span class="n">RBG</span> <span class="o">=</span> <span class="s2">&quot;rbg&quot;</span>
-    <span class="n">UNSAFE_RBG</span> <span class="o">=</span> <span class="s2">&quot;unsafe_rbg&quot;</span></div>
+    <span class="n">THREEFRY</span> <span class="o">=</span> <span class="s2">"threefry2x32"</span>
+    <span class="n">PHILOX</span> <span class="o">=</span> <span class="s2">"philox4x32_10"</span>
+    <span class="n">RBG</span> <span class="o">=</span> <span class="s2">"rbg"</span>
+    <span class="n">UNSAFE_RBG</span> <span class="o">=</span> <span class="s2">"unsafe_rbg"</span></div>
 
 
 
@@ -346,27 +346,27 @@
 
 <span class="c1"># Mapping of short user-facing names to enum values</span>
 <span class="n">_PRNG_ALIASES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PRNGImpl</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;threefry&quot;</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">THREEFRY</span><span class="p">,</span>
-    <span class="s2">&quot;threefry2x32&quot;</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">THREEFRY</span><span class="p">,</span>
-    <span class="s2">&quot;philox&quot;</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">PHILOX</span><span class="p">,</span>
-    <span class="s2">&quot;philox4x32_10&quot;</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">PHILOX</span><span class="p">,</span>
-    <span class="s2">&quot;rbg&quot;</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">RBG</span><span class="p">,</span>
-    <span class="s2">&quot;unsafe_rbg&quot;</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">UNSAFE_RBG</span><span class="p">,</span>
+    <span class="s2">"threefry"</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">THREEFRY</span><span class="p">,</span>
+    <span class="s2">"threefry2x32"</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">THREEFRY</span><span class="p">,</span>
+    <span class="s2">"philox"</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">PHILOX</span><span class="p">,</span>
+    <span class="s2">"philox4x32_10"</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">PHILOX</span><span class="p">,</span>
+    <span class="s2">"rbg"</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">RBG</span><span class="p">,</span>
+    <span class="s2">"unsafe_rbg"</span><span class="p">:</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">UNSAFE_RBG</span><span class="p">,</span>
 <span class="p">}</span>
 
 
 <div class="viewcode-block" id="resolve_prng_impl">
 <a class="viewcode-back" href="../../../api/malthusjax.core.random.html#malthusjax.core.resolve_prng_impl">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">resolve_prng_impl</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">PRNGImpl</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PRNGImpl</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve a user-facing PRNG name to a :class:`PRNGImpl` enum value.</span>
+<span class="w">    </span><span class="sd">"""Resolve a user-facing PRNG name to a :class:`PRNGImpl` enum value.</span>
 
-<span class="sd">    Accepts short names (``&quot;threefry&quot;``, ``&quot;philox&quot;``), full JAX backend</span>
-<span class="sd">    strings (``&quot;threefry2x32&quot;``), ``PRNGImpl`` members, or ``None``</span>
+<span class="sd">    Accepts short names (``"threefry"``, ``"philox"``), full JAX backend</span>
+<span class="sd">    strings (``"threefry2x32"``), ``PRNGImpl`` members, or ``None``</span>
 <span class="sd">    (falls back to :data:`DEFAULT_IMPL`).</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If *name* is not recognised.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">DEFAULT_IMPL</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PRNGImpl</span><span class="p">):</span>
@@ -375,7 +375,7 @@
     <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_PRNG_ALIASES</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_PRNG_ALIASES</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Unknown PRNG implementation </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. Choose from: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_PRNG_ALIASES</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">"Unknown PRNG implementation </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. Choose from: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_PRNG_ALIASES</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span></div>
 
 
@@ -383,28 +383,28 @@
 <div class="viewcode-block" id="create_key">
 <a class="viewcode-back" href="../../../api/malthusjax.core.random.html#malthusjax.core.create_key">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_key</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">impl</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PRNGImpl</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a PRNG key using the requested implementation.</span>
+<span class="w">    </span><span class="sd">"""Create a PRNG key using the requested implementation.</span>
 
 <span class="sd">    Falls back to ``jax.random.PRNGKey`` if the new ``jax.random.key`` API</span>
 <span class="sd">    is not available in the installed JAX version.</span>
 
 <span class="sd">    The returned key encodes the chosen backend and can be split or folded</span>
 <span class="sd">    to propagate the implementation information.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">impl</span> <span class="o">=</span> <span class="n">impl</span> <span class="ow">or</span> <span class="n">DEFAULT_IMPL</span>
 
-    <span class="n">key_ctor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="p">,</span> <span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">key_ctor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="p">,</span> <span class="s2">"key"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">key_ctor</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">key_ctor</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="n">impl</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">&quot;jax.random.key exists but does not accept &#39;impl=&#39;; falling back to PRNGKey&quot;</span><span class="p">,</span>
+                <span class="s2">"jax.random.key exists but does not accept 'impl='; falling back to PRNGKey"</span><span class="p">,</span>
                 <span class="ne">RuntimeWarning</span><span class="p">,</span>
             <span class="p">)</span>
 
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-        <span class="s2">&quot;Using legacy jax.random.PRNGKey fallback; consider upgrading JAX to use &#39;jax.random.key&#39;&quot;</span><span class="p">,</span>
+        <span class="s2">"Using legacy jax.random.PRNGKey fallback; consider upgrading JAX to use 'jax.random.key'"</span><span class="p">,</span>
         <span class="ne">DeprecationWarning</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span></div>
@@ -412,12 +412,12 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_is_legacy_prngkey</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Heuristic to detect legacy PRNGKey (uint32[2]) used by older JAX.</span>
+<span class="w">    </span><span class="sd">"""Heuristic to detect legacy PRNGKey (uint32[2]) used by older JAX.</span>
 
 <span class="sd">    Legacy keys produced by ``jax.random.PRNGKey`` are uint32 arrays of length 2.</span>
 <span class="sd">    New-style typed keys typically have dtype != uint32 or length != 2</span>
 <span class="sd">    (e.g., Philox uses a larger key).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">arr</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">2</span>
@@ -428,25 +428,25 @@
 <div class="viewcode-block" id="is_new_style_key">
 <a class="viewcode-back" href="../../../api/malthusjax.core.random.html#malthusjax.core.is_new_style_key">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_new_style_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return True if `key` looks like a new-style typed key, False for legacy PRNGKey.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Return True if `key` looks like a new-style typed key, False for legacy PRNGKey."""</span>
     <span class="k">return</span> <span class="ow">not</span> <span class="n">_is_legacy_prngkey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="validate_key">
 <a class="viewcode-back" href="../../../api/malthusjax.core.random.html#malthusjax.core.validate_key">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">validate_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate the provided key and warn on legacy-style keys.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Validate the provided key and warn on legacy-style keys.</span>
 
 <span class="sd">    This should be called at engine boundaries (e.g., `init_state`) to guide users</span>
 <span class="sd">    toward using `create_key()` or `jax.random.key()`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">_is_legacy_prngkey</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Legacy PRNGKey detected</span><span class="si">{</span><span class="s1">&#39; in &#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">context</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">context</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2">. &quot;</span>
-                <span class="s2">&quot;For explicit PRNG backend control use &quot;</span>
-                <span class="s2">&quot;malthusjax.core.random.create_key() or jax.random.key()&quot;</span>
+                <span class="sa">f</span><span class="s2">"Legacy PRNGKey detected</span><span class="si">{</span><span class="s1">' in '</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">context</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">context</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">. "</span>
+                <span class="s2">"For explicit PRNG backend control use "</span>
+                <span class="s2">"malthusjax.core.random.create_key() or jax.random.key()"</span>
             <span class="p">),</span>
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>

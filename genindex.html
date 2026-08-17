@@ -1199,6 +1199,8 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.disable_tracing">disable_tracing() (in module malthusjax.engine.genetic_fastengine)</a>
 </li>
+        <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.dispatch_evaluate_population">dispatch_evaluate_population() (in module malthusjax.core.fitness.base)</a>
+</li>
         <li><a href="api/malthusjax.html#malthusjax.BaseGenome.distance">distance() (malthusjax.BaseGenome method)</a>
 
         <ul>
@@ -1394,6 +1396,8 @@
 </li>
           <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluator.evaluate">(malthusjax.core.fitness.base.BaseEvaluator method)</a>
 </li>
+          <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.StochasticEvaluator.evaluate">(malthusjax.core.fitness.base.StochasticEvaluator method)</a>
+</li>
           <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseEvaluator.evaluate">(malthusjax.core.fitness.BaseEvaluator method)</a>
 </li>
           <li><a href="api/malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate">(malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator method)</a>
@@ -1438,11 +1442,15 @@
         <ul>
           <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluator.evaluate_population">(malthusjax.core.fitness.base.BaseEvaluator method)</a>
 </li>
+          <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.StochasticEvaluator.evaluate_population">(malthusjax.core.fitness.base.StochasticEvaluator method)</a>
+</li>
           <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseEvaluator.evaluate_population">(malthusjax.core.fitness.BaseEvaluator method)</a>
 </li>
           <li><a href="api/malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator.evaluate_population">(malthusjax.core.fitness.bbob_evaluator.BBOBEvaluator method)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.evaluation">evaluation (malthusjax.engine.resource_mapper.ResourceMap attribute)</a>
+</li>
         <li><a href="api/malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.evaluator">evaluator (malthusjax.engine.genetic_fastengine.GeneticEngine attribute)</a>
 
         <ul>
@@ -2594,8 +2602,6 @@
           <li><a href="api/malthusjax.html#malthusjax.DistanceMetric.MANHATTAN">(malthusjax.DistanceMetric attribute)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.composer.composer.html#malthusjax.composer.composer.MapElitesEngineAdapter">MapElitesEngineAdapter (class in malthusjax.composer.composer)</a>
 </li>
         <li><a href="api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.linear_genome.LinearGenomeConfig.max_arity">max_arity (malthusjax.core.genome.linear_genome.LinearGenomeConfig attribute)</a>
@@ -2618,10 +2624,26 @@
           <li><a href="api/malthusjax.operators.html#malthusjax.operators.BaseMutation.max_generations">(malthusjax.operators.BaseMutation attribute)</a>
 </li>
         </ul></li>
-        <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize">maximize (malthusjax.core.fitness.base.BaseEvaluatorConfig attribute)</a>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/malthusjax.html#malthusjax.AbstractEngine.maximize">maximize (malthusjax.AbstractEngine property)</a>
 
         <ul>
+          <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig.maximize">(malthusjax.core.fitness.base.BaseEvaluatorConfig attribute)</a>
+</li>
           <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.TSPConfig.maximize">(malthusjax.core.fitness.TSPConfig attribute)</a>
+</li>
+          <li><a href="api/malthusjax.engine.html#malthusjax.engine.AbstractEngine.maximize">(malthusjax.engine.AbstractEngine property)</a>
+</li>
+          <li><a href="api/malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine.maximize">(malthusjax.engine.base.AbstractEngine property)</a>
+</li>
+          <li><a href="api/malthusjax.engine.html#malthusjax.engine.BaseIslandModel.maximize">(malthusjax.engine.BaseIslandModel property)</a>
+</li>
+          <li><a href="api/malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.maximize">(malthusjax.engine.genetic_fastengine.GeneticEngine property)</a>
+</li>
+          <li><a href="api/malthusjax.engine.html#malthusjax.engine.GeneticEngine.maximize">(malthusjax.engine.GeneticEngine property)</a>
+</li>
+          <li><a href="api/malthusjax.html#malthusjax.GeneticEngine.maximize">(malthusjax.GeneticEngine property)</a>
 </li>
         </ul></li>
         <li><a href="api/malthusjax.engine.html#malthusjax.engine.AbstractGenerationOutput.mean_fitness">mean_fitness (malthusjax.engine.AbstractGenerationOutput attribute)</a>
@@ -3666,6 +3688,8 @@
 </li>
           <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluatorConfig.replace">(malthusjax.core.fitness.base.BaseEvaluatorConfig method)</a>
 </li>
+          <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.StochasticEvaluator.replace">(malthusjax.core.fitness.base.StochasticEvaluator method)</a>
+</li>
           <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseEvaluator.replace">(malthusjax.core.fitness.BaseEvaluator method)</a>
 </li>
           <li><a href="api/malthusjax.core.fitness.bbob_evaluator.html#malthusjax.core.fitness.bbob_evaluator.BBOBConfig.replace">(malthusjax.core.fitness.bbob_evaluator.BBOBConfig method)</a>
@@ -4399,6 +4423,8 @@
           <li><a href="api/malthusjax.html#malthusjax.GeneticEngine.step">(malthusjax.GeneticEngine method)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.StochasticEvaluator">StochasticEvaluator (class in malthusjax.core.fitness.base)</a>
+</li>
         <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.StubEngine">StubEngine (class in malthusjax.benchmarking)</a>
 
         <ul>

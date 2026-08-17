@@ -310,13 +310,13 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.pipeline</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Simple representation of a directed computation graph.</span>
+<span></span><span class="sd">"""Simple representation of a directed computation graph.</span>
 
 <span class="sd">A :class:`Pipeline` consists of named :class:`~.node.Node` objects and an</span>
 <span class="sd">optional wiring table describing dependencies.  The class provides</span>
 <span class="sd">validation against a :class:`~.registry.Registry` and a basic builder that</span>
 <span class="sd">invokes each node in sequence.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span>
@@ -335,11 +335,11 @@
 <div class="viewcode-block" id="Pipeline.validate">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.pipeline.html#malthusjax.composer.pipeline.Pipeline.validate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">registry</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check that every node refers to a registered factory.</span>
+<span class="w">        </span><span class="sd">"""Check that every node refers to a registered factory.</span>
 
 <span class="sd">        A ``KeyError`` will be raised by the registry if any node type is</span>
 <span class="sd">        unknown, so callers can catch and report configuration errors early.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
             <span class="c1"># ensure node type exists</span>
             <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
@@ -348,7 +348,7 @@
 <div class="viewcode-block" id="Pipeline.build">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.pipeline.html#malthusjax.composer.pipeline.Pipeline.build">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_key</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">registry</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate nodes sequentially; key-splitting left to future work.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Instantiate nodes sequentially; key-splitting left to future work."""</span>
         <span class="n">results</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
             <span class="n">results</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">master_key</span><span class="p">,</span> <span class="n">registry</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">results</span><span class="p">)</span>

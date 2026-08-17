@@ -334,6 +334,12 @@
 <span class="sig-name descname"><span class="pre">engine_params</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngineParams" title="malthusjax.engine.base.AbstractEngineParams"><span class="pre">AbstractEngineParams</span></a></span><a class="headerlink" href="#malthusjax.engine.AbstractEngine.engine_params" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.engine.AbstractEngine.maximize">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">maximize</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#malthusjax.engine.AbstractEngine.maximize" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if the engine is maximizing, False if minimizing.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngine.init_state">
 <span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">init_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rng_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine.init_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.AbstractEngine.init_state" title="Link to this definition">¶</a></dt>
@@ -706,6 +712,12 @@ and then applying a customizable topological migration policy.</p>
 <span class="sig-name descname"><span class="pre">num_migrants</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.num_migrants" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.engine.BaseIslandModel.maximize">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">maximize</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.maximize" title="Link to this definition">¶</a></dt>
+<dd><p>Auto-derive the optimization direction from the underlying engine.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.engine.BaseIslandModel.init_state">
 <span class="sig-name descname"><span class="pre">init_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/island_model/base.html#BaseIslandModel.init_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.init_state" title="Link to this definition">¶</a></dt>
@@ -1052,16 +1064,16 @@ large populations). Subsequent calls use cached compiled kernels.</p>
 <p>Run a full evolution:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">rng_key</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">elapsed</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">time_it</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evolution took </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Best fitness: </span><span class="si">{</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Evolution took </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Best fitness: </span><span class="si">{</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Extract convergence history:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">best_per_gen</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="o">.</span><span class="n">best_fitness</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">]</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">best_per_gen</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Generation&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Best Fitness&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"Generation"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Best Fitness"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1080,6 +1092,12 @@ large populations). Subsequent calls use cached compiled kernels.</p>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]], <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.maximize">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">maximize</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.maximize" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if the engine is maximizing, False if minimizing.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1150,10 +1168,10 @@ and sharding layout. Subsequent <a class="reference internal" href="#malthusjax.
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>rng_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p>
+<dd class="field-odd"><p><strong>rng_key</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>jnp.ndarray</em><em>]</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a></p>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState">GeneticEvolutionState</a>[G, P]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1189,7 +1207,7 @@ or <a class="reference internal" href="#malthusjax.engine.GeneticEngine.init_sta
 <p><strong>Ask/Tell Contract</strong>: The ask/tell loop must follow this exact pattern:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">engine</span><span class="p">,</span> <span class="n">population</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 <span class="c1"># ... evaluate population externally ...</span>
-<span class="n">evaluated_pop</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+<span class="n">evaluated_pop</span> <span class="o">=</span> <span class="n">dispatch_evaluate_population</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">rng_key</span><span class="p">)</span>
 <span class="n">new_state</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">tell</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">evaluated_pop</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1249,6 +1267,12 @@ overriding <code class="docutils literal notranslate"><span class="pre">state.rn
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine" title="malthusjax.engine.genetic_fastengine.GeneticEngine"><em>GeneticEngine</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]]</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1314,8 +1338,8 @@ reuses cached compiled kernels.</p>
     <span class="n">state</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">tell</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">evaluated</span><span class="p">)</span>
 
 <span class="c1"># Access final results</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Best: </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generations run: </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">generation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Best: </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Generations run: </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">generation</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -1330,12 +1354,6 @@ reuses cached compiled kernels.</p>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a></p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.replace">
-<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.replace" title="Link to this definition">¶</a></dt>
-<dd><p>Returns a new object replacing the specified fields with new values.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1711,6 +1729,7 @@ size. It remains here for backwards compatibility and now always returns
 </li>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine"><code class="docutils literal notranslate"><span class="pre">AbstractEngine</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine.engine_params"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.engine_params</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine.maximize"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.maximize</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine.init_state"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.init_state()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine.step"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.step()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine.debug_step"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.debug_step()</span></code></a></li>
@@ -1769,11 +1788,12 @@ size. It remains here for backwards compatibility and now always returns
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.step"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.step()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.debug_step"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.debug_step()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.run"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.maximize"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.maximize</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.init_state"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.init_state()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.ask"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask_with_key()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell_with_key()</span></code></a></li>
 </ul>
 </li>
@@ -1805,6 +1825,7 @@ size. It remains here for backwards compatibility and now always returns
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.selection"><code class="docutils literal notranslate"><span class="pre">ResourceMap.selection</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.crossover"><code class="docutils literal notranslate"><span class="pre">ResourceMap.crossover</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.mutation"><code class="docutils literal notranslate"><span class="pre">ResourceMap.mutation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.evaluation"><code class="docutils literal notranslate"><span class="pre">ResourceMap.evaluation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.next_key"><code class="docutils literal notranslate"><span class="pre">ResourceMap.next_key</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.pop_size"><code class="docutils literal notranslate"><span class="pre">ResourceMap.pop_size</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap.num_pairs"><code class="docutils literal notranslate"><span class="pre">ResourceMap.num_pairs</span></code></a></li>
@@ -1907,6 +1928,7 @@ size. It remains here for backwards compatibility and now always returns
 <li><a class="reference internal" href="#">malthusjax.engine package</a><ul>
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEngine"><code class="docutils literal notranslate"><span class="pre">AbstractEngine</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEngine.engine_params"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.engine_params</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.AbstractEngine.maximize"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.maximize</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEngine.init_state"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.init_state()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEngine.step"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.step()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEngine.debug_step"><code class="docutils literal notranslate"><span class="pre">AbstractEngine.debug_step()</span></code></a></li>
@@ -1950,6 +1972,7 @@ size. It remains here for backwards compatibility and now always returns
 <li><a class="reference internal" href="#malthusjax.engine.BaseIslandModel.num_islands"><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.num_islands</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.BaseIslandModel.migration_interval"><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.migration_interval</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.BaseIslandModel.num_migrants"><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.num_migrants</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.BaseIslandModel.maximize"><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.maximize</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.BaseIslandModel.init_state"><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.init_state()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.BaseIslandModel.migrate"><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.migrate()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.BaseIslandModel.step"><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.step()</span></code></a></li>
@@ -1976,11 +1999,12 @@ size. It remains here for backwards compatibility and now always returns
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.step"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.step()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.debug_step"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.debug_step()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.run"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.run()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.maximize"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.maximize</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.init_state"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.init_state()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.ask"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask_with_key()</span></code></a></li>
-<li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell_with_key()</span></code></a></li>
 </ul>
 </li>

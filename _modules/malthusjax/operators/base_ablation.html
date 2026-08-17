@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.operators.base_ablation</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Ablation decorators: Single-key mode for benchmarking key splitting overhead.</span>
+<span></span><span class="sd">"""Ablation decorators: Single-key mode for benchmarking key splitting overhead.</span>
 
 <span class="sd">Converts operators to consume a single PRNG key and split internally,</span>
 <span class="sd">allowing performance comparison vs ResourceMapper pre-allocation strategy.</span>
 <span class="sd">Useful for measuring dynamic key splitting cost in evolutionary loops.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span>
 
@@ -325,14 +325,14 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCrossover</span><span class="p">,</span> <span class="n">BaseMutation</span>
 
-<span class="n">TMutation</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TMutation&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
-<span class="n">TCrossover</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TCrossover&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseCrossover</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+<span class="n">TMutation</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"TMutation"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+<span class="n">TCrossover</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"TCrossover"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseCrossover</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="ablation_single_key_mutation">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_ablation.html#malthusjax.operators.base_ablation.ablation_single_key_mutation">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ablation_single_key_mutation</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">TMutation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TMutation</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert mutation operator to single-key ablation mode for benchmarking.</span>
+<span class="w">    </span><span class="sd">"""Convert mutation operator to single-key ablation mode for benchmarking.</span>
 
 <span class="sd">    Replaces num_keys() to return 1 and __call__() to split internally.</span>
 <span class="sd">    This benchmarks the cost of dynamic key splitting vs ResourceMapper</span>
@@ -343,11 +343,11 @@
 <span class="sd">        @ablation_single_key_mutation</span>
 <span class="sd">        class BitFlipMutation_ablation(BitFlipMutation):</span>
 <span class="sd">            pass</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">original_call</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__call__</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">new_num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">TMutation</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Override: Always return 1 key for ablation study.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Override: Always return 1 key for ablation study."""</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">new_call</span><span class="p">(</span>
@@ -357,13 +357,13 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Override: Split a single key internally and delegate to original.</span>
+<span class="w">        </span><span class="sd">"""Override: Split a single key internally and delegate to original.</span>
 
 <span class="sd">        The incoming *all_keys* tensor is reduced to a single PRNG key which</span>
 <span class="sd">        is then split the requisite number of times. This facilitates</span>
 <span class="sd">        benchmarking the cost of dynamic splitting versus using a pre‑allocated</span>
 <span class="sd">        key bundle.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">single_key</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">all_keys</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
 
         <span class="n">keys_shape</span> <span class="o">=</span> <span class="p">(</span>
@@ -390,7 +390,7 @@
 <div class="viewcode-block" id="ablation_single_key_crossover">
 <a class="viewcode-back" href="../../../api/malthusjax.operators.base_ablation.html#malthusjax.operators.base_ablation.ablation_single_key_crossover">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ablation_single_key_crossover</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">TCrossover</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TCrossover</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert crossover operator to single-key ablation mode for benchmarking.</span>
+<span class="w">    </span><span class="sd">"""Convert crossover operator to single-key ablation mode for benchmarking.</span>
 
 <span class="sd">    Replaces num_keys() to return 1 and __call__() to split internally.</span>
 <span class="sd">    Benchmarks dynamic key splitting cost for crossover vs ResourceMapper</span>
@@ -401,11 +401,11 @@
 <span class="sd">        @ablation_single_key_crossover</span>
 <span class="sd">        class UniformCrossover_ablation(UniformCrossover):</span>
 <span class="sd">            pass</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">original_call</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__call__</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">new_num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">TCrossover</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Override: Always return 1 key for ablation study.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Override: Always return 1 key for ablation study."""</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">new_call</span><span class="p">(</span>
@@ -416,12 +416,12 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Override: Split single key internally for crossover.</span>
+<span class="w">        </span><span class="sd">"""Override: Split single key internally for crossover.</span>
 
 <span class="sd">        Reduces the provided key to a lone PRNG key, splits it locally and then</span>
 <span class="sd">        invokes the original crossover logic. This decoration is intended for</span>
 <span class="sd">        performance profiling.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">single_key</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">all_keys</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
 
         <span class="n">keys_shape</span> <span class="o">=</span> <span class="p">(</span>

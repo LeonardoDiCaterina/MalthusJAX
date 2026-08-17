@@ -310,13 +310,13 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.benchmarking.io</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Input/output helpers for experiment results.</span>
+<span></span><span class="sd">"""Input/output helpers for experiment results.</span>
 
 <span class="sd">This module handles reading and writing of JSON and CSV artifacts produced by</span>
 <span class="sd">benchmark runs.  All writing is performed via atomic temp files to avoid</span>
 <span class="sd">corruption, and a convenience function builds per-seed directories for</span>
 <span class="sd">additional outputs.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -335,19 +335,19 @@
 <div class="viewcode-block" id="write_summary_json">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.write_summary_json">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">write_summary_json</span><span class="p">(</span><span class="n">experiment_result</span><span class="p">:</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Persist an experiment summary to disk as JSON.</span>
+<span class="w">    </span><span class="sd">"""Persist an experiment summary to disk as JSON.</span>
 
 <span class="sd">    The target path is created if necessary, and the data is first written to</span>
 <span class="sd">    a ``.json.tmp`` temporary file which is then atomically renamed.  This</span>
 <span class="sd">    guards against partial writes if the process is interrupted.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Atomic write: write to temp file, then rename</span>
-    <span class="n">temp_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.json.tmp&quot;</span><span class="p">)</span>
+    <span class="n">temp_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">".json.tmp"</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">temp_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">temp_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">experiment_result</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">temp_path</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -361,11 +361,11 @@
 <div class="viewcode-block" id="read_summary_json">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.read_summary_json">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">read_summary_json</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load an :class:`ExperimentResult` from a JSON file written by</span>
+<span class="w">    </span><span class="sd">"""Load an :class:`ExperimentResult` from a JSON file written by</span>
 <span class="sd">    :func:`write_summary_json`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ExperimentResult</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
@@ -374,20 +374,20 @@
 <div class="viewcode-block" id="write_histories_csv">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.write_histories_csv">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">write_histories_csv</span><span class="p">(</span><span class="n">experiment_result</span><span class="p">:</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dump the concatenated run histories to a CSV file with a seed column.</span>
+<span class="w">    </span><span class="sd">"""Dump the concatenated run histories to a CSV file with a seed column.</span>
 
 <span class="sd">    The headers are inferred from the union of keys present in the histories,</span>
 <span class="sd">    and an empty file with just a header is produced if there are no rows.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">combined</span> <span class="o">=</span> <span class="n">experiment_result</span><span class="o">.</span><span class="n">combined_history</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">combined</span><span class="p">:</span>
         <span class="c1"># Write empty CSV with just headers</span>
-        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"w"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s2">&quot;seed&quot;</span><span class="p">])</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s2">"seed"</span><span class="p">])</span>
         <span class="k">return</span>
 
     <span class="c1"># Get all unique keys across all rows for header</span>
@@ -395,12 +395,12 @@
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">combined</span><span class="p">:</span>
         <span class="n">all_keys</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
-    <span class="c1"># Ensure &#39;seed&#39; comes first</span>
-    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_keys</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;seed&quot;</span><span class="p">)</span>
+    <span class="c1"># Ensure 'seed' comes first</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"seed"</span><span class="p">]</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_keys</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"seed"</span><span class="p">)</span>
 
-    <span class="n">temp_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.csv.tmp&quot;</span><span class="p">)</span>
+    <span class="n">temp_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">".csv.tmp"</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">temp_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">temp_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"w"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">dict_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
             <span class="n">dict_writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
             <span class="n">dict_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
@@ -415,14 +415,14 @@
 <div class="viewcode-block" id="ensure_seed_folder">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.ensure_seed_folder">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_seed_folder</span><span class="p">(</span><span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure a per-seed subdirectory exists and return its path.</span>
+<span class="w">    </span><span class="sd">"""Ensure a per-seed subdirectory exists and return its path.</span>
 
 <span class="sd">    The directory is named ``seed_XXXX`` where XXXX is the zero-padded seed</span>
 <span class="sd">    value.  This is convenient for organising artifacts generated by</span>
 <span class="sd">    individual runs.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
-    <span class="n">seed_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;seed_</span><span class="si">{</span><span class="n">seed</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">seed_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"seed_</span><span class="si">{</span><span class="n">seed</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">seed_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">seed_dir</span></div>
 
@@ -436,29 +436,29 @@
     <span class="n">write_csv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">write_json</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Emit all standard artifacts for an experiment and report their paths.</span>
+<span class="w">    </span><span class="sd">"""Emit all standard artifacts for an experiment and report their paths.</span>
 
 <span class="sd">    Depending on the flags the summary JSON and combined histories CSV are</span>
 <span class="sd">    written.  In all cases per-seed subdirectories are created and their</span>
 <span class="sd">    locations are returned in the resulting mapping.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
     <span class="n">written_paths</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">if</span> <span class="n">write_json</span><span class="p">:</span>
-        <span class="n">json_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;summary.json&quot;</span>
+        <span class="n">json_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">"summary.json"</span>
         <span class="n">write_summary_json</span><span class="p">(</span><span class="n">experiment_result</span><span class="p">,</span> <span class="n">json_path</span><span class="p">)</span>
-        <span class="n">written_paths</span><span class="p">[</span><span class="s2">&quot;summary_json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json_path</span>
+        <span class="n">written_paths</span><span class="p">[</span><span class="s2">"summary_json"</span><span class="p">]</span> <span class="o">=</span> <span class="n">json_path</span>
 
     <span class="k">if</span> <span class="n">write_csv</span><span class="p">:</span>
-        <span class="n">csv_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;histories_combined.csv&quot;</span>
+        <span class="n">csv_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">"histories_combined.csv"</span>
         <span class="n">write_histories_csv</span><span class="p">(</span><span class="n">experiment_result</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">)</span>
-        <span class="n">written_paths</span><span class="p">[</span><span class="s2">&quot;histories_csv&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">csv_path</span>
+        <span class="n">written_paths</span><span class="p">[</span><span class="s2">"histories_csv"</span><span class="p">]</span> <span class="o">=</span> <span class="n">csv_path</span>
 
     <span class="c1"># Create seed folders for future per-seed artifacts</span>
     <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">experiment_result</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
         <span class="n">seed_dir</span> <span class="o">=</span> <span class="n">ensure_seed_folder</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">run</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
-        <span class="n">written_paths</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;seed_</span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">seed</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed_dir</span>
+        <span class="n">written_paths</span><span class="p">[</span><span class="sa">f</span><span class="s2">"seed_</span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">seed</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed_dir</span>
 
     <span class="k">return</span> <span class="n">written_paths</span></div>
 
@@ -467,59 +467,59 @@
 <div class="viewcode-block" id="DataLoader">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.DataLoader">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DataLoader</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Universal data loader for various formats.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Universal data loader for various formats."""</span>
 
 <div class="viewcode-block" id="DataLoader.load_csv">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.DataLoader.load_csv">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_csv</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load CSV file into a JAX array.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load CSV file into a JAX array."""</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing data file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Missing data file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">","</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load CSV </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to load CSV </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
 <div class="viewcode-block" id="DataLoader.load_npz">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.DataLoader.load_npz">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_npz</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load .npz archive into JAX arrays.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load .npz archive into JAX arrays."""</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing data file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Missing data file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">data</span><span class="p">:</span>
                 <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load NPZ </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to load NPZ </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
 <div class="viewcode-block" id="DataLoader.load_tsplib">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.DataLoader.load_tsplib">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_tsplib</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load TSPLib distance matrix.</span>
+<span class="w">        </span><span class="sd">"""Load TSPLib distance matrix.</span>
 
 <span class="sd">        Currently supports EDGE_WEIGHT_TYPE=EUC_2D coordinate lists.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing data file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Missing data file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">parsing_coords</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;NODE_COORD_SECTION&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">"NODE_COORD_SECTION"</span><span class="p">:</span>
                     <span class="n">parsing_coords</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="k">continue</span>
-                <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;EOF&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">"EOF"</span><span class="p">:</span>
                     <span class="k">break</span>
                 <span class="k">if</span> <span class="n">parsing_coords</span><span class="p">:</span>
                     <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
@@ -527,7 +527,7 @@
                         <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">coords</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not parse valid coordinates from TSPLib file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not parse valid coordinates from TSPLib file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">coords_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
         <span class="n">diff</span> <span class="o">=</span> <span class="n">coords_arr</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">coords_arr</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
@@ -540,16 +540,16 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.DataLoader.load_any">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_any</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Auto-detect format and load.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Auto-detect format and load."""</span>
         <span class="n">path_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".csv"</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">load_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.npz&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".npz"</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">load_npz</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.tsp&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.txt&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".tsp"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".txt"</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">load_tsplib</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported file extension: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported file extension: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

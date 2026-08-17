@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.registry</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Lightweight utility used by the Composer pipeline system.</span>
+<span></span><span class="sd">"""Lightweight utility used by the Composer pipeline system.</span>
 
 <span class="sd">The registry simply associates string keys with factory callables that</span>
 <span class="sd">produce pipeline nodes.  Designed to be minimal so it has no external</span>
 <span class="sd">dependencies or lifecycle management.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
 
@@ -325,13 +325,13 @@
 <div class="viewcode-block" id="Registry">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.registry.html#malthusjax.composer.registry.Registry">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Registry</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map short names to ``NodeFactory`` callables.</span>
+<span class="w">    </span><span class="sd">"""Map short names to ``NodeFactory`` callables.</span>
 
 <span class="sd">    The stored factories are expected to accept a PRNG *key*, a parameters</span>
 <span class="sd">    dictionary and a dictionary of previously-built inputs.  This is the</span>
 <span class="sd">    primitive used by :mod:`composer.pipeline` to construct a computation</span>
 <span class="sd">    graph from declarative definitions.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_factories</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">NodeFactory</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -340,7 +340,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.composer.registry.html#malthusjax.composer.registry.Registry.register">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">factory</span><span class="p">:</span> <span class="n">NodeFactory</span><span class="p">,</span> <span class="n">override</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">override</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_factories</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; already registered&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' already registered"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_factories</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">factory</span></div>
 
 
@@ -350,7 +350,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_factories</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No factory registered under &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No factory registered under '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
 <div class="viewcode-block" id="Registry.list">

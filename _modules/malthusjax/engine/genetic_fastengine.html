@@ -310,10 +310,10 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.engine.genetic_fastengine</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Standard Genetic Algorithm Engine.</span>
-<span class="sd">Refactored for &#39;Init-Phase Compilation&#39;: Resource mapping happens once at initialization.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Refactored for 'Init-Phase Compilation': Resource mapping happens once at initialization.</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -328,6 +328,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">struct</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluator</span><span class="p">,</span> <span class="n">dispatch_evaluate_population</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">PRNGImpl</span><span class="p">,</span> <span class="n">create_key</span><span class="p">,</span> <span class="n">is_new_style_key</span><span class="p">,</span> <span class="n">validate_key</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span>
@@ -349,7 +350,7 @@
 
 <span class="c1"># TODO: update selection docstring with expected input/output contract details.</span>
 
-<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"T"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
 <span class="n">_field</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span>  <span class="c1"># Helper alias for typed dataclass fields</span>
 
 <span class="c1"># ---------------------------------------------------------------------------</span>
@@ -365,7 +366,7 @@
 <div class="viewcode-block" id="enable_tracing">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.enable_tracing">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">enable_tracing</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enable jax.named_call phase labels globally (for HLO profiling).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Enable jax.named_call phase labels globally (for HLO profiling)."""</span>
     <span class="k">global</span> <span class="n">_TRACING_ENABLED</span>
     <span class="n">_TRACING_ENABLED</span> <span class="o">=</span> <span class="kc">True</span></div>
 
@@ -374,7 +375,7 @@
 <div class="viewcode-block" id="disable_tracing">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.disable_tracing">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">disable_tracing</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Disable jax.named_call phase labels (default; allows XLA kernel fusion).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Disable jax.named_call phase labels (default; allows XLA kernel fusion)."""</span>
     <span class="k">global</span> <span class="n">_TRACING_ENABLED</span>
     <span class="n">_TRACING_ENABLED</span> <span class="o">=</span> <span class="kc">False</span></div>
 
@@ -383,12 +384,12 @@
 <div class="viewcode-block" id="traceable">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.traceable">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">traceable</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">],</span> <span class="n">T</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wraps a method in jax.named_call when _TRACING_ENABLED is True.</span>
+<span class="w">    </span><span class="sd">"""Wraps a method in jax.named_call when _TRACING_ENABLED is True.</span>
 
 <span class="sd">    Both the raw function and the named variant are pre-built at decoration</span>
 <span class="sd">    time.  The ``if _TRACING_ENABLED`` check is a pure Python branch evaluated</span>
 <span class="sd">    once per JAX trace, so there is zero XLA overhead when tracing is off.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
         <span class="n">named_fn</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">named_call</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
@@ -408,7 +409,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticEngineParams">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeneticEngineParams</span><span class="p">(</span><span class="n">AbstractEngineParams</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for Genetic Algorithm Engine (extends AbstractEngineParams).</span>
+<span class="w">    </span><span class="sd">"""Configuration for Genetic Algorithm Engine (extends AbstractEngineParams).</span>
 
 <span class="sd">    This dataclass holds all static configuration for the genetic engine.</span>
 <span class="sd">    All fields use ``pytree_node=False`` to trigger recompilation when changed.</span>
@@ -478,7 +479,7 @@
 
 <span class="sd">    All fields are ``pytree_node=False``, so ``.replace()`` creates a new</span>
 <span class="sd">    instance that will trigger XLA recompilation on next execution.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">key_derivation</span><span class="p">:</span> <span class="n">KeyDerivationStrategy</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span>
         <span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">KeyDerivationStrategy</span><span class="o">.</span><span class="n">SPLIT</span>
@@ -494,12 +495,12 @@
     <span class="c1"># / per-offspring subkeys and forward them to operators that accept</span>
     <span class="c1"># pre-split caller-supplied keys (useful for evosax parity).</span>
     <span class="n">forward_presplit_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enable jax.named_call phase labels for HLO profiling (default: False).</span>
+<span class="w">    </span><span class="sd">"""Enable jax.named_call phase labels for HLO profiling (default: False).</span>
 
 <span class="sd">    When False (default) the traceable decorators are no-ops, allowing XLA to</span>
 <span class="sd">    fuse all phases into a single kernel.  Set to True to get named labels in</span>
 <span class="sd">    the XLA HLO / profiler output.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="sd">    """</span></div>
 
 
 
@@ -507,7 +508,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticGenerationOutput">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeneticGenerationOutput</span><span class="p">(</span><span class="n">AbstractGenerationOutput</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;KPIs returned by Genetic Engine.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""KPIs returned by Genetic Engine."""</span>
 
     <span class="n">random_key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span></div>
 
@@ -517,10 +518,10 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.OperatorState">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">OperatorState</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Holds the &#39;baked&#39; operators with their static input sizes frozen.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Holds the 'baked' operators with their static input sizes frozen.</span>
 <span class="sd">    This ensures XLA compiles efficient kernels once.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">selection</span><span class="p">:</span> <span class="n">BaseSelection</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">crossover</span><span class="p">:</span> <span class="n">BaseCrossover</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -532,9 +533,9 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticEvolutionState">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeneticEvolutionState</span><span class="p">(</span><span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    State that carries its own execution plan (ResourceMap) and optimized tools (OperatorState).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">resource_map</span><span class="p">:</span> <span class="n">ResourceMap</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">operators</span><span class="p">:</span> <span class="n">OperatorState</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
@@ -545,7 +546,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticEngine">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeneticEngine</span><span class="p">(</span><span class="n">AbstractEngine</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;High-Performance Genetic Algorithm Engine with Init-Phase JIT Compilation.</span>
+<span class="w">    </span><span class="sd">"""High-Performance Genetic Algorithm Engine with Init-Phase JIT Compilation.</span>
 
 <span class="sd">    **Key Design**: The engine compiles once during :meth:`init_state`, caching the</span>
 <span class="sd">    complete execution plan (ResourceMap) and optimized operators. Subsequent calls</span>
@@ -626,9 +627,9 @@
 <span class="sd">    Create instances with ``GeneticEngine(genome_config=..., evaluator=..., ...)``.</span>
 
 <span class="sd">    **Static Fields**: ``genome_config``, ``evaluator``, and operators are marked</span>
-<span class="sd">    ``pytree_node=False``, so they don&#39;t participate in JAX tree operations. Changing</span>
+<span class="sd">    ``pytree_node=False``, so they don't participate in JAX tree operations. Changing</span>
 <span class="sd">    them requires re-calling :meth:`init_state`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">genome_config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">evaluator</span><span class="p">:</span> <span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -643,35 +644,35 @@
     <span class="n">_entropy_buffer</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">())</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make engine hashable for JIT static_argnums.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Make engine hashable for JIT static_argnums."""</span>
         <span class="k">return</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Identity-based equality for JIT caching consistency.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Identity-based equality for JIT caching consistency."""</span>
         <span class="k">return</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span>
 
-    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">&quot;Phase_0_Allocate_Entropy&quot;</span><span class="p">)</span>
+    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">"Phase_0_Allocate_Entropy"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_allocate_entropy</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">GeneticEvolutionState</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Phase 0 — slice the master RNG buffer into operator subkeys.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Phase 0 — slice the master RNG buffer into operator subkeys.</span>
 
 <span class="sd">        The state contains a precomputed ``ResourceMap``. This method pulls the</span>
 <span class="sd">        right slices for selection, crossover, mutation and the next-generation</span>
 <span class="sd">        key, returning them as a quadruple of key arrays.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">rmap</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">resource_map</span>
         <span class="n">all_keys</span> <span class="o">=</span> <span class="n">rmap</span><span class="o">.</span><span class="n">get_keys</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">rng_key</span><span class="p">)</span>
 
-        <span class="n">k_sel_slice</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">&quot;selection&quot;</span><span class="p">)]</span>
-        <span class="n">k_cross</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">&quot;crossover&quot;</span><span class="p">)]</span>
-        <span class="n">k_mut</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">&quot;mutation&quot;</span><span class="p">)]</span>
+        <span class="n">k_sel_slice</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">"selection"</span><span class="p">)]</span>
+        <span class="n">k_cross</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">"crossover"</span><span class="p">)]</span>
+        <span class="n">k_mut</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">"mutation"</span><span class="p">)]</span>
+        <span class="n">k_eval</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">"evaluation"</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">k_next</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">"next_key"</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="n">k_next</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">get_key_slice</span><span class="p">(</span><span class="s2">&quot;next_key&quot;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">k_sel_slice</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">,</span> <span class="n">k_next</span>
 
-        <span class="k">return</span> <span class="n">k_sel_slice</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_next</span>
-
-    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">&quot;Phase_1_Selection_Read&quot;</span><span class="p">)</span>
+    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">"Phase_1_Selection_Read"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_selection_phase</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">key_selection</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
@@ -679,12 +680,12 @@
         <span class="n">operators</span><span class="p">:</span> <span class="n">OperatorState</span><span class="p">,</span>
         <span class="n">params</span><span class="p">:</span> <span class="n">AbstractEngineParams</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Phase 1 — run selection and optionally gather elites.</span>
+<span class="w">        </span><span class="sd">"""Phase 1 — run selection and optionally gather elites.</span>
 
 <span class="sd">        Uses the fused ``operators.selection`` call which may yield both parent</span>
 <span class="sd">        and elite indices in one pass. The method then optionally slices the</span>
 <span class="sd">        current population to extract elite genomes for preservation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Default single-call selection</span>
         <span class="n">parent_idx</span><span class="p">,</span> <span class="n">elite_idx</span> <span class="o">=</span> <span class="n">operators</span><span class="o">.</span><span class="n">selection</span><span class="p">(</span><span class="n">key_selection</span><span class="p">,</span> <span class="n">population</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
 
@@ -711,7 +712,7 @@
             <span class="p">):</span>
                 <span class="c1"># If the caller provided exactly two keys, use them as the two</span>
                 <span class="c1"># independent selection draws (common parity trace format).</span>
-                <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">key_selection</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="p">())</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">key_selection</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">key_selection</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">,</span> <span class="p">())</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">key_selection</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="n">k1</span> <span class="o">=</span> <span class="n">key_selection</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="n">k2</span> <span class="o">=</span> <span class="n">key_selection</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                     <span class="n">sel_op</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">operators</span><span class="o">.</span><span class="n">selection</span><span class="p">,</span> <span class="n">num_selections</span><span class="o">=</span><span class="n">pop_size</span><span class="p">)</span>
@@ -725,7 +726,7 @@
                     <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">sel_expected</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">pop_size</span><span class="p">):</span>
                         <span class="n">key_base</span> <span class="o">=</span> <span class="p">(</span>
                             <span class="n">key_selection</span>
-                            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">key_selection</span><span class="p">,</span> <span class="s2">&quot;ndim&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+                            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">key_selection</span><span class="p">,</span> <span class="s2">"ndim"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
                             <span class="k">else</span> <span class="n">key_selection</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                         <span class="p">)</span>
                         <span class="n">k1</span><span class="p">,</span> <span class="n">k2</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key_base</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -739,7 +740,7 @@
 
         <span class="k">return</span> <span class="n">elites_genes</span><span class="p">,</span> <span class="n">parent_idx</span>
 
-    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">&quot;Phase_2_Reproduction_Fused&quot;</span><span class="p">)</span>
+    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">"Phase_2_Reproduction_Fused"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_reproduction_phase</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">keys_crossover</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
@@ -750,21 +751,21 @@
         <span class="n">rmap</span><span class="p">:</span> <span class="n">ResourceMap</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Phase 2 — perform crossover followed by mutation.</span>
+<span class="w">        </span><span class="sd">"""Phase 2 — perform crossover followed by mutation.</span>
 
 <span class="sd">        The incoming parent indices are split into two equal halves representing</span>
 <span class="sd">        mating pairs. Crosser and mutator are then invoked with their</span>
 <span class="sd">        respective key bundles, producing an intermediate offspring population</span>
 <span class="sd">        which is returned for merging.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">num_pairs</span> <span class="o">=</span> <span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">input_count</span> <span class="o">//</span> <span class="mi">2</span>
         <span class="n">p1_idx</span> <span class="o">=</span> <span class="n">parent_indices</span><span class="p">[:</span><span class="n">num_pairs</span><span class="p">]</span>
         <span class="n">p2_idx</span> <span class="o">=</span> <span class="n">parent_indices</span><span class="p">[</span><span class="n">num_pairs</span> <span class="p">:</span> <span class="n">num_pairs</span> <span class="o">*</span> <span class="mi">2</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">parent_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">input_count</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Parent indices length mismatch: &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="n">parent_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="s2">"Parent indices length mismatch: "</span>
+                <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">parent_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
 
         <span class="n">expected_cross_keys</span> <span class="o">=</span> <span class="n">operators</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">num_keys</span><span class="p">(</span><span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_pairs</span><span class="p">,))</span>
@@ -780,9 +781,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">forward_presplit_keys</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">keys_crossover</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expected_cross_keys</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Crossover keys length mismatch: &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="n">keys_crossover</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected </span><span class="si">{</span><span class="n">expected_cross_keys</span><span class="si">}</span><span class="s2"> &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;(num_pairs=</span><span class="si">{</span><span class="n">num_pairs</span><span class="si">}</span><span class="s2">)&quot;</span>
+                    <span class="s2">"Crossover keys length mismatch: "</span>
+                    <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">keys_crossover</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected </span><span class="si">{</span><span class="n">expected_cross_keys</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"(num_pairs=</span><span class="si">{</span><span class="n">num_pairs</span><span class="si">}</span><span class="s2">)"</span>
                 <span class="p">)</span>
             <span class="n">keys_to_pass</span> <span class="o">=</span> <span class="n">keys_crossover</span>
         <span class="k">else</span><span class="p">:</span>
@@ -804,10 +805,10 @@
                         <span class="n">keys_to_pass</span> <span class="o">=</span> <span class="n">keys_crossover</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="s2">&quot;Crossover keys length mismatch (forward_presplit_keys mode): &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="n">keys_crossover</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">expected_cross_keys</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">num_subkeys</span><span class="si">}</span><span class="s2"> &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;(num_pairs=</span><span class="si">{</span><span class="n">num_pairs</span><span class="si">}</span><span class="s2">)&quot;</span>
+                            <span class="s2">"Crossover keys length mismatch (forward_presplit_keys mode): "</span>
+                            <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">keys_crossover</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected "</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">expected_cross_keys</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">num_subkeys</span><span class="si">}</span><span class="s2"> "</span>
+                            <span class="sa">f</span><span class="s2">"(num_pairs=</span><span class="si">{</span><span class="n">num_pairs</span><span class="si">}</span><span class="s2">)"</span>
                         <span class="p">)</span>
         <span class="n">p1_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">p1_idx</span><span class="p">],</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
         <span class="n">p2_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">p2_idx</span><span class="p">],</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
@@ -821,9 +822,9 @@
         <span class="n">produced_offspring</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_leaves</span><span class="p">(</span><span class="n">offspring_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">produced_offspring</span> <span class="o">!=</span> <span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">output_count</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Crossover produced </span><span class="si">{</span><span class="n">produced_offspring</span><span class="si">}</span><span class="s2"> offspring but ResourceMap &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;expected </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2">. Ensure `operator.num_offspring` &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;matches the length of the tuple returned by `_recombine_one`.&quot;</span>
+                <span class="sa">f</span><span class="s2">"Crossover produced </span><span class="si">{</span><span class="n">produced_offspring</span><span class="si">}</span><span class="s2"> offspring but ResourceMap "</span>
+                <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">rmap</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2">. Ensure `operator.num_offspring` "</span>
+                <span class="sa">f</span><span class="s2">"matches the length of the tuple returned by `_recombine_one`."</span>
             <span class="p">)</span>
 
         <span class="c1"># Allow forwarding/splitting of mutation keys similarly when requested.</span>
@@ -831,8 +832,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">forward_presplit_keys</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">keys_mutation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expected_mut_keys</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Mutation keys length mismatch: &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="n">keys_mutation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected </span><span class="si">{</span><span class="n">expected_mut_keys</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="s2">"Mutation keys length mismatch: "</span>
+                    <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">keys_mutation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected </span><span class="si">{</span><span class="n">expected_mut_keys</span><span class="si">}</span><span class="s2"> "</span>
                 <span class="p">)</span>
             <span class="n">mut_keys_to_pass</span> <span class="o">=</span> <span class="n">keys_mutation</span>
         <span class="k">else</span><span class="p">:</span>
@@ -848,9 +849,9 @@
                         <span class="n">mut_keys_to_pass</span> <span class="o">=</span> <span class="n">keys_mutation</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="s2">&quot;Mutation keys length mismatch (forward_presplit_keys mode): &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="n">keys_mutation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">expected_mut_keys</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">total_offspring</span><span class="si">}</span><span class="s2"> &quot;</span>
+                            <span class="s2">"Mutation keys length mismatch (forward_presplit_keys mode): "</span>
+                            <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">keys_mutation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, expected "</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">expected_mut_keys</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">total_offspring</span><span class="si">}</span><span class="s2"> "</span>
                         <span class="p">)</span>
 
         <span class="n">final_pop</span> <span class="o">=</span> <span class="n">operators</span><span class="o">.</span><span class="n">mutation</span><span class="p">(</span>
@@ -859,14 +860,14 @@
 
         <span class="k">return</span> <span class="n">final_pop</span>
 
-    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">&quot;Phase_3a_Merge&quot;</span><span class="p">)</span>
+    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">"Phase_3a_Merge"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_merge</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">elites_genes</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">mutant_genes</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">old_state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Merge elite preservation + mutation results (Phase 3a).</span>
 
 <span class="sd">        Uses ``jax.lax.dynamic_update_slice`` instead of ``jnp.concatenate``</span>
@@ -876,7 +877,7 @@
 <span class="sd">        Strategy: Pre-allocate output via ``jnp.empty_like``, write elites</span>
 <span class="sd">        into rows ``[0, num_elites)``, then mutants into</span>
 <span class="sd">        ``[num_elites, pop_size)``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">target_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_state</span><span class="o">.</span><span class="n">population</span><span class="p">)</span>
 
         <span class="n">leaves</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_leaves</span><span class="p">(</span><span class="n">elites_genes</span><span class="p">)</span>
@@ -901,24 +902,27 @@
 
         <span class="k">return</span> <span class="n">next_genes</span>
 
-    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">&quot;Phase_3b_Evaluate&quot;</span><span class="p">)</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">new_genes</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">old_state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span>
+    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">"Phase_4_Evaluation"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate_phase</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">new_population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">k_eval</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
-        <span class="n">new_population</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="n">old_state</span><span class="o">.</span><span class="n">population</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">new_genes</span><span class="p">)</span>
-        <span class="n">evaluated_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">new_population</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Phase 4 — Score offspring.</span>
+
+<span class="sd">        Executes the problem-specific fitness function over the new batch of genomes.</span>
+<span class="sd">        """</span>
+        <span class="n">evaluated_pop</span> <span class="o">=</span> <span class="n">dispatch_evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">new_population</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">evaluated_pop</span>
 
 <div class="viewcode-block" id="GeneticEngine.step">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticEngine.step">[docs]</a>
-    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">&quot;GeneticEngine_Step&quot;</span><span class="p">)</span>
+    <span class="nd">@traceable</span><span class="p">(</span><span class="s2">"GeneticEngine_Step"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">GeneticGenerationOutput</span><span class="p">]:</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEngineParams</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">)</span>
 
-        <span class="n">k_sel</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_entropy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">k_sel</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">,</span> <span class="n">k_next</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_entropy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
         <span class="n">elites</span><span class="p">,</span> <span class="n">parent_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selection_phase</span><span class="p">(</span>
             <span class="n">k_sel</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">operators</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span>
@@ -935,7 +939,8 @@
         <span class="p">)</span>
         <span class="n">next_genes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge</span><span class="p">(</span><span class="n">elites</span><span class="p">,</span> <span class="n">mutants</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 
-        <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span><span class="n">next_genes</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="n">new_pop_unrated</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">next_genes</span><span class="p">)</span>
+        <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_phase</span><span class="p">(</span><span class="n">new_pop_unrated</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">)</span>
 
         <span class="c1"># ------------------------------------------------------------------</span>
         <span class="c1"># Inline HOF update (replaces _update_hof — FB-4)</span>
@@ -948,17 +953,17 @@
         <span class="n">gen_best_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">track_best</span> <span class="o">==</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">NONE</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;No tracking: pass through unchanged, report per-gen best&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""No tracking: pass through unchanged, report per-gen best"""</span>
             <span class="n">new_best_fitness</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span>
             <span class="n">new_best_genome</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">best_genome</span>
             <span class="n">metric_best</span> <span class="o">=</span> <span class="n">gen_best_fitness</span>  <span class="c1"># per-gen, NOT monotonic</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">track_best</span> <span class="o">==</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Running min only — no genome in carry &quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""Running min only — no genome in carry """</span>
             <span class="n">new_best_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">gen_best_fitness</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">)</span>
             <span class="n">new_best_genome</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">best_genome</span>
             <span class="n">metric_best</span> <span class="o">=</span> <span class="n">new_best_fitness</span>  <span class="c1"># monotonic</span>
         <span class="k">else</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Full tracking: argmin + Gather + element-wise jnp.where &quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""Full tracking: argmin + Gather + element-wise jnp.where """</span>
             <span class="n">is_new</span> <span class="o">=</span> <span class="n">gen_best_fitness</span> <span class="o">&lt;</span> <span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span>
             <span class="n">best_idx</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
             <span class="n">new_best_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">is_new</span><span class="p">,</span> <span class="n">gen_best_fitness</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">)</span>
@@ -1005,7 +1010,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">debug_step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">GeneticGenerationOutput</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run one generation phase-by-phase and print intermediate summaries.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Run one generation phase-by-phase and print intermediate summaries."""</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEngineParams</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">)</span>
 
@@ -1028,52 +1033,52 @@
             <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">output_count</span><span class="p">,)</span>
         <span class="p">)</span>
         <span class="n">selection_io</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2">/&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2">/"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
         <span class="n">crossover_io</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2">/&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2">/"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">crossover</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
         <span class="n">mutation_io</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">mutation</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">mutation</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">mutation</span><span class="o">.</span><span class="n">input_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="o">.</span><span class="n">mutation</span><span class="o">.</span><span class="n">output_count</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;debug_step context: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;generation=</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">generation</span><span class="si">}</span><span class="s2">, population=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="p">)</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;best_fitness=</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;forward_presplit_keys=</span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">forward_presplit_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"debug_step context: "</span>
+            <span class="sa">f</span><span class="s2">"generation=</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">generation</span><span class="si">}</span><span class="s2">, population=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"best_fitness=</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"forward_presplit_keys=</span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">forward_presplit_keys</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;debug_step resource map: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;selection(in/out)=</span><span class="si">{</span><span class="n">selection_io</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;crossover(in/out)=</span><span class="si">{</span><span class="n">crossover_io</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;mutation(in/out)=</span><span class="si">{</span><span class="n">mutation_io</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;num_pairs=</span><span class="si">{</span><span class="n">num_pairs</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"debug_step resource map: "</span>
+            <span class="sa">f</span><span class="s2">"selection(in/out)=</span><span class="si">{</span><span class="n">selection_io</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"crossover(in/out)=</span><span class="si">{</span><span class="n">crossover_io</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"mutation(in/out)=</span><span class="si">{</span><span class="n">mutation_io</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"num_pairs=</span><span class="si">{</span><span class="n">num_pairs</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
-        <span class="n">k_sel</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_entropy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">k_sel</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">,</span> <span class="n">k_next</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_entropy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;phase 0 allocate entropy: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;selection=</span><span class="si">{</span><span class="n">k_sel</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, crossover=</span><span class="si">{</span><span class="n">k_cross</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;mutation=</span><span class="si">{</span><span class="n">k_mut</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, next=</span><span class="si">{</span><span class="n">k_next</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"phase 0 allocate entropy: "</span>
+            <span class="sa">f</span><span class="s2">"selection=</span><span class="si">{</span><span class="n">k_sel</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, crossover=</span><span class="si">{</span><span class="n">k_cross</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"mutation=</span><span class="si">{</span><span class="n">k_mut</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, next=</span><span class="si">{</span><span class="n">k_next</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;phase 0 key budget: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;expected_cross_keys=</span><span class="si">{</span><span class="n">expected_cross_keys</span><span class="si">}</span><span class="s2">, expected_mut_keys=</span><span class="si">{</span><span class="n">expected_mut_keys</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;k_cross_preview=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">k_cross</span><span class="p">)</span><span class="si">}</span><span class="s2">, k_mut_preview=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">k_mut</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"phase 0 key budget: "</span>
+            <span class="sa">f</span><span class="s2">"expected_cross_keys=</span><span class="si">{</span><span class="n">expected_cross_keys</span><span class="si">}</span><span class="s2">, expected_mut_keys=</span><span class="si">{</span><span class="n">expected_mut_keys</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"k_cross_preview=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">k_cross</span><span class="p">)</span><span class="si">}</span><span class="s2">, k_mut_preview=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">k_mut</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
         <span class="n">elites</span><span class="p">,</span> <span class="n">parent_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selection_phase</span><span class="p">(</span>
             <span class="n">k_sel</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">operators</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span>
         <span class="p">)</span>
         <span class="n">elite_shape</span> <span class="o">=</span> <span class="n">_first_leaf_shape</span><span class="p">(</span><span class="n">elites</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;phase 1 selection: elites=</span><span class="si">{</span><span class="n">elite_shape</span><span class="si">}</span><span class="s2">, parents=</span><span class="si">{</span><span class="n">parent_indices</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"phase 1 selection: elites=</span><span class="si">{</span><span class="n">elite_shape</span><span class="si">}</span><span class="s2">, parents=</span><span class="si">{</span><span class="n">parent_indices</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">parent_preview</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">parent_indices</span><span class="p">)[:</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;phase 1 selection preview: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;parent_idx[:</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">parent_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">]=</span><span class="si">{</span><span class="n">parent_preview</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"phase 1 selection preview: "</span>
+            <span class="sa">f</span><span class="s2">"parent_idx[:</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">parent_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">]=</span><span class="si">{</span><span class="n">parent_preview</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
         <span class="n">p1_idx</span> <span class="o">=</span> <span class="n">parent_indices</span><span class="p">[:</span><span class="n">num_pairs</span><span class="p">]</span>
@@ -1081,9 +1086,9 @@
         <span class="n">p1_preview</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p1_idx</span><span class="p">)[:</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="n">p2_preview</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p2_idx</span><span class="p">)[:</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;phase 1 pair split: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;p1_idx[:</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">p1_idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">]=</span><span class="si">{</span><span class="n">p1_preview</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;p2_idx[:</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">p2_idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">]=</span><span class="si">{</span><span class="n">p2_preview</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"phase 1 pair split: "</span>
+            <span class="sa">f</span><span class="s2">"p1_idx[:</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">p1_idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">]=</span><span class="si">{</span><span class="n">p1_preview</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"p2_idx[:</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">p2_idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">]=</span><span class="si">{</span><span class="n">p2_preview</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
         <span class="n">p1_genes</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">p1_idx</span><span class="p">],</span> <span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
@@ -1092,8 +1097,8 @@
         <span class="n">p1_pop</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">spawn_offspring</span><span class="p">(</span><span class="n">p1_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">dummy_fitness</span><span class="p">)</span>
         <span class="n">p2_pop</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">spawn_offspring</span><span class="p">(</span><span class="n">p2_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">dummy_fitness</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;phase 1 parent previews: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;p1_first=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">p1_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span><span class="si">}</span><span class="s2">, p2_first=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">p2_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"phase 1 parent previews: "</span>
+            <span class="sa">f</span><span class="s2">"p1_first=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">p1_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span><span class="si">}</span><span class="s2">, p2_first=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">p2_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
         <span class="n">mutants</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reproduction_phase</span><span class="p">(</span>
@@ -1106,22 +1111,22 @@
             <span class="n">generation</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">generation</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">mutant_shape</span> <span class="o">=</span> <span class="n">_first_leaf_shape</span><span class="p">(</span><span class="n">mutants</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;phase 2 reproduction: mutants=</span><span class="si">{</span><span class="n">mutant_shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;phase 2 offspring preview: first_child=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">mutants</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"phase 2 reproduction: mutants=</span><span class="si">{</span><span class="n">mutant_shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"phase 2 offspring preview: first_child=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">mutants</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">next_genes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge</span><span class="p">(</span><span class="n">elites</span><span class="p">,</span> <span class="n">mutants</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
         <span class="n">next_shape</span> <span class="o">=</span> <span class="n">_first_leaf_shape</span><span class="p">(</span><span class="n">next_genes</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;phase 3a merge: next_genes=</span><span class="si">{</span><span class="n">next_shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;phase 3a merge preview: first_gene=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">next_genes</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"phase 3a merge: next_genes=</span><span class="si">{</span><span class="n">next_shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"phase 3a merge preview: first_gene=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">next_genes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span><span class="n">next_genes</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_phase</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">next_genes</span><span class="p">),</span> <span class="n">k_eval</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;phase 3b evaluate: population=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">new_pop</span><span class="p">)</span><span class="si">}</span><span class="s2">, best_fitness=</span><span class="si">{</span><span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"phase 3b evaluate: population=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">new_pop</span><span class="p">)</span><span class="si">}</span><span class="s2">, best_fitness=</span><span class="si">{</span><span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;phase 3b evaluate preview: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;fitness[:</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">new_pop</span><span class="p">))</span><span class="si">}</span><span class="s2">]=&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"phase 3b evaluate preview: "</span>
+            <span class="sa">f</span><span class="s2">"fitness[:</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">new_pop</span><span class="p">))</span><span class="si">}</span><span class="s2">]="</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEngineParams</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">)</span>
@@ -1179,7 +1184,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span>
         <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]],</span> <span class="n">AbstractGenerationOutput</span><span class="p">,</span> <span class="n">Any</span>
     <span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute full evolution from initial state using jax.lax.scan.</span>
+<span class="w">        </span><span class="sd">"""Execute full evolution from initial state using jax.lax.scan.</span>
 
 <span class="sd">        This method runs the genetic algorithm for num_generations by repeatedly</span>
 <span class="sd">        calling :meth:`step` inside a :func:`jax.lax.scan` loop. It handles both</span>
@@ -1225,7 +1230,7 @@
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        **Fitness Evaluation**: The engine calls :meth:`evaluator.evaluate_population`</span>
-<span class="sd">        internally after each generation&#39;s reproduction phase.</span>
+<span class="sd">        internally after each generation's reproduction phase.</span>
 
 <span class="sd">        **Hall-of-Fame Tracking**: Best individual tracking strategy</span>
 <span class="sd">        (from :attr:`engine_params.track_best`)—</span>
@@ -1243,18 +1248,18 @@
 
 <span class="sd">            state = engine.init_state(rng_key=42)</span>
 <span class="sd">            final_state, history, elapsed = engine.run(state, time_it=True)</span>
-<span class="sd">            print(f&quot;Evolution took {elapsed:.2f} seconds&quot;)</span>
-<span class="sd">            print(f&quot;Best fitness: {final_state.best_fitness}&quot;)</span>
+<span class="sd">            print(f"Evolution took {elapsed:.2f} seconds")</span>
+<span class="sd">            print(f"Best fitness: {final_state.best_fitness}")</span>
 
 <span class="sd">        Extract convergence history::</span>
 
 <span class="sd">            best_per_gen = [h.best_fitness for h in history]</span>
 <span class="sd">            import matplotlib.pyplot as plt</span>
 <span class="sd">            plt.plot(best_per_gen)</span>
-<span class="sd">            plt.xlabel(&quot;Generation&quot;)</span>
-<span class="sd">            plt.ylabel(&quot;Best Fitness&quot;)</span>
+<span class="sd">            plt.xlabel("Generation")</span>
+<span class="sd">            plt.ylabel("Best Fitness")</span>
 <span class="sd">            plt.show()</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">elapsed_time</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
             <span class="n">initial_state</span><span class="p">,</span>
             <span class="n">time_it</span><span class="o">=</span><span class="n">time_it</span><span class="p">,</span>
@@ -1283,10 +1288,18 @@
         <span class="k">return</span> <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">elapsed_time</span></div>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Validate components that require instantiation."""</span>
+        <span class="c1"># Validation could be added here if necessary</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">maximize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">maximize</span>
+
 <div class="viewcode-block" id="GeneticEngine.init_state">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticEngine.init_state">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">GeneticEvolutionState</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize evolution and compile the inference plan (Init-Phase Compilation).</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">GeneticEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Initialize evolution and compile the inference plan (Init-Phase Compilation).</span>
 
 <span class="sd">        This method performs the expensive one-time setup that all :meth:`step` calls</span>
 <span class="sd">        will rely on. It:</span>
@@ -1310,7 +1323,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        rng_key : int or jax.Array</span>
-<span class="sd">            Random seed. If an integer, a typed PRNG key is created using the engine&#39;s</span>
+<span class="sd">            Random seed. If an integer, a typed PRNG key is created using the engine's</span>
 <span class="sd">            configured ``prng_impl`` (THREEFRY or PHILOX). If a jax.Array, it must be</span>
 <span class="sd">            a valid JAX PRNG key (shape (2,) or newer typed format).</span>
 
@@ -1349,7 +1362,7 @@
 
 <span class="sd">            rng_key = jax.random.key(42)</span>
 <span class="sd">            state = engine.init_state(rng_key=rng_key)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEngineParams</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">debug_tracing</span><span class="p">:</span>
@@ -1360,7 +1373,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rng_key</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">rng_key</span> <span class="o">=</span> <span class="n">create_key</span><span class="p">(</span><span class="n">rng_key</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">prng_impl</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">validate_key</span><span class="p">(</span><span class="n">rng_key</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;GeneticEngine.init_state()&quot;</span><span class="p">)</span>
+            <span class="n">validate_key</span><span class="p">(</span><span class="n">rng_key</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">"GeneticEngine.init_state()"</span><span class="p">)</span>
 
         <span class="n">typed</span> <span class="o">=</span> <span class="n">is_new_style_key</span><span class="p">(</span><span class="n">rng_key</span><span class="p">)</span>
 
@@ -1374,7 +1387,7 @@
             <span class="n">params</span><span class="o">.</span><span class="n">key_derivation</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="n">sharding_mgr</span> <span class="o">=</span> <span class="n">ShardingManager</span><span class="p">(</span><span class="n">axis_name</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span><span class="p">)</span>
+        <span class="n">sharding_mgr</span> <span class="o">=</span> <span class="n">ShardingManager</span><span class="p">(</span><span class="n">axis_name</span><span class="o">=</span><span class="s2">"batch"</span><span class="p">)</span>
         <span class="n">active_sel</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="p">)</span>
             <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">num_selections</span><span class="o">=</span><span class="n">rmap</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">output_count</span><span class="p">)</span>
@@ -1397,10 +1410,10 @@
         <span class="n">op_state</span> <span class="o">=</span> <span class="n">OperatorState</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="n">active_sel</span><span class="p">,</span> <span class="n">crossover</span><span class="o">=</span><span class="n">active_cross</span><span class="p">,</span> <span class="n">mutation</span><span class="o">=</span><span class="n">active_mut</span><span class="p">)</span>
         <span class="n">init_pop_key</span><span class="p">,</span> <span class="n">rng_key</span> <span class="o">=</span> <span class="n">jar</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">rng_key</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">&quot;init_population&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">"init_population"</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Unsupported genome config: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genome_config</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">. &quot;</span>
-                <span class="s2">&quot;Config must implement init_population(key, size) -&gt; BasePopulation.&quot;</span>
+                <span class="sa">f</span><span class="s2">"Unsupported genome config: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genome_config</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">. "</span>
+                <span class="s2">"Config must implement init_population(key, size) -&gt; BasePopulation."</span>
             <span class="p">)</span>
         <span class="n">population</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genome_config</span><span class="o">.</span><span class="n">init_population</span><span class="p">(</span><span class="n">init_pop_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span><span class="p">)</span>
 
@@ -1409,19 +1422,19 @@
         <span class="n">_pop_shardable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span> <span class="o">%</span> <span class="n">num_devices</span> <span class="o">==</span> <span class="mi">0</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">_enforce_layout</span><span class="p">(</span><span class="n">leaf</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">jnp</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"dtype"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">jnp</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
                 <span class="n">leaf</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">target_dtype</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">_pop_shardable</span>
-                <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
                 <span class="ow">and</span> <span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span>
             <span class="p">):</span>
                 <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">device_put</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">sharding_mgr</span><span class="o">.</span><span class="n">matrix_sharding</span><span class="p">)</span>
             <span class="k">elif</span> <span class="p">(</span>
                 <span class="n">_pop_shardable</span>
-                <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
                 <span class="ow">and</span> <span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span>
             <span class="p">):</span>
@@ -1438,7 +1451,7 @@
 
         <span class="n">population</span> <span class="o">=</span> <span class="n">population</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">sharded_genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">sharded_fitness</span><span class="p">)</span>
 
-        <span class="n">evaluated_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+        <span class="n">evaluated_pop</span> <span class="o">=</span> <span class="n">dispatch_evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">init_pop_key</span><span class="p">)</span>
         <span class="n">best_idx</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">evaluated_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
 
         <span class="n">best_genome</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span>
@@ -1459,8 +1472,8 @@
 
 <div class="viewcode-block" id="GeneticEngine.ask">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticEngine.ask">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">GeneticEvolutionState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;GeneticEngine&quot;</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate next population batch for external evaluation (Ask/Tell interface).</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">GeneticEvolutionState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">"GeneticEngine"</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Generate next population batch for external evaluation (Ask/Tell interface).</span>
 
 <span class="sd">        This method allocates entropy for the current generation and returns the</span>
 <span class="sd">        population to be evaluated. Use :meth:`tell` to submit evaluated results</span>
@@ -1490,7 +1503,7 @@
 
 <span class="sd">            engine, population = engine.ask(state)</span>
 <span class="sd">            # ... evaluate population externally ...</span>
-<span class="sd">            evaluated_pop = evaluator.evaluate_population(population)</span>
+<span class="sd">            evaluated_pop = dispatch_evaluate_population(evaluator, population, state.rng_key)</span>
 <span class="sd">            new_state = engine.tell(state, evaluated_pop)</span>
 
 <span class="sd">        **Critical**: The engine instance returned from :meth:`ask` carries entropy</span>
@@ -1520,7 +1533,7 @@
 <span class="sd">            # Aggregate results</span>
 <span class="sd">            aggregated = populations[0].replace(fitness=results_aggregated)</span>
 <span class="sd">            new_state = engines[0].tell(state, aggregated)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">entropy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_entropy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
         <span class="n">engine_with_entropy</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_entropy_buffer</span><span class="o">=</span><span class="n">entropy</span><span class="p">)</span>
@@ -1531,12 +1544,12 @@
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticEngine.ask_with_key">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">ask_with_key</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AbstractEvolutionState</span><span class="p">[</span><span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]],</span> <span class="n">rng_key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;GeneticEngine&quot;</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ask variant with explicit key override for parity adapters.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">"GeneticEngine"</span><span class="p">,</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Ask variant with explicit key override for parity adapters.</span>
 
 <span class="sd">        This mirrors ask/tell APIs that pass RNG at call time by temporarily</span>
 <span class="sd">        overriding ``state.rng_key`` for entropy allocation in this generation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">state_with_key</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">rng_key</span><span class="o">=</span><span class="n">rng_key</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">state_with_key</span><span class="p">))</span></div>
 
@@ -1546,7 +1559,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">tell</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GeneticEvolutionState</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Complete one generation using evaluated population (Ask/Tell interface).</span>
+<span class="w">        </span><span class="sd">"""Complete one generation using evaluated population (Ask/Tell interface).</span>
 
 <span class="sd">        After calling :meth:`ask` and evaluating the returned population externally,</span>
 <span class="sd">        pass the evaluated population here to complete the evolutionary step. This</span>
@@ -1605,11 +1618,11 @@
 <span class="sd">                state = engine.tell(state, evaluated)</span>
 
 <span class="sd">            # Access final results</span>
-<span class="sd">            print(f&quot;Best: {state.best_fitness}&quot;)</span>
-<span class="sd">            print(f&quot;Generations run: {state.generation}&quot;)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            print(f"Best: {state.best_fitness}")</span>
+<span class="sd">            print(f"Generations run: {state.generation}")</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_buffer</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;tell() called before ask().&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"tell() called before ask()."</span><span class="p">)</span>
 
         <span class="n">k_sel</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_buffer</span>
 
@@ -1661,9 +1674,9 @@
         <span class="c1"># leave the buffer as-is (the ask/tell contract still enforces usage</span>
         <span class="c1"># discipline via runtime checks above).</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_entropy_buffer&quot;</span><span class="p">,</span> <span class="p">())</span>
+            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_entropy_buffer"</span><span class="p">,</span> <span class="p">())</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="c1"># Best-effort: if we cannot mutate, don&#39;t crash the evolution.</span>
+            <span class="c1"># Best-effort: if we cannot mutate, don't crash the evolution.</span>
             <span class="k">pass</span>
 
         <span class="k">return</span> <span class="n">final_state</span></div>
@@ -1677,12 +1690,12 @@
         <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
         <span class="n">rng_key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GeneticEvolutionState</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tell variant with explicit key override for parity adapters.</span>
+<span class="w">        </span><span class="sd">"""Tell variant with explicit key override for parity adapters.</span>
 
 <span class="sd">        The current ask/tell implementation pre-allocates all entropy in</span>
 <span class="sd">        :meth:`ask`; therefore ``rng_key`` is accepted for interface parity and</span>
 <span class="sd">        intentionally not consumed here.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">_</span> <span class="o">=</span> <span class="n">rng_key</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tell</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">state</span><span class="p">),</span> <span class="n">population</span><span class="p">)</span></div>
 </div>

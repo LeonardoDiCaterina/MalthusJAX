@@ -310,10 +310,10 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.operators.selection.elite_pool</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Selection Operators.</span>
-<span class="sd">Refactored for the &#39;Consumer Paradigm&#39;: Pure index generation.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Refactored for the 'Consumer Paradigm': Pure index generation.</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
@@ -332,7 +332,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.selection.elite_pool.html#malthusjax.operators.ElitePoolSelection">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ElitePoolSelection</span><span class="p">(</span><span class="n">BaseSelection</span><span class="p">[</span><span class="n">P</span><span class="p">,</span> <span class="n">C</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Elite Pool Selection (High Performance).</span>
+<span class="w">    </span><span class="sd">"""Elite Pool Selection (High Performance).</span>
 
 <span class="sd">    In elite pool selection, the algorithm:</span>
 <span class="sd">    1. Identifies the top ``elite_k`` individuals by fitness</span>
@@ -344,14 +344,14 @@
 
 <span class="sd">    **String Specification Format**::</span>
 
-<span class="sd">        &quot;elite_pool:num_selections=INT[,elite_k=INT]&quot;</span>
+<span class="sd">        "elite_pool:num_selections=INT[,elite_k=INT]"</span>
 
 <span class="sd">    Examples::</span>
 
-<span class="sd">        &quot;elite_pool&quot;  # Defaults (num_selections=4, elite_k=2)</span>
-<span class="sd">        &quot;elite_pool:num_selections=50&quot;  # Custom num_selections, default elite_k</span>
-<span class="sd">        &quot;elite_pool:num_selections=50,elite_k=10&quot;  # Both custom</span>
-<span class="sd">        &quot;elite_pool:elite_k=5&quot;  # Custom elite pool size, default num_selections</span>
+<span class="sd">        "elite_pool"  # Defaults (num_selections=4, elite_k=2)</span>
+<span class="sd">        "elite_pool:num_selections=50"  # Custom num_selections, default elite_k</span>
+<span class="sd">        "elite_pool:num_selections=50,elite_k=10"  # Both custom</span>
+<span class="sd">        "elite_pool:elite_k=5"  # Custom elite pool size, default num_selections</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -387,7 +387,7 @@
 
 <span class="sd">    **When to Use**:</span>
 
-<span class="sd">    1. **Final refinement phase**: Late generations when you&#39;re optimizing near</span>
+<span class="sd">    1. **Final refinement phase**: Late generations when you're optimizing near</span>
 <span class="sd">       a known good region</span>
 <span class="sd">    2. **High-dimensional problems with clear optima**: Problems where top-1%</span>
 <span class="sd">       solutions are significantly better than others</span>
@@ -409,10 +409,10 @@
 <span class="sd">    **Recommendation**: Start with :class:`TournamentSelection` (tournament_size=3)</span>
 <span class="sd">    for general problems. If convergence is too slow near the optimum, introduce</span>
 <span class="sd">    a small elite pool (5-10% of population) mixed with tournament selection.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">elite_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-    <span class="n">sampling_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;choice&quot;</span><span class="p">)</span>
+    <span class="n">sampling_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"choice"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -421,11 +421,11 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_select</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Choose parents uniformly from the top *elite_k* individuals.</span>
+<span class="w">        </span><span class="sd">"""Choose parents uniformly from the top *elite_k* individuals.</span>
 
 <span class="sd">        This simpler primitive method is mainly used when the fused</span>
 <span class="sd">        ``__call__`` path (which also extracts elites) is not required.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
             <span class="n">rng</span> <span class="o">=</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">keys</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -437,13 +437,13 @@
         <span class="c1"># than `elite_k` the pool must be expanded to include those</span>
         <span class="c1"># elite indices; otherwise some elites would not be part of the</span>
         <span class="c1"># sampling pool.</span>
-        <span class="n">pool_k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elite_k</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;n_elites&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">pop_size</span><span class="p">)</span>
+        <span class="n">pool_k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elite_k</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"n_elites"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">pop_size</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">pool_k</span> <span class="o">&gt;=</span> <span class="n">pop_size</span><span class="p">:</span>
             <span class="n">best_k_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">pop_size</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">best_k_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">fitness</span><span class="p">)[:</span><span class="n">pool_k</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;sampling_method&quot;</span><span class="p">,</span> <span class="s2">&quot;choice&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;randint&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"sampling_method"</span><span class="p">,</span> <span class="s2">"choice"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"randint"</span><span class="p">:</span>
             <span class="c1"># draw integer indexes into the pool, then index into best_k_indices</span>
             <span class="c1"># rng consumes same amount as a single randint call per selection</span>
             <span class="n">sel_idx</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_selections</span><span class="p">,),</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="n">pool_k</span><span class="p">)</span>
@@ -464,12 +464,12 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select parents from the elite pool and simultaneously identify elites.</span>
+<span class="w">        </span><span class="sd">"""Select parents from the elite pool and simultaneously identify elites.</span>
 
 <span class="sd">        This implementation avoids a second O(N) scan by performing a single</span>
 <span class="sd">        ``argpartition`` on the combined effect of ``elite_k`` and ``n_elites``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="s2">&quot;fitness&quot;</span><span class="p">,</span> <span class="n">population</span><span class="p">))</span>
+<span class="sd">        """</span>
+        <span class="n">fitness</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="s2">"fitness"</span><span class="p">,</span> <span class="n">population</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
             <span class="n">rng</span> <span class="o">=</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">keys</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -510,7 +510,7 @@
             <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_selections</span><span class="p">,),</span>
             <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;sampling_method&quot;</span><span class="p">,</span> <span class="s2">&quot;choice&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;randint&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"sampling_method"</span><span class="p">,</span> <span class="s2">"choice"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"randint"</span><span class="p">:</span>
             <span class="c1"># sample indices into `pool` then index</span>
             <span class="n">sel_idx</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span>
                 <span class="n">rng</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_selections</span><span class="p">,),</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="n">pool</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

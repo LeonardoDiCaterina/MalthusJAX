@@ -310,12 +310,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.core.fitness.real_evaluators</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Basic real‑valued benchmark fitness evaluators.</span>
+<span></span><span class="sd">"""Basic real‑valued benchmark fitness evaluators.</span>
 
 <span class="sd">This module implements simple analytic functions such as Sphere,</span>
 <span class="sd">Griewank and a box‑constrained optimization example. Each evaluator is a</span>
 <span class="sd">:class:`BaseEvaluator` subclass with a static configuration dataclass.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -334,7 +334,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.SphereConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SphereConfig</span><span class="p">(</span><span class="n">BaseEvaluatorConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for Sphere function optimization (f(x) = sum(x^2)).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Configuration for Sphere function optimization (f(x) = sum(x^2))."""</span>
 
     <span class="k">pass</span></div>
 
@@ -344,10 +344,10 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.SphereEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SphereEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">SphereConfig</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sphere function (sum of squares) fitness evaluator.</span>
+<span class="w">    </span><span class="sd">"""Sphere function (sum of squares) fitness evaluator.</span>
 
 <span class="sd">    Minimization is standard; config.maximize controls sign convention.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">config</span><span class="p">:</span> <span class="n">SphereConfig</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -355,11 +355,11 @@
 <div class="viewcode-block" id="SphereEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.SphereEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate sphere function on real genome.</span>
+<span class="w">        </span><span class="sd">"""Evaluate sphere function on real genome.</span>
 
 <span class="sd">        Returns the sum-of-squares value directly (minimization convention).</span>
 <span class="sd">        Lower values are better.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">sphere_value</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">genome</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">sphere_value</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="o">-</span><span class="n">sphere_value</span></div>
 </div>
@@ -370,7 +370,7 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.GriewankConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GriewankConfig</span><span class="p">(</span><span class="n">BaseEvaluatorConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for Griewank function optimization (multimodal benchmark).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Configuration for Griewank function optimization (multimodal benchmark)."""</span>
 
     <span class="k">pass</span></div>
 
@@ -380,10 +380,10 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.GriewankEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GriewankEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">GriewankConfig</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Griewank function fitness evaluator (multimodal, many local optima).</span>
+<span class="w">    </span><span class="sd">"""Griewank function fitness evaluator (multimodal, many local optima).</span>
 
 <span class="sd">    Combines quadratic and cosine terms for high-dimensional complexity.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">config</span><span class="p">:</span> <span class="n">GriewankConfig</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -391,11 +391,11 @@
 <div class="viewcode-block" id="GriewankEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.GriewankEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate Griewank function on real genome.</span>
+<span class="w">        </span><span class="sd">"""Evaluate Griewank function on real genome.</span>
 
 <span class="sd">        Combines quadratic and cosine components. Returns value directly</span>
 <span class="sd">        (minimization convention). Lower values are better.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span>
         <span class="n">quad_term</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">/</span> <span class="mf">4000.0</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -411,19 +411,19 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.BoxConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BoxConfig</span><span class="p">(</span><span class="n">BaseEvaluatorConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for box-constrained optimization.</span>
+<span class="w">    </span><span class="sd">"""Configuration for box-constrained optimization.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        target_point: Target location in solution space, shape (d,).</span>
 <span class="sd">        box_bounds: Tuple (lower, upper) constraint bounds, each shape (d,).</span>
 <span class="sd">        penalty_factor: Linear constraint violation penalty coefficient.</span>
-<span class="sd">        objective_type: &#39;distance&#39; (L2) or &#39;sphere&#39; (sum of squares).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        objective_type: 'distance' (L2) or 'sphere' (sum of squares).</span>
+<span class="sd">    """</span>
 
     <span class="n">target_point</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">box_bounds</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">penalty_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1000.0</span>
-    <span class="n">objective_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span></div>
+    <span class="n">objective_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"distance"</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span></div>
 
 
 
@@ -431,12 +431,12 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.BoxEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BoxEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">BoxConfig</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Box-constrained optimization with linear penalty for infeasibility.</span>
+<span class="w">    </span><span class="sd">"""Box-constrained optimization with linear penalty for infeasibility.</span>
 
 <span class="sd">    Evaluates objective (distance or sphere) and adds linear penalty for</span>
 <span class="sd">    constraint violations. Penalty uses jax.lax.select and jnp.maximum for</span>
 <span class="sd">    XLA compatibility (no Python control flow during tracing).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">config</span><span class="p">:</span> <span class="n">BoxConfig</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
@@ -444,7 +444,7 @@
 <div class="viewcode-block" id="BoxEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.real_evaluators.html#malthusjax.BoxEvaluator.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate box-constrained problem on real genome.</span>
+<span class="w">        </span><span class="sd">"""Evaluate box-constrained problem on real genome.</span>
 
 <span class="sd">        Computes the selected objective and adds a linear penalty for any</span>
 <span class="sd">        constraint violations (minimization convention). Lower values are better.</span>
@@ -452,17 +452,17 @@
 <span class="sd">        Note:</span>
 <span class="sd">            Objective type is chosen by string; both branches are traced. An</span>
 <span class="sd">            enum-driven dispatch is preferable for larger sets of objectives.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">genome</span><span class="o">.</span><span class="n">values</span>
         <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">box_bounds</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">objective_type</span> <span class="o">==</span> <span class="s2">&quot;distance&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">objective_type</span> <span class="o">==</span> <span class="s2">"distance"</span><span class="p">:</span>
             <span class="n">objective</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">target_point</span><span class="p">)))</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">objective_type</span> <span class="o">==</span> <span class="s2">&quot;sphere&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">objective_type</span> <span class="o">==</span> <span class="s2">"sphere"</span><span class="p">:</span>
             <span class="n">centered</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">target_point</span>
             <span class="n">objective</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">centered</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown objective type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">objective_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown objective type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">objective_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># Constraint violations: sum of excess magnitudes (XLA-safe)</span>
         <span class="n">lower_violations</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">lower</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span>
@@ -480,11 +480,11 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">create_random_problem</span><span class="p">(</span>
         <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">box_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxConfig</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Factory: create random box-constrained optimization instance.</span>
+<span class="w">        </span><span class="sd">"""Factory: create random box-constrained optimization instance.</span>
 
 <span class="sd">        Samples a random target point and constructs symmetric box bounds</span>
 <span class="sd">        around it, returning a :class:`BoxConfig` ready for evaluation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">key1</span><span class="p">,</span> <span class="n">key2</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="p">(</span><span class="n">dimensions</span><span class="p">,),</span> <span class="n">minval</span><span class="o">=-</span><span class="n">box_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="n">box_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
 
@@ -495,7 +495,7 @@
         <span class="k">return</span> <span class="n">BoxConfig</span><span class="p">(</span>
             <span class="n">target_point</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
             <span class="n">box_bounds</span><span class="o">=</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">),</span>
-            <span class="n">objective_type</span><span class="o">=</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span>
+            <span class="n">objective_type</span><span class="o">=</span><span class="s2">"distance"</span><span class="p">,</span>
             <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>

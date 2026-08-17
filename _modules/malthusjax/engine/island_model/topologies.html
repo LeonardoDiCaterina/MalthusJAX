@@ -321,26 +321,28 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractEngine</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.island_model.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseIslandModel</span>
 
-<span class="n">E</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">AbstractEngine</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+<span class="n">E</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">AbstractEngine</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="RingTopologyIsland">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.RingTopologyIsland">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">RingTopologyIsland</span><span class="p">(</span><span class="n">BaseIslandModel</span><span class="p">[</span><span class="n">E</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Standard GP distributed topology.</span>
+<span class="w">    </span><span class="sd">"""Standard GP distributed topology.</span>
 
 <span class="sd">    Extracts the top `num_migrants` elites from each island, and shifts them</span>
 <span class="sd">    exactly one island to the right, injecting them into the worst spots.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="RingTopologyIsland.migrate">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.RingTopologyIsland.migrate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="c1"># multi_pop.fitness shape: (num_islands, island_size)</span>
-        <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sort_fitness</span> <span class="o">=</span> <span class="o">-</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span>
+        <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sort_fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="c1"># We assume lower fitness is better (minimization)</span>
+        <span class="c1"># elite_indices will correspond to the lowest values in sort_fitness, </span>
+        <span class="c1"># which are the best individuals for both minimize and maximize.</span>
         <span class="n">elite_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">]</span>
         <span class="n">worst_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="p">:]</span>
 
@@ -378,16 +380,17 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.FullyConnectedIsland">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">FullyConnectedIsland</span><span class="p">(</span><span class="n">BaseIslandModel</span><span class="p">[</span><span class="n">E</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Highly disruptive topology for maximum diffusion.</span>
+<span class="w">    </span><span class="sd">"""Highly disruptive topology for maximum diffusion.</span>
 
 <span class="sd">    Extracts the top elites from all islands into a shared pool, perfectly</span>
 <span class="sd">    shuffles them, and redistributes them randomly across all islands.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="FullyConnectedIsland.migrate">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.FullyConnectedIsland.migrate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
-        <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sort_fitness</span> <span class="o">=</span> <span class="o">-</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span>
+        <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sort_fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="n">elite_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">]</span>
         <span class="n">worst_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="p">:]</span>

@@ -310,32 +310,32 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.catalog</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Operator catalog — string-spec → operator instance resolution.</span>
+<span></span><span class="sd">"""Operator catalog — string-spec → operator instance resolution.</span>
 
 <span class="sd">The catalog is a thin wrapper around the global :mod:`_registry`.  Operator</span>
-<span class="sd">sub-packages register themselves at import time (see each package&#39;s</span>
+<span class="sd">sub-packages register themselves at import time (see each package's</span>
 <span class="sd">``__init__.py``).  ``OperatorCatalog`` triggers those imports on first</span>
 <span class="sd">construction and then delegates ``get()`` to the registry.</span>
 
 <span class="sd">Public API (fully backward-compatible)</span>
 <span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">* ``catalog.get(&quot;tournament:num_selections=50,tournament_size=3&quot;)``</span>
-<span class="sd">* ``catalog.parse_spec(&quot;gaussian:mutation_rate=0.1&quot;)``</span>
-<span class="sd">* ``catalog.register(&quot;custom&quot;, factory)``</span>
+<span class="sd">* ``catalog.get("tournament:num_selections=50,tournament_size=3")``</span>
+<span class="sd">* ``catalog.parse_spec("gaussian:mutation_rate=0.1")``</span>
+<span class="sd">* ``catalog.register("custom", factory)``</span>
 <span class="sd">* ``catalog.list_available()``</span>
-<span class="sd">* ``catalog.get_help(&quot;tournament&quot;)``</span>
+<span class="sd">* ``catalog.get_help("tournament")``</span>
 
 <span class="sd">Examples::</span>
 
 <span class="sd">    catalog = OperatorCatalog()</span>
-<span class="sd">    catalog.get(&quot;tournament&quot;)                       # default params</span>
-<span class="sd">    catalog.get(&quot;tournament:num_selections=50&quot;)      # override defaults</span>
-<span class="sd">    catalog.get(&quot;gaussian:mutation_rate=0.1&quot;)</span>
-<span class="sd">    catalog.get(&quot;blend:alpha=0.5&quot;)</span>
-<span class="sd">    catalog.get(&quot;sphere:dim=10&quot;)</span>
-<span class="sd">    catalog.get(&quot;bbob:fn_name=rastrigin,dim=5&quot;)</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    catalog.get("tournament")                       # default params</span>
+<span class="sd">    catalog.get("tournament:num_selections=50")      # override defaults</span>
+<span class="sd">    catalog.get("gaussian:mutation_rate=0.1")</span>
+<span class="sd">    catalog.get("blend:alpha=0.5")</span>
+<span class="sd">    catalog.get("sphere:dim=10")</span>
+<span class="sd">    catalog.get("bbob:fn_name=rastrigin,dim=5")</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -346,11 +346,11 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_registered</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Force-import every operator sub-package so that their</span>
+<span class="w">    </span><span class="sd">"""Force-import every operator sub-package so that their</span>
 <span class="sd">    ``_register_*()`` calls run and populate the global registry.</span>
 
 <span class="sd">    Idempotent — repeated calls are cheap (Python caches imports).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.core.fitness</span>  <span class="c1"># noqa: F401</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.crossover</span>  <span class="c1"># noqa: F401</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.emitters</span>  <span class="c1"># noqa: F401</span>
@@ -361,9 +361,9 @@
 <div class="viewcode-block" id="OperatorCatalog">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.catalog.html#malthusjax.composer.catalog.OperatorCatalog">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OperatorCatalog</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Catalog for creating operators from string specifications.</span>
+<span class="w">    </span><span class="sd">"""Catalog for creating operators from string specifications.</span>
 
-<span class="sd">    Supports format: ``&quot;operator_type:param1=value1,param2=value2&quot;``</span>
+<span class="sd">    Supports format: ``"operator_type:param1=value1,param2=value2"``</span>
 
 <span class="sd">    Available Selection Operators:</span>
 <span class="sd">        - tournament: Tournament selection</span>
@@ -409,57 +409,57 @@
 <span class="sd">        - griewank: Griewank function</span>
 <span class="sd">        - binary_sum: Binary sum (OneMax)</span>
 
-<span class="sd">    Available Evosax Strategies (use via Composer backend=&quot;evosax&quot;):</span>
+<span class="sd">    Available Evosax Strategies (use via Composer backend="evosax"):</span>
 <span class="sd">        - evosax_simplega: Simple Genetic Algorithm</span>
 <span class="sd">        - evosax_mr15: MR15 Genetic Algorithm</span>
 <span class="sd">        - evosax_de: Differential Evolution</span>
 
 <span class="sd">    Examples::</span>
 
-<span class="sd">        catalog.get(&quot;tournament&quot;)  # Default parameters</span>
-<span class="sd">        catalog.get(&quot;tournament:num_selections=50,tournament_size=3&quot;)</span>
-<span class="sd">        catalog.get(&quot;gaussian:mutation_rate=0.1&quot;)</span>
-<span class="sd">        catalog.get(&quot;blend:alpha=0.5&quot;)</span>
-<span class="sd">        catalog.get(&quot;sphere:dim=10&quot;)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        catalog.get("tournament")  # Default parameters</span>
+<span class="sd">        catalog.get("tournament:num_selections=50,tournament_size=3")</span>
+<span class="sd">        catalog.get("gaussian:mutation_rate=0.1")</span>
+<span class="sd">        catalog.get("blend:alpha=0.5")</span>
+<span class="sd">        catalog.get("sphere:dim=10")</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_ensure_registered</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span> <span class="o">=</span> <span class="n">get_registry</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;evosax_simplega&quot;</span><span class="p">:</span> <span class="s2">&quot;SimpleGA&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;evosax_mr15&quot;</span><span class="p">:</span> <span class="s2">&quot;MR15_GA&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;evosax_de&quot;</span><span class="p">:</span> <span class="s2">&quot;DifferentialEvolution&quot;</span><span class="p">,</span>
+            <span class="s2">"evosax_simplega"</span><span class="p">:</span> <span class="s2">"SimpleGA"</span><span class="p">,</span>
+            <span class="s2">"evosax_mr15"</span><span class="p">:</span> <span class="s2">"MR15_GA"</span><span class="p">,</span>
+            <span class="s2">"evosax_de"</span><span class="p">:</span> <span class="s2">"DifferentialEvolution"</span><span class="p">,</span>
         <span class="p">}</span>
 
 <div class="viewcode-block" id="OperatorCatalog.parse_spec">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.catalog.html#malthusjax.composer.catalog.OperatorCatalog.parse_spec">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">parse_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse an operator specification such as</span>
-<span class="sd">        ``&quot;operator_type:param1=value1,param2=value2&quot;`` and return a</span>
+<span class="w">        </span><span class="sd">"""Parse an operator specification such as</span>
+<span class="sd">        ``"operator_type:param1=value1,param2=value2"`` and return a</span>
 <span class="sd">        tuple ``(operator_type, params_dict)``.  A ``ValueError`` is raised if</span>
 <span class="sd">        the string is malformed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">spec</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Empty operator specification&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Empty operator specification"</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">":"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">spec</span><span class="p">,</span> <span class="p">{}</span>
 
-        <span class="n">operator_type</span><span class="p">,</span> <span class="n">params_str</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">operator_type</span><span class="p">,</span> <span class="n">params_str</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">operator_type</span> <span class="o">=</span> <span class="n">operator_type</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">params_str</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">param_pair</span> <span class="ow">in</span> <span class="n">params_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">param_pair</span> <span class="ow">in</span> <span class="n">params_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">):</span>
                 <span class="n">param_pair</span> <span class="o">=</span> <span class="n">param_pair</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="k">if</span> <span class="s2">&quot;=&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">param_pair</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">"="</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">param_pair</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Invalid parameter format: &#39;</span><span class="si">{</span><span class="n">param_pair</span><span class="si">}</span><span class="s2">&#39;. Expected &#39;key=value&#39;&quot;</span>
+                        <span class="sa">f</span><span class="s2">"Invalid parameter format: '</span><span class="si">{</span><span class="n">param_pair</span><span class="si">}</span><span class="s2">'. Expected 'key=value'"</span>
                     <span class="p">)</span>
-                <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">param_pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">param_pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_value</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="n">operator_type</span><span class="p">,</span> <span class="n">params</span></div>
@@ -467,12 +467,12 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_convert_value</span><span class="p">(</span><span class="n">value_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert string value to appropriate Python type.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Convert string value to appropriate Python type."""</span>
         <span class="n">value_str</span> <span class="o">=</span> <span class="n">value_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="n">value_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"true"</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="n">value_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;false&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"false"</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -486,8 +486,8 @@
             <span class="k">pass</span>
 
         <span class="c1"># Strip quotes</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">value_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
-            <span class="n">value_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">value_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'"'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">'"'</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">value_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"'"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"'"</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="k">return</span> <span class="n">value_str</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
@@ -496,27 +496,27 @@
 <div class="viewcode-block" id="OperatorCatalog.get">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.catalog.html#malthusjax.composer.catalog.OperatorCatalog.get">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_registry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve *spec* to a configured operator instance.  The</span>
+<span class="w">        </span><span class="sd">"""Resolve *spec* to a configured operator instance.  The</span>
 <span class="sd">        spec string may include comma-separated parameter overrides.  A</span>
 <span class="sd">        ``KeyError`` is raised for unknown operator types and a</span>
 <span class="sd">        ``ValueError`` for invalid parameter combinations.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">operator_type</span><span class="p">,</span> <span class="n">user_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 
         <span class="n">merged_params</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">user_params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>
 
-        <span class="k">if</span> <span class="n">data_registry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;data_id&quot;</span> <span class="ow">in</span> <span class="n">merged_params</span><span class="p">:</span>
-            <span class="n">data_id</span> <span class="o">=</span> <span class="n">merged_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;data_id&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_registry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"data_id"</span> <span class="ow">in</span> <span class="n">merged_params</span><span class="p">:</span>
+            <span class="n">data_id</span> <span class="o">=</span> <span class="n">merged_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"data_id"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">data_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_registry</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data ID &#39;</span><span class="si">{</span><span class="n">data_id</span><span class="si">}</span><span class="s2">&#39; not in registry&quot;</span><span class="p">)</span>
-            <span class="n">merged_params</span><span class="p">[</span><span class="s2">&quot;_resolved_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_registry</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Data ID '</span><span class="si">{</span><span class="n">data_id</span><span class="si">}</span><span class="s2">' not in registry"</span><span class="p">)</span>
+            <span class="n">merged_params</span><span class="p">[</span><span class="s2">"_resolved_data"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_registry</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">operator_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="p">[</span><span class="n">operator_type</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">operator_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">:</span>
             <span class="n">available</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown operator type: &#39;</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">&#39;. Available: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown operator type: '</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">'. Available: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">factory</span><span class="p">,</span> <span class="n">default_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">operator_type</span><span class="p">]</span>
 
@@ -534,7 +534,7 @@
         <span class="n">invalid_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">merged</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_keys</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">invalid_keys</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_kwargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Invalid parameters for &#39;</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">&#39;: unexpected keyword argument(s) </span><span class="si">{</span><span class="n">invalid_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Invalid parameters for '</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">': unexpected keyword argument(s) </span><span class="si">{</span><span class="n">invalid_keys</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
 
         <span class="n">filtered_merged</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">merged</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">valid_keys</span> <span class="ow">or</span> <span class="n">has_kwargs</span><span class="p">}</span>
@@ -542,7 +542,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">factory</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_merged</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid parameters for &#39;</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid parameters for '</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
 <div class="viewcode-block" id="OperatorCatalog.register">
@@ -553,14 +553,14 @@
         <span class="n">factory</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
         <span class="n">override</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register a new operator type in the catalog.  Supply a string</span>
+<span class="w">        </span><span class="sd">"""Register a new operator type in the catalog.  Supply a string</span>
 <span class="sd">        key and a factory callable which accepts ``**kwargs``.  Set *override*</span>
 <span class="sd">        to ``True`` to replace an existing entry.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">override</span> <span class="ow">and</span> <span class="p">(</span>
             <span class="n">operator_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span> <span class="ow">or</span> <span class="n">operator_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span>
         <span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Operator type &#39;</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">&#39; already registered&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Operator type '</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">' already registered"</span><span class="p">)</span>
 
         <span class="n">_registry_register</span><span class="p">(</span><span class="n">operator_type</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">operator_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="p">{})</span></div>
@@ -569,17 +569,17 @@
 <div class="viewcode-block" id="OperatorCatalog.list_available">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.catalog.html#malthusjax.composer.catalog.OperatorCatalog.list_available">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return sorted list of all registered operator keys.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return sorted list of all registered operator keys."""</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
 
 <div class="viewcode-block" id="OperatorCatalog.get_help">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.catalog.html#malthusjax.composer.catalog.OperatorCatalog.get_help">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_help</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operator_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get help string for operator type.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Get help string for operator type."""</span>
         <span class="k">if</span> <span class="n">operator_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span> <span class="ow">and</span> <span class="n">operator_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evosax_strategies</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Unknown operator: </span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">:param1=value1,param2=value2,...&quot;</span></div>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"Unknown operator: </span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">operator_type</span><span class="si">}</span><span class="s2">:param1=value1,param2=value2,..."</span></div>
 </div>
 
 

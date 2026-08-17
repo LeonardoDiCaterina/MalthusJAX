@@ -310,17 +310,17 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.composer.engine_registry</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Global engine registry for the EngineRegistry catalog.</span>
+<span></span><span class="sd">"""Global engine registry for the EngineRegistry catalog.</span>
 
 <span class="sd">Provides a lightweight ``register`` / ``register_table`` API that engine</span>
 <span class="sd">modules call at import time.  ``EngineRegistry`` (the catalog class in</span>
 <span class="sd">*engine_catalog.py*) reads the accumulated entries via ``get_registry()``.</span>
 
-<span class="sd">A registry entry maps a **catalog key** (e.g. ``&quot;ga&quot;``) to a</span>
+<span class="sd">A registry entry maps a **catalog key** (e.g. ``"ga"``) to a</span>
 <span class="sd">**(factory, defaults)** pair.  The *factory* is any callable that accepts</span>
 <span class="sd">operator instances + ``**kwargs`` and returns an engine adapter compatible</span>
 <span class="sd">with the :class:`~malthusjax.benchmarking.runner.Engine` protocol.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -338,12 +338,12 @@
     <span class="o">*</span><span class="p">,</span>
     <span class="n">override</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Register a single engine under *name*.</span>
+<span class="w">    </span><span class="sd">"""Register a single engine under *name*.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name</span>
-<span class="sd">        Engine key users will reference (e.g. ``&quot;ga&quot;``, ``&quot;nsga2&quot;``).</span>
+<span class="sd">        Engine key users will reference (e.g. ``"ga"``, ``"nsga2"``).</span>
 <span class="sd">    factory</span>
 <span class="sd">        Callable that accepts ``(evaluator, selection, crossover, mutation,</span>
 <span class="sd">        **kwargs)`` and returns an engine satisfying the</span>
@@ -353,9 +353,9 @@
 <span class="sd">    override</span>
 <span class="sd">        If ``False`` (default) and *name* is already registered, raise</span>
 <span class="sd">        ``KeyError``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">override</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_ENGINE_REGISTRY</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Engine &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is already registered&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Engine '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' is already registered"</span><span class="p">)</span>
     <span class="n">_ENGINE_REGISTRY</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">defaults</span> <span class="ow">or</span> <span class="p">{})</span></div>
 
 
@@ -367,7 +367,7 @@
     <span class="o">*</span><span class="p">,</span>
     <span class="n">override</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bulk-register a list of ``(name, factory, defaults)`` tuples.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Bulk-register a list of ``(name, factory, defaults)`` tuples."""</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">defaults</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
         <span class="n">register</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="n">override</span><span class="p">)</span></div>
 
@@ -376,7 +376,7 @@
 <div class="viewcode-block" id="get_registry">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.engine_registry.html#malthusjax.composer.engine_registry.get_registry">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_registry</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a **copy** of the current registry.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Return a **copy** of the current registry."""</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_ENGINE_REGISTRY</span><span class="p">)</span></div>
 
 
@@ -384,7 +384,7 @@
 <div class="viewcode-block" id="list_available">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.engine_registry.html#malthusjax.composer.engine_registry.list_available">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_available</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return sorted list of registered engine names.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Return sorted list of registered engine names."""</span>
     <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_ENGINE_REGISTRY</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
 </pre></div>

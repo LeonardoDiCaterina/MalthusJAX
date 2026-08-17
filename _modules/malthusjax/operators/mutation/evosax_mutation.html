@@ -325,14 +325,14 @@
     <span class="n">GaussianMutation_injection</span> <span class="k">as</span> <span class="n">InjectionGaussianMutation</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;EvosaxGaussianWrapper&quot;</span><span class="p">,</span> <span class="s2">&quot;InjectionGaussianMutation&quot;</span><span class="p">,</span> <span class="s2">&quot;BatchedEvosaxGaussianWrapper&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"EvosaxGaussianWrapper"</span><span class="p">,</span> <span class="s2">"InjectionGaussianMutation"</span><span class="p">,</span> <span class="s2">"BatchedEvosaxGaussianWrapper"</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="EvosaxGaussianWrapper">
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.evosax_mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">EvosaxGaussianWrapper</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Evosax Gaussian Mutation Wrapper (Integration Adapter).</span>
 <span class="sd">    Single-key injection-mode integration of evosax.mutation Gaussian operator.</span>
 <span class="sd">    Key strategy: Accepts single PRNG key, splits per individual (pop_size subkeys),</span>
@@ -341,29 +341,29 @@
 <span class="sd">    Trade-off: Dynamic key splitting (memory efficient) vs static XLA shape stability.</span>
 <span class="sd">    Purpose: Benchmarking evosax compatibility, ablation baseline for framework</span>
 <span class="sd">    comparison, demonstrating alternative single-key injection interface pattern.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">mutation_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
     <span class="n">injection_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        This wrapper consumes 1 atomic key for each fused operation. We</span>
 <span class="sd">         expose 1 here so that the BaseMutation reshape logic produces a</span>
 <span class="sd">         non-zero atomic key axis. The single key will be flattened and the</span>
 <span class="sd">         first 2-int PRNG pair extracted before calling Evosax.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_fused</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Atomic fused mutation for a single offspring. Extracts the atomic</span>
 <span class="sd">        PRNG key, calls Evosax mutation on the genome values and returns a</span>
 <span class="sd">        JIT-friendly `RealGenome` via `from_tensor`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">typed_keys</span><span class="p">:</span>
             <span class="n">prng_key</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -380,13 +380,13 @@
 <div class="viewcode-block" id="EvosaxGaussianWrapper.num_keys">
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.evosax_mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.num_keys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return key budget.</span>
+<span class="w">        </span><span class="sd">"""Return key budget.</span>
 
 <span class="sd">        With ``injection_mode=True`` (default), always returns 1 so the</span>
 <span class="sd">        ResourceMapper allocates a single key that this wrapper splits</span>
 <span class="sd">        dynamically.  With ``injection_mode=False``, returns the standard</span>
 <span class="sd">        per-individual budget delegated to the base-class fused path.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">injection_mode</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_offspring</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_keys_per_atomic_operation</span><span class="p">)</span></div>
@@ -395,14 +395,14 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_noise</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unused — _mutate_fused overrides the full Tier-1/2 pipeline.&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;EvosaxGaussianWrapper does not use _generate_noise&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"EvosaxGaussianWrapper does not use _generate_noise"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">noise_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unused — _mutate_fused overrides the full Tier-1/2 pipeline.&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;EvosaxGaussianWrapper does not use _mutate_one&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Unused — _mutate_fused overrides the full Tier-1/2 pipeline."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"EvosaxGaussianWrapper does not use _mutate_one"</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EvosaxGaussianWrapper.apply_fastpath">
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.evosax_mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.apply_fastpath">[docs]</a>
@@ -414,7 +414,7 @@
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No PRNG keys provided to EvosaxGaussianWrapper&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No PRNG keys provided to EvosaxGaussianWrapper"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">key</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -445,7 +445,7 @@
         <span class="n">config</span><span class="p">:</span> <span class="n">RealGenomeConfig</span><span class="p">,</span>
         <span class="n">generation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">RealGenome</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Population-level mutation with injection_mode support.</span>
+<span class="w">        </span><span class="sd">"""Population-level mutation with injection_mode support.</span>
 
 <span class="sd">        When ``injection_mode=True``, consumes a single pre-allocated key</span>
 <span class="sd">        (ResourceMapper slice shape ``(1, 2)`` legacy / ``(1,)`` typed),</span>
@@ -455,9 +455,9 @@
 
 <span class="sd">        When ``injection_mode=False``, delegates to the base-class fused</span>
 <span class="sd">        path which uses the full pre-allocated key budget.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">all_keys</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No PRNG keys provided to EvosaxGaussianWrapper&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No PRNG keys provided to EvosaxGaussianWrapper"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">injection_mode</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">all_keys</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">generation</span><span class="p">)</span>
@@ -499,14 +499,14 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.operators.mutation.evosax_mutation.html#malthusjax.operators.mutation.BatchedEvosaxGaussianWrapper">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BatchedEvosaxGaussianWrapper</span><span class="p">(</span><span class="n">EvosaxGaussianWrapper</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Batched EvoSAX Gaussian Wrapper (Monolithic Execution).</span>
+<span class="w">    </span><span class="sd">"""Batched EvoSAX Gaussian Wrapper (Monolithic Execution).</span>
 
 <span class="sd">    This operator completely bypasses the JAX vmap structure.</span>
 <span class="sd">    It expects to be called on a batched RealPopulation, where `genes.values`</span>
 <span class="sd">    is a `(pop_size, d)` array. It generates a single monolithic noise tensor</span>
 <span class="sd">    using the underlying `evosax_mutation` function which naturally supports</span>
 <span class="sd">    any array shape.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_keys_per_atomic_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
