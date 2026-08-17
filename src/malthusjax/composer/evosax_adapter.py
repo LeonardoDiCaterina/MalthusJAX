@@ -176,7 +176,7 @@ def build_evosax_engine(
     fitness_spec: Optional[str] = None,
     pop_size: int = 50,
     generations: int = 100,
-    bounds: Tuple[float, float] = (-5.0, 5.0),
+    bounds: Optional[Tuple[float, float]] = None,
     maximize: bool = False,
     seed: int = 42,
     strategy_params: Optional[Dict[str, Any]] = None,
@@ -246,13 +246,36 @@ def build_evosax_engine(
             raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
         eval_mode = EvalMode.MALTHUSJAX
 
-    init_solution = jr.uniform(rng, (num_dims,), minval=bounds[0], maxval=bounds[1])
+    # Bounds extraction
+    resolved_bounds = bounds
+    if resolved_bounds is None:
+        if (
+            hasattr(evaluator, "config")
+            and hasattr(evaluator.config, "genome_config")
+            and hasattr(evaluator.config.genome_config, "bounds")
+        ):
+            resolved_bounds = evaluator.config.genome_config.bounds
+        else:
+            import warnings
+
+            warnings.warn(
+                "No bounds were explicitly provided to `build_evosax_engine`, and the evaluator "
+                "did not provide a `genome_config` with bounds. Falling back to the default "
+                "bounds of (-5.0, 5.0) for evosax initialization. "
+                "To change this, either pass `bounds=(min, max)` to `build_evosax_engine`, "
+                "or specify bounds in your TOML config under the genome section."
+            )
+            resolved_bounds = (-5.0, 5.0)
+
+    init_solution = jr.uniform(
+        rng, (num_dims,), minval=resolved_bounds[0], maxval=resolved_bounds[1]
+    )
 
     strategy_cls = EVOSAX_STRATEGIES[strategy_name]
     if strategy_name == "RandomSearch":
 
         def sampling_fn(k):
-            return jr.uniform(k, (num_dims,), minval=bounds[0], maxval=bounds[1])
+            return jr.uniform(k, (num_dims,), minval=resolved_bounds[0], maxval=resolved_bounds[1])
 
         strategy = strategy_cls(
             population_size=pop_size, solution=init_solution, sampling_fn=sampling_fn
@@ -291,7 +314,7 @@ def build_evosax_engine(
         pop_size=pop_size,
         num_generations=generations,
         num_dims=num_dims,
-        bounds=bounds,
+        bounds=resolved_bounds,
         maximize=maximize,
         initial_population=initial_population,
         eval_mode=eval_mode,

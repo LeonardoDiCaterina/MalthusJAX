@@ -126,7 +126,9 @@ def build_mo_engine(
         num_generations=generations,
     )
 
-    engine: Any = MOEngine(emitter=emitter, evaluator=fitness_evaluator, engine_params=engine_params)
+    engine: Any = MOEngine(
+        emitter=emitter, evaluator=fitness_evaluator, engine_params=engine_params
+    )
 
     maximize_flag = getattr(fitness_evaluator.config, "maximize", False)
 

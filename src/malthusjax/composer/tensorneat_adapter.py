@@ -173,6 +173,12 @@ def build_tensorneat_engine(
     use_python_loop: bool = False,
 ) -> Any:
     """Factory to build a UniversalAdapterEngine for TensorNEAT."""
+    if eval_mode == EvalMode.MALTHUSJAX:
+        raise ValueError(
+            "EvalMode.MALTHUSJAX is not supported for structure-evolving backends like TensorNEAT. "
+            "You must use EvalMode.NATIVE and provide an evaluator built specifically for TensorNEAT."
+        )
+
     # TensorNEAT specifies pop_size at instantiation of the algorithm (e.g. NEAT(pop_size=...))
     if pop_size is None and hasattr(algorithm, "pop_size"):
         pop_size = algorithm.pop_size

@@ -90,6 +90,12 @@ def build_kozax_engine(
     use_python_loop: bool = True,
 ) -> Any:
     """Factory to build a UniversalAdapterEngine for Kozax."""
+    if eval_mode == EvalMode.MALTHUSJAX:
+        raise ValueError(
+            "EvalMode.MALTHUSJAX is not supported for structure-evolving backends like Kozax. "
+            "You must use EvalMode.NATIVE and provide an evaluator built specifically for Kozax."
+        )
+
     # pop_size can be extracted from strategy_obj
     if pop_size is None:
         pop_size = strategy_obj.population_size * strategy_obj.num_populations

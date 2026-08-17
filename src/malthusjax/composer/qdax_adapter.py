@@ -56,7 +56,9 @@ def _qdax_native_eval(evaluator, pop, state, key):
     pass
 
 
-def _qdax_malthusjax_eval(evaluator: Any, genome_config: Any, maximize: bool = True) -> Callable[..., Any]:
+def _qdax_malthusjax_eval(
+    evaluator: Any, genome_config: Any, maximize: bool = True
+) -> Callable[..., Any]:
     """Creates a QDax-compatible scoring function from a MalthusJAX evaluator.
 
     QDAX MAPElites expects a scoring_function with signature:
@@ -223,10 +225,32 @@ def build_qdax_engine(
         scoring_function=scoring_fn, emitter=emitter, metrics_function=metrics_function
     )
 
+    # Bounds extraction
+    resolved_bounds = kwargs.get("bounds")
+    if resolved_bounds is None:
+        if (
+            evaluator is not None
+            and hasattr(evaluator, "config")
+            and hasattr(evaluator.config, "genome_config")
+            and hasattr(evaluator.config.genome_config, "bounds")
+        ):
+            resolved_bounds = evaluator.config.genome_config.bounds
+        else:
+            import warnings
+
+            warnings.warn(
+                "No bounds were explicitly provided to `build_qdax_engine`, and the evaluator "
+                "did not provide a `genome_config` with bounds. Falling back to the default "
+                "bounds of (-5.0, 5.0) for qdax initialization. "
+                "To change this, either pass `bounds=(min, max)` to `build_qdax_engine`, "
+                "or specify bounds in your TOML config under the genome section."
+            )
+            resolved_bounds = (-5.0, 5.0)
+
     params = {
         "init_variables": init_variables,
         "centroids": centroids,
-        "bounds": kwargs.get("bounds", (-5.0, 5.0)),
+        "bounds": resolved_bounds,
         "pop_size": pop_size,
         "genome_length": init_variables.shape[1]
         if init_variables is not None

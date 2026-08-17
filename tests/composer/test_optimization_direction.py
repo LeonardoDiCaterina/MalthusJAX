@@ -78,7 +78,6 @@ class TestOptimizationDirection:
         assert isinstance(last_fitness, (int, float))
         assert last_fitness <= first_fitness + 1e-5
 
-
     def test_optimization_directions_are_opposite(self):
         """Test that minimize and maximize produce opposite fitness trends."""
         composer = Composer.create_default()

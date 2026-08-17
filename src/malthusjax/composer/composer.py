@@ -698,7 +698,9 @@ class Composer:
 
         return experiment
 
-    def _postprocess_experiment_final_from_history(self, experiment: Any, force: bool = False) -> None:
+    def _postprocess_experiment_final_from_history(
+        self, experiment: Any, force: bool = False
+    ) -> None:
         """Ensure per-run summary best_fitness is consistent with history.
 
         When engines disable internal best-tracking (for speed), the

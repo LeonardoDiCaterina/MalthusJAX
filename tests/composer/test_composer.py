@@ -1,6 +1,5 @@
 """Tests for the Composer class."""
 
-
 import jax.numpy as jnp
 import pytest
 

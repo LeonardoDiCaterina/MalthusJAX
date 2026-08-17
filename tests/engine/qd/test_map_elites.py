@@ -1,6 +1,6 @@
-
 import pytest
-pytest.importorskip('qdax')
+
+pytest.importorskip("qdax")
 import jax
 import jax.numpy as jnp
 from qdax.core.containers.mapelites_repertoire import compute_cvt_centroids

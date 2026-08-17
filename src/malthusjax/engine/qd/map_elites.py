@@ -1,3 +1,13 @@
+"""
+Native MalthusJAX MAP-Elites Engine.
+
+**WIP / ARCHITECTURAL NOTE**
+While this engine natively orchestrates MalthusJAX populations, evaluators, and genetic
+operators, it is NOT a 100% standalone MAP-Elites implementation. It relies on a hard
+dependency to the `qdax` library for its internal n-dimensional grid data structure
+(`MapElitesRepertoire`). You must have `qdax` installed to use this engine.
+"""
+
 from typing import Any, Optional, Tuple, TypeVar, cast
 
 import chex
@@ -5,9 +15,8 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.fitness.base import dispatch_evaluate_population
-
 from malthusjax.core.base import BaseGenome, BasePopulation
+from malthusjax.core.fitness.base import dispatch_evaluate_population
 from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 from malthusjax.engine.base import (
     AbstractEngine,
@@ -20,8 +29,11 @@ from malthusjax.operators.emitters.base import BaseEmitter, EmitterState
 # Import QDAX repertoire for internal Map representation
 try:
     from qdax.core.containers.mapelites_repertoire import MapElitesRepertoire
-except ImportError:
-    MapElitesRepertoire = Any
+except ImportError as e:
+    raise ImportError(
+        "The native MapElitesEngine requires `qdax` to be installed for its internal "
+        "repertoire storage grid. Please install it with: pip install qdax"
+    ) from e
 
 G = TypeVar("G", bound=BaseGenome)
 P = TypeVar("P", bound=BasePopulation[Any])
@@ -246,7 +258,11 @@ class MapElitesEngine(AbstractEngine[G, P]):
         best_genome_values = jax.tree_util.tree_map(
             lambda x: x[best_genome_idx], new_repertoire.genotypes
         )
-        best_genome = state.best_genome.replace(values=best_genome_values) if hasattr(state.best_genome, "replace") else best_genome_values
+        best_genome = (
+            state.best_genome.replace(values=best_genome_values)
+            if hasattr(state.best_genome, "replace")
+            else best_genome_values
+        )
 
         kpi = QDGenerationOutput(
             best_fitness=best_fitness,
