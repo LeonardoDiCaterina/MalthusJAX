@@ -4,9 +4,9 @@ This module provides an elegant, user-friendly API for registering custom
 operators, engines, fitness functions, and genomes into the global MalthusJAX
 catalog.
 
-By default, these decorators use `override=True` so they can be safely
-re-evaluated in interactive environments like Jupyter notebooks without
-raising `KeyError` exceptions.
+By default, these decorators use `override=False` to prevent accidental
+collisions. To re-evaluate in interactive environments like Jupyter notebooks
+without raising `KeyError` exceptions, pass `override=True`.
 """
 
 from typing import Any, Callable, Dict, Optional
@@ -17,7 +17,7 @@ from malthusjax.composer.engine_registry import register as _register_engine
 
 
 def _operator_decorator(
-    name: str, defaults: Optional[Dict[str, Any]] = None, override: bool = True
+    name: str, defaults: Optional[Dict[str, Any]] = None, override: bool = False
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Internal decorator factory for operator registration."""
 
@@ -29,7 +29,7 @@ def _operator_decorator(
 
 
 def _engine_decorator(
-    name: str, defaults: Optional[Dict[str, Any]] = None, override: bool = True
+    name: str, defaults: Optional[Dict[str, Any]] = None, override: bool = False
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Internal decorator factory for engine registration."""
 
@@ -41,7 +41,7 @@ def _engine_decorator(
 
 
 def _genome_decorator(
-    name: str, defaults: Optional[Dict[str, Any]] = None, override: bool = True
+    name: str, defaults: Optional[Dict[str, Any]] = None, override: bool = False
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Internal decorator factory for genome registration."""
 

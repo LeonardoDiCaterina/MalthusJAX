@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import chex
 import jax
+import jax.numpy as jnp
 
 
 def mutation(key: chex.Array, solution: chex.Array, std: float | chex.Array) -> chex.Array:
@@ -51,4 +52,4 @@ def crossover(
         Offspring solution
     """
     mask = jax.random.uniform(key, parent_1.shape) < rate
-    return parent_1 * (1 - mask) + parent_2 * mask
+    return jnp.where(mask, parent_2, parent_1)
