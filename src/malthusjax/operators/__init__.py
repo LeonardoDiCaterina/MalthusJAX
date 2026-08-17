@@ -10,6 +10,8 @@ from .crossover.binary import SinglePointCrossover, UniformCrossover
 from .crossover.real import BlendCrossover, SimulatedBinaryCrossover
 from .crossover.real import UniformCrossover as realUniform
 from .mutation.binary import BitFlipMutation, ScrambleMutation, SwapMutation
+from .mutation.categorical import ScrambleMutation as CategoricalScrambleMutation
+from .mutation.categorical import SwapMutation as CategoricalSwapMutation
 from .mutation.real import BallMutation, GaussianMutation, PolynomialMutation
 from .selection.elite_pool import ElitePoolSelection
 from .selection.roulette import RouletteSelection
@@ -32,6 +34,8 @@ __all__ = [
     "BitFlipMutation",
     "ScrambleMutation",
     "SwapMutation",
+    "CategoricalScrambleMutation",
+    "CategoricalSwapMutation",
     "GaussianMutation",
     "BallMutation",
     "PolynomialMutation",

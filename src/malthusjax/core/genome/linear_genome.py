@@ -1,5 +1,10 @@
 """Linear genetic programming genome and population definitions.
 
+🚧 **WIP / ARCHITECTURAL NOTE** 🚧
+This genome is currently an orphaned experimental feature. There are no
+matching crossover or mutation operators implemented for it in the `operators/`
+module, meaning it cannot currently be used in a standard evolutionary loop.
+
 Encodes programs as sequences of opcode/argument pairs with DAG validity.
 Includes utilities for random initialization, autocorrection, rendering and
 structural distance metrics, plus the corresponding batched container.

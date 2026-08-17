@@ -144,12 +144,19 @@ class TensorNeatEmitter(AtomicEmitter):
 
         # 2. Mutation
         mut_n, mut_c = self.genome.execute_mutation(
-            state.tn_state, k_mut, cx_n, cx_c, new_node_key, new_conn_markers  # type: ignore[attr-defined]
+            state.tn_state,  # type: ignore[attr-defined]
+            k_mut,
+            cx_n,
+            cx_c,
+            new_node_key,
+            new_conn_markers,
         )
 
         return mut_n, mut_c
 
-    def _wrap_population(self, offspring_genes: Tuple[chex.Array, chex.Array]) -> BasePopulation[Any]:
+    def _wrap_population(
+        self, offspring_genes: Tuple[chex.Array, chex.Array]
+    ) -> BasePopulation[Any]:
         genes = TensorNeatGenome(values=offspring_genes)
         return TensorNeatPopulation(
             genes=genes, fitness=jnp.full(self.batch_size, -jnp.inf), config=None

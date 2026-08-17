@@ -1,5 +1,10 @@
 """Series genome: function-valued genomes via spectral coefficient arrays.
 
+🚧 **WIP / ARCHITECTURAL NOTE** 🚧
+This genome is currently an orphaned experimental feature. There are no
+matching crossover or mutation operators implemented for it in the `operators/`
+module, meaning it cannot currently be used in a standard evolutionary loop.
+
 Provides a genome representation where each individual encodes a multi-output
 function as a 2-D coefficient matrix:
 

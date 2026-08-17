@@ -108,7 +108,9 @@ class TensorNeatMutationEmitter(AtomicEmitter):
         )
         return mut_n, mut_c
 
-    def _wrap_population(self, offspring_genes: Tuple[chex.Array, chex.Array]) -> BasePopulation[Any]:
+    def _wrap_population(
+        self, offspring_genes: Tuple[chex.Array, chex.Array]
+    ) -> BasePopulation[Any]:
         genes = TensorNeatGenome(values=offspring_genes)
         return TensorNeatPopulation(
             genes=genes, fitness=jnp.full(self.batch_size, -jnp.inf), config=None
@@ -193,10 +195,14 @@ class TensorNeatCrossoverEmitter(AtomicEmitter):
         # Crossover only
         assert state is not None
         tn_state = cast(TensorNeatEmitterState, state)
-        cx_n, cx_c = self.genome.execute_crossover(tn_state.tn_state, keys[0], p1_n, p1_c, p2_n, p2_c)
+        cx_n, cx_c = self.genome.execute_crossover(
+            tn_state.tn_state, keys[0], p1_n, p1_c, p2_n, p2_c
+        )
         return cx_n, cx_c
 
-    def _wrap_population(self, offspring_genes: Tuple[chex.Array, chex.Array]) -> BasePopulation[Any]:
+    def _wrap_population(
+        self, offspring_genes: Tuple[chex.Array, chex.Array]
+    ) -> BasePopulation[Any]:
         genes = TensorNeatGenome(values=offspring_genes)
         return TensorNeatPopulation(
             genes=genes, fitness=jnp.full(self.batch_size, -jnp.inf), config=None

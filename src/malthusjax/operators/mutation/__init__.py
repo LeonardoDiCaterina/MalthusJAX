@@ -3,6 +3,8 @@ Mutation Operators Module.
 """
 
 from .binary import BitFlipMutation, ScrambleMutation, SwapMutation
+from .categorical import ScrambleMutation as CategoricalScrambleMutation
+from .categorical import SwapMutation as CategoricalSwapMutation
 from .evosax_mutation import BatchedEvosaxGaussianWrapper, EvosaxGaussianWrapper
 from .real import (
     BallMutation,
@@ -18,6 +20,8 @@ __all__ = [
     "BitFlipMutation",
     "ScrambleMutation",
     "SwapMutation",
+    "CategoricalScrambleMutation",
+    "CategoricalSwapMutation",
     "GaussianMutation",
     "GaussianMutation_injection",
     "BallMutation",
@@ -54,6 +58,9 @@ def _register_mutation() -> None:
             ("bitflip", BitFlipMutation, {}),
             ("scramble", ScrambleMutation, {}),
             ("swap", SwapMutation, {}),
+            # Categorical mutation
+            ("categorical_scramble", CategoricalScrambleMutation, {}),
+            ("categorical_swap", CategoricalSwapMutation, {}),
         ],
         override=True,
     )

@@ -102,7 +102,9 @@ class AtomicEmitter(BaseEmitter):
         pass
 
     @abstractmethod
-    def _emit_one(self, state: Optional[EmitterState], key: chex.Array, *parents: Any, **kwargs: Any) -> Any:
+    def _emit_one(
+        self, state: Optional[EmitterState], key: chex.Array, *parents: Any, **kwargs: Any
+    ) -> Any:
         """
         Tier 1 - Pure atomic generation for a single offspring instance.
         """
