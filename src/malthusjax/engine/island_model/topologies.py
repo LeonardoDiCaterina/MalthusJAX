@@ -25,7 +25,7 @@ class RingTopologyIsland(BaseIslandModel[E]):
         sort_fitness = -multi_pop.fitness if self.maximize else multi_pop.fitness
         sorted_indices = jnp.argsort(sort_fitness, axis=-1)
 
-        # elite_indices will correspond to the lowest values in sort_fitness, 
+        # elite_indices will correspond to the lowest values in sort_fitness,
         # which are the best individuals for both minimize and maximize.
         elite_indices = sorted_indices[:, : self.num_migrants]
         worst_indices = sorted_indices[:, -self.num_migrants :]

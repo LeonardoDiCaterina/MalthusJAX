@@ -160,9 +160,7 @@ def test_linear_genome():
 
     gen_clamped.render(config)
 
-    LinearGenome.from_tensor(
-        (jnp.zeros(4, dtype=jnp.int32), jnp.zeros((4, 2), dtype=jnp.int32))
-    )
+    LinearGenome.from_tensor((jnp.zeros(4, dtype=jnp.int32), jnp.zeros((4, 2), dtype=jnp.int32)))
 
 
 def test_tensorneat_genome():

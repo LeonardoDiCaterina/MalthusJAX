@@ -107,4 +107,3 @@ def test_brax_evaluator_end_to_end_elitism(evaluator_and_genome_size):
     history_best = history.best_fitness
     for i in range(len(history_best) - 1):
         assert history_best[i + 1] <= history_best[i] + 1e-5
-

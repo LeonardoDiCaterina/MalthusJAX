@@ -13,6 +13,10 @@ from malthusjax.engine.base import (
 
 
 class DummyEngine(AbstractEngine):
+    @property
+    def maximize(self) -> bool:
+        return True
+
     def init_state(self, rng_key):
         raise NotImplementedError
 
@@ -21,6 +25,10 @@ class DummyEngine(AbstractEngine):
 
 
 class DummyEngineWithInterfaces(AbstractEngine):
+    @property
+    def maximize(self) -> bool:
+        return True
+
     def init_state(self, rng_key):
         pass
 

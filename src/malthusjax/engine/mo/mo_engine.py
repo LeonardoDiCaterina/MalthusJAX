@@ -47,11 +47,11 @@ class MOState(AbstractEvolutionState[G, P]):
 class MOGenerationOutput(AbstractGenerationOutput):
     """
     KPI payload returned at every MO evolution step.
-    
-    Note on `best_fitness`: Unlike single-objective engines where this tracks a 
-    true population extremum, for the MO engine this represents the objective-0 
-    value of a representative individual from the first Pareto front (specifically, 
-    the individual at index 0 after rank and crowding distance sorting). This value 
+
+    Note on `best_fitness`: Unlike single-objective engines where this tracks a
+    true population extremum, for the MO engine this represents the objective-0
+    value of a representative individual from the first Pareto front (specifically,
+    the individual at index 0 after rank and crowding distance sorting). This value
     may fluctuate non-monotonically between generations.
     """
 

@@ -2,7 +2,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np  # Used for testing utilities
 import pytest
-pytest.importorskip('evosax')
+
+pytest.importorskip("evosax")
 from evosax.problems import BBOBProblem
 
 from malthusjax.core.fitness.bbob_evaluator import BBOB_NAME_ALIASES, BBOBConfig, BBOBEvaluator

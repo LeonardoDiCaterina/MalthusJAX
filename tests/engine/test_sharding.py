@@ -126,11 +126,16 @@ class TestResourceMapper:
         # 1. Check for Index Overlaps
         assert rmap.selection.end_idx == rmap.crossover.start_idx
         assert rmap.crossover.end_idx == rmap.mutation.start_idx
-        assert rmap.mutation.end_idx == rmap.next_key.start_idx
+        assert rmap.mutation.end_idx == rmap.evaluation.start_idx
+        assert rmap.evaluation.end_idx == rmap.next_key.start_idx
 
         # 2. Verify Total Budget matches sum of parts
         total_calculated = (
-            rmap.selection.num_keys + rmap.crossover.num_keys + rmap.mutation.num_keys + 1
+            rmap.selection.num_keys
+            + rmap.crossover.num_keys
+            + rmap.mutation.num_keys
+            + rmap.evaluation.num_keys
+            + 1
         )
         assert rmap.total_rng_budget == total_calculated
 

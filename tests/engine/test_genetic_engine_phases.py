@@ -7,7 +7,7 @@ import jax
 import jax.numpy as jnp
 
 
-def test_entropy_allocation_returns_four_keys(make_engine, prng_key):
+def test_entropy_allocation_returns_five_keys(make_engine, prng_key):
     engine = make_engine(pop_size=50)
     state = engine.init_state(prng_key)
 
@@ -15,6 +15,7 @@ def test_entropy_allocation_returns_four_keys(make_engine, prng_key):
     assert isinstance(k_sel, jax.Array)
     assert isinstance(k_cross, jax.Array)
     assert isinstance(k_mut, jax.Array)
+    assert isinstance(k_eval, jax.Array)
     assert isinstance(k_next, jax.Array)
 
     assert len(k_sel.shape) == 2
@@ -120,7 +121,7 @@ def test_evaluation_produces_fitness_for_all(make_engine, prng_key):
         k_cross, k_mut, parent_indices, state.population, state.operators, state.resource_map
     )
     new_genes = engine._merge(elites, mutants.genes, state)
-    evaluated_pop = engine._evaluate(new_genes, state)
+    evaluated_pop = engine._evaluate_phase(state.population.replace(genes=new_genes), k_eval)
 
     chex.assert_shape(evaluated_pop.fitness, (30,))
     chex.assert_tree_all_finite(evaluated_pop.fitness)

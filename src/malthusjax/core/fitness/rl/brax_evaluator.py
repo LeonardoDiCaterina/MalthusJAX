@@ -95,7 +95,7 @@ class BraxEvaluator(StochasticEvaluator[RealGenome, BraxEvaluatorConfig, Any]):
                 f"{self.__class__.__name__} requires an `rng` key for evaluation, "
                 "but None was provided."
             )
-        
+
         # 1. Decode genome weights
         weights = self.unflatten_fn(genome.values)
 

@@ -20,14 +20,16 @@ class DummyState:
 class DummyConfig:
     maximize: bool = struct.field(pytree_node=False, default=False)
 
+
 @struct.dataclass
 class DummyEvaluator:
     config: DummyConfig = struct.field(pytree_node=False)
 
+
 @struct.dataclass
 class DummyEngine(AbstractEngine):
     evaluator: DummyEvaluator = struct.field(pytree_node=False)
-    
+
     @property
     def maximize(self) -> bool:
         return self.evaluator.config.maximize
@@ -53,17 +55,21 @@ class DummyEngine(AbstractEngine):
 def base_engine():
     return DummyEngine(engine_params=None, evaluator=DummyEvaluator(DummyConfig(maximize=False)))
 
+
 @pytest.fixture
 def maximize_engine():
     return DummyEngine(engine_params=None, evaluator=DummyEvaluator(DummyConfig(maximize=True)))
+
 
 @struct.dataclass
 class DummyAdapterEngine:
     maximize: bool = struct.field(pytree_node=False)
 
+
 @pytest.fixture
 def adapter_engine():
     return DummyAdapterEngine(maximize=True)
+
 
 def test_adapter_shape_maximize(adapter_engine):
     island_model = RingTopologyIsland(
@@ -71,6 +77,7 @@ def test_adapter_shape_maximize(adapter_engine):
     )
     # Ensure it correctly auto-derives from .maximize
     assert island_model.maximize is True
+
 
 def test_missing_maximize_raises_value_error():
     @struct.dataclass

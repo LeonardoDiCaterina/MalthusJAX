@@ -134,7 +134,9 @@ class StochasticEvaluator(BaseEvaluator[G, C, D]):
 
 
 def dispatch_evaluate_population(
-    evaluator: BaseEvaluator[G, C, D], population: BasePopulation[G], key: chex.PRNGKey | None = None
+    evaluator: BaseEvaluator[G, C, D],
+    population: BasePopulation[G],
+    key: chex.PRNGKey | None = None,
 ) -> BasePopulation[G]:
     """Dynamically dispatch population evaluation based on evaluator type."""
     if isinstance(evaluator, StochasticEvaluator):

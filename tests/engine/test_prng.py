@@ -2,7 +2,6 @@
 Consolidated tests for PRNG and Key Derivation Strategy features.
 """
 
-
 import chex
 import jax
 import jax.numpy as jnp
@@ -137,3 +136,19 @@ def test_jit_does_not_break_reproducibility(make_engine):
     f2, _, _ = engine.run(s2, compile=True)
 
     chex.assert_trees_all_close(f1.population.genes.values, f2.population.genes.values)
+
+
+def test_eval_key_varies_per_generation(make_engine, prng_key):
+    engine = make_engine()
+    s1 = engine.init_state(prng_key)
+
+    k_sel1, k_cross1, k_mut1, k_eval1, k_next1 = engine._allocate_entropy(s1)
+
+    s2, _ = engine.step(s1)
+
+    k_sel2, k_cross2, k_mut2, k_eval2, k_next2 = engine._allocate_entropy(s2)
+
+    # Keys should differ across generations
+    assert not jnp.allclose(k_eval1, k_eval2)
+    assert not jnp.allclose(k_sel1, k_sel2)
+    assert not jnp.allclose(k_next1, k_next2)

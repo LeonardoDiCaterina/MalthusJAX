@@ -81,4 +81,3 @@ def test_gymnax_evaluator_maximize_sign_polarity(evaluator_and_genome_size):
     fit_min = eval_min.evaluate(genome, key)
 
     assert jnp.allclose(fit_max, -fit_min)
-

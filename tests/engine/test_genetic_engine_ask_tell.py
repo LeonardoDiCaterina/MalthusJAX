@@ -107,7 +107,7 @@ def test_ask_entropy_buffer_survives_engine_copy(make_engine, prng_key):
 
     assert engine_with_entropy._entropy_buffer is not None
     same_engine = engine_with_entropy
-    assert len(same_engine._entropy_buffer) == 4
+    assert len(same_engine._entropy_buffer) == 5
 
 
 def test_ask_tell_produces_same_progression_with_same_seed(make_engine):

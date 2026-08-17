@@ -20,7 +20,6 @@ from malthusjax.core.fitness.base import BaseEvaluator, dispatch_evaluate_popula
 from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, validate_key
 
 from ..core.base import BaseGenome, BasePopulation
-from ..core.fitness.base import BaseEvaluator
 from ..operators.base import BaseCrossover, BaseMutation, BaseSelection
 from .base import (
     AbstractEngine,
@@ -602,7 +601,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
         next_genes = self._merge(elites, mutants.genes, state)
 
-        new_pop_unrated = state.population.replace(genes=next_genes)
+        new_pop_unrated = replace(state.population, genes=next_genes)
         new_pop = self._evaluate_phase(new_pop_unrated, k_eval)
 
         # ------------------------------------------------------------------
@@ -779,7 +778,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         print(f"phase 3a merge: next_genes={next_shape}")
         print(f"phase 3a merge preview: first_gene={_preview_leaf(next_genes)}")
 
-        new_pop = self._evaluate_phase(state.population.replace(genes=next_genes), k_eval)
+        # Enforce genome validity via autocorrect before evaluation
+        if hasattr(next_genes, "autocorrect"):
+            next_genes = next_genes.autocorrect(self.genome_config)
+
+        new_pop = self._evaluate_phase(replace(state.population, genes=next_genes), k_eval)
         print(
             f"phase 3b evaluate: population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
         )
@@ -952,7 +955,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     def maximize(self) -> bool:
         return self.evaluator.config.maximize
 
-    def init_state(self, rng_key: Union[int, jnp.ndarray]) -> GeneticEvolutionState[G, P]:
+    def init_state(self, rng_key: Union[int, jnp.ndarray]) -> GeneticEvolutionState:
         """Initialize evolution and compile the inference plan (Init-Phase Compilation).
 
         This method performs the expensive one-time setup that all :meth:`step` calls
@@ -1269,7 +1272,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         if not self._entropy_buffer:
             raise RuntimeError("tell() called before ask().")
 
-        k_sel, k_cross, k_mut, k_next = self._entropy_buffer
+        k_sel, k_cross, k_mut, k_eval, k_next = self._entropy_buffer
 
         state = replace(state, population=population)
         gen_best_fitness = jnp.min(population.fitness)
