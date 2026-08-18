@@ -108,7 +108,7 @@ EXPECTED_FITNESS = {
     "ellipsoidal_rotated",
 }
 EXPECTED_EVOSAX = {"evosax_simplega", "evosax_mr15", "evosax_de"}
-EXPECTED_EMITTER = {"qdax_replica", "qdax_native", "genetic_mixing"}
+EXPECTED_EMITTER = {"qdax_replica", "qdax_native", "genetic_mixing", "tensorneat_emitter", "tensorneat_crossover_emitter", "tensorneat_mutation_emitter"}
 
 ALL_EXPECTED = (
     EXPECTED_SELECTION
@@ -133,7 +133,7 @@ def test_no_unexpected_keys(catalog: OperatorCatalog) -> None:
     (e.g. 'custom' from test_catalog.py::test_register_custom_operator).
     """
     # Keys that may be left behind by other test modules
-    KNOWN_TEST_ARTIFACTS = {"custom", "__runtime_test__", "__test_unique_op__"}
+    KNOWN_TEST_ARTIFACTS = {"custom", "__runtime_test__", "__test_unique_op__", "test_custom_mutation", "test_custom_crossover", "test_custom_fitness", "test_custom_genome", "test_custom_engine", "test_override_op", "test_custom_selection"}
     available = set(catalog.list_available())
     extra = available - ALL_EXPECTED - KNOWN_TEST_ARTIFACTS
     assert not extra, f"Unexpected catalog keys: {sorted(extra)}"

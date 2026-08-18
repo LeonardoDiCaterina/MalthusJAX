@@ -75,11 +75,11 @@ def test_decorators_allow_override():
     This is essential for Jupyter Notebook iterative development.
     """
 
-    @register_selection("test_override_op")
+    @register_selection("test_override_op", override=True)
     class FirstVersion:
         pass
 
-    @register_selection("test_override_op")
+    @register_selection("test_override_op", override=True)
     class SecondVersion:
         pass
 

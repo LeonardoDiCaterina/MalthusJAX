@@ -197,11 +197,15 @@ class TestEvosaxAdapterMatchesRaw:
         adapted = adapter.run_once(key, compile=False)
 
         for gen_idx, (raw_h, adp_h) in enumerate(zip(raw["history"], adapted["history"])):
-            # Adapter negates when maximize=True
+            # Adapter properly un-negates the internally minimized best_fitness when reporting back to the user.
+            # EvoSAX's native raw_h["best_fitness"] is tracked on tell_fitness (which is negated),
+            # so we must negate raw_h["best_fitness"] to match adapted.
             assert jnp.isclose(-raw_h["best_fitness"], adp_h["best_fitness"], atol=1e-6), (
-                f"gen {gen_idx}: -raw={-raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
+                f"gen {gen_idx}: raw={raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
             )
-            assert jnp.isclose(-raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6), (
+            # raw_h["mean_fitness"] was calculated on the original un-negated fitness,
+            # so it should match the un-negated adapted mean directly.
+            assert jnp.isclose(raw_h["mean_fitness"], adp_h["mean_fitness"], atol=1e-6), (
                 f"gen {gen_idx}: mean mismatch"
             )
 
