@@ -114,6 +114,22 @@ class TensorNEATEngineAdapter:
         state = State()
         state = state.register(randkey=key)
         state = algorithm.setup(state)
+
+        # If pop_init is provided, overwrite the randomly generated population
+        if pop_init is not None:
+            # pop_init from tensorneat engine/emitter should be a tuple (nodes, conns)
+            # or from TensorNeatPopulation object
+            if hasattr(pop_init, "genes") and hasattr(pop_init.genes, "values"):
+                nodes, conns = pop_init.genes.values
+            elif hasattr(pop_init, "values"):
+                nodes, conns = pop_init.values
+            elif isinstance(pop_init, tuple) and len(pop_init) == 2:
+                nodes, conns = pop_init
+            else:
+                raise ValueError(f"TensorNEAT initial_population must be a tuple (nodes, conns) or TensorNeatGenome, got {type(pop_init)}")
+
+            state = state.update(pop_nodes=nodes, pop_conns=conns)
+
         return state
 
     def _adapter_step(
@@ -142,16 +158,17 @@ class TensorNEATEngineAdapter:
         # while letting TensorNEAT internally maximize the natively returned (presumably inverted) fitness.
         maximize = getattr(self, "maximize", True)
 
-        reported_fitness = fitness if maximize else -fitness
+        # MalthusJAX UniversalAdapterEngine always assumes internal tracking is minimization.
+        # If maximize=True, UniversalAdapterEngine will multiply the returned metric by -1.0.
+        # Thus, we must negate the fitness here if maximize=True so that -(-fitness) = fitness.
+        reported_fitness = -fitness if maximize else fitness
 
-        # TensorNEAT masks invalid with -inf. If we minimize, we should mask with inf.
+        # TensorNEAT masks invalid with -inf. If we are tracking as minimization, invalid should be inf.
         valid_mask = jnp.isfinite(fitness)
-        safe_reported = jnp.where(valid_mask, reported_fitness, -jnp.inf if maximize else jnp.inf)
+        safe_reported = jnp.where(valid_mask, reported_fitness, jnp.inf)
 
         metrics = {
-            "best_fitness_in_generation": jnp.max(safe_reported)
-            if maximize
-            else jnp.min(safe_reported),
+            "best_fitness_in_generation": jnp.min(safe_reported),
             "mean_fitness": jnp.mean(jnp.where(valid_mask, reported_fitness, jnp.nan)),
             "std_fitness": jnp.std(jnp.where(valid_mask, reported_fitness, jnp.nan)),
         }
@@ -171,6 +188,7 @@ def build_tensorneat_engine(
     eval_mode: EvalMode = EvalMode.NATIVE,
     history_metrics: Optional[Sequence[str]] = None,
     use_python_loop: bool = False,
+    initial_population: Optional[Any] = None,
 ) -> Any:
     """Factory to build a UniversalAdapterEngine for TensorNEAT."""
     if eval_mode == EvalMode.MALTHUSJAX:
@@ -209,4 +227,5 @@ def build_tensorneat_engine(
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
         state_has_randkey=True,  # Signal to base adapter that state contains the key
+        initial_population=initial_population,
     )  # type: ignore[call-arg]

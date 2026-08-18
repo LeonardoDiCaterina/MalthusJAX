@@ -169,6 +169,12 @@ class QDaxEngineAdapter:
         if "max_fitness" in metrics:
             metrics["max_fitness"] = -metrics["max_fitness"]
 
+        # qd_score should always be the sum of positive values in MalthusJAX
+        # If we are minimizing, QDAX stores negative fitnesses, resulting in a negative qd_score.
+        is_maximize = getattr(self, "maximize", params.get("maximize", True) if isinstance(params, dict) else True)
+        if "qd_score" in metrics and not is_maximize:
+            metrics["qd_score"] = -metrics["qd_score"]
+
         # We also manually pack the metrics required
         # Note: the decorator will extract `max_fitness` as `best_fitness`
 

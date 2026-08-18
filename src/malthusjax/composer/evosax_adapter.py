@@ -144,11 +144,11 @@ class EvosaxEngineAdapter:
 
         # 3. Process metrics for objective direction
         maximize = getattr(self, "maximize", False)
-        mean_fit = jnp.mean(fitness)
-        std_fit = jnp.std(fitness)
-        best_fit_obj = jnp.max(fitness) if maximize else jnp.min(fitness)
-
         tell_fitness = -fitness if maximize else fitness
+
+        mean_fit = jnp.mean(tell_fitness)
+        std_fit = jnp.std(tell_fitness)
+        best_fit_obj = jnp.min(tell_fitness)
 
         # 4. Tell
         state, metrics = strategy.tell(key_tell, population, tell_fitness, state, params)

@@ -18,6 +18,7 @@ from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 
 from .base_adapter_suite import BaseAdapterTestSuite
+from .qd_adapter_suite import QDAdapterTestSuiteMixin
 
 
 @struct.dataclass
@@ -40,7 +41,7 @@ class DummyQDEval(BaseQDEvaluator):
         return fitness, desc
 
 
-class TestQDaxAdapter(BaseAdapterTestSuite):
+class TestQDaxAdapter(BaseAdapterTestSuite, QDAdapterTestSuiteMixin):
     def make_adapter(self, maximize: bool = False, eval_mode: str = EvalMode.NATIVE, seed: int = 0):
         # QDax MAPElites setup
         dim = 3

@@ -7,6 +7,9 @@ def _register_emitters() -> None:
         build_genetic_mixing_emitter,
         build_qdax_native_emitter,
         build_qdax_replica_emitter,
+        build_tensorneat_crossover_emitter,
+        build_tensorneat_emitter,
+        build_tensorneat_mutation_emitter,
     )
 
     register_table(
@@ -14,6 +17,9 @@ def _register_emitters() -> None:
             ("qdax_replica", build_qdax_replica_emitter, {}),
             ("qdax_native", build_qdax_native_emitter, {}),
             ("genetic_mixing", build_genetic_mixing_emitter, {}),
+            ("tensorneat_emitter", build_tensorneat_emitter, {}),
+            ("tensorneat_mutation_emitter", build_tensorneat_mutation_emitter, {}),
+            ("tensorneat_crossover_emitter", build_tensorneat_crossover_emitter, {}),
         ]
     )
 

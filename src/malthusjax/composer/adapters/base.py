@@ -232,7 +232,7 @@ class UniversalAdapterEngine:
             for k in track_keys:
                 if k in scan_history:
                     val = scan_history[k][g]
-                    if k in ("best_fitness", "mean_fitness", "std_fitness"):
+                    if k in ("best_fitness", "mean_fitness"):
                         val = val * sign
                     gen_stats[k] = float(val)
                     if k == "best_fitness":
@@ -258,6 +258,10 @@ class UniversalAdapterEngine:
                 if k in scan_history:
                     val = scan_history[k][-1]
                     summary[k] = float(val)
+            elif k == "qd_score":
+                if k in scan_history:
+                    val = scan_history[k][-1]
+                    summary[k] = float(val * sign)
 
         mjx_evaluator = getattr(self, "malthusjax_evaluator", None) or self.evaluator
         if mjx_evaluator is not None and hasattr(mjx_evaluator, "get_gap_to_optimum"):
