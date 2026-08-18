@@ -145,6 +145,19 @@ class BaseGenome:
         """
         raise NotImplementedError
 
+    def copy(self: G) -> G:
+        """
+        Deep-copies all JAX/NumPy arrays within the genome to prevent JAX
+        buffer donation errors during multi-seed or multi-pipeline evaluations.
+        """
+        return cast(
+            G,
+            jax.tree_util.tree_map(
+                lambda x: jnp.array(x, copy=True) if hasattr(x, "shape") else x,
+                self,
+            ),
+        )
+
     @abstractmethod
     def distance(self, other: BaseGenome, metric: str) -> chex.Numeric:
         """
@@ -225,8 +238,21 @@ class BasePopulation(Generic[G]):
 
     genes: G
     fitness: chex.Array
-    config: Any = _field(pytree_node=False)
+    config: Any = _field(pytree_node=False, default=None)
     info: dict[str, Any] = _field(default_factory=dict)
+
+    def copy(self: BasePopulation[G]) -> BasePopulation[G]:
+        """
+        Deep-copies the population and its underlying genomes to prevent JAX
+        buffer donation errors during multi-seed or multi-pipeline evaluations.
+        """
+        return cast(
+            BasePopulation[G],
+            jax.tree_util.tree_map(
+                lambda x: jnp.array(x, copy=True) if hasattr(x, "shape") else x,
+                self,
+            ),
+        )
 
     @classmethod
     def from_array(

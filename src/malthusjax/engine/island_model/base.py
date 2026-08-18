@@ -15,7 +15,7 @@ E = TypeVar("E", bound=AbstractEngine[Any, Any])
 class BaseIslandModel(Generic[E]):
     """A Meta-Engine that distributes a standard MalthusJAX Engine across isolated islands.
 
-    **WIP / ARCHITECTURAL NOTE: Host Synchronization** 
+    **WIP / ARCHITECTURAL NOTE: Host Synchronization**
     This model currently runs the inner evolutionary loop inside `jax.vmap` for `migration_interval`
     generations, but then drops out to the Python host to perform topological migration before
     dispatching the next JAX kernel. Future work should attempt to fully fuse the migration logic

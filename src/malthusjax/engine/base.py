@@ -99,6 +99,16 @@ class AbstractEvolutionState(Generic[G, P]):
     best_fitness: chex.Array
     rng_key: chex.Array
 
+    def copy(self) -> "AbstractEvolutionState[G, P]":
+        """
+        Deep-copies the entire evolution state PyTree (including population, metrics,
+        and random keys) to prevent JAX buffer donation errors when reusing states.
+        """
+        return jax.tree_util.tree_map(
+            lambda x: jnp.array(x, copy=True) if hasattr(x, "shape") else x,
+            self
+        )
+
 
 @struct.dataclass
 class AbstractGenerationOutput:
