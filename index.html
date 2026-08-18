@@ -388,6 +388,7 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l1"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome"><code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BaseGenome.random_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.copy"><code class="docutils literal notranslate"><span class="pre">BaseGenome.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.distance"><code class="docutils literal notranslate"><span class="pre">BaseGenome.distance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BaseGenome.autocorrect()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BaseGenome.size"><code class="docutils literal notranslate"><span class="pre">BaseGenome.size</span></code></a></li>
@@ -402,6 +403,7 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.copy"><code class="docutils literal notranslate"><span class="pre">BasePopulation.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.spawn_offspring"><code class="docutils literal notranslate"><span class="pre">BasePopulation.spawn_offspring()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BasePopulation.autocorrect"><code class="docutils literal notranslate"><span class="pre">BasePopulation.autocorrect()</span></code></a></li>
@@ -522,7 +524,6 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.genes"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.genes</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.fitness</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.config"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.config</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.init_random()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.BinaryPopulation.replace"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.replace()</span></code></a></li>
 </ul>
@@ -553,7 +554,6 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.genes"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.genes</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.fitness</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.config"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.config</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.init_random()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.CategoricalPopulation.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.replace()</span></code></a></li>
 </ul>
@@ -584,7 +584,6 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation"><code class="docutils literal notranslate"><span class="pre">RealPopulation</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.genes"><code class="docutils literal notranslate"><span class="pre">RealPopulation.genes</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">RealPopulation.fitness</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.config"><code class="docutils literal notranslate"><span class="pre">RealPopulation.config</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">RealPopulation.init_random()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.RealPopulation.replace"><code class="docutils literal notranslate"><span class="pre">RealPopulation.replace()</span></code></a></li>
 </ul>
@@ -618,6 +617,7 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.generation"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.generation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_fitness</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.rng_key"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.rng_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.copy"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.AbstractEvolutionState.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.replace()</span></code></a></li>
 </ul>
 </li>
@@ -636,8 +636,8 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.init_state"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.init_state()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.ask"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask_with_key()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.GeneticEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell_with_key()</span></code></a></li>
 </ul>
 </li>

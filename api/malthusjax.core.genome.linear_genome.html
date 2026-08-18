@@ -319,6 +319,10 @@
           <section id="module-malthusjax.core.genome.linear_genome">
 <span id="malthusjax-core-genome-linear-genome-module"></span><h1>malthusjax.core.genome.linear_genome module<a class="headerlink" href="#module-malthusjax.core.genome.linear_genome" title="Link to this heading">¶</a></h1>
 <p>Linear genetic programming genome and population definitions.</p>
+<p>🚧 <strong>WIP / ARCHITECTURAL NOTE</strong> 🚧
+This genome is currently an orphaned experimental feature. There are no
+matching crossover or mutation operators implemented for it in the <cite>operators/</cite>
+module, meaning it cannot currently be used in a standard evolutionary loop.</p>
 <p>Encodes programs as sequences of opcode/argument pairs with DAG validity.
 Includes utilities for random initialization, autocorrection, rendering and
 structural distance metrics, plus the corresponding batched container.</p>
@@ -549,11 +553,6 @@ placeholders.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation.config">
-<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenomeConfig" title="malthusjax.core.genome.linear_genome.LinearGenomeConfig"><span class="pre">LinearGenomeConfig</span></a></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation.config" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.genome.linear_genome.LinearPopulation.GENOME_CLS">
 <span class="sig-name descname"><span class="pre">GENOME_CLS</span></span><a class="headerlink" href="#malthusjax.core.genome.linear_genome.LinearPopulation.GENOME_CLS" title="Link to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearGenome" title="malthusjax.core.genome.linear_genome.LinearGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearGenome</span></code></a></p>
@@ -668,7 +667,6 @@ placeholders.</p>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation"><code class="docutils literal notranslate"><span class="pre">LinearPopulation</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.genes"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.genes</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.fitness</span></code></a></li>
-<li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.config"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.config</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.GENOME_CLS"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.GENOME_CLS</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.init_random()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.genome.linear_genome.LinearPopulation.replace"><code class="docutils literal notranslate"><span class="pre">LinearPopulation.replace()</span></code></a></li>

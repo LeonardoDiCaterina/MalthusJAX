@@ -461,6 +461,18 @@ structure (e.g., <cite>.values</cite>).</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEvolutionState.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies the entire evolution state PyTree (including population, metrics,
+and random keys) to prevent JAX buffer donation errors when reusing states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.engine.base.AbstractEvolutionState.replace">
 <span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.base.AbstractEvolutionState.replace" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a new object replacing the specified fields with new values.</p>
@@ -782,6 +794,7 @@ If optimize=False, shows the raw graph (faster, good for debugging shapes).</p>
 <li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.generation"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.generation</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_fitness</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.rng_key"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.rng_key</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.copy"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.base.AbstractEvolutionState.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.replace()</span></code></a></li>
 </ul>
 </li>

@@ -554,6 +554,18 @@ structure (e.g., <cite>.values</cite>).</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.AbstractEvolutionState.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEvolutionState.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.AbstractEvolutionState.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies the entire evolution state PyTree (including population, metrics,
+and random keys) to prevent JAX buffer donation errors when reusing states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEvolutionState.replace">
 <span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.AbstractEvolutionState.replace" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a new object replacing the specified fields with new values.</p>
@@ -679,6 +691,12 @@ stacks all KPI instances into (num_generations,) shaped arrays per field.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">BaseIslandModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_islands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">migration_interval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_migrants</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/island_model/base.html#BaseIslandModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.BaseIslandModel" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">E</span></code>]</p>
 <p>A Meta-Engine that distributes a standard MalthusJAX Engine across isolated islands.</p>
+<p><strong>WIP / ARCHITECTURAL NOTE: Host Synchronization</strong>
+This model currently runs the inner evolutionary loop inside <cite>jax.vmap</cite> for <cite>migration_interval</cite>
+generations, but then drops out to the Python host to perform topological migration before
+dispatching the next JAX kernel. Future work should attempt to fully fuse the migration logic
+inside an outer <cite>jax.lax.scan</cite> to achieve a 100% compiled end-to-end evolutionary kernel
+without host synchronization bottlenecks.</p>
 <p>This wrapper seamlessly upgrades any 1D <cite>BaseEngine</cite> into a 2D Island Model by
 wrapping the engine’s init and step methods in <cite>jax.vmap</cite> across the <cite>num_islands</cite> axis,
 and then applying a customizable topological migration policy.</p>
@@ -1168,10 +1186,10 @@ and sharding layout. Subsequent <a class="reference internal" href="#malthusjax.
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>rng_key</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>jnp.ndarray</em><em>]</em>)</p>
+<dd class="field-odd"><p><strong>rng_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>Array</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState">GeneticEvolutionState</a>[G, P]</p>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1270,12 +1288,6 @@ overriding <code class="docutils literal notranslate"><span class="pre">state.rn
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.replace">
-<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.replace" title="Link to this definition">¶</a></dt>
-<dd><p>Returns a new object replacing the specified fields with new values.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.tell">
 <span class="sig-name descname"><span class="pre">tell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/genetic_fastengine.html#GeneticEngine.tell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.GeneticEngine.tell" title="Link to this definition">¶</a></dt>
 <dd><p>Complete one generation using evaluated population (Ask/Tell interface).</p>
@@ -1354,6 +1366,12 @@ reuses cached compiled kernels.</p>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1715,6 +1733,7 @@ size. It remains here for backwards compatibility and now always returns
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState.generation"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.generation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_fitness</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState.rng_key"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.rng_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState.copy"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.replace()</span></code></a></li>
 </ul>
 </li>
@@ -1792,8 +1811,8 @@ size. It remains here for backwards compatibility and now always returns
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.init_state"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.init_state()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.ask"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask_with_key()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell_with_key()</span></code></a></li>
 </ul>
 </li>
@@ -1946,6 +1965,7 @@ size. It remains here for backwards compatibility and now always returns
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEvolutionState.generation"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.generation</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEvolutionState.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_fitness</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEvolutionState.rng_key"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.rng_key</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.AbstractEvolutionState.copy"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.AbstractEvolutionState.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.replace()</span></code></a></li>
 </ul>
 </li>
@@ -2003,8 +2023,8 @@ size. It remains here for backwards compatibility and now always returns
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.init_state"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.init_state()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.ask"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask_with_key()</span></code></a></li>
-<li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.engine.GeneticEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell_with_key()</span></code></a></li>
 </ul>
 </li>

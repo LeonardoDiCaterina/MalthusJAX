@@ -322,7 +322,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
@@ -442,12 +442,25 @@
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
                     <span class="s2">"Passing ndarray init_pop to TensorNeatEmitter is not supported yet."</span>
                 <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_pop</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">init_pop</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># Wrap the TensorNEAT tuple (nodes, conns) in a TensorNeatPopulation</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.tensorneat_genome</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+                <span class="n">TensorNeatGenome</span><span class="p">,</span>
+                <span class="n">TensorNeatPopulation</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">genes</span> <span class="o">=</span> <span class="n">TensorNeatGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">init_pop</span><span class="p">)</span>
+            <span class="n">init_pop</span> <span class="o">=</span> <span class="n">TensorNeatPopulation</span><span class="p">(</span>
+                <span class="n">genes</span><span class="o">=</span><span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span><span class="p">),</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span>
+            <span class="p">)</span>
 
         <span class="c1"># Copy centroids to prevent "Buffer has been deleted or donated" error across seeds</span>
         <span class="n">centroids_copy</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">k_run</span><span class="p">,</span> <span class="n">init_pop</span><span class="p">,</span> <span class="n">centroids_copy</span><span class="p">)</span>
+
+        <span class="c1"># We copy the population natively using the newly added `.copy()` to safely prevent JAX donation bugs across seeds</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">k_run</span><span class="p">,</span> <span class="n">init_pop</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">centroids_copy</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">is_qdax_replica</span><span class="p">:</span>
             <span class="c1"># Force the exact QDAX key into the state for generation 1</span>
@@ -461,11 +474,15 @@
         <span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">track_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"qd_score"</span><span class="p">,</span> <span class="s2">"coverage"</span><span class="p">]</span>
 
+        <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="mf">1.0</span>
+
         <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_gens</span><span class="p">):</span>
             <span class="n">gen_stats</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"generation"</span><span class="p">:</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">track_keys</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
                     <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">)[</span><span class="n">g</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="s2">"std_fitness"</span><span class="p">):</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">*</span> <span class="n">sign</span>
                     <span class="n">gen_stats</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
             <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gen_stats</span><span class="p">)</span>
 
@@ -480,7 +497,7 @@
             <span class="n">coverage</span> <span class="o">=</span> <span class="n">scan_history</span><span class="o">.</span><span class="n">coverage</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">),</span>
+            <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span> <span class="o">*</span> <span class="n">sign</span><span class="p">),</span>
             <span class="s2">"qd_score"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">qd_score</span><span class="p">)</span> <span class="k">if</span> <span class="n">qd_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
             <span class="s2">"coverage"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">coverage</span><span class="p">)</span> <span class="k">if</span> <span class="n">coverage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
             <span class="s2">"final_generation"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span><span class="p">),</span>
@@ -918,7 +935,7 @@
                     <span class="p">)</span>
                 <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">"malthusjax"</span> <span class="ow">and</span> <span class="n">engine_type</span> <span class="o">==</span> <span class="s2">"map_elites"</span><span class="p">:</span>
                     <span class="n">strategy</span> <span class="o">=</span> <span class="n">MapElitesStrategy</span><span class="p">(</span>
-                        <span class="n">emitter</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"map_elites_emitter"</span><span class="p">,</span> <span class="s2">"mixing"</span><span class="p">),</span>
+                        <span class="n">emitter</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"map_elites_emitter"</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"emitter"</span><span class="p">,</span> <span class="s2">"mixing"</span><span class="p">)),</span>
                         <span class="n">num_descriptors</span><span class="o">=</span><span class="n">qdax_num_descriptors</span><span class="p">,</span>
                         <span class="n">num_centroids</span><span class="o">=</span><span class="n">qdax_num_centroids</span><span class="p">,</span>
                     <span class="p">)</span>
@@ -1021,7 +1038,9 @@
         <span class="k">return</span> <span class="n">experiment</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_postprocess_experiment_final_from_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_postprocess_experiment_final_from_history</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Ensure per-run summary best_fitness is consistent with history.</span>
 
 <span class="sd">        When engines disable internal best-tracking (for speed), the</span>
@@ -1101,6 +1120,29 @@
         <span class="n">genome_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_genome_length</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="n">bounds</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bounds"</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
         <span class="n">fitness_spec</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"fitness"</span><span class="p">)</span>
+
+        <span class="c1"># Check if this pipeline uses TensorNEAT topology evolution</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"backend"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"tensorneat"</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"genome_type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"tensorneat"</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.algorithm</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.genome</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">tensorneat.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">State</span>
+
+            <span class="c1"># For parity, we just need a shared structure.</span>
+            <span class="c1"># We'll assume default genome and minimal sizes if not provided.</span>
+            <span class="n">num_inputs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_inputs"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">num_outputs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_outputs"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">genome</span> <span class="o">=</span> <span class="n">tensorneat</span><span class="o">.</span><span class="n">genome</span><span class="o">.</span><span class="n">DefaultGenome</span><span class="p">(</span><span class="n">num_inputs</span><span class="o">=</span><span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="n">num_outputs</span><span class="p">)</span>
+            <span class="n">algorithm</span> <span class="o">=</span> <span class="n">tensorneat</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">NEAT</span><span class="p">(</span><span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">)</span>
+
+            <span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">randkey</span><span class="o">=</span><span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">pop_seed</span><span class="p">))</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+            <span class="c1"># Extract the raw matrices to be shared as initial_population</span>
+            <span class="n">pop_nodes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="s2">"pop_nodes"</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">state_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_nodes"</span><span class="p">))</span>
+            <span class="n">pop_conns</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="s2">"pop_conns"</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">state_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_conns"</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">pop_nodes</span><span class="p">,</span> <span class="n">pop_conns</span><span class="p">)</span>
+
 
         <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"bbob"</span> <span class="ow">in</span> <span class="n">fitness_spec</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
             <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
@@ -1295,11 +1337,12 @@
                 <span class="n">pipeline_init_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_initial_population</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
                 <span class="n">p_genome_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_genome_length</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">p_genome_length</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">"Shared initial population dimension mismatch: "</span>
-                        <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">p_genome_length</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-                    <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">p_genome_length</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">"Shared initial population dimension mismatch: "</span>
+                            <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">p_genome_length</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                        <span class="p">)</span>
                 <span class="n">merged</span><span class="p">[</span><span class="s2">"initial_population"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
                 <span class="n">last_init_pop</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
 
@@ -1902,7 +1945,12 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown TensorNEAT genome: </span><span class="si">{</span><span class="n">strategy</span><span class="o">.</span><span class="n">genome_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">genome</span> <span class="o">=</span> <span class="n">genome_cls</span><span class="p">(</span><span class="n">num_inputs</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">num_outputs</span><span class="p">)</span>
-        <span class="n">algorithm</span> <span class="o">=</span> <span class="n">algorithm_cls</span><span class="p">(</span><span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">,</span> <span class="o">**</span><span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_kwargs</span><span class="p">)</span>
+
+        <span class="c1"># initial_population may have leaked into algorithm_kwargs via kwargs</span>
+        <span class="n">alg_kwargs</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">init_pop</span> <span class="o">=</span> <span class="n">alg_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+
+        <span class="n">algorithm</span> <span class="o">=</span> <span class="n">algorithm_cls</span><span class="p">(</span><span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">,</span> <span class="o">**</span><span class="n">alg_kwargs</span><span class="p">)</span>
 
         <span class="n">problem</span><span class="p">,</span> <span class="n">problem_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_tensorneat_problem</span><span class="p">(</span>
             <span class="n">strategy</span><span class="o">.</span><span class="n">problem_name</span><span class="p">,</span> <span class="n">fitness_spec</span>
@@ -1915,6 +1963,7 @@
             <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
             <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
             <span class="n">history_metrics</span><span class="o">=</span><span class="n">history_metrics</span><span class="p">,</span>
+            <span class="n">initial_population</span><span class="o">=</span><span class="n">init_pop</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_tensorneat_problem</span><span class="p">(</span>
@@ -1956,20 +2005,110 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.qd.map_elites</span><span class="w"> </span><span class="kn">import</span> <span class="n">MapElitesEngine</span><span class="p">,</span> <span class="n">MapElitesEngineParams</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.emitters.tensorneat_emitter</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorNeatEmitter</span>
 
-        <span class="n">evaluator</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">emitter</span><span class="p">,</span> <span class="n">TensorNeatEmitter</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">evaluator</span> <span class="o">=</span> <span class="n">fitness_spec</span>
+        <span class="c1"># 1. Instantiate Emitter first</span>
+        <span class="n">emitter_obj</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">emitter</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">emitter_obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">genome_length</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"genome_length"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">emitter_obj</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"mixing"</span><span class="p">:</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"mutation_sigma"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+                <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"qdax_replica:mutation=gaussian:sigma=</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">,crossover=none,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluatorConfig</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.tensorneat</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorNeatQDEvaluator</span>
+                <span class="k">if</span> <span class="s2">":"</span> <span class="ow">in</span> <span class="n">emitter_obj</span><span class="p">:</span>
+                    <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emitter_obj</span><span class="si">}</span><span class="s2">,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emitter_obj</span><span class="si">}</span><span class="s2">:batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
 
-                <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"objective_function"</span><span class="p">)</span>
-                <span class="n">evaluator</span> <span class="o">=</span> <span class="n">TensorNeatQDEvaluator</span><span class="p">(</span>
-                    <span class="n">objective_function</span><span class="o">=</span><span class="n">objective_fn</span><span class="p">,</span>  <span class="c1"># type: ignore[arg-type]</span>
-                    <span class="n">config</span><span class="o">=</span><span class="n">BaseEvaluatorConfig</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">),</span>
-                    <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
+            <span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
+            <span class="n">emitter_obj</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">emitter_spec</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">emitter_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"MapElitesStrategy requires an explicit emitter."</span><span class="p">)</span>
+
+        <span class="c1"># 2. Resolve Evaluator</span>
+        <span class="n">evaluator</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">emitter_obj</span><span class="p">,</span> <span class="n">TensorNeatEmitter</span><span class="p">):</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluatorConfig</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.tensorneat</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorNeatQDEvaluator</span>
+
+            <span class="n">problem_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_problem"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># Extract objective_function if passed directly</span>
+            <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"objective_function"</span><span class="p">)</span>
+
+            <span class="c1"># If not passed directly, try to resolve from fitness_spec</span>
+            <span class="k">if</span> <span class="n">objective_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Resolve using tensorneat problem registry</span>
+                <span class="n">problem</span><span class="p">,</span> <span class="n">problem_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_tensorneat_problem</span><span class="p">(</span>
+                    <span class="n">problem_name</span><span class="p">,</span> <span class="n">fitness_spec</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
                 <span class="p">)</span>
+
+                <span class="c1"># Create genome to get forward function</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.genome</span>
+                <span class="n">target_genome</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_genome"</span><span class="p">,</span> <span class="s2">"default"</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="n">genome_cls</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+                <span class="k">for</span> <span class="n">cls_name</span><span class="p">,</span> <span class="n">cls_obj</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">tensorneat</span><span class="o">.</span><span class="n">genome</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">):</span>
+                    <span class="n">name_lower</span> <span class="o">=</span> <span class="n">cls_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">name_lower</span> <span class="o">==</span> <span class="n">target_genome</span> <span class="ow">or</span> <span class="n">name_lower</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">target_genome</span><span class="si">}</span><span class="s2">genome"</span><span class="p">:</span>
+                        <span class="n">genome_cls</span> <span class="o">=</span> <span class="n">cls_obj</span>
+                        <span class="k">break</span>
+
+                <span class="k">if</span> <span class="n">genome_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">genome_cls</span> <span class="o">=</span> <span class="n">tensorneat</span><span class="o">.</span><span class="n">genome</span><span class="o">.</span><span class="n">DefaultGenome</span>
+
+                <span class="n">genome_obj</span> <span class="o">=</span> <span class="n">genome_cls</span><span class="p">(</span>
+                    <span class="n">num_inputs</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_num_inputs"</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="n">num_outputs</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_num_outputs"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Assign genome to emitter</span>
+                <span class="n">emitter_obj</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="n">emitter_obj</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genome</span><span class="o">=</span><span class="n">genome_obj</span><span class="p">)</span>
+
+                <span class="c1"># Create a wrapper objective function that calls problem.evaluate</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">obj_fn</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">conns</span><span class="p">):</span>
+                    <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+                    <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">tensorneat.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">State</span>
+
+                    <span class="c1"># Ensure nodes and conns have batch dimension</span>
+                    <span class="k">if</span> <span class="n">nodes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># Single network</span>
+                        <span class="n">nodes</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                        <span class="n">conns</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">conns</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+                    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">nodes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">randkey</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                    <span class="n">state</span> <span class="o">=</span> <span class="n">genome_obj</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+                    <span class="c1"># 1. Transform population</span>
+                    <span class="c1"># genome_obj.transform takes (state, nodes, conns)</span>
+                    <span class="c1"># We map over nodes and conns</span>
+                    <span class="n">transformed_pop</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">genome_obj</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span>
+                        <span class="n">state</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">conns</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># 2. Evaluate population</span>
+                    <span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">)</span>
+                    <span class="n">fitness</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span>
+                        <span class="n">state</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">genome_obj</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span> <span class="n">transformed_pop</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># FIX: TensorNEAT problems natively return inverted fitness (-loss) for</span>
+                    <span class="c1"># its internal maximization loop. However, MalthusJAX engines expect the</span>
+                    <span class="c1"># raw objective value (e.g., positive loss) if `maximize=False`.</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">maximize</span><span class="p">:</span>
+                        <span class="n">fitness</span> <span class="o">=</span> <span class="o">-</span><span class="n">fitness</span>
+
+                    <span class="c1"># TensorNEAT problems don't return descriptors, so we use dummy ones for QD</span>
+                    <span class="n">descriptors</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"qdax_num_descriptors"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+                    <span class="k">return</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">descriptors</span>
+
+                <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">obj_fn</span>
+
+            <span class="n">evaluator</span> <span class="o">=</span> <span class="n">TensorNeatQDEvaluator</span><span class="p">(</span>
+                <span class="n">objective_function</span><span class="o">=</span><span class="n">objective_fn</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">=</span><span class="n">BaseEvaluatorConfig</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">),</span>
+                <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># We use the BaseQDEvaluator composition to match standard evaluation</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
@@ -2024,27 +2163,6 @@
                 <span class="n">config</span><span class="o">=</span><span class="n">BaseEvaluatorConfig</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
             <span class="p">)</span>
 
-        <span class="n">emitter</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">emitter</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">emitter</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">bounds</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bounds"</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
-            <span class="n">genome_length</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"genome_length"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">emitter</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"mixing"</span><span class="p">:</span>
-                <span class="n">sigma</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"mutation_sigma"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
-                <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"qdax_replica:mutation=gaussian:sigma=</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">,crossover=none,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">":"</span> <span class="ow">in</span> <span class="n">emitter</span><span class="p">:</span>
-                    <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emitter</span><span class="si">}</span><span class="s2">,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emitter</span><span class="si">}</span><span class="s2">:batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
-
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
-
-            <span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-            <span class="n">emitter</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">emitter_spec</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">emitter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"MapElitesStrategy requires an explicit emitter."</span><span class="p">)</span>
-
         <span class="n">centroids</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">centroids</span>
         <span class="k">if</span> <span class="n">centroids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">centroids</span> <span class="o">=</span> <span class="n">compute_cvt_centroids</span><span class="p">(</span>
@@ -2057,9 +2175,11 @@
             <span class="p">)</span>
 
         <span class="n">engine</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">MapElitesEngine</span><span class="p">(</span>
-            <span class="n">emitter</span><span class="o">=</span><span class="n">emitter</span><span class="p">,</span>
+            <span class="n">emitter</span><span class="o">=</span><span class="n">emitter_obj</span><span class="p">,</span>
             <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluator</span><span class="p">,</span>
-            <span class="n">engine_params</span><span class="o">=</span><span class="n">MapElitesEngineParams</span><span class="p">(</span><span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">num_generations</span><span class="o">=</span><span class="n">generations</span><span class="p">),</span>
+            <span class="n">engine_params</span><span class="o">=</span><span class="n">MapElitesEngineParams</span><span class="p">(</span>
+                <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">num_generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span>
+            <span class="p">),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">MapElitesEngineAdapter</span><span class="p">(</span>
             <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span>

@@ -386,6 +386,21 @@ concrete <cite>BaseGenome</cite> subclass instance ready for evaluation.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BaseGenome.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies all JAX/NumPy arrays within the genome to prevent JAX
+buffer donation errors during multi-seed or multi-pipeline evaluations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self</strong> (<em>G</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>G</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.core.base.BaseGenome.distance">
 <span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BaseGenome.distance" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the phenotypic or genotypic distance to another genome.</p>
@@ -484,7 +499,7 @@ population size.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.base.</span></span><span class="sig-name descname"><span class="pre">BasePopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BasePopulation" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.base.</span></span><span class="sig-name descname"><span class="pre">BasePopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BasePopulation" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>]</p>
 <p>A unified container for a collection of candidate solutions.</p>
 <p>This class implements the Struct-of-Arrays (SoA) pattern. The ‘genes’
@@ -525,13 +540,28 @@ purely on PyTree manipulations.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.config">
-<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.config" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.config" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.info">
 <span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.base.BasePopulation.info" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.base.BasePopulation.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies the population and its underlying genomes to prevent JAX
+buffer donation errors during multi-seed or multi-pipeline evaluations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self</strong> (<a class="reference internal" href="#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.core.base.BasePopulation.from_array">
@@ -682,6 +712,7 @@ and remain fully JIT-compatible. Metric is forwarded to each genome’s
 </li>
 <li><a class="reference internal" href="#malthusjax.core.base.BaseGenome"><code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BaseGenome.random_init()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.copy"><code class="docutils literal notranslate"><span class="pre">BaseGenome.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.distance"><code class="docutils literal notranslate"><span class="pre">BaseGenome.distance()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BaseGenome.autocorrect()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.base.BaseGenome.size"><code class="docutils literal notranslate"><span class="pre">BaseGenome.size</span></code></a></li>
@@ -696,6 +727,7 @@ and remain fully JIT-compatible. Metric is forwarded to each genome’s
 <li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.copy"><code class="docutils literal notranslate"><span class="pre">BasePopulation.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.spawn_offspring"><code class="docutils literal notranslate"><span class="pre">BasePopulation.spawn_offspring()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.base.BasePopulation.autocorrect"><code class="docutils literal notranslate"><span class="pre">BasePopulation.autocorrect()</span></code></a></li>

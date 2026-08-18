@@ -359,6 +359,21 @@ concrete <cite>BaseGenome</cite> subclass instance ready for evaluation.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.BaseGenome.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BaseGenome.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies all JAX/NumPy arrays within the genome to prevent JAX
+buffer donation errors during multi-seed or multi-pipeline evaluations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self</strong> (<em>G</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>G</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.BaseGenome.distance">
 <span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BaseGenome.distance" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the phenotypic or genotypic distance to another genome.</p>
@@ -457,7 +472,7 @@ population size.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.BasePopulation">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.</span></span><span class="sig-name descname"><span class="pre">BasePopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BasePopulation" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.</span></span><span class="sig-name descname"><span class="pre">BasePopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BasePopulation" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>]</p>
 <p>A unified container for a collection of candidate solutions.</p>
 <p>This class implements the Struct-of-Arrays (SoA) pattern. The ‘genes’
@@ -498,13 +513,28 @@ purely on PyTree manipulations.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.BasePopulation.config">
-<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.BasePopulation.config" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.BasePopulation.config" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.BasePopulation.info">
 <span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.BasePopulation.info" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.BasePopulation.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BasePopulation.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies the population and its underlying genomes to prevent JAX
+buffer donation errors during multi-seed or multi-pipeline evaluations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.BasePopulation.from_array">
@@ -1539,11 +1569,6 @@ initialization helpers and IDE completion.</p>
 <span class="sig-name descname"><span class="pre">fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.BinaryPopulation.fitness" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="malthusjax.BinaryPopulation.config">
-<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.core.genome.binary_genome.html#malthusjax.core.genome.binary_genome.BinaryGenomeConfig" title="malthusjax.core.genome.binary_genome.BinaryGenomeConfig"><span class="pre">BinaryGenomeConfig</span></a></span><a class="headerlink" href="#malthusjax.BinaryPopulation.config" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.BinaryPopulation.init_random">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">init_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/binary_genome.html#BinaryPopulation.init_random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BinaryPopulation.init_random" title="Link to this definition">¶</a></dt>
@@ -1820,11 +1845,6 @@ JAX scalar boolean (JIT-safe; avoids Python control flow).</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.CategoricalPopulation.fitness">
 <span class="sig-name descname"><span class="pre">fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.CategoricalPopulation.fitness" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="malthusjax.CategoricalPopulation.config">
-<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.core.genome.categorical_genome.html#malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig" title="malthusjax.core.genome.categorical_genome.CategoricalGenomeConfig"><span class="pre">CategoricalGenomeConfig</span></a></span><a class="headerlink" href="#malthusjax.CategoricalPopulation.config" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -2158,11 +2178,6 @@ initialization helpers and IDE completion.</p>
 <span class="sig-name descname"><span class="pre">fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.RealPopulation.fitness" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="malthusjax.RealPopulation.config">
-<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.core.genome.real_genome.html#malthusjax.core.genome.real_genome.RealGenomeConfig" title="malthusjax.core.genome.real_genome.RealGenomeConfig"><span class="pre">RealGenomeConfig</span></a></span><a class="headerlink" href="#malthusjax.RealPopulation.config" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.RealPopulation.init_random">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">init_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealPopulation.init_random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.RealPopulation.init_random" title="Link to this definition">¶</a></dt>
@@ -2477,6 +2492,18 @@ structure (e.g., <cite>.values</cite>).</p>
 <dt class="sig sig-object py" id="malthusjax.AbstractEvolutionState.rng_key">
 <span class="sig-name descname"><span class="pre">rng_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a></span><a class="headerlink" href="#malthusjax.AbstractEvolutionState.rng_key" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.AbstractEvolutionState.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEvolutionState.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.AbstractEvolutionState.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies the entire evolution state PyTree (including population, metrics,
+and random keys) to prevent JAX buffer donation errors when reusing states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.AbstractEvolutionState.replace">
@@ -2814,10 +2841,10 @@ and sharding layout. Subsequent <a class="reference internal" href="#malthusjax.
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>rng_key</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>jnp.ndarray</em><em>]</em>)</p>
+<dd class="field-odd"><p><strong>rng_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>Array</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState">GeneticEvolutionState</a>[G, P]</p>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -2916,12 +2943,6 @@ overriding <code class="docutils literal notranslate"><span class="pre">state.rn
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="malthusjax.GeneticEngine.replace">
-<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.GeneticEngine.replace" title="Link to this definition">¶</a></dt>
-<dd><p>Returns a new object replacing the specified fields with new values.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.GeneticEngine.tell">
 <span class="sig-name descname"><span class="pre">tell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/genetic_fastengine.html#GeneticEngine.tell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.GeneticEngine.tell" title="Link to this definition">¶</a></dt>
 <dd><p>Complete one generation using evaluated population (Ask/Tell interface).</p>
@@ -3000,6 +3021,12 @@ reuses cached compiled kernels.</p>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.GeneticEngine.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.GeneticEngine.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3495,6 +3522,7 @@ depend on it.</p>
 <li class="toctree-l1"><a class="reference internal" href="malthusjax.core.html">malthusjax.core package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome"><code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BaseGenome.random_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.copy"><code class="docutils literal notranslate"><span class="pre">BaseGenome.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.distance"><code class="docutils literal notranslate"><span class="pre">BaseGenome.distance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BaseGenome.autocorrect()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.size"><code class="docutils literal notranslate"><span class="pre">BaseGenome.size</span></code></a></li>
@@ -3509,6 +3537,7 @@ depend on it.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.copy"><code class="docutils literal notranslate"><span class="pre">BasePopulation.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.spawn_offspring"><code class="docutils literal notranslate"><span class="pre">BasePopulation.spawn_offspring()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.autocorrect"><code class="docutils literal notranslate"><span class="pre">BasePopulation.autocorrect()</span></code></a></li>
@@ -3608,6 +3637,7 @@ depend on it.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.AbstractEvolutionState.generation"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.generation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.AbstractEvolutionState.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_fitness</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.AbstractEvolutionState.rng_key"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.rng_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.AbstractEvolutionState.copy"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.AbstractEvolutionState.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.replace()</span></code></a></li>
 </ul>
 </li>
@@ -3665,8 +3695,8 @@ depend on it.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.GeneticEngine.init_state"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.init_state()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.GeneticEngine.ask"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.GeneticEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask_with_key()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.engine.html#malthusjax.engine.GeneticEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell_with_key()</span></code></a></li>
 </ul>
 </li>
@@ -3854,6 +3884,8 @@ depend on it.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.html#malthusjax.operators.SwapMutation.replace"><code class="docutils literal notranslate"><span class="pre">SwapMutation.replace()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.operators.html#malthusjax.operators.CategoricalScrambleMutation"><code class="docutils literal notranslate"><span class="pre">CategoricalScrambleMutation</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.operators.html#malthusjax.operators.CategoricalSwapMutation"><code class="docutils literal notranslate"><span class="pre">CategoricalSwapMutation</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.operators.html#malthusjax.operators.GaussianMutation"><code class="docutils literal notranslate"><span class="pre">GaussianMutation</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.html#malthusjax.operators.GaussianMutation.mutation_rate"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.mutation_rate</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.operators.html#malthusjax.operators.GaussianMutation.mutation_strength"><code class="docutils literal notranslate"><span class="pre">GaussianMutation.mutation_strength</span></code></a></li>
@@ -3925,6 +3957,8 @@ depend on it.</p>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.BitFlipMutation"><code class="docutils literal notranslate"><span class="pre">BitFlipMutation</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.ScrambleMutation"><code class="docutils literal notranslate"><span class="pre">ScrambleMutation</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.SwapMutation"><code class="docutils literal notranslate"><span class="pre">SwapMutation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.CategoricalScrambleMutation"><code class="docutils literal notranslate"><span class="pre">CategoricalScrambleMutation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.CategoricalSwapMutation"><code class="docutils literal notranslate"><span class="pre">CategoricalSwapMutation</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.GaussianMutation"><code class="docutils literal notranslate"><span class="pre">GaussianMutation</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.GaussianMutation_injection"><code class="docutils literal notranslate"><span class="pre">GaussianMutation_injection</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.operators.mutation.html#malthusjax.operators.mutation.BallMutation"><code class="docutils literal notranslate"><span class="pre">BallMutation</span></code></a></li>
@@ -4031,6 +4065,7 @@ depend on it.</p>
 <li><a class="reference internal" href="#">malthusjax package</a><ul>
 <li><a class="reference internal" href="#malthusjax.BaseGenome"><code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.BaseGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BaseGenome.random_init()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.BaseGenome.copy"><code class="docutils literal notranslate"><span class="pre">BaseGenome.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BaseGenome.distance"><code class="docutils literal notranslate"><span class="pre">BaseGenome.distance()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BaseGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BaseGenome.autocorrect()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BaseGenome.size"><code class="docutils literal notranslate"><span class="pre">BaseGenome.size</span></code></a></li>
@@ -4045,6 +4080,7 @@ depend on it.</p>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.BasePopulation.copy"><code class="docutils literal notranslate"><span class="pre">BasePopulation.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.spawn_offspring"><code class="docutils literal notranslate"><span class="pre">BasePopulation.spawn_offspring()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.autocorrect"><code class="docutils literal notranslate"><span class="pre">BasePopulation.autocorrect()</span></code></a></li>
@@ -4165,7 +4201,6 @@ depend on it.</p>
 <li><a class="reference internal" href="#malthusjax.BinaryPopulation"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.BinaryPopulation.genes"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.genes</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BinaryPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.fitness</span></code></a></li>
-<li><a class="reference internal" href="#malthusjax.BinaryPopulation.config"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.config</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BinaryPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.init_random()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BinaryPopulation.replace"><code class="docutils literal notranslate"><span class="pre">BinaryPopulation.replace()</span></code></a></li>
 </ul>
@@ -4196,7 +4231,6 @@ depend on it.</p>
 <li><a class="reference internal" href="#malthusjax.CategoricalPopulation"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.CategoricalPopulation.genes"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.genes</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.CategoricalPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.fitness</span></code></a></li>
-<li><a class="reference internal" href="#malthusjax.CategoricalPopulation.config"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.config</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.CategoricalPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.init_random()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.CategoricalPopulation.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalPopulation.replace()</span></code></a></li>
 </ul>
@@ -4227,7 +4261,6 @@ depend on it.</p>
 <li><a class="reference internal" href="#malthusjax.RealPopulation"><code class="docutils literal notranslate"><span class="pre">RealPopulation</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.RealPopulation.genes"><code class="docutils literal notranslate"><span class="pre">RealPopulation.genes</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.RealPopulation.fitness"><code class="docutils literal notranslate"><span class="pre">RealPopulation.fitness</span></code></a></li>
-<li><a class="reference internal" href="#malthusjax.RealPopulation.config"><code class="docutils literal notranslate"><span class="pre">RealPopulation.config</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.RealPopulation.init_random"><code class="docutils literal notranslate"><span class="pre">RealPopulation.init_random()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.RealPopulation.replace"><code class="docutils literal notranslate"><span class="pre">RealPopulation.replace()</span></code></a></li>
 </ul>
@@ -4261,6 +4294,7 @@ depend on it.</p>
 <li><a class="reference internal" href="#malthusjax.AbstractEvolutionState.generation"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.generation</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.AbstractEvolutionState.best_fitness"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.best_fitness</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.AbstractEvolutionState.rng_key"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.rng_key</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.AbstractEvolutionState.copy"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.AbstractEvolutionState.replace"><code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState.replace()</span></code></a></li>
 </ul>
 </li>
@@ -4279,8 +4313,8 @@ depend on it.</p>
 <li><a class="reference internal" href="#malthusjax.GeneticEngine.init_state"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.init_state()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.GeneticEngine.ask"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.GeneticEngine.ask_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.ask_with_key()</span></code></a></li>
-<li><a class="reference internal" href="#malthusjax.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.GeneticEngine.tell"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.GeneticEngine.replace"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.replace()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.GeneticEngine.tell_with_key"><code class="docutils literal notranslate"><span class="pre">GeneticEngine.tell_with_key()</span></code></a></li>
 </ul>
 </li>

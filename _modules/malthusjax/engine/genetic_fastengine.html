@@ -332,7 +332,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">PRNGImpl</span><span class="p">,</span> <span class="n">create_key</span><span class="p">,</span> <span class="n">is_new_style_key</span><span class="p">,</span> <span class="n">validate_key</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGenome</span><span class="p">,</span> <span class="n">BasePopulation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..operators.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCrossover</span><span class="p">,</span> <span class="n">BaseMutation</span><span class="p">,</span> <span class="n">BaseSelection</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AbstractEngine</span><span class="p">,</span>
@@ -939,7 +938,7 @@
         <span class="p">)</span>
         <span class="n">next_genes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge</span><span class="p">(</span><span class="n">elites</span><span class="p">,</span> <span class="n">mutants</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 
-        <span class="n">new_pop_unrated</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">next_genes</span><span class="p">)</span>
+        <span class="n">new_pop_unrated</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="p">,</span> <span class="n">genes</span><span class="o">=</span><span class="n">next_genes</span><span class="p">)</span>
         <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_phase</span><span class="p">(</span><span class="n">new_pop_unrated</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">)</span>
 
         <span class="c1"># ------------------------------------------------------------------</span>
@@ -1119,7 +1118,11 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"phase 3a merge: next_genes=</span><span class="si">{</span><span class="n">next_shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"phase 3a merge preview: first_gene=</span><span class="si">{</span><span class="n">_preview_leaf</span><span class="p">(</span><span class="n">next_genes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_phase</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">next_genes</span><span class="p">),</span> <span class="n">k_eval</span><span class="p">)</span>
+        <span class="c1"># Enforce genome validity via autocorrect before evaluation</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">next_genes</span><span class="p">,</span> <span class="s2">"autocorrect"</span><span class="p">):</span>
+            <span class="n">next_genes</span> <span class="o">=</span> <span class="n">next_genes</span><span class="o">.</span><span class="n">autocorrect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genome_config</span><span class="p">)</span>
+
+        <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_phase</span><span class="p">(</span><span class="n">replace</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="p">,</span> <span class="n">genes</span><span class="o">=</span><span class="n">next_genes</span><span class="p">),</span> <span class="n">k_eval</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"phase 3b evaluate: population=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">new_pop</span><span class="p">)</span><span class="si">}</span><span class="s2">, best_fitness=</span><span class="si">{</span><span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">new_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
@@ -1298,7 +1301,7 @@
 
 <div class="viewcode-block" id="GeneticEngine.init_state">
 <a class="viewcode-back" href="../../../api/malthusjax.engine.genetic_fastengine.html#malthusjax.GeneticEngine.init_state">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">GeneticEvolutionState</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">GeneticEvolutionState</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Initialize evolution and compile the inference plan (Init-Phase Compilation).</span>
 
 <span class="sd">        This method performs the expensive one-time setup that all :meth:`step` calls</span>
@@ -1624,7 +1627,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_buffer</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"tell() called before ask()."</span><span class="p">)</span>
 
-        <span class="n">k_sel</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_buffer</span>
+        <span class="n">k_sel</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">,</span> <span class="n">k_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_buffer</span>
 
         <span class="n">state</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">population</span><span class="o">=</span><span class="n">population</span><span class="p">)</span>
         <span class="n">gen_best_fitness</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">population</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>

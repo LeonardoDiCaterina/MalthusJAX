@@ -329,6 +329,13 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseIslandModel</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">E</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">"""A Meta-Engine that distributes a standard MalthusJAX Engine across isolated islands.</span>
 
+<span class="sd">    **WIP / ARCHITECTURAL NOTE: Host Synchronization**</span>
+<span class="sd">    This model currently runs the inner evolutionary loop inside `jax.vmap` for `migration_interval`</span>
+<span class="sd">    generations, but then drops out to the Python host to perform topological migration before</span>
+<span class="sd">    dispatching the next JAX kernel. Future work should attempt to fully fuse the migration logic</span>
+<span class="sd">    inside an outer `jax.lax.scan` to achieve a 100% compiled end-to-end evolutionary kernel</span>
+<span class="sd">    without host synchronization bottlenecks.</span>
+
 <span class="sd">    This wrapper seamlessly upgrades any 1D `BaseEngine` into a 2D Island Model by</span>
 <span class="sd">    wrapping the engine's init and step methods in `jax.vmap` across the `num_islands` axis,</span>
 <span class="sd">    and then applying a customizable topological migration policy.</span>

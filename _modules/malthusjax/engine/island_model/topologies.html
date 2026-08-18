@@ -341,7 +341,7 @@
         <span class="n">sort_fitness</span> <span class="o">=</span> <span class="o">-</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span>
         <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sort_fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="c1"># elite_indices will correspond to the lowest values in sort_fitness, </span>
+        <span class="c1"># elite_indices will correspond to the lowest values in sort_fitness,</span>
         <span class="c1"># which are the best individuals for both minimize and maximize.</span>
         <span class="n">elite_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span><span class="p">]</span>
         <span class="n">worst_indices</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="p">:]</span>
