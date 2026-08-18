@@ -1,0 +1,34 @@
+[suite]
+name = "h1_parity_evosax"
+mode = "lhs"
+output_dir = "results/publication/h1_parity_evosax"
+num_seeds = 100
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["sphere", "rosenbrock", "rastrigin", "lunacek", "schwefel", "gallagher_21_hi"]
+dims_min = 10
+dims_max = 500
+pops_min = 64
+pops_max = 4096
+gens_min = 50
+gens_max = 500
+num_samples = 40
+
+[analysis]
+reference_pipeline = "evosax_baseline"
+
+[pipelines.evosax_baseline]
+backend = "evosax"
+evosax_strategy = "SimpleGA"
+
+[pipelines.evosax_baseline.strategy_params]
+crossover_rate = 0.3
+elite_ratio = 0.16666666
+
+[pipelines.malthusjax_mimic]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0

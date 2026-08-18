@@ -1,0 +1,32 @@
+[suite]
+name = "h1_parity_qdax"
+mode = "lhs"
+output_dir = "results/publication/h1_parity_qdax"
+num_seeds = 100
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["rastrigin", "rosenbrock", "sphere"]
+dims_min = 10
+dims_max = 100
+pops_min = 128
+pops_max = 2048
+gens_min = 50
+gens_max = 500
+num_samples = 40
+
+[analysis]
+reference_pipeline = "qdax_baseline"
+
+[pipelines.qdax_baseline]
+backend = "qdax"
+qdax_strategy = "MAPElites"
+grid_shape = [50, 50]
+bd_extractors = ["identity", "identity"]
+
+[pipelines.malthusjax_mimic]
+backend = "malthusjax"
+engine_type = "map_elites"
+map_elites_emitter = "mixing"
+grid_shape = [50, 50]
+bd_extractors = ["identity", "identity"]

@@ -1,0 +1,43 @@
+[suite]
+name = "h3_precision"
+mode = "lhs"
+output_dir = "results/publication/h3_precision"
+num_seeds = 100
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["lunacek", "schwefel", "gallagher_21_hi"]
+dims_min = 10
+dims_max = 100
+pops_min = 64
+pops_max = 1024
+gens_min = 50
+gens_max = 200
+num_samples = 20
+
+[analysis]
+reference_pipeline = "mjx_f32"
+
+[pipelines.mjx_f32]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+dtype = "float32"
+
+[pipelines.mjx_bf16]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+dtype = "bfloat16"
+
+[pipelines.mjx_f16]
+backend = "malthusjax"
+selection = "evosax_mimic_selection:num_selections={pop_size}"
+crossover = "evosax_uniform_crossover:crossover_rate=0.3"
+mutation = "evosax_gaussian:mutation_strength=1.0"
+elitism = 0
+dtype = "float16"

@@ -1,0 +1,29 @@
+[suite]
+name = "h1_parity_tensorneat_smoke"
+mode = "lhs"
+output_dir = "results/publication/smoke_tensorneat"
+num_seeds = 1
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["sphere"]
+dims_min = 2
+dims_max = 2
+pops_min = 10
+pops_max = 10
+gens_min = 10
+gens_max = 10
+num_samples = 1
+
+[analysis]
+reference_pipeline = "tensorneat_baseline"
+
+[pipelines.tensorneat_baseline]
+backend = "tensorneat"
+genome_type = "tensorneat"
+
+[pipelines.malthusjax_mimic]
+backend = "malthusjax"
+engine_type = "map_elites"
+emitter = "tensorneat_emitter"
+genome_type = "tensorneat"
