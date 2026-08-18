@@ -6,7 +6,7 @@ num_seeds = 1
 aggregation_level = "summary_only"
 
 [grid]
-functions = ["sphere"]
+functions = ["xor"]
 dims_min = 2
 dims_max = 2
 pops_min = 10
@@ -21,9 +21,13 @@ reference_pipeline = "tensorneat_baseline"
 [pipelines.tensorneat_baseline]
 backend = "tensorneat"
 genome_type = "tensorneat"
+tensorneat_problem = "xor"
+fitness = "xor"
 
 [pipelines.malthusjax_mimic]
 backend = "malthusjax"
 engine_type = "map_elites"
 emitter = "tensorneat_emitter"
 genome_type = "tensorneat"
+tensorneat_problem = "xor"
+fitness = "xor"
