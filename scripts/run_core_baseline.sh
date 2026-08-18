@@ -28,9 +28,9 @@ echo ""
 
   # 1. Pytest + Coverage
   echo "1. Running pytest with coverage..."
-  echo "Command: pytest --maxfail=1 --disable-warnings -q --cov=src/malthusjax --cov-report=term-missing tests/"
+  echo "Command: pytest --maxfail=1 --disable-warnings -q --cov=src/malthusjax/core --cov-report=term-missing tests/core/"
   echo ""
-  pytest --maxfail=1 --disable-warnings -q --cov=src/malthusjax --cov-report=term-missing tests/ || true
+  pytest --maxfail=1 --disable-warnings -q --cov=src/malthusjax/core --cov-report=term-missing tests/core/ || true
   echo ""
   echo "✓ Pytest coverage report complete"
   echo ""
