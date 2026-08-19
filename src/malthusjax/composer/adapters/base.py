@@ -68,6 +68,7 @@ class UniversalAdapterEngine:
         history_metrics: Optional[Sequence[str]] = None,
         state_has_randkey: bool = False,
         use_python_loop: bool = False,
+        backend_maximizes: bool = False,
     ) -> None:
         self.framework_obj = framework_obj
         self.framework_params = framework_params
@@ -85,6 +86,7 @@ class UniversalAdapterEngine:
         self.history_metrics = history_metrics
         self.state_has_randkey = state_has_randkey
         self.use_python_loop = use_python_loop
+        self.backend_maximizes = backend_maximizes
 
         self._jit_run_loop = None
 
@@ -92,6 +94,10 @@ class UniversalAdapterEngine:
         """Build and cache the JIT-compiled evolution loop."""
         if self._jit_run_loop is not None:
             return self._jit_run_loop
+
+        def wrapped_eval_translator(evaluator: Any, pop: Any, state: Any, key: Any) -> Any:
+            raw_fitness = self.eval_translator(evaluator, pop, state, key)
+            return -raw_fitness if self.backend_maximizes else raw_fitness
 
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
@@ -105,7 +111,7 @@ class UniversalAdapterEngine:
                     key_step,
                     self.framework_params,
                     self.evaluator,
-                    self.eval_translator,
+                    wrapped_eval_translator,
                 )
             else:
                 state, metrics = self.step_fn(
@@ -114,16 +120,21 @@ class UniversalAdapterEngine:
                     key_step,
                     self.framework_params,
                     self.evaluator,
-                    self.eval_translator,
+                    wrapped_eval_translator,
                 )
 
             # Process metrics
             normalized_metrics = {}
             for k, v in self.metrics_mapping.items():
                 if callable(v):
-                    normalized_metrics[k] = v(metrics)
+                    val = v(metrics)
                 else:
-                    normalized_metrics[k] = metrics.get(v, jnp.nan)
+                    val = metrics.get(v, jnp.nan)
+                    
+                if self.backend_maximizes and k in ("best_fitness", "mean_fitness", "max_fitness", "fitness_auc", "qd_score"):
+                    val = -val
+                    
+                normalized_metrics[k] = val
 
             return (rng, state), normalized_metrics
 
@@ -140,6 +151,10 @@ class UniversalAdapterEngine:
     def _build_python_loop(self) -> Any:
         """Build a python loop for non-jittable frameworks."""
 
+        def wrapped_eval_translator(evaluator: Any, pop: Any, state: Any, key: Any) -> Any:
+            raw_fitness = self.eval_translator(evaluator, pop, state, key)
+            return -raw_fitness if self.backend_maximizes else raw_fitness
+
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
             rng, key_step = jax.random.split(rng)
@@ -151,16 +166,21 @@ class UniversalAdapterEngine:
                 key_step,
                 self.framework_params,
                 self.evaluator,
-                self.eval_translator,
+                wrapped_eval_translator,
             )
 
             # Process metrics
             normalized_metrics = {}
             for k, v in self.metrics_mapping.items():
                 if callable(v):
-                    normalized_metrics[k] = v(metrics)
+                    val = v(metrics)
                 else:
-                    normalized_metrics[k] = metrics.get(v, jnp.nan)
+                    val = metrics.get(v, jnp.nan)
+                    
+                if self.backend_maximizes and k in ("best_fitness", "mean_fitness", "max_fitness", "fitness_auc", "qd_score"):
+                    val = -val
+                    
+                normalized_metrics[k] = val
 
             return (rng, state), normalized_metrics
 

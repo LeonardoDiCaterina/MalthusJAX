@@ -57,7 +57,7 @@ def _qdax_native_eval(evaluator, pop, state, key):
 
 
 def _qdax_malthusjax_eval(
-    evaluator: Any, genome_config: Any, maximize: bool = True
+    evaluator: Any, genome_config: Any
 ) -> Callable[..., Any]:
     """Creates a QDax-compatible scoring function from a MalthusJAX evaluator.
 
@@ -86,8 +86,9 @@ def _qdax_malthusjax_eval(
         # extra_scores can be empty dict
         extra_scores: dict[str, Any] = {}
 
-        # Flip fitness if we are minimizing, since QDAX always maximizes
-        fit = updated_pop.fitness if maximize else -updated_pop.fitness
+        # QDAX always maximizes. MalthusJAX always minimizes.
+        # We negate the MalthusJAX fitness so QDAX can maximize it.
+        fit = -updated_pop.fitness
 
         return fit, descriptors, extra_scores
 
@@ -163,18 +164,6 @@ class QDaxEngineAdapter:
 
         repertoire, emitter_state, metrics = strategy.update(repertoire, emitter_state, subkey)
 
-        # Reverse the fitness sign in metrics so UniversalAdapterEngine logs the correct value
-        # UniversalAdapterEngine multiplies by -1.0 if maximize=True, and 1.0 if maximize=False
-        # QDAX maximizes, so `max_fitness` is `true_fitness` if maximize=True, and `-true_fitness` if maximize=False
-        if "max_fitness" in metrics:
-            metrics["max_fitness"] = -metrics["max_fitness"]
-
-        # qd_score should always be the sum of positive values in MalthusJAX
-        # If we are minimizing, QDAX stores negative fitnesses, resulting in a negative qd_score.
-        is_maximize = getattr(self, "maximize", params.get("maximize", True) if isinstance(params, dict) else True)
-        if "qd_score" in metrics and not is_maximize:
-            metrics["qd_score"] = -metrics["qd_score"]
-
         # We also manually pack the metrics required
         # Note: the decorator will extract `max_fitness` as `best_fitness`
 
@@ -217,7 +206,7 @@ def build_qdax_engine(
             genome_config = RealGenomeConfig(shape=shape)
 
         # Build the scoring function wrapper
-        scoring_fn = _qdax_malthusjax_eval(evaluator, genome_config, maximize)
+        scoring_fn = _qdax_malthusjax_eval(evaluator, genome_config)
         problem_eval = evaluator
     else:
         # Native QDAX tasks like Brax/Jumanji come with their own scoring_function natively
@@ -256,4 +245,5 @@ def build_qdax_engine(
         evaluator=problem_eval,
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
+        backend_maximizes=True,
     )  # type: ignore[call-arg]

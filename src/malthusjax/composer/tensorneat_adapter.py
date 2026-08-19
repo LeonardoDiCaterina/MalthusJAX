@@ -153,28 +153,19 @@ class TensorNEATEngineAdapter:
         # 3. Evaluate
         fitness = eval_translator(evaluator, state, transformed_pop, algorithm, key)
 
-        # TensorNEAT natively maximizes. If the user passed maximize=False to the adapter,
-        # it implies they want the reported metrics to reflect a minimization objective,
-        # while letting TensorNEAT internally maximize the natively returned (presumably inverted) fitness.
-        maximize = getattr(self, "maximize", True)
-
-        # MalthusJAX UniversalAdapterEngine always assumes internal tracking is minimization.
-        # If maximize=True, UniversalAdapterEngine will multiply the returned metric by -1.0.
-        # Thus, we must negate the fitness here if maximize=True so that -(-fitness) = fitness.
-        reported_fitness = -fitness if maximize else fitness
-
-        # TensorNEAT masks invalid with -inf. If we are tracking as minimization, invalid should be inf.
+        # TensorNEAT maximizes natively. Because `UniversalAdapterEngine` wraps the
+        # eval_translator with backend_maximizes=True, `fitness` is ALREADY MAXIMIZED here.
         valid_mask = jnp.isfinite(fitness)
-        safe_reported = jnp.where(valid_mask, reported_fitness, jnp.inf)
+        safe_fitness = jnp.where(valid_mask, fitness, -jnp.inf)
 
         metrics = {
-            "best_fitness_in_generation": jnp.min(safe_reported),
-            "mean_fitness": jnp.mean(jnp.where(valid_mask, reported_fitness, jnp.nan)),
-            "std_fitness": jnp.std(jnp.where(valid_mask, reported_fitness, jnp.nan)),
+            "best_fitness_in_generation": jnp.max(safe_fitness),
+            "mean_fitness": jnp.mean(jnp.where(valid_mask, fitness, jnp.nan)),
+            "std_fitness": jnp.std(jnp.where(valid_mask, fitness, jnp.nan)),
         }
 
         # 4. Tell
-        state = algorithm.tell(state, fitness)
+        state = algorithm.tell(state, safe_fitness)
 
         return state, metrics
 
@@ -228,4 +219,5 @@ def build_tensorneat_engine(
         use_python_loop=use_python_loop,
         state_has_randkey=True,  # Signal to base adapter that state contains the key
         initial_population=initial_population,
+        backend_maximizes=True,
     )  # type: ignore[call-arg]
