@@ -35,10 +35,7 @@ jobs:
         run: |
           python -m sphinx -b html docs/source docs/_build/html
 
-      - name: Run Tests
-        run: |
-          # Run only fast unit test suites to generate coverage quickly (avoids multi-hour benchmarks)
-          python -m pytest tests/core tests/engine tests/operators tests/composer tests/stats --cov=src/malthusjax --cov-report=html:docs/_build/html/coverage || true
+
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
