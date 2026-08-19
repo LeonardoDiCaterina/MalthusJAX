@@ -231,27 +231,10 @@ def build_qdax_engine(
         scoring_function=scoring_fn, emitter=emitter, metrics_function=metrics_function
     )
 
-    # Bounds extraction
-    resolved_bounds = kwargs.get("bounds")
-    if resolved_bounds is None:
-        if (
-            evaluator is not None
-            and hasattr(evaluator, "config")
-            and hasattr(evaluator.config, "genome_config")
-            and hasattr(evaluator.config.genome_config, "bounds")
-        ):
-            resolved_bounds = evaluator.config.genome_config.bounds
-        else:
-            import warnings
+    from malthusjax.composer.adapters.utils import resolve_bounds
 
-            warnings.warn(
-                "No bounds were explicitly provided to `build_qdax_engine`, and the evaluator "
-                "did not provide a `genome_config` with bounds. Falling back to the default "
-                "bounds of (-5.0, 5.0) for qdax initialization. "
-                "To change this, either pass `bounds=(min, max)` to `build_qdax_engine`, "
-                "or specify bounds in your TOML config under the genome section."
-            )
-            resolved_bounds = (-5.0, 5.0)
+    # Bounds extraction
+    resolved_bounds = resolve_bounds(kwargs.get("bounds"), evaluator, caller_name="build_qdax_engine")
 
     params = {
         "init_variables": init_variables,
