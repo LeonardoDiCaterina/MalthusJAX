@@ -1589,7 +1589,7 @@ class Composer:
 
         from .tensorneat_adapter import build_tensorneat_engine
 
-        algorithm_cls = None
+        algorithm_cls: Any = None
         for name, obj in inspect.getmembers(tensorneat.algorithm, inspect.isclass):
             if name.lower() == strategy.algorithm_name.lower():
                 algorithm_cls = obj
@@ -1601,7 +1601,7 @@ class Composer:
         # 2. Resolve genome
         import tensorneat.genome
 
-        genome_cls = None
+        genome_cls: Any = None
 
         # In TensorNEAT, genome classes often end with "Genome" (e.g. DefaultGenome, RecurrentGenome)
         # So if user passes "default", we check for "default" or "defaultgenome"
@@ -1647,7 +1647,7 @@ class Composer:
         name = problem_name or (fitness_spec if isinstance(fitness_spec, str) else "xor")
         base_name = name.split(":")[0].lower()
 
-        problem_cls = None
+        problem_cls: Any = None
         for cls_name, cls_obj in inspect.getmembers(tensorneat.problem, inspect.isclass):
             if cls_name.lower() == base_name:
                 problem_cls = cls_obj
@@ -1716,7 +1716,7 @@ class Composer:
                 # Create genome to get forward function
                 import tensorneat.genome
                 target_genome = kwargs.get("tensorneat_genome", "default").lower()
-                genome_cls = None
+                genome_cls: Any = None
                 import inspect
                 for cls_name, cls_obj in inspect.getmembers(tensorneat.genome, inspect.isclass):
                     name_lower = cls_name.lower()

@@ -1,6 +1,6 @@
 import jax.numpy as jnp
-from jax import random
 import pytest
+from jax import random
 
 try:
     from malthusjax.core.fitness.bbobax_evaluator import BBOBAXConfig, BBOBAXEvaluator

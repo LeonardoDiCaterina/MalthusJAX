@@ -130,10 +130,10 @@ class UniversalAdapterEngine:
                     val = v(metrics)
                 else:
                     val = metrics.get(v, jnp.nan)
-                    
+
                 if self.backend_maximizes and k in ("best_fitness", "mean_fitness", "max_fitness", "fitness_auc", "qd_score"):
                     val = -val
-                    
+
                 normalized_metrics[k] = val
 
             return (rng, state), normalized_metrics
@@ -176,10 +176,10 @@ class UniversalAdapterEngine:
                     val = v(metrics)
                 else:
                     val = metrics.get(v, jnp.nan)
-                    
+
                 if self.backend_maximizes and k in ("best_fitness", "mean_fitness", "max_fitness", "fitness_auc", "qd_score"):
                     val = -val
-                    
+
                 normalized_metrics[k] = val
 
             return (rng, state), normalized_metrics

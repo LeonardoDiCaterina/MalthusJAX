@@ -48,10 +48,10 @@ class BBOBAXEvaluator(BaseEvaluator[RealGenome, BBOBAXConfig, Any]):
 
         if config.fn_name not in BBOB_PROBLEMS:
             raise ValueError(f"Unknown function '{config.fn_name}'. Available: {list(BBOB_PROBLEMS.keys())}")
-        
+
         # Initialize the specific BBOB problem
         task = BBOB_PROBLEMS[config.fn_name](num_dims=max_dims)
-        
+
         rng = jr.PRNGKey(config.seed)
         params = task.sample(rng)
 
