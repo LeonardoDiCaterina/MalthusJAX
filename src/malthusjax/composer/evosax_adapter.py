@@ -246,26 +246,10 @@ def build_evosax_engine(
             raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
         eval_mode = EvalMode.MALTHUSJAX
 
-    # Bounds extraction
-    resolved_bounds = bounds
-    if resolved_bounds is None:
-        if (
-            hasattr(evaluator, "config")
-            and hasattr(evaluator.config, "genome_config")
-            and hasattr(evaluator.config.genome_config, "bounds")
-        ):
-            resolved_bounds = evaluator.config.genome_config.bounds
-        else:
-            import warnings
+    from malthusjax.composer.adapters.utils import resolve_bounds
 
-            warnings.warn(
-                "No bounds were explicitly provided to `build_evosax_engine`, and the evaluator "
-                "did not provide a `genome_config` with bounds. Falling back to the default "
-                "bounds of (-5.0, 5.0) for evosax initialization. "
-                "To change this, either pass `bounds=(min, max)` to `build_evosax_engine`, "
-                "or specify bounds in your TOML config under the genome section."
-            )
-            resolved_bounds = (-5.0, 5.0)
+    # Bounds extraction
+    resolved_bounds = resolve_bounds(bounds, evaluator, caller_name="build_evosax_engine")
 
     init_solution = jr.uniform(
         rng, (num_dims,), minval=resolved_bounds[0], maxval=resolved_bounds[1]
