@@ -12,19 +12,11 @@ with the :class:`~malthusjax.benchmarking.runner.Engine` protocol.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Tuple
+from ._shared_registry import make_catalog_registry
 
-_ENGINE_REGISTRY: Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]] = {}
+register, register_table, get_registry, list_available, _ENGINE_REGISTRY = make_catalog_registry("Engine")
 
-
-def register(
-    name: str,
-    factory: Callable[..., Any],
-    defaults: Dict[str, Any] | None = None,
-    *,
-    override: bool = False,
-) -> None:
-    """Register a single engine under *name*.
+register.__doc__ = """Register a single engine under *name*.
 
     Parameters
     ----------
@@ -40,26 +32,5 @@ def register(
         If ``False`` (default) and *name* is already registered, raise
         ``KeyError``.
     """
-    if not override and name in _ENGINE_REGISTRY:
-        raise KeyError(f"Engine '{name}' is already registered")
-    _ENGINE_REGISTRY[name] = (factory, defaults or {})
 
-
-def register_table(
-    entries: list[Tuple[str, Callable[..., Any], Dict[str, Any]]],
-    *,
-    override: bool = False,
-) -> None:
-    """Bulk-register a list of ``(name, factory, defaults)`` tuples."""
-    for name, factory, defaults in entries:
-        register(name, factory, defaults, override=override)
-
-
-def get_registry() -> Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]]:
-    """Return a **copy** of the current registry."""
-    return dict(_ENGINE_REGISTRY)
-
-
-def list_available() -> List[str]:
-    """Return sorted list of registered engine names."""
-    return sorted(_ENGINE_REGISTRY.keys())
+register_table.__doc__ = """Bulk-register a list of ``(name, factory, defaults)`` tuples."""

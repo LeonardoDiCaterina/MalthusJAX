@@ -14,19 +14,12 @@ still works with sensible values.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Tuple
+from ._shared_registry import make_catalog_registry
 
-_OPERATOR_REGISTRY: Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]] = {}
+register, register_table, get_registry, list_available, _OPERATOR_REGISTRY = make_catalog_registry("Operator")
 
-
-def register(
-    name: str,
-    factory: Callable[..., Any],
-    defaults: Dict[str, Any] | None = None,
-    *,
-    override: bool = False,
-) -> None:
-    """Register a single operator under *name*.
+# Keep the original docstrings for the exported functions
+register.__doc__ = """Register a single operator under *name*.
 
     Parameters
     ----------
@@ -40,21 +33,5 @@ def register(
         If ``False`` (default) and *name* is already registered, raise
         ``KeyError``.
     """
-    if not override and name in _OPERATOR_REGISTRY:
-        raise KeyError(f"Operator '{name}' is already registered")
-    _OPERATOR_REGISTRY[name] = (factory, defaults or {})
 
-
-def register_table(
-    entries: list[Tuple[str, Callable[..., Any], Dict[str, Any]]],
-    *,
-    override: bool = False,
-) -> None:
-    """Bulk-register a list of ``(name, factory, defaults)`` tuples."""
-    for name, factory, defaults in entries:
-        register(name, factory, defaults, override=override)
-
-
-def get_registry() -> Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]]:
-    """Return a **copy** of the current registry."""
-    return dict(_OPERATOR_REGISTRY)
+register_table.__doc__ = """Bulk-register a list of ``(name, factory, defaults)`` tuples."""
