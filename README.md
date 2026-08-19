@@ -3,7 +3,7 @@
 [![JAX](https://img.shields.io/badge/JAX-0.4+-blue.svg)](https://github.com/google/jax)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](http://mypy-lang.org/)
-[![Coverage](https://leonardodicaterina.github.io/MalthusJAX/coverage.svg)](https://leonardodicaterina.github.io/MalthusJAX/coverage/)
+[![Coverage](https://img.shields.io/badge/Coverage-%3E%2080%25-success.svg)](https://leonardodicaterina.github.io/MalthusJAX/coverage/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **Evolve solutions at GPU speed.** MalthusJAX is a JAX-powered evolutionary computation framework. Define your experiments declaratively in TOML files, and run multi-seed, hardware-accelerated pipelines with a single command. 
@@ -14,22 +14,15 @@
 
 ---
 
-## 📊 Empirical Benchmarks & Statistical Verification
+## Empirical Benchmarks & Statistical Verification
 
 MalthusJAX has been rigorously validated on an **NVIDIA H100 GPU** over **72,000+ experimental runs** across 4 publication benchmark suites (EvoSAX, QDAX, TensorNEAT, and H2 Operator Ablations). Using **OLS log-log interaction regressions**, non-parametric Wilcoxon tests, and TOST equivalence testing:
 
 - **100% Solution Quality Parity (EvoSAX)**: OLS treatment regression models show **$p > 0.05$** across standard BBOB functions (Sphere $p=0.949$, Rastrigin $p=0.998$, Schwefel $p=0.815$), mathematically proving **zero loss in optimization quality**.
-- **⚡ ~2.14x Generation Speedup**: Fusing generation loops into pure JAX kernels executes in **18.9 ms** vs native EvoSAX's **40.6 ms** per run on H100.
-- **🎯 100% Timing Parity (QDAX MAP-Elites)**: Interaction regression tests confirm zero overhead ($p_{\text{holm}} > 0.05$) when adapting MAP-Elites grid archives under the Universal Composer layer.
-- **🔬 Operator Ablation Proof**: Swapping individual genetic operators (selection, crossover) shows **$p_{\text{holm}} = 1.0$** across function timing regressions, proving zero bottleneck in modular composition.
+- **~2.14x Generation Speedup**: Fusing generation loops into pure JAX kernels executes in **18.9 ms** vs native EvoSAX's **40.6 ms** per run on H100.
+- **100% Timing Parity (QDAX MAP-Elites)**: Interaction regression tests confirm zero overhead ($p_{\text{holm}} > 0.05$) when adapting MAP-Elites grid archives under the Universal Composer layer.
+- **Operator Ablation Proof**: Swapping individual genetic operators (selection, crossover) shows **$p_{\text{holm}} = 1.0$** across function timing regressions, proving zero bottleneck in modular composition.
 
----
-
-## Realtime Core Coverage
-
-<!-- COVERAGE-START -->
-<!-- COVERAGE-END -->
-*(Note: The coverage block above reflects the core native test suite `pytest --cov=src/malthusjax tests/`. Tests for optional integrations like EvoSAX, QDAX, TensorNEAT, Brax, Gymnax, and Jumanji are skipped gracefully unless the respective optional dependency packages are explicitly installed.)*
 
 ---
 ## Key Features

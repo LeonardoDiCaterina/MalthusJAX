@@ -1,7 +1,12 @@
 import jax.numpy as jnp
 from jax import random
+import pytest
 
-from malthusjax.core.fitness.bbobax_evaluator import BBOBAXConfig, BBOBAXEvaluator
+try:
+    from malthusjax.core.fitness.bbobax_evaluator import BBOBAXConfig, BBOBAXEvaluator
+except ImportError:
+    pytest.skip("bbobax missing or incompatible, skipping bbobax tests.", allow_module_level=True)
+
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 
 
