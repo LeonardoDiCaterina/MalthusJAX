@@ -7,34 +7,10 @@ accumulated entries via ``get_registry()``.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Tuple
+from ._shared_registry import make_catalog_registry
 
-_GENOME_REGISTRY: Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]] = {}
+register, register_table, get_registry, list_available, _GENOME_REGISTRY = make_catalog_registry("Genome")
 
+register.__doc__ = """Register a single genome under *name*."""
 
-def register(
-    name: str,
-    factory: Callable[..., Any],
-    defaults: Dict[str, Any] | None = None,
-    *,
-    override: bool = False,
-) -> None:
-    """Register a single genome under *name*."""
-    if not override and name in _GENOME_REGISTRY:
-        raise KeyError(f"Genome '{name}' is already registered")
-    _GENOME_REGISTRY[name] = (factory, defaults or {})
-
-
-def register_table(
-    entries: list[Tuple[str, Callable[..., Any], Dict[str, Any]]],
-    *,
-    override: bool = False,
-) -> None:
-    """Bulk-register a list of ``(name, factory, defaults)`` tuples."""
-    for name, factory, defaults in entries:
-        register(name, factory, defaults, override=override)
-
-
-def get_registry() -> Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]]:
-    """Return a **copy** of the current registry."""
-    return dict(_GENOME_REGISTRY)
+register_table.__doc__ = """Bulk-register a list of ``(name, factory, defaults)`` tuples."""
