@@ -25,26 +25,36 @@
 # while accurately reflecting the algorithmic differences between NEAT and MAP-Elites.
 # ==============================================================================
 
-[experiment.shared]
-# XOR is used as the standard benchmark for NEAT algorithms.
-tensorneat_problem = "xor"
-tensorneat_num_inputs = 2
-tensorneat_num_outputs = 1
-# 30 seeds to guarantee statistical significance in the parity analysis.
-seeds = 30
-pop_size = 100
-generations = 100
-# XOR fitness is defined natively as -loss. We want to maximize this metric.
-maximize = true
+[suite]
+name = "h1_parity_tensorneat"
+mode = "lhs"
+output_dir = "results/publication/h1_parity_tensorneat"
+num_seeds = 30
+aggregation_level = "summary_only"
+
+[grid]
+functions = ["xor"]
+dims_min = 2
+dims_max = 2
+pops_min = 100
+pops_max = 100
+gens_min = 100
+gens_max = 100
+num_samples = 1
+
+[analysis]
+reference_pipeline = "tensorneat_baseline"
 
 [pipelines.tensorneat_baseline]
-# Native TensorNEAT algorithm using its built-in NEAT engine and speciation.
 backend = "tensorneat"
+genome_type = "tensorneat"
+tensorneat_problem = "xor"
+fitness = "xor"
 
 [pipelines.malthusjax_mimic]
-# MalthusJAX mimicking the structure using MAP-Elites but drawing topological 
-# operators from TensorNEAT.
 backend = "malthusjax"
 engine_type = "map_elites"
 emitter = "tensorneat_emitter"
 genome_type = "tensorneat"
+tensorneat_problem = "xor"
+fitness = "xor"
