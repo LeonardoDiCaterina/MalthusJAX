@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="malthusjax package" href="api/malthusjax.html"><link rel="prev" title="Experiment Orchestration via Composer" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis - MalthusJAX documentation</title>
+        <title>Benchmarking Framework: Multi-Seed Execution and Results Schema - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -203,7 +203,7 @@
 <li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Benchmarking Framework: Multi-Seed Execution and Results Schema</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -320,185 +320,202 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="benchmarking-framework-multi-seed-experiments-and-comparative-analysis">
-<h1>Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis<a class="headerlink" href="#benchmarking-framework-multi-seed-experiments-and-comparative-analysis" title="Link to this heading">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">malthusjax.benchmarking</span></code> module implements infrastructure for multi-seed experiment orchestration, result aggregation, and comparative analysis. The module decouples experiment execution from result interpretation, enabling fair cross-framework comparisons and systematic performance characterization. Multi-seed execution is essential for stochastic algorithms: a single run provides no statistical information about algorithm robustness or convergence reliability.</p>
+          <section id="benchmarking-framework-multi-seed-execution-and-results-schema">
+<h1>Benchmarking Framework: Multi-Seed Execution and Results Schema<a class="headerlink" href="#benchmarking-framework-multi-seed-execution-and-results-schema" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">malthusjax.benchmarking</span></code> package provides multi-seed experiment execution, result aggregation, disk serialization, and a command-line interface (<code class="docutils literal notranslate"><span class="pre">mjax</span></code> / <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">malthusjax.benchmarking</span></code>).</p>
 <hr class="docutils" />
-<section id="the-engine-protocol-and-benchmarking-contract">
-<h2>6.1. The Engine Protocol and Benchmarking Contract<a class="headerlink" href="#the-engine-protocol-and-benchmarking-contract" title="Link to this heading">¶</a></h2>
-<section id="protocol-definition-and-universal-interface">
-<h3>6.1.1. Protocol Definition and Universal Interface<a class="headerlink" href="#protocol-definition-and-universal-interface" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">Engine</span></code> protocol establishes a contract that any evolutionary algorithm must satisfy to participate in benchmarking campaigns. The protocol defines a single required method:</p>
+<section id="the-engine-protocol-benchmarkrunner">
+<h2>6.1. The Engine Protocol &amp; BenchmarkRunner<a class="headerlink" href="#the-engine-protocol-benchmarkrunner" title="Link to this heading">¶</a></h2>
+<section id="the-engine-protocol">
+<h3>6.1.1. The <code class="docutils literal notranslate"><span class="pre">Engine</span></code> Protocol<a class="headerlink" href="#the-engine-protocol" title="Link to this heading">¶</a></h3>
+<p>Any evolutionary algorithm participating in <code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code> execution must satisfy the <code class="docutils literal notranslate"><span class="pre">Engine</span></code> protocol (<code class="docutils literal notranslate"><span class="pre">runner.py</span></code>), implementing a single required method:</p>
 <p>$$\text{run_once}(\text{key} : \text{chex.Array}) \to \text{Dict}[\text{str}, \text{Any}]$$</p>
-<p>The returned dictionary <em>D</em> must contain exactly three fields:</p>
+<p>The returned dictionary contains:</p>
 <ul class="simple">
-<li><p><em>D</em><code class="docutils literal notranslate"><span class="pre">[&quot;history&quot;]</span></code>: An ordered list of per-generation summaries. Previously restricted to scalar fitness, this is now relaxed to support Multi-Objective and Quality-Diversity workloads. It may contain metrics like <code class="docutils literal notranslate"><span class="pre">hypervolume</span></code>, <code class="docutils literal notranslate"><span class="pre">qd_score</span></code>, or <code class="docutils literal notranslate"><span class="pre">archive_coverage</span></code> in addition to or instead of <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code>.</p></li>
-<li><p><em>D</em><code class="docutils literal notranslate"><span class="pre">[&quot;summary&quot;]</span></code>: A final aggregation dict containing final metrics (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;final_qd_score&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;evaluations&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;wall_time&quot;</span></code>).</p></li>
-<li><p><em>D</em><code class="docutils literal notranslate"><span class="pre">[&quot;timings&quot;]</span></code>: A timing breakdown dict with wall-clock measurements for stages (initialization, evolution, evaluation). May be empty.</p></li>
-</ul>
-<p>This protocol decouples BenchmarkRunner from specific engine implementations, permitting any backend (native MalthusJAX, evosax, external adapters) to participate in unified comparative workflows.</p>
-</section>
-<section id="the-negate-map-sign-flipping-for-minimization">
-<h3>6.1.2. The Negate Map (Sign-Flipping for Minimization)<a class="headerlink" href="#the-negate-map-sign-flipping-for-minimization" title="Link to this heading">¶</a></h3>
-<p>To ensure fair comparison across frameworks that enforce different maximization/minimization conventions (e.g., evosax maximizes, but a user’s BBOB problem minimizes), the BenchmarkRunner supports a <code class="docutils literal notranslate"><span class="pre">negate_map</span></code>.</p>
-<p>A <code class="docutils literal notranslate"><span class="pre">negate_map</span></code> is a dictionary (e.g., <code class="docutils literal notranslate"><span class="pre">{&quot;best_fitness&quot;:</span> <span class="pre">True,</span> <span class="pre">&quot;hypervolume&quot;:</span> <span class="pre">False}</span></code>) passed to the <code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code>. During result aggregation:</p>
-<ol class="arabic simple">
-<li><p>If a metric is marked <code class="docutils literal notranslate"><span class="pre">True</span></code> in the <code class="docutils literal notranslate"><span class="pre">negate_map</span></code>, its sign is flipped (multiplied by -1) before being written to the output CSVs and JSONs.</p></li>
-<li><p>This ensures that downstream visualization tools (like <code class="docutils literal notranslate"><span class="pre">EngineComparator</span></code>) can always assume “higher is better” or “lower is better” consistently across all algorithms, regardless of their internal representation.</p></li>
-</ol>
-</section>
-<section id="stochasticity-and-multi-seed-necessity">
-<h3>6.1.3. Stochasticity and Multi-Seed Necessity<a class="headerlink" href="#stochasticity-and-multi-seed-necessity" title="Link to this heading">¶</a></h3>
-<p>Evolutionary algorithms are stochastic processes. A single run provides no information about algorithmic robustness. Multi-seed execution characterizes the distribution of outcomes across the random seed space.</p>
-<p>For a fixed problem and seed sequence <em>S = [s₁, …, sₖ]</em>, invoking <code class="docutils literal notranslate"><span class="pre">run_once(PRNGKey(sᵢ))</span></code> for each <em>sᵢ</em> produces <em>k</em> independent trajectories. Aggregating these trajectories (element-wise mean, standard deviation) reveals convergence consistency and problem-specific difficulty.</p>
-</section>
-</section>
-<hr class="docutils" />
-<section id="core-result-data-structures">
-<h2>6.2. Core Result Data Structures<a class="headerlink" href="#core-result-data-structures" title="Link to this heading">¶</a></h2>
-<section id="runresult-single-seed-execution-record">
-<h3>6.2.1. RunResult: Single-Seed Execution Record<a class="headerlink" href="#runresult-single-seed-execution-record" title="Link to this heading">¶</a></h3>
-<p>A <code class="docutils literal notranslate"><span class="pre">RunResult</span></code> encapsulates the complete output from a single seed execution:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">RunResult</span><span class="p">:</span>
-    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span>                          <span class="c1"># Random seed used for this run</span>
-    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>                        <span class="c1"># "success", "failure", "timeout", "error"</span>
-    <span class="n">history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span>   <span class="c1"># Per-generation summaries</span>
-    <span class="n">summary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>          <span class="c1"># Final aggregated metrics</span>
-    <span class="n">timings</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>          <span class="c1"># Wall-clock breakdown</span>
-    <span class="n">duration_seconds</span><span class="p">:</span> <span class="nb">float</span>            <span class="c1"># Total wall time</span>
-    <span class="n">created_at</span><span class="p">:</span> <span class="nb">str</span>                    <span class="c1"># ISO 8601 timestamp</span>
-    <span class="n">error_message</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>       <span class="c1"># Error details if status != "success"</span>
-    <span class="n">artifacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>          <span class="c1"># Paths to written seed-level files</span>
-    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span>                <span class="c1"># Version identifier for format</span>
-</pre></div>
-</div>
-</section>
-<section id="experimentresult-multi-seed-aggregation">
-<h3>6.2.2. ExperimentResult: Multi-Seed Aggregation<a class="headerlink" href="#experimentresult-multi-seed-aggregation" title="Link to this heading">¶</a></h3>
-<p>An <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> aggregates <em>k</em> <code class="docutils literal notranslate"><span class="pre">RunResult</span></code> objects from a single algorithm configuration:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">ExperimentResult</span><span class="p">:</span>
-    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>                          <span class="c1"># Experiment identifier</span>
-    <span class="n">runs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RunResult</span><span class="p">]</span>              <span class="c1"># Per-seed results (length k)</span>
-    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>           <span class="c1"># Engine config, hardware, versions</span>
-    <span class="n">created_at</span><span class="p">:</span> <span class="nb">str</span>                    <span class="c1"># ISO 8601 timestamp</span>
-    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span>                <span class="c1"># Version identifier for format</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">combined_history</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
-        <span class="c1"># Tidy-format output: one row per (seed, generation) pair</span>
-        <span class="o">...</span>
-</pre></div>
-</div>
-</section>
-<section id="comparisonresult-multi-algorithm-analysis">
-<h3>6.2.3. ComparisonResult: Multi-Algorithm Analysis<a class="headerlink" href="#comparisonresult-multi-algorithm-analysis" title="Link to this heading">¶</a></h3>
-<p>A <code class="docutils literal notranslate"><span class="pre">ComparisonResult</span></code> holds multiple <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> objects for comparative analysis:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">ComparisonResult</span><span class="p">:</span>
-    <span class="n">experiments</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ExperimentResult</span><span class="p">]</span>  <span class="c1"># name → ExperimentResult</span>
-    <span class="n">created_at</span><span class="p">:</span> <span class="nb">str</span>
-</pre></div>
-</div>
-</section>
-</section>
-<hr class="docutils" />
-<section id="the-benchmarkrunner-multi-seed-orchestration">
-<h2>6.3. The BenchmarkRunner: Multi-Seed Orchestration<a class="headerlink" href="#the-benchmarkrunner-multi-seed-orchestration" title="Link to this heading">¶</a></h2>
-<section id="configuration-and-initialization">
-<h3>6.3.1. Configuration and Initialization<a class="headerlink" href="#configuration-and-initialization" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code> class configures and executes multi-seed campaigns:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">runner</span> <span class="o">=</span> <span class="n">BenchmarkRunner</span><span class="p">(</span>
-    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>                     <span class="c1"># Protocol-conformant engine</span>
-    <span class="n">experiment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>               <span class="c1"># Experiment identifier</span>
-    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Artifact root directory</span>
-    <span class="n">write_artifacts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>       <span class="c1"># Whether to persist results</span>
-    <span class="n">prng_impl</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"threefry"</span><span class="p">,</span>       <span class="c1"># PRNG backend</span>
-    <span class="n">negate_map</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># Metric sign-flipping</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="multi-seed-execution-loop">
-<h3>6.3.2. Multi-Seed Execution Loop<a class="headerlink" href="#multi-seed-execution-loop" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">run()</span></code> method executes the engine across a seed sequence:</p>
-<ol class="arabic simple">
-<li><p>Derive PRNG keys deterministically.</p></li>
-<li><p>For each key, invoke <code class="docutils literal notranslate"><span class="pre">engine.run_once(key)</span></code>.</p></li>
-<li><p>Apply <code class="docutils literal notranslate"><span class="pre">negate_map</span></code> to the returned <code class="docutils literal notranslate"><span class="pre">history</span></code> and <code class="docutils literal notranslate"><span class="pre">summary</span></code>.</p></li>
-<li><p>Wrap in a <code class="docutils literal notranslate"><span class="pre">RunResult</span></code>.</p></li>
-<li><p>Persist seed-level results.</p></li>
-<li><p>Collect into an <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code>.</p></li>
-</ol>
-</section>
-</section>
-<hr class="docutils" />
-<section id="result-persistence-and-artifact-management">
-<h2>6.4. Result Persistence and Artifact Management<a class="headerlink" href="#result-persistence-and-artifact-management" title="Link to this heading">¶</a></h2>
-<section id="result-serialization">
-<h3>6.4.1. Result Serialization<a class="headerlink" href="#result-serialization" title="Link to this heading">¶</a></h3>
-<p>Results are persisted in two formats:</p>
-<ul class="simple">
-<li><p><strong>JSON</strong>: <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> is serialized to <code class="docutils literal notranslate"><span class="pre">summary.json</span></code>.</p></li>
-<li><p><strong>CSV (Tidy Format)</strong>: Per-seed histories are combined into a single <code class="docutils literal notranslate"><span class="pre">histories.csv</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;history&quot;</span></code>: List of per-generation metric dictionaries (<code class="docutils literal notranslate"><span class="pre">generation</span></code>, <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">mean_fitness</span></code>, etc.).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;summary&quot;</span></code>: Final aggregated metrics dictionary (<code class="docutils literal notranslate"><span class="pre">best_fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">final_generation</span></code>, <code class="docutils literal notranslate"><span class="pre">total_evaluations</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;timings&quot;</span></code>: Optional execution timing breakdown dictionary.</p></li>
 </ul>
 </section>
-<section id="seed-level-directory-organization">
-<h3>6.4.2. Seed-Level Directory Organization<a class="headerlink" href="#seed-level-directory-organization" title="Link to this heading">¶</a></h3>
-<p>When <code class="docutils literal notranslate"><span class="pre">write_artifacts=true</span></code>, results are stored hierarchically:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">output_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">experiment_name</span><span class="p">}</span><span class="o">/</span>
-  <span class="n">summary</span><span class="o">.</span><span class="n">json</span>
-  <span class="n">histories</span><span class="o">.</span><span class="n">csv</span>
-  <span class="n">seed_0000</span><span class="o">/</span>
-    <span class="n">result</span><span class="o">.</span><span class="n">json</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">txt</span>
-  <span class="n">seed_0001</span><span class="o">/</span>
-    <span class="n">result</span><span class="o">.</span><span class="n">json</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">txt</span>
-  <span class="o">...</span>
+<section id="the-benchmarkrunner-class">
+<h3>6.1.2. The <code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code> Class<a class="headerlink" href="#the-benchmarkrunner-class" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code> dataclass orchestrates multi-seed experiment execution:</p>
+<ul class="simple">
+<li><p><strong>Constructor Arguments</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">engine:</span> <span class="pre">Engine</span></code> — Protocol-compliant engine instance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">experiment_name:</span> <span class="pre">str</span></code> (default <code class="docutils literal notranslate"><span class="pre">&quot;benchmark_experiment&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_dir:</span> <span class="pre">Optional[Path]</span></code> (default <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">write_artifacts:</span> <span class="pre">bool</span></code> (default <code class="docutils literal notranslate"><span class="pre">True</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prng_impl:</span> <span class="pre">Optional[str]</span></code> (default <code class="docutils literal notranslate"><span class="pre">None</span></code>) — PRNG backend name (<code class="docutils literal notranslate"><span class="pre">&quot;threefry2x32&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;philox4x32&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace_dir:</span> <span class="pre">Optional[Path]</span></code> (default <code class="docutils literal notranslate"><span class="pre">None</span></code>) — Directory for optional JAX trace output.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">serialize_history:</span> <span class="pre">bool</span></code> (default <code class="docutils literal notranslate"><span class="pre">True</span></code>) — If <code class="docutils literal notranslate"><span class="pre">False</span></code>, drops per-generation history arrays to conserve memory during large sweeps.</p></li>
+</ul>
+</li>
+<li><p><strong>Execution (<code class="docutils literal notranslate"><span class="pre">run</span></code>)</strong>:</p>
+<ul>
+<li><p>Iterates through a sequence of random seeds (<code class="docutils literal notranslate"><span class="pre">seeds:</span> <span class="pre">Sequence[int]</span></code>).</p></li>
+<li><p>Converts each seed into a JAX PRNG key (<code class="docutils literal notranslate"><span class="pre">create_key</span></code> or <code class="docutils literal notranslate"><span class="pre">jr.PRNGKey</span></code>).</p></li>
+<li><p>Executes <code class="docutils literal notranslate"><span class="pre">engine.run_once(key)</span></code>, measuring wall-clock duration (<code class="docutils literal notranslate"><span class="pre">duration_seconds</span></code>).</p></li>
+<li><p>Returns an <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> containing all <code class="docutils literal notranslate"><span class="pre">RunResult</span></code> records and execution metadata.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="results-schema">
+<h2>6.2. Results Schema<a class="headerlink" href="#results-schema" title="Link to this heading">¶</a></h2>
+<section id="runresult">
+<h3>6.2.1. <code class="docutils literal notranslate"><span class="pre">RunResult</span></code><a class="headerlink" href="#runresult" title="Link to this heading">¶</a></h3>
+<p>Immutable dataclass recording a single seeded engine run (<code class="docutils literal notranslate"><span class="pre">results.py</span></code>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">seed:</span> <span class="pre">int</span></code> — PRNG seed value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">status:</span> <span class="pre">str</span></code> — Execution status (<code class="docutils literal notranslate"><span class="pre">&quot;success&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;error&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;failure&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;timeout&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metrics:</span> <span class="pre">Dict[str,</span> <span class="pre">float]</span></code> — Computed numeric metrics (exposes <code class="docutils literal notranslate"><span class="pre">.summary</span></code> property alias).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">history:</span> <span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code> — Generation history list.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">artifacts:</span> <span class="pre">Dict[str,</span> <span class="pre">str]</span></code> — Map of output file paths.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">duration_seconds:</span> <span class="pre">Optional[float]</span></code> — Wall-clock execution time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timings:</span> <span class="pre">Optional[Dict[str,</span> <span class="pre">float]]</span></code> — Detailed timing breakdown.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">error:</span> <span class="pre">Optional[str]</span></code> — Error message string if <code class="docutils literal notranslate"><span class="pre">status</span> <span class="pre">!=</span> <span class="pre">&quot;success&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">created_at:</span> <span class="pre">datetime</span></code> — UTC creation timestamp.</p></li>
+</ul>
+<p>Exposes <code class="docutils literal notranslate"><span class="pre">.to_dict()</span></code>, <code class="docutils literal notranslate"><span class="pre">.to_json()</span></code>, <code class="docutils literal notranslate"><span class="pre">RunResult.from_dict(d)</span></code>, and <code class="docutils literal notranslate"><span class="pre">RunResult.from_json(s)</span></code>.</p>
+</section>
+<section id="experimentresult">
+<h3>6.2.2. <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code><a class="headerlink" href="#experimentresult" title="Link to this heading">¶</a></h3>
+<p>Dataclass aggregating multi-seed runs for a single pipeline (<code class="docutils literal notranslate"><span class="pre">results.py</span></code>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">str</span></code> — Experiment name.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runs:</span> <span class="pre">List[RunResult]</span></code> — List of per-seed <code class="docutils literal notranslate"><span class="pre">RunResult</span></code> records.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata:</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code> — Experiment metadata (<code class="docutils literal notranslate"><span class="pre">seeds</span></code>, <code class="docutils literal notranslate"><span class="pre">total_runs</span></code>, <code class="docutils literal notranslate"><span class="pre">successful_runs</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">created_at:</span> <span class="pre">datetime</span></code> — UTC timestamp.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">schema_version:</span> <span class="pre">str</span></code> (default <code class="docutils literal notranslate"><span class="pre">&quot;0.1&quot;</span></code>).</p></li>
+</ul>
+<p>Methods:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.aggregated_summary(optimum=None)</span></code> — Computes mean, median, stdev, and confidence intervals across seeds for all metrics.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.combined_history(seed_field=&quot;seed&quot;)</span></code> — Flattens per-generation history records across seeds into a single tidy list of dictionaries.</p></li>
+</ul>
+</section>
+<section id="comparisonresult">
+<h3>6.2.3. <code class="docutils literal notranslate"><span class="pre">ComparisonResult</span></code><a class="headerlink" href="#comparisonresult" title="Link to this heading">¶</a></h3>
+<p>Dataclass holding multi-pipeline results (<code class="docutils literal notranslate"><span class="pre">results.py</span></code>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pipelines:</span> <span class="pre">Dict[str,</span> <span class="pre">ExperimentResult]</span></code> — Pipeline name map.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shared_config:</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code> — Common configuration parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_population:</span> <span class="pre">Optional[Any]</span></code> — Shared initial population PyTree.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">negate_map:</span> <span class="pre">Dict[str,</span> <span class="pre">bool]</span></code> — Metric sign inversion rules.</p></li>
+</ul>
+<p>Methods:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.summary_table(latex=False)</span></code> — Returns aggregated metrics table or a formatted LaTeX <code class="docutils literal notranslate"><span class="pre">tabular</span></code> string (<code class="docutils literal notranslate"><span class="pre">latex=True</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.plot_convergence(save_path=None)</span></code> — Generates overlay convergence plots.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.plot_boxplots(save_path=None)</span></code> — Generates final metric distribution boxplots.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="persistence-format">
+<h2>6.3. Persistence Format<a class="headerlink" href="#persistence-format" title="Link to this heading">¶</a></h2>
+<p>Artifacts are saved to disk via <code class="docutils literal notranslate"><span class="pre">write_experiment_artifacts</span></code> (<code class="docutils literal notranslate"><span class="pre">io.py</span></code>) using the following directory layout:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{output_dir}/
+├── metadata/
+│   └── config_snapshot.toml       # Copy of the experiment TOML configuration
+├── data/
+│   ├── pipeline_{name}/
+│   │   ├── seed_1.json            # RunResult serialized to JSON
+│   │   ├── seed_2.json
+│   │   └── ...
+└── analysis/
+    ├── {pipeline}_summary.json    # Aggregated metrics summary JSON
+    ├── comparison_table.csv       # Summary table in CSV format
+    ├── comparison_table.md        # Summary table in Markdown format
+    └── comparison_table.tex       # Summary table in LaTeX tabular format
 </pre></div>
 </div>
 </section>
-</section>
 <hr class="docutils" />
-<section id="analysis-and-post-processing">
-<h2>6.5. Analysis and Post-Processing<a class="headerlink" href="#analysis-and-post-processing" title="Link to this heading">¶</a></h2>
-<section id="statistical-testing-and-significance">
-<h3>6.5.1. Statistical Testing and Significance<a class="headerlink" href="#statistical-testing-and-significance" title="Link to this heading">¶</a></h3>
-<p>The module provides automated statistical testing routines to compare algorithms rigorously:</p>
+<section id="command-line-interface-mjax-cli-py">
+<h2>6.4. Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">mjax</span></code> / <code class="docutils literal notranslate"><span class="pre">cli.py</span></code>)<a class="headerlink" href="#command-line-interface-mjax-cli-py" title="Link to this heading">¶</a></h2>
+<p>The CLI module (<code class="docutils literal notranslate"><span class="pre">malthusjax.benchmarking.cli</span></code>) exposes seven commands via <code class="docutils literal notranslate"><span class="pre">argparse</span></code>:</p>
+<section id="mjax-run-config">
+<h3>1. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">run</span> <span class="pre">&lt;config&gt;</span></code><a class="headerlink" href="#mjax-run-config" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">statistical_fitness_delta</span></code>: Computes the Mann-Whitney U test (non-parametric) on the final fitness distributions of two engines. It returns p-values and effect sizes (e.g. Vargha-Delaney A) to assess if one algorithm is significantly better than another.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">statistical_speedup</span></code>: Analyzes runtime distributions from pytest-benchmark to identify statistically significant wall-clock speedups.</p></li>
+<li><p><strong>Positionals</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">config</span></code> (Path): Path to experiment TOML config file.</p></li>
 </ul>
-<p>For academic publication, the <code class="docutils literal notranslate"><span class="pre">ComparisonResult.to_latex()</span></code> method automatically generates formatted LaTeX tables with statistically significant results bolded, adhering to standard GECCO/PPSN formatting guidelines.</p>
-</section>
-<section id="dataloader-utility">
-<h3>6.5.2. DataLoader Utility<a class="headerlink" href="#dataloader-utility" title="Link to this heading">¶</a></h3>
-<p>For combinatorial and real-world benchmarks, the module provides a <code class="docutils literal notranslate"><span class="pre">DataLoader</span></code> utility. It handles reading static datasets securely:</p>
-<ul class="simple">
-<li><p><strong>TSPLib</strong>: Parses <code class="docutils literal notranslate"><span class="pre">.tsp</span></code> files into JAX arrays for distance matrices and coordinates.</p></li>
-<li><p><strong>CSV/NPZ</strong>: Standard loading for surrogate models or regression datasets.
-The DataLoader ensures data is loaded once and cached in device memory, preventing I/O bottlenecks during the scan loop.</p></li>
+</li>
+<li><p><strong>Description</strong>: Loads TOML file, runs multi-seed pipeline execution, and dumps metadata/raw JSON data to <code class="docutils literal notranslate"><span class="pre">results/{config.stem}</span></code>.</p></li>
 </ul>
 </section>
-<section id="pytest-benchmark-integration">
-<h3>6.5.3. pytest-benchmark Integration<a class="headerlink" href="#pytest-benchmark-integration" title="Link to this heading">¶</a></h3>
-<p>For micro-benchmarking, the <code class="docutils literal notranslate"><span class="pre">malthusjax.benchmarking.analysis</span></code> submodule provides parsers for pytest-benchmark JSON output to analyze timing statistics.</p>
+<section id="mjax-parity-config">
+<h3>2. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">parity</span> <span class="pre">&lt;config&gt;</span></code><a class="headerlink" href="#mjax-parity-config" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Positionals</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">config</span></code> (Path): Path to parity TOML config file.</p></li>
+</ul>
+</li>
+<li><p><strong>Description</strong>: Runs seed-aligned statistical parity execution, enforcing a shared initial population across pipelines.</p></li>
+</ul>
 </section>
-<section id="pandas-and-numpy-integration">
-<h3>6.5.4. Pandas and NumPy Integration<a class="headerlink" href="#pandas-and-numpy-integration" title="Link to this heading">¶</a></h3>
-<p>The method <code class="docutils literal notranslate"><span class="pre">ExperimentResult.to_dataframe()</span></code> converts the tidy-format combined history to a pandas DataFrame. This facilitates element-wise statistical operations.</p>
+<section id="mjax-analyze-results-dir">
+<h3>3. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">analyze</span> <span class="pre">&lt;results_dir&gt;</span></code><a class="headerlink" href="#mjax-analyze-results-dir" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Positionals</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">results_dir</span></code> (Path): Directory containing raw JSON data.</p></li>
+</ul>
+</li>
+<li><p><strong>Description</strong>: Computes summary statistics or statistical parity comparisons and writes summaries/tables to <code class="docutils literal notranslate"><span class="pre">{results_dir}/analysis</span></code>.</p></li>
+</ul>
 </section>
+<section id="mjax-plot-results-dir">
+<h3>4. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">plot</span> <span class="pre">&lt;results_dir&gt;</span></code><a class="headerlink" href="#mjax-plot-results-dir" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Positionals</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">results_dir</span></code> (Path): Directory containing raw JSON data.</p></li>
+</ul>
+</li>
+<li><p><strong>Description</strong>: Generates diagnostic plots (<code class="docutils literal notranslate"><span class="pre">convergence.png</span></code>, <code class="docutils literal notranslate"><span class="pre">fitness_distribution.png</span></code>, <code class="docutils literal notranslate"><span class="pre">timings.png</span></code>) into <code class="docutils literal notranslate"><span class="pre">{results_dir}/plots</span></code>.</p></li>
+</ul>
 </section>
-<hr class="docutils" />
-<section id="command-line-interface">
-<h2>6.6. Command-Line Interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h2>
-<p>The CLI entry point <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">malthusjax.benchmarking</span></code> accepts arguments for experiment name, output directory, seed sequence, and problem specification (via Composer integration).</p>
+<section id="mjax-report-results-dir">
+<h3>5. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">report</span> <span class="pre">&lt;results_dir&gt;</span></code><a class="headerlink" href="#mjax-report-results-dir" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Positionals</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">results_dir</span></code> (Path): Directory containing raw JSON data.</p></li>
+</ul>
+</li>
+<li><p><strong>Description</strong>: Sequentially executes <code class="docutils literal notranslate"><span class="pre">handle_analyze</span></code> and <code class="docutils literal notranslate"><span class="pre">handle_plot</span></code>.</p></li>
+</ul>
 </section>
-<hr class="docutils" />
-<section id="summary-and-integration-points">
-<h2>6.7. Summary and Integration Points<a class="headerlink" href="#summary-and-integration-points" title="Link to this heading">¶</a></h2>
-<p>The benchmarking module provides reproducible multi-seed experiment execution and result aggregation. By implementing the <code class="docutils literal notranslate"><span class="pre">Engine</span></code> protocol, BenchmarkRunner enables heterogeneous backend participation without backend-specific knowledge. The addition of the <code class="docutils literal notranslate"><span class="pre">negate_map</span></code> and flexible <code class="docutils literal notranslate"><span class="pre">history</span></code> dictionaries natively supports MO and QD paradigms.</p>
+<section id="mjax-aggregate-out-dir-out-dir-results-dirs">
+<h3>6. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">aggregate</span> <span class="pre">--out_dir</span> <span class="pre">&lt;out_dir&gt;</span> <span class="pre">&lt;results_dirs...&gt;</span></code><a class="headerlink" href="#mjax-aggregate-out-dir-out-dir-results-dirs" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Required Flags</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">--out_dir</span></code> (Path): Output directory for the aggregate suite.</p></li>
+</ul>
+</li>
+<li><p><strong>Positionals</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">results_dirs</span></code> (Path, 1 or more): Experiment result directories to aggregate.</p></li>
+</ul>
+</li>
+<li><p><strong>Description</strong>: Combines multiple experiment result directories into an aggregate <code class="docutils literal notranslate"><span class="pre">MetaComparison</span></code> report grid (<code class="docutils literal notranslate"><span class="pre">convergence_grid.png</span></code>, <code class="docutils literal notranslate"><span class="pre">fitness_distribution_grid.png</span></code>, <code class="docutils literal notranslate"><span class="pre">aggregate_summary.json</span></code>).</p></li>
+</ul>
+</section>
+<section id="mjax-catalog">
+<h3>7. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">catalog</span></code><a class="headerlink" href="#mjax-catalog" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Description</strong>: Instantiates <code class="docutils literal notranslate"><span class="pre">OperatorCatalog</span></code> and lists all registered framework operators to standard output.</p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -557,38 +574,29 @@ The DataLoader ensures data is loaded once and cached in device memory, preventi
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a><ul>
-<li><a class="reference internal" href="#the-engine-protocol-and-benchmarking-contract">6.1. The Engine Protocol and Benchmarking Contract</a><ul>
-<li><a class="reference internal" href="#protocol-definition-and-universal-interface">6.1.1. Protocol Definition and Universal Interface</a></li>
-<li><a class="reference internal" href="#the-negate-map-sign-flipping-for-minimization">6.1.2. The Negate Map (Sign-Flipping for Minimization)</a></li>
-<li><a class="reference internal" href="#stochasticity-and-multi-seed-necessity">6.1.3. Stochasticity and Multi-Seed Necessity</a></li>
+<li><a class="reference internal" href="#">Benchmarking Framework: Multi-Seed Execution and Results Schema</a><ul>
+<li><a class="reference internal" href="#the-engine-protocol-benchmarkrunner">6.1. The Engine Protocol &amp; BenchmarkRunner</a><ul>
+<li><a class="reference internal" href="#the-engine-protocol">6.1.1. The <code class="docutils literal notranslate"><span class="pre">Engine</span></code> Protocol</a></li>
+<li><a class="reference internal" href="#the-benchmarkrunner-class">6.1.2. The <code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code> Class</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#core-result-data-structures">6.2. Core Result Data Structures</a><ul>
-<li><a class="reference internal" href="#runresult-single-seed-execution-record">6.2.1. RunResult: Single-Seed Execution Record</a></li>
-<li><a class="reference internal" href="#experimentresult-multi-seed-aggregation">6.2.2. ExperimentResult: Multi-Seed Aggregation</a></li>
-<li><a class="reference internal" href="#comparisonresult-multi-algorithm-analysis">6.2.3. ComparisonResult: Multi-Algorithm Analysis</a></li>
+<li><a class="reference internal" href="#results-schema">6.2. Results Schema</a><ul>
+<li><a class="reference internal" href="#runresult">6.2.1. <code class="docutils literal notranslate"><span class="pre">RunResult</span></code></a></li>
+<li><a class="reference internal" href="#experimentresult">6.2.2. <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code></a></li>
+<li><a class="reference internal" href="#comparisonresult">6.2.3. <code class="docutils literal notranslate"><span class="pre">ComparisonResult</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#the-benchmarkrunner-multi-seed-orchestration">6.3. The BenchmarkRunner: Multi-Seed Orchestration</a><ul>
-<li><a class="reference internal" href="#configuration-and-initialization">6.3.1. Configuration and Initialization</a></li>
-<li><a class="reference internal" href="#multi-seed-execution-loop">6.3.2. Multi-Seed Execution Loop</a></li>
+<li><a class="reference internal" href="#persistence-format">6.3. Persistence Format</a></li>
+<li><a class="reference internal" href="#command-line-interface-mjax-cli-py">6.4. Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">mjax</span></code> / <code class="docutils literal notranslate"><span class="pre">cli.py</span></code>)</a><ul>
+<li><a class="reference internal" href="#mjax-run-config">1. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">run</span> <span class="pre">&lt;config&gt;</span></code></a></li>
+<li><a class="reference internal" href="#mjax-parity-config">2. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">parity</span> <span class="pre">&lt;config&gt;</span></code></a></li>
+<li><a class="reference internal" href="#mjax-analyze-results-dir">3. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">analyze</span> <span class="pre">&lt;results_dir&gt;</span></code></a></li>
+<li><a class="reference internal" href="#mjax-plot-results-dir">4. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">plot</span> <span class="pre">&lt;results_dir&gt;</span></code></a></li>
+<li><a class="reference internal" href="#mjax-report-results-dir">5. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">report</span> <span class="pre">&lt;results_dir&gt;</span></code></a></li>
+<li><a class="reference internal" href="#mjax-aggregate-out-dir-out-dir-results-dirs">6. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">aggregate</span> <span class="pre">--out_dir</span> <span class="pre">&lt;out_dir&gt;</span> <span class="pre">&lt;results_dirs...&gt;</span></code></a></li>
+<li><a class="reference internal" href="#mjax-catalog">7. <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">catalog</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#result-persistence-and-artifact-management">6.4. Result Persistence and Artifact Management</a><ul>
-<li><a class="reference internal" href="#result-serialization">6.4.1. Result Serialization</a></li>
-<li><a class="reference internal" href="#seed-level-directory-organization">6.4.2. Seed-Level Directory Organization</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#analysis-and-post-processing">6.5. Analysis and Post-Processing</a><ul>
-<li><a class="reference internal" href="#statistical-testing-and-significance">6.5.1. Statistical Testing and Significance</a></li>
-<li><a class="reference internal" href="#dataloader-utility">6.5.2. DataLoader Utility</a></li>
-<li><a class="reference internal" href="#pytest-benchmark-integration">6.5.3. pytest-benchmark Integration</a></li>
-<li><a class="reference internal" href="#pandas-and-numpy-integration">6.5.4. Pandas and NumPy Integration</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#command-line-interface">6.6. Command-Line Interface</a></li>
-<li><a class="reference internal" href="#summary-and-integration-points">6.7. Summary and Integration Points</a></li>
 </ul>
 </li>
 </ul>
