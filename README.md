@@ -86,6 +86,7 @@ Detailed reference documentation and architectural specifications for each packa
 - **[`malthusjax.operators`](src/malthusjax/operators/README.md)** — Vectorized genetic operator library (Selection, Crossover, Mutation, Emitters).
 - **[`malthusjax.stats`](src/malthusjax/stats/README.md)** — Seed-aligned paired hypothesis testing (Wilcoxon, t-test, TOST), multiple-testing correction (Holm, FDR-BH), normality verification, and effect sizes.
 - **[`malthusjax.benchmarking`](src/malthusjax/benchmarking/README.md)** — Cross-framework statistical parity and performance benchmarking suites.
+- **[`scripts`](scripts/README.md)** — Executable benchmark runners, statistical analyzers, XLA HLO extractors, and profiling utilities.
 
 ---
 
@@ -166,42 +167,60 @@ Then run, analyze, and plot the results using the `mjax` CLI:
 # 1. Run the experiment sweep across all pipelines and seeds
 mjax run configs/examples/composer/experiment.toml
 
-# 2. Analyze the raw metrics and export statistical tables
+# 2. Alternatively, run seed-aligned statistical parity (enforces shared initial populations)
+mjax parity configs/examples/composer/experiment.toml
+
+# 3. Analyze results with malthusjax.stats hypothesis testing (Wilcoxon, TOST, Holm correction)
 mjax analyze results/crossover_comparison
 
-# 3. Generate convergence and performance plots
+# 4. Generate convergence, fitness distribution, and timing plots
 mjax plot results/crossover_comparison
+
+# 5. Or execute both analysis & plotting in a single command
+mjax report results/crossover_comparison
 ```
+
+### Statistical Analysis & Artifact Output
+When you invoke `mjax analyze`, MalthusJAX automatically passes the paired seed data into `malthusjax.stats.comparator.StatisticalComparator`:
+- For 2-pipeline comparisons, it executes paired **Wilcoxon signed-rank tests**, **TOST equivalence testing**, and **Holm multiple-testing correction**, outputting a statistical parity report (`parity_summary.md` and `parity_summary.json`).
+- For multi-pipeline benchmarks, it aggregates mean, standard deviation, and 95% confidence intervals into publication-ready **LaTeX** (`comparison_table.tex`), **Markdown** (`comparison_table.md`), and **CSV** tables.
 
 The execution produces a structured results folder:
 ```text
 results/crossover_comparison/
 ├── metadata/
-│   └── config_snapshot.toml       # Snapshot of the experiment setup
+│   └── config_snapshot.toml       # Reproducibility snapshot of the experiment setup
 ├── data/
-│   ├── pipeline_blend_ga/         # Raw seed metrics
+│   ├── pipeline_blend_ga/         # Raw per-seed JSON metrics
 │   │   ├── seed_42.json
 │   │   └── ...
 │   └── pipeline_sbx_ga/
-└── analysis/
-│   └── blend_ga_summary.json      # Aggregated mean/std metrics
+├── analysis/
+│   ├── parity_summary.md          # Wilcoxon + TOST statistical parity report
+│   ├── parity_summary.json        # Structured statistical hypothesis test data
+│   ├── comparison_table.md        # Summary table in Markdown format
+│   ├── comparison_table.tex       # Summary table formatted for LaTeX papers
+│   └── comparison_table.csv       # Summary table in CSV format
 └── plots/
-    └── convergence.png            # Convergence overlay plot
+    ├── convergence.png            # Population convergence overlay plot
+    ├── fitness_distribution.png   # Final best-fitness boxplot comparison
+    └── timings.png                # Per-seed execution duration boxplots
 ```
 
 ---
 
 ## Unified CLI Command Reference
 
-The `mjax` CLI provides an clean, offline-friendly workflow to run simulations on a GPU server, export results, and analyze/plot them locally:
+The `mjax` CLI provides a clean, offline-friendly workflow to run simulations on a GPU server, export results, and analyze/plot them locally:
 
-| Command | Arguments | Description |
+| Command | Arguments / Flags | Description |
 | :--- | :--- | :--- |
-| `mjax run` | `<config_path>` | Runs the specified TOML experiment sweep. |
+| `mjax run` | `<config_path>` | Runs the specified TOML experiment sweep across configured seeds. |
 | `mjax parity` | `<config_path>` | Runs a seed-aligned parity execution (enforcing shared initial populations). |
-| `mjax analyze` | `<results_dir>` | Computes summary statistics or statistical parity comparisons. |
-| `mjax plot` | `<results_dir>` | Generates diagnostic and convergence plots. |
-| `mjax report` | `<results_dir>` | Automatically chains `analyze` and `plot` together. |
+| `mjax analyze` | `<results_dir>` | Computes `malthusjax.stats` statistical parity (Wilcoxon/TOST) and summary tables. |
+| `mjax plot` | `<results_dir>` | Generates diagnostic plots (`convergence.png`, `fitness_distribution.png`, `timings.png`). |
+| `mjax report` | `<results_dir>` | Automatically chains `analyze` and `plot` together in one command. |
+| `mjax aggregate` | `--out_dir <dir> <exp_dirs...>` | Aggregates multiple experiment directories into a multi-panel report grid. |
 | `mjax catalog` | — | Lists all registered framework operators. |
 
 ---

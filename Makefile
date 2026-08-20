@@ -1,7 +1,9 @@
 .PHONY: help install-dev install-bench test test-fast test-unit test-failing test-fixes test-bench test-bench-snapshot \
+	test-nohup test-fast-nohup test-unit-nohup test-bench-nohup test-bench-snapshot-nohup \
+	run-toml-nohup run-benchmark-nohup parity-toml-nohup suite-parity-nohup benchmark-run-nohup benchmark-run-smoke-nohup \
 	lint format format-check type-check check-all docs docs-clean docs-open \
-	demo reproduce reproduce-nohup smoke-all \
-	perf-bench perf-bench-smoke perf-hlo perf-perfetto perf-tb perf-tb-bg perf-all perf-all-nohup
+	demo demo-nohup reproduce reproduce-nohup smoke-all smoke-all-nohup \
+	perf-bench perf-bench-nohup perf-bench-smoke perf-bench-smoke-nohup perf-hlo perf-hlo-nohup perf-perfetto perf-perfetto-nohup perf-tb perf-tb-bg perf-all perf-all-nohup
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -378,6 +380,8 @@ test-nohup:
 test-fast-nohup:
 	$(call bg_task,test-fast,python -m pytest --no-cov -q)
 
+test-unit-nohup:
+	$(call bg_task,test-unit,python -m pytest -m "not slow" --no-cov -q)
 
 test-bench-nohup:
 	$(call bg_task,test-bench,python -m pytest tests/benchmarks/ --no-cov -v --tb=short --ignore=tests/benchmarks/test_snapshot_benchmark.py)
@@ -417,6 +421,11 @@ parity-toml:
 	@echo "--- Running statistical parity for $(TOML) ---"
 	$(MJAX_CMD) parity $(TOML)
 
+parity-toml-nohup:
+	@test -n "$(TOML)" || (echo "Error: TOML variable not set"; echo "Usage: make parity-toml-nohup TOML=configs/parity/parity.toml"; exit 1)
+	@test -f "$(TOML)" || (echo "Error: TOML file not found: $(TOML)"; exit 1)
+	$(call bg_task,parity_toml,$(MJAX_CMD) parity $(TOML))
+
 artifacts-dir:
 	@test -n "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR variable not set"; echo "Usage: make artifacts-dir RESULTS_DIR=results/my_experiment"; exit 1)
 	@test -d "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR not found: $(RESULTS_DIR)"; exit 1)
@@ -449,7 +458,12 @@ suite-parity:
 	done; \
 	$(PYTHON) -m malthusjax.benchmarking.cli aggregate --out_dir $(OUT_DIR) $$DIRS
 	@echo "--- Generating LaTeX table ---"
-	@$(PYTHON) scripts/generate_parity_latex.py --suite_dir $(OUT_DIR) --out $(OUT_DIR)/parity_table.tex
+	@$(PYTHON) scripts/generate_thesis_tables.py --dir $(OUT_DIR)
+
+suite-parity-nohup:
+	@test -n "$(CONFIG_DIR)" || (echo "Error: CONFIG_DIR variable not set"; echo "Usage: make suite-parity-nohup CONFIG_DIR=configs/thesis/ OUT_DIR=results/my_suite"; exit 1)
+	@test -n "$(OUT_DIR)" || (echo "Error: OUT_DIR variable not set"; echo "Usage: make suite-parity-nohup CONFIG_DIR=configs/thesis/ OUT_DIR=results/my_suite"; exit 1)
+	$(call bg_task,suite_parity,make suite-parity CONFIG_DIR=$(CONFIG_DIR) OUT_DIR=$(OUT_DIR))
 
 thesis-tables:
 	@test -n "$(RESULTS_DIR)" || (echo "Error: RESULTS_DIR variable not set"; echo "Usage: make thesis-tables RESULTS_DIR=results/h1_parity_qdax"; exit 1)
@@ -498,6 +512,10 @@ benchmark-run-smoke:
 	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
 	$(PYTHON) scripts/benchmark_runner.py --toml $(TOML) --smoke
 
+benchmark-run-smoke-nohup:
+	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
+	$(call bg_task,smoke_$(shell basename $(TOML) .toml),$(PYTHON) scripts/benchmark_runner.py --toml $(TOML) --smoke)
+
 benchmark-run-nohup:
 	@if [ -z "$(TOML)" ]; then echo "ERROR: Must provide TOML file"; exit 1; fi
 	$(call bg_task,benchmark_$(shell basename $(TOML) .toml),$(PYTHON) scripts/benchmark_runner.py --toml $(TOML))
@@ -516,6 +534,9 @@ demo:
 	@echo "\n=== 4. Quality-Diversity (MAP-Elites) Parity ==="
 	$(PYTHON) benchmarks/qd_architecture_ablation.py --smoke
 
+demo-nohup:
+	$(call bg_task,demo,make demo)
+
 # ------------------------------------------------------------------------------
 # 2. PUBLICATION REPRODUCIBILITY (Thesis Benchmarks)
 # ------------------------------------------------------------------------------
@@ -532,6 +553,9 @@ smoke-all:
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h2_ablation_final_lhs.toml --smoke
 	$(PYTHON) scripts/benchmark_runner.py --toml configs/h3_precision_lhs.toml --smoke
 
+smoke-all-nohup:
+	$(call bg_task,smoke_all,make smoke-all)
+
 # ==============================================================================
 # PERFORMANCE HARNESS
 # ==============================================================================
@@ -545,10 +569,16 @@ perf-bench:
 	$(PYTHON) scripts/benchmark_runner.py --toml $(PERF_TOML)
 	@echo "\n>>> Done. Results written to: $(PERF_OUT)/bench"
 
+perf-bench-nohup:
+	$(call bg_task,perf_bench,make perf-bench PERF_TOML=$(PERF_TOML))
+
 perf-bench-smoke:
 	@echo "--- PERF BENCH (smoke): $(PERF_SMOKE) ---"
 	$(PYTHON) scripts/benchmark_runner.py --toml $(PERF_SMOKE) --smoke
 	@echo "\n>>> Done. Smoke results written to: results/perf/smoke_speed_vs_evosax"
+
+perf-bench-smoke-nohup:
+	$(call bg_task,perf_bench_smoke,make perf-bench-smoke PERF_SMOKE=$(PERF_SMOKE))
 
 # Extract and compare optimised XLA HLO for all pipelines.
 # EvoSAX: JITs strategy.ask()+tell() natively (no adapter overhead).
@@ -565,6 +595,9 @@ perf-hlo:
 		--out-dir $(PERF_OUT)/hlo
 	@echo "\n>>> HLO summary written to: $(PERF_OUT)/hlo/hlo_summary.md"
 
+perf-hlo-nohup:
+	$(call bg_task,perf_hlo,make perf-hlo PERF_TOML=$(PERF_TOML) PERF_DIMS=$(PERF_DIMS) PERF_POP=$(PERF_POP) PERF_GENS=$(PERF_GENS))
+
 # Generate Perfetto traces for all pipelines (one subprocess per pipeline).
 perf-perfetto:
 	@echo "--- PERF PERFETTO: $(PERF_TOML) ---"
@@ -575,6 +608,9 @@ perf-perfetto:
 		--port $(PORT)
 	@echo "\n>>> Traces written to: $(PERF_OUT)/perfetto"
 	@echo ">>> Launch TensorBoard: make perf-tb PORT=$(PORT)"
+
+perf-perfetto-nohup:
+	$(call bg_task,perf_perfetto,make perf-perfetto PERF_TOML=$(PERF_TOML) PORT=$(PORT))
 
 # Launch TensorBoard pointing at the Perfetto traces (blocking).
 perf-tb:

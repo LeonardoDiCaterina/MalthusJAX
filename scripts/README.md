@@ -1,51 +1,82 @@
-# Scripts Index and Maintenance Policy
+# MalthusJAX Executable Scripts & Utilities
 
-This folder contains runnable utilities grouped by purpose.
+This directory contains executable scripts, benchmarking execution harnesses, statistical analysis pipelines, XLA HLO graph extraction tools, and maintenance utilities for MalthusJAX.
 
-## Primary entrypoints (actively maintained)
+---
 
-- run_composer_shared.py
-  - Preferred TOML runner when shared initial population parity matters.
-- run_toml_statistical_parity.py
-  - Preferred parity statistics runner from TOML.
-- process_parity_results.py
-  - Preferred artifact-level postprocessing (including distance-to-optimum tests).
-- generate_experiment_artifacts.py
-  - Standard plots/tables from experiment result folders.
+## 🚀 Primary Entry Points
 
-## Diagnostic and analysis tools
+### `benchmark_runner.py` — TOML-Driven Benchmark Runner
+Unified execution runner for TOML-defined benchmark suites.
+- **Functionality**: Parses a `.toml` suite definition, generates Cartesian or Latin Hypercube Sampling (LHS) experimental coordinate grids, and executes pipelines via `Composer`.
+- **Cluster Protections**: Automatically restricts GPU visibility (`CUDA_VISIBLE_DEVICES="0"`) to prevent JAX NCCL multi-device rendezvous deadlocks on shared GPU clusters.
+- **Usage**:
+  ```bash
+  python scripts/benchmark_runner.py --toml configs/perf/h1_speed_vs_evosax.toml
+  python scripts/benchmark_runner.py --toml configs/perf/h1_speed_vs_evosax.toml --smoke
+  ```
 
-- diagnose_bias.py
-- plot_diagnostics_bias.py
-- run_offspring_sweep.py
-- run_programmatic_parity_sweep.py
-- verify_single_seed_pairing.py
+### `benchmark_analyzer.py` — TOML-Driven Benchmark Analyzer
+Unified statistical analyzer processing raw JSON artifacts produced by `benchmark_runner.py`.
+- **Functionality**:
+  - **Cartesian Mode**: Executes TOST equivalence testing, Wilcoxon signed-rank tests, and Cohen's $d_z$ effect size calculations via `malthusjax.stats.comparator.StatisticalComparator`.
+  - **LHS Mode**: Fits OLS log-log interaction regressions with diagnostic checks via `malthusjax.stats.regression_analyzer.OLSRegressionAnalyzer`.
+- **Outputs**: Generates publication-ready LaTeX tables (`summary_table.tex`), Markdown summaries, and automated diagnostic plots.
+- **Usage**:
+  ```bash
+  python scripts/benchmark_analyzer.py --dir results/h1_speed_vs_evosax
+  ```
 
-## Utility/reporting tools
+---
 
-- export_pivot_csv.py
-- rank_median_summaries.py
-- generate_param_grid_toml.py
-- simplega_grid_search.py
+## 🔍 Diagnostic & Profiling Tools
 
-## Legacy compatibility wrappers
+### `extract_hlo.py` — XLA HLO Graph Extraction & Comparison
+Extracts optimized XLA HLO text for TOML engine pipelines and generates side-by-side comparison tables.
+- **Functionality**: JIT-compiles engine pipelines to inspect XLA fusion kernels, while loops, and memory copies. For EvoSAX pipelines, it JIT-compiles native `strategy.ask() + strategy.tell()` steps directly to bypass adapter overhead and reveal the true upstream kernel.
+- **Usage**:
+  ```bash
+  python scripts/extract_hlo.py --toml configs/perf/h1_speed_vs_evosax.toml
+  ```
 
-These remain callable for old commands but forward to archived implementations:
+### `trace_pipelines.py` — JAX Profiler & TensorBoard Tracing
+Traces execution of TOML pipeline runs using `jax.profiler.start_trace` / `stop_trace`.
+- **Functionality**: Traces seed 1 of specified pipelines to prevent redundant compilation overhead, outputting TensorBoard profile files.
+- **Usage**:
+  ```bash
+  python scripts/trace_pipelines.py --toml configs/perf/h1_speed_vs_evosax.toml --out-dir results/perf/traces
+  ```
 
-- analyze_parity_suite.py
-- parity_significance_test.py
-- run_parity_sweep.py
+---
 
-Archived implementations live in scripts/_archive/.
+## 📊 Reporting & Maintenance Utilities
 
-## Shell helpers
+### `generate_thesis_tables.py` — Thesis Table Generator
+Parses JSON result files (`parity_results.json`, `ablation_results.json`, etc.) into `ComparisonResult` objects.
+- **Functionality**: Formats mean, standard deviation, and confidence intervals into LaTeX (`comparison_table.tex`), CSV (`comparison_table.csv`), and Markdown (`comparison_table.md`) files inside the `analysis/` directory.
+- **Usage**:
+  ```bash
+  python scripts/generate_thesis_tables.py --dir results/h1_parity_qdax
+  ```
 
-- run_toy_100seeds.sh
-- run_toy_100seeds_sphere_d5.sh
+### `update_readme_coverage.py` — Coverage Injector
+Reads `coverage.md` and injects its contents into `README.md` between `<!-- COVERAGE-START -->` and `<!-- COVERAGE-END -->` comment tags.
+- **Usage**:
+  ```bash
+  python scripts/update_readme_coverage.py
+  ```
 
-## Policy for future additions
+---
 
-1. Prefer adding options to an existing primary entrypoint before creating a new script.
-2. If a new script is required, document it here under the correct section.
-3. If a script becomes superseded, move implementation to scripts/_archive and leave a thin forwarding wrapper.
-4. Keep Make targets mapped only to primary entrypoints unless there is a clear historical compatibility reason.
+## 🐚 Shell Helpers
+
+### `run_core_baseline.sh` — Core Package Quality Baseline
+Shell script running quality checks on `malthusjax.core`:
+- Runs `pytest` with coverage report on `src/malthusjax/core`.
+- Runs `ruff check` on `src/malthusjax/core`.
+- Runs `mypy --strict` on `src/malthusjax/core`.
+- Logs timestamped outputs to `tmp/core_baseline_YYYYMMDD_HHMMSS.log`.
+- **Usage**:
+  ```bash
+  ./scripts/run_core_baseline.sh
+  ```
