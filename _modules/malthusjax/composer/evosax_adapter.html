@@ -413,8 +413,6 @@
             <span class="n">fit_init</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"pop_size"</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">fit_init</span><span class="p">,</span> <span class="n">p_state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pop_init</span><span class="p">,</span> <span class="n">p_state</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"maximize"</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                    <span class="n">fit_init</span> <span class="o">=</span> <span class="o">-</span><span class="n">fit_init</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_framework_evaluator</span> <span class="o">=</span> <span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">p_state</span><span class="p">)</span>  <span class="c1"># Update state</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># For MalthusJAX mode, evaluator is stored directly</span>
@@ -457,16 +455,13 @@
         <span class="c1"># 2. Evaluate (Delegated to translator)</span>
         <span class="n">fitness</span> <span class="o">=</span> <span class="n">eval_translator</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">key_eval</span><span class="p">)</span>
 
-        <span class="c1"># 3. Process metrics for objective direction</span>
-        <span class="n">maximize</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"maximize"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="n">tell_fitness</span> <span class="o">=</span> <span class="o">-</span><span class="n">fitness</span> <span class="k">if</span> <span class="n">maximize</span> <span class="k">else</span> <span class="n">fitness</span>
-
-        <span class="n">mean_fit</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">tell_fitness</span><span class="p">)</span>
-        <span class="n">std_fit</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">tell_fitness</span><span class="p">)</span>
-        <span class="n">best_fit_obj</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">tell_fitness</span><span class="p">)</span>
+        <span class="c1"># 3. Process metrics</span>
+        <span class="n">mean_fit</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
+        <span class="n">std_fit</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
+        <span class="n">best_fit_obj</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
 
         <span class="c1"># 4. Tell</span>
-        <span class="n">state</span><span class="p">,</span> <span class="n">metrics</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">tell</span><span class="p">(</span><span class="n">key_tell</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">tell_fitness</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">state</span><span class="p">,</span> <span class="n">metrics</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">tell</span><span class="p">(</span><span class="n">key_tell</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
         <span class="c1"># Pack metrics</span>
         <span class="n">metrics</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
@@ -623,6 +618,7 @@
         <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluator</span><span class="p">,</span>
         <span class="n">history_metrics</span><span class="o">=</span><span class="n">history_metrics</span><span class="p">,</span>
         <span class="n">use_python_loop</span><span class="o">=</span><span class="n">use_python_loop</span><span class="p">,</span>
+        <span class="n">backend_maximizes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>  <span class="c1"># type: ignore[call-arg]</span></div>
 
 </pre></div>
