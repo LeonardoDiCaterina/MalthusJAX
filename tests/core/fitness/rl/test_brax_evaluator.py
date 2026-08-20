@@ -104,7 +104,7 @@ def test_brax_evaluator_end_to_end_elitism(evaluator_and_genome_size):
     final_state, history, _ = engine.run(state)
 
     # In a stochastic environment (like Brax), elites are re-evaluated with a new key
-    # every generation to prevent overestimation. Therefore, their fitness is not 
+    # every generation to prevent overestimation. Therefore, their fitness is not
     # strictly monotonic. We just assert the engine ran successfully and history is populated.
     history_best = history.best_fitness
     assert history_best.shape == (5,)

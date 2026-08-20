@@ -21,12 +21,12 @@ from typing import Any, Dict, List, Tuple
 import jax
 import jax.numpy as jnp
 import numpy as np
+from malthusjax.engine.genetic_lightened import LightenedGeneticEngine
 
 from malthusjax.composer.evosax_adapter import build_evosax_engine
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-from malthusjax.engine.genetic_lightened import LightenedGeneticEngine
 from malthusjax.operators.crossover import UniformCrossover
 from malthusjax.operators.mutation import GaussianMutation
 from malthusjax.operators.selection import TournamentSelection

@@ -98,8 +98,6 @@ class EvosaxEngineAdapter:
             fit_init = jnp.zeros(getattr(self, "pop_size", 100))
             if problem is not None:
                 fit_init, p_state, _ = problem.eval(key, pop_init, p_state)
-                if getattr(self, "maximize", False):
-                    fit_init = -fit_init
                 self._framework_evaluator = (problem, p_state)  # Update state
         else:
             # For MalthusJAX mode, evaluator is stored directly
@@ -142,16 +140,13 @@ class EvosaxEngineAdapter:
         # 2. Evaluate (Delegated to translator)
         fitness = eval_translator(evaluator, population, state, key_eval)
 
-        # 3. Process metrics for objective direction
-        maximize = getattr(self, "maximize", False)
-        tell_fitness = -fitness if maximize else fitness
-
-        mean_fit = jnp.mean(tell_fitness)
-        std_fit = jnp.std(tell_fitness)
-        best_fit_obj = jnp.min(tell_fitness)
+        # 3. Process metrics
+        mean_fit = jnp.mean(fitness)
+        std_fit = jnp.std(fitness)
+        best_fit_obj = jnp.min(fitness)
 
         # 4. Tell
-        state, metrics = strategy.tell(key_tell, population, tell_fitness, state, params)
+        state, metrics = strategy.tell(key_tell, population, fitness, state, params)
 
         # Pack metrics
         metrics = dict(metrics)
@@ -306,4 +301,5 @@ def build_evosax_engine(
         evaluator=evaluator,
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
+        backend_maximizes=False,
     )  # type: ignore[call-arg]

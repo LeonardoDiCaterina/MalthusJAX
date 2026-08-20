@@ -336,7 +336,7 @@ def run_malthusjax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
     )
     best_history = [float(state.best_fitness)]
     # Inspect operators on the freshly-evaluated initial population
-    k_sel, k_cross, k_mut, k_next = engine._allocate_entropy(state)
+    k_sel, k_cross, k_mut, k_eval, k_next = engine._allocate_entropy(state)
     elites_genes, parent_indices = engine._selection_phase(
         k_sel, state.population, state.operators, engine.engine_params
     )
@@ -475,7 +475,9 @@ def replay_crossover_parity(args: argparse.Namespace) -> None:
         )
 
         live_state = engine.init_state(jr.PRNGKey(args.seed))
-        live_k_sel, live_k_cross, live_k_mut, live_k_next = engine._allocate_entropy(live_state)
+        live_k_sel, live_k_cross, live_k_mut, live_k_eval, live_k_next = engine._allocate_entropy(
+            live_state
+        )
         live_elites, live_parent_indices = engine._selection_phase(
             live_k_sel, live_state.population, live_state.operators, engine.engine_params
         )
@@ -605,7 +607,7 @@ def replay_selection_parity(args: argparse.Namespace) -> None:
 
     # Fetch the engine-allocated selection key slice so we can compare it
     # directly to the Evosax-derived parent draw keys used during capture.
-    alloc_k_sel, _, _, _ = engine._allocate_entropy(live_state)
+    alloc_k_sel, _, _, _, _ = engine._allocate_entropy(live_state)
 
     # Prefer using saved parent-draw keys from the trace when available.
     if "k_parent_keys" in data.files:
@@ -900,7 +902,7 @@ def compare_selection(
             best_genome=evaluated_population.genes[0],
             best_fitness=evaluated_population.fitness[0],
         )
-        k_sel, _, _, _ = engine._allocate_entropy(state_m)
+        k_sel, _, _, _, _ = engine._allocate_entropy(state_m)
         _, mj_parent_idx = engine._selection_phase(
             k_sel, state_m.population, state_m.operators, engine.engine_params
         )
@@ -1092,7 +1094,7 @@ def compare_mutation(
             best_genome=evaluated_population.genes[0],
             best_fitness=evaluated_population.fitness[0],
         )
-        _, k_cross, k_mut_keys, _ = engine._allocate_entropy(state_m)
+        _, k_cross, k_mut_keys, _, _ = engine._allocate_entropy(state_m)
         # Call operator
         mj_mut_pop = state_m.operators.mutation(
             k_mut_keys, evaluated_population, engine.genome_config, generation=0
@@ -1317,7 +1319,7 @@ def compare_crossover(
         p1_pop = evaluated_population.spawn_offspring(p1_genes, fitness=dummy_fitness)
         p2_pop = evaluated_population.spawn_offspring(p2_genes, fitness=dummy_fitness)
 
-        k_sel, k_cross_keys, k_mut_keys, k_next = engine._allocate_entropy(init_state)
+        k_sel, k_cross_keys, k_mut_keys, _, k_next = engine._allocate_entropy(init_state)
         # call the baked crossover operator — use the originating `k_cross` so the
         # wrapper's internal split matches Evosax's per-pair keys (parity test)
         mj_cross_off = init_state.operators.crossover(
@@ -1523,7 +1525,7 @@ def analyze_and_capture_crossover(
         dummy_fitness = jnp.zeros(pop_size)
         p1_pop = evaluated_population.spawn_offspring(p1_genes, fitness=dummy_fitness)
         p2_pop = evaluated_population.spawn_offspring(p2_genes, fitness=dummy_fitness)
-        k_sel, k_cross_keys, k_mut_keys, k_next = engine._allocate_entropy(init_state)
+        k_sel, k_cross_keys, k_mut_keys, _, k_next = engine._allocate_entropy(init_state)
         mj_cross_off = init_state.operators.crossover(
             jnp.expand_dims(k_cross, 0), p1_pop, p2_pop, engine.genome_config, generation=0
         )
@@ -1609,7 +1611,7 @@ def analyze_and_capture_crossover(
         dummy_fitness = jnp.zeros(pop_size)
         p1_pop = evaluated_population.spawn_offspring(p1_genes, fitness=dummy_fitness)
         p2_pop = evaluated_population.spawn_offspring(p2_genes, fitness=dummy_fitness)
-        k_sel, k_cross_keys, k_mut_keys, k_next = engine._allocate_entropy(init_state)
+        k_sel, k_cross_keys, k_mut_keys, _, k_next = engine._allocate_entropy(init_state)
         mj_cross_off = init_state.operators.crossover(
             jnp.expand_dims(k_cross, 0), p1_pop, p2_pop, engine.genome_config, generation=0
         )
