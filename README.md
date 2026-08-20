@@ -71,10 +71,21 @@ graph TD
     end
 
     subgraph core_layer[Core Layer]
-        base_engine --> genomes["Genomes: Real, Binary, Categorical"]
-        base_engine --> evaluators["Evaluators: Sphere, BBOB, MAP-Elites BDs"]
+        base_engine --> genomes["Genomes: Real, Binary, Categorical, Linear GP"]
+        base_engine --> evaluators["Evaluators: Sphere, Griewank, Box, Knapsack, BBOB, TSP"]
     end
 ```
+
+### Layer Specifications & Technical References
+
+Detailed reference documentation and architectural specifications for each package layer:
+
+- **[`malthusjax.core`](src/malthusjax/core/README.md)** — Core PyTree representations (`BaseGenome`, `BasePopulation`), PRNG key management (`random`), genome encodings (Real, Binary, Categorical, Linear), and objective evaluators.
+- **[`malthusjax.engine`](src/malthusjax/engine/README.md)** — Hardware-accelerated execution engines (`GeneticEngine`, `GeneticFastEngine`), multi-objective (`MOEngine`), and island models.
+- **[`malthusjax.composer`](src/malthusjax/composer/README.md)** — High-level experiment orchestration, string DSL parser, TOML loader, and statistical comparison framework.
+- **[`malthusjax.operators`](src/malthusjax/operators/README.md)** — Vectorized genetic operator library (Selection, Crossover, Mutation, Emitters).
+- **[`malthusjax.stats`](src/malthusjax/stats/README.md)** — Seed-aligned paired hypothesis testing (Wilcoxon, t-test, TOST), multiple-testing correction (Holm, FDR-BH), normality verification, and effect sizes.
+- **[`malthusjax.benchmarking`](src/malthusjax/benchmarking/README.md)** — Cross-framework statistical parity and performance benchmarking suites.
 
 ---
 
@@ -409,6 +420,7 @@ MalthusJAX lets you select the encoding best suited for your problem:
 | `real` | Continuous values in `[bounds]` | Continuous optimization | Gaussian/Polynomial Mutation, Blend/SBX Crossover |
 | `binary` | Bit strings (`0` / `1`) | Combinatorial selections | Bit-flip Mutation, Uniform/Single-Point Crossover |
 | `categorical` | Integer permutations | Sequence / Ordering | Swap/Scramble Mutation, Order-preserving Crossover |
+| `linear` *(WIP)* | DAG opcode/arg vectors | Linear Genetic Programming | DAG Interpreter (`linear_gp_evaluator`) |
 
 ### Combinatorial Optimization Example (0/1 Knapsack)
 

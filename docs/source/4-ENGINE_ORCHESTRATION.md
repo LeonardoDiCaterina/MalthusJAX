@@ -1,79 +1,109 @@
 # The Engine: Orchestration and Compilation
 
-The `malthusjax.engine` module implements Tier 2 of the framework. This tier orchestrates populations, fitness evaluators, and genetic operators into a fully compilable evolution loop using a **scan-based stateful architecture**. 
+The `malthusjax.engine` module provides the execution layer of MalthusJAX. It orchestrates population containers (`BasePopulation`), objective evaluators (`BaseEvaluator`), and genetic operators (`BaseSelection`, `BaseCrossover`, `BaseMutation`, `BaseEmitter`) into stateful execution loops using JAX transformations (`jax.lax.scan`, `jax.vmap`, `jax.jit`).
 
-The core design principle is **immutable state threading**: the evolution loop carries one opaque state object through `jax.lax.scan`, guaranteeing JAX traceability and JIT compilability to a single XLA kernel.
+All engine configurations use Flax `@struct.dataclass` PyTrees with static configuration fields marked `pytree_node=False`.
 
-The framework provides two execution modes: `step()` for iterative in-process evolution, and `ask()`/`tell()` for external fitness evaluation (e.g., remote simulations). Both modes preserve identical state semantics.
+---
 
-## 4.1. The ResourceMapper
+## 4.1. Execution State & Parameter Validation
 
-In the v2 architecture, the Engine heavily delegates PRNG key management to the `ResourceMapper`. 
+### Engine Parameters (`AbstractEngineParams`, `GeneticEngineParams`)
+Engine execution is governed by static dataclass configurations:
+- `pop_size: int` — Population size ($N > 0$).
+- `elitism: int` — Number of elite individuals preserved across generations ($0 \le \text{elitism} < \text{pop\_size}$).
+- `num_generations: int` — Total generational steps to execute ($N_\text{gen} > 0$).
+- `unroll_num: int` — Scan unroll factor (defaults to `1`; `compute_unroll_num()` returns `1` as scan unrolling is deprecated to prevent linear XLA IR growth).
+- `track_best: TrackBest` — IntEnum controlling Hall-of-Fame state tracking inside the scan carry:
+  - `TrackBest.NONE` (0): Zero extra ops in the scan carry per step; `best_genome` and `best_fitness` are populated post-scan from the final population.
+  - `TrackBest.LIGHT` (1, default): Tracks monotonic `best_fitness` in the carry using fusible `jnp.max` and `jnp.maximum` operations; `best_genome` is extracted post-scan via `jnp.argmax`.
+  - `TrackBest.FULL` (2): Tracks both `best_fitness` and `best_genome` in the carry every step using `jnp.max`, `jnp.argmax`, `Gather`, and element-wise `jnp.where`.
+- `track_metrics: TrackMetrics` — IntEnum controlling metric calculation (`NONE`, `BASIC`, `ALL`).
 
-At initialization, the `ResourceMapper` computes a deterministic resource allocation plan. It queries every operator in the pipeline for its `num_keys` requirement, and pre-computes where in the flat key array each operator's slice is located.
+Parameter boundaries are validated outside JIT context by `validate_engine_params(params)`, raising `ValueError` if constraints are violated.
 
-This pre-computation enables **zero-overhead key slicing** during each generation: the key derivation is done once, and operators receive their slices as pure inputs without dynamic lookup or recursion. The resource map is marked metadata (not traced), avoiding JAX overhead.
+### Evolution State (`AbstractEvolutionState`, `GeneticEvolutionState`)
+State is threaded through `jax.lax.scan` as an immutable PyTree carrying:
+- `population`: Current `BasePopulation[G]` container.
+- `best_genome`: `BaseGenome` PyTree of the best solution found so far.
+- `best_fitness`: Scalar array tracking best fitness score.
+- `generation`: Integer step counter.
+- `rng_key`: Master 2-element PRNG key for key derivation.
+- `resource_map`: Pre-computed `ResourceMap` execution plan (`GeneticEvolutionState`).
+- `operators`: Frozen `OperatorState` dataclass containing initialized operators (`GeneticEvolutionState`).
 
-Two strategies are available for generating the per-generation key block:
-- **SPLIT**: Sequential hash chain (`jax.random.split`), lower memory but sequential parallelism.
-- **FOLD**: Fully parallel (`vmap(fold_in)`), higher memory overhead but deterministic and seekable.
+Deep copying of state PyTrees (to avoid JAX buffer donation conflicts across multi-seed runs) is provided via `state.copy()`.
 
-## 4.2. Generational Loop Architecture: The Baseline GA
+---
 
-The baseline `GeneticEngine` orchestrates a standard generational loop. Each call to `step(state)` executes one generation in five phases:
+## 4.2. PRNG Key Allocation & `ResourceMapper`
 
-### 4.2.1. Phase 0 — Entropy Allocation
-The PRNG key is partitioned using the pre-computed `ResourceMapper` table. Operators receive ready-to-use key blocks.
+Key budgeting and data-flow shapes are pre-calculated during `init_state` by `compute_resource_map(...)`.
 
-### 4.2.2. Phase 1 — Selection
-Selection operators read the Population's fitness vector and return parent and elite index arrays. Crucially, elitism creates a structural partition in the batch dimension.
+### `ResourceMap`
+The `ResourceMap` pre-allocates contiguous slices inside a flat master key tensor for each pipeline stage (`selection`, `crossover`, `mutation`, `evaluation`, `next_key`), preventing dynamic key allocation during scan execution.
 
-### 4.2.3. Phase 2 — Reproduction
-The `Population` is bridged to the Tier-3 operator mechanism (`tree_leaves`). Parent pairs are gathered; crossover and mutation apply unbounded noise. The payload is snapped back to valid bounds via `autocorrect()`, and a new offspring Population is spawned.
+Key derivation strategies (`KeyDerivationStrategy`):
+- `SPLIT` (`KeyDerivationStrategy.SPLIT`): Derives keys sequentially via `jax.random.split(master_key, total_rng_budget)`.
+- `FOLD` (`KeyDerivationStrategy.FOLD`): Derives keys in parallel by mapping `jax.random.fold_in` over integer indices (`jnp.arange(total_rng_budget)`) via `jax.vmap`.
+  > **Backend Constraint**: `KeyDerivationStrategy.FOLD` is incompatible with `rbg` and `unsafe_rbg` PRNG backends and raises a `ValueError` if selected with those backends.
 
-### 4.2.4. Phase 3a — Merge
-Elite genes and mutated offspring are combined into the next-generation population using JAX's `dynamic_update_slice`. This permits XLA to reuse the old population buffer in-place through buffer donation.
+### `ShardingManager`
+Multi-device and layout management is handled by `ShardingManager`, which constructs a JAX `Mesh` along a designated `batch` axis. It applies `NamedSharding` with `PartitionSpec("batch", None)` to shard population matrices across devices via `jax.device_put`.
 
-### 4.2.5. Phase 3b — Evaluate
-The merged population is evaluated, updating the `fitness` vector.
+---
 
-## 4.3. Multi-Objective Orchestration (NSGA-II)
+## 4.3. Generational Loop Architecture (`GeneticEngine`)
 
-The `MOEngine` orchestrates Multi-Objective optimization. It differs from the baseline GA by overriding the `Selection` and `Merge` phases.
+`GeneticEngine` executes standard evolutionary optimization. Each call to `step(state)` executes 5 distinct phases:
 
-In MO, fitness is a vector of objectives. The engine uses **Non-Dominated Sorting** and **Crowding Distance** to rank the population.
+1. **Phase 0 — Entropy Allocation (`_allocate_entropy`)**:
+   Slices the pre-allocated master PRNG key buffer using `ResourceMap.get_key_slice` into subkeys for selection, crossover, mutation, evaluation, and the next-generation seed.
+2. **Phase 1 — Selection (`_selection_phase`)**:
+   Invokes `selection(key, population)` to compute `parent_indices` (length `num_selections`) and `elite_indices` (length `elitism`).
+3. **Phase 2 — Reproduction (`_reproduction_phase`)**:
+   Calls `crossover(k_cross, p1_pop, p2_pop, config, generation)` to generate recombined offspring, followed by `mutation(k_mut, offspring_pop, config, generation)`. Dynamic mutation strength scheduling is computed via `compute_scheduled_strength` (`ScheduleType`: `CONSTANT`, `LINEAR_DECAY`, `COSINE_ANNEAL`, `EXPONENTIAL_DECAY`).
+4. **Phase 3 — Merge (`_merge_phase`)**:
+   When `elitism > 0`, combines elite parent genomes with mutated offspring genomes into a unified population container of size `pop_size` using array concatenation (`jnp.concatenate` / `tree_map`).
+5. **Phase 4 — Evaluation & State Update (`_evaluation_phase`)**:
+   Scores the population via `dispatch_evaluate_population(evaluator, population, k_eval)` and updates the Hall-of-Fame state according to `TrackBest`.
 
-1. **Merge (Elitism)**: Instead of a strict elite partition, the MO engine merges the entire parent population ($N$) and the offspring population ($N$) into a combined pool of size $2N$.
-2. **Ranking**: It computes Pareto ranks and crowding distances for the $2N$ pool.
-3. **Truncation**: It truncates the pool back to size $N$ by selecting the best Pareto fronts, using crowding distance as a tie-breaker for the final front.
+### Execution Modes
+- **Scan-based Loop (`run`)**: Wraps `step` inside `jax.lax.scan` for in-process execution over `num_generations` steps.
+- **Ask/Tell Interface (`ask`, `tell`)**:
+  - `ask(state)`: Allocates entropy, increments the generation counter, and returns `(state_with_entropy, population.genes)` for external evaluation.
+  - `tell(state, evaluated_population)`: Receives externally evaluated fitness scores, updates population fitness, and performs Hall-of-Fame state tracking.
 
-This state tracking (ranks, distances) is securely stored in the specialized `MOPopulation` container.
+---
 
-## 4.4. Quality-Diversity Orchestration (MAP-Elites)
+## 4.4. Multi-Objective Engine (`MOEngine`)
 
-The `QDEngine` orchestrates Quality-Diversity search, specifically MAP-Elites. Instead of a linear population, it maintains an **Archive** of behaviorally diverse elites.
+`MOEngine` implements Multi-Objective optimization under the NSGA-II paradigm:
+- **Architecture**: Operates via `BaseEmitter`, `BaseMOEvaluator`, and `MOPopulation`.
+- **Pareto Elitism**: `MOPopulation` maintains Pareto ranks and crowding distances across combined parent ($\mu$) and offspring ($\lambda$) pools.
+- **KPI Output (`MOGenerationOutput`)**: Reports `num_pareto_optimal` (number of rank-0 non-dominated solutions) and `max_crowding_distance`. `best_fitness` reports the objective-0 score of the primary Pareto individual.
 
-1. **Evaluation**: Evaluators return both a `fitness` scalar and a `descriptor` vector.
-2. **Mapping**: The engine maps the `descriptor` to a discrete cell index in the Archive.
-3. **Archive Update**: If the new individual maps to an empty cell, or has better fitness than the existing occupant, it replaces them. The Archive is maintained as a static-sized buffer using `dynamic_update_slice`.
-4. **Selection**: Parents are sampled uniformly from occupied cells in the Archive.
+---
 
-The `QDPopulation` container safely tracks `descriptors` and `cell_indices` during this process.
+## 4.5. Quality-Diversity Engine (`MapElitesEngine`)
 
-## 4.5. The Island Model (Distributed Topology)
+`MapElitesEngine` orchestrates MAP-Elites Quality-Diversity optimization:
+- **Grid Container**: Integrates `BaseEmitter`, `BaseQDEvaluator`, and QDAX's `MapElitesRepertoire` grid structure.
+- **External Dependency**: Requires the `qdax` Python package (`from qdax.core.containers.mapelites_repertoire import MapElitesRepertoire`). Raises an `ImportError` if `qdax` is not installed in the Python environment.
+- **KPI Output (`QDGenerationOutput`)**: Reports `qd_score` (sum of fitnesses across all filled archive cells) and `coverage` (fraction of filled grid cells).
 
-The `IslandModelEngine` orchestrates parallel evolution across multiple sub-populations ("islands"). It introduces a structural **Migration** phase.
+---
 
-At fixed intervals (the migration epoch), islands exchange individuals based on a specific topology (e.g., Ring, Fully Connected) and a migration policy (e.g., Best replaces Worst, Random replaces Random). 
+## 4.6. Distributed Island Models (`BaseIslandModel`)
 
-To ensure GSPMD compatibility and avoid dynamic routing overhead, migration is implemented using deterministic permutations (`jax.numpy.take` with static indices) across the island dimension. This allows XLA to optimize cross-device communication via collective communication primitives (like `AllGather` or `Permute`).
+`BaseIslandModel` upgrades any 1D engine into a 2D multi-island model by wrapping engine methods in `jax.vmap` across an island dimension of size `num_islands`.
 
-## 4.6. Operator-Level Personalization and Scheduling
+### Host Synchronization Execution Pattern
+`BaseIslandModel.step()` executes using a hybrid JAX/Python loop:
+1. **Local Evolution**: Runs `self.engine.step` across all islands in parallel for `migration_interval` generations using `jax.vmap` over an inner `jax.lax.scan`.
+2. **Host Dropout & Migration**: Drops out of JAX execution back to the Python host to execute `migrate(key, multi_pop)`.
+3. **Re-injection**: Re-injects the migrated population PyTree into the island state and launches the next JAX execution kernel.
 
-Operators accept an optional generation counter as a parameter, enabling time-dependent behavior (e.g., mutation rate decay, crossover bias modulation). Scheduling functions are pure JAX, compiled into the kernel, and safe inside `jax.lax.scan`. 
-
-Schedule types include:
-- **CONSTANT**: Time-independent (baseline)
-- **LINEAR_DECAY**: Strength decreases linearly
-- **COSINE_ANNEAL**: Cosine annealing schedule
-- **EXPONENTIAL_DECAY**: Exponential decay schedule
+### Topological Migration Policies (`topologies.py`)
+- **`RingTopologyIsland`**: Sorts fitness per island, extracts the top `num_migrants` elites, shifts elite tensors to the adjacent island via `jnp.roll(arr, shift=1, axis=0)`, and overwrites the worst `num_migrants` individuals in the destination island.
+- **`FullyConnectedIsland`**: Extracts top elites across all islands into a flat pool of size `num_islands * num_migrants`, shuffles them globally using `jax.random.permutation`, and redistributes them back into the worst slots of each island.
