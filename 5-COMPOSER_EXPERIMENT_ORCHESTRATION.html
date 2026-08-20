@@ -196,7 +196,11 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Experiment Orchestration via Composer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
@@ -318,320 +322,169 @@
         <article role="main" id="furo-main-content">
           <section id="experiment-orchestration-via-composer">
 <h1>Experiment Orchestration via Composer<a class="headerlink" href="#experiment-orchestration-via-composer" title="Link to this heading">¶</a></h1>
-<p>This section covers the <code class="docutils literal notranslate"><span class="pre">malthusjax.composer</span></code> module, which provides a high-level, config-driven interface for running evolutionary experiments. Rather than manually instantiating operators, engines, and fitness functions, users can describe experiments via string specifications or TOML files and let Composer resolve the details. This section bridges the gap between low-level operator/engine APIs and user-facing experiment workflows.</p>
-<section id="the-composer-pattern-config-driven-ga-runs">
-<h2>5.1. The Composer Pattern: Config-Driven GA Runs<a class="headerlink" href="#the-composer-pattern-config-driven-ga-runs" title="Link to this heading">¶</a></h2>
-<p>Composer abstracts the complexity of engine construction, operator composition, and fitness evaluation behind a simple <code class="docutils literal notranslate"><span class="pre">quick_run()</span></code> method. It supports multiple backends (MalthusJAX native, QDAX, evosax, TensorNEAT) and provides sensible defaults for population size, generations, and mutation schedules.</p>
-<section id="the-composer-class-and-quick-run-entry-point">
-<h3>5.1.1. The Composer Class and quick_run() Entry Point<a class="headerlink" href="#the-composer-class-and-quick-run-entry-point" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Providing a minimal, product-first interface for launching experiments.</p>
-<p><strong>Knowledge Point:</strong> Core method signature, parameter resolution, backend dispatch, and integration with BenchmarkRunner.</p>
-<p>Prose to be written:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">malthusjax.composer</span></code> module provides high-level experiment orchestration. It abstracts low-level engine construction, operator composition, and seed loop iteration into declarative configuration files (TOML) or programmatic entry points (<code class="docutils literal notranslate"><span class="pre">quick_run()</span></code>, <code class="docutils literal notranslate"><span class="pre">compare()</span></code>, <code class="docutils literal notranslate"><span class="pre">from_toml()</span></code>).</p>
+<hr class="docutils" />
+<section id="the-composer-entry-points">
+<h2>5.1. The Composer Entry Points<a class="headerlink" href="#the-composer-entry-points" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Composer</span></code> class (<code class="docutils literal notranslate"><span class="pre">composer.py</span></code>) provides three primary entry points:</p>
+<section id="interactive-exploration-quick-run">
+<h3>5.1.1. Interactive Exploration (<code class="docutils literal notranslate"><span class="pre">quick_run</span></code>)<a class="headerlink" href="#interactive-exploration-quick-run" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Composer.quick_run()</span></code> runs an evolutionary experiment across multiple random seeds using string-based operator specifications or pre-constructed engines.</p>
+<p>Key arguments:</p>
 <ul class="simple">
-<li><p>Role of Composer as the top-level orchestrator</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">quick_run()</span></code> as the main user-facing API</p></li>
-<li><p>Support for external adapters alongside native engines</p></li>
-<li><p>How Composer resolves operator specs → operator instances</p></li>
-<li><p>Integration with BenchmarkRunner for multi-seed experiments</p></li>
-<li><p>Return value (ExperimentResult) and its contents</p></li>
-<li><p>Example: basic <code class="docutils literal notranslate"><span class="pre">quick_run()</span></code> call with minimal arguments</p></li>
-<li><p>Example: specifying custom operators and fitness functions via strings</p></li>
-<li><p>Fallback to StubEngine when operators are not provided</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fitness:</span> <span class="pre">Optional[str]</span></code> — Fitness function spec (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;sphere:dim=10&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;bbob:fn_name=sphere,dim=10&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;knapsack:capacity=100,num_items=20&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">selection:</span> <span class="pre">Optional[str]</span></code> — Selection spec (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;tournament:num_selections=25,tournament_size=3&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">crossover:</span> <span class="pre">Optional[str]</span></code> — Crossover spec (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;blend:alpha=0.5&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mutation:</span> <span class="pre">Optional[str]</span></code> — Mutation spec (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;gaussian:mutation_rate=0.1,mutation_strength=0.1&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend:</span> <span class="pre">str</span></code> — Execution backend (<code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code> [default], <code class="docutils literal notranslate"><span class="pre">&quot;evosax&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;qdax&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tensorneat&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pop_size:</span> <span class="pre">int</span></code> (default 50), <code class="docutils literal notranslate"><span class="pre">generations:</span> <span class="pre">int</span></code> (default 100), <code class="docutils literal notranslate"><span class="pre">elitism:</span> <span class="pre">int</span></code> (default 2).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seeds:</span> <span class="pre">Sequence[int]</span></code> — Random seed list (default <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3)</span></code>). Normalized via <code class="docutils literal notranslate"><span class="pre">_normalize_seeds()</span></code>.</p></li>
+</ul>
+<p>Returns an <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> containing per-seed <code class="docutils literal notranslate"><span class="pre">RunResult</span></code> outputs and aggregated statistics (<code class="docutils literal notranslate"><span class="pre">aggregated_summary()</span></code>).</p>
+</section>
+<section id="toml-driven-experiments-from-toml">
+<h3>5.1.2. TOML-Driven Experiments (<code class="docutils literal notranslate"><span class="pre">from_toml</span></code>)<a class="headerlink" href="#toml-driven-experiments-from-toml" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Composer.from_toml(path)</span></code> parses a declarative TOML configuration via <code class="docutils literal notranslate"><span class="pre">load_experiment_config(path)</span></code> and executes all declared pipelines, preserving shared parameters and random seeds across pipeline comparisons. Returns a <code class="docutils literal notranslate"><span class="pre">ComparisonResult</span></code>.</p>
+</section>
+<section id="programmatic-comparison-compare">
+<h3>5.1.3. Programmatic Comparison (<code class="docutils literal notranslate"><span class="pre">compare</span></code>)<a class="headerlink" href="#programmatic-comparison-compare" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Composer.compare(pipelines={...},</span> <span class="pre">fitness=...,</span> <span class="pre">pop_size=...,</span> <span class="pre">seeds=...)</span></code> runs multiple pipeline parameter dictionaries side-by-side using aligned initial populations and seeds. Returns a <code class="docutils literal notranslate"><span class="pre">ComparisonResult</span></code> with statistical tables (<code class="docutils literal notranslate"><span class="pre">summary_table()</span></code>) and convergence plotting tools (<code class="docutils literal notranslate"><span class="pre">plot_convergence()</span></code>).</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="catalog-string-specification-resolution">
+<h2>5.2. Catalog &amp; String Specification Resolution<a class="headerlink" href="#catalog-string-specification-resolution" title="Link to this heading">¶</a></h2>
+<p>Composer maps human-readable string specifications to instantiated PyTree objects using regex key-value parsing (<code class="docutils literal notranslate"><span class="pre">key1=val1,key2=val2</span></code>).</p>
+<section id="operatorcatalog-catalog-py">
+<h3>5.2.1. <code class="docutils literal notranslate"><span class="pre">OperatorCatalog</span></code> (<code class="docutils literal notranslate"><span class="pre">catalog.py</span></code>)<a class="headerlink" href="#operatorcatalog-catalog-py" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">OperatorCatalog</span></code> resolves operator string specs:</p>
+<ul class="simple">
+<li><p>Regex format: <code class="docutils literal notranslate"><span class="pre">&quot;operator_name:param1=value1,param2=value2&quot;</span></code></p></li>
+<li><p>Parameter coercion: Automagically converts numeric strings to <code class="docutils literal notranslate"><span class="pre">int</span></code> or <code class="docutils literal notranslate"><span class="pre">float</span></code> and booleans to <code class="docutils literal notranslate"><span class="pre">bool</span></code>.</p></li>
+<li><p>API methods: <code class="docutils literal notranslate"><span class="pre">get_selection(spec)</span></code>, <code class="docutils literal notranslate"><span class="pre">get_crossover(spec)</span></code>, <code class="docutils literal notranslate"><span class="pre">get_mutation(spec)</span></code>, <code class="docutils literal notranslate"><span class="pre">list_operators()</span></code>.</p></li>
 </ul>
 </section>
-<section id="default-configurations-and-parameter-inheritance">
-<h3>5.1.2. Default Configurations and Parameter Inheritance<a class="headerlink" href="#default-configurations-and-parameter-inheritance" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Establishing sensible defaults and allowing hierarchical parameter override.</p>
-<p><strong>Knowledge Point:</strong> Default population size, generations, mutation rates; how –shared– configs in TOML are inherited by individual pipelines; override precedence (explicit &gt; pipeline &gt; shared &gt; global defaults).</p>
-<p>Prose to be written:</p>
+<section id="custom-component-decorators-decorators-py">
+<h3>5.2.2. Custom Component Decorators (<code class="docutils literal notranslate"><span class="pre">decorators.py</span></code>)<a class="headerlink" href="#custom-component-decorators-decorators-py" title="Link to this heading">¶</a></h3>
+<p>Users can extend the catalog dynamically using registry decorators:</p>
 <ul class="simple">
-<li><p>Rationale for defaults (small pop sizes for fast iteration, standard mutation rates)</p></li>
-<li><p>Multi-level configuration hierarchy (global, shared, pipeline, inline)</p></li>
-<li><p>Merging strategy and precedence rules</p></li>
-<li><p>How to override defaults at different levels</p></li>
-<li><p>Example: TOML with shared section and pipeline overrides</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;register_selection(name=&quot;...&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;register_crossover(name=&quot;...&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;register_mutation(name=&quot;...&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;register_fitness(name=&quot;...&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;register_engine(name=&quot;...&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;register_genome(name=&quot;...&quot;)</span></code></p></li>
 </ul>
 </section>
-<section id="multi-seed-experiment-orchestration">
-<h3>5.1.3. Multi-Seed Experiment Orchestration<a class="headerlink" href="#multi-seed-experiment-orchestration" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Running the same algorithm configuration across multiple random seeds to gather statistics.</p>
-<p><strong>Knowledge Point:</strong> Seed sequences, parallel/sequential execution modes, aggregation of results into ExperimentResult.</p>
-<p>Prose to be written:</p>
+<section id="engineregistry-engine-catalog-py">
+<h3>5.2.3. <code class="docutils literal notranslate"><span class="pre">EngineRegistry</span></code> (<code class="docutils literal notranslate"><span class="pre">engine_catalog.py</span></code>)<a class="headerlink" href="#engineregistry-engine-catalog-py" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">EngineRegistry</span></code> maps engine type keywords to concrete engine factory builders:</p>
 <ul class="simple">
-<li><p>Role of BenchmarkRunner in multi-seed loops</p></li>
-<li><p>Reproducibility guarantees (same seed → same trajectory)</p></li>
-<li><p>Aggregation of per-seed histories and fitness traces</p></li>
-<li><p>Progress tracking (tqdm integration)</p></li>
-<li><p>Example: running 10 seeds and analyzing fitness convergence</p></li>
-</ul>
-</section>
-</section>
-<section id="operator-catalog-string-specification-resolution">
-<h2>5.2. Operator Catalog: String Specification Resolution<a class="headerlink" href="#operator-catalog-string-specification-resolution" title="Link to this heading">¶</a></h2>
-<p>The OperatorCatalog maps string specifications (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;tournament:tournament_size=4&quot;</span></code>) to operator instances. This decouples user code from direct imports and enables runtime operator selection.</p>
-<section id="catalog-registration-and-lookup">
-<h3>5.2.1. Catalog Registration and Lookup<a class="headerlink" href="#catalog-registration-and-lookup" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Dynamic operator discovery and factory registration.</p>
-<p><strong>Knowledge Point:</strong> How operator packages self-register at import time; the global registry and its forward-compatibility guarantees.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Self-registration pattern in each operator subpackage <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code></p></li>
-<li><p>Lazy import enforcement in <code class="docutils literal notranslate"><span class="pre">_ensure_registered()</span></code></p></li>
-<li><p>Registry structure and lookup semantics</p></li>
-<li><p>How custom operators can be registered via <code class="docutils literal notranslate"><span class="pre">catalog.register()</span></code></p></li>
-<li><p>Example: registering a custom selection operator</p></li>
-<li><p>Compatibility guarantees (new operators don’t break old code)</p></li>
-</ul>
-</section>
-<section id="string-specification-parsing-and-parameter-binding">
-<h3>5.2.2. String Specification Parsing and Parameter Binding<a class="headerlink" href="#string-specification-parsing-and-parameter-binding" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Parsing user-facing operator specs into instantiated, configured objects.</p>
-<p><strong>Knowledge Point:</strong> Regular expression parsing of <code class="docutils literal notranslate"><span class="pre">operator_type:param1=val1,param2=val2</span></code> format; type coercion; validation.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Format: <code class="docutils literal notranslate"><span class="pre">operator_name:key1=val1,key2=val2</span></code></p></li>
-<li><p>Type induction (string → int/float/bool)</p></li>
-<li><p>Parameter validation (out-of-range checks, conflicting settings)</p></li>
-<li><p>Getting help/documentation for an operator via <code class="docutils literal notranslate"><span class="pre">catalog.get_help()</span></code></p></li>
-<li><p>Example: parsing <code class="docutils literal notranslate"><span class="pre">&quot;simulated_binary:eta=20,cprob=0.9&quot;</span></code></p></li>
-<li><p>Example: listing all available operators and their signatures</p></li>
-</ul>
-</section>
-<section id="fitness-evaluator-resolution">
-<h3>5.2.3. Fitness Evaluator Resolution<a class="headerlink" href="#fitness-evaluator-resolution" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Using the same catalog pattern for fitness functions.</p>
-<p><strong>Knowledge Point:</strong> Registration of continuous tests (Sphere, Rastrigin, BBOB), discrete tests, and custom evaluators.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Fitness evaluators follow the same catalog pattern</p></li>
-<li><p>Built-in BBOB integration via <code class="docutils literal notranslate"><span class="pre">BBOBEvaluator</span></code></p></li>
-<li><p>Custom evaluator registration</p></li>
-<li><p>Example: <code class="docutils literal notranslate"><span class="pre">&quot;rastrigin:dim=30&quot;</span></code></p></li>
-<li><p>Example: <code class="docutils literal notranslate"><span class="pre">&quot;bbob:fn_name=sphere,dim=10&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;ga&quot;</span></code> — Standard <code class="docutils literal notranslate"><span class="pre">GeneticEngine</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;mo&quot;</span></code> — Multi-Objective <code class="docutils literal notranslate"><span class="pre">MOEngine</span></code> (NSGA-II).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;qd&quot;</span></code> — Quality-Diversity <code class="docutils literal notranslate"><span class="pre">MapElitesEngine</span></code> (requires <code class="docutils literal notranslate"><span class="pre">qdax</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;island&quot;</span></code> — Distributed <code class="docutils literal notranslate"><span class="pre">BaseIslandModel</span></code> (<code class="docutils literal notranslate"><span class="pre">RingTopologyIsland</span></code>, <code class="docutils literal notranslate"><span class="pre">FullyConnectedIsland</span></code>).</p></li>
 </ul>
 </section>
 </section>
-<section id="configuration-loading-toml-driven-experiments">
-<h2>5.3. Configuration Loading: TOML-Driven Experiments<a class="headerlink" href="#configuration-loading-toml-driven-experiments" title="Link to this heading">¶</a></h2>
-<p>Composer supports TOML files for declaring multi-pipeline experiments. A TOML file specifies shared defaults, separate pipeline configurations, and seeds/output directories.</p>
-<section id="toml-schema-and-experiment-structure">
-<h3>5.3.1. TOML Schema and Experiment Structure<a class="headerlink" href="#toml-schema-and-experiment-structure" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Declarative experiment definition without code.</p>
-<p><strong>Knowledge Point:</strong> Expected TOML structure (<code class="docutils literal notranslate"><span class="pre">[experiment]</span></code>, <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>, <code class="docutils literal notranslate"><span class="pre">[pipelines.*]</span></code>); field meanings and types.</p>
-<p>Prose to be written:</p>
+<hr class="docutils" />
+<section id="declarative-toml-experiment-loading">
+<h2>5.3. Declarative TOML Experiment Loading<a class="headerlink" href="#declarative-toml-experiment-loading" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">load_experiment_config(path)</span></code> function (<code class="docutils literal notranslate"><span class="pre">config.py</span></code>) loads TOML files using <code class="docutils literal notranslate"><span class="pre">tomllib</span></code> (Python 3.11+) or <code class="docutils literal notranslate"><span class="pre">tomli</span></code>.</p>
+<section id="verified-toml-schema">
+<h3>Verified TOML Schema<a class="headerlink" href="#verified-toml-schema" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>TOML sections: <code class="docutils literal notranslate"><span class="pre">[experiment]</span></code>, <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>, <code class="docutils literal notranslate"><span class="pre">[pipelines.pipeline_name]</span></code></p></li>
-<li><p>Metadata keys: <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">output_dir</span></code>, <code class="docutils literal notranslate"><span class="pre">seeds</span></code></p></li>
-<li><p>Shared defaults section: <code class="docutils literal notranslate"><span class="pre">fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">pop_size</span></code>, <code class="docutils literal notranslate"><span class="pre">generations</span></code>, <code class="docutils literal notranslate"><span class="pre">genome_length</span></code>, <code class="docutils literal notranslate"><span class="pre">bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">prng_impl</span></code>, etc.</p></li>
-<li><p>Per-pipeline overrides: <code class="docutils literal notranslate"><span class="pre">selection</span></code>, <code class="docutils literal notranslate"><span class="pre">crossover</span></code>, <code class="docutils literal notranslate"><span class="pre">mutation</span></code>, <code class="docutils literal notranslate"><span class="pre">backend</span></code>, <code class="docutils literal notranslate"><span class="pre">engine_type</span></code></p></li>
-<li><p>Type coercion in TOML parsing</p></li>
-<li><p>Example TOML: declaring a multi-pipeline comparison (e.g., Tournament vs. Roulette vs. Elite Pool)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[experiment]</span></code>: Top-level metadata.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">str</span></code> — Experiment identifier.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_dir:</span> <span class="pre">str</span></code> — Directory for saving output JSON files.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>: Shared baseline configuration merged into all pipelines.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">fitness:</span> <span class="pre">str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pop_size:</span> <span class="pre">int</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generations:</span> <span class="pre">int</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">genome_length:</span> <span class="pre">int</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bounds:</span> <span class="pre">list</span></code> (automatically cast to tuple <code class="docutils literal notranslate"><span class="pre">(min_b,</span> <span class="pre">max_b)</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seeds:</span> <span class="pre">list</span></code> (automatically cast to tuple)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prng_impl:</span> <span class="pre">str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elitism:</span> <span class="pre">int</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maximize:</span> <span class="pre">bool</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[pipelines.&lt;pipeline_name&gt;]</span></code>: Pipeline-specific configuration overrides.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend:</span> <span class="pre">str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">engine_type:</span> <span class="pre">str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">selection:</span> <span class="pre">str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">crossover:</span> <span class="pre">str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mutation:</span> <span class="pre">str</span></code></p></li>
+</ul>
+</li>
 </ul>
 </section>
-<section id="parsing-and-merging-strategies">
-<h3>5.3.2. Parsing and Merging Strategies<a class="headerlink" href="#parsing-and-merging-strategies" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Loading TOML and resolving parameter precedence.</p>
-<p><strong>Knowledge Point:</strong> Functions <code class="docutils literal notranslate"><span class="pre">load_experiment_config()</span></code> and <code class="docutils literal notranslate"><span class="pre">load_config()</span></code>; merging logic.</p>
-<p>Prose to be written:</p>
+<section id="verified-worked-toml-example">
+<h3>Verified Worked TOML Example<a class="headerlink" href="#verified-worked-toml-example" title="Link to this heading">¶</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment]</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"crossover_comparison"</span>
+<span class="n">output_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"results/crossover_comparison"</span>
+
+<span class="k">[experiment.shared]</span>
+<span class="n">fitness</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"sphere:dim=10"</span>
+<span class="n">pop_size</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span>
+<span class="n">generations</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span>
+<span class="n">genome_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+<span class="n">bounds</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">-5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">]</span>
+<span class="n">seeds</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="mi">43</span><span class="p">,</span><span class="w"> </span><span class="mi">44</span><span class="p">]</span>
+<span class="n">prng_impl</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"threefry2x32"</span>
+<span class="n">elitism</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="n">maximize</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+
+<span class="k">[pipelines.blend_ga]</span>
+<span class="n">backend</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"malthusjax"</span>
+<span class="n">engine_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ga"</span>
+<span class="n">selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"tournament:num_selections=25,tournament_size=3"</span>
+<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"blend:alpha=0.5"</span>
+<span class="n">mutation</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"gaussian:mutation_rate=0.1,mutation_strength=0.1"</span>
+
+<span class="k">[pipelines.sbx_ga]</span>
+<span class="n">backend</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"malthusjax"</span>
+<span class="n">engine_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ga"</span>
+<span class="n">selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"tournament:num_selections=25,tournament_size=3"</span>
+<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"simulated_binary:eta=20.0"</span>
+<span class="n">mutation</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"polynomial:mutation_rate=0.1,eta=20.0"</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="external-framework-adapters">
+<h2>5.4. External Framework Adapters<a class="headerlink" href="#external-framework-adapters" title="Link to this heading">¶</a></h2>
+<p>Composer provides universal adapter builders to run external libraries under the unified <code class="docutils literal notranslate"><span class="pre">Engine</span></code> benchmark interface (<code class="docutils literal notranslate"><span class="pre">run_once(key)</span> <span class="pre">-&gt;</span> <span class="pre">Dict</span></code> returning <code class="docutils literal notranslate"><span class="pre">&quot;history&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;summary&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;timings&quot;</span></code>):</p>
 <ul class="simple">
-<li><p>Parsing via <code class="docutils literal notranslate"><span class="pre">tomllib</span></code> (Python 3.11+) or <code class="docutils literal notranslate"><span class="pre">tomli</span></code> backport</p></li>
-<li><p>Loading a specific pipeline from the TOML</p></li>
-<li><p>Merging strategy: shared → pipeline → inline kwargs</p></li>
-<li><p>Handling missing fields and defaults</p></li>
-<li><p>Example: loading and running all pipelines from a TOML file</p></li>
+<li><p><strong>EvoSAX Adapter (<code class="docutils literal notranslate"><span class="pre">evosax_adapter.py</span></code>)</strong>: <code class="docutils literal notranslate"><span class="pre">build_evosax_engine()</span></code> wraps EvoSAX strategies (e.g. <code class="docutils literal notranslate"><span class="pre">SimpleGA</span></code>, <code class="docutils literal notranslate"><span class="pre">CMA_ES</span></code>) into <code class="docutils literal notranslate"><span class="pre">UniversalAdapterEngine</span></code>.</p></li>
+<li><p><strong>QDAX Adapter (<code class="docutils literal notranslate"><span class="pre">qdax_adapter.py</span></code>)</strong>: <code class="docutils literal notranslate"><span class="pre">build_qdax_engine()</span></code> wraps QDAX emitters, repertoires, and metrics into <code class="docutils literal notranslate"><span class="pre">UniversalAdapterEngine</span></code>.</p></li>
+<li><p><strong>TensorNEAT Adapter (<code class="docutils literal notranslate"><span class="pre">tensorneat_adapter.py</span></code>)</strong>: <code class="docutils literal notranslate"><span class="pre">build_tensorneat_engine()</span></code> wraps TensorNEAT algorithm and problem instances into <code class="docutils literal notranslate"><span class="pre">UniversalAdapterEngine</span></code>.</p></li>
+<li><p><strong>Kozax Adapter (<code class="docutils literal notranslate"><span class="pre">kozax_adapter.py</span></code>)</strong>: <code class="docutils literal notranslate"><span class="pre">build_kozax_engine()</span></code> wraps Kozax GP strategies into <code class="docutils literal notranslate"><span class="pre">UniversalAdapterEngine</span></code>.</p></li>
 </ul>
 </section>
-<section id="reproducibility-and-artifact-organization">
-<h3>5.3.3. Reproducibility and Artifact Organization<a class="headerlink" href="#reproducibility-and-artifact-organization" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Ensuring experiments are reproducible and outputs are organized.</p>
-<p><strong>Knowledge Point:</strong> Output directory structure, result file naming, trace directories, PRNG backend specification.</p>
-<p>Prose to be written:</p>
+<hr class="docutils" />
+<section id="results-benchmark-integration">
+<h2>5.5. Results &amp; Benchmark Integration<a class="headerlink" href="#results-benchmark-integration" title="Link to this heading">¶</a></h2>
+<p>Composer connects engines to <code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code> (<code class="docutils literal notranslate"><span class="pre">benchmarking</span></code> package):</p>
 <ul class="simple">
-<li><p>Output directory layout: results/, artifacts/, traces/</p></li>
-<li><p>Seed-level organization (one subdirectory per seed)</p></li>
-<li><p>Result file formats (JSON summary, CSV histories, HDF5 traces)</p></li>
-<li><p>PRNG backend control via <code class="docutils literal notranslate"><span class="pre">prng_impl</span></code> (Threefry, Philox, etc.)</p></li>
-<li><p>Reproducibility via fixed seeds and backend specification</p></li>
-<li><p>Example: directory structure for a 10-seed experiment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run_once(key)</span></code> Contract: Executes a single seed run and returns a dictionary with:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;history&quot;</span></code>: List of per-generation metric dictionaries (<code class="docutils literal notranslate"><span class="pre">generation</span></code>, <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code>, etc.).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;summary&quot;</span></code>: Final metrics dictionary (<code class="docutils literal notranslate"><span class="pre">best_fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">final_generation</span></code>, <code class="docutils literal notranslate"><span class="pre">total_evaluations</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;timings&quot;</span></code>: Execution duration dictionary (<code class="docutils literal notranslate"><span class="pre">{&quot;total&quot;:</span> <span class="pre">elapsed_seconds}</span></code>).</p></li>
 </ul>
-</section>
-</section>
-<section id="engine-factory-building-engines-from-specs">
-<h2>5.4. Engine Factory: Building Engines from Specs<a class="headerlink" href="#engine-factory-building-engines-from-specs" title="Link to this heading">¶</a></h2>
-<p>The engine factory module creates fully configured engines from string specifications or explicit parameters. It resolves both native MalthusJAX engines and external adapters.</p>
-<section id="resolving-native-engines-ga-mo-qd-island">
-<h3>5.4.1. Resolving Native Engines (GA, MO, QD, Island)<a class="headerlink" href="#resolving-native-engines-ga-mo-qd-island" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Dynamic dispatch to the correct native Engine based on user requests.</p>
-<p><strong>Knowledge Point:</strong> EngineRegistry class; registering new engine builders; resolving engine type strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;mo:num_objectives=2&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;qd:archive_size=1000&quot;</span></code>).</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>The registry of native engines (GeneticEngine, MOEngine, QDEngine, IslandModelEngine)</p></li>
-<li><p>Parameter parsing in engine type strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;qd:archive_size=1000&quot;</span></code>)</p></li>
-<li><p>Engine-specific parameter defaults</p></li>
-<li><p>Example: declaring a Quality-Diversity run in Composer</p></li>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code>: Output container for a single pipeline run across multiple seeds, exposing <code class="docutils literal notranslate"><span class="pre">.aggregated_summary()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ComparisonResult</span></code>: Output container for multi-pipeline comparisons, exposing <code class="docutils literal notranslate"><span class="pre">.summary_table()</span></code> and <code class="docutils literal notranslate"><span class="pre">.plot_convergence()</span></code>.</p></li>
+<li><p>JSON Serialization: Results are saved to disk as JSON files (<code class="docutils literal notranslate"><span class="pre">metadata/config_snapshot.toml</span></code>, <code class="docutils literal notranslate"><span class="pre">data/&lt;pipeline&gt;/seed_&lt;X&gt;.json</span></code>, <code class="docutils literal notranslate"><span class="pre">analysis/summary.json</span></code>).</p></li>
 </ul>
-</section>
-<section id="external-adapters-evosax-qdax-tensorneat">
-<h3>5.4.2. External Adapters (EvoSAX, QDAX, TensorNEAT)<a class="headerlink" href="#external-adapters-evosax-qdax-tensorneat" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Wrapping external libraries via Adapter patterns for fair benchmark comparison.</p>
-<p><strong>Knowledge Point:</strong> Adapter responsibilities; bridging the Composer contract to external library semantics; population injection.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Rationale for interop (fair framework comparisons)</p></li>
-<li><p><strong>EvoSAX Adapter</strong>: Wrapping <code class="docutils literal notranslate"><span class="pre">ask</span></code>/<code class="docutils literal notranslate"><span class="pre">tell</span></code> loops and strategy parameters.</p></li>
-<li><p><strong>QDAX Adapter</strong>: Wrapping emitters, metrics, and Map-Elites containers.</p></li>
-<li><p><strong>TensorNEAT Adapter</strong>: Wrapping node/edge structural mutation semantics.</p></li>
-<li><p>How MalthusJAX fitness evaluators integrate with these external adapters</p></li>
-<li><p>Population injection for fair comparison</p></li>
-<li><p>Example: comparing QDEngine (MalthusJAX) vs. QDAX using Composer</p></li>
-</ul>
-</section>
-</section>
-<section id="integration-with-benchmarking-infrastructure">
-<h2>5.5. Integration with Benchmarking Infrastructure<a class="headerlink" href="#integration-with-benchmarking-infrastructure" title="Link to this heading">¶</a></h2>
-<p>Composer orchestrates not just single runs but multi-seed comparative benchmarks via the BenchmarkRunner.</p>
-<section id="the-engine-protocol-and-benchmarkrunner-contract">
-<h3>5.5.1. The Engine Protocol and BenchmarkRunner Contract<a class="headerlink" href="#the-engine-protocol-and-benchmarkrunner-contract" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Unifying different evolutionary backends under a single interface.</p>
-<p><strong>Knowledge Point:</strong> <code class="docutils literal notranslate"><span class="pre">Engine</span></code> protocol definition; required methods; return value structure.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Engine protocol: <code class="docutils literal notranslate"><span class="pre">run_once(key)</span> <span class="pre">-&gt;</span> <span class="pre">Dict</span></code></p></li>
-<li><p>Why the protocol matters (extensibility, framework-agnostic)</p></li>
-<li><p>Required dict keys: <code class="docutils literal notranslate"><span class="pre">history</span></code>, <code class="docutils literal notranslate"><span class="pre">summary</span></code>, <code class="docutils literal notranslate"><span class="pre">timings</span></code></p></li>
-<li><p>History format: list of per-generation dicts</p></li>
-<li><p>Summary format: final fitness, evaluations, etc.</p></li>
-</ul>
-</section>
-<section id="benchmarkrunner-usage-with-composer">
-<h3>5.5.2. BenchmarkRunner Usage with Composer<a class="headerlink" href="#benchmarkrunner-usage-with-composer" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Orchestrating multi-seed runs and collecting results.</p>
-<p><strong>Knowledge Point:</strong> BenchmarkRunner.run() method; seed iteration; result aggregation into ExperimentResult.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>How Composer instantiates BenchmarkRunner with an engine</p></li>
-<li><p>Seed loop and PRNG key derivation</p></li>
-<li><p>RunResult and ExperimentResult structures</p></li>
-<li><p>Aggregated metrics (mean, std, best, worst across seeds)</p></li>
-<li><p>Result serialization (JSON, CSV exports)</p></li>
-<li><p>Example: running a full multi-seed benchmark loop</p></li>
-</ul>
-</section>
-<section id="result-analysis-and-visualization-integration">
-<h3>5.5.3. Result Analysis and Visualization Integration<a class="headerlink" href="#result-analysis-and-visualization-integration" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Connecting Composer results to visualization and comparison tools.</p>
-<p><strong>Knowledge Point:</strong> ExperimentResult and ComparisonResult formats; feeding results to EngineComparator and FunctionalDataAnalyzer.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>ExperimentResult contains: RunResult list (one per seed), summary metrics</p></li>
-<li><p>ComparisonResult for comparing multiple engines/experiments</p></li>
-<li><p>Using visualization.multi_run to plot convergence curves</p></li>
-<li><p>Filtering/selecting pipelines for comparison</p></li>
-<li><p>Example: running 3 pipelines and generating comparison plots</p></li>
-</ul>
-</section>
-</section>
-<section id="advanced-patterns-and-extensibility">
-<h2>5.6. Advanced Patterns and Extensibility<a class="headerlink" href="#advanced-patterns-and-extensibility" title="Link to this heading">¶</a></h2>
-<p>Extensions and customization patterns for users wanting to build on top of Composer.</p>
-<section id="custom-operator-registration-and-inline-definitions">
-<h3>5.6.1. Custom Operator Registration and Inline Definitions<a class="headerlink" href="#custom-operator-registration-and-inline-definitions" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Adding domain-specific operators at runtime.</p>
-<p><strong>Knowledge Point:</strong> <code class="docutils literal notranslate"><span class="pre">catalog.register()</span></code> for new operators; using Composer with custom operator classes.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Registering a custom selection operator</p></li>
-<li><p>Registering a custom fitness evaluator</p></li>
-<li><p>Using Composer with explicitly passed operator instances (bypassing catalog lookup)</p></li>
-<li><p>Integration with existing Composer workflows</p></li>
-<li><p>Example: custom novelty-based selection operator</p></li>
-<li><p>Example: custom domain-specific fitness function</p></li>
-</ul>
-</section>
-<section id="programmatic-experiment-composition-pipeline-api">
-<h3>5.6.2. Programmatic Experiment Composition (Pipeline API)<a class="headerlink" href="#programmatic-experiment-composition-pipeline-api" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Composing multi-stage evolutionary pipelines programmatically.</p>
-<p><strong>Knowledge Point:</strong> Pipeline and Node classes; sequential composition of evolutionary stages.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Motivation for multi-stage pipelines</p></li>
-<li><p>Pipeline class and its composition semantics</p></li>
-<li><p>Node abstraction for evolutionary stages</p></li>
-<li><p>Chaining pipelines in Composer</p></li>
-<li><p>Example: coevolution pipeline (multiple populations)</p></li>
-<li><p>Example: memetic algorithm (local search after GA)</p></li>
-</ul>
-</section>
-<section id="integration-with-custom-engines-and-strategies">
-<h3>5.6.3. Integration with Custom Engines and Strategies<a class="headerlink" href="#integration-with-custom-engines-and-strategies" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Substituting Composer’s default engine with a custom implementation.</p>
-<p><strong>Knowledge Point:</strong> Passing a pre-built engine to <code class="docutils literal notranslate"><span class="pre">quick_run(engine=...)</span></code>; bypassing factory logic.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Rationale for engine substitution (custom algorithm, research extensions)</p></li>
-<li><p>Implementing the Engine protocol for custom engines</p></li>
-<li><p>Passing engine to quick_run; effect on all other parameters</p></li>
-<li><p>Ensuring compatibility with multi-seed orchestration</p></li>
-<li><p>Example: custom multi-objective engine via protocol</p></li>
-<li><p>Example: hybrid GA+PSO engine</p></li>
-</ul>
-</section>
-</section>
-<section id="practical-workflows-and-recipes">
-<h2>5.7. Practical Workflows and Recipes<a class="headerlink" href="#practical-workflows-and-recipes" title="Link to this heading">¶</a></h2>
-<p>Common usage patterns and recommended practices.</p>
-<section id="quick-one-off-experiments">
-<h3>5.7.1. Quick One-Off Experiments<a class="headerlink" href="#quick-one-off-experiments" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Fast iteration for initial algorithm prototyping.</p>
-<p><strong>Knowledge Point:</strong> Minimal parameter specification; using defaults effectively.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Using quickrun with just a few lines of code</p></li>
-<li><p>Relying on sensible defaults</p></li>
-<li><p>Example: comparing selection operators in 10 lines</p></li>
-<li><p>When to stick with defaults vs. when to customize</p></li>
-</ul>
-</section>
-<section id="reproducible-benchmark-suites">
-<h3>5.7.2. Reproducible Benchmark Suites<a class="headerlink" href="#reproducible-benchmark-suites" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Declaring and running comprehensive benchmark comparisons.</p>
-<p><strong>Knowledge Point:</strong> TOML-based declarative approach; seed management; version control.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>TOML as experiment specification (version-controllable)</p></li>
-<li><p>Seed specification for statistical rigor</p></li>
-<li><p>Organizing results for multiple machines/GPUs</p></li>
-<li><p>Capturing timing and hardware metadata</p></li>
-<li><p>Example: GECCO-style benchmark suite in TOML</p></li>
-</ul>
-</section>
-<section id="tuning-and-hyperparameter-search">
-<h3>5.7.3. Tuning and Hyperparameter Search<a class="headerlink" href="#tuning-and-hyperparameter-search" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Systematic exploration of operator parameters.</p>
-<p><strong>Knowledge Point:</strong> Programmatic loop over parameter ranges; Composer in a hyperparameter search loop.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Template TOML with parameter placeholders</p></li>
-<li><p>Looping over selection pressure ranges, mutation rates, etc.</p></li>
-<li><p>Aggregating results and identifying best configurations</p></li>
-<li><p>Example: grid search over tournament_size ∈ [2,3,4,5]</p></li>
-<li><p>Example: random search over 100 random configurations</p></li>
-</ul>
-</section>
-<section id="cross-framework-comparison-external-libraries-vs-malthusjax">
-<h3>5.7.4. Cross-Framework Comparison (External Libraries vs. MalthusJAX)<a class="headerlink" href="#cross-framework-comparison-external-libraries-vs-malthusjax" title="Link to this heading">¶</a></h3>
-<p><strong>Concept:</strong> Fair algorithm benchmarking across libraries.</p>
-<p><strong>Knowledge Point:</strong> Using External Adapters alongside native engines; controlling for population initialization and seed.</p>
-<p>Prose to be written:</p>
-<ul class="simple">
-<li><p>Setting up identical experimental conditions</p></li>
-<li><p>Using population injection to ensure fair comparison</p></li>
-<li><p>Seed consistency and PRNG backend specification</p></li>
-<li><p>Interpreting convergence differences</p></li>
-<li><p>Example: MAP-Elites (QDAX) vs. QDEngine (MalthusJAX)</p></li>
-<li><p>Fair comparison caveats</p></li>
-</ul>
-</section>
 </section>
 </section>
 
@@ -691,48 +544,25 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Experiment Orchestration via Composer</a><ul>
-<li><a class="reference internal" href="#the-composer-pattern-config-driven-ga-runs">5.1. The Composer Pattern: Config-Driven GA Runs</a><ul>
-<li><a class="reference internal" href="#the-composer-class-and-quick-run-entry-point">5.1.1. The Composer Class and quick_run() Entry Point</a></li>
-<li><a class="reference internal" href="#default-configurations-and-parameter-inheritance">5.1.2. Default Configurations and Parameter Inheritance</a></li>
-<li><a class="reference internal" href="#multi-seed-experiment-orchestration">5.1.3. Multi-Seed Experiment Orchestration</a></li>
+<li><a class="reference internal" href="#the-composer-entry-points">5.1. The Composer Entry Points</a><ul>
+<li><a class="reference internal" href="#interactive-exploration-quick-run">5.1.1. Interactive Exploration (<code class="docutils literal notranslate"><span class="pre">quick_run</span></code>)</a></li>
+<li><a class="reference internal" href="#toml-driven-experiments-from-toml">5.1.2. TOML-Driven Experiments (<code class="docutils literal notranslate"><span class="pre">from_toml</span></code>)</a></li>
+<li><a class="reference internal" href="#programmatic-comparison-compare">5.1.3. Programmatic Comparison (<code class="docutils literal notranslate"><span class="pre">compare</span></code>)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#operator-catalog-string-specification-resolution">5.2. Operator Catalog: String Specification Resolution</a><ul>
-<li><a class="reference internal" href="#catalog-registration-and-lookup">5.2.1. Catalog Registration and Lookup</a></li>
-<li><a class="reference internal" href="#string-specification-parsing-and-parameter-binding">5.2.2. String Specification Parsing and Parameter Binding</a></li>
-<li><a class="reference internal" href="#fitness-evaluator-resolution">5.2.3. Fitness Evaluator Resolution</a></li>
+<li><a class="reference internal" href="#catalog-string-specification-resolution">5.2. Catalog &amp; String Specification Resolution</a><ul>
+<li><a class="reference internal" href="#operatorcatalog-catalog-py">5.2.1. <code class="docutils literal notranslate"><span class="pre">OperatorCatalog</span></code> (<code class="docutils literal notranslate"><span class="pre">catalog.py</span></code>)</a></li>
+<li><a class="reference internal" href="#custom-component-decorators-decorators-py">5.2.2. Custom Component Decorators (<code class="docutils literal notranslate"><span class="pre">decorators.py</span></code>)</a></li>
+<li><a class="reference internal" href="#engineregistry-engine-catalog-py">5.2.3. <code class="docutils literal notranslate"><span class="pre">EngineRegistry</span></code> (<code class="docutils literal notranslate"><span class="pre">engine_catalog.py</span></code>)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#configuration-loading-toml-driven-experiments">5.3. Configuration Loading: TOML-Driven Experiments</a><ul>
-<li><a class="reference internal" href="#toml-schema-and-experiment-structure">5.3.1. TOML Schema and Experiment Structure</a></li>
-<li><a class="reference internal" href="#parsing-and-merging-strategies">5.3.2. Parsing and Merging Strategies</a></li>
-<li><a class="reference internal" href="#reproducibility-and-artifact-organization">5.3.3. Reproducibility and Artifact Organization</a></li>
+<li><a class="reference internal" href="#declarative-toml-experiment-loading">5.3. Declarative TOML Experiment Loading</a><ul>
+<li><a class="reference internal" href="#verified-toml-schema">Verified TOML Schema</a></li>
+<li><a class="reference internal" href="#verified-worked-toml-example">Verified Worked TOML Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#engine-factory-building-engines-from-specs">5.4. Engine Factory: Building Engines from Specs</a><ul>
-<li><a class="reference internal" href="#resolving-native-engines-ga-mo-qd-island">5.4.1. Resolving Native Engines (GA, MO, QD, Island)</a></li>
-<li><a class="reference internal" href="#external-adapters-evosax-qdax-tensorneat">5.4.2. External Adapters (EvoSAX, QDAX, TensorNEAT)</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#integration-with-benchmarking-infrastructure">5.5. Integration with Benchmarking Infrastructure</a><ul>
-<li><a class="reference internal" href="#the-engine-protocol-and-benchmarkrunner-contract">5.5.1. The Engine Protocol and BenchmarkRunner Contract</a></li>
-<li><a class="reference internal" href="#benchmarkrunner-usage-with-composer">5.5.2. BenchmarkRunner Usage with Composer</a></li>
-<li><a class="reference internal" href="#result-analysis-and-visualization-integration">5.5.3. Result Analysis and Visualization Integration</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#advanced-patterns-and-extensibility">5.6. Advanced Patterns and Extensibility</a><ul>
-<li><a class="reference internal" href="#custom-operator-registration-and-inline-definitions">5.6.1. Custom Operator Registration and Inline Definitions</a></li>
-<li><a class="reference internal" href="#programmatic-experiment-composition-pipeline-api">5.6.2. Programmatic Experiment Composition (Pipeline API)</a></li>
-<li><a class="reference internal" href="#integration-with-custom-engines-and-strategies">5.6.3. Integration with Custom Engines and Strategies</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#practical-workflows-and-recipes">5.7. Practical Workflows and Recipes</a><ul>
-<li><a class="reference internal" href="#quick-one-off-experiments">5.7.1. Quick One-Off Experiments</a></li>
-<li><a class="reference internal" href="#reproducible-benchmark-suites">5.7.2. Reproducible Benchmark Suites</a></li>
-<li><a class="reference internal" href="#tuning-and-hyperparameter-search">5.7.3. Tuning and Hyperparameter Search</a></li>
-<li><a class="reference internal" href="#cross-framework-comparison-external-libraries-vs-malthusjax">5.7.4. Cross-Framework Comparison (External Libraries vs. MalthusJAX)</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#external-framework-adapters">5.4. External Framework Adapters</a></li>
+<li><a class="reference internal" href="#results-benchmark-integration">5.5. Results &amp; Benchmark Integration</a></li>
 </ul>
 </li>
 </ul>

@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Experiment Orchestration via Composer" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html"><link rel="prev" title="Functional Genetic Operators" href="3-GENETIC_OPERATORS.html">
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Experiment Orchestration via Composer" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html"><link rel="prev" title="3.1. Operator Base Architecture (malthusjax.operators.base)" href="3-GENETIC_OPERATORS.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>The Engine: Orchestration and Compilation - MalthusJAX documentation</title>
@@ -196,7 +196,11 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">The Engine: Orchestration and Compilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
@@ -318,82 +322,136 @@
         <article role="main" id="furo-main-content">
           <section id="the-engine-orchestration-and-compilation">
 <h1>The Engine: Orchestration and Compilation<a class="headerlink" href="#the-engine-orchestration-and-compilation" title="Link to this heading">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">malthusjax.engine</span></code> module implements Tier 2 of the framework. This tier orchestrates populations, fitness evaluators, and genetic operators into a fully compilable evolution loop using a <strong>scan-based stateful architecture</strong>.</p>
-<p>The core design principle is <strong>immutable state threading</strong>: the evolution loop carries one opaque state object through <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>, guaranteeing JAX traceability and JIT compilability to a single XLA kernel.</p>
-<p>The framework provides two execution modes: <code class="docutils literal notranslate"><span class="pre">step()</span></code> for iterative in-process evolution, and <code class="docutils literal notranslate"><span class="pre">ask()</span></code>/<code class="docutils literal notranslate"><span class="pre">tell()</span></code> for external fitness evaluation (e.g., remote simulations). Both modes preserve identical state semantics.</p>
-<section id="the-resourcemapper">
-<h2>4.1. The ResourceMapper<a class="headerlink" href="#the-resourcemapper" title="Link to this heading">¶</a></h2>
-<p>In the v2 architecture, the Engine heavily delegates PRNG key management to the <code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code>.</p>
-<p>At initialization, the <code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code> computes a deterministic resource allocation plan. It queries every operator in the pipeline for its <code class="docutils literal notranslate"><span class="pre">num_keys</span></code> requirement, and pre-computes where in the flat key array each operator’s slice is located.</p>
-<p>This pre-computation enables <strong>zero-overhead key slicing</strong> during each generation: the key derivation is done once, and operators receive their slices as pure inputs without dynamic lookup or recursion. The resource map is marked metadata (not traced), avoiding JAX overhead.</p>
-<p>Two strategies are available for generating the per-generation key block:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">malthusjax.engine</span></code> module provides the execution layer of MalthusJAX. It orchestrates population containers (<code class="docutils literal notranslate"><span class="pre">BasePopulation</span></code>), objective evaluators (<code class="docutils literal notranslate"><span class="pre">BaseEvaluator</span></code>), and genetic operators (<code class="docutils literal notranslate"><span class="pre">BaseSelection</span></code>, <code class="docutils literal notranslate"><span class="pre">BaseCrossover</span></code>, <code class="docutils literal notranslate"><span class="pre">BaseMutation</span></code>, <code class="docutils literal notranslate"><span class="pre">BaseEmitter</span></code>) into stateful execution loops using JAX transformations (<code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>, <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code>, <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code>).</p>
+<p>All engine configurations use Flax <code class="docutils literal notranslate"><span class="pre">&#64;struct.dataclass</span></code> PyTrees with static configuration fields marked <code class="docutils literal notranslate"><span class="pre">pytree_node=False</span></code>.</p>
+<hr class="docutils" />
+<section id="execution-state-parameter-validation">
+<h2>4.1. Execution State &amp; Parameter Validation<a class="headerlink" href="#execution-state-parameter-validation" title="Link to this heading">¶</a></h2>
+<section id="engine-parameters-abstractengineparams-geneticengineparams">
+<h3>Engine Parameters (<code class="docutils literal notranslate"><span class="pre">AbstractEngineParams</span></code>, <code class="docutils literal notranslate"><span class="pre">GeneticEngineParams</span></code>)<a class="headerlink" href="#engine-parameters-abstractengineparams-geneticengineparams" title="Link to this heading">¶</a></h3>
+<p>Engine execution is governed by static dataclass configurations:</p>
 <ul class="simple">
-<li><p><strong>SPLIT</strong>: Sequential hash chain (<code class="docutils literal notranslate"><span class="pre">jax.random.split</span></code>), lower memory but sequential parallelism.</p></li>
-<li><p><strong>FOLD</strong>: Fully parallel (<code class="docutils literal notranslate"><span class="pre">vmap(fold_in)</span></code>), higher memory overhead but deterministic and seekable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pop_size:</span> <span class="pre">int</span></code> — Population size ($N &gt; 0$).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elitism:</span> <span class="pre">int</span></code> — Number of elite individuals preserved across generations ($0 \le \text{elitism} &lt; \text{pop_size}$).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_generations:</span> <span class="pre">int</span></code> — Total generational steps to execute ($N_\text{gen} &gt; 0$).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unroll_num:</span> <span class="pre">int</span></code> — Scan unroll factor (defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>; <code class="docutils literal notranslate"><span class="pre">compute_unroll_num()</span></code> returns <code class="docutils literal notranslate"><span class="pre">1</span></code> as scan unrolling is deprecated to prevent linear XLA IR growth).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">track_best:</span> <span class="pre">TrackBest</span></code> — IntEnum controlling Hall-of-Fame state tracking inside the scan carry:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">TrackBest.NONE</span></code> (0): Zero extra ops in the scan carry per step; <code class="docutils literal notranslate"><span class="pre">best_genome</span></code> and <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> are populated post-scan from the final population.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TrackBest.LIGHT</span></code> (1, default): Tracks monotonic <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> in the carry using fusible <code class="docutils literal notranslate"><span class="pre">jnp.max</span></code> and <code class="docutils literal notranslate"><span class="pre">jnp.maximum</span></code> operations; <code class="docutils literal notranslate"><span class="pre">best_genome</span></code> is extracted post-scan via <code class="docutils literal notranslate"><span class="pre">jnp.argmax</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TrackBest.FULL</span></code> (2): Tracks both <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> and <code class="docutils literal notranslate"><span class="pre">best_genome</span></code> in the carry every step using <code class="docutils literal notranslate"><span class="pre">jnp.max</span></code>, <code class="docutils literal notranslate"><span class="pre">jnp.argmax</span></code>, <code class="docutils literal notranslate"><span class="pre">Gather</span></code>, and element-wise <code class="docutils literal notranslate"><span class="pre">jnp.where</span></code>.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">track_metrics:</span> <span class="pre">TrackMetrics</span></code> — IntEnum controlling metric calculation (<code class="docutils literal notranslate"><span class="pre">NONE</span></code>, <code class="docutils literal notranslate"><span class="pre">BASIC</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL</span></code>).</p></li>
+</ul>
+<p>Parameter boundaries are validated outside JIT context by <code class="docutils literal notranslate"><span class="pre">validate_engine_params(params)</span></code>, raising <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if constraints are violated.</p>
+</section>
+<section id="evolution-state-abstractevolutionstate-geneticevolutionstate">
+<h3>Evolution State (<code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState</span></code>, <code class="docutils literal notranslate"><span class="pre">GeneticEvolutionState</span></code>)<a class="headerlink" href="#evolution-state-abstractevolutionstate-geneticevolutionstate" title="Link to this heading">¶</a></h3>
+<p>State is threaded through <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code> as an immutable PyTree carrying:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">population</span></code>: Current <code class="docutils literal notranslate"><span class="pre">BasePopulation[G]</span></code> container.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">best_genome</span></code>: <code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code> PyTree of the best solution found so far.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">best_fitness</span></code>: Scalar array tracking best fitness score.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generation</span></code>: Integer step counter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rng_key</span></code>: Master 2-element PRNG key for key derivation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resource_map</span></code>: Pre-computed <code class="docutils literal notranslate"><span class="pre">ResourceMap</span></code> execution plan (<code class="docutils literal notranslate"><span class="pre">GeneticEvolutionState</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">operators</span></code>: Frozen <code class="docutils literal notranslate"><span class="pre">OperatorState</span></code> dataclass containing initialized operators (<code class="docutils literal notranslate"><span class="pre">GeneticEvolutionState</span></code>).</p></li>
+</ul>
+<p>Deep copying of state PyTrees (to avoid JAX buffer donation conflicts across multi-seed runs) is provided via <code class="docutils literal notranslate"><span class="pre">state.copy()</span></code>.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="prng-key-allocation-resourcemapper">
+<h2>4.2. PRNG Key Allocation &amp; <code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code><a class="headerlink" href="#prng-key-allocation-resourcemapper" title="Link to this heading">¶</a></h2>
+<p>Key budgeting and data-flow shapes are pre-calculated during <code class="docutils literal notranslate"><span class="pre">init_state</span></code> by <code class="docutils literal notranslate"><span class="pre">compute_resource_map(...)</span></code>.</p>
+<section id="resourcemap">
+<h3><code class="docutils literal notranslate"><span class="pre">ResourceMap</span></code><a class="headerlink" href="#resourcemap" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">ResourceMap</span></code> pre-allocates contiguous slices inside a flat master key tensor for each pipeline stage (<code class="docutils literal notranslate"><span class="pre">selection</span></code>, <code class="docutils literal notranslate"><span class="pre">crossover</span></code>, <code class="docutils literal notranslate"><span class="pre">mutation</span></code>, <code class="docutils literal notranslate"><span class="pre">evaluation</span></code>, <code class="docutils literal notranslate"><span class="pre">next_key</span></code>), preventing dynamic key allocation during scan execution.</p>
+<p>Key derivation strategies (<code class="docutils literal notranslate"><span class="pre">KeyDerivationStrategy</span></code>):</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">SPLIT</span></code> (<code class="docutils literal notranslate"><span class="pre">KeyDerivationStrategy.SPLIT</span></code>): Derives keys sequentially via <code class="docutils literal notranslate"><span class="pre">jax.random.split(master_key,</span> <span class="pre">total_rng_budget)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FOLD</span></code> (<code class="docutils literal notranslate"><span class="pre">KeyDerivationStrategy.FOLD</span></code>): Derives keys in parallel by mapping <code class="docutils literal notranslate"><span class="pre">jax.random.fold_in</span></code> over integer indices (<code class="docutils literal notranslate"><span class="pre">jnp.arange(total_rng_budget)</span></code>) via <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code>.</p>
+<blockquote>
+<div><p><strong>Backend Constraint</strong>: <code class="docutils literal notranslate"><span class="pre">KeyDerivationStrategy.FOLD</span></code> is incompatible with <code class="docutils literal notranslate"><span class="pre">rbg</span></code> and <code class="docutils literal notranslate"><span class="pre">unsafe_rbg</span></code> PRNG backends and raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if selected with those backends.</p>
+</div></blockquote>
+</li>
 </ul>
 </section>
-<section id="generational-loop-architecture-the-baseline-ga">
-<h2>4.2. Generational Loop Architecture: The Baseline GA<a class="headerlink" href="#generational-loop-architecture-the-baseline-ga" title="Link to this heading">¶</a></h2>
-<p>The baseline <code class="docutils literal notranslate"><span class="pre">GeneticEngine</span></code> orchestrates a standard generational loop. Each call to <code class="docutils literal notranslate"><span class="pre">step(state)</span></code> executes one generation in five phases:</p>
-<section id="phase-0-entropy-allocation">
-<h3>4.2.1. Phase 0 — Entropy Allocation<a class="headerlink" href="#phase-0-entropy-allocation" title="Link to this heading">¶</a></h3>
-<p>The PRNG key is partitioned using the pre-computed <code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code> table. Operators receive ready-to-use key blocks.</p>
-</section>
-<section id="phase-1-selection">
-<h3>4.2.2. Phase 1 — Selection<a class="headerlink" href="#phase-1-selection" title="Link to this heading">¶</a></h3>
-<p>Selection operators read the Population’s fitness vector and return parent and elite index arrays. Crucially, elitism creates a structural partition in the batch dimension.</p>
-</section>
-<section id="phase-2-reproduction">
-<h3>4.2.3. Phase 2 — Reproduction<a class="headerlink" href="#phase-2-reproduction" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">Population</span></code> is bridged to the Tier-3 operator mechanism (<code class="docutils literal notranslate"><span class="pre">tree_leaves</span></code>). Parent pairs are gathered; crossover and mutation apply unbounded noise. The payload is snapped back to valid bounds via <code class="docutils literal notranslate"><span class="pre">autocorrect()</span></code>, and a new offspring Population is spawned.</p>
-</section>
-<section id="phase-3a-merge">
-<h3>4.2.4. Phase 3a — Merge<a class="headerlink" href="#phase-3a-merge" title="Link to this heading">¶</a></h3>
-<p>Elite genes and mutated offspring are combined into the next-generation population using JAX’s <code class="docutils literal notranslate"><span class="pre">dynamic_update_slice</span></code>. This permits XLA to reuse the old population buffer in-place through buffer donation.</p>
-</section>
-<section id="phase-3b-evaluate">
-<h3>4.2.5. Phase 3b — Evaluate<a class="headerlink" href="#phase-3b-evaluate" title="Link to this heading">¶</a></h3>
-<p>The merged population is evaluated, updating the <code class="docutils literal notranslate"><span class="pre">fitness</span></code> vector.</p>
+<section id="shardingmanager">
+<h3><code class="docutils literal notranslate"><span class="pre">ShardingManager</span></code><a class="headerlink" href="#shardingmanager" title="Link to this heading">¶</a></h3>
+<p>Multi-device and layout management is handled by <code class="docutils literal notranslate"><span class="pre">ShardingManager</span></code>, which constructs a JAX <code class="docutils literal notranslate"><span class="pre">Mesh</span></code> along a designated <code class="docutils literal notranslate"><span class="pre">batch</span></code> axis. It applies <code class="docutils literal notranslate"><span class="pre">NamedSharding</span></code> with <code class="docutils literal notranslate"><span class="pre">PartitionSpec(&quot;batch&quot;,</span> <span class="pre">None)</span></code> to shard population matrices across devices via <code class="docutils literal notranslate"><span class="pre">jax.device_put</span></code>.</p>
 </section>
 </section>
-<section id="multi-objective-orchestration-nsga-ii">
-<h2>4.3. Multi-Objective Orchestration (NSGA-II)<a class="headerlink" href="#multi-objective-orchestration-nsga-ii" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">MOEngine</span></code> orchestrates Multi-Objective optimization. It differs from the baseline GA by overriding the <code class="docutils literal notranslate"><span class="pre">Selection</span></code> and <code class="docutils literal notranslate"><span class="pre">Merge</span></code> phases.</p>
-<p>In MO, fitness is a vector of objectives. The engine uses <strong>Non-Dominated Sorting</strong> and <strong>Crowding Distance</strong> to rank the population.</p>
+<hr class="docutils" />
+<section id="generational-loop-architecture-geneticengine">
+<h2>4.3. Generational Loop Architecture (<code class="docutils literal notranslate"><span class="pre">GeneticEngine</span></code>)<a class="headerlink" href="#generational-loop-architecture-geneticengine" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GeneticEngine</span></code> executes standard evolutionary optimization. Each call to <code class="docutils literal notranslate"><span class="pre">step(state)</span></code> executes 5 distinct phases:</p>
 <ol class="arabic simple">
-<li><p><strong>Merge (Elitism)</strong>: Instead of a strict elite partition, the MO engine merges the entire parent population ($N$) and the offspring population ($N$) into a combined pool of size $2N$.</p></li>
-<li><p><strong>Ranking</strong>: It computes Pareto ranks and crowding distances for the $2N$ pool.</p></li>
-<li><p><strong>Truncation</strong>: It truncates the pool back to size $N$ by selecting the best Pareto fronts, using crowding distance as a tie-breaker for the final front.</p></li>
+<li><p><strong>Phase 0 — Entropy Allocation (<code class="docutils literal notranslate"><span class="pre">_allocate_entropy</span></code>)</strong>:
+Slices the pre-allocated master PRNG key buffer using <code class="docutils literal notranslate"><span class="pre">ResourceMap.get_key_slice</span></code> into subkeys for selection, crossover, mutation, evaluation, and the next-generation seed.</p></li>
+<li><p><strong>Phase 1 — Selection (<code class="docutils literal notranslate"><span class="pre">_selection_phase</span></code>)</strong>:
+Invokes <code class="docutils literal notranslate"><span class="pre">selection(key,</span> <span class="pre">population)</span></code> to compute <code class="docutils literal notranslate"><span class="pre">parent_indices</span></code> (length <code class="docutils literal notranslate"><span class="pre">num_selections</span></code>) and <code class="docutils literal notranslate"><span class="pre">elite_indices</span></code> (length <code class="docutils literal notranslate"><span class="pre">elitism</span></code>).</p></li>
+<li><p><strong>Phase 2 — Reproduction (<code class="docutils literal notranslate"><span class="pre">_reproduction_phase</span></code>)</strong>:
+Calls <code class="docutils literal notranslate"><span class="pre">crossover(k_cross,</span> <span class="pre">p1_pop,</span> <span class="pre">p2_pop,</span> <span class="pre">config,</span> <span class="pre">generation)</span></code> to generate recombined offspring, followed by <code class="docutils literal notranslate"><span class="pre">mutation(k_mut,</span> <span class="pre">offspring_pop,</span> <span class="pre">config,</span> <span class="pre">generation)</span></code>. Dynamic mutation strength scheduling is computed via <code class="docutils literal notranslate"><span class="pre">compute_scheduled_strength</span></code> (<code class="docutils literal notranslate"><span class="pre">ScheduleType</span></code>: <code class="docutils literal notranslate"><span class="pre">CONSTANT</span></code>, <code class="docutils literal notranslate"><span class="pre">LINEAR_DECAY</span></code>, <code class="docutils literal notranslate"><span class="pre">COSINE_ANNEAL</span></code>, <code class="docutils literal notranslate"><span class="pre">EXPONENTIAL_DECAY</span></code>).</p></li>
+<li><p><strong>Phase 3 — Merge (<code class="docutils literal notranslate"><span class="pre">_merge_phase</span></code>)</strong>:
+When <code class="docutils literal notranslate"><span class="pre">elitism</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>, combines elite parent genomes with mutated offspring genomes into a unified population container of size <code class="docutils literal notranslate"><span class="pre">pop_size</span></code> using array concatenation (<code class="docutils literal notranslate"><span class="pre">jnp.concatenate</span></code> / <code class="docutils literal notranslate"><span class="pre">tree_map</span></code>).</p></li>
+<li><p><strong>Phase 4 — Evaluation &amp; State Update (<code class="docutils literal notranslate"><span class="pre">_evaluation_phase</span></code>)</strong>:
+Scores the population via <code class="docutils literal notranslate"><span class="pre">dispatch_evaluate_population(evaluator,</span> <span class="pre">population,</span> <span class="pre">k_eval)</span></code> and updates the Hall-of-Fame state according to <code class="docutils literal notranslate"><span class="pre">TrackBest</span></code>.</p></li>
 </ol>
-<p>This state tracking (ranks, distances) is securely stored in the specialized <code class="docutils literal notranslate"><span class="pre">MOPopulation</span></code> container.</p>
-</section>
-<section id="quality-diversity-orchestration-map-elites">
-<h2>4.4. Quality-Diversity Orchestration (MAP-Elites)<a class="headerlink" href="#quality-diversity-orchestration-map-elites" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">QDEngine</span></code> orchestrates Quality-Diversity search, specifically MAP-Elites. Instead of a linear population, it maintains an <strong>Archive</strong> of behaviorally diverse elites.</p>
-<ol class="arabic simple">
-<li><p><strong>Evaluation</strong>: Evaluators return both a <code class="docutils literal notranslate"><span class="pre">fitness</span></code> scalar and a <code class="docutils literal notranslate"><span class="pre">descriptor</span></code> vector.</p></li>
-<li><p><strong>Mapping</strong>: The engine maps the <code class="docutils literal notranslate"><span class="pre">descriptor</span></code> to a discrete cell index in the Archive.</p></li>
-<li><p><strong>Archive Update</strong>: If the new individual maps to an empty cell, or has better fitness than the existing occupant, it replaces them. The Archive is maintained as a static-sized buffer using <code class="docutils literal notranslate"><span class="pre">dynamic_update_slice</span></code>.</p></li>
-<li><p><strong>Selection</strong>: Parents are sampled uniformly from occupied cells in the Archive.</p></li>
-</ol>
-<p>The <code class="docutils literal notranslate"><span class="pre">QDPopulation</span></code> container safely tracks <code class="docutils literal notranslate"><span class="pre">descriptors</span></code> and <code class="docutils literal notranslate"><span class="pre">cell_indices</span></code> during this process.</p>
-</section>
-<section id="the-island-model-distributed-topology">
-<h2>4.5. The Island Model (Distributed Topology)<a class="headerlink" href="#the-island-model-distributed-topology" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">IslandModelEngine</span></code> orchestrates parallel evolution across multiple sub-populations (“islands”). It introduces a structural <strong>Migration</strong> phase.</p>
-<p>At fixed intervals (the migration epoch), islands exchange individuals based on a specific topology (e.g., Ring, Fully Connected) and a migration policy (e.g., Best replaces Worst, Random replaces Random).</p>
-<p>To ensure GSPMD compatibility and avoid dynamic routing overhead, migration is implemented using deterministic permutations (<code class="docutils literal notranslate"><span class="pre">jax.numpy.take</span></code> with static indices) across the island dimension. This allows XLA to optimize cross-device communication via collective communication primitives (like <code class="docutils literal notranslate"><span class="pre">AllGather</span></code> or <code class="docutils literal notranslate"><span class="pre">Permute</span></code>).</p>
-</section>
-<section id="operator-level-personalization-and-scheduling">
-<h2>4.6. Operator-Level Personalization and Scheduling<a class="headerlink" href="#operator-level-personalization-and-scheduling" title="Link to this heading">¶</a></h2>
-<p>Operators accept an optional generation counter as a parameter, enabling time-dependent behavior (e.g., mutation rate decay, crossover bias modulation). Scheduling functions are pure JAX, compiled into the kernel, and safe inside <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>.</p>
-<p>Schedule types include:</p>
+<section id="execution-modes">
+<h3>Execution Modes<a class="headerlink" href="#execution-modes" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><strong>CONSTANT</strong>: Time-independent (baseline)</p></li>
-<li><p><strong>LINEAR_DECAY</strong>: Strength decreases linearly</p></li>
-<li><p><strong>COSINE_ANNEAL</strong>: Cosine annealing schedule</p></li>
-<li><p><strong>EXPONENTIAL_DECAY</strong>: Exponential decay schedule</p></li>
+<li><p><strong>Scan-based Loop (<code class="docutils literal notranslate"><span class="pre">run</span></code>)</strong>: Wraps <code class="docutils literal notranslate"><span class="pre">step</span></code> inside <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code> for in-process execution over <code class="docutils literal notranslate"><span class="pre">num_generations</span></code> steps.</p></li>
+<li><p><strong>Ask/Tell Interface (<code class="docutils literal notranslate"><span class="pre">ask</span></code>, <code class="docutils literal notranslate"><span class="pre">tell</span></code>)</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ask(state)</span></code>: Allocates entropy, increments the generation counter, and returns <code class="docutils literal notranslate"><span class="pre">(state_with_entropy,</span> <span class="pre">population.genes)</span></code> for external evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tell(state,</span> <span class="pre">evaluated_population)</span></code>: Receives externally evaluated fitness scores, updates population fitness, and performs Hall-of-Fame state tracking.</p></li>
 </ul>
+</li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="multi-objective-engine-moengine">
+<h2>4.4. Multi-Objective Engine (<code class="docutils literal notranslate"><span class="pre">MOEngine</span></code>)<a class="headerlink" href="#multi-objective-engine-moengine" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">MOEngine</span></code> implements Multi-Objective optimization under the NSGA-II paradigm:</p>
+<ul class="simple">
+<li><p><strong>Architecture</strong>: Operates via <code class="docutils literal notranslate"><span class="pre">BaseEmitter</span></code>, <code class="docutils literal notranslate"><span class="pre">BaseMOEvaluator</span></code>, and <code class="docutils literal notranslate"><span class="pre">MOPopulation</span></code>.</p></li>
+<li><p><strong>Pareto Elitism</strong>: <code class="docutils literal notranslate"><span class="pre">MOPopulation</span></code> maintains Pareto ranks and crowding distances across combined parent ($\mu$) and offspring ($\lambda$) pools.</p></li>
+<li><p><strong>KPI Output (<code class="docutils literal notranslate"><span class="pre">MOGenerationOutput</span></code>)</strong>: Reports <code class="docutils literal notranslate"><span class="pre">num_pareto_optimal</span></code> (number of rank-0 non-dominated solutions) and <code class="docutils literal notranslate"><span class="pre">max_crowding_distance</span></code>. <code class="docutils literal notranslate"><span class="pre">best_fitness</span></code> reports the objective-0 score of the primary Pareto individual.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="quality-diversity-engine-mapelitesengine">
+<h2>4.5. Quality-Diversity Engine (<code class="docutils literal notranslate"><span class="pre">MapElitesEngine</span></code>)<a class="headerlink" href="#quality-diversity-engine-mapelitesengine" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">MapElitesEngine</span></code> orchestrates MAP-Elites Quality-Diversity optimization:</p>
+<ul class="simple">
+<li><p><strong>Grid Container</strong>: Integrates <code class="docutils literal notranslate"><span class="pre">BaseEmitter</span></code>, <code class="docutils literal notranslate"><span class="pre">BaseQDEvaluator</span></code>, and QDAX’s <code class="docutils literal notranslate"><span class="pre">MapElitesRepertoire</span></code> grid structure.</p></li>
+<li><p><strong>External Dependency</strong>: Requires the <code class="docutils literal notranslate"><span class="pre">qdax</span></code> Python package (<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">qdax.core.containers.mapelites_repertoire</span> <span class="pre">import</span> <span class="pre">MapElitesRepertoire</span></code>). Raises an <code class="docutils literal notranslate"><span class="pre">ImportError</span></code> if <code class="docutils literal notranslate"><span class="pre">qdax</span></code> is not installed in the Python environment.</p></li>
+<li><p><strong>KPI Output (<code class="docutils literal notranslate"><span class="pre">QDGenerationOutput</span></code>)</strong>: Reports <code class="docutils literal notranslate"><span class="pre">qd_score</span></code> (sum of fitnesses across all filled archive cells) and <code class="docutils literal notranslate"><span class="pre">coverage</span></code> (fraction of filled grid cells).</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="distributed-island-models-baseislandmodel">
+<h2>4.6. Distributed Island Models (<code class="docutils literal notranslate"><span class="pre">BaseIslandModel</span></code>)<a class="headerlink" href="#distributed-island-models-baseislandmodel" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">BaseIslandModel</span></code> upgrades any 1D engine into a 2D multi-island model by wrapping engine methods in <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> across an island dimension of size <code class="docutils literal notranslate"><span class="pre">num_islands</span></code>.</p>
+<section id="host-synchronization-execution-pattern">
+<h3>Host Synchronization Execution Pattern<a class="headerlink" href="#host-synchronization-execution-pattern" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.step()</span></code> executes using a hybrid JAX/Python loop:</p>
+<ol class="arabic simple">
+<li><p><strong>Local Evolution</strong>: Runs <code class="docutils literal notranslate"><span class="pre">self.engine.step</span></code> across all islands in parallel for <code class="docutils literal notranslate"><span class="pre">migration_interval</span></code> generations using <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> over an inner <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>.</p></li>
+<li><p><strong>Host Dropout &amp; Migration</strong>: Drops out of JAX execution back to the Python host to execute <code class="docutils literal notranslate"><span class="pre">migrate(key,</span> <span class="pre">multi_pop)</span></code>.</p></li>
+<li><p><strong>Re-injection</strong>: Re-injects the migrated population PyTree into the island state and launches the next JAX execution kernel.</p></li>
+</ol>
+</section>
+<section id="topological-migration-policies-topologies-py">
+<h3>Topological Migration Policies (<code class="docutils literal notranslate"><span class="pre">topologies.py</span></code>)<a class="headerlink" href="#topological-migration-policies-topologies-py" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">RingTopologyIsland</span></code></strong>: Sorts fitness per island, extracts the top <code class="docutils literal notranslate"><span class="pre">num_migrants</span></code> elites, shifts elite tensors to the adjacent island via <code class="docutils literal notranslate"><span class="pre">jnp.roll(arr,</span> <span class="pre">shift=1,</span> <span class="pre">axis=0)</span></code>, and overwrites the worst <code class="docutils literal notranslate"><span class="pre">num_migrants</span></code> individuals in the destination island.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">FullyConnectedIsland</span></code></strong>: Extracts top elites across all islands into a flat pool of size <code class="docutils literal notranslate"><span class="pre">num_islands</span> <span class="pre">*</span> <span class="pre">num_migrants</span></code>, shuffles them globally using <code class="docutils literal notranslate"><span class="pre">jax.random.permutation</span></code>, and redistributes them back into the worst slots of each island.</p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -418,7 +476,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Functional Genetic Operators</div>
+                <div class="title">3.1. Operator Base Architecture (malthusjax.operators.base)</div>
                 
               </div>
             </a>
@@ -453,19 +511,27 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">The Engine: Orchestration and Compilation</a><ul>
-<li><a class="reference internal" href="#the-resourcemapper">4.1. The ResourceMapper</a></li>
-<li><a class="reference internal" href="#generational-loop-architecture-the-baseline-ga">4.2. Generational Loop Architecture: The Baseline GA</a><ul>
-<li><a class="reference internal" href="#phase-0-entropy-allocation">4.2.1. Phase 0 — Entropy Allocation</a></li>
-<li><a class="reference internal" href="#phase-1-selection">4.2.2. Phase 1 — Selection</a></li>
-<li><a class="reference internal" href="#phase-2-reproduction">4.2.3. Phase 2 — Reproduction</a></li>
-<li><a class="reference internal" href="#phase-3a-merge">4.2.4. Phase 3a — Merge</a></li>
-<li><a class="reference internal" href="#phase-3b-evaluate">4.2.5. Phase 3b — Evaluate</a></li>
+<li><a class="reference internal" href="#execution-state-parameter-validation">4.1. Execution State &amp; Parameter Validation</a><ul>
+<li><a class="reference internal" href="#engine-parameters-abstractengineparams-geneticengineparams">Engine Parameters (<code class="docutils literal notranslate"><span class="pre">AbstractEngineParams</span></code>, <code class="docutils literal notranslate"><span class="pre">GeneticEngineParams</span></code>)</a></li>
+<li><a class="reference internal" href="#evolution-state-abstractevolutionstate-geneticevolutionstate">Evolution State (<code class="docutils literal notranslate"><span class="pre">AbstractEvolutionState</span></code>, <code class="docutils literal notranslate"><span class="pre">GeneticEvolutionState</span></code>)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#multi-objective-orchestration-nsga-ii">4.3. Multi-Objective Orchestration (NSGA-II)</a></li>
-<li><a class="reference internal" href="#quality-diversity-orchestration-map-elites">4.4. Quality-Diversity Orchestration (MAP-Elites)</a></li>
-<li><a class="reference internal" href="#the-island-model-distributed-topology">4.5. The Island Model (Distributed Topology)</a></li>
-<li><a class="reference internal" href="#operator-level-personalization-and-scheduling">4.6. Operator-Level Personalization and Scheduling</a></li>
+<li><a class="reference internal" href="#prng-key-allocation-resourcemapper">4.2. PRNG Key Allocation &amp; <code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code></a><ul>
+<li><a class="reference internal" href="#resourcemap"><code class="docutils literal notranslate"><span class="pre">ResourceMap</span></code></a></li>
+<li><a class="reference internal" href="#shardingmanager"><code class="docutils literal notranslate"><span class="pre">ShardingManager</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#generational-loop-architecture-geneticengine">4.3. Generational Loop Architecture (<code class="docutils literal notranslate"><span class="pre">GeneticEngine</span></code>)</a><ul>
+<li><a class="reference internal" href="#execution-modes">Execution Modes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#multi-objective-engine-moengine">4.4. Multi-Objective Engine (<code class="docutils literal notranslate"><span class="pre">MOEngine</span></code>)</a></li>
+<li><a class="reference internal" href="#quality-diversity-engine-mapelitesengine">4.5. Quality-Diversity Engine (<code class="docutils literal notranslate"><span class="pre">MapElitesEngine</span></code>)</a></li>
+<li><a class="reference internal" href="#distributed-island-models-baseislandmodel">4.6. Distributed Island Models (<code class="docutils literal notranslate"><span class="pre">BaseIslandModel</span></code>)</a><ul>
+<li><a class="reference internal" href="#host-synchronization-execution-pattern">Host Synchronization Execution Pattern</a></li>
+<li><a class="reference internal" href="#topological-migration-policies-topologies-py">Topological Migration Policies (<code class="docutils literal notranslate"><span class="pre">topologies.py</span></code>)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

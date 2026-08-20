@@ -196,7 +196,11 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a></li>
@@ -343,31 +347,44 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l2"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html#deterministic-stochasticity-malthusjax-core-random">2.3. Deterministic Stochasticity (malthusjax.core.random)</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Functional Genetic Operators</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#operator-base-architecture-malthusjax-operators-base">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-pure-operator-contract">3.1.1. The Pure Operator Contract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#operators-as-pytrees">3.1.2. Operators as PyTrees</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#vectorized-tournament-selection">3.2.1. Vectorized Tournament Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#roulette-wheel-proportionate-selection">3.2.2. Roulette Wheel / Proportionate Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#elite-pool-selection">3.2.3. Elite Pool Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#evosax-mimic-selection-parity-operators">3.2.4. EvoSAX Mimic Selection (Parity Operators)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#tier-3-population-level-traversal-call">3.3.1. Tier 3: Population-Level Traversal (<code class="docutils literal notranslate"><span class="pre">__call__</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#tier-2-noise-generation-generate-noise">3.3.2. Tier 2: Noise Generation (<code class="docutils literal notranslate"><span class="pre">_generate_noise</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#tier-1-pure-unbatched-kernels-mutate-one-recombine-one">3.3.3. Tier 1: Pure Unbatched Kernels (<code class="docutils literal notranslate"><span class="pre">_mutate_one</span></code>, <code class="docutils literal notranslate"><span class="pre">_recombine_one</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#injection-and-regressions-base-injection-py">3.5.1. Injection and Regressions (base_injection.py)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#the-resourcemapper">4.1. The ResourceMapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#generational-loop-architecture-the-baseline-ga">4.2. Generational Loop Architecture: The Baseline GA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#multi-objective-orchestration-nsga-ii">4.3. Multi-Objective Orchestration (NSGA-II)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#quality-diversity-orchestration-map-elites">4.4. Quality-Diversity Orchestration (MAP-Elites)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#the-island-model-distributed-topology">4.5. The Island Model (Distributed Topology)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#operator-level-personalization-and-scheduling">4.6. Operator-Level Personalization and Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#execution-state-parameter-validation">4.1. Execution State &amp; Parameter Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#prng-key-allocation-resourcemapper">4.2. PRNG Key Allocation &amp; <code class="docutils literal notranslate"><span class="pre">ResourceMapper</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#generational-loop-architecture-geneticengine">4.3. Generational Loop Architecture (<code class="docutils literal notranslate"><span class="pre">GeneticEngine</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#multi-objective-engine-moengine">4.4. Multi-Objective Engine (<code class="docutils literal notranslate"><span class="pre">MOEngine</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#quality-diversity-engine-mapelitesengine">4.5. Quality-Diversity Engine (<code class="docutils literal notranslate"><span class="pre">MapElitesEngine</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html#distributed-island-models-baseislandmodel">4.6. Distributed Island Models (<code class="docutils literal notranslate"><span class="pre">BaseIslandModel</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#the-composer-pattern-config-driven-ga-runs">5.1. The Composer Pattern: Config-Driven GA Runs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#operator-catalog-string-specification-resolution">5.2. Operator Catalog: String Specification Resolution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#configuration-loading-toml-driven-experiments">5.3. Configuration Loading: TOML-Driven Experiments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#engine-factory-building-engines-from-specs">5.4. Engine Factory: Building Engines from Specs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#integration-with-benchmarking-infrastructure">5.5. Integration with Benchmarking Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#advanced-patterns-and-extensibility">5.6. Advanced Patterns and Extensibility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#practical-workflows-and-recipes">5.7. Practical Workflows and Recipes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#the-composer-entry-points">5.1. The Composer Entry Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#catalog-string-specification-resolution">5.2. Catalog &amp; String Specification Resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#declarative-toml-experiment-loading">5.3. Declarative TOML Experiment Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#external-framework-adapters">5.4. External Framework Adapters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html#results-benchmark-integration">5.5. Results &amp; Benchmark Integration</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Experiments and Comparative Analysis</a><ul>
