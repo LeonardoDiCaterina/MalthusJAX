@@ -7,9 +7,9 @@ This is my first major open-source project in this domain, and I'm sharing it he
 ---
 
 ## 1. On-Device Execution & Scaling Behavior
-At its core, MalthusJAX keeps the entire evolutionary loop—from mutation and crossover to evaluation and Pareto sorting—strictly on-device within `jax.jit` and `jax.vmap`. This eliminates CPU-GPU memory transfers during evolution. 
+At its core, MalthusJAX keeps the core evolutionary loop—from mutation and crossover to evaluation—strictly on-device using JAX transformation primitives (`jax.lax.scan`, `jax.vmap`, `jax.jit`). This eliminates host-device CPU-GPU memory transfers during multi-generation evolution runs. 
 
-*Note on throughput:* Raw evaluation throughput alone isn't very meaningful without contextualized comparisons against other libraries (which is why we built the unified adapter and parity benchmarking suite below). The throughput numbers primarily confirm that execution is running entirely on-device without host-device synchronization bottlenecks:
+*Note on throughput:* Raw evaluation throughput alone isn't very meaningful without contextualized comparisons against other libraries (which is why we built the unified adapter and parity benchmarking suite below). The throughput numbers primarily confirm that execution is running on-device without host-device synchronization bottlenecks during scan loops:
 - On an NVIDIA H100 GPU benchmark, throughput reaches **~64,500 evaluations per second** on small population benchmarks (50-dimensional Sphere problem), and scales into millions of evaluations per second for larger population sizes.
 - **Dimensionality Scaling:** Scaling problem dimensionality 10× (from `dim=5` to `dim=50`) increases execution time by just **~0.08 seconds** (0.845s → 0.931s over 250–300 generations), demonstrating near-constant $O(1)$ GPU compute scaling across problem dimensions.
 
@@ -30,17 +30,17 @@ Rather than re-implementing every existing evolutionary algorithm or evaluation 
 - **BBOB-JAX** for vectorized black-box optimization functions.
 
 **How adapters work under the hood:**
-To avoid per-generation conversion overhead across different state representations (population vectors, repertoire archives, graph structures), MalthusJAX unifies upstream states into a single internal representation *once* during initialization. The rest of the evolutionary loop is fused into a single `jax.jit` compiled graph.
+To avoid per-generation conversion overhead across different state representations (population vectors, repertoire archives, graph structures), MalthusJAX unifies upstream states into a single internal representation once during initialization. External framework engines implement a unified `Engine` benchmark interface (`run_once(key) -> Dict`) returning standardized history, summary, and timing metrics.
 
 ---
 
 ## 3. Vectorized Island Models
-MalthusJAX includes a vectorized implementation of island models (`RingTopologyIsland`). Instead of using Python multiprocessing or networking overhead, `jax.vmap` vectorizes the entire evolutionary engine across independent island populations on-device. Migration between islands is handled asynchronously within the JAX execution graph via GPU permutation matrices.
+MalthusJAX includes a vectorized implementation of island models (`BaseIslandModel`, `RingTopologyIsland`, `FullyConnectedIsland`). Instead of using Python multiprocessing or networking overhead, `jax.vmap` vectorizes local evolutionary engines across independent island sub-populations on-device. Islands evolve independently in parallel for `migration_interval` steps inside JAX, with topological migrant exchange (`jnp.roll` or global permutation) executed between migration epochs.
 
 ---
 
 ## 4. Native Multi-Objective Evolution (NSGA-II)
-The library includes a JIT-compiled implementation of NSGA-II. Non-dominated Pareto sorting and crowding distance calculations are fused directly into the execution graph, allowing fast multi-objective sorting on-device.
+The library includes a native multi-objective engine (`MOEngine`). Non-dominated Pareto sorting and crowding distance calculations are natively integrated into `MOPopulation`, maintaining non-dominated ranks and crowding distances across combined parent ($\mu$) and offspring ($\lambda$) pools.
 
 ---
 
@@ -54,55 +54,78 @@ To ensure stability as upstream libraries evolve, we maintain a compatibility ma
 
 ---
 
-## 🧱 Layered Architecture & Unified Benchmarking
+## 🧱 Layered Architecture & Technical Specifications
 
-MalthusJAX is decoupled into distinct layers so users can interact at whichever level of abstraction fits their workflow:
+MalthusJAX is decoupled into distinct layers so users can interact at whichever level of abstraction fits their workflow. Each layer is backed by a technical reference specification:
 
-1. **Layer 1: Core Primitives & State (`malthusjax.core`)**
-   Pure functional JAX PyTree data structures (`Population`, `BaseGenome`, `Evaluator`). No magic or hidden state—just immutable JAX arrays and dataclasses:
-   - **`BaseGenome` Subclasses:** Represent genetic encodings (`RealGenome`, `BinaryGenome`, `PermutationGenome`, `TensorNeatGenome`) as PyTrees wrapping typed JAX arrays for parameters, gene bounds, and structural topology matrices.
-   - **`Population` Container:** A vectorized PyTree container that pairs individual genome arrays alongside population-level state. It manages genome PyTrees together with fitness matrices (`fitness`), multi-objective targets (`objectives`), PRNGKeys, generation counters, and flexible metadata dictionaries (`meta`) that pass problem-specific context smoothly across JAX `jit`/`vmap` boundaries.
-   - **`Evaluator`:** Stateless functional contracts mapping PyTree populations to evaluated fitness tensors.
+1. **Layer 1: Core Primitives & State ([`malthusjax.core`](src/malthusjax/core/README.md))**
+   Pure functional JAX PyTree data structures (`BasePopulation`, `BaseGenome`, `BaseEvaluator`). No hidden state—just immutable JAX arrays and dataclasses:
+   - **`BaseGenome` Subclasses:** Represent genetic encodings (`RealGenome`, `BinaryGenome`, `CategoricalGenome`, `LinearGenome`) as PyTrees wrapping typed JAX arrays for parameters and domain constraints.
+   - **`BasePopulation` Container:** A Struct-of-Arrays (SoA) PyTree container pairing individual genome arrays alongside population-level `fitness` vectors and static configuration.
+   - **`BaseEvaluator`:** Abstract functional contracts mapping PyTree populations to evaluated fitness tensors (`SphereEvaluator`, `GriewankEvaluator`, `BoxEvaluator`, `KnapsackEvaluator`, `BBOBEvaluator`).
 
-2. **Layer 2: Pure Functional Operators (`malthusjax.operators`)**
-   Stateless JAX functions for mutation, crossover, selection, and emissions that can be used directly inside custom JAX loops:
-   - **Mutation, Crossover & Selection:** Pure functional primitives (e.g., `gaussian_mutation`, `blend_crossover`, `tournament_selection`) operating directly on JAX arrays and PyTree populations.
-   - **Emitters & Injection Operators:** Emitter abstractions (`BaseEmitter`, `EmitterState`) that encapsulate generation dynamics (like QD archive emission or genetic mixing) and injection operators for seeding external solutions into PyTree populations.
-   - **PRNG Key Management:** Every operator takes explicit JAX `PRNGKey`s and returns mutated PyTrees alongside updated keys, maintaining 100% functional purity and reproducibility under `jax.vmap`/`jax.jit`.
+2. **Layer 2: Functional 3-Tier Operators ([`malthusjax.operators`](src/malthusjax/operators/README.md))**
+   Stateless JAX operator dataclasses separating domain math from vectorization:
+   - **3-Tier Hierarchy:** Tier 1 (`_mutate_one`, `_recombine_one`) operates on single genome PyTrees; Tier 2 (`_generate_noise`) generates noise PyTrees; Tier 3 (`__call__`) orchestrates JAX `vmap` calls over population PyTrees.
+   - **Selection Operators:** `TournamentSelection` (balanced), `RouletteSelection` (softmax/Gumbel-Max), `ElitePoolSelection` ($O(N)$ `jnp.argpartition`), `EvoSaxMimicSelection`.
+   - **Crossover & Mutation:** `UniformCrossover`, `BlendCrossover` (BLX-$\alpha$), `SBXCrossover`, `BitFlipMutation`, `GaussianMutation` (with schedules and bounds clipping), `PolynomialMutation`.
+   - **Emitters & Injection Operators:** Quality-Diversity emitters (`BaseEmitter`, `GeneticEmitter`, `MixingEmitter`) and single-key noise injection operators (`base_injection.py`) for deterministic replay testing.
 
-3. **Layer 3: Native Engine Loops (`malthusjax.engine`)**
-   Fully functional, JIT-compilable evolutionary engines written in pure Python/JAX:
-   - **Single-Population & Multi-Objective Engines:** Engines (`GeneticEngine`, `NSGA2Engine`, `MapElites`) implementing the complete evolutionary lifecycle (`init`, `step`, `tell`, `ask`) entirely on-device.
-   - **Vectorized Island Topologies:** Multi-population models (`RingTopologyIsland`) that use `jax.vmap` to run $N$ independent engines in parallel on GPU/TPU, performing asynchronous cross-island migrant swaps via JAX permutation matrices.
-   - **Decoupled Loop Execution:** Exposes pure step functions (`engine.step(state) -> (state, metrics)`) compatible with `jax.lax.fori_loop` or `jax.lax.scan` for zero-overhead multi-generation runs.
+3. **Layer 3: Execution Engines ([`malthusjax.engine`](src/malthusjax/engine/README.md))**
+   Hardware-accelerated execution engines written in pure JAX:
+   - **Single & Multi-Objective Engines:** `GeneticEngine` (5-phase generational loop), `MOEngine` (NSGA-II paradigm), `MapElitesEngine` (QD grid search with `qdax`).
+   - **Resource Budgeting (`ResourceMapper`):** Pre-calculates exact per-operator PRNG key slices during `init_state` (`KeyDerivationStrategy`: `SPLIT` vs `FOLD`), eliminating dynamic key allocation during scan execution.
+   - **Vectorized Island Topologies:** `RingTopologyIsland` and `FullyConnectedIsland` running $N$ independent engines in parallel via `jax.vmap`.
+   - **Scan-based Loop & Ask/Tell:** Supports `run(state)` via `jax.lax.scan` and stateful `ask(state)` / `tell(state, evaluated_pop)` APIs for custom evaluation loops.
 
-4. **Layer 4: Composer & Adapters (`malthusjax.composer`)**
-   Declarative configuration layer for zero-code experiment reproducibility. **This layer is completely optional:**
-   - **Unified Adapter Protocol:** Bridges external frameworks (EvoSAX, QDAX, TensorNEAT) by translating upstream state dictionaries and strategy objects into unified MalthusJAX PyTree states during initialization.
-   - **Dynamic Catalog Registry:** String-based catalog lookups (`OperatorCatalog`, `EngineCatalog`) that resolve declarative string specs (e.g., `"tournament:tournament_size=3"`, `"gaussian:mutation_rate=0.1"`) into configured operator factories.
-   - **Declarative TOML Integration:** Parses version-controlled TOML experiment definitions to automatically wire together genomes, fitness evaluators, operators, and engine loops without requiring custom Python glue code.
+4. **Layer 4: Composer & Adapters ([`malthusjax.composer`](src/malthusjax/composer/README.md))**
+   High-level experiment orchestration layer for zero-boilerplate experiment execution:
+   - **Unified Adapter Protocol:** Adapters (`build_evosax_engine`, `build_qdax_engine`, `build_tensorneat_engine`, `build_kozax_engine`) translating upstream library states into unified `Engine` benchmark objects.
+   - **Catalog Registry:** String DSL lookups (`OperatorCatalog`, `EngineRegistry`, `GenomeCatalog`) parsing specs like `"tournament:num_selections=25,tournament_size=3"` or `"blend:alpha=0.5"`.
+   - **Declarative TOML Integration:** Parses version-controlled TOML files via `load_experiment_config` to wire together shared defaults and per-pipeline overrides.
 
-5. **Layer 5: Unified Benchmarking & Statistics (`malthusjax.stats` & `malthusjax.benchmarking`)**
-   Standardized evaluation and statistical testing layer:
-   - **Standardized Execution Harness:** The `BenchmarkRunner` executes any engine or framework adapter across parameterized seeds and problem configurations, collecting identical structured `ExperimentResult` data.
-   - **Automated Parity & Statistical Testing:** The `stats` sub-package computes non-parametric tests (Wilcoxon signed-rank, TOST equivalence), effect sizes (Cohen's $d_z$), OLS log-log scaling regressions, and Bland-Altman agreement plots to rigorously evaluate algorithm performance without manual data wrangling.
+5. **Layer 5: Unified Benchmarking & Statistics ([`malthusjax.stats`](src/malthusjax/stats/README.md) & [`malthusjax.benchmarking`](src/malthusjax/benchmarking/README.md))**
+   Standardized evaluation and statistical hypothesis testing layer:
+   - **Standardized Execution Harness:** `BenchmarkRunner` executes any engine or adapter across parameterized seeds and collects structured `ExperimentResult` data.
+   - **Automated Parity & Statistical Suite:** `malthusjax.stats` computes seed-aligned paired hypothesis tests (Wilcoxon signed-rank, paired $t$-test, sign test, TOST equivalence), Holm/FDR-BH multiple-testing corrections, Shapiro-Wilk normality gating, and effect sizes (Cohen's $d_z$).
 
 ---
 
 ### 💻 Code Example: Vectorized Island Model
 
 ```python
-# Create 4 independent Islands, migrating 10 individuals every 50 generations
-island_model = RingTopologyIsland(
-    base_engine=base_engine,
-    num_islands=4,
-    migration_interval=50,
-    num_migrants=10,
+from malthusjax.engine.island_model.topologies import RingTopologyIsland
+from malthusjax.engine import GeneticEngine, GeneticEngineParams
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+from malthusjax.core.fitness.real_evaluators import SphereEvaluator, SphereConfig
+from malthusjax.operators.selection import TournamentSelection
+from malthusjax.operators.crossover import BlendCrossover
+from malthusjax.operators.mutation import GaussianMutation
+import jax.random as jr
+
+# 1. Configure base genetic engine for each island
+base_engine = GeneticEngine(
+    genome_config=RealGenomeConfig(shape=(10,), bounds=(-5.0, 5.0)),
+    evaluator=SphereEvaluator(config=SphereConfig(maximize=False)),
+    selection=TournamentSelection(num_selections=25, tournament_size=3),
+    crossover=BlendCrossover(alpha=0.5),
+    mutation=GaussianMutation(mutation_rate=0.1, mutation_strength=0.1),
+    engine_params=GeneticEngineParams(pop_size=50, num_generations=50),
 )
 
-# Compile and run the entire distributed model on GPU/TPU
-global_state = jax.jit(island_model.init)(key)
-final_state = jax.lax.fori_loop(0, 2000, lambda _, s: island_model.step(s)[0], global_state)
+# 2. Wrap base engine in a 4-island Ring topology model
+island_model = RingTopologyIsland(
+    engine=base_engine,
+    num_islands=4,
+    migration_interval=50,
+    num_migrants=5,
+)
+
+# 3. Initialize state across islands and step (evolves islands in parallel via vmap,
+# then performs topological migration between migration intervals)
+key = jr.PRNGKey(42)
+multi_state = island_model.init_state(key)
+next_multi_state, history = island_model.step(multi_state)
 ```
 
 ---
@@ -124,7 +147,7 @@ Tests ground-truth parity against native libraries on identical random seeds:
    ```bash
    make h1-parity-qdax-full
    ```
-   *Runs a MAP-Elites parity check comparing MalthusJAX's native `MapElitesStrategy` directly against QDAX, monitoring QD-Score, Max Fitness, and Archive Grid Coverage.*
+   *Runs a MAP-Elites parity check comparing MalthusJAX's native `build_qdax_engine` directly against QDAX, monitoring QD-Score, Max Fitness, and Archive Grid Coverage.*
 
 3. **Neuroevolution (TensorNEAT):**
    ```bash
@@ -144,28 +167,38 @@ Tests execution stability and diversity retention across `float32`, `bfloat16`, 
 make h3-representation-full
 ```
 
-#### 🔧 Optional TOML Configuration Grammar
-Experiments can also be specified via TOML configuration files:
+#### 🔧 Declarative TOML Configuration Schema
+Experiments are declaratively specified via TOML configuration files parsed by `load_experiment_config`:
 
 ```toml
-[engine]
-adapter = "evosax"
-pop_size = 1024
-generations = 500
-seed = 42
+[experiment]
+name = "crossover_comparison"
+output_dir = "results/crossover_comparison"
 
-[genome]
-type = "binary"
-size = 256
+[experiment.shared]
+fitness       = "sphere:dim=10"
+pop_size      = 50
+generations   = 100
+genome_length = 10
+bounds        = [-5.0, 5.0]
+seeds         = [42, 43, 44]
+prng_impl     = "threefry2x32"
+elitism       = 2
+maximize      = false
 
-[operators]
-mutation = "binary_mutation"
-crossover = "uniform_crossover"
-selection = "tournament"
+[pipelines.blend_ga]
+backend     = "malthusjax"
+engine_type = "ga"
+selection   = "tournament:num_selections=25,tournament_size=3"
+crossover   = "blend:alpha=0.5"
+mutation    = "gaussian:mutation_rate=0.1,mutation_strength=0.1"
 
-[fitness]
-callable = "my_project.fitness.my_obj"
-objective = "maximize"
+[pipelines.sbx_ga]
+backend     = "malthusjax"
+engine_type = "ga"
+selection   = "tournament:num_selections=25,tournament_size=3"
+crossover   = "simulated_binary:eta=20.0"
+mutation    = "polynomial:mutation_rate=0.1,eta=20.0"
 ```
 
 #### 📉 Advanced: LHS Benchmarking & Statistical Analysis (Beta)
@@ -173,7 +206,6 @@ For sweeps across function spaces, Latin Hypercube Sampling (LHS) is supported v
 ```bash
 make benchmark-run TOML=configs/h1_parity_lhs.toml
 ```
-*Note: The `benchmark_analyzer.py` statistical suite (confidence intervals, Bland-Altman plots) is currently in Beta.*
 
 ---
 
