@@ -581,15 +581,27 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     def step(
         self, state: AbstractEvolutionState[BaseGenome, BasePopulation[Any]]
     ) -> Tuple[GeneticEvolutionState, GeneticGenerationOutput]:
+        """Execute one complete evolutionary generation (5-phase state transition).
+
+        The generation process is structured as a pure JAX PyTree state transition:
+            1. Allocate Entropy: Split PRNG keys deterministically (`_allocate_entropy`)
+            2. Selection: Select parents and elites (`_selection_phase`)
+            3. Reproduction: Apply crossover and mutation (`_reproduction_phase`)
+            4. Merge: Combine elites and offspring (`_merge`)
+            5. Evaluation: Evaluate objective values (`_evaluate_phase`)
+        """
         state = cast(GeneticEvolutionState, state)
         params = cast(GeneticEngineParams, self.engine_params)
 
+        # Phase 1: Allocate Entropy
         (k_sel, k_cross, k_mut, k_eval, k_next) = self._allocate_entropy(state)
 
+        # Phase 2: Selection
         elites, parent_indices = self._selection_phase(
             k_sel, state.population, state.operators, self.engine_params
         )
 
+        # Phase 3: Reproduction
         mutants = self._reproduction_phase(
             k_cross,
             k_mut,
@@ -599,8 +611,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             state.resource_map,
             generation=state.generation,
         )
+
+        # Phase 4: Merge
         next_genes = self._merge(elites, mutants.genes, state)
 
+        # Phase 5: Evaluation
         new_pop_unrated = replace(state.population, genes=next_genes)
         new_pop = self._evaluate_phase(new_pop_unrated, k_eval)
 
