@@ -1989,7 +1989,24 @@
         <span class="k">if</span> <span class="n">problem_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown TensorNEAT problem: </span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 
-        <span class="n">problem</span> <span class="o">=</span> <span class="n">problem_cls</span><span class="p">()</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s2">":"</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">args_part</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">kv</span> <span class="ow">in</span> <span class="n">args_part</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">):</span>
+                <span class="k">if</span> <span class="s2">"="</span> <span class="ow">in</span> <span class="n">kv</span><span class="p">:</span>
+                    <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">kv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+        <span class="k">if</span> <span class="n">base_name</span> <span class="o">==</span> <span class="s2">"gymnaxenv"</span> <span class="ow">and</span> <span class="s2">"action_policy"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">default_discrete_policy</span><span class="p">(</span><span class="n">randkey</span><span class="p">,</span> <span class="n">forward_func</span><span class="p">,</span> <span class="n">obs</span><span class="p">):</span>
+                <span class="n">logits</span> <span class="o">=</span> <span class="n">forward_func</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">logits</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="p">())</span>
+                <span class="k">return</span> <span class="n">logits</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"action_policy"</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_discrete_policy</span>
+
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">problem_cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">problem</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_build_map_elites_engine</span><span class="p">(</span>
