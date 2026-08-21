@@ -1656,7 +1656,24 @@ class Composer:
         if problem_cls is None:
             raise ValueError(f"Unknown TensorNEAT problem: {base_name}.")
 
-        problem = problem_cls()
+        kwargs = {}
+        if ":" in name:
+            args_part = name.split(":", 1)[1]
+            for kv in args_part.split(","):
+                if "=" in kv:
+                    k, v = kv.split("=", 1)
+                    kwargs[k] = v
+
+        if base_name == "gymnaxenv" and "action_policy" not in kwargs:
+            import jax.numpy as jnp
+            def default_discrete_policy(randkey, forward_func, obs):
+                logits = forward_func(obs)
+                if logits.ndim > 0 and logits.shape[-1] > 1:
+                    return jnp.reshape(jnp.argmax(logits, axis=-1), ())
+                return logits
+            kwargs["action_policy"] = default_discrete_policy
+
+        problem = problem_cls(**kwargs)
         return problem, problem.setup()
 
     def _build_map_elites_engine(
