@@ -145,10 +145,11 @@ class BaseGenome:
         """
         raise NotImplementedError
 
-    def copy(self: G) -> G:
-        """
-        Deep-copies all JAX/NumPy arrays within the genome to prevent JAX
-        buffer donation errors during multi-seed or multi-pipeline evaluations.
+    def clone_buffers(self: G) -> G:
+        """Deep-copies all JAX/NumPy array leaves in the PyTree.
+
+        Guarantees buffer isolation for safe JAX buffer donation (`donate_argnums`)
+        across multi-seed, multi-pipeline, or host-device transfers.
         """
         return cast(
             G,
@@ -157,6 +158,10 @@ class BaseGenome:
                 self,
             ),
         )
+
+    def copy(self: G) -> G:
+        """Alias for :meth:`clone_buffers` for backwards compatibility."""
+        return self.clone_buffers()
 
     @abstractmethod
     def distance(self, other: BaseGenome, metric: str) -> chex.Numeric:
@@ -241,10 +246,11 @@ class BasePopulation(Generic[G]):
     config: Any = _field(pytree_node=False, default=None)
     info: dict[str, Any] = _field(default_factory=dict)
 
-    def copy(self: BasePopulation[G]) -> BasePopulation[G]:
-        """
-        Deep-copies the population and its underlying genomes to prevent JAX
-        buffer donation errors during multi-seed or multi-pipeline evaluations.
+    def clone_buffers(self: BasePopulation[G]) -> BasePopulation[G]:
+        """Deep-copies the population PyTree and all leaf arrays.
+
+        Guarantees buffer isolation for safe JAX buffer donation (`donate_argnums`)
+        across multi-seed or multi-pipeline evaluations.
         """
         return cast(
             BasePopulation[G],
@@ -253,6 +259,10 @@ class BasePopulation(Generic[G]):
                 self,
             ),
         )
+
+    def copy(self: BasePopulation[G]) -> BasePopulation[G]:
+        """Alias for :meth:`clone_buffers` for backwards compatibility."""
+        return self.clone_buffers()
 
     @classmethod
     def from_array(
