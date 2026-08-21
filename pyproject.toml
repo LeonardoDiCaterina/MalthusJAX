@@ -13,9 +13,12 @@ readme = "README.md"
 license = {file = "LICENSE"}
 
 keywords = ["genetic-algorithms", "evolutionary-computation", "jax", "machine-learning", "evosax"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Intended Audience :: Science/Research",
@@ -93,7 +96,7 @@ Issues = "https://github.com/LeonardoDiCaterina/MalthusJAX/issues"
 [tool.ruff]
 # Replaces [tool.black] and [tool.isort]
 line-length = 100
-target-version = 'py39'
+target-version = 'py310'
 exclude = ["*.ipynb"]
 
 [tool.ruff.lint]
@@ -213,19 +216,11 @@ dependencies = [
 ]
 
 [tool.hatch.envs.bench.scripts]
-# Quick smoke benchmark
-smoke = "python benchmarks/run_benchmark.py --config benchmarks/smoke_test.toml"
-# Full benchmark using the gecco config
-full = "python benchmarks/run_benchmark.py --config benchmarks/gecco_benchmark.toml"
-# Configurable benchmark runner
-configurable = "python benchmarks/run_benchmark_configurable.py --config {args}"
-# Engine comparison / experiment runner
-compare = "python benchmarks/run_engine_comparison.py"
-# Generate reports and plots from local results
-analyze = "python my_local_results/generate_report.py"
-plot = "python my_local_results/plot.py"
-# Clean generated local results (be careful: this removes files)
-clean = "bash -lc 'rm -rf my_local_results/* results/*.csv'"
+hero = "python benchmarks/run_hero_benchmark.py"
+throughput = "python benchmarks/experiment_1_throughput.py"
+island = "python benchmarks/experiment_2_island_scaling.py"
+convergence = "python benchmarks/experiment_3_convergence.py"
+ablation = "python benchmarks/architecture_ablation.py"
 
 
 [project.scripts]

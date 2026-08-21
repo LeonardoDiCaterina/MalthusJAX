@@ -95,8 +95,8 @@ class UniversalAdapterEngine:
         if self._jit_run_loop is not None:
             return self._jit_run_loop
 
-        def wrapped_eval_translator(evaluator: Any, pop: Any, state: Any, key: Any) -> Any:
-            raw_fitness = self.eval_translator(evaluator, pop, state, key)
+        def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
+            raw_fitness = self.eval_translator(*args, **kwargs)
             return -raw_fitness if self.backend_maximizes else raw_fitness
 
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
@@ -151,8 +151,8 @@ class UniversalAdapterEngine:
     def _build_python_loop(self) -> Any:
         """Build a python loop for non-jittable frameworks."""
 
-        def wrapped_eval_translator(evaluator: Any, pop: Any, state: Any, key: Any) -> Any:
-            raw_fitness = self.eval_translator(evaluator, pop, state, key)
+        def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
+            raw_fitness = self.eval_translator(*args, **kwargs)
             return -raw_fitness if self.backend_maximizes else raw_fitness
 
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:

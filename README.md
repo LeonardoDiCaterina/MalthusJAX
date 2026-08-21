@@ -6,9 +6,11 @@
 [![Coverage](https://img.shields.io/badge/Coverage-%3E%2080%25-success.svg)](https://leonardodicaterina.github.io/MalthusJAX/coverage/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**Evolve solutions at GPU speed.** MalthusJAX is a JAX-powered evolutionary computation framework. Define your experiments declaratively in TOML files, and run multi-seed, hardware-accelerated pipelines with a single command. 
+**MalthusJAX is a JAX-native evolutionary computation framework designed around PyTree state, vectorized operators, preallocated PRNG resources, and `lax.scan`-compiled generational loops.**
 
-*No boilerplate. No recompilation between generations. Just fast, scalable evolution.*
+Define your experiments declaratively in TOML files or Python APIs, and run multi-seed, hardware-accelerated pipelines with a single compiled XLA kernel.
+
+*No Python loop overhead. No recompilation between generations. Just fast, scalable JAX state transitions.*
 
 > 📖 **Architecture & Benchmark Deep Dive:** Read our [Show & Tell Showcase](docs/SHOWCASE.md) to explore the 5-layer design, empirical H100 scaling benchmarks, and upstream parity verification!
 
@@ -18,10 +20,53 @@
 
 MalthusJAX has been rigorously validated on an **NVIDIA H100 GPU** over **72,000+ experimental runs** across 4 publication benchmark suites (EvoSAX, QDAX, TensorNEAT, and H2 Operator Ablations). Using **OLS log-log interaction regressions**, non-parametric Wilcoxon tests, and TOST equivalence testing:
 
-- **100% Solution Quality Parity (EvoSAX)**: OLS treatment regression models show **$p > 0.05$** across standard BBOB functions (Sphere $p=0.949$, Rastrigin $p=0.998$, Schwefel $p=0.815$), mathematically proving **zero loss in optimization quality**.
+- **Optimization Quality Parity (EvoSAX)**: OLS treatment regression models and TOST equivalence tests supported practical equivalence within predefined margins ($p > 0.05$ across standard BBOB functions, e.g. Sphere $p=0.949$, Rastrigin $p=0.998$, Schwefel $p=0.815$).
 - **~2.14x Generation Speedup**: Fusing generation loops into pure JAX kernels executes in **18.9 ms** vs native EvoSAX's **40.6 ms** per run on H100.
-- **100% Timing Parity (QDAX MAP-Elites)**: Interaction regression tests confirm zero overhead ($p_{\text{holm}} > 0.05$) when adapting MAP-Elites grid archives under the Universal Composer layer.
-- **Operator Ablation Proof**: Swapping individual genetic operators (selection, crossover) shows **$p_{\text{holm}} = 1.0$** across function timing regressions, proving zero bottleneck in modular composition.
+- **Dimensionality & Timing Behavior**: Runtime increased only modestly over tested dimensionality ranges (5 to 50 dims), and interaction regression tests confirmed zero overhead ($p_{\text{holm}} > 0.05$) when adapting MAP-Elites grid archives under the Universal Composer layer.
+- **Operator Ablation Proof**: Swapping individual genetic operators (selection, crossover) shows **$p_{\text{holm}} = 1.0$** across function timing regressions, demonstrating modular composition without execution bottlenecks.
+
+---
+
+## Why JAX?
+
+Evolutionary algorithms look embarrassingly parallel, but naive implementations repeatedly cross the Python/JAX boundary every generation.
+
+MalthusJAX instead models an entire evolutionary generation as a **pure PyTree state transition**:
+
+$$\text{State}_t \xrightarrow{\text{entropy + selection + reproduction + evaluation}} \text{State}_{t+1}$$
+
+Because the population, fitness values, and RNG state are encapsulated in a single JAX PyTree, the repeated generational transition can be compiled into a single XLA program using `jax.lax.scan`:
+
+```python
+def generational_step(state, _):
+    # Pure state transition executing entirely on GPU VRAM
+    next_state = engine.step(state)
+    return next_state, state.best_fitness
+
+# Compile entire multi-generation loop into ONE XLA kernel
+compiled_run = jax.jit(
+    lambda init_state: jax.lax.scan(generational_step, init_state, None, length=num_generations)
+)
+```
+
+### Core Architecture & Vectorization Principles
+
+- **Struct-of-Arrays (SoA) PyTrees**: Populations are represented as SoA PyTrees, enabling contiguous memory accesses and GPU SIMD vectorization.
+- **Preallocated PRNG Allocation**: PRNG keys are split and allocated deterministically inside the JAX trace, eliminating runtime Python entropy overhead.
+- **Buffer Donation Semantics**: Kernels reuse pre-allocated population buffers in-place via explicit buffer donation (`jax.jit(..., donate_argnums=(0,))`), drastically reducing VRAM allocation churn.
+- **Multi-Level Operator APIs**: MalthusJAX provides a progressive operator API (Genome-level, Noise-level, Population-level), allowing users to trade abstraction for explicit vectorization/batching control without leaving the framework.
+
+---
+
+## Rigorous Invariant & Equivalence Verification
+
+MalthusJAX is backed by an extensive testing suite (using `pytest` and `Hypothesis`) designed to guarantee numerical correctness, JIT stability, and deterministic PRNG behavior:
+
+- **PyTree Invariants**: Guarantees shape, dtype, and leaf purity across all PyTree transformations.
+- **Phase-Level Engine Correctness**: Verifies the five-phase engine state changes deterministically at every step.
+- **Deterministic PRNG Allocations**: Ensures PRNG key splitting stays fully reproducible under JIT compilation.
+- **JIT & Buffer Donation Equivalence**: Verifies identical optimization outputs between Python execution and `lax.scan` fused execution.
+- **Adapter & Parity Verification**: Validates seed-aligned numerical parity against EvoSAX, QDAX, and TensorNEAT.
 
 
 ---

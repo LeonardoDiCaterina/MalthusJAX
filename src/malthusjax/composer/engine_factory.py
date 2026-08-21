@@ -186,20 +186,22 @@ def build_engine(
     :class:`GeneticEngineAdapter` suitable for use with
     :class:`~.benchmarking.BenchmarkRunner`.
     """
-    genome_config: Union[RealGenomeConfig, BinaryGenomeConfig]
-    if "genome_length" in kwargs:
-        genome_shape = (int(kwargs.pop("genome_length")),)
-    if isinstance(genome_shape, int):
-        genome_shape = (genome_shape,)
-
-    if genome_type == "real":
-        genome_config = RealGenomeConfig(
-            shape=genome_shape, bounds=bounds, dtype=kwargs.get("dtype", "float32")
-        )
-    elif genome_type == "binary":
-        genome_config = BinaryGenomeConfig(shape=genome_shape)
+    if "genome_config" in kwargs:
+        genome_config = kwargs.pop("genome_config")
     else:
-        raise ValueError(f"Unsupported genome type: {genome_type}")
+        if "genome_length" in kwargs:
+            genome_shape = (int(kwargs.pop("genome_length")),)
+        if isinstance(genome_shape, int):
+            genome_shape = (genome_shape,)
+
+        if genome_type == "real":
+            genome_config = RealGenomeConfig(
+                shape=genome_shape, bounds=bounds, dtype=kwargs.get("dtype", "float32")
+            )
+        elif genome_type == "binary":
+            genome_config = BinaryGenomeConfig(shape=genome_shape)
+        else:
+            raise ValueError(f"Unsupported genome type: {genome_type}")
 
     OperatorCatalog: Any = None
     try:
