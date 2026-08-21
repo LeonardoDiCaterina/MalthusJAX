@@ -4,13 +4,18 @@ Scope: `malthusjax.operators.base`, `malthusjax.operators.base_ablation`, `malth
 
 ---
 
-## Overview & 3-Tier Architecture
+## Overview & Progressive 3-Tier Architecture
 
-In MalthusJAX, operators are pure functions (or `@struct.dataclass` PyTrees) designed for XLA kernel fusion and stateless GPU execution. Operators decouple domain math from vectorization via a **3-tier hierarchy**:
+In MalthusJAX, operators are pure functions (or `@struct.dataclass` PyTrees) designed for XLA kernel fusion and stateless GPU execution. Operators decouple domain math from vectorization via a **progressive 3-tier hierarchy**, allowing users to trade abstraction for explicit control over batching and vectorization without leaving the framework:
 
-- **Tier 1 (Pure Arithmetic)**: `_mutate_one(genome, noise, config)` or `_recombine_one(p1, p2, noise, config)` operates on a single structural `Genome` PyTree instance `G`. Array-native equivalents (`_apply_noise`, `_apply_mask`) operate directly on flat `jax.Array` leaves for engine scan carries.
-- **Tier 2 (RNG Generation)**: `_generate_noise(keys, config, generation=0)` consumes pre-allocated PRNG keys and produces a noise PyTree (Bernoulli masks, Gaussian noise, random indices).
-- **Tier 3 (Population Vectorization)**: `__call__` orchestrates JAX `vmap` calls over batched `BasePopulation[G]` containers, treating `G` as an opaque PyTree without assuming a contiguous `.values` array.
+| Tier | Semantic Level | You Write | Use When | Control |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tier 1** | Single Genome | `_mutate_one(genome, noise)` | Algorithm naturally acts on single individuals; framework provides `vmap` lifting | High Abstraction |
+| **Tier 2** | Controlled Noise | `_generate_noise(keys)` | Algorithm requires specialized or custom stochastic noise generation | Medium |
+| **Tier 3** | Population Kernel | `__call__(population, keys)` | Algorithm intrinsically uses population-wide interactions (e.g. CMA-ES, population normalization) | Maximum Control |
+
+### Decision Principle
+> **Start at Tier 1 (Genome Level).** Write the natural mathematical algorithm for a single individual. Drop to **Tier 3 (Population Level)** only when your algorithm is inherently population-wise or you need explicit control over batching/vectorization strategy.
 
 ---
 
