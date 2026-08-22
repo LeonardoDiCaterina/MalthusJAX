@@ -469,12 +469,13 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
-<div class="viewcode-block" id="BaseGenome.copy">
-<a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.BaseGenome.copy">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">G</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Deep-copies all JAX/NumPy arrays within the genome to prevent JAX</span>
-<span class="sd">        buffer donation errors during multi-seed or multi-pipeline evaluations.</span>
+<div class="viewcode-block" id="BaseGenome.clone_buffers">
+<a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.BaseGenome.clone_buffers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clone_buffers</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">G</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Deep-copies all JAX/NumPy array leaves in the PyTree.</span>
+
+<span class="sd">        Guarantees buffer isolation for safe JAX buffer donation (`donate_argnums`)</span>
+<span class="sd">        across multi-seed, multi-pipeline, or host-device transfers.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span>
             <span class="n">G</span><span class="p">,</span>
@@ -483,6 +484,13 @@
                 <span class="bp">self</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseGenome.copy">
+<a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.BaseGenome.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">G</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">G</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Alias for :meth:`clone_buffers` for backwards compatibility."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clone_buffers</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="BaseGenome.distance">
@@ -583,12 +591,13 @@
     <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
-<div class="viewcode-block" id="BasePopulation.copy">
-<a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.BasePopulation.copy">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Deep-copies the population and its underlying genomes to prevent JAX</span>
-<span class="sd">        buffer donation errors during multi-seed or multi-pipeline evaluations.</span>
+<div class="viewcode-block" id="BasePopulation.clone_buffers">
+<a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.BasePopulation.clone_buffers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clone_buffers</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Deep-copies the population PyTree and all leaf arrays.</span>
+
+<span class="sd">        Guarantees buffer isolation for safe JAX buffer donation (`donate_argnums`)</span>
+<span class="sd">        across multi-seed or multi-pipeline evaluations.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span>
             <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span>
@@ -597,6 +606,13 @@
                 <span class="bp">self</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BasePopulation.copy">
+<a class="viewcode-back" href="../../../api/malthusjax.core.base.html#malthusjax.BasePopulation.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Alias for :meth:`clone_buffers` for backwards compatibility."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clone_buffers</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="BasePopulation.from_array">

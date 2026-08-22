@@ -363,10 +363,25 @@ concrete <cite>BaseGenome</cite> subclass instance ready for evaluation.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.BaseGenome.clone_buffers">
+<span class="sig-name descname"><span class="pre">clone_buffers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.clone_buffers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BaseGenome.clone_buffers" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies all JAX/NumPy array leaves in the PyTree.</p>
+<p>Guarantees buffer isolation for safe JAX buffer donation (<cite>donate_argnums</cite>)
+across multi-seed, multi-pipeline, or host-device transfers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self</strong> (<em>G</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>G</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.BaseGenome.copy">
 <span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BaseGenome.copy" title="Link to this definition">¶</a></dt>
-<dd><p>Deep-copies all JAX/NumPy arrays within the genome to prevent JAX
-buffer donation errors during multi-seed or multi-pipeline evaluations.</p>
+<dd><p>Alias for <a class="reference internal" href="#malthusjax.BaseGenome.clone_buffers" title="malthusjax.BaseGenome.clone_buffers"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clone_buffers()</span></code></a> for backwards compatibility.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>self</strong> (<em>G</em>)</p>
@@ -526,10 +541,25 @@ purely on PyTree manipulations.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.BasePopulation.clone_buffers">
+<span class="sig-name descname"><span class="pre">clone_buffers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.clone_buffers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BasePopulation.clone_buffers" title="Link to this definition">¶</a></dt>
+<dd><p>Deep-copies the population PyTree and all leaf arrays.</p>
+<p>Guarantees buffer isolation for safe JAX buffer donation (<cite>donate_argnums</cite>)
+across multi-seed or multi-pipeline evaluations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.BasePopulation.copy">
 <span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BasePopulation.copy" title="Link to this definition">¶</a></dt>
-<dd><p>Deep-copies the population and its underlying genomes to prevent JAX
-buffer donation errors during multi-seed or multi-pipeline evaluations.</p>
+<dd><p>Alias for <a class="reference internal" href="#malthusjax.BasePopulation.clone_buffers" title="malthusjax.BasePopulation.clone_buffers"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clone_buffers()</span></code></a> for backwards compatibility.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>self</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p>
@@ -3520,6 +3550,7 @@ depend on it.</p>
 <li class="toctree-l1"><a class="reference internal" href="malthusjax.core.html">malthusjax.core package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome"><code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BaseGenome.random_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.clone_buffers"><code class="docutils literal notranslate"><span class="pre">BaseGenome.clone_buffers()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.copy"><code class="docutils literal notranslate"><span class="pre">BaseGenome.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.distance"><code class="docutils literal notranslate"><span class="pre">BaseGenome.distance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BaseGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BaseGenome.autocorrect()</span></code></a></li>
@@ -3535,6 +3566,7 @@ depend on it.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.clone_buffers"><code class="docutils literal notranslate"><span class="pre">BasePopulation.clone_buffers()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.copy"><code class="docutils literal notranslate"><span class="pre">BasePopulation.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.spawn_offspring"><code class="docutils literal notranslate"><span class="pre">BasePopulation.spawn_offspring()</span></code></a></li>
@@ -4063,6 +4095,7 @@ depend on it.</p>
 <li><a class="reference internal" href="#">malthusjax package</a><ul>
 <li><a class="reference internal" href="#malthusjax.BaseGenome"><code class="docutils literal notranslate"><span class="pre">BaseGenome</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.BaseGenome.random_init"><code class="docutils literal notranslate"><span class="pre">BaseGenome.random_init()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.BaseGenome.clone_buffers"><code class="docutils literal notranslate"><span class="pre">BaseGenome.clone_buffers()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BaseGenome.copy"><code class="docutils literal notranslate"><span class="pre">BaseGenome.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BaseGenome.distance"><code class="docutils literal notranslate"><span class="pre">BaseGenome.distance()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BaseGenome.autocorrect"><code class="docutils literal notranslate"><span class="pre">BaseGenome.autocorrect()</span></code></a></li>
@@ -4078,6 +4111,7 @@ depend on it.</p>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.BasePopulation.clone_buffers"><code class="docutils literal notranslate"><span class="pre">BasePopulation.clone_buffers()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.copy"><code class="docutils literal notranslate"><span class="pre">BasePopulation.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.spawn_offspring"><code class="docutils literal notranslate"><span class="pre">BasePopulation.spawn_offspring()</span></code></a></li>
