@@ -58,7 +58,7 @@ class UniversalAdapterEngine:
         step_fn: Callable[..., Any],
         eval_mode: str,
         eval_translator: Callable[..., Any],
-        metrics_mapping: Dict[str, str | Callable[..., Any]],
+        metrics_catalog: list[Any],
         pop_size: int,
         num_generations: int,
         maximize: bool = False,
@@ -76,7 +76,7 @@ class UniversalAdapterEngine:
         self.step_fn = step_fn
         self.eval_mode = eval_mode
         self.eval_translator = eval_translator
-        self.metrics_mapping = metrics_mapping
+        self.metrics_catalog = metrics_catalog
         self.pop_size = pop_size
         self.num_generations = num_generations
         self.maximize = maximize
@@ -96,8 +96,7 @@ class UniversalAdapterEngine:
             return self._jit_run_loop
 
         def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
-            raw_fitness = self.eval_translator(*args, **kwargs)
-            return -raw_fitness if self.backend_maximizes else raw_fitness
+            return self.eval_translator(*args, **kwargs)
 
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
@@ -125,16 +124,16 @@ class UniversalAdapterEngine:
 
             # Process metrics
             normalized_metrics = {}
-            for k, v in self.metrics_mapping.items():
-                if callable(v):
-                    val = v(metrics)
+            for metric in self.metrics_catalog:
+                if callable(metric.source):
+                    val = metric.source(metrics)
                 else:
-                    val = metrics.get(v, jnp.nan)
+                    val = metrics.get(metric.source, jnp.nan)
 
-                if self.backend_maximizes and k in ("best_fitness", "mean_fitness", "max_fitness", "fitness_auc", "qd_score"):
+                if self.backend_maximizes != self.maximize and metric.is_objective_value:
                     val = -val
 
-                normalized_metrics[k] = val
+                normalized_metrics[metric.name] = val
 
             return (rng, state), normalized_metrics
 
@@ -152,8 +151,7 @@ class UniversalAdapterEngine:
         """Build a python loop for non-jittable frameworks."""
 
         def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
-            raw_fitness = self.eval_translator(*args, **kwargs)
-            return -raw_fitness if self.backend_maximizes else raw_fitness
+            return self.eval_translator(*args, **kwargs)
 
         def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
@@ -171,16 +169,16 @@ class UniversalAdapterEngine:
 
             # Process metrics
             normalized_metrics = {}
-            for k, v in self.metrics_mapping.items():
-                if callable(v):
-                    val = v(metrics)
+            for metric in self.metrics_catalog:
+                if callable(metric.source):
+                    val = metric.source(metrics)
                 else:
-                    val = metrics.get(v, jnp.nan)
+                    val = metrics.get(metric.source, jnp.nan)
 
-                if self.backend_maximizes and k in ("best_fitness", "mean_fitness", "max_fitness", "fitness_auc", "qd_score"):
+                if self.backend_maximizes != self.maximize and metric.is_objective_value:
                     val = -val
 
-                normalized_metrics[k] = val
+                normalized_metrics[metric.name] = val
 
             return (rng, state), normalized_metrics
 
@@ -236,7 +234,6 @@ class UniversalAdapterEngine:
 
         # Format history output
         history = []
-        sign = -1.0 if self.maximize else 1.0
 
         # If history_metrics is explicitly provided, filter by it, else include all available metrics
         if self.history_metrics:
@@ -252,15 +249,13 @@ class UniversalAdapterEngine:
             for k in track_keys:
                 if k in scan_history:
                     val = scan_history[k][g]
-                    if k in ("best_fitness", "mean_fitness"):
-                        val = val * sign
                     gen_stats[k] = float(val)
                     if k == "best_fitness":
                         fitness_auc += float(val)
             history.append(gen_stats)
 
         report_best = (
-            float(scan_history["best_fitness"][-1] * sign)
+            float(scan_history["best_fitness"][-1])
             if "best_fitness" in scan_history
             else 0.0
         )
@@ -272,16 +267,11 @@ class UniversalAdapterEngine:
             "total_evaluations": self.num_generations * self.pop_size,
         }
 
-        # Inject any other tracked metrics (e.g. qd_score, coverage) from their final generation
+        # Inject any other tracked metrics
         for k in track_keys:
-            if k not in ("best_fitness", "mean_fitness", "std_fitness"):
                 if k in scan_history:
                     val = scan_history[k][-1]
                     summary[k] = float(val)
-            elif k == "qd_score":
-                if k in scan_history:
-                    val = scan_history[k][-1]
-                    summary[k] = float(val * sign)
 
         mjx_evaluator = getattr(self, "malthusjax_evaluator", None) or self.evaluator
         if mjx_evaluator is not None and hasattr(mjx_evaluator, "get_gap_to_optimum"):
@@ -300,3 +290,8 @@ class UniversalAdapterEngine:
             "summary": summary,
             "timings": timings,
         }
+
+    def get_supported_metrics(self) -> list[Any]:
+        """Returns the catalog of all metrics supported by this adapter."""
+        return self.metrics_catalog
+

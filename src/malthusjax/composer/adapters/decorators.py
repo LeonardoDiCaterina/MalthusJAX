@@ -9,7 +9,8 @@ def adapter(
     framework: str,
     state_mapping: Dict[str, str],
     eval_translators: Dict[str, Callable[..., Any]],
-    metrics_mapping: Dict[str, str | Callable[..., Any]],
+    metrics_catalog: list[Any],
+    backend_maximizes: bool = False,
 ) -> Callable[..., Any]:
     """Decorator to generate a UniversalAdapterEngine subclass dynamically.
 
@@ -18,8 +19,7 @@ def adapter(
         state_mapping: Dict[str, Any] mapping "init" and "step" keys to the actual framework method names.
         eval_translators: Dict[str, Any] mapping EvalMode constants ("native", "malthusjax") to callables
             that handle fitness evaluation for that framework.
-        metrics_mapping: Dict[str, Any] mapping metric names to keys or callables to extract from the
-            framework's metrics object.
+        metrics_catalog: List[MetricSpec] defining the metrics supported by this adapter.
     """
 
     def decorator(cls: type) -> type:
@@ -88,7 +88,7 @@ def adapter(
                     step_fn=step_fn,
                     eval_mode=eval_mode,
                     eval_translator=eval_translator,
-                    metrics_mapping=metrics_mapping,
+                    metrics_catalog=metrics_catalog,
                     pop_size=pop_size,
                     num_generations=num_generations,
                     maximize=maximize,
@@ -98,10 +98,15 @@ def adapter(
                     history_metrics=history_metrics,
                     state_has_randkey=False,
                     use_python_loop=use_python_loop,
+                    backend_maximizes=backend_maximizes,
                 )
 
             def run_once(self, key: Any, unroll_factor: int = 1, compile: bool = True) -> Any:
                 return self.engine.run_once(key, unroll_factor, compile)
+
+            def get_supported_metrics(self) -> list[Any]:
+                """Returns the catalog of all metrics supported by this engine."""
+                return self.engine.get_supported_metrics()
 
         AdaptedEngine.__name__ = f"{cls.__name__}Adapted"
         return AdaptedEngine
