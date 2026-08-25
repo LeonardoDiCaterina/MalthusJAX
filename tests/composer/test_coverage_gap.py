@@ -2,24 +2,25 @@ import pytest
 
 from malthusjax.benchmarking.results import ExperimentResult, RunResult
 from malthusjax.composer.composer import Composer
+from malthusjax.composer.config import infer_genome_length, normalize_seeds
 
 
 def test_normalize_seeds_edge_cases():
     Composer.create_default()
 
     # Test int > 0
-    assert Composer._normalize_seeds(5) == (1, 2, 3, 4, 5)
+    assert normalize_seeds(5) == (1, 2, 3, 4, 5)
 
     # Test int <= 0
     with pytest.raises(ValueError, match="seeds must be > 0"):
-        Composer._normalize_seeds(0)
+        normalize_seeds(0)
 
     # Test empty tuple
     with pytest.raises(ValueError, match="seeds must not be empty"):
-        Composer._normalize_seeds([])
+        normalize_seeds([])
 
     # Test sequence of ints
-    assert Composer._normalize_seeds([10, 20, 30]) == (10, 20, 30)
+    assert normalize_seeds([10, 20, 30]) == (10, 20, 30)
 
 
 def test_quick_run_genome_fallback(monkeypatch):
@@ -74,8 +75,8 @@ def test_populate_metrics_fallback():
 
 
 def test_infer_genome_length():
-    composer = Composer.create_default()
+    composer = Composer.create_default()  # noqa: F841
 
-    assert composer._infer_genome_length({"genome_length": 15}) == 15
-    assert composer._infer_genome_length({"fitness": "bbob:num_dims=12"}) == 12
-    assert composer._infer_genome_length({}) == 10  # default
+    assert infer_genome_length({"genome_length": 15}) == 15
+    assert infer_genome_length({"fitness": "bbob:num_dims=12"}) == 12
+    assert infer_genome_length({}) == 10  # default

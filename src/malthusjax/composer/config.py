@@ -135,3 +135,40 @@ def load_experiment_config(
     return ExperimentLoadResult(
         meta=experiment_meta, pipelines=resolved, data_registry=data_registry
     )
+
+from typing import Sequence, Tuple
+
+
+def normalize_seeds(seeds: Sequence[int] | int) -> Tuple[int, ...]:
+    """Normalize seed input into an explicit tuple of integers.
+    Accepts either:
+    - an iterable of seeds (e.g., ``[42, 43, 44]``), or
+    - an integer count (e.g., ``100`` -> ``(1, 2, ..., 100)``).
+    """
+    if isinstance(seeds, int):
+        if seeds <= 0:
+            raise ValueError("seeds must be > 0 when provided as an integer count")
+        return tuple(range(1, seeds + 1))
+    seeds_tuple = tuple(int(s) for s in seeds)
+    if not seeds_tuple:
+        raise ValueError("seeds must not be empty")
+    return seeds_tuple
+
+def infer_genome_length(cfg: Dict[str, Any]) -> int:
+    """Infer genome length from config, preferring explicit values.
+    Priority:
+    1) ``genome_length`` kwarg
+    2) ``fitness`` spec params ``dim`` / ``num_dims``
+    3) default 10
+    """
+    if "genome_length" in cfg and cfg["genome_length"] is not None:
+        return int(cfg["genome_length"])
+    fitness_spec = cfg.get("fitness")
+    if isinstance(fitness_spec, str):
+        from .catalog import OperatorCatalog
+        parsed_name, parsed_params = OperatorCatalog().parse_spec(fitness_spec)
+        dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
+        if dim_val is not None:
+            return int(dim_val)
+    return 10
+

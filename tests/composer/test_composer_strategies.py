@@ -5,7 +5,7 @@ from malthusjax.composer.strategies.core import EvoSAXStrategy, QDAXStrategy
 
 
 @patch("malthusjax.composer.composer.BenchmarkRunner")
-@patch("malthusjax.composer.composer.Composer._build_real_engine")
+@patch("malthusjax.composer.composer.build_real_engine")
 def test_quick_run_with_default_malthusjax(mock_build_real_engine, mock_runner):
     composer = Composer()
 
@@ -21,7 +21,7 @@ def test_quick_run_with_default_malthusjax(mock_build_real_engine, mock_runner):
 
 
 @patch("malthusjax.composer.composer.BenchmarkRunner")
-@patch("malthusjax.composer.composer.Composer._build_evosax_engine")
+@patch("malthusjax.composer.composer.build_evosax_engine")
 def test_quick_run_with_evosax_backend(mock_build_evosax_engine, mock_runner):
     composer = Composer()
 
@@ -36,7 +36,7 @@ def test_quick_run_with_evosax_backend(mock_build_evosax_engine, mock_runner):
 
 
 @patch("malthusjax.composer.composer.BenchmarkRunner")
-@patch("malthusjax.composer.composer.Composer._build_evosax_engine")
+@patch("malthusjax.composer.composer.build_evosax_engine")
 def test_quick_run_with_evosax_strategy_explicit(mock_build_evosax_engine, mock_runner):
     composer = Composer()
 

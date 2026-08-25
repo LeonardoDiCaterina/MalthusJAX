@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import replace
-from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Dict, Optional, Sequence, Tuple, cast
 
 import chex
 import jax.numpy as jnp

@@ -6,6 +6,8 @@ import pytest
 from malthusjax.benchmarking import StubEngine
 from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult
 from malthusjax.composer.composer import Composer
+from malthusjax.composer.config import infer_genome_length, normalize_seeds
+from malthusjax.composer.factory import build_evosax_engine
 from malthusjax.composer.strategies.core import EvoSAXStrategy, GeneticStrategy, QDAXStrategy
 
 
@@ -16,20 +18,20 @@ def temp_output(tmp_path):
 
 class TestComposerSeeds:
     def test_normalize_seeds_int(self):
-        assert Composer._normalize_seeds(3) == (1, 2, 3)
-        assert Composer._normalize_seeds(1) == (1,)
+        assert normalize_seeds(3) == (1, 2, 3)
+        assert normalize_seeds(1) == (1,)
 
     def test_normalize_seeds_int_invalid(self):
         with pytest.raises(ValueError, match="must be > 0"):
-            Composer._normalize_seeds(0)
+            normalize_seeds(0)
 
     def test_normalize_seeds_sequence(self):
-        assert Composer._normalize_seeds([10, 20, 30]) == (10, 20, 30)
-        assert Composer._normalize_seeds((42,)) == (42,)
+        assert normalize_seeds([10, 20, 30]) == (10, 20, 30)
+        assert normalize_seeds((42,)) == (42,)
 
     def test_normalize_seeds_empty(self):
         with pytest.raises(ValueError, match="must not be empty"):
-            Composer._normalize_seeds([])
+            normalize_seeds([])
 
 
 class TestComposerQuickRun:
@@ -333,22 +335,20 @@ class TestComposerFromToml:
 
 class TestComposerPrivateMethods:
     def test_build_data_registry(self):
-        composer = Composer.create_default()
-        composer._build_data_registry({"my_data": {"type": "mock_data"}})
+        from malthusjax.composer.factory import build_data_registry
         # Given we don't have mock_data in registry, we just ensure it doesn't crash if valid or throws if invalid
         # To avoid dependencies on specific data loaders, we just test empty
-        assert composer._build_data_registry({}) == {}
+        assert build_data_registry({}) == {}
 
     def test_infer_genome_length(self):
-        composer = Composer.create_default()
-        assert composer._infer_genome_length({"genome_length": 5}) == 5
-        assert composer._infer_genome_length({"fitness": "sphere:dim=7"}) == 7
-        assert composer._infer_genome_length({}) == 10
+        assert infer_genome_length({"genome_length": 5}) == 5
+        assert infer_genome_length({"fitness": "sphere:dim=7"}) == 7
+        assert infer_genome_length({}) == 10
 
     def test_build_evosax_engine_invalid_bbob(self):
-        composer = Composer.create_default()
+        composer = Composer.create_default()  # noqa: F841
         with pytest.raises(ValueError, match="BBOB function index 999 is out of range"):
-            composer._build_evosax_engine(
+            build_evosax_engine(
                 strategy_name="SimpleGA",
                 fitness_spec="bbob:fn=999,dims=2",
                 pop_size=10,
@@ -359,7 +359,7 @@ class TestComposerPrivateMethods:
             )
 
         with pytest.raises(ValueError, match="requires either fn_name or fn index"):
-            composer._build_evosax_engine(
+            build_evosax_engine(
                 strategy_name="SimpleGA",
                 fitness_spec="bbob:dims=2",
                 pop_size=10,
