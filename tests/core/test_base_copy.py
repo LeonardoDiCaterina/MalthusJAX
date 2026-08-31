@@ -52,16 +52,14 @@ def sample_state():
     key = jax.random.PRNGKey(0)
     genome = MockGenome(values=jnp.ones((5, 10)))
     population = MockPopulation(
-        genes=genome,
-        fitness=jnp.zeros(5),
-        info={"meta": jnp.array([1, 2, 3])}
+        genes=genome, fitness=jnp.zeros(5), info={"meta": jnp.array([1, 2, 3])}
     )
     return MockState(
         population=population,
         best_genome=MockGenome(values=jnp.ones(10)),
         generation=1,
         best_fitness=jnp.array(0.0),
-        rng_key=key
+        rng_key=key,
     )
 
 
@@ -74,8 +72,12 @@ def test_copy_value_equivalence(sample_state):
     assert copied_state.generation == sample_state.generation
     assert jnp.array_equal(copied_state.best_fitness, sample_state.best_fitness)
     assert jnp.array_equal(copied_state.population.fitness, sample_state.population.fitness)
-    assert jnp.array_equal(copied_state.population.genes.values, sample_state.population.genes.values)
-    assert jnp.array_equal(copied_state.population.info["meta"], sample_state.population.info["meta"])
+    assert jnp.array_equal(
+        copied_state.population.genes.values, sample_state.population.genes.values
+    )
+    assert jnp.array_equal(
+        copied_state.population.info["meta"], sample_state.population.info["meta"]
+    )
 
 
 def test_copy_buffer_donation_isolation(sample_state):

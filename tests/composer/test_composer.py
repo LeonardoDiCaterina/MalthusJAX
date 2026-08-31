@@ -336,6 +336,7 @@ class TestComposerFromToml:
 class TestComposerPrivateMethods:
     def test_build_data_registry(self):
         from malthusjax.composer.factory import build_data_registry
+
         # Given we don't have mock_data in registry, we just ensure it doesn't crash if valid or throws if invalid
         # To avoid dependencies on specific data loaders, we just test empty
         assert build_data_registry({}) == {}

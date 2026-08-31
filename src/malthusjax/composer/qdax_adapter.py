@@ -103,6 +103,7 @@ QDAX_METRICS = [
     MetricSpec(name="coverage", source="coverage", is_objective_value=False),
 ]
 
+
 @adapter(
     framework="qdax",
     state_mapping={"init": "_adapter_init", "step": "_adapter_step"},
@@ -227,7 +228,9 @@ def build_qdax_engine(
     from malthusjax.composer.adapters.utils import resolve_bounds
 
     # Bounds extraction
-    resolved_bounds = resolve_bounds(kwargs.get("bounds"), evaluator, caller_name="build_qdax_engine")
+    resolved_bounds = resolve_bounds(
+        kwargs.get("bounds"), evaluator, caller_name="build_qdax_engine"
+    )
 
     params = {
         "init_variables": init_variables,

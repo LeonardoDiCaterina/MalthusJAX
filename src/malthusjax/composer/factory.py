@@ -26,9 +26,11 @@ def has_real_operators(
     """Check if any real operator specs are provided."""
     return any([genome, fitness, selection, crossover, mutation])
 
+
 def build_data_registry(data_config: Dict[str, Any]) -> Dict[str, Any]:
     """Convert a configuration of data sources into a resolved data registry."""
     from malthusjax.benchmarking.registry import DataRegistry
+
     reg = DataRegistry()
     for data_id, data_spec in data_config.items():
         reg.register(data_id, data_spec)
@@ -36,6 +38,7 @@ def build_data_registry(data_config: Dict[str, Any]) -> Dict[str, Any]:
     for data_id in data_config.keys():
         resolved[data_id] = reg.resolve(data_id)
     return resolved
+
 
 def build_real_engine(
     strategy: BaseStrategy,
@@ -46,6 +49,7 @@ def build_real_engine(
 ) -> Any:
     """Build engine from operator specs and config via EngineRegistry."""
     from malthusjax.engine.schedules import TrackBest
+
     catalog = OperatorCatalog()
     data_registry = None
     if data_config:
@@ -109,6 +113,7 @@ def build_real_engine(
         **config,
     )
 
+
 def build_evosax_engine(
     strategy_name: str,
     fitness_spec: Optional[str],
@@ -122,15 +127,18 @@ def build_evosax_engine(
 ) -> Any:
     """Build EvosaxEngineAdapter from strategy name and config."""
     from .evosax_adapter import build_evosax_engine as adapter_build_evosax_engine
+
     if fitness_spec is not None:
         if isinstance(fitness_spec, str):
             from .catalog import OperatorCatalog
+
             cat = OperatorCatalog()
             parsed_name, parsed_params = cat.parse_spec(fitness_spec)
             if parsed_name == "bbob":
                 fn_param = parsed_params.get("fn_name", parsed_params.get("fn", None))
                 if isinstance(fn_param, int):
                     import evosax.problems.bbob.meta_bbob as mb
+
                     bbob_keys = list(mb.bbob_fns.keys())
                     if fn_param < 1 or fn_param > len(bbob_keys):
                         raise ValueError(
@@ -187,6 +195,7 @@ def build_evosax_engine(
         prng_impl=prng_impl,
     )
 
+
 def build_qdax_engine(
     strategy: QDAXStrategy,
     fitness_spec: Optional[str],
@@ -204,6 +213,7 @@ def build_qdax_engine(
     from qdax.utils.metrics import default_qd_metrics
 
     from .qdax_adapter import build_qdax_engine as adapter_build_qdax_engine
+
     # 1. Resolve strategy class
     strategy_cls = strategy.strategy_cls
     if isinstance(strategy_cls, str):
@@ -211,6 +221,7 @@ def build_qdax_engine(
         import pkgutil
 
         import qdax.core
+
         resolved_cls = None
         for _, name, is_pkg in pkgutil.iter_modules(qdax.core.__path__):
             if not is_pkg:
@@ -234,6 +245,7 @@ def build_qdax_engine(
             else:
                 emitter_spec = f"{emitter}:batch_size={pop_size}"
         from malthusjax.composer.catalog import OperatorCatalog
+
         catalog = OperatorCatalog()
         emitter = catalog.get(emitter_spec)
     elif emitter is None:
@@ -241,6 +253,7 @@ def build_qdax_engine(
         var_pct = kwargs.pop("qdax_variation_percentage", 0.5)
         emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},variation_percentage={var_pct}"
         from malthusjax.composer.catalog import OperatorCatalog
+
         catalog = OperatorCatalog()
         emitter = catalog.get(emitter_spec)
     # 3. Auto-create metrics function if not provided
@@ -282,18 +295,22 @@ def build_qdax_engine(
         **kwargs,
     )
 
+
 def resolve_qdax_evaluator(
     fitness_spec: Optional[str], bounds: Tuple[float, float], maximize: bool
 ) -> Any:
     from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
+
     class QDAXNativeEvaluator:
         def __init__(self, fitness_fn, evaluator=None, num_descriptors=2):
             self._fitness_fn = fitness_fn
             self._evaluator = evaluator
             self._num_descriptors = num_descriptors
+
         def scoring_function(self, genotypes, random_key):
             import jax
             import jax.numpy as jnp
+
             if self._evaluator is not None:
                 genes = RealGenome(values=genotypes)
                 pop = RealPopulation(
@@ -315,6 +332,7 @@ def resolve_qdax_evaluator(
                 lo, hi = float(bounds[0]), float(bounds[1])
                 descriptors = (desc_dims - lo) / (hi - lo)
             return fitnesses, descriptors, {}
+
     if isinstance(fitness_spec, str):
         cat = OperatorCatalog()
         resolved = cat.get(fitness_spec)
@@ -323,9 +341,12 @@ def resolve_qdax_evaluator(
         return QDAXNativeEvaluator(None, evaluator=fitness_spec)
     else:
         import jax.numpy as jnp
+
         def fn(x):
             return -jnp.sum(jnp.square(x))
+
         return QDAXNativeEvaluator(fn)
+
 
 def build_tensorneat_engine(
     strategy: TensorNEATStrategy,
@@ -342,6 +363,7 @@ def build_tensorneat_engine(
     import tensorneat.algorithm
 
     from .tensorneat_adapter import build_tensorneat_engine as adapter_build_tensorneat_engine
+
     algorithm_cls: Any = None
     for name, obj in inspect.getmembers(tensorneat.algorithm, inspect.isclass):
         if name.lower() == strategy.algorithm_name.lower():
@@ -351,6 +373,7 @@ def build_tensorneat_engine(
         raise ValueError(f"Unknown TensorNEAT algorithm: {strategy.algorithm_name}")
     # 2. Resolve genome
     import tensorneat.genome
+
     genome_cls: Any = None
     # In TensorNEAT, genome classes often end with "Genome" (e.g. DefaultGenome, RecurrentGenome)
     # So if user passes "default", we check for "default" or "defaultgenome"
@@ -367,9 +390,7 @@ def build_tensorneat_engine(
     alg_kwargs = strategy.algorithm_kwargs.copy()
     init_pop = alg_kwargs.pop("initial_population", kwargs.get("initial_population", None))
     algorithm = algorithm_cls(pop_size=pop_size, genome=genome, **alg_kwargs)
-    problem, problem_state = resolve_tensorneat_problem(
-        strategy.problem_name, fitness_spec
-    )
+    problem, problem_state = resolve_tensorneat_problem(strategy.problem_name, fitness_spec)
     return adapter_build_tensorneat_engine(
         algorithm=algorithm,
         evaluator=(problem, problem_state),
@@ -380,12 +401,14 @@ def build_tensorneat_engine(
         initial_population=init_pop,
     )
 
+
 def resolve_tensorneat_problem(
     problem_name: Optional[str], fitness_spec: Optional[str]
 ) -> Tuple[Any, Any]:
     import inspect
 
     import tensorneat.problem
+
     name = problem_name or (fitness_spec if isinstance(fitness_spec, str) else "xor")
     base_name = name.split(":")[0].lower()
     problem_cls: Any = None
@@ -404,14 +427,17 @@ def resolve_tensorneat_problem(
                 kwargs[k] = v
     if base_name == "gymnaxenv" and "action_policy" not in kwargs:
         import jax.numpy as jnp
+
         def default_discrete_policy(randkey, forward_func, obs):
             logits = forward_func(obs)
             if logits.ndim > 0 and logits.shape[-1] > 1:
                 return jnp.reshape(jnp.argmax(logits, axis=-1), ())
             return logits
+
         kwargs["action_policy"] = default_discrete_policy
     problem = problem_cls(**kwargs)
     return problem, problem.setup()
+
 
 def build_map_elites_engine(
     strategy: MapElitesStrategy,
@@ -428,6 +454,7 @@ def build_map_elites_engine(
     # Resolve Evaluator using EngineRegistry or direct resolution (for MAP-Elites parity)
     from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesEngineParams
     from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
+
     # 1. Instantiate Emitter first
     emitter_obj = strategy.emitter
     if isinstance(emitter_obj, str):
@@ -441,6 +468,7 @@ def build_map_elites_engine(
             else:
                 emitter_spec = f"{emitter_obj}:batch_size={pop_size},genome_length={genome_length}"
         from malthusjax.composer.catalog import OperatorCatalog
+
         catalog = OperatorCatalog()
         emitter_obj = catalog.get(emitter_spec)
     elif emitter_obj is None:
@@ -450,6 +478,7 @@ def build_map_elites_engine(
     if isinstance(emitter_obj, TensorNeatEmitter):
         from malthusjax.core.fitness.base import BaseEvaluatorConfig
         from malthusjax.core.fitness.tensorneat import TensorNeatQDEvaluator
+
         problem_name = kwargs.get("tensorneat_problem", None)
         # Extract objective_function if passed directly
         objective_fn = kwargs.get("objective_function")
@@ -461,9 +490,11 @@ def build_map_elites_engine(
             )
             # Create genome to get forward function
             import tensorneat.genome
+
             target_genome = kwargs.get("tensorneat_genome", "default").lower()
             genome_cls: Any = None
             import inspect
+
             for cls_name, cls_obj in inspect.getmembers(tensorneat.genome, inspect.isclass):
                 name_lower = cls_name.lower()
                 if name_lower == target_genome or name_lower == f"{target_genome}genome":
@@ -477,13 +508,15 @@ def build_map_elites_engine(
             )
             # Assign genome to emitter
             emitter_obj = cast(Any, emitter_obj).replace(genome=genome_obj)
+
             # Create a wrapper objective function that calls problem.evaluate
             def obj_fn(nodes, conns):
                 import jax
                 import jax.numpy as jnp
                 from tensorneat.common import State
+
                 # Ensure nodes and conns have batch dimension
-                if nodes.ndim == 2: # Single network
+                if nodes.ndim == 2:  # Single network
                     nodes = jnp.expand_dims(nodes, 0)
                     conns = jnp.expand_dims(conns, 0)
                 batch_size = nodes.shape[0]
@@ -508,6 +541,7 @@ def build_map_elites_engine(
                 # TensorNEAT problems don't return descriptors, so we use dummy ones for QD
                 descriptors = jnp.zeros((batch_size, kwargs.get("qdax_num_descriptors", 2)))
                 return fitness, descriptors
+
             objective_fn = obj_fn
         evaluator = TensorNeatQDEvaluator(
             objective_function=objective_fn,
@@ -520,6 +554,7 @@ def build_map_elites_engine(
         from malthusjax.core.fitness.base import BaseEvaluatorConfig
         from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
         from malthusjax.core.genome.qd.population import QDPopulation
+
         cat = OperatorCatalog()
         seed_val = kwargs.get("seed", 42)
         resolved_base_evaluator: Any
@@ -539,9 +574,11 @@ def build_map_elites_engine(
             )
         bounds = kwargs.get("bounds", (-5.0, 5.0))
         num_desc = strategy.num_descriptors
+
         class ComposedQDEvaluator(BaseQDEvaluator[Any, Any, Any]):
             def evaluate_qd(genome):
                 raise NotImplementedError("Use evaluate_population directly")
+
             def evaluate_population(population):
                 updated_pop = resolved_base_evaluator.evaluate_population(population)
                 genotypes = getattr(population.genes, "values", population.genes)
@@ -557,9 +594,8 @@ def build_map_elites_engine(
                     config=population.config,
                     info=new_info,
                 )
-        evaluator = ComposedQDEvaluator(
-            config=BaseEvaluatorConfig(maximize=maximize), data=None
-        )
+
+        evaluator = ComposedQDEvaluator(config=BaseEvaluatorConfig(maximize=maximize), data=None)
     centroids = strategy.centroids
     if centroids is None:
         centroids = compute_cvt_centroids(
@@ -578,6 +614,7 @@ def build_map_elites_engine(
         ),
     )
     from .adapters.map_elites_adapter import MapElitesEngineAdapter
+
     return MapElitesEngineAdapter(
         engine=engine,
         pop_size=pop_size,
@@ -586,6 +623,7 @@ def build_map_elites_engine(
         initial_population=kwargs.get("initial_population", None),
         centroids=centroids,
     )
+
 
 def build_stub_engine(generations: int, **kwargs: Any) -> StubEngine:
     """Build StubEngine with legacy behavior for backward compatibility."""

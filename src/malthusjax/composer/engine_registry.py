@@ -14,7 +14,9 @@ from __future__ import annotations
 
 from ._shared_registry import make_catalog_registry
 
-register, register_table, get_registry, list_available, _ENGINE_REGISTRY = make_catalog_registry("Engine")
+register, register_table, get_registry, list_available, _ENGINE_REGISTRY = make_catalog_registry(
+    "Engine"
+)
 
 register.__doc__ = """Register a single engine under *name*.
 

@@ -9,7 +9,9 @@ from __future__ import annotations
 
 from ._shared_registry import make_catalog_registry
 
-register, register_table, get_registry, list_available, _GENOME_REGISTRY = make_catalog_registry("Genome")
+register, register_table, get_registry, list_available, _GENOME_REGISTRY = make_catalog_registry(
+    "Genome"
+)
 
 register.__doc__ = """Register a single genome under *name*."""
 

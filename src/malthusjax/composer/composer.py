@@ -46,8 +46,6 @@ except ImportError:  # pragma: no cover - optional dependency
     tqdm = None
 
 
-
-
 @dataclass
 class Composer:
     """High-level interface for running evolutionary algorithms.
@@ -124,7 +122,6 @@ class Composer:
 
     registry: Optional[Any] = None
     config: Dict[str, Any] = field(default_factory=dict)
-
 
     def quick_run(
         self,
@@ -600,7 +597,6 @@ class Composer:
                 except Exception:
                     pass
 
-
     def _generate_initial_population(self, config: Dict[str, Any], pop_seed: int) -> Any:
         """Deterministically generate a shared initial population matrix for a given pipeline config.
 
@@ -634,7 +630,6 @@ class Composer:
             pop_nodes = getattr(state, "pop_nodes", state.state_dict.get("pop_nodes"))
             pop_conns = getattr(state, "pop_conns", state.state_dict.get("pop_conns"))
             return (pop_nodes, pop_conns)
-
 
         if fitness_spec and isinstance(fitness_spec, str) and "bbob" in fitness_spec.lower():
             cat = OperatorCatalog()
@@ -1033,7 +1028,6 @@ class Composer:
             data_config=data_registry,
             **shared,
         )
-
 
     @classmethod
     def create_default(cls) -> "Composer":

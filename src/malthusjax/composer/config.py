@@ -136,6 +136,7 @@ def load_experiment_config(
         meta=experiment_meta, pipelines=resolved, data_registry=data_registry
     )
 
+
 from typing import Sequence, Tuple
 
 
@@ -154,6 +155,7 @@ def normalize_seeds(seeds: Sequence[int] | int) -> Tuple[int, ...]:
         raise ValueError("seeds must not be empty")
     return seeds_tuple
 
+
 def infer_genome_length(cfg: Dict[str, Any]) -> int:
     """Infer genome length from config, preferring explicit values.
     Priority:
@@ -166,9 +168,9 @@ def infer_genome_length(cfg: Dict[str, Any]) -> int:
     fitness_spec = cfg.get("fitness")
     if isinstance(fitness_spec, str):
         from .catalog import OperatorCatalog
+
         parsed_name, parsed_params = OperatorCatalog().parse_spec(fitness_spec)
         dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
         if dim_val is not None:
             return int(dim_val)
     return 10
-

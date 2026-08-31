@@ -255,9 +255,7 @@ class UniversalAdapterEngine:
             history.append(gen_stats)
 
         report_best = (
-            float(scan_history["best_fitness"][-1])
-            if "best_fitness" in scan_history
-            else 0.0
+            float(scan_history["best_fitness"][-1]) if "best_fitness" in scan_history else 0.0
         )
 
         summary = {
@@ -269,9 +267,9 @@ class UniversalAdapterEngine:
 
         # Inject any other tracked metrics
         for k in track_keys:
-                if k in scan_history:
-                    val = scan_history[k][-1]
-                    summary[k] = float(val)
+            if k in scan_history:
+                val = scan_history[k][-1]
+                summary[k] = float(val)
 
         mjx_evaluator = getattr(self, "malthusjax_evaluator", None) or self.evaluator
         if mjx_evaluator is not None and hasattr(mjx_evaluator, "get_gap_to_optimum"):
@@ -294,4 +292,3 @@ class UniversalAdapterEngine:
     def get_supported_metrics(self) -> list[Any]:
         """Returns the catalog of all metrics supported by this adapter."""
         return self.metrics_catalog
-

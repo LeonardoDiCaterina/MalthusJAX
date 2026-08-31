@@ -105,8 +105,7 @@ class AbstractEvolutionState(Generic[G, P]):
         and random keys) to prevent JAX buffer donation errors when reusing states.
         """
         return jax.tree_util.tree_map(
-            lambda x: jnp.array(x, copy=True) if hasattr(x, "shape") else x,
-            self
+            lambda x: jnp.array(x, copy=True) if hasattr(x, "shape") else x, self
         )
 
 

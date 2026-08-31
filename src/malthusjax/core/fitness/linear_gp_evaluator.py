@@ -262,16 +262,22 @@ TENSORGP_NAMES: List[str] = [
 ]
 
 
+from malthusjax.core.fitness.base import StochasticEvaluator, BaseEvaluatorConfig, RegressionData
+from malthusjax.core.genome.linear_genome import LinearGenome
+
+
 @struct.dataclass
 class LinearGPEvaluatorConfig(BaseEvaluatorConfig):
     """Configuration for Linear GP Evaluator."""
 
     num_inputs: int = struct.field(pytree_node=False, default=10)  # type: ignore[no-untyped-call]
     length: int = struct.field(pytree_node=False, default=100)  # type: ignore[no-untyped-call]
+    batch_size: int | None = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    loss_function: str = struct.field(pytree_node=False, default="mse")  # type: ignore[no-untyped-call]
 
 
 @struct.dataclass
-class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, RegressionData]):
+class LinearGPEvaluator(StochasticEvaluator[LinearGenome, LinearGPEvaluatorConfig, RegressionData]):
     """
     Evaluates linear genomes using symbiotic selection, treating each
     instruction as a potential terminal output.
@@ -299,20 +305,30 @@ class LinearGPEvaluator(BaseEvaluator[LinearGenome, LinearGPEvaluatorConfig, Reg
         _, instruction_outputs = jax.lax.scan(step, init_state, (genome.ops, genome.args))
         return instruction_outputs
 
-    def evaluate(self, genome: LinearGenome) -> chex.Numeric:
-        """Returns the MSE of the best instruction (Symbiotic Selection).
-
-        Minimization convention: lower fitness is better (lower MSE = better fit).
-        """
+    def evaluate(self, genome: LinearGenome, rng: chex.PRNGKey | None = None) -> chex.Numeric:
+        """Returns the MSE of the best instruction (Symbiotic Selection)."""
         X, y = self.data
+
+        if self.config.batch_size is not None and rng is not None:
+            indices = jax.random.choice(rng, X.shape[0], shape=(self.config.batch_size,), replace=False)
+            X = X[indices]
+            y = y[indices]
+
         all_preds = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, X)
 
-        Y_bcast = y[:, None]
-        squared_errors = jnp.square(all_preds - Y_bcast)
-        mse_per_tree = jnp.mean(squared_errors, axis=0)
-        best_mse = jnp.min(mse_per_tree)
-
-        return best_mse
+        if self.config.loss_function == "mse":
+            Y_bcast = y.reshape(-1, 1)
+            squared_errors = jnp.square(all_preds - Y_bcast)
+            loss_per_tree = jnp.mean(squared_errors, axis=0)
+            return jnp.min(loss_per_tree)
+        elif self.config.loss_function == "bce":
+            probs = jax.nn.sigmoid(all_preds)
+            Y_bcast = y.reshape(-1, 1)
+            bce = -(Y_bcast * jnp.log(probs + 1e-7) + (1 - Y_bcast) * jnp.log(1 - probs + 1e-7))
+            loss_per_tree = jnp.mean(bce, axis=0)
+            return jnp.min(loss_per_tree)
+        else:
+            raise ValueError("Standard LinearGPEvaluator does not support CCE directly.")
 
     def get_best_instruction_fitness(self, fitness: chex.Array) -> chex.Numeric:
         """Returns scalar fitness of the best performing instruction."""

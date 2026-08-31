@@ -27,6 +27,7 @@ KOZAX_METRICS = [
     MetricSpec(name="std_fitness", source="std_fitness", is_objective_value=False),
 ]
 
+
 @adapter(
     framework="kozax",
     state_mapping={"init": "_adapter_init", "step": "_adapter_step"},

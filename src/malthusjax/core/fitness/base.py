@@ -32,6 +32,8 @@ class BaseEvaluatorConfig:
     """
 
     maximize: bool = struct.field(pytree_node=False, default=False)  # type: ignore[no-untyped-call]
+    batch_size: int | None = struct.field(pytree_node=False, default=None)
+    loss_function: str = struct.field(pytree_node=False, default="mse")
 
 
 @struct.dataclass

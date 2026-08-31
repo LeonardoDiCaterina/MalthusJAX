@@ -18,13 +18,16 @@ GENOME_LENGTH = 10
 GENERATIONS = 100
 MAXIMIZE = True
 
+
 @pytest.fixture
 def mock_strategy():
     return MockUniversalEngine(pop_size=POP_SIZE, genome_length=GENOME_LENGTH, maximize=MAXIMIZE)
 
+
 @pytest.fixture
 def mock_evaluator():
     return MockEvaluator(pop_size=POP_SIZE, genome_length=GENOME_LENGTH)
+
 
 def _run_and_measure(adapter, name: str):
     key = jr.PRNGKey(42)
@@ -43,8 +46,8 @@ def _run_and_measure(adapter, name: str):
 
     return res, exec_time
 
-def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
 
+def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
     results = {}
     timings = {}
 
@@ -57,7 +60,7 @@ def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
         maximize=MAXIMIZE,
         eval_mode=EvalMode.MALTHUSJAX,
         evaluator=mock_evaluator,
-        num_dims=GENOME_LENGTH
+        num_dims=GENOME_LENGTH,
     )
     results["evosax"], timings["evosax"] = _run_and_measure(evosax_adapter, "EvoSAX")
 
@@ -71,7 +74,7 @@ def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
         maximize=MAXIMIZE,
         eval_mode=EvalMode.MALTHUSJAX,
         evaluator=mock_evaluator,
-        history_metrics=["qd_score", "coverage", "max_fitness"]
+        history_metrics=["qd_score", "coverage", "max_fitness"],
     )
     results["qdax"], timings["qdax"] = _run_and_measure(qdax_adapter, "QDAX")
 
@@ -103,12 +106,15 @@ def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
 
             def run_loop(rng, state_init):
                 carry = (rng, state_init)
-                carry, metrics = jax.lax.scan(scan_step, carry, None, length=self.num_generations, unroll=1)
+                carry, metrics = jax.lax.scan(
+                    scan_step, carry, None, length=self.num_generations, unroll=1
+                )
                 return carry[1], metrics
+
             return jax.jit(run_loop)
 
         def run_once(self, key):
-            state_init = (jnp.zeros(1), jnp.zeros(1), 0) # Mock state
+            state_init = (jnp.zeros(1), jnp.zeros(1), 0)  # Mock state
             state, metrics = self._build_jit_loop()(key, state_init)
             summary = {
                 "best_fitness": float(metrics["best_fitness"][-1]),
@@ -119,7 +125,7 @@ def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
             return {"state": state, "summary": summary}
 
     mjax_adapter = MockMapElitesEngine(
-        emitter=None, # Mock uses strategy directly
+        emitter=None,  # Mock uses strategy directly
         evaluator=mock_evaluator,
         engine_params=mock_strategy.engine_params,
     )
@@ -132,13 +138,17 @@ def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
     tn_best = results["tensorneat"]["summary"]["best_fitness"]
     mj_best = results["malthusjax"]["summary"]["best_fitness"]
 
-    assert ev_best == qd_best == tn_best == mj_best == float(POP_SIZE - 1), f"Result parity failed for best_fitness: {ev_best}, {qd_best}, {tn_best}, {mj_best}"
+    assert ev_best == qd_best == tn_best == mj_best == float(POP_SIZE - 1), (
+        f"Result parity failed for best_fitness: {ev_best}, {qd_best}, {tn_best}, {mj_best}"
+    )
 
     # For QD Score, only QDAX and MalthusJAX track it natively in this mock setup
     qd_qdscore = results["qdax"]["summary"]["qd_score"]
     mj_qdscore = results["malthusjax"]["summary"]["qd_score"]
 
-    assert qd_qdscore == mj_qdscore, f"Result parity failed for qd_score: {qd_qdscore} != {mj_qdscore}"
+    assert qd_qdscore == mj_qdscore, (
+        f"Result parity failed for qd_score: {qd_qdscore} != {mj_qdscore}"
+    )
 
     # Assert Timing Parity
     t_vals = list(timings.values())
@@ -151,5 +161,6 @@ def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
         print(f"  {name}: {t:.5f}s")
 
     # We tolerate some variance, but the standard deviation should be small
-    assert t_std < 0.05, f"Timing standard deviation too high: {t_std:.5f}s (Threshold: 0.05s). Timings: {timings}"
-
+    assert t_std < 0.05, (
+        f"Timing standard deviation too high: {t_std:.5f}s (Threshold: 0.05s). Timings: {timings}"
+    )

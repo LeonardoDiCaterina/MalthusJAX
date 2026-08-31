@@ -158,6 +158,7 @@ def build_genetic_mixing_emitter(**kwargs: Any) -> Any:
         genome_config=RealGenomeConfig(bounds=bounds, shape=(int(genome_length),)),
     )
 
+
 def build_tensorneat_emitter(**kwargs: Any) -> Any:
     """Builds a TensorNeatEmitter."""
     from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
@@ -169,6 +170,7 @@ def build_tensorneat_emitter(**kwargs: Any) -> Any:
         genome=None,
     )
 
+
 def build_tensorneat_mutation_emitter(**kwargs: Any) -> Any:
     """Builds a TensorNeatMutationEmitter."""
     from malthusjax.operators.emitters.tensorneat_variants import TensorNeatMutationEmitter
@@ -178,6 +180,7 @@ def build_tensorneat_mutation_emitter(**kwargs: Any) -> Any:
         _batch_size=int(batch_size),
         genome=None,
     )
+
 
 def build_tensorneat_crossover_emitter(**kwargs: Any) -> Any:
     """Builds a TensorNeatCrossoverEmitter."""

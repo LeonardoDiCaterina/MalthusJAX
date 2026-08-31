@@ -1,4 +1,3 @@
-
 import jax
 import jax.numpy as jnp
 
@@ -6,6 +5,7 @@ import jax.numpy as jnp
 # Since `_build_map_elites_engine` dynamically creates `obj_fn` inside `composer.py`,
 # we will write a functional test that recreates the `obj_fn` logic to ensure
 # the fix applies the correct mathematical inversion.
+
 
 def create_mock_obj_fn(maximize: bool):
     """
@@ -48,9 +48,7 @@ def create_mock_obj_fn(maximize: bool):
         state = State(randkey=jax.random.PRNGKey(0))
         state = genome_obj.setup(state)
 
-        transformed_pop = jax.vmap(genome_obj.transform, in_axes=(None, 0, 0))(
-            state, nodes, conns
-        )
+        transformed_pop = jax.vmap(genome_obj.transform, in_axes=(None, 0, 0))(state, nodes, conns)
 
         keys = jax.random.split(jax.random.PRNGKey(0), batch_size)
         fitness = jax.vmap(problem.evaluate, in_axes=(None, 0, None, 0))(
@@ -68,6 +66,7 @@ def create_mock_obj_fn(maximize: bool):
 
     return obj_fn
 
+
 def test_tensorneat_obj_fn_minimization():
     """
     Test that when minimize=True (maximize=False), the negative loss returned
@@ -84,6 +83,7 @@ def test_tensorneat_obj_fn_minimization():
     # Problem evaluates to -100.0 natively. Since maximize=False, it should invert to 100.0.
     assert jnp.allclose(fitness, 100.0)
     assert fitness.shape == (5,)
+
 
 def test_tensorneat_obj_fn_maximization():
     """

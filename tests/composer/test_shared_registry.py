@@ -8,6 +8,7 @@ from malthusjax.composer._shared_registry import make_catalog_registry
 def dummy_factory(**kwargs: Any) -> Any:
     return "dummy"
 
+
 def test_make_catalog_registry_register():
     register, _, get_registry, list_available, _ = make_catalog_registry("TestEntity")
 
@@ -23,6 +24,7 @@ def test_make_catalog_registry_register():
     reg = get_registry()
     assert reg["test2"][1] == {"a": 1}
 
+
 def test_make_catalog_registry_duplicate_register():
     register, _, _, _, _ = make_catalog_registry("CustomEntity")
 
@@ -34,6 +36,7 @@ def test_make_catalog_registry_duplicate_register():
 
     # Should succeed with override
     register("test1", dummy_factory, {"new": True}, override=True)
+
 
 def test_make_catalog_registry_register_table():
     _, register_table, get_registry, list_available, _ = make_catalog_registry("TestEntity")
@@ -49,6 +52,7 @@ def test_make_catalog_registry_register_table():
     assert "t2" in reg
     assert len(list_available()) == 2
 
+
 def test_make_catalog_registry_get_registry_returns_copy():
     register, _, get_registry, _, _ = make_catalog_registry("TestEntity")
 
@@ -61,6 +65,7 @@ def test_make_catalog_registry_get_registry_returns_copy():
     # Ensure original is unchanged
     clean_reg = get_registry()
     assert clean_reg["test1"][0] is dummy_factory
+
 
 def test_make_catalog_registry_list_available_sorted():
     register, _, _, list_available, _ = make_catalog_registry("TestEntity")

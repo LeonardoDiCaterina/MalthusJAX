@@ -16,7 +16,9 @@ from __future__ import annotations
 
 from ._shared_registry import make_catalog_registry
 
-register, register_table, get_registry, list_available, _OPERATOR_REGISTRY = make_catalog_registry("Operator")
+register, register_table, get_registry, list_available, _OPERATOR_REGISTRY = make_catalog_registry(
+    "Operator"
+)
 
 # Keep the original docstrings for the exported functions
 register.__doc__ = """Register a single operator under *name*.

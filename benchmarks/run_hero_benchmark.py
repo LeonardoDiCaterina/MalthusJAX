@@ -6,14 +6,15 @@ into a single compiled XLA kernel via jax.lax.scan.
 """
 
 import time
+
 import jax
 import jax.numpy as jnp
 
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-from malthusjax.operators.selection.tournament import TournamentSelection
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import PolynomialMutation
+from malthusjax.operators.selection.tournament import TournamentSelection
 
 
 def sphere_evaluator(values):
@@ -39,7 +40,7 @@ def main():
     # 1. Setup Engine & Configs
     engine_params = GeneticEngineParams(pop_size=pop_size, num_generations=num_generations)
     genome_config = RealGenomeConfig(shape=(genome_dim,), bounds=(-5.0, 5.0))
-    
+
     engine = GeneticEngine(
         engine_params=engine_params,
         genome_config=genome_config,
@@ -78,7 +79,7 @@ def main():
     # Ensure all asynchronous GPU kernels finish before stopping timer
     final_state.best_fitness.block_until_ready()
     t_exec_end = time.perf_counter()
-    
+
     exec_duration = t_exec_end - t_exec_start
     total_evals = pop_size * num_generations
     gens_per_sec = num_generations / exec_duration

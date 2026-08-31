@@ -47,7 +47,9 @@ class BBOBAXEvaluator(BaseEvaluator[RealGenome, BBOBAXConfig, Any]):
         max_dims = config.max_dims or config.num_dims
 
         if config.fn_name not in BBOB_PROBLEMS:
-            raise ValueError(f"Unknown function '{config.fn_name}'. Available: {list(BBOB_PROBLEMS.keys())}")
+            raise ValueError(
+                f"Unknown function '{config.fn_name}'. Available: {list(BBOB_PROBLEMS.keys())}"
+            )
 
         # Initialize the specific BBOB problem
         task = BBOB_PROBLEMS[config.fn_name](num_dims=max_dims)

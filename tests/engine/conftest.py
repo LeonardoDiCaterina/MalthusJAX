@@ -127,7 +127,6 @@ def make_engine():
         schedule_type=None,
         **kwargs,
     ):
-
         # Base engine params
         params_kwargs = {
             "pop_size": pop_size,

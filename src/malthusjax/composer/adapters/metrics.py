@@ -14,8 +14,8 @@ class MetricSpec:
             the user's specified optimization direction.
         description: Optional description of the metric for tooling and dashboards.
     """
+
     name: str
     source: Union[str, Callable[[Any], Any]]
     is_objective_value: bool = False
     description: str = ""
-

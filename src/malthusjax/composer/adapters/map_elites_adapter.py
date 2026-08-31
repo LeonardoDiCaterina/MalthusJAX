@@ -16,7 +16,6 @@ class MapElitesEngineAdapter:
         self.centroids = centroids
 
     def run_once(self, key):
-
         import jax
 
         # Check if we are running the exact QDAX replica for bit-parity

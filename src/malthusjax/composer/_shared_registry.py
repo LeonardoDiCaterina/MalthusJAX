@@ -11,8 +11,7 @@ class RegisterFunc(Protocol):
         defaults: Dict[str, Any] | None = None,
         *,
         override: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 class RegisterTableFunc(Protocol):
@@ -21,8 +20,7 @@ class RegisterTableFunc(Protocol):
         entries: list[Tuple[str, Callable[..., Any], Dict[str, Any]]],
         *,
         override: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 def make_catalog_registry(

@@ -22,7 +22,7 @@ def resolve_bounds(
     ):
         return evaluator.config.genome_config.bounds
 
-    framework_name = caller_name.split('_')[1] if len(caller_name.split('_')) > 1 else caller_name
+    framework_name = caller_name.split("_")[1] if len(caller_name.split("_")) > 1 else caller_name
     warnings.warn(
         f"No bounds were explicitly provided to `{caller_name}`, and the evaluator "
         "did not provide a `genome_config` with bounds. Falling back to the default "

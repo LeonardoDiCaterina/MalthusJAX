@@ -9,6 +9,7 @@ from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 class DummyRepertoire(NamedTuple):
     fitnesses: chex.Array
 
+
 @chex.dataclass
 class DummyState:
     generation: int
@@ -16,13 +17,19 @@ class DummyState:
     def update(self, **kwargs):
         return self
 
+
 class MockEvaluator:
     """A dummy evaluator that performs virtually zero work and returns deterministic fitness arrays."""
+
     def __init__(self, pop_size: int, genome_length: int, num_descriptors: int = 2):
         self.pop_size = pop_size
         self.genome_length = genome_length
         self.num_descriptors = num_descriptors
-        self.config = type("DummyConfig", (), {"genome_config": RealGenomeConfig(shape=(genome_length,), bounds=(-5.0, 5.0))})()
+        self.config = type(
+            "DummyConfig",
+            (),
+            {"genome_config": RealGenomeConfig(shape=(genome_length,), bounds=(-5.0, 5.0))},
+        )()
         # For MalthusJAX
         self.evosax_problem = self
 
@@ -35,7 +42,7 @@ class MockEvaluator:
             genes=population.genes,
             fitness=fitness,
             config=population.config,
-            info={"descriptors": descriptors}
+            info={"descriptors": descriptors},
         )
         return pop
 
@@ -57,7 +64,10 @@ class MockEvaluator:
 
 class MockUniversalEngine:
     """A unified object exposing signatures for all 4 backend adapters to simulate zero-overhead workflows."""
-    def __init__(self, pop_size: int = 100, genome_length: int = 2, maximize: bool = True, **kwargs):
+
+    def __init__(
+        self, pop_size: int = 100, genome_length: int = 2, maximize: bool = True, **kwargs
+    ):
         self.pop_size = pop_size
         self.genome_length = genome_length
         self.maximize = maximize
@@ -80,13 +90,15 @@ class MockUniversalEngine:
             # QDAX
             key = args[2]
             dummy_repertoire = DummyRepertoire(
-                fitnesses=jnp.arange(self.pop_size, dtype=jnp.float32) if self.maximize else -jnp.arange(self.pop_size, dtype=jnp.float32)
+                fitnesses=jnp.arange(self.pop_size, dtype=jnp.float32)
+                if self.maximize
+                else -jnp.arange(self.pop_size, dtype=jnp.float32)
             )
             emitter_state = jnp.zeros(1, dtype=jnp.int32)
             return dummy_repertoire, emitter_state, key
         else:
             # EvoSAX
-            return jnp.zeros(1, dtype=jnp.int32) # Simple state is a generation counter
+            return jnp.zeros(1, dtype=jnp.int32)  # Simple state is a generation counter
 
     def ask(self, *args, **kwargs) -> Any:
         # Create a population where the first element of each genome is its index
@@ -115,14 +127,18 @@ class MockUniversalEngine:
             return state + 1, {"best_fitness": jnp.min(tell_fitness)}
 
     # --- QDAX API ---
-    def update(self, repertoire: Any, emitter_state: Any, key: chex.PRNGKey) -> Tuple[Any, Any, Dict[str, Any]]:
+    def update(
+        self, repertoire: Any, emitter_state: Any, key: chex.PRNGKey
+    ) -> Tuple[Any, Any, Dict[str, Any]]:
         dummy_repertoire = DummyRepertoire(
-            fitnesses=jnp.arange(self.pop_size, dtype=jnp.float32) if self.maximize else -jnp.arange(self.pop_size, dtype=jnp.float32)
+            fitnesses=jnp.arange(self.pop_size, dtype=jnp.float32)
+            if self.maximize
+            else -jnp.arange(self.pop_size, dtype=jnp.float32)
         )
         metrics = {
             "max_fitness": jnp.max(dummy_repertoire.fitnesses),
             "qd_score": jnp.sum(jnp.arange(self.pop_size, dtype=jnp.float32)),
-            "coverage": 1.0
+            "coverage": 1.0,
         }
         return dummy_repertoire, emitter_state, metrics
 
@@ -138,11 +154,13 @@ class MockUniversalEngine:
 
     # --- MalthusJAX API ---
     def step(self, key: chex.PRNGKey, state: Any) -> Tuple[Any, Dict[str, Any]]:
-        dummy_repertoire = DummyRepertoire(
-            fitnesses=jnp.arange(self.pop_size, dtype=jnp.float32)
-        )
+        dummy_repertoire = DummyRepertoire(fitnesses=jnp.arange(self.pop_size, dtype=jnp.float32))
 
-        new_state = (state[0], state[1], state[2] + 1) if isinstance(state, tuple) and len(state) > 2 else state
+        new_state = (
+            (state[0], state[1], state[2] + 1)
+            if isinstance(state, tuple) and len(state) > 2
+            else state
+        )
 
         metrics = {
             "best_fitness": jnp.max(dummy_repertoire.fitnesses),
@@ -152,4 +170,3 @@ class MockUniversalEngine:
             "std_fitness": jnp.std(dummy_repertoire.fitnesses),
         }
         return new_state, metrics
-
