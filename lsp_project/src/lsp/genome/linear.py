@@ -7,16 +7,14 @@ parsimony pressure (active node count) in multi-objective evaluators.
 
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 import chex
 import jax
 import jax.numpy as jnp
 from flax import struct
 
-if TYPE_CHECKING:
-    from malthusjax.core.base import BasePopulation
-
+from malthusjax.core.base import BasePopulation
 from malthusjax.core.genome.linear_genome import LinearGenome, LinearGenomeConfig
 
 # ---------------------------------------------------------------------------

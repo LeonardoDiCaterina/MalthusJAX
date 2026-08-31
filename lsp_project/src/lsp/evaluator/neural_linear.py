@@ -146,3 +146,18 @@ class NeuralPrefixEvaluator(StochasticEvaluator[NeuralPrefixGenome, NeuralPrefix
                 return jnp.min(loss_per_tree)
             else:
                 raise ValueError("Dynamic routing does not support CCE directly.")
+
+    def get_logits(self, genome: NeuralPrefixGenome, X_batch: chex.Array) -> chex.Array:
+        """Inference helper: returns the raw logits for a batch of inputs."""
+        # all_preds shape: (Batch, L)
+        all_preds = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, X_batch)
+        
+        if getattr(genome, "readout_weights", None) is not None:
+            # linear_readout
+            return jnp.dot(all_preds, genome.readout_weights) + genome.readout_biases
+        elif getattr(genome, "out_nodes", None) is not None:
+            # out_nodes
+            return all_preds[:, genome.out_nodes]
+        else:
+            # dynamic routing
+            return all_preds

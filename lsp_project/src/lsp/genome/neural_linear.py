@@ -28,10 +28,9 @@ class NeuralPrefixGenomeConfig(PrefixGenomeConfig):
     def dtype(self) -> Any:
         return jnp.float32
 
-    def init_population(self, key: chex.PRNGKey, size: int) -> BasePopulation:
-        keys = jax.random.split(key, size)
-        genomes = jax.vmap(NeuralPrefixGenome.random_init, in_axes=(0, None))(keys, self)
-        return BasePopulation(genes=genomes, fitness=jnp.zeros(size), info={})
+    def init_population(self, key: chex.PRNGKey, size: int) -> "NeuralPrefixPopulation":
+        from lsp.genome.neural_linear import NeuralPrefixPopulation
+        return NeuralPrefixPopulation.init_random(key, self, size)
 
 
 @struct.dataclass
@@ -83,4 +82,17 @@ class NeuralPrefixGenome(BasePrefixAwareGenome):
             readout_biases=readout_biases
         )
 
-__all__ = ["NeuralPrefixGenomeConfig", "NeuralPrefixGenome"]
+@struct.dataclass
+class NeuralPrefixPopulation(BasePopulation[NeuralPrefixGenome]):
+    genes: NeuralPrefixGenome
+    fitness: chex.Array
+    config: NeuralPrefixGenomeConfig = struct.field(pytree_node=False)
+
+    @classmethod
+    def init_random(cls, key: chex.PRNGKey, config: NeuralPrefixGenomeConfig, size: int) -> "NeuralPrefixPopulation":
+        keys = jax.random.split(key, size)
+        batched_genes = jax.vmap(NeuralPrefixGenome.random_init, in_axes=(0, None))(keys, config)
+        initial_fitness = jnp.full((size,), -jnp.inf)
+        return cls(genes=batched_genes, fitness=initial_fitness, config=config)
+
+__all__ = ["NeuralPrefixGenomeConfig", "NeuralPrefixGenome", "NeuralPrefixPopulation"]

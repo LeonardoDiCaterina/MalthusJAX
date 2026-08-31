@@ -11,12 +11,9 @@ from typing import Any, Callable
 import chex
 import jax
 import jax.numpy as jnp
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from malthusjax.core.base import BasePopulation
 from flax import struct
 
+from malthusjax.core.base import BasePopulation
 from malthusjax.core.genome.cartesian_genome import CartesianGenome, CartesianGenomeConfig
 
 # ---------------------------------------------------------------------------
@@ -42,11 +39,9 @@ class NeuralCartesianGenomeConfig(CartesianGenomeConfig):
     ops to be indices into the ACTIVATIONS list.
     """
 
-    def init_population(self, key: chex.PRNGKey, size: int) -> "BasePopulation":
-        from malthusjax.core.base import BasePopulation
-        keys = jax.random.split(key, size)
-        genomes = jax.vmap(NeuralCartesianGenome.random_init, in_axes=(0, None))(keys, self)
-        return BasePopulation(genes=genomes, fitness=jnp.zeros(size), config=self, info={})
+    def init_population(self, key: chex.PRNGKey, size: int) -> "NeuralCartesianPopulation":
+        from lsp.genome.neural_cartesian import NeuralCartesianPopulation
+        return NeuralCartesianPopulation.init_random(key, self, size)
 
     @property
     def dtype(self) -> Any:
@@ -99,4 +94,17 @@ class NeuralCartesianGenome(CartesianGenome):
             biases=biases
         )
 
-__all__ = ["NeuralCartesianGenomeConfig", "NeuralCartesianGenome", "ACTIVATIONS", "ACTIVATIONS_LIST"]
+@struct.dataclass
+class NeuralCartesianPopulation(BasePopulation[NeuralCartesianGenome]):
+    genes: NeuralCartesianGenome
+    fitness: chex.Array
+    config: NeuralCartesianGenomeConfig = struct.field(pytree_node=False)
+
+    @classmethod
+    def init_random(cls, key: chex.PRNGKey, config: NeuralCartesianGenomeConfig, size: int) -> "NeuralCartesianPopulation":
+        keys = jax.random.split(key, size)
+        batched_genes = jax.vmap(NeuralCartesianGenome.random_init, in_axes=(0, None))(keys, config)
+        initial_fitness = jnp.full((size,), -jnp.inf)
+        return cls(genes=batched_genes, fitness=initial_fitness, config=config)
+
+__all__ = ["NeuralCartesianGenomeConfig", "NeuralCartesianGenome", "ACTIVATIONS", "ACTIVATIONS_LIST", "NeuralCartesianPopulation"]
