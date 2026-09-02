@@ -328,18 +328,6 @@ helper methods like <code class="xref py py-meth docutils literal notranslate"><
 It orchestrates engine construction, seeding, result aggregation and provides
 sensible defaults for rapid prototyping.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="malthusjax.composer.composer.MapElitesEngineAdapter">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.composer.</span></span><span class="sig-name descname"><span class="pre">MapElitesEngineAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#MapElitesEngineAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.MapElitesEngineAdapter" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Adapter to make Native MapElitesEngine compatible with BenchmarkRunner.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="malthusjax.composer.composer.MapElitesEngineAdapter.run_once">
-<span class="sig-name descname"><span class="pre">run_once</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#MapElitesEngineAdapter.run_once"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.MapElitesEngineAdapter.run_once" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.composer.composer.Composer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.composer.</span></span><span class="sig-name descname"><span class="pre">Composer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">registry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.composer.Composer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
@@ -1073,10 +1061,6 @@ before invoking <a class="reference internal" href="#malthusjax.composer.compose
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">malthusjax.composer.composer module</a><ul>
-<li><a class="reference internal" href="#malthusjax.composer.composer.MapElitesEngineAdapter"><code class="docutils literal notranslate"><span class="pre">MapElitesEngineAdapter</span></code></a><ul>
-<li><a class="reference internal" href="#malthusjax.composer.composer.MapElitesEngineAdapter.run_once"><code class="docutils literal notranslate"><span class="pre">MapElitesEngineAdapter.run_once()</span></code></a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#malthusjax.composer.composer.Composer"><code class="docutils literal notranslate"><span class="pre">Composer</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.composer.composer.Composer.registry"><code class="docutils literal notranslate"><span class="pre">Composer.registry</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.composer.Composer.config"><code class="docutils literal notranslate"><span class="pre">Composer.config</span></code></a></li>

@@ -934,15 +934,12 @@
         <span class="n">state</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEvolutionState</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">GeneticEngineParams</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span><span class="p">)</span>
 
-        <span class="c1"># Phase 1: Allocate Entropy</span>
         <span class="p">(</span><span class="n">k_sel</span><span class="p">,</span> <span class="n">k_cross</span><span class="p">,</span> <span class="n">k_mut</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">,</span> <span class="n">k_next</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_entropy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
-        <span class="c1"># Phase 2: Selection</span>
         <span class="n">elites</span><span class="p">,</span> <span class="n">parent_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selection_phase</span><span class="p">(</span>
             <span class="n">k_sel</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">operators</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_params</span>
         <span class="p">)</span>
 
-        <span class="c1"># Phase 3: Reproduction</span>
         <span class="n">mutants</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reproduction_phase</span><span class="p">(</span>
             <span class="n">k_cross</span><span class="p">,</span>
             <span class="n">k_mut</span><span class="p">,</span>
@@ -952,11 +949,8 @@
             <span class="n">state</span><span class="o">.</span><span class="n">resource_map</span><span class="p">,</span>
             <span class="n">generation</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">generation</span><span class="p">,</span>
         <span class="p">)</span>
-
-        <span class="c1"># Phase 4: Merge</span>
         <span class="n">next_genes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge</span><span class="p">(</span><span class="n">elites</span><span class="p">,</span> <span class="n">mutants</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 
-        <span class="c1"># Phase 5: Evaluation</span>
         <span class="n">new_pop_unrated</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="p">,</span> <span class="n">genes</span><span class="o">=</span><span class="n">next_genes</span><span class="p">)</span>
         <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_phase</span><span class="p">(</span><span class="n">new_pop_unrated</span><span class="p">,</span> <span class="n">k_eval</span><span class="p">)</span>
 

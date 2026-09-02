@@ -460,6 +460,51 @@
         <span class="n">meta</span><span class="o">=</span><span class="n">experiment_meta</span><span class="p">,</span> <span class="n">pipelines</span><span class="o">=</span><span class="n">resolved</span><span class="p">,</span> <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span>
     <span class="p">)</span></div>
 
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<div class="viewcode-block" id="normalize_seeds">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.config.html#malthusjax.composer.config.normalize_seeds">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_seeds</span><span class="p">(</span><span class="n">seeds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Normalize seed input into an explicit tuple of integers.</span>
+<span class="sd">    Accepts either:</span>
+<span class="sd">    - an iterable of seeds (e.g., ``[42, 43, 44]``), or</span>
+<span class="sd">    - an integer count (e.g., ``100`` -&gt; ``(1, 2, ..., 100)``).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seeds</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">seeds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"seeds must be &gt; 0 when provided as an integer count"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">seeds_tuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seeds</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">seeds_tuple</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"seeds must not be empty"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">seeds_tuple</span></div>
+
+
+
+<div class="viewcode-block" id="infer_genome_length">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.config.html#malthusjax.composer.config.infer_genome_length">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">infer_genome_length</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Infer genome length from config, preferring explicit values.</span>
+<span class="sd">    Priority:</span>
+<span class="sd">    1) ``genome_length`` kwarg</span>
+<span class="sd">    2) ``fitness`` spec params ``dim`` / ``num_dims``</span>
+<span class="sd">    3) default 10</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="s2">"genome_length"</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">and</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">"genome_length"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"genome_length"</span><span class="p">])</span>
+    <span class="n">fitness_spec</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"fitness"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
+
+        <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
+        <span class="n">dim_val</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dim"</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">dim_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_val</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">10</span></div>
+
 </pre></div>
         </article>
       </div>

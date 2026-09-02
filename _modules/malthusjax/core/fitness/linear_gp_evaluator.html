@@ -665,6 +665,10 @@
 <span class="p">]</span>
 
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">StochasticEvaluator</span><span class="p">,</span> <span class="n">BaseEvaluatorConfig</span><span class="p">,</span> <span class="n">RegressionData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.linear_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearGenome</span>
+
+
 <div class="viewcode-block" id="LinearGPEvaluatorConfig">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.LinearGPEvaluatorConfig">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
@@ -672,14 +676,16 @@
 <span class="w">    </span><span class="sd">"""Configuration for Linear GP Evaluator."""</span>
 
     <span class="n">num_inputs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
-    <span class="n">length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span></div>
+    <span class="n">length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+    <span class="n">loss_function</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"mse"</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span></div>
 
 
 
 <div class="viewcode-block" id="LinearGPEvaluator">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.LinearGPEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">LinearGPEvaluator</span><span class="p">(</span><span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">LinearGenome</span><span class="p">,</span> <span class="n">LinearGPEvaluatorConfig</span><span class="p">,</span> <span class="n">RegressionData</span><span class="p">]):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearGPEvaluator</span><span class="p">(</span><span class="n">StochasticEvaluator</span><span class="p">[</span><span class="n">LinearGenome</span><span class="p">,</span> <span class="n">LinearGPEvaluatorConfig</span><span class="p">,</span> <span class="n">RegressionData</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Evaluates linear genomes using symbiotic selection, treating each</span>
 <span class="sd">    instruction as a potential terminal output.</span>
@@ -712,20 +718,30 @@
 
 <div class="viewcode-block" id="LinearGPEvaluator.evaluate">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.LinearGPEvaluator.evaluate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">LinearGenome</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Returns the MSE of the best instruction (Symbiotic Selection).</span>
-
-<span class="sd">        Minimization convention: lower fitness is better (lower MSE = better fit).</span>
-<span class="sd">        """</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">LinearGenome</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Returns the MSE of the best instruction (Symbiotic Selection)."""</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">batch_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rng</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+
         <span class="n">all_preds</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">predict_one</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span><span class="n">genome</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
 
-        <span class="n">Y_bcast</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
-        <span class="n">squared_errors</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">all_preds</span> <span class="o">-</span> <span class="n">Y_bcast</span><span class="p">)</span>
-        <span class="n">mse_per_tree</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">squared_errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">best_mse</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">mse_per_tree</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">best_mse</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">loss_function</span> <span class="o">==</span> <span class="s2">"mse"</span><span class="p">:</span>
+            <span class="n">Y_bcast</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">squared_errors</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">all_preds</span> <span class="o">-</span> <span class="n">Y_bcast</span><span class="p">)</span>
+            <span class="n">loss_per_tree</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">squared_errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">loss_per_tree</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">loss_function</span> <span class="o">==</span> <span class="s2">"bce"</span><span class="p">:</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">all_preds</span><span class="p">)</span>
+            <span class="n">Y_bcast</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">bce</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">Y_bcast</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">probs</span> <span class="o">+</span> <span class="mf">1e-7</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Y_bcast</span><span class="p">)</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">probs</span> <span class="o">+</span> <span class="mf">1e-7</span><span class="p">))</span>
+            <span class="n">loss_per_tree</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">bce</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">loss_per_tree</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Standard LinearGPEvaluator does not support CCE directly."</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="LinearGPEvaluator.get_best_instruction_fitness">

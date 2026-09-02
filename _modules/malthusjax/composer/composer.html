@@ -326,11 +326,21 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">infer_genome_length</span><span class="p">,</span> <span class="n">normalize_seeds</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.factory</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">build_evosax_engine</span><span class="p">,</span>
+    <span class="n">build_map_elites_engine</span><span class="p">,</span>
+    <span class="n">build_qdax_engine</span><span class="p">,</span>
+    <span class="n">build_real_engine</span><span class="p">,</span>
+    <span class="n">build_stub_engine</span><span class="p">,</span>
+    <span class="n">build_tensorneat_engine</span><span class="p">,</span>
+    <span class="n">has_real_operators</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseStrategy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">EvoSAXStrategy</span><span class="p">,</span>
@@ -341,180 +351,15 @@
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.bbob_evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BBOBConfig</span><span class="p">,</span> <span class="n">BBOBEvaluator</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkRunner</span><span class="p">,</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">StubEngine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkRunner</span><span class="p">,</span> <span class="n">ExperimentResult</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComparisonResult</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_experiment_config</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.engine_catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineRegistry</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.evosax_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_evosax_engine</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover - optional dependency</span>
     <span class="n">tqdm</span> <span class="o">=</span> <span class="kc">None</span>
-
-
-<div class="viewcode-block" id="MapElitesEngineAdapter">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.MapElitesEngineAdapter">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MapElitesEngineAdapter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Adapter to make Native MapElitesEngine compatible with BenchmarkRunner."""</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">pop_size</span><span class="p">,</span> <span class="n">maximize</span><span class="p">,</span> <span class="n">history_metrics</span><span class="p">,</span> <span class="n">initial_population</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">centroids</span><span class="o">=</span><span class="kc">None</span>
-    <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span> <span class="o">=</span> <span class="n">pop_size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="o">=</span> <span class="n">maximize</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="o">=</span> <span class="n">history_metrics</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">initial_population</span> <span class="o">=</span> <span class="n">initial_population</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span> <span class="o">=</span> <span class="n">centroids</span>
-
-<div class="viewcode-block" id="MapElitesEngineAdapter.run_once">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.MapElitesEngineAdapter.run_once">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run_once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-
-        <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-
-        <span class="c1"># Check if we are running the exact QDAX replica for bit-parity</span>
-        <span class="n">is_qdax_replica</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"engine_params"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">engine_params</span><span class="p">,</span> <span class="s2">"key_derivation"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"qdax_replica"</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">is_qdax_replica</span><span class="p">:</span>
-            <span class="c1"># Match UniversalAdapterEngine.run_once exact key flow:</span>
-            <span class="c1"># key, key_init, key_eval = split(key, 3)</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">k_init_qdax</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-            <span class="c1"># The QDAX adapter stores key_init directly as its randkey in state.</span>
-            <span class="c1"># But MapElitesEngine.init_state does k1, k2 = split(rng_key).</span>
-            <span class="c1"># We want rng_key inside the state to be EXACTLY k_init_qdax.</span>
-            <span class="c1"># We'll pass a dummy key and overwrite it after.</span>
-            <span class="n">k_init</span><span class="p">,</span> <span class="n">k_run</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">k_init</span><span class="p">,</span> <span class="n">k_run</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-
-        <span class="n">init_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_population</span>
-        <span class="k">if</span> <span class="n">init_pop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">emitter</span><span class="p">,</span> <span class="s2">"genome_config"</span><span class="p">):</span>
-                <span class="n">init_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">emitter</span><span class="o">.</span><span class="n">genome_config</span><span class="o">.</span><span class="n">init_population</span><span class="p">(</span><span class="n">k_init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="p">(</span>
-                <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">emitter</span><span class="p">,</span> <span class="s2">"genome"</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="s2">"TensorNeat"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">emitter</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-            <span class="p">):</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-
-                <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.tensorneat_genome</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-                    <span class="n">TensorNeatGenome</span><span class="p">,</span>
-                    <span class="n">TensorNeatPopulation</span><span class="p">,</span>
-                <span class="p">)</span>
-
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="kn">from</span><span class="w"> </span><span class="nn">tensorneat.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">State</span>
-                <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                    <span class="n">State</span> <span class="o">=</span> <span class="n">Any</span>
-                <span class="n">tn_state</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">randkey</span><span class="o">=</span><span class="n">k_init</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-                <span class="c1"># TensorNEAT initialize creates a single genome. We vmap it to create a population.</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-
-                <span class="n">pop_keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">k_init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span><span class="p">)</span>
-                <span class="n">nodes</span><span class="p">,</span> <span class="n">conns</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">emitter</span><span class="o">.</span><span class="n">genome</span><span class="o">.</span><span class="n">initialize</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span>
-                    <span class="n">tn_state</span><span class="p">,</span> <span class="n">pop_keys</span>
-                <span class="p">)</span>
-                <span class="n">init_pop</span> <span class="o">=</span> <span class="n">TensorNeatPopulation</span><span class="p">(</span>
-                    <span class="n">genes</span><span class="o">=</span><span class="n">TensorNeatGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">conns</span><span class="p">)),</span>
-                    <span class="n">fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span><span class="p">,),</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span>
-                    <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                    <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
-                    <span class="s2">"Emitter lacks genome_config or genome to generate initial population."</span>
-                <span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_pop</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="c1"># Wrap the shared array into the correct Population PyTree</span>
-            <span class="n">init_pop_copy</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">init_pop</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">emitter</span><span class="p">,</span> <span class="s2">"genome_config"</span><span class="p">):</span>
-                <span class="n">dummy_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">emitter</span><span class="o">.</span><span class="n">genome_config</span><span class="o">.</span><span class="n">init_population</span><span class="p">(</span><span class="n">k_init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dummy_pop</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="s2">"replace"</span><span class="p">):</span>
-                    <span class="n">new_genes</span> <span class="o">=</span> <span class="n">dummy_pop</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">init_pop_copy</span><span class="p">)</span>
-                    <span class="n">init_pop</span> <span class="o">=</span> <span class="n">dummy_pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">new_genes</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">init_pop</span> <span class="o">=</span> <span class="n">dummy_pop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genes</span><span class="o">=</span><span class="n">init_pop_copy</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># If we passed an ndarray for TensorNEAT, it is not well supported, so fail gracefully</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-                    <span class="s2">"Passing ndarray init_pop to TensorNeatEmitter is not supported yet."</span>
-                <span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_pop</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">init_pop</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="c1"># Wrap the TensorNEAT tuple (nodes, conns) in a TensorNeatPopulation</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.tensorneat_genome</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-                <span class="n">TensorNeatGenome</span><span class="p">,</span>
-                <span class="n">TensorNeatPopulation</span><span class="p">,</span>
-            <span class="p">)</span>
-
-            <span class="n">genes</span> <span class="o">=</span> <span class="n">TensorNeatGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">init_pop</span><span class="p">)</span>
-            <span class="n">init_pop</span> <span class="o">=</span> <span class="n">TensorNeatPopulation</span><span class="p">(</span>
-                <span class="n">genes</span><span class="o">=</span><span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span><span class="p">),</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Copy centroids to prevent "Buffer has been deleted or donated" error across seeds</span>
-        <span class="n">centroids_copy</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="p">)</span>
-
-        <span class="c1"># We copy the population natively using the newly added `.copy()` to safely prevent JAX donation bugs across seeds</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">k_run</span><span class="p">,</span> <span class="n">init_pop</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">centroids_copy</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">is_qdax_replica</span><span class="p">:</span>
-            <span class="c1"># Force the exact QDAX key into the state for generation 1</span>
-            <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">rng_key</span><span class="o">=</span><span class="n">k_init_qdax</span><span class="p">)</span>
-
-        <span class="n">t_exec_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-        <span class="n">final_state</span><span class="p">,</span> <span class="n">scan_history</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">time_it</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">compile</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">t_exec_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-
-        <span class="n">num_gens</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">num_generations</span><span class="p">)</span>
-        <span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">track_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"qd_score"</span><span class="p">,</span> <span class="s2">"coverage"</span><span class="p">]</span>
-
-        <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="mf">1.0</span>
-
-        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_gens</span><span class="p">):</span>
-            <span class="n">gen_stats</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"generation"</span><span class="p">:</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">track_keys</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-                    <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">)[</span><span class="n">g</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="s2">"std_fitness"</span><span class="p">):</span>
-                        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">*</span> <span class="n">sign</span>
-                    <span class="n">gen_stats</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-            <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gen_stats</span><span class="p">)</span>
-
-        <span class="c1"># Safely extract qd_score and coverage. If they exist on final_state use them,</span>
-        <span class="c1"># otherwise try to get the last element from scan_history.</span>
-        <span class="n">qd_score</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">final_state</span><span class="p">,</span> <span class="s2">"qd_score"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">qd_score</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="s2">"qd_score"</span><span class="p">):</span>
-            <span class="n">qd_score</span> <span class="o">=</span> <span class="n">scan_history</span><span class="o">.</span><span class="n">qd_score</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-        <span class="n">coverage</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">final_state</span><span class="p">,</span> <span class="s2">"coverage"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="s2">"coverage"</span><span class="p">):</span>
-            <span class="n">coverage</span> <span class="o">=</span> <span class="n">scan_history</span><span class="o">.</span><span class="n">coverage</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-        <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span> <span class="o">*</span> <span class="n">sign</span><span class="p">),</span>
-            <span class="s2">"qd_score"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">qd_score</span><span class="p">)</span> <span class="k">if</span> <span class="n">qd_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="s2">"coverage"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">coverage</span><span class="p">)</span> <span class="k">if</span> <span class="n">coverage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="s2">"final_generation"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span><span class="p">),</span>
-            <span class="s2">"total_evaluations"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span><span class="p">),</span>
-        <span class="p">}</span>
-
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">"history"</span><span class="p">:</span> <span class="n">history</span><span class="p">,</span>
-            <span class="s2">"summary"</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
-            <span class="s2">"timings"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"total"</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_exec_start</span><span class="p">},</span>
-        <span class="p">}</span></div>
-</div>
-
 
 
 <div class="viewcode-block" id="Composer">
@@ -595,24 +440,6 @@
 
     <span class="n">registry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_seeds</span><span class="p">(</span><span class="n">seeds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Normalize seed input into an explicit tuple of integers.</span>
-
-<span class="sd">        Accepts either:</span>
-<span class="sd">        - an iterable of seeds (e.g., ``[42, 43, 44]``), or</span>
-<span class="sd">        - an integer count (e.g., ``100`` -&gt; ``(1, 2, ..., 100)``).</span>
-<span class="sd">        """</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seeds</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">seeds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"seeds must be &gt; 0 when provided as an integer count"</span><span class="p">)</span>
-            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-
-        <span class="n">seeds_tuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seeds</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">seeds_tuple</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"seeds must not be empty"</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">seeds_tuple</span>
 
 <div class="viewcode-block" id="Composer.quick_run">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.quick_run">[docs]</a>
@@ -943,7 +770,7 @@
                         <span class="n">num_descriptors</span><span class="o">=</span><span class="n">qdax_num_descriptors</span><span class="p">,</span>
                         <span class="n">num_centroids</span><span class="o">=</span><span class="n">qdax_num_centroids</span><span class="p">,</span>
                     <span class="p">)</span>
-                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_real_operators</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">crossover</span><span class="p">,</span> <span class="n">mutation</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="n">has_real_operators</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">crossover</span><span class="p">,</span> <span class="n">mutation</span><span class="p">):</span>
                     <span class="n">strategy</span> <span class="o">=</span> <span class="n">GeneticStrategy</span><span class="p">(</span>
                         <span class="n">selection</span><span class="o">=</span><span class="n">selection</span><span class="p">,</span>
                         <span class="n">crossover</span><span class="o">=</span><span class="n">crossover</span><span class="p">,</span>
@@ -951,7 +778,7 @@
                     <span class="p">)</span>
 
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">EvoSAXStrategy</span><span class="p">):</span>
-                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_evosax_engine</span><span class="p">(</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="n">build_evosax_engine</span><span class="p">(</span>
                     <span class="n">strategy_name</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_name</span><span class="p">,</span>
                     <span class="n">fitness_spec</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span>
                     <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
@@ -965,7 +792,7 @@
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">QDAXStrategy</span><span class="p">):</span>
-                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_qdax_engine</span><span class="p">(</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="n">build_qdax_engine</span><span class="p">(</span>
                     <span class="n">strategy</span><span class="o">=</span><span class="n">strategy</span><span class="p">,</span>
                     <span class="n">fitness_spec</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span>
                     <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
@@ -977,7 +804,7 @@
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">TensorNEATStrategy</span><span class="p">):</span>
-                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_tensorneat_engine</span><span class="p">(</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="n">build_tensorneat_engine</span><span class="p">(</span>
                     <span class="n">strategy</span><span class="o">=</span><span class="n">strategy</span><span class="p">,</span>
                     <span class="n">fitness_spec</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span>
                     <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
@@ -987,7 +814,7 @@
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">MapElitesStrategy</span><span class="p">):</span>
-                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_map_elites_engine</span><span class="p">(</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="n">build_map_elites_engine</span><span class="p">(</span>
                     <span class="n">strategy</span><span class="o">=</span><span class="n">strategy</span><span class="p">,</span>
                     <span class="n">fitness_spec</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span>
                     <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
@@ -999,7 +826,7 @@
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">GeneticStrategy</span><span class="p">):</span>
-                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_real_engine</span><span class="p">(</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="n">build_real_engine</span><span class="p">(</span>
                     <span class="n">strategy</span><span class="o">=</span><span class="n">strategy</span><span class="p">,</span>
                     <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">,</span>
                     <span class="n">fitness</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span>
@@ -1017,7 +844,7 @@
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_stub_engine</span><span class="p">(</span><span class="n">generations</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="n">build_stub_engine</span><span class="p">(</span><span class="n">generations</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">runner</span> <span class="o">=</span> <span class="n">BenchmarkRunner</span><span class="p">(</span>
             <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span>
@@ -1029,7 +856,7 @@
             <span class="n">serialize_history</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"serialize_history"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
         <span class="p">)</span>
 
-        <span class="n">normalized_seeds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_seeds</span><span class="p">(</span><span class="n">seeds</span><span class="p">)</span>
+        <span class="n">normalized_seeds</span> <span class="o">=</span> <span class="n">normalize_seeds</span><span class="p">(</span><span class="n">seeds</span><span class="p">)</span>
         <span class="n">experiment</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">normalized_seeds</span><span class="p">)</span>
 
         <span class="c1"># Composer-level postprocessing: when engines run with</span>
@@ -1091,37 +918,15 @@
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="k">pass</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_infer_genome_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Infer genome length from config, preferring explicit values.</span>
-
-<span class="sd">        Priority:</span>
-<span class="sd">        1) ``genome_length`` kwarg</span>
-<span class="sd">        2) ``fitness`` spec params ``dim`` / ``num_dims``</span>
-<span class="sd">        3) default 10</span>
-<span class="sd">        """</span>
-        <span class="k">if</span> <span class="s2">"genome_length"</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">and</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">"genome_length"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"genome_length"</span><span class="p">])</span>
-
-        <span class="n">fitness_spec</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"fitness"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
-            <span class="n">dim_val</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dim"</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">dim_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_val</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="mi">10</span>
-
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_initial_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">pop_seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Deterministically generate a shared initial population matrix for a given pipeline config.</span>
 
 <span class="sd">        Ensures that pipelines with identical bounds, population sizes, and dimensionality</span>
 <span class="sd">        receive the exact same starting points, while dynamically scaling to the requested pop_size.</span>
 <span class="sd">        """</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
 
         <span class="n">pop_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_size"</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
-        <span class="n">genome_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_genome_length</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">genome_length</span> <span class="o">=</span> <span class="n">infer_genome_length</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="n">bounds</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bounds"</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
         <span class="n">fitness_spec</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"fitness"</span><span class="p">)</span>
 
@@ -1146,7 +951,6 @@
             <span class="n">pop_nodes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="s2">"pop_nodes"</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">state_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_nodes"</span><span class="p">))</span>
             <span class="n">pop_conns</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="s2">"pop_conns"</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">state_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_conns"</span><span class="p">))</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">pop_nodes</span><span class="p">,</span> <span class="n">pop_conns</span><span class="p">)</span>
-
 
         <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"bbob"</span> <span class="ow">in</span> <span class="n">fitness_spec</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
             <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
@@ -1339,7 +1143,7 @@
 
             <span class="k">if</span> <span class="n">shared_initial_population</span> <span class="ow">and</span> <span class="s2">"initial_population"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">merged</span><span class="p">:</span>
                 <span class="n">pipeline_init_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_initial_population</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
-                <span class="n">p_genome_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_genome_length</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span>
+                <span class="n">p_genome_length</span> <span class="o">=</span> <span class="n">infer_genome_length</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">):</span>
                     <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">p_genome_length</span><span class="p">:</span>
@@ -1366,7 +1170,6 @@
 
             <span class="c1"># Clear JAX compilation caches to prevent RESOURCE_EXHAUSTED OOMs</span>
             <span class="c1"># on large sweeps (e.g., 100+ pipelines)</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 
             <span class="n">jax</span><span class="o">.</span><span class="n">clear_caches</span><span class="p">()</span>
 
@@ -1530,7 +1333,7 @@
         <span class="k">if</span> <span class="n">output_dir</span><span class="p">:</span>
             <span class="n">shared</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"output_dir"</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
 
-        <span class="n">seeds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_normalize_seeds</span><span class="p">(</span><span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"seeds"</span><span class="p">,</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">)))</span>
+        <span class="n">seeds</span> <span class="o">=</span> <span class="n">normalize_seeds</span><span class="p">(</span><span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"seeds"</span><span class="p">,</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">)))</span>
 
         <span class="n">pipeline_overrides</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">merged_cfg</span> <span class="ow">in</span> <span class="n">resolved</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1552,675 +1355,6 @@
             <span class="o">**</span><span class="n">shared</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_has_real_operators</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">genome</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">fitness</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">selection</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">crossover</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">mutation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Check if any real operator specs are provided."""</span>
-        <span class="k">return</span> <span class="nb">any</span><span class="p">([</span><span class="n">genome</span><span class="p">,</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">crossover</span><span class="p">,</span> <span class="n">mutation</span><span class="p">])</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_data_registry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Convert a configuration of data sources into a resolved data registry."""</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.benchmarking.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataRegistry</span>
-
-        <span class="n">reg</span> <span class="o">=</span> <span class="n">DataRegistry</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">data_id</span><span class="p">,</span> <span class="n">data_spec</span> <span class="ow">in</span> <span class="n">data_config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">reg</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">data_spec</span><span class="p">)</span>
-
-        <span class="n">resolved</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">data_id</span> <span class="ow">in</span> <span class="n">data_config</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">resolved</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">data_id</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">resolved</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_real_engine</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">strategy</span><span class="p">:</span> <span class="n">BaseStrategy</span><span class="p">,</span>
-        <span class="n">fitness</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">engine_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ga"</span><span class="p">,</span>
-        <span class="n">data_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Build engine from operator specs and config via EngineRegistry."""</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneticStrategy</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.schedules</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackBest</span>
-
-        <span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-
-        <span class="n">data_registry</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">data_config</span><span class="p">:</span>
-            <span class="n">data_registry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_data_registry</span><span class="p">(</span><span class="n">data_config</span><span class="p">)</span>
-
-        <span class="n">seed_val</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
-        <span class="n">maximize_flag</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"maximize"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-
-        <span class="c1"># We append seed to fitness strings if missing so BBOB etc uses the right seed</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">if</span> <span class="s2">"seed="</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">":"</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">:</span>
-                    <span class="n">fitness</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fitness</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">"</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">fitness</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fitness</span><span class="si">}</span><span class="s2">:seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">"</span>
-            <span class="n">resolved_evaluator</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="n">fitness</span><span class="p">,</span>
-                <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">fitness</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">resolved_evaluator</span> <span class="o">=</span> <span class="n">fitness</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">resolved_evaluator</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"sphere:dim=10,maximize=</span><span class="si">{</span><span class="n">maximize_flag</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
-            <span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">GeneticStrategy</span><span class="p">):</span>
-            <span class="n">resolved_selection</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                    <span class="n">strategy</span><span class="o">.</span><span class="n">selection</span>
-                    <span class="ow">or</span> <span class="sa">f</span><span class="s2">"tournament:num_selections=</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'pop_size'</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s2">,tournament_size=3"</span><span class="p">,</span>
-                    <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">selection</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">strategy</span><span class="o">.</span><span class="n">selection</span> <span class="ow">is</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="n">strategy</span><span class="o">.</span><span class="n">selection</span>
-            <span class="p">)</span>
-
-            <span class="n">resolved_crossover</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">crossover</span> <span class="ow">or</span> <span class="s2">"blend:alpha=0.5"</span><span class="p">,</span> <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">crossover</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">strategy</span><span class="o">.</span><span class="n">crossover</span> <span class="ow">is</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="n">strategy</span><span class="o">.</span><span class="n">crossover</span>
-            <span class="p">)</span>
-
-            <span class="n">resolved_mutation</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                    <span class="n">strategy</span><span class="o">.</span><span class="n">mutation</span> <span class="ow">or</span> <span class="s2">"gaussian:mutation_rate=0.1"</span><span class="p">,</span> <span class="n">data_registry</span><span class="o">=</span><span class="n">data_registry</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">mutation</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">strategy</span><span class="o">.</span><span class="n">mutation</span> <span class="ow">is</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="n">strategy</span><span class="o">.</span><span class="n">mutation</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">resolved_selection</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">resolved_crossover</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">resolved_mutation</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="c1"># Ensure we use LIGHT tracking for monotonic convergence curves</span>
-        <span class="k">if</span> <span class="s2">"track_best"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="s2">"track_best"</span><span class="p">]</span> <span class="o">=</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span>
-
-        <span class="n">engine_registry</span> <span class="o">=</span> <span class="n">EngineRegistry</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">engine_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="n">engine_type</span><span class="p">,</span>
-            <span class="n">evaluator</span><span class="o">=</span><span class="n">resolved_evaluator</span><span class="p">,</span>
-            <span class="n">selection</span><span class="o">=</span><span class="n">resolved_selection</span><span class="p">,</span>
-            <span class="n">crossover</span><span class="o">=</span><span class="n">resolved_crossover</span><span class="p">,</span>
-            <span class="n">mutation</span><span class="o">=</span><span class="n">resolved_mutation</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">config</span><span class="p">,</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_evosax_engine</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">strategy_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">fitness_spec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">num_dims</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">bounds</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
-        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">prng_impl</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Build EvosaxEngineAdapter from strategy name and config."""</span>
-        <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
-
-                <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-                <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="n">parsed_name</span> <span class="o">==</span> <span class="s2">"bbob"</span><span class="p">:</span>
-                    <span class="n">fn_param</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"fn_name"</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"fn"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fn_param</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                        <span class="kn">import</span><span class="w"> </span><span class="nn">evosax.problems.bbob.meta_bbob</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mb</span>
-
-                        <span class="n">bbob_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mb</span><span class="o">.</span><span class="n">bbob_fns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-                        <span class="k">if</span> <span class="n">fn_param</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">fn_param</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbob_keys</span><span class="p">):</span>
-                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                                <span class="sa">f</span><span class="s2">"BBOB function index </span><span class="si">{</span><span class="n">fn_param</span><span class="si">}</span><span class="s2"> is out of range (1-</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bbob_keys</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
-                            <span class="p">)</span>
-                        <span class="n">fn</span> <span class="o">=</span> <span class="n">bbob_keys</span><span class="p">[</span><span class="n">fn_param</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-                    <span class="k">elif</span> <span class="n">fn_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="s2">"BBOB fitness specification requires either fn_name or fn index"</span>
-                        <span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">fn</span> <span class="o">=</span> <span class="n">fn_param</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">fn</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"fn_name"</span><span class="p">,</span> <span class="n">parsed_name</span><span class="p">)</span>
-
-                <span class="n">dims</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dim"</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">,</span> <span class="n">num_dims</span><span class="p">))</span>
-                <span class="n">seed</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span>
-                <span class="n">maxim</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"maximize"</span><span class="p">,</span> <span class="n">maximize</span><span class="p">)</span>
-
-                <span class="n">evalr</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-                    <span class="n">BBOBConfig</span><span class="p">(</span><span class="n">fn_name</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">num_dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">)</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">evalr</span> <span class="o">=</span> <span class="n">fitness_spec</span>
-                <span class="n">maxim</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="nb">getattr</span><span class="p">(</span><span class="n">evalr</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">"maximize"</span><span class="p">,</span> <span class="n">maximize</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evalr</span><span class="p">,</span> <span class="s2">"config"</span><span class="p">)</span>
-                    <span class="k">else</span> <span class="n">maximize</span>
-                <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">fn</span> <span class="o">=</span> <span class="s2">"sphere"</span>
-            <span class="n">dims</span> <span class="o">=</span> <span class="n">num_dims</span>
-            <span class="n">seed</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
-            <span class="n">maxim</span> <span class="o">=</span> <span class="n">maximize</span>
-            <span class="n">evalr</span> <span class="o">=</span> <span class="n">BBOBEvaluator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-                <span class="n">BBOBConfig</span><span class="p">(</span><span class="n">fn_name</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">num_dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">)</span>
-            <span class="p">)</span>
-
-        <span class="c1"># If no initial_population provided and evaluator has sample() method,</span>
-        <span class="c1"># use it for consistent initialization across backends</span>
-        <span class="n">init_pop</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">init_pop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evalr</span><span class="p">,</span> <span class="s2">"evosax_problem"</span><span class="p">):</span>
-            <span class="c1"># Use same seed as BBOB problem for consistent initialization</span>
-            <span class="n">pop_key</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-            <span class="n">sample_keys</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">pop_key</span><span class="p">,</span> <span class="n">pop_size</span><span class="p">)</span>
-            <span class="n">init_pop</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">evalr</span><span class="o">.</span><span class="n">evosax_problem</span><span class="o">.</span><span class="n">sample</span><span class="p">)(</span><span class="n">sample_keys</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">build_evosax_engine</span><span class="p">(</span>
-            <span class="n">strategy_name</span><span class="o">=</span><span class="n">strategy_name</span><span class="p">,</span>
-            <span class="n">evaluator</span><span class="o">=</span><span class="n">evalr</span><span class="p">,</span>
-            <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
-            <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
-            <span class="n">num_dims</span><span class="o">=</span><span class="n">num_dims</span><span class="p">,</span>
-            <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
-            <span class="n">maximize</span><span class="o">=</span><span class="n">maxim</span><span class="p">,</span>
-            <span class="n">strategy_params</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"strategy_params"</span><span class="p">),</span>
-            <span class="n">initial_population</span><span class="o">=</span><span class="n">init_pop</span><span class="p">,</span>
-            <span class="n">prng_impl</span><span class="o">=</span><span class="n">prng_impl</span><span class="p">,</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_qdax_engine</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">strategy</span><span class="p">:</span> <span class="n">QDAXStrategy</span><span class="p">,</span>
-        <span class="n">fitness_spec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">genome_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">bounds</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
-        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">history_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
-
-        <span class="kn">from</span><span class="w"> </span><span class="nn">qdax.core.containers.mapelites_repertoire</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_cvt_centroids</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">qdax.utils.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_qd_metrics</span>
-
-        <span class="kn">from</span><span class="w"> </span><span class="nn">.qdax_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_qdax_engine</span>
-
-        <span class="c1"># 1. Resolve strategy class</span>
-        <span class="n">strategy_cls</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">strategy_cls</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy_cls</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">pkgutil</span>
-
-            <span class="kn">import</span><span class="w"> </span><span class="nn">qdax.core</span>
-
-            <span class="n">resolved_cls</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">is_pkg</span> <span class="ow">in</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">(</span><span class="n">qdax</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">__path__</span><span class="p">):</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_pkg</span><span class="p">:</span>
-                    <span class="n">mod</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">"qdax.core.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">strategy_cls</span><span class="p">):</span>
-                        <span class="n">resolved_cls</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">strategy_cls</span><span class="p">)</span>
-                        <span class="k">break</span>
-
-            <span class="k">if</span> <span class="n">resolved_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown QDAX strategy: </span><span class="si">{</span><span class="n">strategy_cls</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-            <span class="n">strategy_cls</span> <span class="o">=</span> <span class="n">resolved_cls</span>
-
-        <span class="c1"># 2. Auto-create emitter if not provided</span>
-        <span class="n">emitter</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">emitter</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">emitter</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">emitter</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"mixing"</span><span class="p">:</span>
-                <span class="n">sigma</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">mutation_sigma</span>
-                <span class="n">var_pct</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"qdax_variation_percentage"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
-                <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"qdax_native:mutation=gaussian:sigma=</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">,crossover=none,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,variation_percentage=</span><span class="si">{</span><span class="n">var_pct</span><span class="si">}</span><span class="s2">"</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">":"</span> <span class="ow">in</span> <span class="n">emitter</span><span class="p">:</span>
-                    <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emitter</span><span class="si">}</span><span class="s2">,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">"</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emitter</span><span class="si">}</span><span class="s2">:batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">"</span>
-
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
-
-            <span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-            <span class="n">emitter</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">emitter_spec</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">emitter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">sigma</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">mutation_sigma</span>
-            <span class="n">var_pct</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"qdax_variation_percentage"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
-            <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"qdax_native:mutation=gaussian:sigma=</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">,crossover=none,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,variation_percentage=</span><span class="si">{</span><span class="n">var_pct</span><span class="si">}</span><span class="s2">"</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
-
-            <span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-            <span class="n">emitter</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">emitter_spec</span><span class="p">)</span>
-
-        <span class="c1"># 3. Auto-create metrics function if not provided</span>
-        <span class="n">metrics_fn</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">metrics_function</span>
-        <span class="k">if</span> <span class="n">metrics_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">metrics_fn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">default_qd_metrics</span><span class="p">,</span> <span class="n">qd_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
-
-        <span class="c1"># 4. Auto-compute centroids if not provided</span>
-        <span class="n">centroids</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">centroids</span>
-        <span class="k">if</span> <span class="n">centroids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">centroids</span> <span class="o">=</span> <span class="n">compute_cvt_centroids</span><span class="p">(</span>
-                <span class="n">num_descriptors</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">num_descriptors</span><span class="p">,</span>
-                <span class="n">num_init_cvt_samples</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span>
-                <span class="n">num_centroids</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">num_centroids</span><span class="p">,</span>
-                <span class="n">minval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-                <span class="n">maxval</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-                <span class="n">key</span><span class="o">=</span><span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">),</span>
-            <span class="p">)</span>
-
-        <span class="c1"># 5. Auto-generate init_variables if not provided</span>
-        <span class="c1"># Note: We do NOT generate it here statically with PRNGKey(0) anymore.</span>
-        <span class="c1"># It is handled dynamically by QDaxEngineAdapter._adapter_init using the runtime seed</span>
-        <span class="c1"># or it is overridden by the shared_initial_population feature.</span>
-        <span class="n">init_variables</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">init_variables</span>
-
-        <span class="c1"># 6. Resolve evaluator</span>
-        <span class="n">evaluator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_qdax_evaluator</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">maximize</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">build_qdax_engine</span><span class="p">(</span>
-            <span class="n">strategy_cls</span><span class="o">=</span><span class="n">strategy_cls</span><span class="p">,</span>
-            <span class="n">emitter</span><span class="o">=</span><span class="n">emitter</span><span class="p">,</span>
-            <span class="n">metrics_function</span><span class="o">=</span><span class="n">metrics_fn</span><span class="p">,</span>
-            <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluator</span><span class="p">,</span>
-            <span class="n">init_variables</span><span class="o">=</span><span class="n">init_variables</span><span class="p">,</span>
-            <span class="n">centroids</span><span class="o">=</span><span class="n">centroids</span><span class="p">,</span>
-            <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
-            <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
-            <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
-            <span class="n">eval_mode</span><span class="o">=</span><span class="s2">"native"</span><span class="p">,</span>
-            <span class="n">history_metrics</span><span class="o">=</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"qd_score"</span><span class="p">,</span> <span class="s2">"coverage"</span><span class="p">],</span>
-            <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
-            <span class="n">genome_length</span><span class="o">=</span><span class="n">genome_length</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_qdax_evaluator</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">fitness_spec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">bounds</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealPopulation</span>
-
-        <span class="k">class</span><span class="w"> </span><span class="nc">QDAXNativeEvaluator</span><span class="p">:</span>
-            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitness_fn</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_descriptors</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_fitness_fn</span> <span class="o">=</span> <span class="n">fitness_fn</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span> <span class="o">=</span> <span class="n">evaluator</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span> <span class="o">=</span> <span class="n">num_descriptors</span>
-
-            <span class="k">def</span><span class="w"> </span><span class="nf">scoring_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genotypes</span><span class="p">,</span> <span class="n">random_key</span><span class="p">):</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">genes</span> <span class="o">=</span> <span class="n">RealGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">genotypes</span><span class="p">)</span>
-                    <span class="n">pop</span> <span class="o">=</span> <span class="n">RealPopulation</span><span class="p">(</span>
-                        <span class="n">genes</span><span class="o">=</span><span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">genotypes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span>
-                    <span class="p">)</span>
-                    <span class="n">updated_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">pop</span><span class="p">)</span>
-                    <span class="n">fitnesses</span> <span class="o">=</span> <span class="n">updated_pop</span><span class="o">.</span><span class="n">fitness</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">maximize</span><span class="p">:</span>
-                        <span class="n">fitnesses</span> <span class="o">=</span> <span class="o">-</span><span class="n">fitnesses</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">updated_pop</span><span class="p">,</span> <span class="s2">"descriptors"</span><span class="p">):</span>
-                        <span class="n">descriptors</span> <span class="o">=</span> <span class="n">updated_pop</span><span class="o">.</span><span class="n">descriptors</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">desc_dims</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span><span class="p">]</span>
-                        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                        <span class="n">descriptors</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc_dims</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">fitnesses</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fitness_fn</span><span class="p">)(</span><span class="n">genotypes</span><span class="p">)</span>
-                    <span class="n">desc_dims</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span><span class="p">]</span>
-                    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">descriptors</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc_dims</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span>
-
-                <span class="k">return</span> <span class="n">fitnesses</span><span class="p">,</span> <span class="n">descriptors</span><span class="p">,</span> <span class="p">{}</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-            <span class="n">resolved</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">QDAXNativeEvaluator</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">resolved</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">QDAXNativeEvaluator</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">fitness_spec</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-
-            <span class="k">def</span><span class="w"> </span><span class="nf">fn</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-                <span class="k">return</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-
-            <span class="k">return</span> <span class="n">QDAXNativeEvaluator</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_tensorneat_engine</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">strategy</span><span class="p">:</span> <span class="n">TensorNEATStrategy</span><span class="p">,</span>
-        <span class="n">fitness_spec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">history_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
-
-        <span class="c1"># 1. Resolve algorithm</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.algorithm</span>
-
-        <span class="kn">from</span><span class="w"> </span><span class="nn">.tensorneat_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_tensorneat_engine</span>
-
-        <span class="n">algorithm_cls</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">tensorneat</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-                <span class="n">algorithm_cls</span> <span class="o">=</span> <span class="n">obj</span>
-                <span class="k">break</span>
-
-        <span class="k">if</span> <span class="n">algorithm_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown TensorNEAT algorithm: </span><span class="si">{</span><span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-        <span class="c1"># 2. Resolve genome</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.genome</span>
-
-        <span class="n">genome_cls</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="c1"># In TensorNEAT, genome classes often end with "Genome" (e.g. DefaultGenome, RecurrentGenome)</span>
-        <span class="c1"># So if user passes "default", we check for "default" or "defaultgenome"</span>
-        <span class="n">target_genome</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">genome_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">tensorneat</span><span class="o">.</span><span class="n">genome</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">):</span>
-            <span class="n">name_lower</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">name_lower</span> <span class="o">==</span> <span class="n">target_genome</span> <span class="ow">or</span> <span class="n">name_lower</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">target_genome</span><span class="si">}</span><span class="s2">genome"</span><span class="p">:</span>
-                <span class="n">genome_cls</span> <span class="o">=</span> <span class="n">obj</span>
-                <span class="k">break</span>
-
-        <span class="k">if</span> <span class="n">genome_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown TensorNEAT genome: </span><span class="si">{</span><span class="n">strategy</span><span class="o">.</span><span class="n">genome_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-        <span class="n">genome</span> <span class="o">=</span> <span class="n">genome_cls</span><span class="p">(</span><span class="n">num_inputs</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">num_outputs</span><span class="p">)</span>
-
-        <span class="c1"># initial_population may have leaked into algorithm_kwargs via kwargs</span>
-        <span class="n">alg_kwargs</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">algorithm_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">init_pop</span> <span class="o">=</span> <span class="n">alg_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-
-        <span class="n">algorithm</span> <span class="o">=</span> <span class="n">algorithm_cls</span><span class="p">(</span><span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">,</span> <span class="o">**</span><span class="n">alg_kwargs</span><span class="p">)</span>
-
-        <span class="n">problem</span><span class="p">,</span> <span class="n">problem_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_tensorneat_problem</span><span class="p">(</span>
-            <span class="n">strategy</span><span class="o">.</span><span class="n">problem_name</span><span class="p">,</span> <span class="n">fitness_spec</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">build_tensorneat_engine</span><span class="p">(</span>
-            <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">,</span>
-            <span class="n">evaluator</span><span class="o">=</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">problem_state</span><span class="p">),</span>
-            <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
-            <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
-            <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
-            <span class="n">history_metrics</span><span class="o">=</span><span class="n">history_metrics</span><span class="p">,</span>
-            <span class="n">initial_population</span><span class="o">=</span><span class="n">init_pop</span><span class="p">,</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_tensorneat_problem</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">problem_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">fitness_spec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
-
-        <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.problem</span>
-
-        <span class="n">name</span> <span class="o">=</span> <span class="n">problem_name</span> <span class="ow">or</span> <span class="p">(</span><span class="n">fitness_spec</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"xor"</span><span class="p">)</span>
-        <span class="n">base_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-
-        <span class="n">problem_cls</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">for</span> <span class="n">cls_name</span><span class="p">,</span> <span class="n">cls_obj</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">tensorneat</span><span class="o">.</span><span class="n">problem</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">cls_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">base_name</span><span class="p">:</span>
-                <span class="n">problem_cls</span> <span class="o">=</span> <span class="n">cls_obj</span>
-                <span class="k">break</span>
-
-        <span class="k">if</span> <span class="n">problem_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown TensorNEAT problem: </span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
-
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="s2">":"</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">args_part</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">kv</span> <span class="ow">in</span> <span class="n">args_part</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">):</span>
-                <span class="k">if</span> <span class="s2">"="</span> <span class="ow">in</span> <span class="n">kv</span><span class="p">:</span>
-                    <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">kv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                    <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-
-        <span class="k">if</span> <span class="n">base_name</span> <span class="o">==</span> <span class="s2">"gymnaxenv"</span> <span class="ow">and</span> <span class="s2">"action_policy"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-            <span class="k">def</span><span class="w"> </span><span class="nf">default_discrete_policy</span><span class="p">(</span><span class="n">randkey</span><span class="p">,</span> <span class="n">forward_func</span><span class="p">,</span> <span class="n">obs</span><span class="p">):</span>
-                <span class="n">logits</span> <span class="o">=</span> <span class="n">forward_func</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">logits</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="p">())</span>
-                <span class="k">return</span> <span class="n">logits</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"action_policy"</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_discrete_policy</span>
-
-        <span class="n">problem</span> <span class="o">=</span> <span class="n">problem_cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">problem</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_map_elites_engine</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">strategy</span><span class="p">:</span> <span class="n">MapElitesStrategy</span><span class="p">,</span>
-        <span class="n">fitness_spec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">history_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">qdax.core.containers.mapelites_repertoire</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_cvt_centroids</span>
-
-        <span class="c1"># Resolve Evaluator using EngineRegistry or direct resolution (for MAP-Elites parity)</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.qd.map_elites</span><span class="w"> </span><span class="kn">import</span> <span class="n">MapElitesEngine</span><span class="p">,</span> <span class="n">MapElitesEngineParams</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.emitters.tensorneat_emitter</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorNeatEmitter</span>
-
-        <span class="c1"># 1. Instantiate Emitter first</span>
-        <span class="n">emitter_obj</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">emitter</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">emitter_obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">genome_length</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"genome_length"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">emitter_obj</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"mixing"</span><span class="p">:</span>
-                <span class="n">sigma</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"mutation_sigma"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
-                <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"qdax_replica:mutation=gaussian:sigma=</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">,crossover=none,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">":"</span> <span class="ow">in</span> <span class="n">emitter_obj</span><span class="p">:</span>
-                    <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emitter_obj</span><span class="si">}</span><span class="s2">,batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">emitter_spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emitter_obj</span><span class="si">}</span><span class="s2">:batch_size=</span><span class="si">{</span><span class="n">pop_size</span><span class="si">}</span><span class="s2">,genome_length=</span><span class="si">{</span><span class="n">genome_length</span><span class="si">}</span><span class="s2">"</span>
-
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
-            <span class="n">catalog</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-            <span class="n">emitter_obj</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">emitter_spec</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">emitter_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"MapElitesStrategy requires an explicit emitter."</span><span class="p">)</span>
-
-        <span class="c1"># 2. Resolve Evaluator</span>
-        <span class="n">evaluator</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">emitter_obj</span><span class="p">,</span> <span class="n">TensorNeatEmitter</span><span class="p">):</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluatorConfig</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.tensorneat</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorNeatQDEvaluator</span>
-
-            <span class="n">problem_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_problem"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-            <span class="c1"># Extract objective_function if passed directly</span>
-            <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"objective_function"</span><span class="p">)</span>
-
-            <span class="c1"># If not passed directly, try to resolve from fitness_spec</span>
-            <span class="k">if</span> <span class="n">objective_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Resolve using tensorneat problem registry</span>
-                <span class="n">problem</span><span class="p">,</span> <span class="n">problem_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_tensorneat_problem</span><span class="p">(</span>
-                    <span class="n">problem_name</span><span class="p">,</span> <span class="n">fitness_spec</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-                <span class="p">)</span>
-
-                <span class="c1"># Create genome to get forward function</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.genome</span>
-                <span class="n">target_genome</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_genome"</span><span class="p">,</span> <span class="s2">"default"</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                <span class="n">genome_cls</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
-                <span class="k">for</span> <span class="n">cls_name</span><span class="p">,</span> <span class="n">cls_obj</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">tensorneat</span><span class="o">.</span><span class="n">genome</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">):</span>
-                    <span class="n">name_lower</span> <span class="o">=</span> <span class="n">cls_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="n">name_lower</span> <span class="o">==</span> <span class="n">target_genome</span> <span class="ow">or</span> <span class="n">name_lower</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">target_genome</span><span class="si">}</span><span class="s2">genome"</span><span class="p">:</span>
-                        <span class="n">genome_cls</span> <span class="o">=</span> <span class="n">cls_obj</span>
-                        <span class="k">break</span>
-
-                <span class="k">if</span> <span class="n">genome_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">genome_cls</span> <span class="o">=</span> <span class="n">tensorneat</span><span class="o">.</span><span class="n">genome</span><span class="o">.</span><span class="n">DefaultGenome</span>
-
-                <span class="n">genome_obj</span> <span class="o">=</span> <span class="n">genome_cls</span><span class="p">(</span>
-                    <span class="n">num_inputs</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_num_inputs"</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-                    <span class="n">num_outputs</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_num_outputs"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-                <span class="p">)</span>
-
-                <span class="c1"># Assign genome to emitter</span>
-                <span class="n">emitter_obj</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="n">emitter_obj</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">genome</span><span class="o">=</span><span class="n">genome_obj</span><span class="p">)</span>
-
-                <span class="c1"># Create a wrapper objective function that calls problem.evaluate</span>
-                <span class="k">def</span><span class="w"> </span><span class="nf">obj_fn</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">conns</span><span class="p">):</span>
-                    <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-                    <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-                    <span class="kn">from</span><span class="w"> </span><span class="nn">tensorneat.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">State</span>
-
-                    <span class="c1"># Ensure nodes and conns have batch dimension</span>
-                    <span class="k">if</span> <span class="n">nodes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># Single network</span>
-                        <span class="n">nodes</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-                        <span class="n">conns</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">conns</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-                    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">nodes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">randkey</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-                    <span class="n">state</span> <span class="o">=</span> <span class="n">genome_obj</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-
-                    <span class="c1"># 1. Transform population</span>
-                    <span class="c1"># genome_obj.transform takes (state, nodes, conns)</span>
-                    <span class="c1"># We map over nodes and conns</span>
-                    <span class="n">transformed_pop</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">genome_obj</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span>
-                        <span class="n">state</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">conns</span>
-                    <span class="p">)</span>
-
-                    <span class="c1"># 2. Evaluate population</span>
-                    <span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">)</span>
-                    <span class="n">fitness</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))(</span>
-                        <span class="n">state</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">genome_obj</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span> <span class="n">transformed_pop</span>
-                    <span class="p">)</span>
-
-                    <span class="c1"># FIX: TensorNEAT problems natively return inverted fitness (-loss) for</span>
-                    <span class="c1"># its internal maximization loop. However, MalthusJAX engines expect the</span>
-                    <span class="c1"># raw objective value (e.g., positive loss) if `maximize=False`.</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">maximize</span><span class="p">:</span>
-                        <span class="n">fitness</span> <span class="o">=</span> <span class="o">-</span><span class="n">fitness</span>
-
-                    <span class="c1"># TensorNEAT problems don't return descriptors, so we use dummy ones for QD</span>
-                    <span class="n">descriptors</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"qdax_num_descriptors"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
-                    <span class="k">return</span> <span class="n">fitness</span><span class="p">,</span> <span class="n">descriptors</span>
-
-                <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">obj_fn</span>
-
-            <span class="n">evaluator</span> <span class="o">=</span> <span class="n">TensorNeatQDEvaluator</span><span class="p">(</span>
-                <span class="n">objective_function</span><span class="o">=</span><span class="n">objective_fn</span><span class="p">,</span>
-                <span class="n">config</span><span class="o">=</span><span class="n">BaseEvaluatorConfig</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">),</span>
-                <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># We use the BaseQDEvaluator composition to match standard evaluation</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEvaluatorConfig</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.qd.evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseQDEvaluator</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.qd.population</span><span class="w"> </span><span class="kn">import</span> <span class="n">QDPopulation</span>
-
-            <span class="n">cat</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span>
-            <span class="n">seed_val</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
-            <span class="n">resolved_base_evaluator</span><span class="p">:</span> <span class="n">Any</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="k">if</span> <span class="s2">"seed="</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness_spec</span><span class="p">:</span>
-                    <span class="n">fitness_spec</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fitness_spec</span><span class="si">}</span><span class="s2">:seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">"</span>
-                        <span class="k">if</span> <span class="s2">":"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fitness_spec</span>
-                        <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fitness_spec</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">"</span>
-                    <span class="p">)</span>
-                <span class="n">resolved_base_evaluator</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">resolved_base_evaluator</span> <span class="o">=</span> <span class="n">fitness_spec</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">resolved_base_evaluator</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"sphere:dim=</span><span class="si">{</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'genome_length'</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="si">}</span><span class="s2">,maximize=</span><span class="si">{</span><span class="n">maximize</span><span class="si">}</span><span class="s2">,seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">"</span>
-                <span class="p">)</span>
-
-            <span class="n">bounds</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bounds"</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
-            <span class="n">num_desc</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">num_descriptors</span>
-
-            <span class="k">class</span><span class="w"> </span><span class="nc">ComposedQDEvaluator</span><span class="p">(</span><span class="n">BaseQDEvaluator</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-                <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_qd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">):</span>
-                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Use evaluate_population directly"</span><span class="p">)</span>
-
-                <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">population</span><span class="p">):</span>
-                    <span class="n">updated_pop</span> <span class="o">=</span> <span class="n">resolved_base_evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
-                    <span class="n">genotypes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="s2">"values"</span><span class="p">,</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
-                    <span class="n">desc_dims</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_desc</span><span class="p">]</span>
-                    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">descriptors</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc_dims</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span>
-                    <span class="n">new_info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">population</span><span class="o">.</span><span class="n">info</span><span class="p">)</span> <span class="k">if</span> <span class="n">population</span><span class="o">.</span><span class="n">info</span> <span class="k">else</span> <span class="p">{}</span>
-                    <span class="n">new_info</span><span class="p">[</span><span class="s2">"descriptors"</span><span class="p">]</span> <span class="o">=</span> <span class="n">descriptors</span>
-
-                    <span class="n">fitness</span> <span class="o">=</span> <span class="n">updated_pop</span><span class="o">.</span><span class="n">fitness</span>
-
-                    <span class="k">return</span> <span class="n">QDPopulation</span><span class="p">(</span>
-                        <span class="n">genes</span><span class="o">=</span><span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span>
-                        <span class="n">fitness</span><span class="o">=</span><span class="n">fitness</span><span class="p">,</span>
-                        <span class="n">config</span><span class="o">=</span><span class="n">population</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
-                        <span class="n">info</span><span class="o">=</span><span class="n">new_info</span><span class="p">,</span>
-                    <span class="p">)</span>
-
-            <span class="n">evaluator</span> <span class="o">=</span> <span class="n">ComposedQDEvaluator</span><span class="p">(</span>
-                <span class="n">config</span><span class="o">=</span><span class="n">BaseEvaluatorConfig</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
-            <span class="p">)</span>
-
-        <span class="n">centroids</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">centroids</span>
-        <span class="k">if</span> <span class="n">centroids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">centroids</span> <span class="o">=</span> <span class="n">compute_cvt_centroids</span><span class="p">(</span>
-                <span class="n">num_descriptors</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">num_descriptors</span><span class="p">,</span>
-                <span class="n">num_init_cvt_samples</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span>
-                <span class="n">num_centroids</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">num_centroids</span><span class="p">,</span>
-                <span class="n">minval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-                <span class="n">maxval</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-                <span class="n">key</span><span class="o">=</span><span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">42</span><span class="p">),</span>
-            <span class="p">)</span>
-
-        <span class="n">engine</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">MapElitesEngine</span><span class="p">(</span>
-            <span class="n">emitter</span><span class="o">=</span><span class="n">emitter_obj</span><span class="p">,</span>
-            <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluator</span><span class="p">,</span>
-            <span class="n">engine_params</span><span class="o">=</span><span class="n">MapElitesEngineParams</span><span class="p">(</span>
-                <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">num_generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span>
-            <span class="p">),</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">MapElitesEngineAdapter</span><span class="p">(</span>
-            <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span>
-            <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
-            <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
-            <span class="n">history_metrics</span><span class="o">=</span><span class="n">history_metrics</span><span class="p">,</span>
-            <span class="n">initial_population</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-            <span class="n">centroids</span><span class="o">=</span><span class="n">centroids</span><span class="p">,</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_stub_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StubEngine</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Build StubEngine with legacy behavior for backward compatibility."""</span>
-        <span class="n">base_fitness</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"base_fitness"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-        <span class="n">improvement_rate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"improvement_rate"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">StubEngine</span><span class="p">(</span>
-            <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
-            <span class="n">base_fitness</span><span class="o">=</span><span class="n">base_fitness</span><span class="p">,</span>
-            <span class="n">improvement_rate</span><span class="o">=</span><span class="n">improvement_rate</span><span class="p">,</span>
-        <span class="p">)</span>
 
 <div class="viewcode-block" id="Composer.create_default">
 <a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.create_default">[docs]</a>
