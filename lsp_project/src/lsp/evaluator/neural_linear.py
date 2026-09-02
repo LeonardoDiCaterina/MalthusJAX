@@ -27,6 +27,8 @@ class NeuralPrefixEvaluatorConfig(BaseEvaluatorConfig):
 
     num_inputs: int = struct.field(pytree_node=False, default=10)
     length: int = struct.field(pytree_node=False, default=100)
+    mep_output_strategy: str = struct.field(pytree_node=False, default="dynamic")
+    attention_temperature: float = struct.field(pytree_node=False, default=1.0)
     # Note: batch_size, loss_function are inherited from BaseEvaluatorConfig
 
 
@@ -137,13 +139,32 @@ class NeuralPrefixEvaluator(StochasticEvaluator[NeuralPrefixGenome, NeuralPrefix
                 y_bcast = y.reshape(-1, 1)
                 squared_errors = jnp.square(all_preds - y_bcast)
                 loss_per_tree = jnp.mean(squared_errors, axis=0)
-                return jnp.min(loss_per_tree)
+                
+                if self.config.mep_output_strategy == "global_softmax":
+                    T = self.config.attention_temperature
+                    weights = jax.nn.softmax(-loss_per_tree / T)
+                    ensemble_preds = jnp.sum(weights * all_preds, axis=-1)
+                    y_bcast_ens = y.reshape(-1)
+                    return jnp.mean(jnp.square(ensemble_preds - y_bcast_ens))
+                else:
+                    return jnp.min(loss_per_tree)
+                    
             elif self.config.loss_function == "bce":
                 probs = jax.nn.sigmoid(all_preds)
                 y_bcast = y.reshape(-1, 1)
                 bce = -(y_bcast * jnp.log(probs + 1e-7) + (1 - y_bcast) * jnp.log(1 - probs + 1e-7))
                 loss_per_tree = jnp.mean(bce, axis=0)
-                return jnp.min(loss_per_tree)
+                
+                if self.config.mep_output_strategy == "global_softmax":
+                    T = self.config.attention_temperature
+                    weights = jax.nn.softmax(-loss_per_tree / T)
+                    # Note: we ensemble the logits, not the probabilities, before sigmoid
+                    ensemble_logits = jnp.sum(weights * all_preds, axis=-1)
+                    ensemble_probs = jax.nn.sigmoid(ensemble_logits)
+                    y_bcast_ens = y.reshape(-1)
+                    return jnp.mean(-(y_bcast_ens * jnp.log(ensemble_probs + 1e-7) + (1 - y_bcast_ens) * jnp.log(1 - ensemble_probs + 1e-7)))
+                else:
+                    return jnp.min(loss_per_tree)
             else:
                 raise ValueError("Dynamic routing does not support CCE directly.")
 

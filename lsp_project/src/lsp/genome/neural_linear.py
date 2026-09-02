@@ -23,6 +23,7 @@ class NeuralPrefixGenomeConfig(PrefixGenomeConfig):
 
     num_outputs: int = struct.field(pytree_node=False, default=1)
     mep_output_strategy: str = struct.field(pytree_node=False, default="dynamic")
+    attention_temperature: float = struct.field(pytree_node=False, default=1.0)
 
     @property
     def dtype(self) -> Any:
