@@ -12,6 +12,7 @@ from lsp.operators.mutation import (
     SmoothMutation,
 )
 from lsp.operators.neural_mutation import ArchitectureMutation, HybridMutation, WeightMutation
+from lsp.operators.cgpann_mutation import NeuralCartesianWeightMutation, CGPANNHybridMutation
 from lsp.operators.selection import LinearTournamentSelection
 
 __all__ = [

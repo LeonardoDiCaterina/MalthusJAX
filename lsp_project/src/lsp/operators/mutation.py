@@ -56,6 +56,9 @@ def _sample_args(
 # ---------------------------------------------------------------------------
 
 
+from malthusjax.composer.decorators import register_mutation
+
+@register_mutation(name="mep_micro")
 @struct.dataclass
 class MEPMicroMutation(BaseMutation[LinearGenome, LinearGenomeConfig]):
     """Standard MEP mutation — change any gene (op + args) with probability p_m.

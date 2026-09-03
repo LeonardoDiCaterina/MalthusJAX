@@ -16,12 +16,14 @@ from flax import struct
 
 from malthusjax.core.genome.cartesian_genome import CartesianGenome, CartesianGenomeConfig
 from malthusjax.operators.base import BaseCrossover, BaseMutation
+from malthusjax.composer.decorators import register_crossover, register_mutation
 
 # ---------------------------------------------------------------------------
 # NoOpCrossover — identity operator, required by GeneticEngine pipeline
 # ---------------------------------------------------------------------------
 
 
+@register_crossover(name="cartesian_noop")
 @struct.dataclass
 class NoOpCrossover(BaseCrossover[CartesianGenome, CartesianGenomeConfig]):
     """Identity crossover — always returns parent 1 unchanged.
@@ -58,6 +60,7 @@ class NoOpCrossover(BaseCrossover[CartesianGenome, CartesianGenomeConfig]):
 # ---------------------------------------------------------------------------
 
 
+@register_mutation(name="cartesian_micro")
 @struct.dataclass
 class CartesianMicroMutation(BaseMutation[CartesianGenome, CartesianGenomeConfig]):
     """Point mutation for Cartesian GP genomes.

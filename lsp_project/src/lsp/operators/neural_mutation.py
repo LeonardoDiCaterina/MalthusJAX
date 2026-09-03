@@ -181,6 +181,16 @@ class HybridMutation:
     def num_offspring(self) -> int:
         return 1
 
+    def replace(self, **kwargs) -> "HybridMutation":
+        current = {
+            "arch_mutation": self.arch_mutation,
+            "weight_mutation": self.weight_mutation,
+            "input_length": self.input_length,
+            "typed_keys": self.typed_keys,
+        }
+        current.update(kwargs)
+        return HybridMutation(**current)
+
     def set_input_length(self, length: int) -> "HybridMutation":
         return HybridMutation(
             self.arch_mutation,

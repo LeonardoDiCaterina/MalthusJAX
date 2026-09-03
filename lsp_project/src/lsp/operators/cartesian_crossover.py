@@ -8,6 +8,7 @@ Provides two algorithms for computing the active subgraph mask:
 import chex
 import jax
 import jax.numpy as jnp
+from malthusjax.composer.decorators import register_crossover
 
 def get_active_mask_scan(args: chex.Array, out_nodes: chex.Array, num_inputs: int, num_nodes: int) -> chex.Array:
     """Computes the active nodes mask using an O(N) reverse jax.lax.scan.
@@ -93,6 +94,7 @@ from flax import struct
 from malthusjax.core.genome.cartesian_genome import CartesianGenome, CartesianGenomeConfig
 from malthusjax.operators.base import BaseCrossover
 
+@register_crossover(name="cartesian_subgraph")
 @struct.dataclass
 class SubgraphCrossover(BaseCrossover[CartesianGenome, CartesianGenomeConfig]):
     """Subgraph Crossover for CGP.

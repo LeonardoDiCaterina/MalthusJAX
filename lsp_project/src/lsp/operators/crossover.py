@@ -35,6 +35,9 @@ from malthusjax.operators.base import BaseCrossover
 # ---------------------------------------------------------------------------
 
 
+from malthusjax.composer.decorators import register_crossover
+
+@register_crossover(name="mep_one_point")
 @struct.dataclass
 class MEPOnePointCrossover(BaseCrossover[LinearGenome, LinearGenomeConfig]):
     """One-point MEP recombination.
