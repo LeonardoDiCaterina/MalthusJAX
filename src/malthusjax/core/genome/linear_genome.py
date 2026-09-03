@@ -22,7 +22,6 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation, DistanceMetric
 
-
 @struct.dataclass
 class LinearGenomeConfig:
     """Configuration for Linear Genetic Programming (LGP) genomes.

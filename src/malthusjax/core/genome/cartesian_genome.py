@@ -27,7 +27,6 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation, DistanceMetric
 
-
 @struct.dataclass
 class CartesianGenomeConfig:
     """Configuration for a Cartesian GP genome.

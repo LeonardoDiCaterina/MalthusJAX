@@ -417,7 +417,14 @@ def resolve_tensorneat_problem(
             problem_cls = cls_obj
             break
     if problem_cls is None:
-        raise ValueError(f"Unknown TensorNEAT problem: {base_name}.")
+        try:
+            from malthusjax.composer.catalog import OperatorCatalog
+            from lsp.evaluator.tensorneat_bridge import TensorNEATSupervisedProblem
+            mjax_evaluator = OperatorCatalog().get(fitness_spec)
+            problem = TensorNEATSupervisedProblem(mjax_evaluator)
+            return problem, problem.setup()
+        except Exception as fallback_e:
+            raise ValueError(f"Unknown TensorNEAT problem: {base_name}. Fallback failed: {fallback_e}")
     kwargs: Dict[str, Any] = {}
     if ":" in name:
         args_part = name.split(":", 1)[1]

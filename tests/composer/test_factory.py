@@ -96,7 +96,7 @@ def test_build_qdax_engine_basic():
     )
     # QDaxEngineAdapter
     assert adapter.pop_size == 16
-    assert adapter.generations == 2
+    assert adapter.num_generations == 2
 
 
 def test_build_tensorneat_engine_basic():
@@ -118,7 +118,7 @@ def test_build_tensorneat_engine_basic():
     )
     # TensorNeatEngineAdapter
     assert adapter.pop_size == 10
-    assert adapter.generations == 2
+    assert adapter.num_generations == 2
 
 
 def test_build_map_elites_engine_basic():
@@ -155,7 +155,7 @@ def test_build_map_elites_engine_tensorneat():
     alg = tensorneat.algorithm.NEAT(pop_size=10, genome=genome)
 
     emitter = TensorNeatEmitter(
-        algorithm=alg, genome=genome, pop_size=10, mut_rate=0.5, cx_rate=0.5
+        _batch_size=10, genome=genome, mutation=None, crossover=None
     )
 
     strategy = MapElitesStrategy(emitter=emitter, num_descriptors=2, num_centroids=10)

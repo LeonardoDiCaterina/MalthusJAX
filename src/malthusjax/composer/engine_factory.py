@@ -73,9 +73,10 @@ class GeneticEngineAdapter:
         if self.initial_population is not None:
             arr = jnp.asarray(self.initial_population)
             pop = RealPopulation.from_array(arr, self.genome_config, RealGenome, axis=0)
+            from malthusjax.core.fitness.base import dispatch_evaluate_population
             evaluated_pop = cast(
                 RealPopulation,
-                self.genetic_engine.evaluator.evaluate_population(pop),
+                dispatch_evaluate_population(self.genetic_engine.evaluator, pop, key),
             )
 
             fitness = evaluated_pop.fitness
@@ -201,7 +202,12 @@ def build_engine(
         elif genome_type == "binary":
             genome_config = BinaryGenomeConfig(shape=genome_shape)
         else:
-            raise ValueError(f"Unsupported genome type: {genome_type}")
+            from malthusjax.composer.genome_catalog import GenomeCatalog
+            try:
+                # Fallback to the composer's genome registry
+                genome_config = GenomeCatalog().get(genome_type)
+            except Exception as e:
+                raise ValueError(f"Unsupported genome type: {genome_type}. {str(e)}")
 
     OperatorCatalog: Any = None
     try:

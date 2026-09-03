@@ -1254,10 +1254,10 @@ class ComparisonResult:
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-        if save_path is not None and fig is not None:
+        if save_path is not None and 'fig_single' in locals():
             out_path = Path(save_path)
             out_path.parent.mkdir(parents=True, exist_ok=True)
-            fig.savefig(out_path, bbox_inches="tight")
+            fig_single.savefig(out_path, bbox_inches="tight")
         return ax
 
     def plot_boxplots(
