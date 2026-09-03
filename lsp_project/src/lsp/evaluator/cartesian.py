@@ -37,9 +37,9 @@ class CartesianGPEvaluator(
 
     def predict_one(self, genome: CartesianGenome, x_input: chex.Array) -> chex.Array:
         """Execute the genome on a single input vector to produce output values."""
-        N = self.config.genome_config.num_inputs
-        L = self.config.genome_config.num_nodes
-        num_outs = self.config.genome_config.num_outputs
+        N = x_input.shape[-1]
+        L = genome.ops.shape[0]
+        num_outs = genome.out_nodes.shape[0]
 
         total_mem = N + L
         memory = jnp.zeros(total_mem).at[:N].set(x_input)

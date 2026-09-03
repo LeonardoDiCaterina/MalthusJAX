@@ -179,9 +179,9 @@ class DifferentiableCartesianGPEvaluator(
     """Evaluates discrete Cartesian genomes using analytical derivatives (Pure dCGP)."""
 
     def predict_one(self, genome: CartesianGenome, x_input: chex.Array) -> chex.Array:
-        N = self.config.genome_config.num_inputs
-        L = self.config.genome_config.num_nodes
-        num_outs = self.config.genome_config.num_outputs
+        N = x_input.shape[-1]
+        L = genome.ops.shape[0]
+        num_outs = genome.out_nodes.shape[0]
 
         total_mem = N + L
         memory = jnp.zeros(total_mem).at[:N].set(x_input)
@@ -217,6 +217,8 @@ class DifferentiableCartesianGPEvaluator(
         all_preds_g = jax.vmap(jax.jacfwd(self.predict_one, argnums=1), in_axes=(None, 0))(genome, X)
         
         # 2. Value MSE
+        if Y.ndim == 1:
+            Y = Y[:, None]
         squared_errors_v = jnp.square(all_preds_v - Y)
         mse_v = jnp.mean(squared_errors_v)
         
@@ -239,9 +241,9 @@ class DifferentiableCartesianMOEvaluator(
     """Multi-Objective Pure dCGP Evaluator."""
 
     def predict_one(self, genome: CartesianGenome, x_input: chex.Array) -> chex.Array:
-        N = self.config.genome_config.num_inputs
-        L = self.config.genome_config.num_nodes
-        num_outs = self.config.genome_config.num_outputs
+        N = x_input.shape[-1]
+        L = genome.ops.shape[0]
+        num_outs = genome.out_nodes.shape[0]
 
         total_mem = N + L
         memory = jnp.zeros(total_mem).at[:N].set(x_input)
@@ -268,12 +270,8 @@ class DifferentiableCartesianMOEvaluator(
 
         outputs = jnp.take(final_mem, genome.out_nodes)
         return outputs.reshape(num_outs)
-        
-    def get_active_nodes(self, genome: CartesianGenome) -> chex.Array:
-        N = self.config.genome_config.num_inputs
-        L = self.config.genome_config.num_nodes
-        
-        active = jnp.zeros(N + L, dtype=jnp.bool_)
+    def get_active_nodes(self, genome: CartesianGenome, N: int) -> chex.Array:
+        L = genome.ops.shape[0]
         active = active.at[genome.out_nodes].set(True)
         
         def step(active_mask, idx):
@@ -290,16 +288,17 @@ class DifferentiableCartesianMOEvaluator(
         indices = jnp.arange(N + L - 1, N - 1, -1)
         final_mask, _ = jax.lax.scan(step, active, indices)
         
-        return jnp.sum(final_mask[N:]).astype(jnp.float32)
-
     def evaluate(self, genome: CartesianGenome) -> chex.Array:
         X, Y, dY_dX = self.data
-
+        N = X.shape[-1]
+        
         # 1. Forward Pass & Jacobians
         all_preds_v = jax.vmap(self.predict_one, in_axes=(None, 0))(genome, X)
         all_preds_g = jax.vmap(jax.jacfwd(self.predict_one, argnums=1), in_axes=(None, 0))(genome, X)
         
         # 2. Value MSE
+        if Y.ndim == 1:
+            Y = Y[:, None]
         squared_errors_v = jnp.square(all_preds_v - Y)
         mse_v = jnp.mean(squared_errors_v)
         
@@ -309,6 +308,6 @@ class DifferentiableCartesianMOEvaluator(
         mse_g = jnp.mean(squared_errors_g)
         
         # 4. Active Nodes
-        active_nodes = self.get_active_nodes(genome)
+        active_nodes = self.get_active_nodes(genome, N)
         
         return jnp.stack([mse_v, mse_g, active_nodes])

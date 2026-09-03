@@ -32,9 +32,9 @@ class NeuralCartesianEvaluator(StochasticEvaluator[NeuralCartesianGenome, Neural
         self, genome: NeuralCartesianGenome, rng: chex.PRNGKey | None = None
     ) -> chex.Array:
         """Evaluate the neural genome over the dataset."""
-        gc = self.config.genome_config
-        N = gc.num_inputs
-        num_nodes = gc.num_nodes
+        X, y = self.data
+        N = X.shape[-1]
+        num_nodes = genome.ops.shape[0]
 
         # Vectorize the forward pass over the batch
         def predict_single(x: chex.Array) -> chex.Array:

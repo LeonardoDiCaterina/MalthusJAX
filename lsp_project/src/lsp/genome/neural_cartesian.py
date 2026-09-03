@@ -31,6 +31,20 @@ ACTIVATIONS: dict[str, Callable[[chex.Array], chex.Array]] = {
 ACTIVATIONS_LIST = list(ACTIVATIONS.values())
 
 
+from malthusjax.composer.decorators import register_genome
+
+@register_genome(
+    name="neural_cartesian",
+    defaults={
+        "num_rows": 1,
+        "num_cols": 10,
+        "levels_back": 10,
+        "num_inputs": 2,
+        "num_outputs": 1,
+        "num_ops": 5,
+        "max_arity": 2,
+    }
+)
 @struct.dataclass
 class NeuralCartesianGenomeConfig(CartesianGenomeConfig):
     """Configuration for NeuralCartesianGenome.
@@ -49,6 +63,8 @@ class NeuralCartesianGenomeConfig(CartesianGenomeConfig):
         # our continuous weights/biases to int32!
         return jnp.float32
 
+
+from malthusjax.composer.decorators import register_genome
 
 @struct.dataclass
 class NeuralCartesianGenome(CartesianGenome):
