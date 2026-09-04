@@ -40,10 +40,22 @@ def build_data_registry(data_config: Dict[str, Any]) -> Dict[str, Any]:
     return resolved
 
 
+def _check_compatibility(operator: Any, genome_type: str, engine_type: str, role: str) -> None:
+    """Validate operator against compatibility metadata if present."""
+    if hasattr(operator, "_malthusjax_metadata"):
+        metadata = operator._malthusjax_metadata
+        comp_genomes = metadata.get("compatible_genomes")
+        if comp_genomes is not None and genome_type not in comp_genomes:
+            raise ValueError(f"Error: {role} is only compatible with genomes: {comp_genomes}, but you requested '{genome_type}'.")
+        comp_engines = metadata.get("compatible_engines")
+        if comp_engines is not None and engine_type not in comp_engines:
+            raise ValueError(f"Error: {role} is only compatible with engines: {comp_engines}, but you requested '{engine_type}'.")
+
 def build_real_engine(
     strategy: BaseStrategy,
     fitness: Optional[str],
     engine_type: str = "ga",
+    genome_type: str = "real",
     data_config: Optional[Dict[str, Any]] = None,
     **config: Any,
 ) -> Any:
@@ -57,12 +69,16 @@ def build_real_engine(
     seed_val = config.get("seed", 42)
     maximize_flag = config.get("maximize", False)
     # We append seed to fitness strings if missing so BBOB etc uses the right seed
-    if isinstance(fitness, str):
-        if "seed=" not in fitness:
-            if ":" in fitness:
-                fitness = f"{fitness},seed={seed_val}"
-            else:
-                fitness = f"{fitness}:seed={seed_val}"
+    if isinstance(fitness, (str, dict)):
+        if isinstance(fitness, str):
+            if "seed=" not in fitness:
+                if ":" in fitness:
+                    fitness = f"{fitness},seed={seed_val}"
+                else:
+                    fitness = f"{fitness}:seed={seed_val}"
+        else:
+            if "seed" not in fitness:
+                fitness["seed"] = seed_val
         resolved_evaluator = catalog.get(
             fitness,
             data_registry=data_registry,
@@ -81,21 +97,26 @@ def build_real_engine(
                 or f"tournament:num_selections={config.get('pop_size', 50) // 2},tournament_size=3",
                 data_registry=data_registry,
             )
-            if isinstance(strategy.selection, str) or strategy.selection is None
+            if isinstance(strategy.selection, (str, dict)) or strategy.selection is None
             else strategy.selection
         )
         resolved_crossover = (
             catalog.get(strategy.crossover or "blend:alpha=0.5", data_registry=data_registry)
-            if isinstance(strategy.crossover, str) or strategy.crossover is None
+            if isinstance(strategy.crossover, (str, dict)) or strategy.crossover is None
             else strategy.crossover
         )
         resolved_mutation = (
             catalog.get(
                 strategy.mutation or "gaussian:mutation_rate=0.1", data_registry=data_registry
             )
-            if isinstance(strategy.mutation, str) or strategy.mutation is None
+            if isinstance(strategy.mutation, (str, dict)) or strategy.mutation is None
             else strategy.mutation
         )
+        
+        # Enforce compatibility guardrails
+        if resolved_selection: _check_compatibility(resolved_selection, genome_type, engine_type, "selection")
+        if resolved_crossover: _check_compatibility(resolved_crossover, genome_type, engine_type, "crossover")
+        if resolved_mutation: _check_compatibility(resolved_mutation, genome_type, engine_type, "mutation")
     else:
         resolved_selection = None
         resolved_crossover = None

@@ -33,7 +33,7 @@ def test_register_and_get():
 
     reg = get_registry()
     assert "test_engine" in reg
-    factory, defaults = reg["test_engine"]
+    factory, defaults, metadata = reg["test_engine"]
     assert defaults == {"pop_size": 42}
 
     result = factory(pop_size=100)
@@ -67,7 +67,7 @@ def test_register_duplicate_with_override():
     register("dup_engine", factory_a, override=True)
     register("dup_engine", factory_b, override=True)
 
-    factory, _ = get_registry()["dup_engine"]
+    factory, _, _ = get_registry()["dup_engine"]
     assert factory() == "b"
 
 
@@ -104,7 +104,7 @@ def test_register_table():
 def test_get_registry_is_copy():
     """get_registry() returns a copy, not the internal dict."""
     reg = get_registry()
-    reg["phantom"] = (lambda: None, {})
+    reg["phantom"] = (lambda: None, {}, {})
     assert "phantom" not in get_registry()
 
 
@@ -128,7 +128,7 @@ def test_list_available_sorted():
 def test_register_no_defaults():
     """Registration without defaults stores empty dict."""
     register("bare_engine", lambda **kw: "bare", override=True)
-    _, defaults = get_registry()["bare_engine"]
+    _, defaults, _ = get_registry()["bare_engine"]
     assert defaults == {}
 
 
@@ -141,6 +141,6 @@ def test_ga_registered_at_import():
 
     reg = get_registry()
     assert "ga" in reg
-    factory, defaults = reg["ga"]
+    factory, defaults, _ = reg["ga"]
     assert "pop_size" in defaults
     assert callable(factory)

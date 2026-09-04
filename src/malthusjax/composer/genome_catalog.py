@@ -137,18 +137,31 @@ class GenomeCatalog:
 
         return value_str
 
-    def get(self, spec: str, **kwargs: Any) -> Any:
-        genome_name, spec_params = self.parse_spec(spec)
+    def get(self, spec: Union[str, Dict[str, Any]], **kwargs: Any) -> Any:
+        if isinstance(spec, dict):
+            spec_dict = spec.copy()
+            if "type" not in spec_dict:
+                raise ValueError("Genome specification dict must contain a 'type' key.")
+            genome_name = spec_dict.pop("type")
+            spec_params = spec_dict
+        else:
+            genome_name, spec_params = self.parse_spec(spec)
 
         if genome_name not in self._registry:
             available = ", ".join(self.list_available())
             raise KeyError(f"Unknown genome '{genome_name}'. Available: [{available}]")
 
-        factory, defaults = self._registry[genome_name]
+        factory, defaults, metadata = self._registry[genome_name]
         merged_params = {**defaults, **spec_params, **kwargs}
 
         try:
-            return factory(**merged_params)
+            genome_config = factory(**merged_params)
+            if not hasattr(genome_config, "_malthusjax_metadata"):
+                try:
+                    object.__setattr__(genome_config, "_malthusjax_metadata", metadata)
+                except (TypeError, AttributeError):
+                    pass
+            return genome_config
         except TypeError as e:
             raise ValueError(f"Invalid parameters for genome '{genome_name}': {e}") from e
 
@@ -163,7 +176,7 @@ class GenomeCatalog:
             raise KeyError(f"Genome '{name}' is already registered")
 
         _registry_register(name, factory, defaults, override=True)
-        self._registry[name] = (factory, defaults or {})
+        self._registry[name] = (factory, defaults or {}, {})
 
     def list_available(self) -> List[str]:
         return sorted(self._registry.keys())

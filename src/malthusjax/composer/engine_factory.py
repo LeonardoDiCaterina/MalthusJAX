@@ -205,7 +205,8 @@ def build_engine(
             from malthusjax.composer.genome_catalog import GenomeCatalog
             try:
                 # Fallback to the composer's genome registry
-                genome_config = GenomeCatalog().get(genome_type)
+                genome_spec = kwargs.get("genome", genome_type)
+                genome_config = GenomeCatalog().get(genome_spec)
             except Exception as e:
                 raise ValueError(f"Unsupported genome type: {genome_type}. {str(e)}")
 

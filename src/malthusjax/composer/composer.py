@@ -392,7 +392,11 @@ class Composer:
                 from .genome_catalog import GenomeCatalog
 
                 cat = GenomeCatalog()
-                g_type, g_params = cat.parse_spec(genome)
+                if isinstance(genome, dict):
+                    g_type = genome.get("type", "real")
+                    g_params = genome.copy()
+                else:
+                    g_type, g_params = cat.parse_spec(genome)
                 if genome_type is None:
                     genome_type = g_type
                 if genome_length is None:

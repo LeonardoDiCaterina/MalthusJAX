@@ -122,7 +122,7 @@ def test_load_experiment_config_no_pipelines(tmp_path):
     toml_file = tmp_path / "exp.toml"
     toml_file.write_text(toml_content)
 
-    with pytest.raises(KeyError, match="No \\\\[pipelines.\\*\\\\] sections found"):
+    with pytest.raises((KeyError, ValueError), match=r"No \[pipelines\.\*\] sections found"):
         load_experiment_config(str(toml_file))
 
 

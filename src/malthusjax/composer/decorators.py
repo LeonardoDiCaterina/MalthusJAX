@@ -17,24 +17,44 @@ from malthusjax.composer.engine_registry import register as _register_engine
 
 
 def _operator_decorator(
-    name: str, defaults: Optional[Dict[str, Any]] = None, override: bool = False
+    name: str, 
+    defaults: Optional[Dict[str, Any]] = None, 
+    override: bool = False,
+    compatible_genomes: Optional[list[str]] = None,
+    compatible_engines: Optional[list[str]] = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Internal decorator factory for operator registration."""
 
     def wrapper(cls_or_func: Callable[..., Any]) -> Callable[..., Any]:
-        _register_operator(name, cls_or_func, defaults, override=override)
+        _register_operator(
+            name, 
+            cls_or_func, 
+            defaults, 
+            override=override,
+            compatible_genomes=compatible_genomes,
+            compatible_engines=compatible_engines
+        )
         return cls_or_func
 
     return wrapper
 
 
 def _engine_decorator(
-    name: str, defaults: Optional[Dict[str, Any]] = None, override: bool = False
+    name: str, 
+    defaults: Optional[Dict[str, Any]] = None, 
+    override: bool = False,
+    compatible_genomes: Optional[list[str]] = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Internal decorator factory for engine registration."""
 
     def wrapper(cls_or_func: Callable[..., Any]) -> Callable[..., Any]:
-        _register_engine(name, cls_or_func, defaults, override=override)
+        _register_engine(
+            name, 
+            cls_or_func, 
+            defaults, 
+            override=override,
+            compatible_genomes=compatible_genomes
+        )
         return cls_or_func
 
     return wrapper
@@ -57,6 +77,7 @@ register_selection = _operator_decorator
 register_mutation = _operator_decorator
 register_crossover = _operator_decorator
 register_fitness = _operator_decorator
+register_predictor = _operator_decorator
 
 register_engine = _engine_decorator
 register_genome = _genome_decorator

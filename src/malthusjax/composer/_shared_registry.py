@@ -11,6 +11,7 @@ class RegisterFunc(Protocol):
         defaults: Dict[str, Any] | None = None,
         *,
         override: bool = False,
+        **metadata: Any,
     ) -> None: ...
 
 
@@ -28,16 +29,16 @@ def make_catalog_registry(
 ) -> Tuple[
     RegisterFunc,
     RegisterTableFunc,
-    Callable[[], Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]]],
+    Callable[[], Dict[str, Tuple[Callable[..., Any], Dict[str, Any], Dict[str, Any]]]],
     Callable[[], List[str]],
-    Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]],
+    Dict[str, Tuple[Callable[..., Any], Dict[str, Any], Dict[str, Any]]],
 ]:
     """Factory to create a standard registry module API.
 
     Returns the four standard functions used by composer registries:
     register, register_table, get_registry, list_available, and the underlying dict.
     """
-    _registry: Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]] = {}
+    _registry: Dict[str, Tuple[Callable[..., Any], Dict[str, Any], Dict[str, Any]]] = {}
 
     def register(
         name: str,
@@ -45,10 +46,11 @@ def make_catalog_registry(
         defaults: Dict[str, Any] | None = None,
         *,
         override: bool = False,
+        **metadata: Any,
     ) -> None:
         if not override and name in _registry:
             raise KeyError(f"{entity_name} '{name}' is already registered")
-        _registry[name] = (factory, defaults or {})
+        _registry[name] = (factory, defaults or {}, metadata)
 
     def register_table(
         entries: list[Tuple[str, Callable[..., Any], Dict[str, Any]]],
@@ -58,7 +60,7 @@ def make_catalog_registry(
         for name, factory, defaults in entries:
             register(name, factory, defaults, override=override)
 
-    def get_registry() -> Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]]:
+    def get_registry() -> Dict[str, Tuple[Callable[..., Any], Dict[str, Any], Dict[str, Any]]]:
         """Return a **copy** of the current registry."""
         return dict(_registry)
 

@@ -32,3 +32,7 @@ __all__ = [
     "MOEngineAdapter",
     "build_mo_engine",
 ]
+
+# Auto-discover plugins on import
+from .discovery import discover_plugins
+discover_plugins()

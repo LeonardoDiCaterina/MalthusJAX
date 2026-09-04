@@ -151,6 +151,14 @@ def test_no_unexpected_keys(catalog: OperatorCatalog) -> None:
         "test_custom_engine",
         "test_override_op",
         "test_custom_selection",
+        "mlp",
+        "continuous_mlp",
+        "masked_mlp",
+        "gymnax",
+        "jumanji",
+        "brax",
+        "linear",
+        "equation",
     }
     available = set(catalog.list_available())
     extra = available - ALL_EXPECTED - KNOWN_TEST_ARTIFACTS
@@ -387,7 +395,7 @@ def test_registry_register_and_get() -> None:
     try:
         register(key, lambda **kw: "dummy", {"a": 1})
         assert key in _OPERATOR_REGISTRY
-        factory, defaults = _OPERATOR_REGISTRY[key]
+        factory, defaults, metadata = _OPERATOR_REGISTRY[key]
         assert factory(a=1) == "dummy"
         assert defaults == {"a": 1}
     finally:
@@ -413,7 +421,7 @@ def test_registry_override_flag() -> None:
     try:
         register(key, lambda **kw: "first")
         register(key, lambda **kw: "second", override=True)
-        factory, _ = _OPERATOR_REGISTRY[key]
+        factory, _, _ = _OPERATOR_REGISTRY[key]
         assert factory() == "second"
     finally:
         _OPERATOR_REGISTRY.pop(key, None)
@@ -425,7 +433,7 @@ def test_get_registry_returns_copy() -> None:
     copy = get_registry()
     assert copy == _OPERATOR_REGISTRY
     # Mutations to the copy must not affect the original
-    copy["__phantom__"] = (lambda: None, {})
+    copy["__phantom__"] = (lambda: None, {}, {})
     assert "__phantom__" not in _OPERATOR_REGISTRY
 
 

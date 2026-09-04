@@ -20,7 +20,7 @@ def test_register_selection():
 
     reg = get_operator_registry()
     assert "test_custom_selection" in reg
-    factory, defaults = reg["test_custom_selection"]
+    factory, defaults, metadata = reg["test_custom_selection"]
     assert factory is CustomSelection
     assert defaults == {"k": 5}
 
@@ -84,5 +84,5 @@ def test_decorators_allow_override():
         pass
 
     reg = get_operator_registry()
-    factory, _ = reg["test_override_op"]
+    factory, _, _ = reg["test_override_op"]
     assert factory is SecondVersion
