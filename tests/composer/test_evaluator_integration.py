@@ -1,20 +1,13 @@
 """Integration tests for the refactored evaluators and predictors."""
 
-import jax.numpy as jnp
 import pytest
-
-from malthusjax.composer.config import load_experiment_config
-from malthusjax.composer.engine_factory import build_engine
-from malthusjax.core.genome.real_genome import RealGenomeConfig
-
 
 from malthusjax.composer.composer import Composer
 
 # Import LSP plugins so they register with the catalog
 has_lsp = False
 try:
-    import lsp.evaluator.predictors
-    import lsp.evaluator.supervised
+    import lsp.evaluator.predictors  # noqa: F401
     has_lsp = True
 except ImportError:
     pass
@@ -25,17 +18,17 @@ def test_gymnax_integration(tmp_path):
     toml_content = """
     [experiment]
     name = "integration_test"
-    
+
     [pipelines.rl]
     engine_type = "ga"
     pop_size = 5
     num_generations = 2
-    
+
     [pipelines.rl.genome]
     type = "real"
     shape = [1282]
     bounds = [-1.0, 1.0]
-    
+
     [pipelines.rl.fitness]
     type = "gymnax"
     env_name = "CartPole-v1"
@@ -45,9 +38,9 @@ def test_gymnax_integration(tmp_path):
     """
     toml_file = tmp_path / "exp.toml"
     toml_file.write_text(toml_content)
-    
+
     comparison = Composer.from_toml(str(toml_file))
-    
+
     assert "rl" in comparison.pipelines
     assert len(comparison.pipelines["rl"].runs) > 0
 
@@ -58,17 +51,17 @@ def test_supervised_integration(tmp_path):
     toml_content = """
     [experiment]
     name = "integration_test"
-    
+
     [pipelines.supervised]
     engine_type = "ga"
     pop_size = 5
     num_generations = 2
-    
+
     [pipelines.supervised.genome]
     type = "linear"
     length = 10
     num_inputs = 2
-    
+
     [pipelines.supervised.fitness]
     type = "sklearn"
     dataset = "make_regression"
@@ -78,8 +71,8 @@ def test_supervised_integration(tmp_path):
     """
     toml_file = tmp_path / "exp.toml"
     toml_file.write_text(toml_content)
-    
+
     comparison = Composer.from_toml(str(toml_file))
-    
+
     assert "supervised" in comparison.pipelines
     assert len(comparison.pipelines["supervised"].runs) > 0

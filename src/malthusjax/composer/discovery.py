@@ -2,7 +2,7 @@
 
 This module provides utilities to automatically discover and load MalthusJAX
 extensions (engines, operators, genomes, etc.) without requiring the user
-to manually import them. 
+to manually import them.
 
 Discovery happens in two places:
 1. Python Entry Points: Scanning `importlib.metadata` for packages that
@@ -26,7 +26,7 @@ _LOADED_PLUGINS: Set[str] = set()
 
 def discover_plugins() -> None:
     """Discover and load all MalthusJAX plugins.
-    
+
     This function is idempotent. It loads plugins via entry points and
     from a local `plugins/` directory.
     """
@@ -41,7 +41,7 @@ def _discover_entry_points() -> None:
         eps = importlib.metadata.entry_points(group="malthusjax.plugins")
     except TypeError:
         # Python 3.8/3.9 syntax
-        eps = importlib.metadata.entry_points().get("malthusjax.plugins", [])
+        eps = importlib.metadata.entry_points().get("malthusjax.plugins", [])  # type: ignore
 
     for ep in eps:
         if ep.name in _LOADED_PLUGINS:

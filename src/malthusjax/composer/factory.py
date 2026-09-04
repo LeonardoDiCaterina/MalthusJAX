@@ -112,11 +112,14 @@ def build_real_engine(
             if isinstance(strategy.mutation, (str, dict)) or strategy.mutation is None
             else strategy.mutation
         )
-        
+
         # Enforce compatibility guardrails
-        if resolved_selection: _check_compatibility(resolved_selection, genome_type, engine_type, "selection")
-        if resolved_crossover: _check_compatibility(resolved_crossover, genome_type, engine_type, "crossover")
-        if resolved_mutation: _check_compatibility(resolved_mutation, genome_type, engine_type, "mutation")
+        if resolved_selection:
+            _check_compatibility(resolved_selection, genome_type, engine_type, "selection")
+        if resolved_crossover:
+            _check_compatibility(resolved_crossover, genome_type, engine_type, "crossover")
+        if resolved_mutation:
+            _check_compatibility(resolved_mutation, genome_type, engine_type, "mutation")
     else:
         resolved_selection = None
         resolved_crossover = None
@@ -439,8 +442,11 @@ def resolve_tensorneat_problem(
             break
     if problem_cls is None:
         try:
-            from malthusjax.composer.catalog import OperatorCatalog
             from lsp.evaluator.tensorneat_bridge import TensorNEATSupervisedProblem
+
+            from malthusjax.composer.catalog import OperatorCatalog
+            if not isinstance(fitness_spec, str):
+                raise ValueError("fitness_spec must be a string to resolve a MalthusJAX evaluator fallback")
             mjax_evaluator = OperatorCatalog().get(fitness_spec)
             problem = TensorNEATSupervisedProblem(mjax_evaluator)
             return problem, problem.setup()

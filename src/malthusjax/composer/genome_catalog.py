@@ -14,9 +14,9 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 from ..core.genome.binary_genome import BinaryGenomeConfig
-from ..core.genome.real_genome import RealGenomeConfig
-from ..core.genome.linear_genome import LinearGenomeConfig
 from ..core.genome.cartesian_genome import CartesianGenomeConfig
+from ..core.genome.linear_genome import LinearGenomeConfig
+from ..core.genome.real_genome import RealGenomeConfig
 from ._genome_registry import get_registry, register_table
 from ._genome_registry import register as _registry_register
 

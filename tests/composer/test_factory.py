@@ -152,7 +152,6 @@ def test_build_map_elites_engine_tensorneat():
     from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
 
     genome = tensorneat.genome.DefaultGenome(num_inputs=2, num_outputs=1)
-    alg = tensorneat.algorithm.NEAT(pop_size=10, genome=genome)
 
     emitter = TensorNeatEmitter(
         _batch_size=10, genome=genome, mutation=None, crossover=None

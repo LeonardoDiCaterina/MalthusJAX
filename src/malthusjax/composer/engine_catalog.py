@@ -148,7 +148,7 @@ class EngineRegistry:
 
         factory, defaults, metadata = self._registry[engine_name]
         merged_params = {**defaults, **spec_params, **kwargs}
-        
+
         # We can attach metadata to the returned engine adapter if needed
         # but engines are just callables right now. If it returns an object, we can attach.
 

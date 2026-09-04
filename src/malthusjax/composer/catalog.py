@@ -228,14 +228,14 @@ class OperatorCatalog:
             )
 
         filtered_merged = {k: v for k, v in merged.items() if k in valid_keys or has_kwargs}
-        
+
         # Keep metadata so `factory.py` can read it if needed
         operator_instance = None
         try:
             operator_instance = factory(**filtered_merged)
         except TypeError as e:
             raise ValueError(f"Invalid parameters for '{operator_type}': {e}") from e
-            
+
         # Attach metadata to the instantiated operator so the Composer can validate it!
         if operator_instance is not None:
             if not hasattr(operator_instance, "_malthusjax_metadata"):

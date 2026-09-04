@@ -22,6 +22,7 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation, DistanceMetric
 
+
 @struct.dataclass
 class LinearGenomeConfig:
     """Configuration for Linear Genetic Programming (LGP) genomes.
@@ -45,7 +46,7 @@ class LinearGenomeConfig:
     def dtype(self) -> Any:
         return jnp.int32
 
-    def init_population(self, key: chex.PRNGKey, size: int) -> "BasePopulation":
+    def init_population(self, key: chex.PRNGKey, size: int) -> "BasePopulation[LinearGenome]":
         keys = jax.random.split(key, size)
         genomes = jax.vmap(LinearGenome.random_init, in_axes=(0, None))(keys, self)
         return BasePopulation(genes=genomes, fitness=jnp.zeros(size), info={})

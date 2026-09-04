@@ -27,6 +27,7 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation, DistanceMetric
 
+
 @struct.dataclass
 class CartesianGenomeConfig:
     """Configuration for a Cartesian GP genome.
@@ -63,7 +64,7 @@ class CartesianGenomeConfig:
     def dtype(self) -> Any:
         return jnp.int32
 
-    def init_population(self, key: chex.PRNGKey, size: int) -> "BasePopulation":
+    def init_population(self, key: chex.PRNGKey, size: int) -> "BasePopulation[CartesianGenome]":
         keys = jax.random.split(key, size)
         genomes = jax.vmap(CartesianGenome.random_init, in_axes=(0, None))(keys, self)
         # Use CartesianPopulation instead of BasePopulation so type checking works out
@@ -170,8 +171,8 @@ class CartesianGenome(BaseGenome):
         return int(self.ops.shape[-1])
 
     @property
-    def shape(self) -> tuple:
-        return cast(tuple, self.ops.shape + self.args.shape[1:])
+    def shape(self) -> Tuple[int, ...]:
+        return cast(Tuple[int, ...], self.ops.shape + self.args.shape[1:])
 
     @classmethod
     def from_tensor(cls, arr: Any, config: Any = None) -> "CartesianGenome":

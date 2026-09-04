@@ -17,8 +17,8 @@ from malthusjax.composer.engine_registry import register as _register_engine
 
 
 def _operator_decorator(
-    name: str, 
-    defaults: Optional[Dict[str, Any]] = None, 
+    name: str,
+    defaults: Optional[Dict[str, Any]] = None,
     override: bool = False,
     compatible_genomes: Optional[list[str]] = None,
     compatible_engines: Optional[list[str]] = None,
@@ -27,9 +27,9 @@ def _operator_decorator(
 
     def wrapper(cls_or_func: Callable[..., Any]) -> Callable[..., Any]:
         _register_operator(
-            name, 
-            cls_or_func, 
-            defaults, 
+            name,
+            cls_or_func,
+            defaults,
             override=override,
             compatible_genomes=compatible_genomes,
             compatible_engines=compatible_engines
@@ -40,8 +40,8 @@ def _operator_decorator(
 
 
 def _engine_decorator(
-    name: str, 
-    defaults: Optional[Dict[str, Any]] = None, 
+    name: str,
+    defaults: Optional[Dict[str, Any]] = None,
     override: bool = False,
     compatible_genomes: Optional[list[str]] = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
@@ -49,9 +49,9 @@ def _engine_decorator(
 
     def wrapper(cls_or_func: Callable[..., Any]) -> Callable[..., Any]:
         _register_engine(
-            name, 
-            cls_or_func, 
-            defaults, 
+            name,
+            cls_or_func,
+            defaults,
             override=override,
             compatible_genomes=compatible_genomes
         )

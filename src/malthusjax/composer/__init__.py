@@ -35,4 +35,5 @@ __all__ = [
 
 # Auto-discover plugins on import
 from .discovery import discover_plugins
+
 discover_plugins()
