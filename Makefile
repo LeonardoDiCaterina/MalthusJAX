@@ -42,6 +42,7 @@ help:
 	@echo "  make format-check       Ruff format check only (no mutations)"
 	@echo "  make type-check         mypy strict check on src/"
 	@echo "  make check-all          lint + format-check + type-check + test"
+	@echo "  make scaffold ARGS=...  Generate a boilerplate JAX component (e.g., --type mutation --name QuantumMutation --key quantum)"
 	@echo ""
 	@echo "--- Experiment Execution (TOML-based) ---"
 	@echo "  make run-toml TOML=<file>           Run experiment from TOML file"
@@ -635,4 +636,9 @@ perf-all:
 
 perf-all-nohup:
 	$(call bg_task,perf-all,make perf-all PERF_TOML=$(PERF_TOML) PORT=$(PORT))
+
+# --- Scaffolding ---
+.PHONY: scaffold
+scaffold:
+	$(PYTHON) scripts/scaffold.py $(ARGS)
 
