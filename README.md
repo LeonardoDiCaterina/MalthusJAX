@@ -41,6 +41,31 @@ print(result.aggregated_summary())
 
 ---
 
+## 🧅 Multi-Level API: Choose Your Abstraction
+
+MalthusJAX is not just a high-level TOML orchestrator—it is a deeply modular toolkit. You can use it as a complete CLI application, or rip out individual vectorized operators to plug directly into your own custom JAX training loops.
+
+### [Level 4: The Composer](src/malthusjax/composer/README.md) (Highest Abstraction)
+- **What it is**: The `Composer` and `mjax` CLI.
+- **Use case**: Declarative TOML experiments, dynamic string-based plugin resolution, statistical parity testing, and multi-seed sweeps.
+- **Example**: `mjax run experiment.toml`
+
+### [Level 3: The Engine](src/malthusjax/engine/README.md)
+- **What it is**: `GeneticEngine`, `MOEngine`, `GeneticFastEngine`.
+- **Use case**: You want full control over the `jax.lax.scan` loop (e.g., for custom logging or RL environment stepping), but you want MalthusJAX to handle the 5-phase generation logic.
+- **Example**: `next_state = engine.step(state)`
+
+### [Level 2: The Operators](src/malthusjax/operators/README.md)
+- **What it is**: `BaseMutation`, `BaseCrossover`, `BaseSelection`.
+- **Use case**: You already have a custom training loop and just want a blazing-fast, vectorized SBX crossover or Gaussian mutation function that runs on the GPU.
+- **Example**: `new_population = mutation(population, rng_key)`
+
+### [Level 1: Core State & Encodings](src/malthusjax/core/README.md) (Lowest Abstraction)
+- **What it is**: `BasePopulation`, `RealGenome`, `BinaryGenome`.
+- **Use case**: Pure `flax.struct` PyTrees designed for contiguous memory access and Struct-of-Arrays (SoA) layouts. Perfect if you are building an evolutionary algorithm completely from scratch.
+
+---
+
 ## 🚀 Installation
 
 ```bash
