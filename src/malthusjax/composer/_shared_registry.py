@@ -50,6 +50,14 @@ def make_catalog_registry(
     ) -> None:
         if not override and name in _registry:
             raise KeyError(f"{entity_name} '{name}' is already registered")
+
+        # Attach registry metadata directly to the class/factory so it's verifiable
+        # outside of the Composer factory pipeline (e.g. in unit tests or notebooks).
+        try:
+            setattr(factory, "_malthusjax_metadata", {"name": name, **metadata})
+        except Exception:
+            pass
+
         _registry[name] = (factory, defaults or {}, metadata)
 
     def register_table(

@@ -21,6 +21,50 @@ def to_snake_case(name: str) -> str:
 
 # --- IMPLEMENTATION TEMPLATES ---
 
+ADAPTER_TEMPLATE = string.Template('''from typing import Any, Tuple, Dict, Callable
+import jax
+import jax.numpy as jnp
+import chex
+
+from malthusjax.composer.adapters import adapter, EvalMode
+from malthusjax.composer.adapters.metrics import MetricSpec
+
+ADAPTER_METRICS = [
+    MetricSpec(name="best_fitness", source="best_fitness", is_objective_value=True),
+    MetricSpec(name="mean_fitness", source="mean_fitness", is_objective_value=True),
+]
+
+@adapter(
+    framework="${key}",
+    state_mapping={"init": "_adapter_init", "step": "_adapter_step"},
+    eval_translators={EvalMode.NATIVE: lambda *args: None, EvalMode.MALTHUSJAX: lambda *args: None},
+    metrics_catalog=ADAPTER_METRICS,
+)
+class ${name}:
+    """Universal Adapter for ${key}."""
+
+    def _adapter_init(self, strategy: Any, key: chex.PRNGKey, params: Any, pop_init: Any = None) -> Any:
+        # TODO: Initialize your framework's state here
+        return None
+
+    def _adapter_step(
+        self,
+        strategy: Any,
+        state: Any,
+        key: chex.PRNGKey,
+        params: Any,
+        evaluator: Any,
+        eval_translator: Callable[..., Any],
+    ) -> Tuple[Any, Dict[str, Any]]:
+        # TODO: Implement a single step of your framework
+        # 1. Ask
+        # 2. Evaluate using eval_translator
+        # 3. Tell
+        # 4. Return new state and metrics dict
+        return state, {}
+''')
+
+
 SELECTION_TEMPLATE = string.Template('''import jax
 import jax.numpy as jnp
 from flax import struct
@@ -35,10 +79,10 @@ class ${name}(BaseSelection):
     
     num_selections: int = struct.field(pytree_node=False)
 
-    def __call__(self, rng: jax.Array, population: jax.Array, fitness: jax.Array, **kwargs) -> jax.Array:
-        # TODO: Implement your selection logic here.
-        # Return the indices of the selected individuals.
-        return jnp.arange(self.num_selections)
+    def _select_one(self, rng: jax.Array, population: jax.Array, fitness: jax.Array) -> jax.Array:
+        # TODO: Implement your selection logic here for ONE selection.
+        # Return the indices of the selected individual.
+        return jnp.zeros((), dtype=jnp.int32)
 ''')
 
 MUTATION_TEMPLATE = string.Template('''import jax
@@ -55,7 +99,7 @@ class ${name}(BaseMutation):
     
     mutation_rate: float = 0.1
 
-    def __call__(self, rng: jax.Array, genome: jax.Array, **kwargs) -> jax.Array:
+    def _mutate_one(self, rng: jax.Array, genome: jax.Array) -> jax.Array:
         # TODO: Implement your mutation logic here
         return genome
 ''')
@@ -75,7 +119,7 @@ class ${name}(BaseCrossover):
     
     crossover_rate: float = 0.9
 
-    def __call__(self, rng: jax.Array, parent1: jax.Array, parent2: jax.Array, **kwargs) -> Tuple[jax.Array, jax.Array]:
+    def _recombine_one(self, rng: jax.Array, parent1: jax.Array, parent2: jax.Array) -> Tuple[jax.Array, jax.Array]:
         # TODO: Implement your crossover logic here
         return parent1, parent2
 ''')
@@ -86,13 +130,12 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.engine.base import AbstractEngine, EngineState
+from malthusjax.engine.base import AbstractEngine, EngineState, AbstractEngineParams
 from malthusjax.composer import register_engine
 
 @struct.dataclass
 class ${name}State(EngineState):
     """Custom state for ${name}."""
-    # TODO: Add custom state fields
     pass
 
 @register_engine("${key}", override=True)
@@ -100,24 +143,34 @@ class ${name}State(EngineState):
 class ${name}(AbstractEngine):
     """A custom evolutionary engine."""
     
-    def init(self, rng: jax.Array) -> ${name}State:
+    engine_params: AbstractEngineParams
+    
+    @property
+    def maximize(self) -> bool:
+        return True
+
+    def init_state(self, rng_key: jax.Array) -> ${name}State:
         # TODO: Initialize engine state
         return ${name}State(
             generation=0,
             best_fitness=-jnp.inf,
             best_genome=jnp.zeros(()),
+            population=None, # Define initial pop
+            rng_key=rng_key
         )
 
-    def step(self, rng: jax.Array, state: ${name}State, population: jax.Array, fitness: jax.Array) -> Tuple[${name}State, jax.Array]:
+    def step(self, state: ${name}State) -> Tuple[${name}State, Any]:
         # TODO: Implement a single generation step
-        return state, population
+        output = None
+        return state, output
 ''')
 
 FITNESS_TEMPLATE = string.Template('''import jax
 import jax.numpy as jnp
 from flax import struct
+from typing import Any
 
-from malthusjax.core.fitness.base import BaseEvaluator
+from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.composer import register_fitness
 
 @register_fitness("${key}", override=True)
@@ -125,14 +178,18 @@ from malthusjax.composer import register_fitness
 class ${name}(BaseEvaluator):
     """A custom fitness evaluator."""
 
-    def evaluate(self, rng: jax.Array, genome: jax.Array) -> jax.Array:
+    config: BaseEvaluatorConfig
+    data: Any = struct.field(pytree_node=False, default=None)
+
+    def evaluate(self, genome: jax.Array) -> jax.Array:
         # TODO: Implement fitness evaluation
         # Note: This operates on a single genome. MalthusJAX handles `vmap` internally.
         return jnp.sum(genome)
 ''')
 
-GENOME_TEMPLATE = string.Template('''from typing import Tuple
+GENOME_TEMPLATE = string.Template('''from typing import Any, Tuple, Type
 
+import chex
 import jax
 import jax.numpy as jnp
 from flax import struct
@@ -144,37 +201,192 @@ from malthusjax.composer import register_genome
 @struct.dataclass
 class ${name}(BaseGenome):
     """A custom genome configuration."""
-    
-    shape: Tuple[int, ...] = struct.field(pytree_node=False)
 
-    def initialize(self, rng: jax.Array) -> jax.Array:
-        # TODO: Implement genome initialization
-        return jax.random.normal(rng, self.shape)
+    values: chex.Array
+    
+    @classmethod
+    def random_init(cls: Type["${name}"], key: chex.PRNGKey, config: Any) -> "${name}":
+        # TODO: Initialize random genome values
+        shape = (10,)
+        return cls(values=jax.random.normal(key, shape))
+
+    def distance(self, other: BaseGenome, metric: str) -> chex.Numeric:
+        # TODO: Implement distance metric
+        return jnp.sum(jnp.abs(self.values - other.values))
+
+    def autocorrect(self, config: Any) -> "${name}":
+        # TODO: Enforce constraints
+        return self
+
+    @property
+    def size(self) -> int:
+        return self.values.size
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return self.values.shape
+
+    @classmethod
+    def from_tensor(cls: Type["${name}"], arr: chex.Array, config: Any = None) -> "${name}":
+        return cls(values=arr)
+''')
+
+POPULATION_TEMPLATE = string.Template('''from typing import Any, Dict
+
+import chex
+import jax
+import jax.numpy as jnp
+from flax import struct
+
+from malthusjax.core.base import BasePopulation
+
+@struct.dataclass
+class ${name}(BasePopulation):
+    """A custom population container."""
+    # Add your custom fields here
+    # Example: custom_metadata: chex.Array = struct.field(default_factory=lambda: jnp.array([]))
+    pass
 ''')
 
 # --- TEST TEMPLATES ---
 
-TEST_TEMPLATE_GENERIC = string.Template('''import jax
+TEST_ADAPTER = string.Template('''import jax
 import jax.numpy as jnp
 import pytest
-from flax import struct
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import AdapterComplianceSuite
 
-# Assuming the output is in the `plugins/` directory
-from plugins.${module_name} import ${name}
+class Test${name}(AdapterComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        # The adapter decorator changes the class signature.
+        # We need to instantiate it with dummy args expected by the universal engine base.
+        return ${name}(
+            strategy=None,
+            params=None,
+            pop_size=10,
+            num_generations=5,
+        )
+''')
 
-def test_${module_name}_instantiation():
-    """Verify that the component instantiates correctly and is a frozen dataclass."""
-    # Note: adjust kwargs if your component has required positional arguments without defaults
-    component = ${name}(${dummy_args})
-    assert isinstance(component, ${name})
 
-def test_${module_name}_call():
-    """Verify that the component executes without JAX tracer errors."""
-    component = ${name}(${dummy_args})
-    rng = jax.random.PRNGKey(0)
+TEST_SELECTION = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from malthusjax.core.base import BasePopulation
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import SelectionComplianceSuite
+
+class Test${name}(SelectionComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        return ${name}(${dummy_args})
     
-    # TODO: provide correct dummy shapes to the call/step function
-    ${dummy_call}
+    @pytest.fixture
+    def mock_population(self):
+        genes = jnp.zeros((10, 5))
+        fitness = jnp.zeros(10)
+        return BasePopulation(genes=genes, fitness=fitness)
+''')
+
+TEST_MUTATION = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from malthusjax.core.base import BasePopulation
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import MutationComplianceSuite
+
+class Test${name}(MutationComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        return ${name}(${dummy_args})
+    
+    @pytest.fixture
+    def mock_population(self):
+        genes = jnp.zeros((10, 5))
+        fitness = jnp.zeros(10)
+        return BasePopulation(genes=genes, fitness=fitness)
+''')
+
+TEST_CROSSOVER = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from malthusjax.core.base import BasePopulation
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import CrossoverComplianceSuite
+
+class Test${name}(CrossoverComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        return ${name}(${dummy_args})
+    
+    @pytest.fixture
+    def mock_population(self):
+        genes = jnp.zeros((10, 5))
+        fitness = jnp.zeros(10)
+        return BasePopulation(genes=genes, fitness=fitness)
+''')
+
+TEST_ENGINE = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import EngineComplianceSuite
+from malthusjax.engine.base import AbstractEngineParams
+
+class Test${name}(EngineComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        params = AbstractEngineParams(pop_size=10, num_generations=5)
+        return ${name}(engine_params=params)
+''')
+
+TEST_FITNESS = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from malthusjax.core.base import BasePopulation
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import EvaluatorComplianceSuite
+from malthusjax.core.fitness.base import BaseEvaluatorConfig
+
+class Test${name}(EvaluatorComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        config = BaseEvaluatorConfig()
+        return ${name}(config=config, data=None)
+
+    @pytest.fixture
+    def mock_population(self):
+        genes = jnp.zeros((10, 5))
+        fitness = jnp.zeros(10)
+        return BasePopulation(genes=genes, fitness=fitness)
+''')
+
+TEST_GENOME = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import GenomeComplianceSuite
+
+class Test${name}(GenomeComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        rng = jax.random.PRNGKey(0)
+        return ${name}.random_init(rng, config=None)
+''')
+
+TEST_POPULATION = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import PopulationComplianceSuite
+
+class Test${name}(PopulationComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        genes = jnp.zeros((10, 5))
+        fitness = jnp.zeros(10)
+        return ${name}(genes=genes, fitness=fitness)
 ''')
 
 DUMMY_ARGS = {
@@ -183,18 +395,21 @@ DUMMY_ARGS = {
     "crossover": "",
     "engine": "",
     "fitness": "",
-    "genome": "shape=(10,)"
+    "genome": "values=jnp.zeros(10)",
+    "population": "",
+    "adapter": ""
 }
 
-DUMMY_CALLS = {
-    "selection": "population = jax.random.normal(rng, (10, 5))\n    fitness = jnp.zeros(10)\n    indices = component(rng, population, fitness)\n    assert indices.shape == (5,)",
-    "mutation": "genome = jax.random.normal(rng, (5,))\n    mutated = component(rng, genome)\n    assert mutated.shape == (5,)",
-    "crossover": "p1 = jax.random.normal(rng, (5,))\n    p2 = jax.random.normal(rng, (5,))\n    c1, c2 = component(rng, p1, p2)\n    assert c1.shape == p1.shape",
-    "engine": "state = component.init(rng)\n    pop = jnp.zeros((10, 5))\n    fit = jnp.zeros(10)\n    new_state, new_pop = component.step(rng, state, pop, fit)",
-    "fitness": "genome = jnp.zeros(5)\n    fit = component.evaluate(rng, genome)\n    assert fit.shape == ()",
-    "genome": "genome = component.initialize(rng)\n    assert genome.shape == (10,)"
+TEST_TEMPLATES = {
+    "selection": TEST_SELECTION,
+    "mutation": TEST_MUTATION,
+    "crossover": TEST_CROSSOVER,
+    "engine": TEST_ENGINE,
+    "fitness": TEST_FITNESS,
+    "genome": TEST_GENOME,
+    "population": TEST_POPULATION,
+    "adapter": TEST_ADAPTER,
 }
-
 
 TEMPLATES = {
     "selection": SELECTION_TEMPLATE,
@@ -203,6 +418,8 @@ TEMPLATES = {
     "engine": ENGINE_TEMPLATE,
     "fitness": FITNESS_TEMPLATE,
     "genome": GENOME_TEMPLATE,
+    "population": POPULATION_TEMPLATE,
+    "adapter": ADAPTER_TEMPLATE,
 }
 
 
@@ -211,14 +428,14 @@ def main():
     parser.add_argument("--type", "-t", required=True, choices=TEMPLATES.keys(), help="Type of component to scaffold")
     parser.add_argument("--name", "-n", required=True, help="Class name (e.g., QuantumMutation)")
     parser.add_argument("--key", "-k", required=True, help="Registry key (e.g., quantum)")
-    parser.add_argument("--out", "-o", default="plugins", help="Output directory for implementation")
-    parser.add_argument("--test-out", "-to", default="tests/plugins", help="Output directory for tests")
+    parser.add_argument("--impl-dir", "-o", default="plugins", help="Output directory for implementation")
+    parser.add_argument("--test-dir", "-to", default="tests/plugins", help="Output directory for tests")
     
     args = parser.parse_args()
     
     # Resolve paths
-    out_dir = Path(args.out)
-    test_out_dir = Path(args.test_out)
+    out_dir = Path(args.impl_dir)
+    test_out_dir = Path(args.test_dir)
     
     out_dir.mkdir(parents=True, exist_ok=True)
     test_out_dir.mkdir(parents=True, exist_ok=True)
@@ -239,12 +456,14 @@ def main():
     impl_content = TEMPLATES[args.type].substitute(name=args.name, key=args.key)
     impl_file.write_text(impl_content)
     
+    import_path = str(out_dir).replace('/', '.')
+    
     # Render Test Boilerplate
-    test_content = TEST_TEMPLATE_GENERIC.substitute(
+    test_content = TEST_TEMPLATES[args.type].substitute(
         name=args.name,
         module_name=module_name,
-        dummy_args=DUMMY_ARGS[args.type],
-        dummy_call=DUMMY_CALLS[args.type]
+        import_path=import_path,
+        dummy_args=DUMMY_ARGS[args.type]
     )
     test_file.write_text(test_content)
     

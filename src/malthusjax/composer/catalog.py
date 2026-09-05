@@ -40,8 +40,6 @@ def _ensure_registered() -> None:
     Idempotent — repeated calls are cheap (Python caches imports).
     """
     import malthusjax.core.fitness  # noqa: F401
-    import malthusjax.core.fitness.predictors  # noqa: F401
-    import malthusjax.core.fitness.supervised  # noqa: F401
     import malthusjax.operators.crossover  # noqa: F401
     import malthusjax.operators.emitters  # noqa: F401
     import malthusjax.operators.mutation  # noqa: F401

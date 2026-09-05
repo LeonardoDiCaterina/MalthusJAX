@@ -17,9 +17,11 @@ MalthusJAX is strictly built on top of JAX and Flax. To ensure high performance,
 2. **Immutability and Statelessness**: All component state must be explicitly managed and passed through functions. Components themselves are stateless, immutable data structures.
 3. **Flax Structs**: All components (Engines, Operators, Fitness Evaluators, Genome Configs) **must** be implemented as `@flax.struct.dataclass`. 
 
-## Generating Boilerplate with the Scaffolding CLI
+## Generating Boilerplate with the Extension CLI
 
-To drastically reduce friction, MalthusJAX provides a built-in Scaffolding CLI to instantly generate boilerplate code and tests for any component.
+To drastically reduce friction, MalthusJAX provides a built-in Scaffolding CLI to instantly generate boilerplate code and tests for any component. 
+
+**For a full walkthrough on building an independent project or plugin from scratch, see the [Extension CLI Guide](extension_cli_guide.md).**
 
 To use the CLI, simply run the `scaffold` Makefile target from the repository root:
 
