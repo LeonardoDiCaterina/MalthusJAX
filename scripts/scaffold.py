@@ -248,6 +248,52 @@ class ${name}(BasePopulation):
     pass
 ''')
 
+INTERPRETER_TEMPLATE = string.Template('''from typing import Any
+import chex
+import jax.numpy as jnp
+from flax import struct
+
+from malthusjax.core.fitness.composable.base import BaseInterpreter
+# TODO: Import the specific genome type this interpreter consumes, e.g.:
+# from malthusjax.core.genome.real_genome import RealGenome
+
+@struct.dataclass
+class ${name}(BaseInterpreter[Any]):
+    """A custom genome interpreter."""
+
+    @property
+    def num_params(self) -> int:
+        # TODO: Return the number of parameters required by this interpreter, 
+        # or -1 if the length is problem-dependent (like IdentityInterpreter).
+        return -1
+
+    def apply(self, genome: Any, inputs: chex.Array | None = None) -> chex.Array:
+        # TODO: Implement the decoding of the genome and execution over inputs.
+        return genome.values
+''')
+
+ENVIRONMENT_TEMPLATE = string.Template('''from typing import Any
+import chex
+import jax.numpy as jnp
+from flax import struct
+
+from malthusjax.core.fitness.composable.base import BaseOptimizationEnvironment
+# For supervised, use BaseSupervisedEnvironment. For RL, use BaseRLEnvironment.
+
+@struct.dataclass
+class ${name}(BaseOptimizationEnvironment):
+    """A custom environment."""
+
+    # Add custom static fields (e.g. data for optimization instance)
+    # my_data: Any = struct.field(pytree_node=False, default=None)
+
+    def evaluate(self, solution: chex.Array) -> chex.Numeric:
+        # TODO: Implement the evaluation of a solution for OptimizationTask.
+        # If inheriting from BaseSupervisedEnvironment, you don't need this, 
+        # but you must set `data = (X, y)` at initialization.
+        return jnp.sum(solution)
+''')
+
 # --- TEST TEMPLATES ---
 
 TEST_ADAPTER = string.Template('''import jax
@@ -389,6 +435,39 @@ class Test${name}(PopulationComplianceSuite):
         return ${name}(genes=genes, fitness=fitness)
 ''')
 
+TEST_INTERPRETER = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import InterpreterComplianceSuite
+
+class Test${name}(InterpreterComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        return ${name}()
+
+    @pytest.fixture
+    def mock_genome(self):
+        from malthusjax.core.genome.real_genome import RealGenome
+        return RealGenome(values=jnp.ones(10))
+        
+    @pytest.fixture
+    def mock_inputs(self):
+        return jnp.zeros(5)
+''')
+
+TEST_ENVIRONMENT = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import EnvironmentComplianceSuite
+
+class Test${name}(EnvironmentComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        return ${name}()
+''')
+
 DUMMY_ARGS = {
     "selection": "num_selections=5",
     "mutation": "",
@@ -397,7 +476,9 @@ DUMMY_ARGS = {
     "fitness": "",
     "genome": "values=jnp.zeros(10)",
     "population": "",
-    "adapter": ""
+    "adapter": "",
+    "interpreter": "",
+    "environment": ""
 }
 
 TEST_TEMPLATES = {
@@ -409,6 +490,8 @@ TEST_TEMPLATES = {
     "genome": TEST_GENOME,
     "population": TEST_POPULATION,
     "adapter": TEST_ADAPTER,
+    "interpreter": TEST_INTERPRETER,
+    "environment": TEST_ENVIRONMENT,
 }
 
 TEMPLATES = {
@@ -420,6 +503,8 @@ TEMPLATES = {
     "genome": GENOME_TEMPLATE,
     "population": POPULATION_TEMPLATE,
     "adapter": ADAPTER_TEMPLATE,
+    "interpreter": INTERPRETER_TEMPLATE,
+    "environment": ENVIRONMENT_TEMPLATE,
 }
 
 

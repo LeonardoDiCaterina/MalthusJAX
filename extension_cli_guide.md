@@ -29,7 +29,7 @@ python scripts/scaffold.py -t <type> -n <ClassName> -k <registry_key>
 ```
 
 ### Arguments:
-- `-t` / `--type` (Required): The type of component to scaffold. Valid options: `genome`, `population`, `selection`, `mutation`, `crossover`, `fitness`, `engine`.
+- `-t` / `--type` (Required): The type of component to scaffold. Valid options: `genome`, `population`, `selection`, `mutation`, `crossover`, `fitness`, `engine`, `interpreter`, `environment`, `adapter`.
 - `-n` / `--name` (Required): The Python class name for your component (e.g., `QuantumMutation`).
 - `-k` / `--key` (Required): The unique string key used to register the component in the composer catalog (e.g., `quantum_mutation`).
 - `--impl-dir`: (Optional) The output directory for the implementation file. Defaults to `plugins`.
@@ -133,7 +133,25 @@ By following this workflow, your custom projects remain cleanly isolated in thei
 
 ---
 
-## 4. Scaffolding Third-Party Framework Adapters
+## 4. Scaffolding Composable Evaluator Components
+
+With the new Composable Evaluator architecture, you evaluate genomes by composing an **Environment** and an **Interpreter**. You can scaffold these primitives directly!
+
+```bash
+# Scaffold an Interpreter (Genome Decoder)
+python scripts/scaffold.py -t interpreter -n TransformerInterpreter -k transformer \
+  --impl-dir plugins/interpreters --test-dir plugins/tests
+
+# Scaffold an Environment (Dataset/Problem)
+python scripts/scaffold.py -t environment -n JumanjiEnv -k jumanji \
+  --impl-dir plugins/environments --test-dir plugins/tests
+```
+
+These generate boilerplate subclasses of `BaseInterpreter` and `BaseOptimizationEnvironment`, respectively, along with tests inheriting from `InterpreterComplianceSuite` and `EnvironmentComplianceSuite`.
+
+---
+
+## 5. Scaffolding Third-Party Framework Adapters
 
 MalthusJAX can bridge external evolutionary frameworks (like Evosax or TensorNEAT) via **Universal Adapters**. The Scaffolding CLI can generate the boilerplate necessary to wrap external libraries!
 
