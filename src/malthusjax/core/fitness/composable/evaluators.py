@@ -144,7 +144,8 @@ class OptimizationEvaluator:
         """
         # For OptimizationTask, inputs=None — the genome IS the solution
         solution = self.interpreter.apply(genome, inputs=None)
-        return self.env.evaluate(solution)
+        raw_score = self.env.evaluate(solution)
+        return self.output.format_fitness(raw_score)
 
     def evaluate_population(self, population: BasePopulation) -> BasePopulation:
         """Vectorized population evaluation via jax.vmap.

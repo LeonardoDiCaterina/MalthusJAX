@@ -232,7 +232,14 @@ class ScalarOutput:
                 f"Supported: {SUPPORTED_LOSS_FNS}"
             )
 
-        return -loss if self.maximize else loss
+        return self.format_fitness(loss)
+
+    def format_fitness(self, score: chex.Numeric) -> chex.Numeric:
+        """Format a raw scalar score according to the maximize flag.
+
+        Since the core engine always minimizes, if maximize=True, we negate the score.
+        """
+        return -score if self.maximize else score
 
 
 @struct.dataclass

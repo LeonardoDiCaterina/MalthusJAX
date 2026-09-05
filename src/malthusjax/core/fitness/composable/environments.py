@@ -136,7 +136,6 @@ class BBOBEnv(BaseOptimizationEnvironment):
         fn_name: BBOB function identifier (e.g. ``"sphere"``, ``"rastrigin"``).
         num_dims: Problem dimensionality.
         seed: Instance seed (controls rotation matrices and shifts).
-        maximize: If True, fitness is negated so higher is better.
 
     Usage::
 
@@ -151,7 +150,6 @@ class BBOBEnv(BaseOptimizationEnvironment):
     fn_name: str = struct.field(pytree_node=False, default="sphere")  # type: ignore[no-untyped-call]
     num_dims: int = struct.field(pytree_node=False, default=10)  # type: ignore[no-untyped-call]
     seed: int = struct.field(pytree_node=False, default=1)  # type: ignore[no-untyped-call]
-    maximize: bool = struct.field(pytree_node=False, default=False)  # type: ignore[no-untyped-call]
     _problem: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
     _state: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
@@ -161,7 +159,6 @@ class BBOBEnv(BaseOptimizationEnvironment):
         fn_name: str = "sphere",
         num_dims: int = 10,
         seed: int = 1,
-        maximize: bool = False,
     ) -> "BBOBEnv":
         """Factory: initialize the evosax BBOBProblem and return a ready environment.
 
@@ -169,7 +166,6 @@ class BBOBEnv(BaseOptimizationEnvironment):
             fn_name: BBOB function name (e.g. ``"sphere"``, ``"rastrigin"``).
             num_dims: Problem dimensionality.
             seed: Instance seed.
-            maximize: Optimization direction.
 
         Returns:
             Initialized ``BBOBEnv``.
@@ -183,7 +179,6 @@ class BBOBEnv(BaseOptimizationEnvironment):
             fn_name=fn_name,
             num_dims=num_dims,
             seed=seed,
-            maximize=maximize,
             _problem=problem,
             _state=state,
         )
@@ -195,12 +190,11 @@ class BBOBEnv(BaseOptimizationEnvironment):
             solution: 1D solution vector of length ``num_dims``.
 
         Returns:
-            Scalar objective (minimization by default; negated if ``maximize=True``).
+            Scalar objective.
         """
         rng = jax.random.PRNGKey(0)
         fitness_scores, _, _ = self._problem.eval(rng, solution[None, :], self._state)
-        result = fitness_scores[0]
-        return -result if self.maximize else result
+        return fitness_scores[0]
 
     @property
     def f_opt(self) -> chex.Numeric:
@@ -211,3 +205,89 @@ class BBOBEnv(BaseOptimizationEnvironment):
     def x_opt(self) -> chex.Array:
         """Known global optimum location for this BBOB instance."""
         return self._problem.x_opt
+
+@struct.dataclass
+class SphereEnv(BaseOptimizationEnvironment):
+    """Sphere function (sum of squares) environment."""
+
+    def evaluate(self, solution: chex.Array) -> chex.Numeric:
+        """Evaluate sphere function on real vector.
+        Returns the sum-of-squares value (minimization convention).
+        """
+        return jnp.sum(jnp.square(solution))
+
+
+@struct.dataclass
+class GriewankEnv(BaseOptimizationEnvironment):
+    """Griewank function environment (multimodal, many local optima)."""
+
+    def evaluate(self, solution: chex.Array) -> chex.Numeric:
+        """Evaluate Griewank function on real genome.
+        Returns value directly (minimization convention).
+        """
+        quad_term = jnp.sum(jnp.square(solution)) / 4000.0
+        indices = jnp.arange(1, solution.shape[0] + 1, dtype=jnp.float32)
+        cos_term = jnp.prod(jnp.cos(solution / jnp.sqrt(indices)))
+
+        return 1.0 + quad_term - cos_term
+
+
+@struct.dataclass
+class BoxEnv(BaseOptimizationEnvironment):
+    """Box-constrained optimization environment with linear penalty for infeasibility."""
+
+    target_point: chex.Array = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    box_bounds: tuple[chex.Array, chex.Array] = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+    penalty_factor: float = struct.field(pytree_node=False, default=1000.0)  # type: ignore[no-untyped-call]
+    objective_type: str = struct.field(pytree_node=False, default="distance")  # type: ignore[no-untyped-call]
+
+    def evaluate(self, solution: chex.Array) -> chex.Numeric:
+        """Evaluate box-constrained problem on real vector.
+        Computes the objective and adds a linear penalty for violations.
+        """
+        x = solution
+        lower, upper = self.box_bounds
+
+        if self.objective_type == "distance":
+            objective = jnp.sqrt(jnp.sum(jnp.square(x - self.target_point)))
+        elif self.objective_type == "sphere":
+            centered = x - self.target_point
+            objective = jnp.sum(jnp.square(centered))
+        else:
+            # We must use safe jax constructs, so we'll just return a large value if misconfigured
+            objective = jnp.array(1e9, dtype=jnp.float32)
+
+        # Constraint violations: sum of excess magnitudes (XLA-safe)
+        lower_violations = jnp.maximum(0, lower - x)
+        upper_violations = jnp.maximum(0, x - upper)
+        total_violation = jnp.sum(lower_violations) + jnp.sum(upper_violations)
+
+        penalty = total_violation * self.penalty_factor
+        return objective + penalty
+
+
+@struct.dataclass
+class TSPEnv(BaseOptimizationEnvironment):
+    """TSP (Traveling Salesman Problem) environment.
+    
+    Uses Random Key encoding: the argsort of the real-valued solution array
+    gives the permutation of cities.
+    """
+
+    distance_matrix: chex.Array = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
+
+    def evaluate(self, solution: chex.Array) -> chex.Numeric:
+        """Evaluate a solution's fitness on TSP.
+        
+        Args:
+            solution: Continuous real array which is argsorted to form a tour.
+        Returns:
+            Scalar objective (minimization convention: total distance).
+        """
+        # Decode real array to permutation
+        tour = jnp.argsort(solution)
+
+        # Compute total distance: [city1, city2, ..., cityN, city1]
+        tour_shifted = jnp.roll(tour, shift=-1)
+        distances = self.distance_matrix[tour, tour_shifted]
+        return jnp.sum(distances)
