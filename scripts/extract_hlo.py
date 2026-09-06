@@ -126,64 +126,10 @@ def extract_mjx_hlo(
 ) -> str:
     """Extract HLO for a MalthusJAX pipeline using its built-in get_hlo_text()."""
     from malthusjax.composer.catalog import OperatorCatalog
-    from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-
-    evaluator = BBOBEvaluator.create(
-        BBOBConfig(fn_name="sphere", num_dims=num_dims, seed=42, maximize=False)
-    )
-
-    # Strip keys not understood by build_engine
-    kwargs = {
-        k: v
-        for k, v in pipeline_kwargs.items()
-        if k
-        not in {
-            "backend",
-            "evosax_strategy",
-            "strategy_params",
-        }
-    }
-
-    catalog = OperatorCatalog()
-    sel_str = kwargs.pop("selection", None)
-    cross_str = kwargs.pop("crossover", None)
-    mut_str = kwargs.pop("mutation", None)
-
-    sel = catalog.get(sel_str) if sel_str else None
-    cross = catalog.get(cross_str) if cross_str else None
-    mut = catalog.get(mut_str) if mut_str else None
-
-    engine_type = kwargs.pop("engine_type", "ga")
-
-    # engine_factory.build_engine takes engine_cls, but we just use engine_type through Composer's EngineRegistry
-    from malthusjax.composer.engine_catalog import EngineRegistry
-
-    registry = EngineRegistry()
-
-    adapter = registry.get(
-        engine_type,
-        evaluator=evaluator,
-        selection=sel,
-        crossover=cross,
-        mutation=mut,
-        genome_type="real",
-        pop_size=pop_size,
-        generations=gens,
-        genome_shape=(num_dims,),
-        bounds=(-5.0, 5.0),
-        **kwargs,
-    )
-    engine = adapter.genetic_engine
-    key = jax.random.PRNGKey(0)
-    state = engine.init_state(key)
-    hlo = engine.get_hlo_text(state, optimize=optimize, print_analysis=False)
-    return hlo  # type: ignore[return-value]
-
-
-# ---------------------------------------------------------------------------
-# Markdown summary
-# ---------------------------------------------------------------------------
-
+    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
 
 def _write_summary(results: dict[str, dict[str, Any]], out_dir: Path) -> None:
     """Write a Markdown table comparing HLO stats for all pipelines."""

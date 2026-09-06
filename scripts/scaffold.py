@@ -165,27 +165,62 @@ class ${name}(AbstractEngine):
         return state, output
 ''')
 
-FITNESS_TEMPLATE = string.Template('''import jax
+EVALUATOR_TEMPLATE = string.Template('''import jax
+import jax.numpy as jnp
+
+# Choose the appropriate core evaluator
+from malthusjax.core.fitness.composable.evaluators import (
+    OptimizationEvaluator, SupervisedEvaluator, RLEvaluator
+)
+from malthusjax.core.fitness.composable.base import ScalarOutput, IdentityTransform
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+
+def create_${module_name}() -> OptimizationEvaluator:
+    """Builds and returns a configured composable evaluator."""
+    
+    # 1. Environment
+    # env = CustomEnv(...)
+    env = None
+    
+    # 2. Transform (Optional, defaults to IdentityTransform)
+    transform = IdentityTransform()
+    
+    # 3. Interpreter
+    interpreter = IdentityInterpreter()
+    
+    # 4. Output Mode
+    output = ScalarOutput(maximize=True)
+    
+    # 5. Composition
+    return OptimizationEvaluator(
+        env=env,
+        transform=transform,
+        interpreter=interpreter,
+        output=output
+    )
+''')
+
+TRANSFORM_TEMPLATE = string.Template('''from typing import Any
+import jax
 import jax.numpy as jnp
 from flax import struct
-from typing import Any
 
-from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
-from malthusjax.composer import register_fitness
+from malthusjax.core.fitness.composable.base import BaseTransform
 
-@register_fitness("${key}", override=True)
 @struct.dataclass
-class ${name}(BaseEvaluator):
-    """A custom fitness evaluator."""
+class ${name}(BaseTransform[Any]):
+    """A custom genotype-to-phenotype transform."""
+    
+    def transform(self, genome: Any, state: Any = None) -> Any:
+        # TODO: Implement your transformation logic here
+        return genome
 
-    config: BaseEvaluatorConfig
-    data: Any = struct.field(pytree_node=False, default=None)
-
-    def evaluate(self, genome: jax.Array) -> jax.Array:
-        # TODO: Implement fitness evaluation
-        # Note: This operates on a single genome. MalthusJAX handles `vmap` internally.
-        return jnp.sum(genome)
+    # Optional: Override transform_population if the transform 
+    # must be applied at the population level (e.g. TensorNEAT).
+    # def transform_population(self, genes: Any, state: Any = None) -> Any:
+    #     return super().transform_population(genes, state)
 ''')
+
 
 GENOME_TEMPLATE = string.Template('''from typing import Any, Tuple, Type
 
@@ -263,8 +298,9 @@ class ${name}(BaseInterpreter[Any]):
 
     @property
     def num_params(self) -> int:
-        # TODO: Return the number of parameters required by this interpreter, 
-        # or -1 if the length is problem-dependent (like IdentityInterpreter).
+        # TODO: Return the exact number of parameters required by this interpreter.
+        # This contract is strictly enforced by MalthusJAX. 
+        # Return -1 only if the genome length is strictly dictated by the problem.
         return -1
 
     def apply(self, genome: Any, inputs: chex.Array | None = None) -> chex.Array:
@@ -277,21 +313,12 @@ import chex
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.fitness.composable.base import BaseOptimizationEnvironment
-# For supervised, use BaseSupervisedEnvironment. For RL, use BaseRLEnvironment.
+${base_import}
 
 @struct.dataclass
-class ${name}(BaseOptimizationEnvironment):
+class ${name}(${base_class}):
     """A custom environment."""
-
-    # Add custom static fields (e.g. data for optimization instance)
-    # my_data: Any = struct.field(pytree_node=False, default=None)
-
-    def evaluate(self, solution: chex.Array) -> chex.Numeric:
-        # TODO: Implement the evaluation of a solution for OptimizationTask.
-        # If inheriting from BaseSupervisedEnvironment, you don't need this, 
-        # but you must set `data = (X, y)` at initialization.
-        return jnp.sum(solution)
+${env_body}
 ''')
 
 # --- TEST TEMPLATES ---
@@ -387,25 +414,30 @@ class Test${name}(EngineComplianceSuite):
         return ${name}(engine_params=params)
 ''')
 
-TEST_FITNESS = string.Template('''import jax
+TEST_EVALUATOR = string.Template('''import jax
+import pytest
+from ${import_path}.${module_name} import create_${module_name}
+
+def test_${module_name}_creation():
+    """Test that the evaluator composition builds successfully."""
+    evaluator = create_${module_name}()
+    assert evaluator is not None
+''')
+
+TEST_TRANSFORM = string.Template('''import jax
 import jax.numpy as jnp
 import pytest
-from malthusjax.core.base import BasePopulation
 from ${import_path}.${module_name} import ${name}
-from malthusjax.testing.compliance import EvaluatorComplianceSuite
-from malthusjax.core.fitness.base import BaseEvaluatorConfig
 
-class Test${name}(EvaluatorComplianceSuite):
+class Test${name}:
     @pytest.fixture
     def component(self):
-        config = BaseEvaluatorConfig()
-        return ${name}(config=config, data=None)
-
-    @pytest.fixture
-    def mock_population(self):
-        genes = jnp.zeros((10, 5))
-        fitness = jnp.zeros(10)
-        return BasePopulation(genes=genes, fitness=fitness)
+        return ${name}()
+        
+    def test_transform(self, component):
+        genome = jnp.zeros(10)
+        result = component.transform(genome)
+        assert result is not None
 ''')
 
 TEST_GENOME = string.Template('''import jax
@@ -473,7 +505,8 @@ DUMMY_ARGS = {
     "mutation": "",
     "crossover": "",
     "engine": "",
-    "fitness": "",
+    "evaluator": "",
+    "transform": "",
     "genome": "values=jnp.zeros(10)",
     "population": "",
     "adapter": "",
@@ -486,7 +519,8 @@ TEST_TEMPLATES = {
     "mutation": TEST_MUTATION,
     "crossover": TEST_CROSSOVER,
     "engine": TEST_ENGINE,
-    "fitness": TEST_FITNESS,
+    "evaluator": TEST_EVALUATOR,
+    "transform": TEST_TRANSFORM,
     "genome": TEST_GENOME,
     "population": TEST_POPULATION,
     "adapter": TEST_ADAPTER,
@@ -499,7 +533,8 @@ TEMPLATES = {
     "mutation": MUTATION_TEMPLATE,
     "crossover": CROSSOVER_TEMPLATE,
     "engine": ENGINE_TEMPLATE,
-    "fitness": FITNESS_TEMPLATE,
+    "evaluator": EVALUATOR_TEMPLATE,
+    "transform": TRANSFORM_TEMPLATE,
     "genome": GENOME_TEMPLATE,
     "population": POPULATION_TEMPLATE,
     "adapter": ADAPTER_TEMPLATE,
@@ -511,13 +546,18 @@ TEMPLATES = {
 def main():
     parser = argparse.ArgumentParser(description="MalthusJAX Component Scaffolder")
     parser.add_argument("--type", "-t", required=True, choices=TEMPLATES.keys(), help="Type of component to scaffold")
-    parser.add_argument("--name", "-n", required=True, help="Class name (e.g., QuantumMutation)")
-    parser.add_argument("--key", "-k", required=True, help="Registry key (e.g., quantum)")
+    parser.add_argument("--name", "-n", required=True, help="Class/Component name (e.g., QuantumMutation)")
+    parser.add_argument("--key", "-k", help="Registry key (e.g., quantum). Not required for evaluators.")
     parser.add_argument("--impl-dir", "-o", default="plugins", help="Output directory for implementation")
     parser.add_argument("--test-dir", "-to", default="tests/plugins", help="Output directory for tests")
+    parser.add_argument("--env-type", choices=["opt", "supervised", "rl"], default="opt", help="Type of environment (only used if type=environment)")
     
     args = parser.parse_args()
     
+    if args.type != "evaluator" and not args.key:
+        print("Error: --key is required for all components except evaluator.")
+        return 1
+
     # Resolve paths
     out_dir = Path(args.impl_dir)
     test_out_dir = Path(args.test_dir)
@@ -537,8 +577,66 @@ def main():
         print(f"Error: {test_file} already exists!")
         return 1
 
+    # Prepare specific environment variables
+    env_body = ""
+    base_class = ""
+    base_import = ""
+    if args.type == "environment":
+        if args.env_type == "rl":
+            base_class = "BaseRLEnvironment"
+            base_import = "from malthusjax.core.fitness.composable.base import BaseRLEnvironment"
+            env_body = """
+    def reset(self, key: chex.PRNGKey):
+        # TODO: Return initial (obs, state)
+        return jnp.zeros(self.obs_dim), None
+
+    def step(self, state: Any, action: chex.Array, key: chex.PRNGKey):
+        # TODO: Return (next_obs, next_state, reward, done, info)
+        return jnp.zeros(self.obs_dim), state, 0.0, False, {}
+
+    def preprocess_obs(self, obs: Any) -> chex.Array:
+        return obs
+
+    def postprocess_action(self, logits: chex.Array, raw_obs: Any = None) -> chex.Array:
+        return logits
+
+    @property
+    def obs_dim(self) -> int:
+        return 4
+
+    @property
+    def action_dim(self) -> int:
+        return 2
+"""
+        elif args.env_type == "supervised":
+            base_class = "BaseSupervisedEnvironment"
+            base_import = "from malthusjax.core.fitness.composable.base import BaseSupervisedEnvironment"
+            env_body = """
+    # Set data = (X, y) at initialization
+    data: Any = struct.field(pytree_node=False, default=None)
+"""
+        else: # opt
+            base_class = "BaseOptimizationEnvironment"
+            base_import = "from malthusjax.core.fitness.composable.base import BaseOptimizationEnvironment"
+            env_body = """
+    # Add custom static fields (e.g. data for optimization instance)
+    # my_data: Any = struct.field(pytree_node=False, default=None)
+
+    def evaluate(self, solution: chex.Array) -> chex.Numeric:
+        # TODO: Implement the evaluation of a solution for OptimizationTask.
+        return jnp.sum(solution)
+"""
+
     # Render Implementation
-    impl_content = TEMPLATES[args.type].substitute(name=args.name, key=args.key)
+    if args.type == "environment":
+        impl_content = TEMPLATES[args.type].substitute(
+            name=args.name, key=args.key, base_class=base_class, base_import=base_import, env_body=env_body
+        )
+    elif args.type == "evaluator":
+        impl_content = TEMPLATES[args.type].substitute(module_name=module_name)
+    else:
+        impl_content = TEMPLATES[args.type].substitute(name=args.name, key=args.key)
+        
     impl_file.write_text(impl_content)
     
     import_path = str(out_dir).replace('/', '.')
