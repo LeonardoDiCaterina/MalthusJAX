@@ -22,10 +22,10 @@ from evosax.problems import BBOBProblem
 
 from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult
 from malthusjax.benchmarking.runner import BenchmarkRunner
-from malthusjax.core.fitness.bbob_evaluator import (
-    BBOBConfig,
-    BBOBEvaluator,
-)
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (
     GeneticEngine,
@@ -192,8 +192,12 @@ def _build_malthusjax_engine(
     """
     genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
 
-    bbob_config = BBOBConfig(fn_name=problem, num_dims=dims, seed=SEED, maximize=False)
-    evaluator = BBOBEvaluator.create(bbob_config)
+    evaluator = OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name=problem, num_dims=dims, seed=SEED),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    )
 
     elite_count = max(1, int(pop_size * elite_ratio))
 

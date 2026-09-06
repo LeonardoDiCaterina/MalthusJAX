@@ -15,7 +15,10 @@ from __future__ import annotations
 
 import pytest
 
-from malthusjax.core.fitness.real_evaluators import SphereConfig, SphereEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
@@ -54,7 +57,12 @@ def test_evosax_wrappers_with_typed_keys():
 
     # small problem setup
     genome_config = RealGenomeConfig(shape=(2,), bounds=(-1.0, 1.0))
-    evaluator = SphereEvaluator(SphereConfig(maximize=False))
+    evaluator = OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name="sphere", num_dims=2),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    )
     selection = ElitePoolSelection(num_selections=4, elite_k=2)
     crossover = EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=0.5)
     mutation = EvosaxGaussianWrapper(num_offspring=1, mutation_strength=0.1)

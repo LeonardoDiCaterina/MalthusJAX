@@ -40,7 +40,11 @@ from matplotlib.gridspec import GridSpec
 from scipy import stats
 
 import malthusjax
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine import GeneticEngine, GeneticEngineParams
 from malthusjax.engine.schedules import ScheduleType
@@ -83,7 +87,7 @@ config = BBOBConfig(maximize=False, fn_name="sphere", num_dims=DIM_GEN, seed=42)
 
 
 # Create evaluator
-evaluator = BBOBEvaluator.create(config)
+evaluator = OptimizationEvaluator.create(config)
 
 print("✓ Genome config created")
 print(f"  Shape: {genome_config.shape}")
@@ -313,7 +317,7 @@ results = {}
 
 for problem_name, evaluator_config in problems:
     print(f"\nOptimizing {problem_name} function...")
-    evaluator_fn = BBOBEvaluator.create(evaluator_config)
+    evaluator_fn = OptimizationEvaluator.create(evaluator_config)
     engine_prob = GeneticEngine(
         engine_params=engine_params,
         genome_config=genome_config,
@@ -1228,7 +1232,7 @@ def run_dimension_experiment(dim, num_runs=30, num_steps=100):
     # Create configs for this dimension
     dim_genome_config = RealGenomeConfig(shape=(dim,), bounds=(-5.0, 5.0))
     dim_bbob_config = BBOBConfig(maximize=False, fn_name="sphere", num_dims=dim, seed=42)
-    dim_evaluator = BBOBEvaluator.create(dim_bbob_config)
+    dim_evaluator = OptimizationEvaluator.create(dim_bbob_config)
 
     # Factory functions for this dimension
     def make_orig_engine():

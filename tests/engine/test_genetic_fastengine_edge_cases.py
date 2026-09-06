@@ -2,7 +2,11 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from malthusjax.core.fitness.real_evaluators import SphereConfig, SphereEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import SphereEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (
     GeneticEngine,
@@ -19,7 +23,12 @@ def test_tracing_enabled():
     enable_tracing()
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=(2,)),
-        evaluator=SphereEvaluator(SphereConfig(maximize=False)),
+        evaluator=OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -37,7 +46,12 @@ def test_tracing_enabled():
 def test_debug_step_coverage():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=(2,)),
-        evaluator=SphereEvaluator(SphereConfig(maximize=False)),
+        evaluator=OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -55,7 +69,12 @@ class DummyConfig:
 def test_no_init_population():
     engine = GeneticEngine(
         genome_config=DummyConfig(),
-        evaluator=SphereEvaluator(SphereConfig(maximize=False)),
+        evaluator=OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -69,7 +88,12 @@ def test_no_init_population():
 def test_ask_tell_with_key():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=(2,)),
-        evaluator=SphereEvaluator(SphereConfig(maximize=False)),
+        evaluator=OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -88,7 +112,12 @@ def test_ask_tell_with_key():
 def test_enforce_layout_1d():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=()),
-        evaluator=SphereEvaluator(SphereConfig(maximize=False)),
+        evaluator=OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -102,7 +131,12 @@ def test_enforce_layout_1d():
 def test_forward_presplit_keys_true():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=(2,)),
-        evaluator=SphereEvaluator(SphereConfig(maximize=False)),
+        evaluator=OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),

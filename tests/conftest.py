@@ -290,7 +290,10 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
 
     Useful for PRNG-focused tests that need a baked operator set in `state.operators`.
     """
-    from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+    from malthusjax.core.fitness.composable.environments import SphereEnv
+    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+    from malthusjax.core.fitness.composable.base import ScalarOutput, IdentityTransform
     from malthusjax.core.genome.real_genome import RealGenomeConfig
     from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
     from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
@@ -306,12 +309,18 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
     )
 
     genome_config = RealGenomeConfig(shape=(5,), bounds=(-5.0, 5.0))
-    bbob = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=5, maximize=False))
+    env = SphereEnv()
+    evaluator = OptimizationEvaluator(
+        env=env,
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    )
 
     engine = GeneticEngine(
         engine_params=params,
         genome_config=genome_config,
-        evaluator=bbob,
+        evaluator=evaluator,
         selection=ElitePoolSelection(num_selections=32, elite_k=2),
         crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
         mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1),

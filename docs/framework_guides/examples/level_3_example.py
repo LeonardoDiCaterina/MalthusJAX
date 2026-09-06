@@ -52,11 +52,11 @@ class ContinuousPopulation(BasePopulation[ContinuousGenome]):
         return cls(genes=batched_genes, fitness=jnp.full((size,), jnp.inf), config=config)
 
 @struct.dataclass
-class SphereEvaluatorConfig:
+class OptimizationEvaluatorConfig:
     maximize: bool = struct.field(pytree_node=False, default=False)
 
 @struct.dataclass
-class SphereEvaluator(BaseEvaluator[ContinuousGenome, ContinuousGenomeConfig, SphereEvaluatorConfig]):
+class OptimizationEvaluator(BaseEvaluator[ContinuousGenome, ContinuousGenomeConfig, OptimizationEvaluatorConfig]):
     def evaluate(self, genome: ContinuousGenome, **kwargs: Any) -> chex.Array:
         return jnp.sum(genome.values ** 2)
 
@@ -138,7 +138,7 @@ def run_level_3_evolution():
 
     # 1. Initialize our components
     config = ContinuousGenomeConfig(shape=(10,))
-    evaluator = SphereEvaluator(config=SphereEvaluatorConfig(maximize=False), data=None)
+    evaluator = OptimizationEvaluator(config=OptimizationEvaluatorConfig(maximize=False), data=None)
     selection = TournamentSelection(num_selections=POP_SIZE, tournament_size=3, maximize=False)
     crossover = ContinuousNoOpCrossover()
 

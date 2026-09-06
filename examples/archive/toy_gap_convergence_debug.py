@@ -24,7 +24,11 @@ import numpy as np
 import optax
 
 from malthusjax.composer.evosax_adapter import build_evosax_engine
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.engine.resource_mapper import get_resource_summary, get_step_dimension_flow
@@ -168,7 +172,7 @@ def _mean_euclidean_distance(a: np.ndarray, b: np.ndarray) -> float:
 
 def _shared_initial_population(args: argparse.Namespace) -> jax.Array:
     """Sample one initial population and reuse it across both backends."""
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(
             fn_name=args.function,
             num_dims=args.dimensions,
@@ -190,7 +194,7 @@ def _shared_strategy_params(args: argparse.Namespace, elite_k: int) -> dict[str,
 
 
 def run_evosax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(
             fn_name=args.function,
             num_dims=args.dimensions,
@@ -275,7 +279,7 @@ def run_malthusjax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
         num_generations=args.generations,
         forward_presplit_keys=True,
     )
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(
             fn_name=args.function,
             num_dims=args.dimensions,
@@ -443,7 +447,7 @@ def replay_crossover_parity(args: argparse.Namespace) -> None:
             print(f"{label}: live={_fmt(live_arr)} | captured={_fmt(captured_arr)} | {diff_text}")
 
         # Live step snapshot: reconstruct the same one-generation path the engine takes.
-        evaluator = BBOBEvaluator.create(
+        evaluator = OptimizationEvaluator.create(
             BBOBConfig(
                 fn_name=args.function,
                 num_dims=args.dimensions,
@@ -565,7 +569,7 @@ def replay_selection_parity(args: argparse.Namespace) -> None:
     config = RealGenomeConfig(shape=(args.dimensions,), bounds=(-5.0, 5.0))
     population_init = jnp.asarray(data["population_init"])
     fitness_init = jnp.asarray(data["fitness_init"])
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(
             fn_name=args.function,
             num_dims=args.dimensions,
@@ -683,7 +687,7 @@ def replay_selection_parity(args: argparse.Namespace) -> None:
     )
     return
 
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(
             fn_name=args.function,
             num_dims=args.dimensions,
@@ -802,7 +806,7 @@ def compare_selection(
     (t-test and Wilcoxon when available) to assess differences.
     """
     print(f"\n== selection operator comparison ({trials} trials) ==")
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(fn_name=args.function, num_dims=args.dimensions, seed=args.seed, maximize=False)
     )
 
@@ -1002,7 +1006,7 @@ def compare_mutation(
     and a pooled KS test on selected metrics.
     """
     print(f"\n== mutation operator comparison ({trials} trials) ==")
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(fn_name=args.function, num_dims=args.dimensions, seed=args.seed, maximize=False)
     )
 
@@ -1207,7 +1211,7 @@ def compare_crossover(
     fitness statistics (max, median, mean) across trials.
     """
     print(f"\n== crossover operator comparison ({trials} trials) ==")
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(fn_name=args.function, num_dims=args.dimensions, seed=args.seed, maximize=False)
     )
 
@@ -1440,7 +1444,7 @@ def analyze_and_capture_crossover(
     summary `results/crossover_trace_{seed}.txt` containing keys, masks and small array samples.
     """
     print(f"\n== crossover capture: screening {trials} trials, capturing top {top_k} ==")
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(fn_name=args.function, num_dims=args.dimensions, seed=args.seed, maximize=False)
     )
 

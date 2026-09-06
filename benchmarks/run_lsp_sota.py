@@ -15,19 +15,19 @@ from malthusjax.composer._registry import get_registry as get_operators
 
 def main():
     print("Registered Engines:", list_engines())
-    
+
     # Load and execute the declarative TOML pipeline
     # Note: we use relative path assuming we run from root directory
     toml_path = "benchmarks/supervised_learning_sota.toml"
     print(f"Loading {toml_path}...")
-    
+
     # We must disable shared_initial_population because CGP and TensorNEAT
     # use completely different genome structures and cannot share initialization matrices.
     results = Composer.from_toml(toml_path, shared_initial_population=False)
-    
+
     print("\n================== SUMMARY ==================")
     print(results.summary_table())
-    
+
     plot_path = "results/supervised_sota_convergence.png"
     print(f"\nGenerating convergence plot at {plot_path}...")
     os.makedirs("results", exist_ok=True)

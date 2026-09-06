@@ -18,7 +18,11 @@ import numpy as np
 import optax
 
 from malthusjax.composer.evosax_adapter import build_evosax_engine
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
@@ -64,7 +68,7 @@ def _print_report(label: str, gap_history: list[float], best_so_far: list[float]
 
 def _shared_initial_population(args: argparse.Namespace) -> jax.Array:
     """Sample one initial population and reuse it across both backends."""
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(
             fn_name=args.function,
             num_dims=args.dimensions,
@@ -78,7 +82,7 @@ def _shared_initial_population(args: argparse.Namespace) -> jax.Array:
 
 
 def run_evosax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(
             fn_name=args.function,
             num_dims=args.dimensions,
@@ -131,7 +135,7 @@ def run_malthusjax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
         elitism=0,
         num_generations=args.generations,
     )
-    evaluator = BBOBEvaluator.create(
+    evaluator = OptimizationEvaluator.create(
         BBOBConfig(
             fn_name=args.function,
             num_dims=args.dimensions,

@@ -20,12 +20,11 @@ from malthusjax.composer.evosax_adapter_legacy import (
     list_strategies,
 )
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
 
-# Check if evosax has the init/tell API (GitHub version only, not PyPI 0.1.6)
-# Some releases export strategies at the top level while others require
-# importing from ``evosax.algorithms``; handle both so the test guard works
-# in any environment we might encounter.
 try:
     try:
         from evosax import SimpleGA
@@ -49,9 +48,12 @@ except Exception:
 
 def make_bbob_evaluator(
     fn_name: str = "sphere", num_dims: int = 3, seed: int = 42, maximize: bool = False
-) -> BBOBEvaluator:
-    return BBOBEvaluator.create(
-        BBOBConfig(fn_name=fn_name, num_dims=num_dims, seed=seed, maximize=maximize)
+) -> OptimizationEvaluator:
+    return OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name=fn_name, num_dims=num_dims, seed=seed),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=maximize)
     )
 
 
@@ -101,7 +103,7 @@ class TestBuildEvosaxEngine:
         assert adapter.num_dims == 5
 
     def test_unwraps_bbob_evaluator(self):
-        """Passing a BBOBEvaluator results in a raw evosax problem stored."""
+        """Passing a OptimizationEvaluator results in a raw evosax problem stored."""
         from evosax.problems import BBOBProblem
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=2)
@@ -222,7 +224,7 @@ class TestBuildEvosaxEngine:
                 return jnp.zeros((), dtype=jnp.float32)
 
         dummy = DummyEval(config=BaseEvaluatorConfig(maximize=False), data=None)
-        with pytest.raises(NotImplementedError, match="Only BBOBEvaluator"):
+        with pytest.raises(NotImplementedError, match="Only OptimizationEvaluator"):
             build_evosax_engine(
                 strategy_name="SimpleGA",
                 evaluator=dummy,

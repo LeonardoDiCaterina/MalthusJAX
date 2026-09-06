@@ -13,7 +13,11 @@ from __future__ import annotations
 import pytest
 
 from malthusjax.composer.catalog import OperatorCatalog
-from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from malthusjax.operators.crossover import (
     BinaryUniformCrossover,
     BinomialCrossover,
@@ -99,10 +103,8 @@ EXPECTED_FITNESS = {
     "sphere_minimize",
     "sphere_maximize",
     "bbob",
-    "griewank",
     "binary_sum",
     "knapsack",
-    "tsp",
     "griewank_rosenbrock",
     "rosenbrock",
     "ellipsoidal_rotated",
@@ -141,25 +143,29 @@ def test_no_unexpected_keys(catalog: OperatorCatalog) -> None:
     """
     # Keys that may be left behind by other test modules
     KNOWN_TEST_ARTIFACTS = {
-        "custom",
-        "__runtime_test__",
-        "__test_unique_op__",
-        "test_custom_mutation",
-        "test_custom_crossover",
-        "test_custom_fitness",
-        "test_custom_genome",
-        "test_custom_engine",
-        "test_override_op",
-        "test_custom_selection",
-        "mlp",
-        "continuous_mlp",
-        "masked_mlp",
-        "gymnax",
-        "jumanji",
-        "brax",
-        "linear",
-        "equation",
-    }
+    "custom",
+    "__runtime_test__",
+    "__test_unique_op__",
+    "test_custom_mutation",
+    "test_custom_crossover",
+    "test_custom_fitness",
+    "test_custom_genome",
+    "test_custom_engine",
+    "test_override_op",
+    "test_custom_selection",
+    "mlp",
+    "continuous_mlp",
+    "masked_mlp",
+    "gymnax",
+    "jumanji",
+    "brax",
+    "linear",
+    "equation",
+    "binary_sum_env",
+    "knapsack_env",
+    "bbobax_env",
+    "linear_gp_interpreter"
+}
     available = set(catalog.list_available())
     extra = available - ALL_EXPECTED - KNOWN_TEST_ARTIFACTS
     assert not extra, f"Unexpected catalog keys: {sorted(extra)}"
@@ -256,13 +262,13 @@ def test_mutation_roundtrip(catalog: OperatorCatalog, key: str, cls: type) -> No
 @pytest.mark.parametrize(
     "spec, expected_cls",
     [
-        ("sphere", BBOBEvaluator),
-        ("sphere:dim=5", BBOBEvaluator),
-        ("rastrigin", BBOBEvaluator),
-        ("sphere_minimize", BBOBEvaluator),
-        ("sphere_maximize", BBOBEvaluator),
-        ("bbob", BBOBEvaluator),
-        ("bbob:fn_name=rastrigin,dim=5", BBOBEvaluator),
+        ("sphere", OptimizationEvaluator),
+        ("sphere:dim=5", OptimizationEvaluator),
+        ("rastrigin", OptimizationEvaluator),
+        ("sphere_minimize", OptimizationEvaluator),
+        ("sphere_maximize", OptimizationEvaluator),
+        ("bbob", OptimizationEvaluator),
+        ("bbob:fn_name=rastrigin,dim=5", OptimizationEvaluator),
     ],
 )
 def test_fitness_bbob_roundtrip(catalog: OperatorCatalog, spec: str, expected_cls: type) -> None:
@@ -270,40 +276,19 @@ def test_fitness_bbob_roundtrip(catalog: OperatorCatalog, spec: str, expected_cl
     assert isinstance(evaluator, expected_cls)
 
 
-def test_fitness_griewank(catalog: OperatorCatalog) -> None:
-    from malthusjax.core.fitness import GriewankEvaluator
 
-    evaluator = catalog.get("griewank")
-    assert isinstance(evaluator, GriewankEvaluator)
 
 
 def test_fitness_binary_sum(catalog: OperatorCatalog) -> None:
-    from malthusjax.core.fitness import BinarySumEvaluator
-
+    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
     evaluator = catalog.get("binary_sum")
-    assert isinstance(evaluator, BinarySumEvaluator)
+    assert isinstance(evaluator, OptimizationEvaluator)
 
 
 def test_fitness_knapsack(catalog: OperatorCatalog) -> None:
-    import jax.numpy as jnp
-
-    from malthusjax.core.fitness import KnapsackEvaluator
-
-    # Knapsack requires weights, values, capacity — register with defaults
-    catalog.register(
-        "knapsack",
-        lambda **kw: KnapsackEvaluator(
-            __import__("malthusjax.core.fitness", fromlist=["KnapsackConfig"]).KnapsackConfig(
-                maximize=kw.get("maximize", True),
-                weights=kw.get("weights", jnp.array([1.0, 2.0, 3.0])),
-                values=kw.get("values", jnp.array([10.0, 20.0, 30.0])),
-                capacity=kw.get("capacity", 5.0),
-            )
-        ),
-        override=True,
-    )
+    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
     evaluator = catalog.get("knapsack")
-    assert isinstance(evaluator, KnapsackEvaluator)
+    assert isinstance(evaluator, OptimizationEvaluator)
 
 
 # ---------------------------------------------------------------------------

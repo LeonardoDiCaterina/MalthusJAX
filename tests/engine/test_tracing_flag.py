@@ -1,4 +1,8 @@
-from malthusjax.core.fitness.real_evaluators import SphereEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import SphereEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine import genetic_fastengine as ge
 from malthusjax.engine.genetic_fastengine import (
@@ -14,9 +18,9 @@ from malthusjax.operators.selection.tournament import TournamentSelection
 
 def make_engine(debug: bool) -> GeneticEngine:
     cfg = RealGenomeConfig(shape=(2,), bounds=(-1.0, 1.0))
-    # SphereEvaluator takes a config with maximize flag
+    # OptimizationEvaluator takes a config with maximize flag
     eval_cfg = type("C", (), {"maximize": False})()
-    evaluator = SphereEvaluator(eval_cfg)
+    evaluator = OptimizationEvaluator(eval_cfg)
     sel = TournamentSelection(num_selections=4, tournament_size=2)
     cross = BlendCrossover(num_offspring=2)
     mut = GaussianMutation(num_offspring=2)

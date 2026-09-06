@@ -1,0 +1,15 @@
+[experiment]
+seeds = [42]
+
+[pipelines.main]
+backend = "composable_tensorneat"
+pop_size = 64
+generations = 50
+maximize = true
+
+[pipelines.main.fitness]
+type = "TensorNeatEvaluator"
+
+[pipelines.main.fitness.env]
+type = "TensorNEATProblemWrapper"
+problem_name = "XOR"

@@ -20,7 +20,10 @@ from malthusjax.composer.evosax_adapter import (
     list_strategies,
 )
 from malthusjax.core.fitness.base import BaseEvaluator
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
 
 from .base_adapter_suite import BaseAdapterTestSuite
 
@@ -51,9 +54,12 @@ except Exception:
 
 def make_bbob_evaluator(
     fn_name: str = "sphere", num_dims: int = 3, seed: int = 42, maximize: bool = False
-) -> BBOBEvaluator:
-    return BBOBEvaluator.create(
-        BBOBConfig(fn_name=fn_name, num_dims=num_dims, seed=seed, maximize=maximize)
+) -> OptimizationEvaluator:
+    return OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name=fn_name, num_dims=num_dims, seed=seed),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=maximize)
     )
 
 
@@ -103,7 +109,7 @@ class TestBuildEvosaxEngine:
         assert adapter.num_dims == 5
 
     def test_unwraps_bbob_evaluator(self):
-        """Passing a BBOBEvaluator results in a raw evosax problem stored."""
+        """Passing a OptimizationEvaluator results in a raw evosax problem stored."""
         from evosax.problems import BBOBProblem
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=2)

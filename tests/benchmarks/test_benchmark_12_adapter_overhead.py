@@ -10,7 +10,11 @@ import jax.random as jr
 import pytest
 
 from malthusjax.composer.evosax_adapter import build_evosax_engine
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from tests.benchmarks.conftest_benchmarks import (
     DIMENSIONS,
     NUM_GENERATIONS_LONG,
@@ -33,9 +37,12 @@ class TestAdapterOverhead:
         """Adapter: pure execution time after warmup."""
         num_gens = NUM_GENERATIONS_LONG
 
-        evalr = BBOBEvaluator.create(
-            BBOBConfig(fn_name="sphere", num_dims=dims, seed=SEED, maximize=False)
-        )
+        evalr = OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name="sphere", num_dims=dims, seed=SEED),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    )
         adapter = build_evosax_engine(
             strategy_name="SimpleGA",
             evaluator=evalr,

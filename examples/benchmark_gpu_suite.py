@@ -35,7 +35,7 @@ from malthusjax.operators.selection import TournamentSelection
 # ===========================================================================
 # Benchmark Objective Functions
 # ===========================================================================
-class SphereEvaluator(BaseEvaluator):
+class OptimizationEvaluator(BaseEvaluator):
     """Vectorized N-Dimensional Sphere Optimization Problem."""
 
     def evaluate_population(self, population: Any) -> Any:
@@ -64,7 +64,7 @@ def run_benchmark_suite(
     print(f"  Generations:        {generations_list}")
     print("=" * 90)
 
-    evaluator = SphereEvaluator(config=BaseEvaluatorConfig(maximize=False), data=None)
+    evaluator = OptimizationEvaluator(config=BaseEvaluatorConfig(maximize=False), data=None)
 
     results: Dict[str, Any] = {
         "backend": backend,

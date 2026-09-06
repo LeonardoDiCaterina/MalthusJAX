@@ -51,11 +51,11 @@ class ContinuousPopulation(BasePopulation[ContinuousGenome]):
 # 2. Define the Evaluator
 # ==============================================================================
 @struct.dataclass
-class SphereEvaluatorConfig:
+class OptimizationEvaluatorConfig:
     maximize: bool = struct.field(pytree_node=False, default=False)
 
 @struct.dataclass
-class SphereEvaluator(BaseEvaluator[ContinuousGenome, ContinuousGenomeConfig, SphereEvaluatorConfig]):
+class OptimizationEvaluator(BaseEvaluator[ContinuousGenome, ContinuousGenomeConfig, OptimizationEvaluatorConfig]):
     """Scores individuals based on the Sphere function (sum of squares)."""
 
     def evaluate(
@@ -75,8 +75,8 @@ def run_level_1_evolution():
     MUTATION_RATE = 0.1
 
     config = ContinuousGenomeConfig(shape=(10,))
-    evaluator_config = SphereEvaluatorConfig(maximize=False)
-    evaluator = SphereEvaluator(config=evaluator_config, data=None)
+    evaluator_config = OptimizationEvaluatorConfig(maximize=False)
+    evaluator = OptimizationEvaluator(config=evaluator_config, data=None)
 
     # 1. Initialize
     master_key = jax.random.PRNGKey(42)

@@ -11,7 +11,11 @@ import unittest
 import jax.numpy as jnp
 import jax.random as jar
 
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (
     GeneticEngine,
@@ -30,7 +34,7 @@ class TestReproductionPhaseValidation(unittest.TestCase):
         self.pop_size = 30
         genome_config = RealGenomeConfig(shape=(3,), bounds=(-5.0, 5.0))
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=3, maximize=False)
-        evaluator = BBOBEvaluator.create(bbob_config)
+        evaluator = OptimizationEvaluator.create(bbob_config)
 
         params = GeneticEngineParams(
             pop_size=self.pop_size,

@@ -42,11 +42,11 @@ class ContinuousPopulation(BasePopulation[ContinuousGenome]):
         return cls(genes=batched_genes, fitness=jnp.full((size,), jnp.inf), config=config)
 
 @struct.dataclass
-class SphereEvaluatorConfig:
+class OptimizationEvaluatorConfig:
     maximize: bool = struct.field(pytree_node=False, default=False)
 
 @struct.dataclass
-class SphereEvaluator(BaseEvaluator[ContinuousGenome, ContinuousGenomeConfig, SphereEvaluatorConfig]):
+class OptimizationEvaluator(BaseEvaluator[ContinuousGenome, ContinuousGenomeConfig, OptimizationEvaluatorConfig]):
     def evaluate(self, genome: ContinuousGenome, **kwargs: Any) -> chex.Array:
         return jnp.sum(genome.values ** 2)
 
@@ -96,8 +96,8 @@ def run_level_2_evolution():
     NUM_GENERATIONS = 100
 
     config = ContinuousGenomeConfig(shape=(10,))
-    evaluator_config = SphereEvaluatorConfig(maximize=False)
-    evaluator = SphereEvaluator(config=evaluator_config, data=None)
+    evaluator_config = OptimizationEvaluatorConfig(maximize=False)
+    evaluator = OptimizationEvaluator(config=evaluator_config, data=None)
 
     # 1. Initialize Operator
     mutator = ContinuousGaussianMutation(mutation_rate=0.1)

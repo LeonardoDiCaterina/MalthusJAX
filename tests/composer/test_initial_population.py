@@ -8,8 +8,10 @@ import jax.random as jr
 from malthusjax.composer.catalog import OperatorCatalog
 from malthusjax.composer.engine_factory import build_engine_from_catalog
 from malthusjax.composer.evosax_adapter import build_evosax_engine
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
 
 def test_adapters_accept_same_initial_population():
     pop_size = 12
@@ -20,7 +22,12 @@ def test_adapters_accept_same_initial_population():
     init_pop = jr.uniform(base_key, (pop_size, dim), minval=-5.0, maxval=5.0)
 
     # Evosax adapter (maximize=False to match BBOB standard)
-    evalr = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=dim, seed=0, maximize=False))
+    evalr = OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name="sphere", num_dims=dim, seed=0),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    )
     ev_adapter = build_evosax_engine(
         strategy_name="SimpleGA",
         evaluator=evalr,

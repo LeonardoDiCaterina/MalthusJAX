@@ -10,7 +10,11 @@ import jax
 import jax.random as jr
 import pytest
 
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.crossover.real import UniformCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
@@ -131,7 +135,7 @@ class TestOperatorMicrobenchmarks:
     def test_bbob_fitness_eval(self, benchmark, pop_size: int, dims: int):
         """BBOB fitness evaluation via MalthusJAX evaluator."""
         bbob_config = BBOBConfig(fn_name="sphere", num_dims=dims, seed=SEED, maximize=False)
-        evaluator = BBOBEvaluator.create(bbob_config)
+        evaluator = OptimizationEvaluator.create(bbob_config)
         genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
         pop = RealPopulation.init_random(jr.PRNGKey(0), genome_config, size=pop_size)
 
