@@ -5,10 +5,13 @@ be used interchangeably with GeneticEngineAdapter through Composer.quick_run().
 
 Usage::
 
-    from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator, BBOBConfig
-
     # build a MalthusJAX evaluator (could be any BaseEvaluator)
-    evalr = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=10, seed=0))
+    evalr = OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name="sphere", num_dims=10, seed=0),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False)
+    )
     adapter = build_evosax_engine(
         strategy_name="SimpleGA",
         evaluator=evalr,
@@ -40,7 +43,6 @@ import jax.random as jr
 from evosax.algorithms import population_based_algorithms
 
 from malthusjax.core.fitness.base import BaseEvaluator
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 
 EVOSAX_STRATEGIES: Dict[str, type] = population_based_algorithms
 
@@ -293,13 +295,13 @@ def build_evosax_engine(
         ``DifferentialEvolution``).
     evaluator
         A MalthusJAX :class:`BaseEvaluator` instance describing the
-        fitness function.  If the object is a :class:`BBOBEvaluator` the
+        fitness function.  If the object is a :class:`OptimizationEvaluator` the
         underlying evosax problem is unwrapped automatically.  Support for
         other evaluator types is not yet implemented and will raise
         ``NotImplementedError``.
     fitness_spec
         Optional catalog-style spec that may override the configuration of a
-        ``BBOBEvaluator`` when one is provided.  Has no effect for other
+        ``OptimizationEvaluator`` when one is provided.  Has no effect for other
         evaluator types.
     pop_size
         Population size.
@@ -327,35 +329,21 @@ def build_evosax_engine(
     if evaluator is None:
         raise ValueError("build_evosax_engine requires an evaluator argument")
 
-    if fitness_spec is not None and isinstance(evaluator, BBOBEvaluator):
-        from .catalog import OperatorCatalog
-
-        cat = OperatorCatalog()
-        parsed_name, parsed_params = cat.parse_spec(fitness_spec)
-        fn = parsed_params.get("fn_name", parsed_name)
-        dims = parsed_params.get("dim", parsed_params.get("num_dims"))
-        if dims is None:
-            dims = evaluator.config.num_dims
-        if "seed" in parsed_params:
-            seed = parsed_params["seed"]
-        if "maximize" in parsed_params:
-            maximize = parsed_params["maximize"]
-        evaluator = BBOBEvaluator.create(
-            BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maximize)
-        )
+    if evaluator is None:
+        raise ValueError("build_evosax_engine requires an evaluator argument")
 
     if strategy_name not in EVOSAX_STRATEGIES:
         raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
 
     rng = jr.PRNGKey(seed)
 
-    if isinstance(evaluator, BBOBEvaluator):
+    if hasattr(evaluator, "evosax_problem"):
         problem = evaluator.evosax_problem
-        problem_state = evaluator.problem_state
-        num_dims = evaluator.config.num_dims
+        problem_state = getattr(evaluator, "problem_state", None)
+        num_dims = getattr(evaluator.config, "num_dims", getattr(evaluator.config, "dim", 1))
     else:
         raise NotImplementedError(
-            "Only BBOBEvaluator instances are currently supported by the "
+            "Only evaluators with evosax_problem instances are currently supported by the "
             "evosax adapter. Generic BaseEvaluator support is not implemented yet."
         )
 
