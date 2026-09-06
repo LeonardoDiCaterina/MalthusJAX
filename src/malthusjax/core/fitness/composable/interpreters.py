@@ -16,6 +16,7 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.genome.real_genome import RealGenome
+from malthusjax.core.genome.linear_genome import LinearGenome
 from malthusjax.core.fitness.composable.base import BaseInterpreter
 
 
@@ -125,6 +126,10 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
 
     def _unflatten(self, flat_params: chex.Array) -> list[tuple[chex.Array, chex.Array]]:
         """Split a flat parameter vector into (W, b) pairs per layer.
+        
+        Note: Extracts bias before weights to match Flax's alphabetical
+        tree_flatten order ('bias', 'kernel'). This ensures mathematical
+        parity with legacy Flax-based evaluators.
 
         Args:
             flat_params: 1D array of length ``num_params``.
@@ -138,8 +143,8 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
         for i in range(len(sizes) - 1):
             w_size = sizes[i] * sizes[i + 1]
             b_size = sizes[i + 1]
-            W = flat_params[idx : idx + w_size].reshape(sizes[i], sizes[i + 1])
-            b = flat_params[idx + w_size : idx + w_size + b_size]
+            b = flat_params[idx : idx + b_size]
+            W = flat_params[idx + b_size : idx + b_size + w_size].reshape(sizes[i], sizes[i + 1])
             params.append((W, b))
             idx += w_size + b_size
         return params
@@ -166,3 +171,47 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
             if i < len(params) - 1:
                 x = act_fn(x)
         return x
+
+
+# =============================================================================
+# LinearGPInterpreter
+# =============================================================================
+
+@struct.dataclass
+class LinearGPInterpreter(BaseInterpreter[LinearGenome]):
+    """Interpreter for Linear Genetic Programming genomes.
+    
+    Translates a sequence of operation codes and argument indices into
+    intermediate outputs (symbiotic selection).
+    """
+
+    num_inputs: int = struct.field(pytree_node=False, default=10)  # type: ignore[no-untyped-call]
+    length: int = struct.field(pytree_node=False, default=100)  # type: ignore[no-untyped-call]
+
+    @property
+    def num_params(self) -> int:
+        return -1
+
+    def apply(self, genome: LinearGenome, inputs: chex.Array | None = None) -> chex.Array:
+        from malthusjax.core.fitness.linear_gp_evaluator import TENSORGP_FUNCTIONS
+        
+        total_mem = self.num_inputs + self.length
+        # Note: inputs might be batched (or singular from vmap). Assumes inputs is 1D inside apply.
+        memory = jnp.zeros(total_mem).at[: self.num_inputs].set(inputs)
+
+        def step(current_mem: Any, step_inputs: Any) -> Any:
+            mem, write_idx = current_mem
+            op_code, arg_indices = step_inputs
+
+            args_val = jnp.take(mem, arg_indices)
+            result = jax.lax.switch(
+                op_code, TENSORGP_FUNCTIONS, args_val[0], args_val[1], args_val[2]
+            )
+            result = jnp.nan_to_num(result, nan=0.0, posinf=1e6, neginf=-1e6)
+            new_mem = mem.at[write_idx].set(result)
+
+            return (new_mem, write_idx + 1), result
+
+        init_state = (memory, self.num_inputs)
+        _, instruction_outputs = jax.lax.scan(step, init_state, (genome.ops, genome.args))
+        return instruction_outputs

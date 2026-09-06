@@ -82,7 +82,7 @@ class BaseEvaluator(Generic[G, C, D]):
         """Reference optimal fitness value (e.g., global minimum).
 
         Returns None if the evaluator does not have a known reference optimum.
-        Concrete evaluators (e.g., BBOBEvaluator) override this property.
+        Concrete evaluators (e.g., OptimizationEvaluator) override this property.
         """
         return None
 
@@ -91,7 +91,7 @@ class BaseEvaluator(Generic[G, C, D]):
         """Reference optimal solution location.
 
         Returns None if the evaluator does not have a known reference optimum.
-        Concrete evaluators (e.g., BBOBEvaluator) override this property.
+        Concrete evaluators (e.g., OptimizationEvaluator) override this property.
         """
         return None
 

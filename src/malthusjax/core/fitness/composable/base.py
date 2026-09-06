@@ -24,6 +24,27 @@ G = TypeVar("G", bound=BaseGenome)
 
 
 # =============================================================================
+# Transforms
+# =============================================================================
+
+@struct.dataclass
+class BaseTransform(Generic[G]):
+    """Genotype to phenotype mapping axis."""
+    def transform(self, genome: G, state: Any = None) -> Any:
+        """Convert a single genome to a computationally optimized representation."""
+        return genome
+        
+    def transform_population(self, genes: Any, state: Any = None) -> Any:
+        """Convert a population of genomes. Overridable for population-level transforms."""
+        return jax.vmap(self.transform, in_axes=(0, None))(genes, state)
+
+@struct.dataclass
+class IdentityTransform(BaseTransform[Any]):
+    """Default no-op transform for direct parameter encoding."""
+    pass
+
+
+# =============================================================================
 # BaseInterpreter
 # =============================================================================
 
@@ -169,8 +190,14 @@ class BaseRLEnvironment(BaseEnvironment):
         """Flatten/normalize raw environment observation to a 1D array."""
         raise NotImplementedError
 
-    def postprocess_action(self, logits: chex.Array) -> Any:
-        """Convert interpreter output logits to environment-compatible action."""
+    def postprocess_action(self, logits: chex.Array, raw_obs: Any = None) -> chex.Array:
+        """Convert interpreter output logits to environment-compatible action.
+
+        Args:
+            logits: Output array from the interpreter.
+            raw_obs: The raw observation before preprocessing. Used by some
+                environments (like Jumanji) to apply action masks.
+        """
         raise NotImplementedError
 
     @property
@@ -190,9 +217,34 @@ class BaseRLEnvironment(BaseEnvironment):
 
 SUPPORTED_LOSS_FNS = ("mse", "bce", "mae")
 
+@struct.dataclass
+class BaseOutputMode:
+    """Interface for evaluating a genome's result and computing fitness + info."""
+    
+    def process_sl(
+        self, genome: Any, X: chex.Array, y: chex.Array, predictions: chex.Array
+    ) -> tuple[chex.Array, dict]:
+        raise NotImplementedError
+
+    def process_opt(
+        self, genome: Any, solution: chex.Array, raw_score: chex.Numeric
+    ) -> tuple[chex.Array, dict]:
+        raise NotImplementedError
+
+    def process_rl(
+        self, genome: Any, total_reward: chex.Numeric, final_state: Any, step_infos: Any
+    ) -> tuple[chex.Array, dict]:
+        raise NotImplementedError
+
+    def observe_step(
+        self, env_state: Any, obs: chex.Array, action: chex.Array, reward: chex.Numeric
+    ) -> Any:
+        """Called at each RL step to accumulate trajectory info (e.g. for QD)."""
+        return None
+
 
 @struct.dataclass
-class ScalarOutput:
+class ScalarOutput(BaseOutputMode):
     """Scalar fitness output mode for standard GA / ES engines.
 
     Computes a single scalar fitness per genome using the specified loss
@@ -205,15 +257,7 @@ class ScalarOutput:
     maximize: bool = struct.field(pytree_node=False, default=False)  # type: ignore[no-untyped-call]
 
     def compute_loss(self, predictions: chex.Array, targets: chex.Array) -> chex.Numeric:
-        """Compute scalar loss between predictions and targets.
-
-        Args:
-            predictions: Model outputs, shape (n_samples,) or (n_samples, n_outputs).
-            targets: Ground truth, matching shape of predictions.
-
-        Returns:
-            Scalar loss value. Lower is better unless ``maximize=True``.
-        """
+        """Compute scalar loss between predictions and targets."""
         predictions = jnp.squeeze(predictions)
 
         if self.loss_fn == "mse":
@@ -241,6 +285,17 @@ class ScalarOutput:
         """
         return -score if self.maximize else score
 
+    # --- BaseOutputMode implementations ---
+
+    def process_sl(self, genome: Any, X: chex.Array, y: chex.Array, predictions: chex.Array) -> tuple[chex.Array, dict]:
+        return self.compute_loss(predictions, y), {}
+
+    def process_opt(self, genome: Any, solution: chex.Array, raw_score: chex.Numeric) -> tuple[chex.Array, dict]:
+        return self.format_fitness(raw_score), {}
+
+    def process_rl(self, genome: Any, total_reward: chex.Numeric, final_state: Any, step_infos: Any) -> tuple[chex.Array, dict]:
+        return self.format_fitness(total_reward), {}
+
 
 @struct.dataclass
 class BaseDescriptorFn:
@@ -249,47 +304,65 @@ class BaseDescriptorFn:
     Injected into ``QDOutput`` — the Evaluator itself knows nothing about
     descriptors. This keeps QD concerns fully orthogonal to the Task/Env/Interpreter
     decomposition.
-
-    Concrete subclasses implement ``compute(genome, inputs, outputs)``.
     """
 
-    def compute(
-        self, genome: Any, inputs: chex.Array, outputs: chex.Array
-    ) -> chex.Array:
-        """Compute behavior descriptor from genome and evaluation result.
-
-        Args:
-            genome: The genome being evaluated.
-            inputs: The inputs passed to the interpreter (X or obs).
-            outputs: The interpreter outputs (predictions or actions).
-
-        Returns:
-            Descriptor vector, shape (descriptor_dim,).
-        """
+    def compute(self, genome: Any, inputs: chex.Array | None, outputs: chex.Array) -> chex.Array:
+        """Compute behavior descriptor for Supervised/Optimization tasks."""
         raise NotImplementedError
+
+    def compute_rl(self, genome: Any, final_state: Any, step_infos: Any) -> chex.Array:
+        """Compute behavior descriptor for RL tasks."""
+        raise NotImplementedError
+
+    def observe_step(self, env_state: Any, obs: chex.Array, action: chex.Array, reward: chex.Numeric) -> Any:
+        """Optional: Accumulate step info during RL rollouts."""
+        return None
 
 
 @struct.dataclass
-class QDOutput:
+class QDOutput(BaseOutputMode):
     """QD (Quality Diversity) output mode: fitness + behavior descriptors.
 
     Wraps a ``ScalarOutput`` for fitness and takes a separate
-    ``BaseDescriptorFn`` for descriptor computation. These two concerns are
-    completely decoupled — the same descriptor function can be combined with
-    any evaluator.
+    ``BaseDescriptorFn`` for descriptor computation.
     """
 
     scalar_output: ScalarOutput
     descriptor_fn: BaseDescriptorFn = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
+    def process_sl(self, genome: Any, X: chex.Array, y: chex.Array, predictions: chex.Array) -> tuple[chex.Array, dict]:
+        fitness, _ = self.scalar_output.process_sl(genome, X, y, predictions)
+        desc = self.descriptor_fn.compute(genome, X, predictions)
+        return fitness, {"descriptors": desc}
+
+    def process_opt(self, genome: Any, solution: chex.Array, raw_score: chex.Numeric) -> tuple[chex.Array, dict]:
+        fitness, _ = self.scalar_output.process_opt(genome, solution, raw_score)
+        desc = self.descriptor_fn.compute(genome, None, solution)
+        return fitness, {"descriptors": desc}
+
+    def process_rl(self, genome: Any, total_reward: chex.Numeric, final_state: Any, step_infos: Any) -> tuple[chex.Array, dict]:
+        fitness, _ = self.scalar_output.process_rl(genome, total_reward, final_state, step_infos)
+        desc = self.descriptor_fn.compute_rl(genome, final_state, step_infos)
+        return fitness, {"descriptors": desc}
+
+    def observe_step(self, env_state: Any, obs: chex.Array, action: chex.Array, reward: chex.Numeric) -> Any:
+        return self.descriptor_fn.observe_step(env_state, obs, action, reward)
+
 
 @struct.dataclass
-class MOOutput:
-    """Multi-Objective output mode: vector fitness per genome.
+class MOOutput(BaseOutputMode):
+    """Multi-Objective output mode: vector fitness per genome."""
 
-    Returns a fitness vector of shape (n_objectives,) per genome instead of a
-    scalar. The engine (e.g. NSGA-II) is responsible for Pareto front management.
-    """
+    objectives: tuple[ScalarOutput, ...] = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
-    n_objectives: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
-    maximize: bool = struct.field(pytree_node=False, default=False)  # type: ignore[no-untyped-call]
+    def process_sl(self, genome: Any, X: chex.Array, y: chex.Array, predictions: chex.Array) -> tuple[chex.Array, dict]:
+        fitness_vec = jnp.stack([obj.compute_loss(predictions, y) for obj in self.objectives])
+        return fitness_vec, {}
+
+    def process_opt(self, genome: Any, solution: chex.Array, raw_score: chex.Numeric) -> tuple[chex.Array, dict]:
+        fitness_vec = jnp.stack([obj.format_fitness(raw_score) for obj in self.objectives])
+        return fitness_vec, {}
+
+    def process_rl(self, genome: Any, total_reward: chex.Numeric, final_state: Any, step_infos: Any) -> tuple[chex.Array, dict]:
+        fitness_vec = jnp.stack([obj.format_fitness(total_reward) for obj in self.objectives])
+        return fitness_vec, {}

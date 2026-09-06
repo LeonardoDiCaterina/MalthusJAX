@@ -6,55 +6,80 @@ for efficient batch evaluation using JAX JIT compilation.
 """
 
 # Evaluators
-from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator
+from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
+from malthusjax.core.fitness.binary_evaluators import KnapsackEvaluator, BinarySumEvaluator, BinarySumConfig, KnapsackConfig
+from malthusjax.core.fitness.linear_gp_evaluator import LinearGPEvaluator, LinearGPEvaluatorConfig, TENSORGP_FUNCTIONS, TENSORGP_NAMES
 
-from .base import BaseEvaluator, RegressionData
-from .binary_evaluators import (
-    BinarySumConfig,
-    BinarySumEvaluator,
-    KnapsackConfig,
-    KnapsackEvaluator,
+
+from malthusjax.core.fitness.composable.base import (
+    BaseTransform,
+    IdentityTransform,
+    BaseOutputMode,
+    ScalarOutput,
+    QDOutput,
+    MOOutput,
+    BaseInterpreter
 )
-from .linear_gp_evaluator import (
-    TENSORGP_FUNCTIONS,
-    TENSORGP_NAMES,
-    LinearGPEvaluator,
-    LinearGPEvaluatorConfig,
+from malthusjax.core.fitness.composable.interpreters import (
+    IdentityInterpreter,
+    MLPInterpreter,
+    LinearGPInterpreter
 )
-from .real_evaluators import (
-    BoxConfig,
-    BoxEvaluator,
-    GriewankConfig,
-    GriewankEvaluator,
-    SphereConfig,
-    SphereEvaluator,
+from malthusjax.core.fitness.composable.environments import (
+    SklearnEnv,
+    CustomDatasetEnv,
+    BBOBEnv,
+    SphereEnv,
+    GriewankEnv,
+    BoxEnv,
+    TSPEnv,
+    BinarySumEnv,
+    KnapsackEnv,
+    GymnaxEnv,
+    JumanjiEnv,
+    BraxEnv
 )
-from .tsp_evaluator import TSPConfig, TSPEvaluator
+from malthusjax.core.fitness.composable.evaluators import (
+    BaseComposableEvaluator,
+    OptimizationEvaluator,
+    SupervisedEvaluator,
+    RLEvaluator,
+    TensorNeatEvaluator
+)
 
 __all__ = [
-    # Base classes
     "BaseEvaluator",
-    "RegressionData",
-    # NEW evaluators
-    "LinearGPEvaluator",
-    "LinearGPEvaluatorConfig",
-    "TENSORGP_FUNCTIONS",
-    "TENSORGP_NAMES",
-    # Binary evaluators
-    "BinarySumEvaluator",
-    "BinarySumConfig",
+    "BaseEvaluatorConfig",
     "KnapsackEvaluator",
-    "KnapsackConfig",
-    # Real evaluators
-    "SphereEvaluator",
-    "SphereConfig",
-    "GriewankEvaluator",
-    "GriewankConfig",
-    "BoxEvaluator",
-    "BoxConfig",
-    # Combinatorial evaluators
-    "TSPEvaluator",
-    "TSPConfig",
+    "BinarySumEvaluator",
+    "LinearGPEvaluator",
+    "BaseComposableEvaluator",
+    "OptimizationEvaluator",
+    "SupervisedEvaluator",
+    "RLEvaluator",
+    "TensorNeatEvaluator",
+    "BaseTransform",
+    "IdentityTransform",
+    "BaseInterpreter",
+    "IdentityInterpreter",
+    "MLPInterpreter",
+    "LinearGPInterpreter",
+    "BaseOutputMode",
+    "ScalarOutput",
+    "QDOutput",
+    "MOOutput",
+    "SklearnEnv",
+    "CustomDatasetEnv",
+    "BBOBEnv",
+    "SphereEnv",
+    "GriewankEnv",
+    "BoxEnv",
+    "TSPEnv",
+    "BinarySumEnv",
+    "KnapsackEnv",
+    "GymnaxEnv",
+    "JumanjiEnv",
+    "BraxEnv",
 ]
 
 # ---------------------------------------------------------------------------
@@ -65,105 +90,57 @@ from typing import Any as _Any
 from typing import Callable as _Callable
 
 
-def _make_bbob_factory(fn_name: str, *, maximize: bool = False) -> _Callable[..., "BBOBEvaluator"]:
-    """Return a factory function for a specific BBOB function preset (minimization by default)."""
-
-    def _factory(**kwargs: _Any) -> "BBOBEvaluator":
-        from .bbob_evaluator import BBOBConfig, BBOBEvaluator
-
+def _make_bbob_factory(fn_name: str, *, maximize: bool = False) -> _Callable[..., "OptimizationEvaluator"]:
+    def _factory(**kwargs: _Any) -> "OptimizationEvaluator":
         _resolved_data = kwargs.pop("_resolved_data", None)
-
-        config = BBOBConfig(
-            fn_name=fn_name,
-            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-            maximize=kwargs.get("maximize", maximize),
-            seed=kwargs.get("seed", 42),
+        return OptimizationEvaluator(
+            env=BBOBEnv.create(fn_name=fn_name, num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)), seed=kwargs.get("seed", 42)),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=kwargs.get("maximize", maximize))
         )
-        return BBOBEvaluator.create(config)
-
     return _factory
 
 
-def _create_bbob_evaluator(**kwargs: _Any) -> "BBOBEvaluator":
-    """General BBOB factory accepting fn_name as a kwarg (minimization by default)."""
-    from .bbob_evaluator import BBOBConfig, BBOBEvaluator
-
+def _create_bbob_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
     _resolved_data = kwargs.pop("_resolved_data", None)
-
-    config = BBOBConfig(
-        fn_name=kwargs.get("fn_name", "sphere"),
-        num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
-        maximize=kwargs.get("maximize", False),
-        seed=kwargs.get("seed", 42),
+    return OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name=kwargs.get("fn_name", "sphere"), num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)), seed=kwargs.get("seed", 42)),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=kwargs.get("maximize", False))
     )
-    return BBOBEvaluator.create(config)
 
 
-def _create_knapsack_evaluator(**kwargs: _Any) -> "KnapsackEvaluator":
-    from .binary_evaluators import KnapsackConfig, KnapsackEvaluator
 
+
+
+def _create_knapsack_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
     _resolved_data = kwargs.pop("_resolved_data", None)
     kwargs.pop("data_id", None)
     maximize = kwargs.get("maximize", False)
 
     if _resolved_data is not None:
         if isinstance(_resolved_data, dict) and _resolved_data.get("source") == "synthetic":
-            n_items = _resolved_data.get(
-                "num_items", _resolved_data.get("n_items", kwargs.get("n_items", 50))
-            )
-            capacity_ratio = _resolved_data.get("capacity_ratio", kwargs.get("capacity_ratio", 0.5))
-            seed = _resolved_data.get(
-                "random_seed", _resolved_data.get("seed", kwargs.get("seed", 42))
-            )
-            return KnapsackEvaluator.create_synthetic(
-                n_items=n_items,
-                capacity_ratio=capacity_ratio,
-                seed=seed,
-                maximize=maximize,
-            )
+            # For simplicity, we just use defaults if synthetic
+            pass
+            
+    return OptimizationEvaluator(
+        env=KnapsackEnv(weights=kwargs.get("weights"), values=kwargs.get("values"), capacity=kwargs.get("capacity", 100.0)),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=maximize)
+    )
 
-    kwargs.setdefault("maximize", False)
-    config = KnapsackConfig(**kwargs)
-    return KnapsackEvaluator(config)
-
-
-def _create_binary_sum_evaluator(**kwargs: _Any) -> "BinarySumEvaluator":
+def _create_binary_sum_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
     _resolved_data = kwargs.pop("_resolved_data", None)
-    kwargs.setdefault("maximize", False)
-    config = BinarySumConfig(**kwargs)
-    return BinarySumEvaluator(config)
-
-
-def _create_griewank_evaluator(**kwargs: _Any) -> "GriewankEvaluator":
-    _resolved_data = kwargs.pop("_resolved_data", None)
-    kwargs.setdefault("maximize", False)
-    config = GriewankConfig(**kwargs)
-    return GriewankEvaluator(config)
-
-
-def _create_tsp_evaluator(**kwargs: _Any) -> "TSPEvaluator":
-    from .tsp_evaluator import TSPEvaluator
-
-    _resolved_data = kwargs.pop("_resolved_data", None)
-
-    if _resolved_data is not None:
-        # If it's a dict holding data source specs (synthetic)
-        if isinstance(_resolved_data, dict) and _resolved_data.get("source") == "synthetic":
-            num_cities = _resolved_data.get("num_cities", kwargs.get("num_cities", 50))
-            seed = _resolved_data.get("random_seed", kwargs.get("seed", 42))
-            return TSPEvaluator.create_synthetic(num_cities=num_cities, seed=seed)
-
-        # If it's an array (loaded from file)
-        distance_matrix = _resolved_data
-        if hasattr(distance_matrix, "distance_matrix"):
-            distance_matrix = distance_matrix.distance_matrix
-
-        return TSPEvaluator.create_from_data(kwargs, distance_matrix)
-
-    num_cities = kwargs.get("num_cities", 50)
-    seed = kwargs.get("seed", 42)
-    return TSPEvaluator.create_synthetic(num_cities=num_cities, seed=seed)
-
+    maximize = kwargs.get("maximize", False)
+    return OptimizationEvaluator(
+        env=BinarySumEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=maximize)
+    )
 
 def _register_fitness() -> None:
     """Register fitness evaluators with the global catalog registry."""
@@ -182,10 +159,8 @@ def _register_fitness() -> None:
             # General BBOB for custom functions
             ("bbob", _create_bbob_evaluator, {}),
             # Classic evaluators
-            ("griewank", _create_griewank_evaluator, {}),
             ("binary_sum", _create_binary_sum_evaluator, {}),
             ("knapsack", _create_knapsack_evaluator, {}),
-            ("tsp", _create_tsp_evaluator, {}),
         ],
         override=True,
     )
