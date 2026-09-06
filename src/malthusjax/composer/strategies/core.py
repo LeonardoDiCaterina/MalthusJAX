@@ -69,6 +69,6 @@ class TensorNEATStrategy(BaseStrategy):
     algorithm_name: str = struct.field(pytree_node=False, default="NEAT")
     genome_name: str = struct.field(pytree_node=False, default="default")
     problem_name: Optional[str] = struct.field(pytree_node=False, default=None)
-    num_inputs: int = struct.field(pytree_node=False, default=2)
-    num_outputs: int = struct.field(pytree_node=False, default=1)
+    num_inputs: Optional[int] = struct.field(pytree_node=False, default=None)
+    num_outputs: Optional[int] = struct.field(pytree_node=False, default=None)
     algorithm_kwargs: dict[str, Any] = struct.field(pytree_node=False, default_factory=dict)

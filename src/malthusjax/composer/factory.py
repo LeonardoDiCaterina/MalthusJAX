@@ -13,12 +13,15 @@ from malthusjax.composer.strategies.core import (
     QDAXStrategy,
     TensorNEATStrategy,
 )
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 
 def has_real_operators(
     genome: Optional[str],
-    fitness: Optional[str],
+    fitness: Optional[Any],
     selection: Optional[str],
     crossover: Optional[str],
     mutation: Optional[str],
@@ -53,7 +56,7 @@ def _check_compatibility(operator: Any, genome_type: str, engine_type: str, role
 
 def build_real_engine(
     strategy: BaseStrategy,
-    fitness: Optional[str],
+    fitness: Optional[Any],
     engine_type: str = "ga",
     genome_type: str = "real",
     data_config: Optional[Dict[str, Any]] = None,
@@ -69,21 +72,27 @@ def build_real_engine(
     seed_val = config.get("seed", 42)
     maximize_flag = config.get("maximize", False)
     # We append seed to fitness strings if missing so BBOB etc uses the right seed
-    if isinstance(fitness, (str, dict)):
-        if isinstance(fitness, str):
-            if "seed=" not in fitness:
-                if ":" in fitness:
-                    fitness = f"{fitness},seed={seed_val}"
-                else:
-                    fitness = f"{fitness}:seed={seed_val}"
-        else:
-            if "seed" not in fitness:
-                fitness["seed"] = seed_val
+    if isinstance(fitness, str):
+        if "seed=" not in fitness:
+            if ":" in fitness:
+                fitness = f"{fitness},seed={seed_val}"
+            else:
+                fitness = f"{fitness}:seed={seed_val}"
         resolved_evaluator = catalog.get(
             fitness,
             data_registry=data_registry,
+            maximize=maximize_flag,
+        )
+    elif isinstance(fitness, dict):
+        if "seed" not in fitness:
+            fitness["seed"] = seed_val
+        resolved_evaluator = catalog.get(
+            fitness,
+            data_registry=data_registry,
+            maximize=maximize_flag,
         )
     elif fitness is not None:
+        # Assuming it's already an instantiated Evaluator object (from parse_evaluator)
         resolved_evaluator = fitness
     else:
         resolved_evaluator = catalog.get(
@@ -140,7 +149,7 @@ def build_real_engine(
 
 def build_evosax_engine(
     strategy_name: str,
-    fitness_spec: Optional[str],
+    fitness_spec: Optional[Any],
     pop_size: int,
     generations: int,
     num_dims: int,
@@ -180,8 +189,11 @@ def build_evosax_engine(
             dims = parsed_params.get("dim", parsed_params.get("num_dims", num_dims))
             seed = parsed_params.get("seed", kwargs.get("seed", 42))
             maxim = parsed_params.get("maximize", maximize)
-            evalr = BBOBEvaluator.create(
-                BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maxim)
+            evalr = OptimizationEvaluator(
+                env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
+                transform=IdentityTransform(),
+                interpreter=IdentityInterpreter(),
+                output=ScalarOutput(maximize=maxim)
             )
         else:
             evalr = fitness_spec
@@ -195,8 +207,11 @@ def build_evosax_engine(
         dims = num_dims
         seed = kwargs.get("seed", 42)
         maxim = maximize
-        evalr = BBOBEvaluator.create(
-            BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maxim)
+        evalr = OptimizationEvaluator(
+            env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=maxim)
         )
     # If no initial_population provided and evaluator has sample() method,
     # use it for consistent initialization across backends
@@ -222,7 +237,7 @@ def build_evosax_engine(
 
 def build_qdax_engine(
     strategy: QDAXStrategy,
-    fitness_spec: Optional[str],
+    fitness_spec: Optional[Any],
     pop_size: int,
     generations: int,
     genome_length: int,
@@ -321,7 +336,7 @@ def build_qdax_engine(
 
 
 def resolve_qdax_evaluator(
-    fitness_spec: Optional[str], bounds: Tuple[float, float], maximize: bool
+    fitness_spec: Optional[Any], bounds: Tuple[float, float], maximize: bool
 ) -> Any:
     from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
 
@@ -374,7 +389,7 @@ def resolve_qdax_evaluator(
 
 def build_tensorneat_engine(
     strategy: TensorNEATStrategy,
-    fitness_spec: Optional[str],
+    fitness_spec: Optional[Any],
     pop_size: int,
     generations: int,
     maximize: bool,
@@ -475,7 +490,7 @@ def resolve_tensorneat_problem(
 
 def build_map_elites_engine(
     strategy: MapElitesStrategy,
-    fitness_spec: Optional[str],
+    fitness_spec: Optional[Any],
     pop_size: int,
     generations: int,
     maximize: bool,
@@ -510,8 +525,11 @@ def build_map_elites_engine(
     # 2. Resolve Evaluator
     evaluator: Any = None
     if isinstance(emitter_obj, TensorNeatEmitter):
-        from malthusjax.core.fitness.base import BaseEvaluatorConfig
-        from malthusjax.core.fitness.tensorneat import TensorNeatQDEvaluator
+        from malthusjax.core.fitness.composable.base import ScalarOutput
+        from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
+        from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
+        from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+        from plugins.tensor_neat_transform import TensorNeatTransform
 
         problem_name = kwargs.get("tensorneat_problem", None)
         # Extract objective_function if passed directly
@@ -543,44 +561,13 @@ def build_map_elites_engine(
             # Assign genome to emitter
             emitter_obj = cast(Any, emitter_obj).replace(genome=genome_obj)
 
-            # Create a wrapper objective function that calls problem.evaluate
-            def obj_fn(nodes, conns):
-                import jax
-                import jax.numpy as jnp
-                from tensorneat.common import State
-
-                # Ensure nodes and conns have batch dimension
-                if nodes.ndim == 2:  # Single network
-                    nodes = jnp.expand_dims(nodes, 0)
-                    conns = jnp.expand_dims(conns, 0)
-                batch_size = nodes.shape[0]
-                state = State(randkey=jax.random.PRNGKey(0))
-                state = genome_obj.setup(state)
-                # 1. Transform population
-                # genome_obj.transform takes (state, nodes, conns)
-                # We map over nodes and conns
-                transformed_pop = jax.vmap(genome_obj.transform, in_axes=(None, 0, 0))(
-                    state, nodes, conns
-                )
-                # 2. Evaluate population
-                keys = jax.random.split(jax.random.PRNGKey(0), batch_size)
-                fitness = jax.vmap(problem.evaluate, in_axes=(None, 0, None, 0))(
-                    state, keys, genome_obj.forward, transformed_pop
-                )
-                # FIX: TensorNEAT problems natively return inverted fitness (-loss) for
-                # its internal maximization loop. However, MalthusJAX engines expect the
-                # raw objective value (e.g., positive loss) if `maximize=False`.
-                if not maximize:
-                    fitness = -fitness
-                # TensorNEAT problems don't return descriptors, so we use dummy ones for QD
-                descriptors = jnp.zeros((batch_size, kwargs.get("qdax_num_descriptors", 2)))
-                return fitness, descriptors
-
-            objective_fn = obj_fn
-        evaluator = TensorNeatQDEvaluator(
-            objective_function=objective_fn,
-            config=BaseEvaluatorConfig(maximize=maximize),
-            data=None,
+        evaluator = TensorNeatEvaluator(
+            env=TensorNEATProblemWrapper(problem=problem),
+            transform=TensorNeatTransform(algorithm=genome_obj),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(),
+            forward_fn=genome_obj.forward,
+            maximize=maximize,
         )
     else:
         # We use the BaseQDEvaluator composition to match standard evaluation
@@ -667,4 +654,138 @@ def build_stub_engine(generations: int, **kwargs: Any) -> StubEngine:
         generations=generations,
         base_fitness=base_fitness,
         improvement_rate=improvement_rate,
+    )
+
+
+def build_composable_tensorneat_engine(
+    strategy: TensorNEATStrategy,
+    fitness_spec: Optional[Any],
+    pop_size: int,
+    generations: int,
+    maximize: bool,
+    history_metrics: Optional[Sequence[str]],
+    **kwargs: Any,
+) -> Any:
+    import inspect
+
+    import tensorneat.algorithm
+    import tensorneat.genome
+
+    from .composable_tensor_neat_adapter import (
+        build_composable_tensorneat_engine as adapter_build_composable_tensorneat_engine,
+    )
+
+    # 1. Resolve Evaluator FIRST to get dimensions
+    if not isinstance(fitness_spec, str) and fitness_spec is not None:
+        evaluator = fitness_spec
+        if hasattr(evaluator, "evosax_problem"):
+            problem = evaluator.evosax_problem
+            problem_state = evaluator.problem_state
+        else:
+            problem = None
+            problem_state = None
+    else:
+        problem, problem_state = resolve_tensorneat_problem(strategy.problem_name, fitness_spec)
+        evaluator = None
+
+    # Try to extract dimensions from evaluator interpreter
+    num_inputs = strategy.num_inputs
+    num_outputs = strategy.num_outputs
+
+    if (num_inputs is None or num_outputs is None) and evaluator is not None and hasattr(evaluator, "interpreter"):
+        num_inputs = num_inputs or evaluator.interpreter.input_dim
+        num_outputs = num_outputs or evaluator.interpreter.output_dim
+
+    if num_inputs is None or num_outputs is None:
+        num_inputs = num_inputs or 2
+        num_outputs = num_outputs or 1
+
+    algorithm_cls: Any = None
+    for name, obj in inspect.getmembers(tensorneat.algorithm, inspect.isclass):
+        if name.lower() == strategy.algorithm_name.lower():
+            algorithm_cls = obj
+            break
+    if algorithm_cls is None:
+        raise ValueError(f"Unknown TensorNEAT algorithm: {strategy.algorithm_name}")
+
+    genome_cls: Any = None
+    target_genome = strategy.genome_name.lower()
+    for name, obj in inspect.getmembers(tensorneat.genome, inspect.isclass):
+        name_lower = name.lower()
+        if name_lower == target_genome or name_lower == f"{target_genome}genome":
+            genome_cls = obj
+            break
+    if genome_cls is None:
+        raise ValueError(f"Unknown TensorNEAT genome: {strategy.genome_name}")
+
+    genome = genome_cls(num_inputs=num_inputs, num_outputs=num_outputs)
+
+    alg_kwargs = strategy.algorithm_kwargs.copy()
+    init_pop = alg_kwargs.pop("initial_population", kwargs.get("initial_population", None))
+    algorithm = algorithm_cls(pop_size=pop_size, genome=genome, **alg_kwargs)
+
+    return adapter_build_composable_tensorneat_engine(
+        algorithm=algorithm,
+        evaluator=evaluator or (problem, problem_state),
+        generations=generations,
+        pop_size=pop_size,
+        maximize=maximize,
+        history_metrics=history_metrics,
+        initial_population=init_pop,
+    )
+
+
+def build_composable_evosax_engine(
+    strategy_name: str = "SimpleGA",
+    fitness_spec: Optional[str] = None,
+    pop_size: int = 50,
+    generations: int = 100,
+    num_dims: int = 1,
+    bounds: Optional[Tuple[float, float]] = None,
+    maximize: bool = False,
+    prng_impl: Optional[str] = None,
+    history_metrics: Optional[Sequence[str]] = None,
+    **kwargs: Any,
+) -> Any:
+    from .composable_evosax_adapter import (
+        build_composable_evosax_engine as adapter_build_composable_evosax_engine,
+    )
+
+    if fitness_spec is not None:
+        if isinstance(fitness_spec, str):
+            from .catalog import OperatorCatalog
+            cat = OperatorCatalog()
+            parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+            fn = parsed_params.get("fn_name", parsed_name)
+            dims = parsed_params.get("dim", parsed_params.get("num_dims", num_dims))
+            seed = parsed_params.get("seed", kwargs.get("seed", 42))
+            maxim = parsed_params.get("maximize", maximize)
+            evalr = OptimizationEvaluator(
+                env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
+                transform=IdentityTransform(),
+                interpreter=IdentityInterpreter(),
+                output=ScalarOutput(maximize=maxim)
+            )
+        else:
+            evalr = fitness_spec
+            maxim = (
+                getattr(evalr.config, "maximize", maximize)
+                if hasattr(evalr, "config")
+                else maximize
+            )
+    else:
+        evalr = None
+        maxim = maximize
+
+    return adapter_build_composable_evosax_engine(
+        strategy_name=strategy_name,
+        evaluator=evalr,
+        pop_size=pop_size,
+        generations=generations,
+        num_dims=num_dims,
+        bounds=bounds,
+        maximize=maxim,
+        strategy_params=kwargs.get("strategy_params"),
+        prng_impl=prng_impl,
+        **kwargs
     )

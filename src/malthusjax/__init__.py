@@ -12,14 +12,6 @@ from .core.fitness.binary_evaluators import (
     KnapsackConfig,
     KnapsackEvaluator,
 )
-from .core.fitness.real_evaluators import (
-    BoxConfig,
-    BoxEvaluator,
-    GriewankConfig,
-    GriewankEvaluator,
-    SphereConfig,
-    SphereEvaluator,
-)
 from .core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
 from .core.genome.categorical_genome import (
     CategoricalGenome,
@@ -45,12 +37,6 @@ __all__ = [
     "BinarySumEvaluator",
     "KnapsackConfig",
     "KnapsackEvaluator",
-    "BoxConfig",
-    "BoxEvaluator",
-    "GriewankConfig",
-    "GriewankEvaluator",
-    "SphereConfig",
-    "SphereEvaluator",
     # Genomes & populations
     "BinaryGenome",
     "BinaryGenomeConfig",

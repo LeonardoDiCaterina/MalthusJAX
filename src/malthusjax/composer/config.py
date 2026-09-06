@@ -173,4 +173,16 @@ def infer_genome_length(cfg: Dict[str, Any]) -> int:
         dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
         if dim_val is not None:
             return int(dim_val)
+    elif isinstance(fitness_spec, dict):
+        if "interpreter" in fitness_spec and isinstance(fitness_spec["interpreter"], dict):
+            # If interpreter is specified, its input_dim might be the genome length if identity,
+            # or it might have a num_weights property. We can check `input_dim`.
+            pass
+        if "env" in fitness_spec and isinstance(fitness_spec["env"], dict):
+            # Same logic
+            env_spec = fitness_spec["env"]
+            if "num_dims" in env_spec:
+                return int(env_spec["num_dims"])
+            if "dim" in env_spec:
+                return int(env_spec["dim"])
     return 10
