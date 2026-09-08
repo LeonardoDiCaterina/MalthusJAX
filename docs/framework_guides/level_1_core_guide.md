@@ -3,24 +3,39 @@
 ## 📚 Overview
 MalthusJAX is designed with a strict hierarchical architecture. **Level 1** represents the absolute foundation: `src/malthusjax/core/`.
 
-If you decide to use *only* Level 1, you are opting out of the automated Resource Mapper, the Operator Registry, and the Engine's `lax.scan` loop. Instead, you are using MalthusJAX simply as a highly optimized, type-safe PyTree structuring library to manage your evolutionary state while you manually write the JAX training loops yourself.
+If you decide to use *only* Level 1, you are opting out of the automated Resource Mapper, the Operator Registry, and the Engine's `lax.scan` loop. Instead, you are using MalthusJAX as a highly optimized, type-safe PyTree structuring library to manage your evolutionary state while you manually write the JAX training loops yourself.
 
-This is highly recommended for researchers who want to prototype wild new algorithmic structures (e.g., crazy nested RL loops) where the standard Genetic Engine feels too restrictive.
+This is highly recommended for researchers who want to prototype wild new algorithmic structures (e.g., crazy nested RL loops, custom meta-evolution) where the standard Genetic Engine feels too restrictive.
 
 ---
 
-## 1️⃣ The Three Pillars of Level 1
+## 1️⃣ The Four Pillars of Level 1
 
-At this level, you only interact with three base classes:
+At this level, you interact with four base abstractions:
 
 ### 1. `BaseGenome` and `BaseGenomeConfig`
-You define the mathematical structure of a single individual. By inheriting from `BaseGenome` (which is a `flax.struct.dataclass`), you guarantee that your individual is a valid JAX PyTree.
+Defines the mathematical structure of a single individual. By inheriting from `BaseGenome` (a `flax.struct.dataclass`), your genome is a valid JAX PyTree and participates in `jax.jit`, `jax.vmap`, and `jax.lax.scan` automatically.
 
 ### 2. `BasePopulation`
-You define how a batch of genomes is stored. The `BasePopulation` inherently knows how to handle "Lifted Struct-of-Arrays". You never deal with lists of genomes; instead, the population holds a single `BaseGenome` where every internal array has a leading batch dimension `(pop_size, ...)`.
+Holds a batch of genomes in **Struct-of-Arrays (SoA)** layout. You never deal with Python lists of genomes — the population holds a single `BaseGenome` where every internal array has a leading batch dimension `(pop_size, ...)`.
 
-### 3. `BaseEvaluator`
-You define how an individual (or population) is scored. `dispatch_evaluate_population` uses `jax.vmap` under the hood to automatically vectorize your single-individual evaluation logic across the entire population matrix.
+### 3. The Composable Evaluator (`Environment × Transform × Interpreter × Output`)
+The new core paradigm for defining fitness. Instead of subclassing a single monolithic evaluator, you **compose** four independent axes:
+
+| Axis | Role | Examples |
+|---|---|---|
+| **Environment** | The problem definition | `SphereEnv`, `TSPEnv`, `SklearnEnv`, `BraxEnv` |
+| **Transform** | Genotype → phenotype mapping | `IdentityTransform`, `TensorNeatTransform` |
+| **Interpreter** | How the genome produces outputs | `IdentityInterpreter`, `MLPInterpreter` |
+| **Output** | Fitness aggregation & sign convention | `ScalarOutput`, `QDOutput`, `MOOutput` |
+
+These plug into one of the three evaluator shells: `OptimizationEvaluator`, `SupervisedEvaluator`, or `RLEvaluator`.
+
+> [!NOTE]
+> For simple optimization tasks (minimizing/maximizing a function of real vectors), the stack collapses to just `SphereEnv + IdentityInterpreter + ScalarOutput` — three lines total. You only need to add more axes when your problem is more complex (e.g., using a neural network policy, or a QD descriptor).
+
+### 4. `BaseEvaluatorConfig`
+Holds cross-cutting configuration (e.g., `maximize: bool`). For most cases this is managed internally by `ScalarOutput`.
 
 ---
 
@@ -28,11 +43,12 @@ You define how an individual (or population) is scored. `dispatch_evaluate_popul
 
 When working strictly at Level 1, your workflow looks like this:
 
-1. **Initialize**: Call `config.init_population(key, pop_size)` to get your starting `BasePopulation`.
-2. **Evaluate**: Call `dispatch_evaluate_population` to calculate initial fitness.
-3. **The Loop**: Write a standard Python `for` loop (or your own `jax.lax.scan`).
-4. **Manual RNG**: You are fully responsible for calling `jax.random.split` to manage PRNG keys.
-5. **Manual VMAP**: You write your own mutation/crossover logic and explicitly wrap it in `jax.vmap` to apply it to the population's gene arrays.
+1. **Define your genome** — inherit from `BaseGenome` and `BaseGenomeConfig`.
+2. **Compose your evaluator** — pick an `Environment`, pair it with an `Interpreter` and `ScalarOutput`, plug into `OptimizationEvaluator`.
+3. **Initialize** — call `config.init_population(key, pop_size)` to get your starting `BasePopulation`.
+4. **The Loop** — write a standard Python `for` loop or your own `jax.lax.scan`.
+5. **Manual RNG** — you are fully responsible for calling `jax.random.split` to manage PRNG keys.
+6. **Manual VMAP** — write your own mutation/crossover logic and explicitly wrap it in `jax.vmap`.
 
 ---
 
@@ -40,7 +56,8 @@ When working strictly at Level 1, your workflow looks like this:
 
 > [!TIP]
 > **Pros**:
-> - Absolute freedom. You can write custom meta-learning loops, hybrid RL/Evolution loops, or completely non-standard algorithms without fighting the framework's Engine.
+> - Absolute freedom. Write custom meta-learning loops, hybrid RL/Evolution loops, or completely non-standard algorithms without fighting the framework's Engine.
+> - The composable evaluator stack is still fully JIT-compatible — you get the benefits of the new architecture without needing the Engine.
 > - Perfect for rapid prototyping in Jupyter Notebooks.
 
 > [!WARNING]
