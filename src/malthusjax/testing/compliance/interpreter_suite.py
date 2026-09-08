@@ -3,6 +3,7 @@ import dataclasses
 from typing import Any
 
 import jax
+import numpy as np
 import pytest
 
 from malthusjax.core.fitness.composable.base import BaseInterpreter
@@ -24,7 +25,7 @@ class InterpreterComplianceSuite:
     @pytest.fixture
     def mock_genome(self) -> Any:
         raise NotImplementedError("You must implement the `mock_genome` fixture.")
-        
+
     @pytest.fixture
     def mock_inputs(self) -> Any:
         raise NotImplementedError("You must implement the `mock_inputs` fixture.")
@@ -34,7 +35,7 @@ class InterpreterComplianceSuite:
 
     def test_inheritance(self, component) -> None:
         assert isinstance(component, BaseInterpreter), "Component must inherit from BaseInterpreter."
-        
+
     def test_num_params_type(self, component) -> None:
         assert isinstance(component.num_params, int), "num_params must return an integer."
 
@@ -46,15 +47,15 @@ class InterpreterComplianceSuite:
             assert output is not None
         except jax.errors.ConcretizationTypeError as e:
             pytest.fail(f"JIT compilation failed due to a tracer leak.\nDetails: {e}")
-            
+
     def test_apply_is_vmappable(self, component, mock_genome, mock_inputs) -> None:
         """Verify that apply can be vmapped over inputs."""
         if mock_inputs is None:
             pytest.skip("Interpreter does not take inputs, skipping vmap test.")
-        
+
         # Create a batch of 5 identical inputs
-        batched_inputs = jax.tree_map(lambda x: jax.numpy.stack([x]*5), mock_inputs)
-        
+        batched_inputs = jax.tree_util.tree_map(lambda x: jax.numpy.stack([x]*5), mock_inputs)
+
         vmapped_apply = jax.vmap(component.apply, in_axes=(None, 0))
         try:
             output = vmapped_apply(mock_genome, batched_inputs)
@@ -69,9 +70,9 @@ class InterpreterComplianceSuite:
         """Verify that multiple calls with the same inputs return the exact same outputs."""
         output1 = component.apply(mock_genome, mock_inputs)
         output2 = component.apply(mock_genome, mock_inputs)
-        
+
         # Deep compare outputs
         jax.tree_util.tree_map(
-            lambda x, y: jax.numpy.testing.assert_allclose(x, y),
+            lambda x, y: np.testing.assert_allclose(x, y),
             output1, output2
         )

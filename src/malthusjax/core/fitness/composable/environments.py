@@ -16,9 +16,9 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.fitness.composable.base import (
-    BaseSupervisedEnvironment,
     BaseOptimizationEnvironment,
     BaseRLEnvironment,
+    BaseSupervisedEnvironment,
 )
 
 try:
@@ -45,10 +45,10 @@ def _load_sklearn_data(dataset_name: str, **kwargs) -> tuple[chex.Array, chex.Ar
     """
     from sklearn.datasets import (
         fetch_california_housing,
-        load_diabetes,
         load_breast_cancer,
-        make_regression,
+        load_diabetes,
         make_classification,
+        make_regression,
     )
 
     seed = int(kwargs.pop("seed", 42))
@@ -309,7 +309,7 @@ class BoxEnv(BaseOptimizationEnvironment):
 @struct.dataclass
 class TSPEnv(BaseOptimizationEnvironment):
     """TSP (Traveling Salesman Problem) environment.
-    
+
     Uses Random Key encoding: the argsort of the real-valued solution array
     gives the permutation of cities.
     """
@@ -318,7 +318,7 @@ class TSPEnv(BaseOptimizationEnvironment):
 
     def evaluate(self, solution: chex.Array) -> chex.Numeric:
         """Evaluate a solution's fitness on TSP.
-        
+
         Args:
             solution: Continuous real array which is argsorted to form a tour.
         Returns:
@@ -426,7 +426,7 @@ class JumanjiEnv(BaseRLEnvironment):
     def preprocess_obs(self, obs: Any) -> chex.Array:
         # 'obs' is actually a Jumanji TimeStep object, so its .observation is the true observation struct
         true_obs = getattr(obs, "observation", obs)
-        
+
         # Heuristic to extract the main feature array from the observation struct
         if hasattr(true_obs, "grid"):
             return jnp.reshape(true_obs.grid, -1)
@@ -460,7 +460,7 @@ class JumanjiEnv(BaseRLEnvironment):
         spec = self.env.action_spec() if callable(self.env.action_spec) else self.env.action_spec
         # Jumanji Discrete spaces usually expose num_values
         if hasattr(spec, "num_values"):
-            # MultiDiscrete is handled by prod(num_values) 
+            # MultiDiscrete is handled by prod(num_values)
             import numpy as np
             return int(np.prod(spec.num_values))
         return spec.num_values # scalar discrete
@@ -510,14 +510,14 @@ class BraxEnv(BaseRLEnvironment):
 @struct.dataclass
 class TensorNEATProblemWrapper(BaseOptimizationEnvironment):
     """A wrapper for TensorNEAT internal problems to be used directly by TensorNeatEvaluator.
-    
+
     TensorNEAT natively handles RL and optimization rollouts internally via `.evaluate()`.
     This wrapper strictly adheres to their paper-grade benchmarking by passing the raw problem through
     so MalthusJAX can leverage it directly without breaking open the episode loop.
     """
-    
+
     problem: TNBaseProblem = struct.field(pytree_node=False)
-    
+
     @property
     def num_dims(self) -> int:
         return 0

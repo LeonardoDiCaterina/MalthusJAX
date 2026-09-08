@@ -10,22 +10,21 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
 import jax
 import jax.numpy as jnp
+import pytest
 
 from malthusjax.core.fitness.composable import (
-    MLPInterpreter,
-    IdentityInterpreter,
-    SklearnEnv,
-    CustomDatasetEnv,
     BBOBEnv,
-    ScalarOutput,
-    SupervisedEvaluator,
+    CustomDatasetEnv,
+    IdentityInterpreter,
+    MLPInterpreter,
     OptimizationEvaluator,
+    ScalarOutput,
+    SklearnEnv,
+    SupervisedEvaluator,
 )
 from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
-
 
 # =============================================================================
 # Helpers
@@ -89,7 +88,7 @@ class TestMLPInterpreter:
     def test_apply_different_inputs(self):
         """Different inputs produce different outputs."""
         interp = MLPInterpreter(input_dim=2, output_dim=1, hidden=())
-        genome = make_real_genome([1.0, 0.0, 0.0, 0.5])  # W=[[1,0],[0,1]], b=[0, 0.5]
+        genome = make_real_genome([1.0, 0.0, 0.5])  # W=[[1,0]], b=[0.5]
         r1 = interp.apply(genome, jnp.array([1.0, 0.0]))
         r2 = interp.apply(genome, jnp.array([0.0, 1.0]))
         assert not jnp.allclose(r1, r2)
@@ -102,9 +101,9 @@ class TestMLPInterpreter:
         # For input [1.0]: hidden = relu([-1, -1]) = [0, 0], output = 0
         n = interp.num_params
         # W0 shape: (1,2), b0 shape: (2,), W1 shape: (2,1), b1 shape: (1,)
-        # Flat: [-1, -1, 0, 0, 1, 1, 0]  (3+4=7 params)
-        assert n == 1*2 + 2 + 2*1 + 1  # = 7
-        params = jnp.array([-1.0, -1.0, 0.0, 0.0, 1.0, 1.0, 0.0])
+        # Order is [b0, W0, b1, W1]
+        assert n == 2 + 1*2 + 1 + 2*1  # = 7
+        params = jnp.array([0.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0])
         genome = RealGenome(values=params)
         result = interp.apply(genome, jnp.array([1.0]))
         assert float(result[0]) == pytest.approx(0.0)
@@ -180,7 +179,7 @@ class TestSupervisedEvaluator:
 
     def test_evaluate_single_genome(self):
         genome = make_real_genome([0.1] * self.interp.num_params)
-        fitness = self.evaluator.evaluate(genome)
+        fitness, info = self.evaluator.evaluate(genome, genome)
         assert fitness.shape == ()  # scalar
         assert jnp.isfinite(fitness)
 
@@ -192,7 +191,7 @@ class TestSupervisedEvaluator:
 
     def test_zero_genome_gives_finite_fitness(self):
         genome = make_real_genome([0.0] * self.interp.num_params)
-        fitness = self.evaluator.evaluate(genome)
+        fitness, info = self.evaluator.evaluate(genome, genome)
         assert jnp.isfinite(fitness)
 
     def test_bce_loss_mode(self):
@@ -201,7 +200,7 @@ class TestSupervisedEvaluator:
         output = ScalarOutput(loss_fn="bce")
         evaluator = SupervisedEvaluator(env=env, interpreter=interp, output=output)
         genome = make_real_genome([0.0] * interp.num_params)
-        fitness = evaluator.evaluate(genome)
+        fitness, info = evaluator.evaluate(genome, genome)
         assert jnp.isfinite(fitness)
 
     def test_maximize_flag_negates_loss(self):
@@ -211,8 +210,8 @@ class TestSupervisedEvaluator:
         out_max = ScalarOutput(loss_fn="mse", maximize=True)
         eval_min = SupervisedEvaluator(env=self.env, interpreter=self.interp, output=out_min)
         eval_max = SupervisedEvaluator(env=self.env, interpreter=self.interp, output=out_max)
-        f_min = eval_min.evaluate(genome)
-        f_max = eval_max.evaluate(genome)
+        f_min, info_min = eval_min.evaluate(genome, genome)
+        f_max, info_max = eval_max.evaluate(genome, genome)
         assert jnp.allclose(f_min, -f_max, atol=1e-5)
 
 
@@ -231,7 +230,7 @@ class TestOptimizationEvaluator:
 
     def test_evaluate_single_genome(self):
         genome = make_real_genome([0.1] * 5)
-        fitness = self.evaluator.evaluate(genome)
+        fitness, info = self.evaluator.evaluate(genome, genome)
         assert fitness.shape == ()
         assert jnp.isfinite(fitness)
 
@@ -239,7 +238,7 @@ class TestOptimizationEvaluator:
         """The known optimum x_opt should yield fitness near f_opt."""
         x_opt = self.env.x_opt
         genome = RealGenome(values=x_opt)
-        fitness = self.evaluator.evaluate(genome)
+        fitness, info = self.evaluator.evaluate(genome, genome)
         f_opt = self.env.f_opt
         # Should be very close to f_opt (minimization by default)
         assert jnp.abs(fitness - f_opt) < 1.0

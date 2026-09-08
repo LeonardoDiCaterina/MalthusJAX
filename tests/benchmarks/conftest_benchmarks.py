@@ -22,10 +22,10 @@ from evosax.problems import BBOBProblem
 
 from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult
 from malthusjax.benchmarking.runner import BenchmarkRunner
-from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (
     GeneticEngine,

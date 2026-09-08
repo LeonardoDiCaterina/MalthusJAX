@@ -8,11 +8,11 @@ genomes, and operators for consistent test execution across the test suite.
 import jax.random as jar
 import pytest
 
-from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
 from malthusjax.core.fitness.binary_evaluators import BinarySumConfig, BinarySumEvaluator
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (

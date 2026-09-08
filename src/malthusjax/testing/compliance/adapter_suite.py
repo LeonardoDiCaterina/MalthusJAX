@@ -1,5 +1,4 @@
 from typing import Any
-import pytest
 
 from malthusjax.composer.adapters.metrics import MetricSpec
 
@@ -12,10 +11,10 @@ class AdapterComplianceSuite:
         # Check required adapter methods are present (they might be prefixed based on state_mapping)
         assert hasattr(component, "_adapter_init"), "Adapter must implement _adapter_init"
         assert hasattr(component, "_adapter_step"), "Adapter must implement _adapter_step"
-        
+
         # The decorator should have injected the UniversalAdapterEngine instance
         assert hasattr(component, "engine"), "Adapter must have 'engine' attribute injected by @adapter"
-        
+
         # Verify run_once method exists (injected by @adapter)
         assert hasattr(component, "run_once"), "Adapter must have 'run_once' method injected by @adapter"
 
@@ -23,7 +22,7 @@ class AdapterComplianceSuite:
         """Verify the adapter exposes a valid metrics catalog."""
         assert hasattr(component, "get_supported_metrics"), "Adapter must have 'get_supported_metrics' method"
         metrics = component.get_supported_metrics()
-        
+
         assert isinstance(metrics, list), "Metrics catalog must be a list"
         for metric in metrics:
             assert isinstance(metric, MetricSpec), "Metrics must be instances of MetricSpec"

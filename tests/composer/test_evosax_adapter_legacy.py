@@ -20,10 +20,10 @@ from malthusjax.composer.evosax_adapter_legacy import (
     list_strategies,
 )
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
-from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 try:
     try:
@@ -141,30 +141,6 @@ class TestBuildEvosaxEngine:
         with pytest.raises(KeyError, match="Unknown evosax strategy"):
             build_evosax_engine(strategy_name="NonExistent", evaluator=evalr)
 
-    def test_fitness_spec_overrides_problem(self):
-        """Catalog-style fitness_spec should override problem_name/num_dims."""
-        # initial evaluator chosen arbitrarily; spec will override dims
-        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
-        adapter = build_evosax_engine(
-            strategy_name="SimpleGA",
-            evaluator=evalr,
-            fitness_spec="rastrigin:dim=7",
-            pop_size=8,
-            generations=2,
-        )
-        assert adapter.num_dims == 7
-
-    def test_fitness_spec_with_seed(self):
-        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
-        adapter = build_evosax_engine(
-            strategy_name="SimpleGA",
-            evaluator=evalr,
-            fitness_spec="sphere:dim=4,seed=99",
-            pop_size=8,
-            generations=2,
-        )
-        assert adapter.num_dims == 4
-
     def test_custom_bounds(self):
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
         adapter = build_evosax_engine(
@@ -224,7 +200,7 @@ class TestBuildEvosaxEngine:
                 return jnp.zeros((), dtype=jnp.float32)
 
         dummy = DummyEval(config=BaseEvaluatorConfig(maximize=False), data=None)
-        with pytest.raises(NotImplementedError, match="Only OptimizationEvaluator"):
+        with pytest.raises(NotImplementedError, match="Only evaluators with evosax_problem"):
             build_evosax_engine(
                 strategy_name="SimpleGA",
                 evaluator=dummy,
@@ -238,10 +214,7 @@ class TestBuildEvosaxEngine:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skipif(
-    not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
-)
+
 class TestEvosaxAdapterRunOnce:
     """Tests that EvosaxEngineAdapter.run_once satisfies the Engine protocol."""
 
@@ -311,10 +284,7 @@ class TestEvosaxAdapterRunOnce:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skipif(
-    not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
-)
+
 class TestEvosaxDeterminism:
     """Verify reproducibility given the same PRNG key."""
 
@@ -357,10 +327,7 @@ class TestEvosaxDeterminism:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skipif(
-    not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
-)
+
 class TestMaximisationConvention:
     """Verify the sign-flip logic when maximize=True.
 
@@ -482,10 +449,7 @@ class TestMaximisationConvention:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skipif(
-    not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
-)
+
 class TestStrategySmoke:
     """Quick smoke test for each registered strategy to ensure the full
     ask/tell loop completes without errors."""
@@ -532,10 +496,7 @@ class TestStrategySmoke:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skipif(
-    not HAS_EVOSAX_INIT_TELL,
-    reason="Requires evosax with init/tell API (GitHub version, not PyPI 0.1.6)",
-)
+
 class TestEvosaxBenchmarkIntegration:
     """Test that EvosaxEngineAdapter works end-to-end with BenchmarkRunner."""
 

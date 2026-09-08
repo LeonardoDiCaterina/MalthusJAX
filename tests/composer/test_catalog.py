@@ -2,10 +2,6 @@ import pytest
 
 from malthusjax.composer.catalog import OperatorCatalog
 from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
-
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.selection.tournament import TournamentSelection
 

@@ -30,11 +30,17 @@ def test_gymnax_integration(tmp_path):
     bounds = [-1.0, 1.0]
 
     [pipelines.rl.fitness]
-    type = "gymnax"
+    type = "RLEvaluator"
+
+    [pipelines.rl.fitness.env]
+    type = "GymnaxEnv"
     env_name = "CartPole-v1"
-    max_steps = 10
-    predictor = "mlp"
-    network_layers = [32, 32]
+
+    [pipelines.rl.fitness.interpreter]
+    type = "MLPInterpreter"
+    input_dim = 4
+    output_dim = 2
+    hidden = [32, 32]
     """
     toml_file = tmp_path / "exp.toml"
     toml_file.write_text(toml_content)

@@ -148,4 +148,6 @@ def dispatch_evaluate_population(
                 "to dispatch_evaluate_population."
             )
         return evaluator.evaluate_population(population, key)
+    elif hasattr(evaluator, "transform"):  # It's a Composable Evaluator
+        return evaluator.evaluate_population(population, rng=key)  # type: ignore[call-arg]
     return evaluator.evaluate_population(population)

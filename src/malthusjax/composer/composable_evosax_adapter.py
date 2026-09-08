@@ -179,19 +179,14 @@ class ComposableEvosaxAdapter:
 
 import jax.random as jr
 
-from malthusjax.core.fitness.base import BaseEvaluator
 from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
-
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 
 
 def build_composable_evosax_engine(
     strategy_name: str = "SimpleGA",
     *,
-    evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
+    evaluator: Optional[Any] = None,
     fitness_spec: Optional[str] = None,
     pop_size: int = 50,
     generations: int = 100,
@@ -220,13 +215,20 @@ def build_composable_evosax_engine(
         fn = parsed_params.get("fn_name", parsed_name)
         dims = parsed_params.get("dim", parsed_params.get("num_dims"))
         if dims is None:
-            dims = evaluator.config.num_dims
+            dims = getattr(evaluator.env, "num_dims", 10) if hasattr(evaluator, "env") else getattr(evaluator.config, "num_dims", 10)
         if "seed" in parsed_params:
             seed = parsed_params["seed"]
         if "maximize" in parsed_params:
             maximize = parsed_params["maximize"]
-        evaluator = OptimizationEvaluator.create(
-            BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maximize)
+        from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+        from malthusjax.core.fitness.composable.environments import BBOBEnv
+        from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+
+        evaluator = OptimizationEvaluator(
+            env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=maximize)
         )
 
     if strategy_name not in EVOSAX_STRATEGIES:
@@ -234,10 +236,10 @@ def build_composable_evosax_engine(
 
     rng = jr.PRNGKey(seed)
 
-    if isinstance(evaluator, OptimizationEvaluator):
-        problem = evaluator.evosax_problem
-        problem_state = evaluator.problem_state
-        num_dims = evaluator.config.num_dims
+    if isinstance(evaluator, OptimizationEvaluator) and hasattr(evaluator.env, "_problem"):
+        problem = evaluator.env._problem  # type: ignore[attr-defined]
+        problem_state = evaluator.env._state  # type: ignore[attr-defined]
+        num_dims = getattr(evaluator.env, "num_dims", getattr(evaluator.env._problem, "num_dims", 10))
         eval_mode = EvalMode.NATIVE
     else:
         problem = None

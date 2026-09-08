@@ -28,7 +28,10 @@ def list_strategies() -> list[str]:
 
 def _evosax_native_eval(evaluator, pop, state, key):
     """Executes the evosax native problem evaluation."""
-    if hasattr(evaluator, "evosax_problem"):
+    if hasattr(evaluator, "env") and hasattr(evaluator.env, "_problem") and getattr(evaluator.env, "_problem") is not None:
+        problem = evaluator.env._problem
+        p_state = getattr(evaluator.env, "_state", None)
+    elif hasattr(evaluator, "evosax_problem"):
         problem = evaluator.evosax_problem
         p_state = evaluator.problem_state
     else:
@@ -46,8 +49,12 @@ def _evosax_mjx_eval(evaluator, pop, state, key):
 
     # Access the config from the evaluator. Depending on the evaluator type,
     # the config attribute structure might vary, but standard evaluators have config.genome_config
-    if hasattr(evaluator.config, "genome_config"):
+    if hasattr(evaluator, "config") and hasattr(evaluator.config, "genome_config"):
         config = evaluator.config.genome_config
+    elif hasattr(evaluator, "env") and hasattr(evaluator.env, "config") and hasattr(evaluator.env.config, "genome_config"):
+        config = evaluator.env.config.genome_config
+    elif hasattr(evaluator, "env") and hasattr(evaluator.env, "genome_config"):
+        config = evaluator.env.genome_config
     else:
         # Fallback if the evaluator uses a different config pattern
         from malthusjax.core.genome.real_genome import RealGenomeConfig
@@ -175,14 +182,13 @@ class EvosaxEngineAdapter:
 
 import jax.random as jr
 
-from malthusjax.core.fitness.base import BaseEvaluator
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 
 
 def build_evosax_engine(
     strategy_name: str = "SimpleGA",
     *,
-    evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
+    evaluator: Optional[Any] = None,
     fitness_spec: Optional[str] = None,
     pop_size: int = 50,
     generations: int = 100,
@@ -208,25 +214,41 @@ def build_evosax_engine(
     if strategy_name not in EVOSAX_STRATEGIES:
         raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
 
-    if hasattr(evaluator, "evosax_problem"):
+    if hasattr(evaluator, "env") and hasattr(evaluator.env, "_problem") and getattr(evaluator.env, "_problem") is not None:
+        problem = evaluator.env._problem
+        problem_state = getattr(evaluator.env, "_state", None)
+        num_dims = getattr(evaluator.env, "num_dims", getattr(evaluator.env, "dim", 1))
+        eval_mode = EvalMode.NATIVE
+    elif hasattr(evaluator, "evosax_problem"):
         problem = evaluator.evosax_problem
         problem_state = getattr(evaluator, "problem_state", None)
-        num_dims = getattr(evaluator.config, "num_dims", getattr(evaluator.config, "dim", 1))
+        num_dims = getattr(evaluator, "num_dims", getattr(evaluator, "dim", 1))
+        if hasattr(evaluator, "config"):
+            num_dims = getattr(evaluator.config, "num_dims", getattr(evaluator.config, "dim", num_dims))
         eval_mode = EvalMode.NATIVE
     else:
         problem = None
         problem_state = None
         # Infer dimensions from the MalthusJAX evaluator's genome config
         if hasattr(evaluator, "config"):
-            if hasattr(evaluator.config, "genome_config") and hasattr(
-                evaluator.config.genome_config, "shape"
+            evaluator_config = evaluator.config
+        elif hasattr(evaluator, "env") and hasattr(evaluator.env, "config"):
+            evaluator_config = evaluator.env.config
+        elif hasattr(evaluator, "env"):
+            evaluator_config = evaluator.env
+        else:
+            evaluator_config = None
+
+        if evaluator_config is not None:
+            if hasattr(evaluator_config, "genome_config") and hasattr(
+                evaluator_config.genome_config, "shape"
             ):
-                num_dims = evaluator.config.genome_config.shape[0]
-            elif hasattr(evaluator.config, "dim"):
-                num_dims = getattr(evaluator.config, "dim")
+                num_dims = evaluator_config.genome_config.shape[0]
+            elif hasattr(evaluator_config, "dim"):
+                num_dims = getattr(evaluator_config, "dim")
                 RealGenomeConfig(shape=(num_dims,))
-            elif hasattr(evaluator.config, "num_dims"):
-                num_dims = getattr(evaluator.config, "num_dims")
+            elif hasattr(evaluator_config, "num_dims"):
+                num_dims = getattr(evaluator_config, "num_dims")
             elif "num_dims" in kwargs or "genome_length" in kwargs:
                 num_dims = int(kwargs.get("num_dims", kwargs.get("genome_length")) or 0)
             else:
@@ -238,6 +260,17 @@ def build_evosax_engine(
         else:
             raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
         eval_mode = EvalMode.MALTHUSJAX
+
+    if fitness_spec is not None:
+        from malthusjax.composer.catalog import OperatorCatalog
+
+        cat = OperatorCatalog()
+        parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+        num_dims = parsed_params.get("dim", parsed_params.get("num_dims", num_dims))
+        if "seed" in parsed_params:
+            seed = parsed_params["seed"]
+        if "maximize" in parsed_params:
+            maximize = parsed_params["maximize"]
 
     from malthusjax.composer.adapters.utils import resolve_bounds
 

@@ -15,7 +15,7 @@ from malthusjax.core.fitness.composable import (
 )
 
 try:
-    import tensorneat
+    import tensorneat  # noqa: F401
     TENSORNEAT_AVAILABLE = True
 except ImportError:
     TENSORNEAT_AVAILABLE = False
@@ -35,7 +35,7 @@ def _instantiate_from_module(module: Any, class_name: str, kwargs: Dict[str, Any
 
 def _parse_component(config: Any, module: Any, default_class: Optional[str] = None) -> Any:
     """Parses a component configuration (dict or string) into an instantiated object.
-    
+
     If config is a string, it's assumed to be the class name with no arguments.
     If it's a dict, it must have a 'type' key (or fallback to default_class).
     """
@@ -59,7 +59,7 @@ def _parse_component(config: Any, module: Any, default_class: Optional[str] = No
 
 def parse_evaluator(config: Dict[str, Any]) -> evaluators.BaseComposableEvaluator[Any, Any, Any, Any]:
     """Parses a nested configuration dictionary into a Composable Evaluator.
-    
+
     Example config:
     {
         "type": "OptimizationEvaluator",
@@ -83,7 +83,7 @@ def parse_evaluator(config: Dict[str, Any]) -> evaluators.BaseComposableEvaluato
             prob_dict = kwargs["env"].copy()
             prob_dict.pop("type", None)
             prob_type = prob_dict.pop("problem_type", "XOR")
-            import tensorneat.problem
+            import tensorneat  # noqa: F401.problem
             try:
                 from tensorneat.problem.func_fit import xor
                 # simple mapping for now

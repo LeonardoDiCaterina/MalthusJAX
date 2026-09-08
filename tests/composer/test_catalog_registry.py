@@ -14,10 +14,6 @@ import pytest
 
 from malthusjax.composer.catalog import OperatorCatalog
 from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
-
 from malthusjax.operators.crossover import (
     BinaryUniformCrossover,
     BinomialCrossover,
@@ -158,6 +154,7 @@ def test_no_unexpected_keys(catalog: OperatorCatalog) -> None:
     "masked_mlp",
     "gymnax",
     "jumanji",
+    "compliance_mutation",
     "brax",
     "linear",
     "equation",

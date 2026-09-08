@@ -13,9 +13,8 @@ from __future__ import annotations
 from typing import Any, Generic, TypeVar
 
 import chex
-import jax.numpy as jnp
 import jax
-
+import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BaseGenome
@@ -33,7 +32,7 @@ class BaseTransform(Generic[G]):
     def transform(self, genome: G, state: Any = None) -> Any:
         """Convert a single genome to a computationally optimized representation."""
         return genome
-        
+
     def transform_population(self, genes: Any, state: Any = None) -> Any:
         """Convert a population of genomes. Overridable for population-level transforms."""
         return jax.vmap(self.transform, in_axes=(0, None))(genes, state)
@@ -220,7 +219,7 @@ SUPPORTED_LOSS_FNS = ("mse", "bce", "mae")
 @struct.dataclass
 class BaseOutputMode:
     """Interface for evaluating a genome's result and computing fitness + info."""
-    
+
     def process_sl(
         self, genome: Any, X: chex.Array, y: chex.Array, predictions: chex.Array
     ) -> tuple[chex.Array, dict]:

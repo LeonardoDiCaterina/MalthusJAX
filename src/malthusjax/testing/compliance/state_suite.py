@@ -2,7 +2,6 @@
 import dataclasses
 from typing import Any
 
-import chex
 import jax
 import jax.numpy as jnp
 import pytest
@@ -84,12 +83,12 @@ class PopulationComplianceSuite:
     def test_slicing(self, component) -> None:
         """Verify __getitem__ works for integer and slice indexing."""
         pop_size = len(component)
-        
+
         # Slice indexing
         sliced_pop = component[: pop_size // 2]
         assert isinstance(sliced_pop, BasePopulation)
         assert len(sliced_pop) == pop_size // 2
-        
+
         # Single element indexing
         single_ind = component[0]
         # Should return a single genome instance, not a population
@@ -106,13 +105,13 @@ class PopulationComplianceSuite:
     def test_spawn_offspring(self, component) -> None:
         """Verify spawn_offspring resets info dict and creates NaN fitness by default."""
         offspring_genes = jax.tree_util.tree_map(lambda x: jnp.zeros_like(x), component.genes)
-        
+
         # Add mock info
         component = dataclasses.replace(component, info={"test_key": jnp.zeros(len(component))})
-        
+
         offspring_pop = component.spawn_offspring(offspring_genes)
         assert isinstance(offspring_pop, BasePopulation)
         assert not offspring_pop.info  # info should be reset to empty dict by default
-        
+
         # Check that default fitness is NaN
         assert jnp.isnan(offspring_pop.fitness).all()

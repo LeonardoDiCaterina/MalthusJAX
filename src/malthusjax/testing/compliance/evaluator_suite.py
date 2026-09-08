@@ -1,8 +1,8 @@
 # mypy: ignore-errors
 import dataclasses
+from typing import Any
 
 import jax
-from typing import Any
 import pytest
 
 from malthusjax.core.base import BasePopulation

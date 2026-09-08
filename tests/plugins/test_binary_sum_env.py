@@ -1,8 +1,8 @@
-import jax
-import jax.numpy as jnp
 import pytest
-from plugins.binary_sum_env import BinarySumEnv
+
 from malthusjax.testing.compliance import EnvironmentComplianceSuite
+from plugins.binary_sum_env import BinarySumEnv
+
 
 class TestBinarySumEnv(EnvironmentComplianceSuite):
     @pytest.fixture

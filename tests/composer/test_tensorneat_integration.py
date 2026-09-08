@@ -21,12 +21,12 @@ except ImportError:
 @pytest.mark.skipif(not TENSORNEAT_AVAILABLE, reason="tensorneat is not installed")
 def test_tensorneat_native_evaluator():
     """Verify TensorNeatEvaluator correctly intercepts and evaluates populations."""
-    from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
-    from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
-    from plugins.tensor_neat_transform import TensorNeatTransform
-    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
     from malthusjax.core.fitness.composable.base import ScalarOutput
+    from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
+    from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
     from malthusjax.core.genome.tensorneat_genome import TensorNeatGenome, TensorNeatPopulation
+    from plugins.tensor_neat_transform import TensorNeatTransform
 
     problem = XOR()
     genome = DefaultGenome(num_inputs=2, num_outputs=1, max_nodes=10, max_conns=20)

@@ -1,14 +1,13 @@
-import jax
-import jax.numpy as jnp
 from malthusjax.composer.composer import Composer
+from malthusjax.core.fitness.composable.base import ScalarOutput
 from malthusjax.core.fitness.composable.environments import GymnaxEnv
 from malthusjax.core.fitness.composable.evaluators import RLEvaluator
-from malthusjax.core.fitness.composable.base import ScalarOutput
 from malthusjax.core.fitness.composable.interpreters import MLPInterpreter
+
 
 def test_composable_evosax_adapter_dimension_extraction():
     composer = Composer()
-    
+
     # 1. Build an RLEvaluator manually
     env = GymnaxEnv.create(env_name="CartPole-v1")
     interpreter = MLPInterpreter(
@@ -18,7 +17,7 @@ def test_composable_evosax_adapter_dimension_extraction():
     )
     output = ScalarOutput(maximize=True)
     evaluator = RLEvaluator(env=env, interpreter=interpreter, output=output, max_steps=100)
-    
+
     # 2. Use Composer to run EvoSAX on the RLEvaluator natively using composable backend!
     result = composer.quick_run(
         backend="composable_evosax",
@@ -28,7 +27,7 @@ def test_composable_evosax_adapter_dimension_extraction():
         generations=2,
         maximize=True,
     )
-    
+
     assert hasattr(result, "runs")
     assert len(result.runs) > 0
     assert "best_fitness" in result.runs[0].metrics

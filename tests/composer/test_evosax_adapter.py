@@ -20,10 +20,10 @@ from malthusjax.composer.evosax_adapter import (
     list_strategies,
 )
 from malthusjax.core.fitness.base import BaseEvaluator
-from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 from .base_adapter_suite import BaseAdapterTestSuite
 

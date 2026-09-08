@@ -21,14 +21,14 @@ except ImportError:
 @pytest.mark.skipif(not TENSORNEAT_AVAILABLE, reason="tensorneat is not installed")
 def test_tensorneat_evaluator_parity():
     """Verify the new TensorNeatEvaluator is mathematically equivalent to the legacy TensorNeatQDEvaluator."""
+    from malthusjax.core.fitness.composable.base import ScalarOutput
+    from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
+    from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
     from malthusjax.core.fitness.qd.tensorneat_evaluator import (
         TensorNeatEvaluatorConfig,
         TensorNeatQDEvaluator,
     )
-    from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
-    from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
-    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-    from malthusjax.core.fitness.composable.base import ScalarOutput
     from malthusjax.core.genome.tensorneat_genome import TensorNeatGenome, TensorNeatPopulation
     from plugins.tensor_neat_transform import TensorNeatTransform
 

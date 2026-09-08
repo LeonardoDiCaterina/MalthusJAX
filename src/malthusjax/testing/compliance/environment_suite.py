@@ -1,6 +1,5 @@
 # mypy: ignore-errors
 import dataclasses
-from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -8,9 +7,9 @@ import pytest
 
 from malthusjax.core.fitness.composable.base import (
     BaseEnvironment,
-    BaseSupervisedEnvironment,
     BaseOptimizationEnvironment,
     BaseRLEnvironment,
+    BaseSupervisedEnvironment,
 )
 
 

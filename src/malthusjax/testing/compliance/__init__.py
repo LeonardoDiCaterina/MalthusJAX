@@ -1,8 +1,8 @@
 from .adapter_suite import AdapterComplianceSuite
 from .engine_suite import EngineComplianceSuite
-from .evaluator_suite import EvaluatorComplianceSuite, ComposableEvaluatorComplianceSuite
-from .interpreter_suite import InterpreterComplianceSuite
 from .environment_suite import EnvironmentComplianceSuite
+from .evaluator_suite import ComposableEvaluatorComplianceSuite, EvaluatorComplianceSuite
+from .interpreter_suite import InterpreterComplianceSuite
 from .operator_suite import (
     CrossoverComplianceSuite,
     MutationComplianceSuite,

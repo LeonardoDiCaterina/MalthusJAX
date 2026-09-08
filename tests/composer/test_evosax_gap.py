@@ -4,12 +4,15 @@ import pytest
 pytest.importorskip("evosax")
 
 from malthusjax.composer.evosax_adapter import build_evosax_engine
-from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
-def test_evosax_adapter_includes_gap(pop_size, generations):
+
+def test_evosax_adapter_includes_gap():
+    pop_size = 20
+    generations = 5
     # Build a BBOB evaluator and an evosax adapter, run a short experiment,
     # and assert the returned summary contains gap_to_optimum when available.
     ev = OptimizationEvaluator(

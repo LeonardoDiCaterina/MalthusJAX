@@ -7,7 +7,6 @@ Provides:
 
 from __future__ import annotations
 
-import math
 from typing import Any
 
 import chex
@@ -15,10 +14,9 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.genome.real_genome import RealGenome
-from malthusjax.core.genome.linear_genome import LinearGenome
 from malthusjax.core.fitness.composable.base import BaseInterpreter
-
+from malthusjax.core.genome.linear_genome import LinearGenome
+from malthusjax.core.genome.real_genome import RealGenome
 
 # =============================================================================
 # IdentityInterpreter
@@ -126,7 +124,7 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
 
     def _unflatten(self, flat_params: chex.Array) -> list[tuple[chex.Array, chex.Array]]:
         """Split a flat parameter vector into (W, b) pairs per layer.
-        
+
         Note: Extracts bias before weights to match Flax's alphabetical
         tree_flatten order ('bias', 'kernel'). This ensures mathematical
         parity with legacy Flax-based evaluators.
@@ -180,7 +178,7 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
 @struct.dataclass
 class LinearGPInterpreter(BaseInterpreter[LinearGenome]):
     """Interpreter for Linear Genetic Programming genomes.
-    
+
     Translates a sequence of operation codes and argument indices into
     intermediate outputs (symbiotic selection).
     """
@@ -194,7 +192,7 @@ class LinearGPInterpreter(BaseInterpreter[LinearGenome]):
 
     def apply(self, genome: LinearGenome, inputs: chex.Array | None = None) -> chex.Array:
         from malthusjax.core.fitness.linear_gp_evaluator import TENSORGP_FUNCTIONS
-        
+
         total_mem = self.num_inputs + self.length
         # Note: inputs might be batched (or singular from vmap). Assumes inputs is 1D inside apply.
         memory = jnp.zeros(total_mem).at[: self.num_inputs].set(inputs)

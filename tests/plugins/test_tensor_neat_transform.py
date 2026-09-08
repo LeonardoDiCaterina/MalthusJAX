@@ -1,14 +1,20 @@
-import jax
 import jax.numpy as jnp
 import pytest
+
 from plugins.tensor_neat_transform import TensorNeatTransform
+
 
 class TestTensorNeatTransform:
     @pytest.fixture
     def component(self):
-        return TensorNeatTransform()
-        
+        class MockAlgorithm:
+            def transform(self, state, genes):
+                return genes
+        return TensorNeatTransform(algorithm=MockAlgorithm())
+
     def test_transform(self, component):
-        genome = jnp.zeros(10)
+        class MockGenome:
+            values = (jnp.zeros(10), jnp.zeros(10))
+        genome = MockGenome()
         result = component.transform(genome)
         assert result is not None

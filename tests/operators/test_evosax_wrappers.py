@@ -15,10 +15,10 @@ from __future__ import annotations
 
 import pytest
 
-from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams

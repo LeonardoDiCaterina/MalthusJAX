@@ -1,8 +1,8 @@
-import jax
-import jax.numpy as jnp
 import pytest
-from plugins.custom_rl_env import CustomRLEnv
+
 from malthusjax.testing.compliance import EnvironmentComplianceSuite
+from plugins.custom_rl_env import CustomRLEnv
+
 
 class TestCustomRLEnv(EnvironmentComplianceSuite):
     @pytest.fixture

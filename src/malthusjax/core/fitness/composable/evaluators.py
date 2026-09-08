@@ -33,8 +33,8 @@ from malthusjax.core.fitness.composable.base import (
 
 E = TypeVar("E")
 T = TypeVar("T", bound=BaseTransform)
-I = TypeVar("I", bound=BaseInterpreter)
-O = TypeVar("O", bound=BaseOutputMode)
+I = TypeVar("I", bound=BaseInterpreter)  # noqa: E741
+O = TypeVar("O", bound=BaseOutputMode)  # noqa: E741
 
 
 # =============================================================================
@@ -99,7 +99,7 @@ class SupervisedEvaluator(
 ):
     """Composable evaluator for SupervisedTask problems."""
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args, **kwargs) -> tuple[chex.Array, dict]:
+    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any) -> tuple[chex.Array, dict]:  # type: ignore[override]
         X = self.env.X
         y = self.env.y
 
@@ -120,7 +120,7 @@ class OptimizationEvaluator(
 ):
     """Composable evaluator for OptimizationTask problems."""
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args, **kwargs) -> tuple[chex.Array, dict]:
+    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any) -> tuple[chex.Array, dict]:  # type: ignore[override]
         solution = self.interpreter.apply(compiled_genome, inputs=None)
         raw_score = self.env.evaluate(solution)
         return self.output.process_opt(raw_genome, solution, raw_score)
@@ -139,7 +139,7 @@ class RLEvaluator(
     num_eval_envs: int = struct.field(pytree_node=False, default=1)
     max_steps: int = struct.field(pytree_node=False, default=500)
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, rng: chex.PRNGKey, **kwargs) -> tuple[chex.Array, dict]:
+    def evaluate(self, raw_genome: Any, compiled_genome: Any, rng: chex.PRNGKey, **kwargs: Any) -> tuple[chex.Array, dict]:  # type: ignore[override]
         max_steps = getattr(self.env, "max_steps", self.max_steps)
 
         def rollout_episode(rng_input: chex.PRNGKey) -> tuple[chex.Numeric, Any, Any]:
@@ -196,7 +196,7 @@ class TensorNeatEvaluator(
     BaseComposableEvaluator[BaseOptimizationEnvironment, BaseTransform, BaseInterpreter, BaseOutputMode]
 ):
     """Composable evaluator specifically designed to wrap TensorNEAT problems.
-    
+
     This overrides `evaluate_population` to seamlessly integrate TensorNEAT's internal
     state management, batch evaluation, and descriptor extraction.
     """
@@ -205,7 +205,7 @@ class TensorNeatEvaluator(
     seed: int = struct.field(pytree_node=False, default=42)
     maximize: bool = struct.field(pytree_node=False, default=True)
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args, **kwargs) -> tuple[chex.Array, dict]:
+    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any) -> tuple[chex.Array, dict]:  # type: ignore[override]
         raise NotImplementedError("TensorNeatEvaluator relies on vectorized batch evaluation via evaluate_population.")
 
     def evaluate_population(

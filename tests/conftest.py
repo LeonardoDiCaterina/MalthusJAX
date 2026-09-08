@@ -290,10 +290,10 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
 
     Useful for PRNG-focused tests that need a baked operator set in `state.operators`.
     """
+    from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
     from malthusjax.core.fitness.composable.environments import SphereEnv
     from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
     from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-    from malthusjax.core.fitness.composable.base import ScalarOutput, IdentityTransform
     from malthusjax.core.genome.real_genome import RealGenomeConfig
     from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
     from malthusjax.operators.crossover.real import SimulatedBinaryCrossover

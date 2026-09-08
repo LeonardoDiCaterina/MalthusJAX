@@ -2,7 +2,6 @@
 import dataclasses
 
 import jax
-from typing import Any
 import pytest
 
 from malthusjax.engine.base import AbstractEngine, AbstractEvolutionState, AbstractGenerationOutput

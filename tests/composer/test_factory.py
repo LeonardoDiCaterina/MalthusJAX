@@ -172,3 +172,5 @@ def test_build_map_elites_engine_tensorneat():
     from malthusjax.composer.adapters.map_elites_adapter import MapElitesEngineAdapter
 
     assert isinstance(adapter, MapElitesEngineAdapter)
+
+

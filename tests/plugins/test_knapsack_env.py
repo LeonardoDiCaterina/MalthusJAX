@@ -1,8 +1,8 @@
-import jax
-import jax.numpy as jnp
 import pytest
-from plugins.knapsack_env import KnapsackEnv
+
 from malthusjax.testing.compliance import EnvironmentComplianceSuite
+from plugins.knapsack_env import KnapsackEnv
+
 
 class TestKnapsackEnv(EnvironmentComplianceSuite):
     @pytest.fixture

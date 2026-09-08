@@ -10,11 +10,10 @@ import jax
 import jax.random as jr
 import pytest
 
-from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.base import ScalarOutput
 from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
 from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
-
 from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.crossover.real import UniformCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
@@ -134,8 +133,12 @@ class TestOperatorMicrobenchmarks:
     @pytest.mark.parametrize("dims", DIMENSIONS)
     def test_bbob_fitness_eval(self, benchmark, pop_size: int, dims: int):
         """BBOB fitness evaluation via MalthusJAX evaluator."""
-        bbob_config = BBOBConfig(fn_name="sphere", num_dims=dims, seed=SEED, maximize=False)
-        evaluator = OptimizationEvaluator.create(bbob_config)
+        env = BBOBEnv.create(fn_name="sphere", num_dims=dims, seed=SEED)
+        evaluator = OptimizationEvaluator(
+            env=env,
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(),
+        )
         genome_config = RealGenomeConfig(shape=(dims,), bounds=(-5.0, 5.0))
         pop = RealPopulation.init_random(jr.PRNGKey(0), genome_config, size=pop_size)
 

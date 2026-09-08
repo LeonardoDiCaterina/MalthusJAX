@@ -31,28 +31,28 @@ Quick start::
 """
 
 from malthusjax.core.fitness.composable.base import (
-    BaseInterpreter,
-    BaseEnvironment,
-    BaseOptimizationEnvironment,
-    BaseSupervisedEnvironment,
-    BaseRLEnvironment,
     BaseDescriptorFn,
-    ScalarOutput,
-    QDOutput,
+    BaseEnvironment,
+    BaseInterpreter,
+    BaseOptimizationEnvironment,
+    BaseRLEnvironment,
+    BaseSupervisedEnvironment,
     MOOutput,
+    QDOutput,
+    ScalarOutput,
+)
+from malthusjax.core.fitness.composable.environments import (
+    BBOBEnv,
+    CustomDatasetEnv,
+    SklearnEnv,
+)
+from malthusjax.core.fitness.composable.evaluators import (
+    OptimizationEvaluator,
+    SupervisedEvaluator,
 )
 from malthusjax.core.fitness.composable.interpreters import (
     IdentityInterpreter,
     MLPInterpreter,
-)
-from malthusjax.core.fitness.composable.environments import (
-    SklearnEnv,
-    CustomDatasetEnv,
-    BBOBEnv,
-)
-from malthusjax.core.fitness.composable.evaluators import (
-    SupervisedEvaluator,
-    OptimizationEvaluator,
 )
 
 __all__ = [

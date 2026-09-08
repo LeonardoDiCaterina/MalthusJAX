@@ -1,8 +1,8 @@
-import jax
-import jax.numpy as jnp
 import pytest
-from src.malthusjax.composer.composable_tensor_neat_adapter import ComposableTensorNEATAdapter
+
 from malthusjax.testing.compliance import AdapterComplianceSuite
+from malthusjax.composer.composable_tensor_neat_adapter import ComposableTensorNEATAdapter
+
 
 class TestComposableTensorNEATAdapter(AdapterComplianceSuite):
     @pytest.fixture

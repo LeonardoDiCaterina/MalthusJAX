@@ -688,7 +688,7 @@ class Composer:
                 )
                 pop_key = jr.PRNGKey(pop_seed)
                 sample_keys = jr.split(pop_key, pop_size)
-                return jax.vmap(bbob_eval.evosax_problem.sample)(sample_keys)
+                return jax.vmap(bbob_eval.env._problem.sample)(sample_keys)  # type: ignore[attr-defined]
 
         return jr.uniform(
             jr.PRNGKey(pop_seed),

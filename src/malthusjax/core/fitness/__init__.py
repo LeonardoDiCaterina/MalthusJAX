@@ -7,44 +7,47 @@ for efficient batch evaluation using JAX JIT compilation.
 
 # Evaluators
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
-from malthusjax.core.fitness.binary_evaluators import KnapsackEvaluator, BinarySumEvaluator, BinarySumConfig, KnapsackConfig
-from malthusjax.core.fitness.linear_gp_evaluator import LinearGPEvaluator, LinearGPEvaluatorConfig, TENSORGP_FUNCTIONS, TENSORGP_NAMES
-
-
+from malthusjax.core.fitness.binary_evaluators import (
+    BinarySumEvaluator,
+    KnapsackEvaluator,
+)
 from malthusjax.core.fitness.composable.base import (
+    BaseInterpreter,
+    BaseOutputMode,
     BaseTransform,
     IdentityTransform,
-    BaseOutputMode,
-    ScalarOutput,
-    QDOutput,
     MOOutput,
-    BaseInterpreter
-)
-from malthusjax.core.fitness.composable.interpreters import (
-    IdentityInterpreter,
-    MLPInterpreter,
-    LinearGPInterpreter
+    QDOutput,
+    ScalarOutput,
 )
 from malthusjax.core.fitness.composable.environments import (
-    SklearnEnv,
-    CustomDatasetEnv,
     BBOBEnv,
-    SphereEnv,
-    GriewankEnv,
-    BoxEnv,
-    TSPEnv,
     BinarySumEnv,
-    KnapsackEnv,
+    BoxEnv,
+    BraxEnv,
+    CustomDatasetEnv,
+    GriewankEnv,
     GymnaxEnv,
     JumanjiEnv,
-    BraxEnv
+    KnapsackEnv,
+    SklearnEnv,
+    SphereEnv,
+    TSPEnv,
 )
 from malthusjax.core.fitness.composable.evaluators import (
     BaseComposableEvaluator,
     OptimizationEvaluator,
-    SupervisedEvaluator,
     RLEvaluator,
-    TensorNeatEvaluator
+    SupervisedEvaluator,
+    TensorNeatEvaluator,
+)
+from malthusjax.core.fitness.composable.interpreters import (
+    IdentityInterpreter,
+    LinearGPInterpreter,
+    MLPInterpreter,
+)
+from malthusjax.core.fitness.linear_gp_evaluator import (
+    LinearGPEvaluator,
 )
 
 __all__ = [
@@ -124,7 +127,7 @@ def _create_knapsack_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
         if isinstance(_resolved_data, dict) and _resolved_data.get("source") == "synthetic":
             # For simplicity, we just use defaults if synthetic
             pass
-            
+
     return OptimizationEvaluator(
         env=KnapsackEnv(weights=kwargs.get("weights"), values=kwargs.get("values"), capacity=kwargs.get("capacity", 100.0)),
         transform=IdentityTransform(),
