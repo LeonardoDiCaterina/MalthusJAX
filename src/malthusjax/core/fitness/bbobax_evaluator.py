@@ -6,14 +6,17 @@ import chex
 import jax
 import jax.random as jr
 
-# bbobax imports
-from bbobax.bbob import BBOB_PROBLEMS
-from bbobax.problem import BBOBParams, BBOBProblem
+# bbobax imports — compatible with bbobax >= 0.2 (BBOB + bbob_fns API)
+from bbobax import BBOB, BBOBParams
+from bbobax.bbob import bbob_fns
 from flax import struct
 
 from malthusjax.core.base import BasePopulation
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.genome.real_genome import RealGenome
+
+# Public registry of supported BBOB function names
+BBOB_PROBLEMS = bbob_fns
 
 
 @struct.dataclass
@@ -37,9 +40,10 @@ class BBOBAXConfig(BaseEvaluatorConfig):
 class BBOBAXEvaluator(BaseEvaluator[RealGenome, BBOBAXConfig, Any]):
     """Evaluator using the pure-JAX bbobax implementation."""
 
-    # task is static as it contains function references
-    task: BBOBProblem = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
+    # task and state are static as they contain function references and initial RNG state
+    task: BBOB = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
     params: BBOBParams
+    state: Any = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
     @classmethod
     def create(cls, config: BBOBAXConfig) -> BBOBAXEvaluator:
@@ -51,32 +55,36 @@ class BBOBAXEvaluator(BaseEvaluator[RealGenome, BBOBAXConfig, Any]):
                 f"Unknown function '{config.fn_name}'. Available: {list(BBOB_PROBLEMS.keys())}"
             )
 
-        # Initialize the specific BBOB problem
-        task = BBOB_PROBLEMS[config.fn_name](num_dims=max_dims)
+        # Initialize the specific BBOB problem with a fixed dimensionality
+        fn = BBOB_PROBLEMS[config.fn_name]
+        task = BBOB(
+            fitness_fns=[fn],
+            min_num_dims=max_dims,
+            max_num_dims=max_dims,
+        )
 
         rng = jr.PRNGKey(config.seed)
-        params = task.sample(rng)
+        sample_key, init_key = jr.split(rng)
+        params = task.sample(sample_key)
+        state = task.init(init_key, params)
 
-        return cls(config=config, data=None, task=task, params=params)
+        return cls(config=config, data=None, task=task, params=params, state=state)
 
     def evaluate(self, genome: RealGenome) -> chex.Numeric:
         """Evaluate a single solution vector."""
         x = genome.values
-        # Note: BBOB uses a key for its internal noise model
-        # We use a dummy key here to keep evaluation deterministic relative to task seed
+        # Use a fixed dummy key for deterministic evaluation given the task seed
         rng = jr.PRNGKey(0)
-
-        eval_result = self.task.evaluate(rng, x, self.params)
-        # Respect MalthusJAX minimization convention
-        # bbobax returns minimization objective by default.
-        # If config says maximize=True, we negate so that the engine's argmin maximizes it.
+        _, eval_result = self.task.evaluate(rng, x, self.state, self.params)
+        # bbobax returns a minimization objective.
+        # If config says maximize=True, negate so the engine's argmin maximizes it.
         return -eval_result.fitness if self.config.maximize else eval_result.fitness
 
     def evaluate_population(
         self, population: BasePopulation[RealGenome]
     ) -> BasePopulation[RealGenome]:
-        """Vectorized evaluation of a whole population
-        Uses jax.vmap to lift the single evaluate call
+        """Vectorized evaluation of a whole population.
+        Uses jax.vmap to lift the single evaluate call.
         """
         fitness_scores = jax.vmap(self.evaluate)(population.genes)
         return cast(
