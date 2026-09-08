@@ -195,6 +195,12 @@ omit = [
     "src/malthusjax/operators/crossover/adaptive.py",
     "src/malthusjax/operators/mutation/adaptive.py",
     "src/malthusjax/core/genome/adaptive.py",
+    "src/malthusjax/stats/*",
+    "src/malthusjax/dash/*",
+    "src/malthusjax/core/genome/series_genome.py",
+    "src/malthusjax/engine/genetic_fastengine.py",
+    "src/malthusjax/operators/emitters/genetic.py",
+    "src/malthusjax/operators/emitters/tensorneat_variants.py",
 ]
 
 [tool.coverage.report]
