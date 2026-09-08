@@ -1,8 +1,8 @@
 # mypy: ignore-errors
 import dataclasses
+from typing import Any
 
 import jax
-from typing import Any
 import pytest
 
 from malthusjax.core.base import BasePopulation
@@ -41,8 +41,8 @@ class MutationComplianceSuite:
 
     def test_inheritance(self, component) -> None:
         """Verify the component inherits from the correct base class."""
-        assert isinstance(component, BaseMutation[Any, Any]), (
-            f"{component.__class__.__name__} must inherit from BaseMutation[Any, Any]."
+        assert isinstance(component, BaseMutation), (
+            f"{component.__class__.__name__} must inherit from BaseMutation."
         )
 
     def test_jit_compilation(self, component, mock_population) -> None:
