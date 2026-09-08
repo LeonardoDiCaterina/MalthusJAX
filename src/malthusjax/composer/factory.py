@@ -561,14 +561,23 @@ def build_map_elites_engine(
             # Assign genome to emitter
             emitter_obj = cast(Any, emitter_obj).replace(genome=genome_obj)
 
-        evaluator = TensorNeatEvaluator(
-            env=TensorNEATProblemWrapper(problem=problem),
-            transform=TensorNeatTransform(algorithm=genome_obj),
-            interpreter=IdentityInterpreter(),
-            output=ScalarOutput(),
-            forward_fn=genome_obj.forward,
-            maximize=maximize,
-        )
+            evaluator = TensorNeatEvaluator(
+                env=TensorNEATProblemWrapper(problem=problem),
+                transform=TensorNeatTransform(algorithm=genome_obj),
+                interpreter=IdentityInterpreter(),
+                output=ScalarOutput(),
+                forward_fn=genome_obj.forward,
+                maximize=maximize,
+            )
+        else:
+            from malthusjax.core.fitness.base import BaseEvaluatorConfig
+            from malthusjax.core.fitness.tensorneat import TensorNeatQDEvaluator
+
+            evaluator = TensorNeatQDEvaluator(
+                objective_function=objective_fn,
+                config=BaseEvaluatorConfig(maximize=maximize),
+                data=None
+            )
     else:
         # We use the BaseQDEvaluator composition to match standard evaluation
         from malthusjax.composer.catalog import OperatorCatalog
