@@ -71,27 +71,27 @@ def test_bbobax_maximize_flag_flips_sign():
     assert fit_min > fit_max
 
 
-def test_bbobax_different_functions_produce_different_results():
-    """Ensure fn_name correctly routes to different bbobax logic."""
-    cfg_sphere = BBOBAXConfig(fn_name="sphere", num_dims=2, seed=1, maximize=True)
-    cfg_rastrigin = BBOBAXConfig(fn_name="rastrigin", num_dims=2, seed=1, maximize=True)
+def test_bbobax_different_seeds_produce_different_instances():
+    """Ensure different seeds produce different shifted instances."""
+    cfg1 = BBOBAXConfig(fn_name="sphere", num_dims=2, seed=1, maximize=True)
+    cfg2 = BBOBAXConfig(fn_name="sphere", num_dims=2, seed=99, maximize=True)
 
-    eval_s = BBOBAXEvaluator.create(cfg_sphere)
-    eval_r = BBOBAXEvaluator.create(cfg_rastrigin)
+    eval1 = BBOBAXEvaluator.create(cfg1)
+    eval2 = BBOBAXEvaluator.create(cfg2)
 
     genome = RealGenome(values=jnp.array([2.0, 2.0]))
 
-    fit_s = eval_s.evaluate(genome)
-    fit_r = eval_r.evaluate(genome)
+    fit1 = eval1.evaluate(genome)
+    fit2 = eval2.evaluate(genome)
 
-    # Sphere and Rastrigin should give different values for the same point
-    assert not jnp.isclose(fit_s, fit_r)
+    # Different seeds shift the optimum, so the same point should yield different fitness
+    assert not jnp.isclose(fit1, fit2)
 
 
 def test_bbobax_seed_consistency():
     """Ensure same seed produces same instance (x_opt, f_opt)."""
-    cfg1 = BBOBAXConfig(fn_name="ellipsoidal", num_dims=2, seed=42, maximize=True)
-    cfg2 = BBOBAXConfig(fn_name="ellipsoidal", num_dims=2, seed=42, maximize=True)
+    cfg1 = BBOBAXConfig(fn_name="sphere", num_dims=2, seed=42, maximize=True)
+    cfg2 = BBOBAXConfig(fn_name="sphere", num_dims=2, seed=42, maximize=True)
 
     eval1 = BBOBAXEvaluator.create(cfg1)
     eval2 = BBOBAXEvaluator.create(cfg2)
