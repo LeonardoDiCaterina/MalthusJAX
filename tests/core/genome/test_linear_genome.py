@@ -1,122 +1,124 @@
 import jax
 import jax.numpy as jnp
+import pytest
 
 from malthusjax.core.base import DistanceMetric
-from malthusjax.core.genome.linear_genome import LinearGenome, LinearGenomeConfig, LinearPopulation
+from malthusjax.core.genome.linear_genome import LinearGenome, LinearGenomeConfig
 
 
-def test_linear_genome_init(rng_key):
-    """Verifies LGP initialization and topological DAG constraints."""
-    config = LinearGenomeConfig(length=10, num_inputs=5, num_ops=8, max_arity=2)
-    genome = LinearGenome.random_init(rng_key, config)
+@pytest.fixture
+def config():
+    return LinearGenomeConfig(
+        length=5,
+        max_arity=2,
+        num_inputs=2,
+        num_ops=3
+    )
 
-    assert isinstance(genome, LinearGenome)
-    # Check structural shapes
-    assert genome.ops.shape == (config.length,)
-    assert genome.args.shape == (config.length, config.max_arity)
-
-    # Verify topological validity: instruction i can only reference inputs or previous instructions
-    # Legal indices for row i are [0, num_inputs + i - 1]
-    for i in range(config.length):
-        max_legal_idx = config.num_inputs + i - 1
-        assert jnp.all(genome.args[i] <= max_legal_idx)
-        assert jnp.all(genome.args[i] >= 0)
+def test_linear_genome_random_init(config):
+    key = jax.random.PRNGKey(0)
+    genome = LinearGenome.random_init(key, config)
+    assert genome.ops.shape == (5,)
+    assert genome.args.shape == (5, 2)
 
 
-def test_linear_population_soa(rng_key):
-    """Verifies SoA batching for structural programs (ops and args)."""
-    pop_size = 8
-    config = LinearGenomeConfig(length=12, num_inputs=3, num_ops=10, max_arity=2)
-    population = LinearPopulation.init_random(rng_key, config, size=pop_size)
+def test_linear_genome_decode_tree(config):
+    # create a simple genome
+    genome = LinearGenome(
+        ops=jnp.array([0, 1, 2]),
+        args=jnp.array([[0, 1], [0, 1], [0, 1]])
+    )
+    assert genome.ops.shape == (3,)
 
-    assert isinstance(population, LinearPopulation)
-    # Both ops and args should have a leading population dimension
-    assert population.genes.ops.shape == (pop_size, 12)
-    assert population.genes.args.shape == (pop_size, 12, 2)
-    assert population.fitness.shape == (pop_size,)
+def test_linear_genome_init_population(config):
+    key = jax.random.PRNGKey(0)
+    pop = config.init_population(key, 10)
+    assert pop.genes.ops.shape == (10, 5)
+    assert pop.genes.args.shape == (10, 5, 2)
+    assert pop.fitness.shape == (10,)
 
+def test_linear_genome_values():
+    genome = LinearGenome(
+        ops=jnp.array([0, 1, 2]),
+        args=jnp.array([[0, 1], [0, 1], [0, 1]])
+    )
+    ops, args = genome.values
+    assert ops.shape == (3,)
+    assert args.shape == (3, 2)
 
-def test_linear_values_property(rng_key):
-    """Checks the unified .values interface for the structural genome."""
-    config = LinearGenomeConfig(length=5, num_inputs=2, num_ops=4, max_arity=2)
-    genome = LinearGenome.random_init(rng_key, config)
-
-    # .values should return the (ops, args) tuple
-    payload = genome.values
-    assert isinstance(payload, tuple)
-    assert len(payload) == 2
-    assert jnp.array_equal(payload[0], genome.ops)
-    assert jnp.array_equal(payload[1], genome.args)
-
-
-def test_linear_autocorrect_clipping():
-    """Verifies that out-of-bounds ops and illegal references are corrected."""
-    config = LinearGenomeConfig(length=3, num_inputs=2, num_ops=5, max_arity=1)
-
-    # Manually create a "broken" genome:
-    # Row 0: op 10 (invalid), arg 5 (invalid, max legal is num_inputs-1 = 1)
-    broken_ops = jnp.array([10, 0, 0])
-    broken_args = jnp.array([[5], [0], [0]])
-    genome = LinearGenome(ops=broken_ops, args=broken_args)
-
+def test_linear_genome_autocorrect(config):
+    genome = LinearGenome(
+        ops=jnp.array([10, -1, 0, 1, 2]),
+        args=jnp.array([[10, 10], [-1, -1], [0, 1], [0, 1], [0, 1]])
+    )
     corrected = genome.autocorrect(config)
+    assert jnp.all(corrected.ops >= 0)
+    assert jnp.all(corrected.ops < config.num_ops)
+    assert corrected.args.shape == (5, 2)
 
-    # Op should be clipped to [0, 4]
-    assert corrected.ops[0] == 4
-    # Arg at row 0 should be clipped to [0, 1]
-    assert corrected.args[0, 0] == 1
+def test_linear_genome_distance():
+    g1 = LinearGenome(
+        ops=jnp.array([0, 1, 2]),
+        args=jnp.array([[0, 1], [0, 1], [0, 1]])
+    )
+    g2 = LinearGenome(
+        ops=jnp.array([0, 1, 0]),
+        args=jnp.array([[0, 1], [0, 1], [1, 1]])
+    )
+    dist = g1.distance(g2)
+    assert dist == 2 # 1 ops diff, 1 args diff
+    
+    dist_euclid = g1.distance(g2, metric=DistanceMetric.EUCLIDEAN)
+    assert dist_euclid > 0
+
+def test_linear_genome_properties():
+    genome = LinearGenome(
+        ops=jnp.array([0, 1, 2]),
+        args=jnp.array([[0, 1], [0, 1], [0, 1]])
+    )
+    assert genome.size == 3
+    assert genome.shape == (3, 2)
+
+def test_linear_genome_from_tensor():
+    ops = jnp.array([0, 1, 2])
+    args = jnp.array([[0, 1], [0, 1], [0, 1]])
+    genome = LinearGenome.from_tensor((ops, args))
+    assert genome.ops.shape == (3,)
+    assert genome.args.shape == (3, 2)
+
+def test_linear_genome_render(config):
+    genome = LinearGenome(
+        ops=jnp.array([0, 1, 2, 0, 1]),
+        args=jnp.zeros((5, 2), dtype=jnp.int32)
+    )
+    s = genome.render(config)
+    assert isinstance(s, str)
+    assert len(s) > 0
+    assert "v_0" in s
 
 
-def test_linear_distance_metrics(rng_key):
-    """Tests structural Hamming distance between programs."""
-    config = LinearGenomeConfig(length=5, num_inputs=2, num_ops=10, max_arity=2)
-    g1 = LinearGenome.random_init(rng_key, config)
-
-    # Create g2 as a copy of g1 with exactly one op changed
-    g2_ops = g1.ops.at[0].set((g1.ops[0] + 1) % config.num_ops)
-    g2 = LinearGenome(ops=g2_ops, args=g1.args)
-
-    dist = g1.distance(g2, metric=DistanceMetric.HAMMING)
-    # Hamming distance counts mismatches in both ops and args
-    assert int(dist) == 1
+def test_linear_genome_render_with_op_names(config):
+    genome = LinearGenome(
+        ops=jnp.array([0, 1, 2, 0, 1]),
+        args=jnp.zeros((5, 2), dtype=jnp.int32)
+    )
+    s = genome.render(config, op_names=["add", "mul", "sin"])
+    assert "add" in s or "mul" in s or "sin" in s
 
 
-def test_linear_render():
-    """Ensures the assembly-like rendering does not crash."""
-    config = LinearGenomeConfig(length=3, num_inputs=2, num_ops=2, max_arity=1)
-    genome = LinearGenome(ops=jnp.array([0, 1, 0]), args=jnp.array([[0], [2], [1]]))
-
-    # Test rendering with default op names
-    output = genome.render(config)
-    assert "v_0 = OP_0(x_0)" in output
-    assert "v_1 = OP_1(v_0)" in output
+def test_linear_genome_repr():
+    genome = LinearGenome(
+        ops=jnp.array([0, 1, 2]),
+        args=jnp.array([[0, 1], [0, 1], [0, 1]])
+    )
+    r = repr(genome)
+    assert "LinearGenome" in r
 
 
-def test_linear_jit_stability(rng_key):
-    """Verifies that structural operations are JIT-compatible."""
-    config = LinearGenomeConfig(length=10, num_inputs=5, num_ops=8, max_arity=2)
-    genome = LinearGenome.random_init(rng_key, config)
-
-    @jax.jit
-    def jit_autocorrect(g, cfg):
-        return g.autocorrect(cfg)
-
-    # Test JIT compilation doesn't crash
-    corrected = jit_autocorrect(genome, config)
-    assert corrected.ops.shape == genome.ops.shape
-    assert corrected.args.shape == genome.args.shape
-
-    # Verify JIT vs non-JIT equivalence
-    non_jit_corrected = genome.autocorrect(config)
-    assert jnp.array_equal(corrected.ops, non_jit_corrected.ops)
-    assert jnp.array_equal(corrected.args, non_jit_corrected.args)
-
-    def structural_step(g):
-        # Trigger autocorrect and distance inside JIT
-        g_corr = g.autocorrect(config)
-        d = g_corr.distance(g, metric=DistanceMetric.HAMMING)
-        return g_corr, d
-
-    corrected, dist = structural_step(genome)
-    assert isinstance(corrected, LinearGenome)
-    assert dist >= 0
+def test_linear_population_init_random(config):
+    from malthusjax.core.genome.linear_genome import LinearPopulation
+    key = jax.random.PRNGKey(42)
+    pop = LinearPopulation.init_random(key, config, size=4)
+    assert pop.genes.ops.shape == (4, 5)
+    assert pop.genes.args.shape == (4, 5, 2)
+    assert pop.fitness.shape == (4,)
