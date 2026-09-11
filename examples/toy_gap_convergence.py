@@ -68,27 +68,29 @@ def _print_report(label: str, gap_history: list[float], best_so_far: list[float]
 
 def _shared_initial_population(args: argparse.Namespace) -> jax.Array:
     """Sample one initial population and reuse it across both backends."""
-    evaluator = OptimizationEvaluator.create(
-        BBOBConfig(
+    evaluator = OptimizationEvaluator(
+        env=BBOBEnv.create(
             fn_name=args.function,
             num_dims=args.dimensions,
             seed=args.seed,
-            maximize=False,
-        )
+        ),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False),
     )
     key = jr.PRNGKey(args.seed)
     initial_keys = jr.split(key, args.pop_size)
-    return jax.vmap(evaluator.evosax_problem.sample)(initial_keys)
+    return jax.vmap(evaluator.env._problem.sample)(initial_keys)
 
 
 def run_evosax(args: argparse.Namespace) -> tuple[list[float], list[float]]:
-    evaluator = OptimizationEvaluator.create(
-        BBOBConfig(
+    evaluator = OptimizationEvaluator(
+        env=BBOBEnv.create(
             fn_name=args.function,
             num_dims=args.dimensions,
             seed=args.seed,
-            maximize=False,
-        )
+        ),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False),
     )
 
     # Ensure evosax uses the same effective elite pool size as MalthusJAX
