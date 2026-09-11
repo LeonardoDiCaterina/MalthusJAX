@@ -356,23 +356,23 @@ docs-open:
 define bg_task
 	@mkdir -p results
 	@TIMESTAMP=$$(date +%Y%m%d_%H%M%S); \
-	LOGFILE="results/$$1_$$TIMESTAMP.log"; \
-	nohup $$2 > $$LOGFILE 2>&1 & \
+	LOGFILE="results/$(1)_$${TIMESTAMP}.log"; \
+	nohup $(2) > "$${LOGFILE}" 2>&1 & \
 	PID=$$!; \
-	echo "
-======================================================="; \
-	echo " BACKGROUND TASK STARTED: $$1"; \
+	echo ""; \
 	echo "======================================================="; \
-	echo " PID: $$PID"; \
-	echo " Log file: $$LOGFILE"; \
+	echo " BACKGROUND TASK STARTED: $(1)"; \
+	echo "======================================================="; \
+	echo " PID: $${PID}"; \
+	echo " Log file: $${LOGFILE}"; \
 	echo ""; \
 	echo " To watch the logs live, run:"; \
-	echo "    tail -f $$LOGFILE"; \
+	echo "    tail -f $${LOGFILE}"; \
 	echo ""; \
 	echo " To kill the process, run:"; \
-	echo "    kill $$PID"; \
-	echo "=======================================================
-"
+	echo "    kill $${PID}"; \
+	echo "======================================================="; \
+	echo ""
 endef
 
 test-nohup:
