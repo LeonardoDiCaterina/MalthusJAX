@@ -7,6 +7,7 @@ with sensible defaults and declarative configuration.
 from .composer import Composer
 from .decorators import (
     register_crossover,
+    register_emitter,
     register_engine,
     register_fitness,
     register_genome,
@@ -26,6 +27,7 @@ __all__ = [
     "register_selection",
     "register_mutation",
     "register_crossover",
+    "register_emitter",
     "register_fitness",
     "register_engine",
     "register_genome",

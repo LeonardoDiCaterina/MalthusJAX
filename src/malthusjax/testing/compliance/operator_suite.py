@@ -168,3 +168,71 @@ class SelectionComplianceSuite:
             f"Shape contract violation: Expected elite shape ({component.n_elites},), "
             f"got {elites.shape}."
         )
+
+
+class EmitterComplianceSuite:
+    """Standalone compliance suite for custom MalthusJAX Emitter operators.
+
+    To use this suite, inherit from this class and implement the following fixtures:
+    - `component`: Returns an instantiated emitter operator inheriting from `BaseEmitter`.
+    - `mock_repertoire`: Returns an optional mock repertoire or container compatible with `component.ask`.
+    """
+
+    @pytest.fixture
+    def component(self) -> Any:
+        raise NotImplementedError("You must implement the `component` fixture.")
+
+    @pytest.fixture
+    def mock_repertoire(self) -> Any:
+        return None
+
+    def test_is_dataclass(self, component) -> None:
+        """Verify the emitter is an immutable flax.struct.dataclass."""
+        assert dataclasses.is_dataclass(component), (
+            f"{component.__class__.__name__} is not a dataclass. "
+            "Did you forget to inherit from BaseEmitter and apply @flax.struct.dataclass?"
+        )
+
+    def test_inheritance(self, component) -> None:
+        """Verify the component inherits from BaseEmitter."""
+        from malthusjax.operators.emitters.base import BaseEmitter
+
+        assert isinstance(component, BaseEmitter), (
+            f"{component.__class__.__name__} must inherit from BaseEmitter."
+        )
+
+    def test_batch_size_contract(self, component) -> None:
+        """Verify batch_size is a positive integer."""
+        assert isinstance(component.batch_size, int) and component.batch_size > 0, (
+            f"{component.__class__.__name__}.batch_size must be a positive integer, got {component.batch_size}."
+        )
+
+    def test_num_keys_contract(self, component) -> None:
+        """Verify num_keys() returns a valid non-negative integer."""
+        total_keys = component.num_keys()
+        assert isinstance(total_keys, int) and total_keys >= 0, (
+            f"{component.__class__.__name__}.num_keys() must return a non-negative integer, got {total_keys}."
+        )
+
+    def test_has_registry_metadata(self, component) -> None:
+        """Verify registry metadata is attached if registered."""
+        assert hasattr(component, "_malthusjax_metadata"), (
+            f"{component.__class__.__name__} is missing registry metadata. "
+            "Did you forget to decorate the class with @register_emitter?"
+        )
+
+    def test_ask_execution(self, component, mock_repertoire) -> None:
+        """Verify the emitter's ask method executes and returns offspring of correct batch_size."""
+        total_keys = max(component.num_keys(), 1)
+        keys = jax.random.split(jax.random.PRNGKey(0), total_keys)
+        offspring, _ = component.ask(
+            state=None,
+            repertoire=mock_repertoire,
+            keys=keys,
+            generation=0,
+        )
+        assert offspring is not None, "component.ask() returned None offspring."
+        assert len(offspring) == component.batch_size, (
+            f"Shape contract violation: Expected {component.batch_size} individuals, got {len(offspring)}."
+        )
+

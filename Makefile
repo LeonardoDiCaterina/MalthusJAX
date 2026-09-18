@@ -293,6 +293,10 @@ test-bench-group-11:
 	@echo "--- Running injection + key derivation parity benchmarks ---"
 	pytest tests/benchmarks/test_benchmark_11_injection_parity.py --no-cov -v --benchmark-only
 
+test-bench-group-12:
+	@echo "--- Running adapter overhead verification benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_12_adapter_overhead.py --no-cov -v --benchmark-only
+
 # nohup variants for each group
 
 test-bench-group-01-nohup:
@@ -327,6 +331,9 @@ test-bench-group-10-nohup:
 
 test-bench-group-11-nohup:
 	$(call bg_task,test-bench-group-11,make test-bench-group-11)
+
+test-bench-group-12-nohup:
+	$(call bg_task,test-bench-group-12,make test-bench-group-12)
 
 # ============================================================================= #
 # Documentation targets

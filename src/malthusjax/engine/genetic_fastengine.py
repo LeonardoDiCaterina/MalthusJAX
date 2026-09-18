@@ -1352,3 +1352,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         """
         _ = rng_key
         return self.tell(cast(GeneticEvolutionState, state), population)
+
+
+# Backward compatibility alias for the primary Genetic Algorithm engine
+GeneticFastEngine = GeneticEngine
+

@@ -76,6 +76,7 @@ def _genome_decorator(
 register_selection = _operator_decorator
 register_mutation = _operator_decorator
 register_crossover = _operator_decorator
+register_emitter = _operator_decorator
 register_fitness = _operator_decorator
 register_predictor = _operator_decorator
 

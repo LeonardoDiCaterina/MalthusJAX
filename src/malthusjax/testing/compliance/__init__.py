@@ -5,6 +5,7 @@ from .evaluator_suite import ComposableEvaluatorComplianceSuite, EvaluatorCompli
 from .interpreter_suite import InterpreterComplianceSuite
 from .operator_suite import (
     CrossoverComplianceSuite,
+    EmitterComplianceSuite,
     MutationComplianceSuite,
     SelectionComplianceSuite,
 )
@@ -15,6 +16,7 @@ __all__ = [
     "MutationComplianceSuite",
     "CrossoverComplianceSuite",
     "SelectionComplianceSuite",
+    "EmitterComplianceSuite",
     "EngineComplianceSuite",
     "EvaluatorComplianceSuite",
     "ComposableEvaluatorComplianceSuite",

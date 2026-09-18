@@ -83,7 +83,7 @@ def parse_evaluator(config: Dict[str, Any]) -> evaluators.BaseComposableEvaluato
             prob_dict = kwargs["env"].copy()
             prob_dict.pop("type", None)
             prob_type = prob_dict.pop("problem_type", "XOR")
-            import tensorneat  # noqa: F401.problem
+            import tensorneat.problem  # noqa: F401
             try:
                 from tensorneat.problem.func_fit import xor
                 # simple mapping for now

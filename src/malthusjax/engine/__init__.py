@@ -10,7 +10,12 @@ from .base import (
     AbstractGenerationOutput,
     compute_unroll_num,
 )
-from .genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
+from .genetic_fastengine import (
+    GeneticEngine,
+    GeneticEngineParams,
+    GeneticFastEngine,
+    GeneticGenerationOutput,
+)
 from .schedules import ScheduleType, TrackBest, compute_scheduled_strength
 
 # from .diversity_engine import DiversityAwareEngine
@@ -24,6 +29,7 @@ __all__ = [
     "FullyConnectedIsland",
     "RingTopologyIsland",
     "GeneticEngine",
+    "GeneticFastEngine",
     "GeneticEngineParams",
     "GeneticGenerationOutput",
     "ScheduleType",

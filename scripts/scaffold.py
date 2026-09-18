@@ -6,10 +6,8 @@ Generates boilerplate code for building JAX-compliant components for MalthusJAX.
 """
 
 import argparse
-import os
 import re
 import string
-
 from pathlib import Path
 
 
@@ -76,7 +74,7 @@ from malthusjax.composer import register_selection
 @struct.dataclass
 class ${name}(BaseSelection):
     """A custom selection operator."""
-    
+
     num_selections: int = struct.field(pytree_node=False)
 
     def _select_one(self, rng: jax.Array, population: jax.Array, fitness: jax.Array) -> jax.Array:
@@ -96,7 +94,7 @@ from malthusjax.composer import register_mutation
 @struct.dataclass
 class ${name}(BaseMutation):
     """A custom mutation operator."""
-    
+
     mutation_rate: float = 0.1
 
     def _mutate_one(self, rng: jax.Array, genome: jax.Array) -> jax.Array:
@@ -116,12 +114,66 @@ from malthusjax.composer import register_crossover
 @struct.dataclass
 class ${name}(BaseCrossover):
     """A custom crossover operator."""
-    
+
     crossover_rate: float = 0.9
 
     def _recombine_one(self, rng: jax.Array, parent1: jax.Array, parent2: jax.Array) -> Tuple[jax.Array, jax.Array]:
         # TODO: Implement your crossover logic here
         return parent1, parent2
+''')
+
+EMITTER_TEMPLATE = string.Template('''from typing import Any, Optional, Tuple
+
+import chex
+import jax
+import jax.numpy as jnp
+from flax import struct
+
+from malthusjax.core.base import BasePopulation
+from malthusjax.operators.emitters.base import BaseEmitter, EmitterState
+from malthusjax.composer import register_emitter
+
+@struct.dataclass
+class ${name}State(EmitterState):
+    """Internal state for ${name}."""
+    pass
+
+@register_emitter("${key}", override=True)
+@struct.dataclass
+class ${name}(BaseEmitter):
+    """A custom quality-diversity emitter."""
+
+    _batch_size: int = struct.field(pytree_node=False, default=32)
+
+    @property
+    def batch_size(self) -> int:
+        return self._batch_size
+
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 1
+
+    def set_input_length(self, length: int) -> "${name}":
+        return self.replace(_batch_size=length)
+
+    def init(
+        self, key: chex.Array, initial_population: BasePopulation[Any], params: Any = None
+    ) -> Optional[EmitterState]:
+        return ${name}State()
+
+    def ask(
+        self,
+        state: Optional[EmitterState],
+        repertoire: Any,
+        keys: chex.Array,
+        generation: int = 0,
+        params: Any = None,
+    ) -> Tuple[BasePopulation[Any], Optional[EmitterState]]:
+        # TODO: Implement offspring generation logic from repertoire
+        genes = jnp.zeros((self.batch_size, 10))
+        fitness = jnp.zeros(self.batch_size)
+        offspring = BasePopulation(genes=genes, fitness=fitness)
+        return offspring, state
 ''')
 
 ENGINE_TEMPLATE = string.Template('''from typing import Any, Dict, Optional, Tuple
@@ -142,9 +194,9 @@ class ${name}State(EngineState):
 @struct.dataclass
 class ${name}(AbstractEngine):
     """A custom evolutionary engine."""
-    
+
     engine_params: AbstractEngineParams
-    
+
     @property
     def maximize(self) -> bool:
         return True
@@ -177,20 +229,20 @@ from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 def create_${module_name}() -> OptimizationEvaluator:
     """Builds and returns a configured composable evaluator."""
-    
+
     # 1. Environment
     # env = CustomEnv(...)
     env = None
-    
+
     # 2. Transform (Optional, defaults to IdentityTransform)
     transform = IdentityTransform()
-    
+
     # 3. Interpreter
     interpreter = IdentityInterpreter()
-    
+
     # 4. Output Mode
     output = ScalarOutput(maximize=True)
-    
+
     # 5. Composition
     return OptimizationEvaluator(
         env=env,
@@ -210,12 +262,12 @@ from malthusjax.core.fitness.composable.base import BaseTransform
 @struct.dataclass
 class ${name}(BaseTransform[Any]):
     """A custom genotype-to-phenotype transform."""
-    
+
     def transform(self, genome: Any, state: Any = None) -> Any:
         # TODO: Implement your transformation logic here
         return genome
 
-    # Optional: Override transform_population if the transform 
+    # Optional: Override transform_population if the transform
     # must be applied at the population level (e.g. TensorNEAT).
     # def transform_population(self, genes: Any, state: Any = None) -> Any:
     #     return super().transform_population(genes, state)
@@ -238,7 +290,7 @@ class ${name}(BaseGenome):
     """A custom genome configuration."""
 
     values: chex.Array
-    
+
     @classmethod
     def random_init(cls: Type["${name}"], key: chex.PRNGKey, config: Any) -> "${name}":
         # TODO: Initialize random genome values
@@ -299,7 +351,7 @@ class ${name}(BaseInterpreter[Any]):
     @property
     def num_params(self) -> int:
         # TODO: Return the exact number of parameters required by this interpreter.
-        # This contract is strictly enforced by MalthusJAX. 
+        # This contract is strictly enforced by MalthusJAX.
         # Return -1 only if the genome length is strictly dictated by the problem.
         return -1
 
@@ -354,7 +406,7 @@ class Test${name}(SelectionComplianceSuite):
     @pytest.fixture
     def component(self):
         return ${name}(${dummy_args})
-    
+
     @pytest.fixture
     def mock_population(self):
         genes = jnp.zeros((10, 5))
@@ -373,7 +425,7 @@ class Test${name}(MutationComplianceSuite):
     @pytest.fixture
     def component(self):
         return ${name}(${dummy_args})
-    
+
     @pytest.fixture
     def mock_population(self):
         genes = jnp.zeros((10, 5))
@@ -392,12 +444,24 @@ class Test${name}(CrossoverComplianceSuite):
     @pytest.fixture
     def component(self):
         return ${name}(${dummy_args})
-    
+
     @pytest.fixture
     def mock_population(self):
         genes = jnp.zeros((10, 5))
         fitness = jnp.zeros(10)
         return BasePopulation(genes=genes, fitness=fitness)
+''')
+
+TEST_EMITTER = string.Template('''import jax
+import jax.numpy as jnp
+import pytest
+from ${import_path}.${module_name} import ${name}
+from malthusjax.testing.compliance import EmitterComplianceSuite
+
+class Test${name}(EmitterComplianceSuite):
+    @pytest.fixture
+    def component(self):
+        return ${name}(${dummy_args})
 ''')
 
 TEST_ENGINE = string.Template('''import jax
@@ -433,7 +497,7 @@ class Test${name}:
     @pytest.fixture
     def component(self):
         return ${name}()
-        
+
     def test_transform(self, component):
         genome = jnp.zeros(10)
         result = component.transform(genome)
@@ -482,7 +546,7 @@ class Test${name}(InterpreterComplianceSuite):
     def mock_genome(self):
         from malthusjax.core.genome.real_genome import RealGenome
         return RealGenome(values=jnp.ones(10))
-        
+
     @pytest.fixture
     def mock_inputs(self):
         return jnp.zeros(5)
@@ -504,6 +568,7 @@ DUMMY_ARGS = {
     "selection": "num_selections=5",
     "mutation": "",
     "crossover": "",
+    "emitter": "",
     "engine": "",
     "evaluator": "",
     "transform": "",
@@ -518,6 +583,7 @@ TEST_TEMPLATES = {
     "selection": TEST_SELECTION,
     "mutation": TEST_MUTATION,
     "crossover": TEST_CROSSOVER,
+    "emitter": TEST_EMITTER,
     "engine": TEST_ENGINE,
     "evaluator": TEST_EVALUATOR,
     "transform": TEST_TRANSFORM,
@@ -532,6 +598,7 @@ TEMPLATES = {
     "selection": SELECTION_TEMPLATE,
     "mutation": MUTATION_TEMPLATE,
     "crossover": CROSSOVER_TEMPLATE,
+    "emitter": EMITTER_TEMPLATE,
     "engine": ENGINE_TEMPLATE,
     "evaluator": EVALUATOR_TEMPLATE,
     "transform": TRANSFORM_TEMPLATE,
@@ -551,9 +618,9 @@ def main():
     parser.add_argument("--impl-dir", "-o", default="plugins", help="Output directory for implementation")
     parser.add_argument("--test-dir", "-to", default="tests/plugins", help="Output directory for tests")
     parser.add_argument("--env-type", choices=["opt", "supervised", "rl"], default="opt", help="Type of environment (only used if type=environment)")
-    
+
     args = parser.parse_args()
-    
+
     if args.type != "evaluator" and not args.key:
         print("Error: --key is required for all components except evaluator.")
         return 1
@@ -561,18 +628,18 @@ def main():
     # Resolve paths
     out_dir = Path(args.impl_dir)
     test_out_dir = Path(args.test_dir)
-    
+
     out_dir.mkdir(parents=True, exist_ok=True)
     test_out_dir.mkdir(parents=True, exist_ok=True)
-    
+
     module_name = to_snake_case(args.name)
     impl_file = out_dir / f"{module_name}.py"
     test_file = test_out_dir / f"test_{module_name}.py"
-    
+
     if impl_file.exists():
         print(f"Error: {impl_file} already exists!")
         return 1
-        
+
     if test_file.exists():
         print(f"Error: {test_file} already exists!")
         return 1
@@ -636,11 +703,11 @@ def main():
         impl_content = TEMPLATES[args.type].substitute(module_name=module_name)
     else:
         impl_content = TEMPLATES[args.type].substitute(name=args.name, key=args.key)
-        
+
     impl_file.write_text(impl_content)
-    
+
     import_path = str(out_dir).replace('/', '.')
-    
+
     # Render Test Boilerplate
     test_content = TEST_TEMPLATES[args.type].substitute(
         name=args.name,
@@ -649,7 +716,7 @@ def main():
         dummy_args=DUMMY_ARGS[args.type]
     )
     test_file.write_text(test_content)
-    
+
     print(f"Successfully scaffolded {args.type} '{args.name}'")
     print(f"  Implementation: {impl_file}")
     print(f"  Test:           {test_file}")

@@ -9,7 +9,7 @@ from malthusjax.operators.emitters.base import BaseEmitter
 @struct.dataclass
 class GeneticStrategy(BaseStrategy):
     """
-    Standard Generation Engine (GeneticFastEngine) with genetic operators.
+    Standard Generation Engine (GeneticEngine / GeneticFastEngine) with genetic operators.
     If multiple operators are passed, they are automatically composed via a MixingEmitter.
     """
 

@@ -125,11 +125,46 @@ def extract_mjx_hlo(
     optimize: bool = True,
 ) -> str:
     """Extract HLO for a MalthusJAX pipeline using its built-in get_hlo_text()."""
-    from malthusjax.composer.catalog import OperatorCatalog
+    from malthusjax.composer.engine_factory import build_engine
+    from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+    from malthusjax.core.fitness.composable.environments import SphereEnv
     from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+
+    evaluator = OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False),
+    )
+
+    # Strip keys not understood by build_engine
+    kwargs = {
+        k: v
+        for k, v in pipeline_kwargs.items()
+        if k
+        not in {
+            "backend",
+            "engine_type",
+            "evosax_strategy",
+            "strategy_params",
+        }
+    }
+
+    adapter = build_engine(
+        fitness_evaluator=evaluator,
+        genome_type="real",
+        pop_size=pop_size,
+        generations=gens,
+        genome_shape=(num_dims,),
+        bounds=(-5.0, 5.0),
+        **kwargs,
+    )
+    engine = adapter.genetic_engine
+    key = jax.random.PRNGKey(0)
+    state = engine.init_state(key)
+    hlo = engine.get_hlo_text(state, optimize=optimize, print_analysis=False)
+    return hlo  # type: ignore[return-value]
 
 def _write_summary(results: dict[str, dict[str, Any]], out_dir: Path) -> None:
     """Write a Markdown table comparing HLO stats for all pipelines."""

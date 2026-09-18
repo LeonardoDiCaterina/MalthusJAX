@@ -51,7 +51,7 @@ class PhysicsEnv(BaseOptimizationEnvironment):
 
 If your genome doesn't represent the direct solution, you need an Interpreter to decode it into a callable (like an MLP or a GP graph).
 
-For full details on Interpreters, see the [Interpreter Guide](interpreter_guide.md).
+For full details on Interpreters, see the [Interpreter Guide](interpreter_guide).
 
 ### 3. Composing the Evaluator
 

@@ -104,6 +104,7 @@ EXPECTED_FITNESS = {
     "griewank_rosenbrock",
     "rosenbrock",
     "ellipsoidal_rotated",
+    "tsp",
 }
 EXPECTED_EVOSAX = {"evosax_simplega", "evosax_mr15", "evosax_de"}
 EXPECTED_EMITTER = {

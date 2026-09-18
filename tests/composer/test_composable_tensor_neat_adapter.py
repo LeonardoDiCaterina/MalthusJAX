@@ -1,19 +1,21 @@
 import sys
+import types
 from unittest.mock import MagicMock
+
+import jax
 import jax.numpy as jnp
 import pytest
-import types
 
-from malthusjax.testing.compliance import AdapterComplianceSuite
+from malthusjax.composer.adapters import EvalMode
 from malthusjax.composer.composable_tensor_neat_adapter import (
     ComposableTensorNEATAdapter,
+    _tensorneat_native_eval,
+    build_composable_tensorneat_engine,
     list_algorithms,
     list_genomes,
     list_problems,
-    build_composable_tensorneat_engine,
-    _tensorneat_native_eval,
 )
-from malthusjax.composer.adapters import EvalMode
+from malthusjax.testing.compliance import AdapterComplianceSuite
 
 
 class TestComposableTensorNEATAdapter(AdapterComplianceSuite):
@@ -34,17 +36,17 @@ def mock_tensorneat():
     tn.genome = types.ModuleType("tensorneat.genome")
     tn.problem = types.ModuleType("tensorneat.problem")
     tn.common = types.ModuleType("tensorneat.common")
-    
+
     class SomeAlgo:
         def ask(self): pass
         def tell(self): pass
-    
+
     class SomeGenome:
         def initialize(self): pass
-        
+
     class SomeProblem:
         def evaluate(self): pass
-        
+
     class State:
         def register(self, **kwargs):
             return self
@@ -52,20 +54,20 @@ def mock_tensorneat():
             for k, v in kwargs.items():
                 setattr(self, k, v)
             return self
-            
+
     tn.algorithm.SomeAlgo = SomeAlgo
     tn.genome.SomeGenome = SomeGenome
     tn.problem.SomeProblem = SomeProblem
     tn.common.State = State
-    
+
     sys.modules["tensorneat"] = tn
     sys.modules["tensorneat.algorithm"] = tn.algorithm
     sys.modules["tensorneat.genome"] = tn.genome
     sys.modules["tensorneat.problem"] = tn.problem
     sys.modules["tensorneat.common"] = tn.common
-    
+
     yield tn
-    
+
     if "tensorneat" in sys.modules:
         del sys.modules["tensorneat"]
         del sys.modules["tensorneat.algorithm"]
@@ -101,11 +103,11 @@ def test_adapter_init(mock_tensorneat):
     adapter = ComposableTensorNEATAdapter(strategy=None, params=None, pop_size=10, num_generations=5)
     algo = MagicMock()
     algo.setup.return_value = mock_tensorneat.common.State()
-    
+
     state = adapter._adapter_init(
-        algorithm=algo, 
-        key=jnp.array([0, 0]), 
-        params={}, 
+        algorithm=algo,
+        key=jnp.array([0, 0]),
+        params={},
         pop_init=(jnp.array([1]), jnp.array([2]))
     )
     assert hasattr(state, "pop_nodes")
@@ -115,7 +117,7 @@ def test_adapter_init(mock_tensorneat):
 def test_adapter_step(mock_tensorneat):
     adapter = ComposableTensorNEATAdapter(strategy=None, params=None, pop_size=10, num_generations=5)
     adapter.maximize = True
-    
+
     algo = MagicMock()
     algo.ask.return_value = jnp.zeros((10, 2))
     algo.transform = lambda s, p: p
@@ -126,10 +128,10 @@ def test_adapter_step(mock_tensorneat):
             return self
 
     state = DummyState()
-    
+
     def dummy_eval(*args):
         return jnp.ones(10)
-    
+
     new_state, metrics = adapter._adapter_step(
         algorithm=algo, state=state, key=jnp.array([0, 0]), params={},
         evaluator=None, eval_translator=dummy_eval
@@ -140,13 +142,13 @@ def test_adapter_step(mock_tensorneat):
 
 def test_native_eval(mock_tensorneat):
     problem = MagicMock()
-    problem.evaluate = lambda s, k, f, p: jnp.zeros(10)
-    
+    problem.evaluate = lambda s, k, f, p: 0.0
+
     fitness = _tensorneat_native_eval(
         evaluator=(problem, None),
         state=None,
         transformed_pop=jnp.zeros((10, 2)),
         algorithm=MagicMock(),
-        key=jnp.array([0, 0])
+        key=jax.random.PRNGKey(0),
     )
     assert fitness.shape == (10,)

@@ -145,6 +145,44 @@ def _create_binary_sum_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
         output=ScalarOutput(maximize=maximize)
     )
 
+
+def _create_tsp_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
+    import jax
+    import jax.numpy as jnp
+
+    _resolved_data = kwargs.pop("_resolved_data", None)
+    kwargs.pop("data_id", None)
+    maximize = kwargs.get("maximize", False)
+
+    distance_matrix = kwargs.get("distance_matrix")
+    if distance_matrix is None and _resolved_data is not None:
+        if isinstance(_resolved_data, dict):
+            if "distance_matrix" in _resolved_data:
+                distance_matrix = jnp.array(_resolved_data["distance_matrix"])
+            elif _resolved_data.get("source") == "synthetic":
+                num_cities = _resolved_data.get("num_cities", 52)
+                seed = _resolved_data.get("random_seed", 42)
+                key = jax.random.PRNGKey(seed)
+                coords = jax.random.uniform(key, (num_cities, 2))
+                diff = coords[:, jnp.newaxis, :] - coords[jnp.newaxis, :, :]
+                distance_matrix = jnp.sqrt(jnp.sum(diff**2, axis=-1))
+
+    if distance_matrix is None:
+        num_cities = kwargs.get("num_cities", 52)
+        seed = kwargs.get("seed", 42)
+        key = jax.random.PRNGKey(seed)
+        coords = jax.random.uniform(key, (num_cities, 2))
+        diff = coords[:, jnp.newaxis, :] - coords[jnp.newaxis, :, :]
+        distance_matrix = jnp.sqrt(jnp.sum(diff**2, axis=-1))
+
+    return OptimizationEvaluator(
+        env=TSPEnv(distance_matrix=distance_matrix),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=maximize),
+    )
+
+
 def _register_fitness() -> None:
     """Register fitness evaluators with the global catalog registry."""
     from malthusjax.composer._registry import register_table
@@ -164,6 +202,7 @@ def _register_fitness() -> None:
             # Classic evaluators
             ("binary_sum", _create_binary_sum_evaluator, {}),
             ("knapsack", _create_knapsack_evaluator, {}),
+            ("tsp", _create_tsp_evaluator, {}),
         ],
         override=True,
     )

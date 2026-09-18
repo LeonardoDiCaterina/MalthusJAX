@@ -26,19 +26,19 @@ MalthusJAX is designed so you can enter the framework at the exact depth your pr
 - **Example**: `mjax run experiment.toml`
 
 ### [Level 3: The Engine](src/malthusjax/engine/README.md)
-- **What it is**: Core evolutionary orchestration like `GeneticEngine`, `MOEngine`, and `GeneticFastEngine`.
+- **What it is**: Core evolutionary orchestration like `GeneticEngine` (aliased as `GeneticFastEngine`), `MOEngine`, `MapElitesEngine`, and `BaseIslandModel`.
 - **Use case**: You want full control over the `jax.lax.scan` loop (e.g., to step custom RL environments or implement unique logging), but you want MalthusJAX to handle the 5-phase generation logic (Entropy → Selection → Crossover → Mutation → Evaluation).
 - **Example**: `next_state, output = engine.step(state)`
 
 ### [Level 2: The Operators](src/malthusjax/operators/README.md)
 - **What it is**: Pre-built, vectorized genetic operators (`BaseMutation`, `BaseCrossover`, `BaseSelection`).
 - **Use case**: You already have a custom training loop built in JAX, and you simply need a highly optimized, GPU-accelerated crossover or mutation function to drop in.
-- **Example**: `new_population = mutation(keys, population)`
+- **Example**: `mutated_pop = mutation(keys, population, config)`
 
-### [Level 1: Core State & Encodings](src/malthusjax/core/README.md) (Lowest Abstraction)
-- **What it is**: `BasePopulation`, `RealGenome`, `BinaryGenome`, `CategoricalGenome`.
-- **Use case**: Pure `flax.struct` PyTrees designed for contiguous memory access and Struct-of-Arrays (SoA) layouts. Perfect if you are building an entirely novel evolutionary algorithm completely from scratch and need solid data structures.
-- **Example**: `pop = BasePopulation.create_population(key, config, pop_size=100)`
+### [Level 1: The Core](src/malthusjax/core/README.md)
+- **What it is**: Low-level foundational PyTrees (`BaseGenome`, `BasePopulation`, `malthusjax.core.random`) and the new 4-axis Composable Evaluator architecture (`Environment × Transform × Interpreter × Output`).
+- **Use case**: You need deterministic PRNG key management, specialized genome representations (e.g., TensorNEAT graphs or bitstrings), or custom evaluation task composition.
+- **Example**: `keys = malthusjax.core.random.split(key, 5)`
 
 ---
 
@@ -87,7 +87,7 @@ graph TD
     end
 
     subgraph engine_layer[Engine Layer (Level 3)]
-        composer --> base_engine["GeneticFastEngine"]
+        composer --> base_engine["GeneticEngine / GeneticFastEngine"]
         composer --> mo_engine["MOEngine (NSGA-II)"]
         composer --> island_meta["BaseIslandModel"]
     end
@@ -124,7 +124,7 @@ Writing custom operators in JAX can be tricky (e.g., getting the `vmap` axes and
 ```bash
 python scripts/scaffold.py -t mutation -n QuantumMutation -k quantum_mutation
 ```
-This generates your plugin *and* a `pytest` file that inherits from our **Standalone Compliance Suite**. The compliance suite automatically runs rigorous `jax.jit` and shape-contract tests on your plugin to ensure it will work flawlessly inside a complex MalthusJAX compiled loop.
+This generates your plugin *and* a `pytest` file that inherits from our **Standalone Compliance Suite**. The compliance suite automatically runs rigorous `jax.jit` and shape-contract tests on your plugin to ensure it will work flawlessly inside a complex MalthusJAX compiled loop. For complete usage across all 12 component types, see the [Extension CLI Guide](extension_cli_guide.md).
 
 ### External Library Integrations
 MalthusJAX acts as a universal bridge, allowing you to natively compile and benchmark external libraries alongside MalthusJAX strategies:

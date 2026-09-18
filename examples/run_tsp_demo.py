@@ -6,7 +6,7 @@ from malthusjax.composer.config import load_experiment_config
 
 def main() -> None:
     # 1. Load config which now includes [data.*] sections!
-    result = load_experiment_config("examples/tsp_experiment.toml")
+    result = load_experiment_config("configs/examples/tsp_experiment.toml")
 
     composer = Composer()
 

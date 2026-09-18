@@ -65,8 +65,8 @@ def _discover_local_plugins() -> None:
         sys.path.insert(0, str(plugins_dir))
 
     for py_file in plugins_dir.rglob("*.py"):
-        # Ignore private files and __init__.py
-        if py_file.name.startswith("_"):
+        # Ignore private files, __init__.py, and tests
+        if py_file.name.startswith("_") or py_file.name.startswith("test_") or "tests" in py_file.parts:
             continue
 
         module_name = py_file.stem
