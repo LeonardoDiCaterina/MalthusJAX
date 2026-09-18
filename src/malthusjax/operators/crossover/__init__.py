@@ -7,7 +7,15 @@ All crossover operators inherit from BaseCrossover and return (num_offspring, ge
 
 from .binary import SinglePointCrossover
 from .binary import UniformCrossover as BinaryUniformCrossover
-from .evosax_crossover import BatchedEvosaxUniformWrapper, EvosaxUniformCrossoverWrapper
+
+try:
+    from .evosax_crossover import BatchedEvosaxUniformWrapper, EvosaxUniformCrossoverWrapper
+    _HAS_EVOSAX = True
+except ImportError:
+    _HAS_EVOSAX = False
+    BatchedEvosaxUniformWrapper = None  # type: ignore[assignment, misc]
+    EvosaxUniformCrossoverWrapper = None  # type: ignore[assignment, misc]
+
 from .real import (
     BatchedUniformCrossover,
     BinomialCrossover,
@@ -37,34 +45,37 @@ __all__ = [
     "BinomialCrossover",
     "BinomialCrossover_injection",
     "SimulatedBinaryCrossover_injection",
-    "EvosaxUniformCrossoverWrapper",
     "BatchedUniformCrossover",
-    "BatchedEvosaxUniformWrapper",
 ]
+if _HAS_EVOSAX:
+    __all__.extend(["EvosaxUniformCrossoverWrapper", "BatchedEvosaxUniformWrapper"])
 
 
 def _register_crossover() -> None:
     """Register crossover operators with the global catalog registry."""
     from malthusjax.composer._registry import register_table
 
-    register_table(
-        [
-            ("uniform_real", RealUniformCrossover, {}),
-            ("uniform_real_injection", RealUniformCrossover_injection, {}),
-            ("blend", BlendCrossover, {}),
-            ("blend_injection", BlendCrossover_injection, {}),
-            ("simulated_binary", SimulatedBinaryCrossover, {}),
-            ("simulated_binary_injection", SimulatedBinaryCrossover_injection, {}),
-            ("binomial", BinomialCrossover, {}),
-            ("binomial_injection", BinomialCrossover_injection, {}),
-            ("evosax_uniform_crossover", EvosaxUniformCrossoverWrapper, {}),
-            ("batched_uniform_crossover", BatchedUniformCrossover, {}),
-            ("batched_evosax_uniform", BatchedEvosaxUniformWrapper, {}),
-            ("uniform_binary", BinaryUniformCrossover, {}),
-            ("single_point", SinglePointCrossover, {}),
-        ],
-        override=True,
-    )
+    table = [
+        ("uniform_real", RealUniformCrossover, {}),
+        ("uniform_real_injection", RealUniformCrossover_injection, {}),
+        ("blend", BlendCrossover, {}),
+        ("blend_injection", BlendCrossover_injection, {}),
+        ("simulated_binary", SimulatedBinaryCrossover, {}),
+        ("simulated_binary_injection", SimulatedBinaryCrossover_injection, {}),
+        ("binomial", BinomialCrossover, {}),
+        ("binomial_injection", BinomialCrossover_injection, {}),
+        ("batched_uniform_crossover", BatchedUniformCrossover, {}),
+        ("uniform_binary", BinaryUniformCrossover, {}),
+        ("single_point", SinglePointCrossover, {}),
+    ]
+    if _HAS_EVOSAX:
+        table.extend(
+            [
+                ("evosax_uniform_crossover", EvosaxUniformCrossoverWrapper, {}),
+                ("batched_evosax_uniform", BatchedEvosaxUniformWrapper, {}),
+            ]
+        )
+    register_table(table, override=True)
 
 
 _register_crossover()

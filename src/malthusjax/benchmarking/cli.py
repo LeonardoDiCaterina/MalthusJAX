@@ -73,15 +73,6 @@ from malthusjax.benchmarking.results import (
     MetaComparison,
     RunResult,
 )
-from malthusjax.benchmarking.statistics import (
-    ExpectedDirection,
-    HypothesisKind,
-    MultipleTestingPolicy,
-    Sidedness,
-    StatisticalComparator,
-    StatisticalComparisonSpec,
-    paired_dataset_from_comparison,
-)
 
 
 def _load_comparison(results_dir: Path) -> ComparisonResult:
@@ -114,6 +105,24 @@ def handle_analyze(args: argparse.Namespace) -> int:
     analysis_dir.mkdir(exist_ok=True)
 
     if len(pipe_names) == 2:
+        try:
+            from malthusjax.stats import (
+                ExpectedDirection,
+                HypothesisKind,
+                MultipleTestingPolicy,
+                Sidedness,
+                StatisticalComparator,
+                StatisticalComparisonSpec,
+                paired_dataset_from_comparison,
+            )
+        except ImportError as err:
+            print(
+                f"Error: Statistical analysis requires optional dependencies ({err}). "
+                "Please install via: pip install 'malthusjax[stats]'",
+                file=sys.stderr,
+            )
+            return 1
+
         left, right = pipe_names[0], pipe_names[1]
         print(f"Running statistical parity analysis for {left} vs {right}...")
         spec = StatisticalComparisonSpec(

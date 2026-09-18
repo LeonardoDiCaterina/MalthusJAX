@@ -1,9 +1,6 @@
 import argparse
 import sys
 
-from malthusjax.dash.config import load_config
-from malthusjax.dash.plan import AnalysisPlan
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="MalthusDash: Analytical engine for MalthusJAX.")
@@ -20,11 +17,21 @@ def main() -> None:
 
     if args.command == "run":
         try:
+            from malthusjax.dash.config import load_config
+            from malthusjax.dash.plan import AnalysisPlan
+
             config_dict = load_config(args.config)
             plan = AnalysisPlan(config_dict, output_dir=args.output)
             print(f"Executing plan from {args.config}...")
             plan.execute()
             print(f"Success. Outputs saved to {args.output}/")
+        except ImportError as e:
+            print(
+                f"Error: MalthusDash requires additional dependencies ({e}). "
+                "Please install them via: pip install 'malthusjax[stats]'",
+                file=sys.stderr,
+            )
+            sys.exit(1)
         except Exception as e:
             print(f"Error executing plan: {e}", file=sys.stderr)
             sys.exit(1)

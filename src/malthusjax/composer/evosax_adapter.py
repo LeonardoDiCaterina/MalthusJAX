@@ -10,15 +10,19 @@ from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 import chex
 import jax
 import jax.numpy as jnp
-from evosax.algorithms import distribution_based_algorithms, population_based_algorithms
+
+try:
+    from evosax.algorithms import distribution_based_algorithms, population_based_algorithms
+
+    EVOSAX_STRATEGIES: Dict[str, type] = {
+        **population_based_algorithms,
+        **distribution_based_algorithms,
+    }
+except ImportError:
+    EVOSAX_STRATEGIES = {}
 
 from malthusjax.composer.adapters import EvalMode, adapter
 from malthusjax.composer.adapters.metrics import MetricSpec
-
-EVOSAX_STRATEGIES: Dict[str, type] = {
-    **population_based_algorithms,
-    **distribution_based_algorithms,
-}
 
 
 def list_strategies() -> list[str]:
