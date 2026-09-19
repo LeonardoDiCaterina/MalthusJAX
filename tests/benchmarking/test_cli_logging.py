@@ -127,3 +127,25 @@ def test_cli_log_interval_flag(tmp_path: Path):
         assert "Running experiment" in content
     finally:
         os.chdir(original_cwd)
+
+
+def test_cli_check_env(capsys):
+    """Verify that `mjax check-env` outputs environment diagnostics."""
+    result = main(["check-env"])
+    assert result == 0
+    captured = capsys.readouterr()
+    assert "MalthusJAX Environment & HPC Diagnostics" in captured.out
+    assert "Platform / Python:" in captured.out
+    assert "CPU Cores Detected:" in captured.out
+
+
+def test_cli_no_crash_handler():
+    """Verify that --no-crash-handler unregisters the crash handler trap."""
+    from malthusjax.core.diagnostics import get_environment_diagnostics, install_crash_handler
+
+    install_crash_handler(enable_fault_handler=False)
+    assert get_environment_diagnostics()["crash_handler_installed"] is True
+
+    result = main(["--no-crash-handler", "catalog"])
+    assert result == 0
+    assert get_environment_diagnostics()["crash_handler_installed"] is False

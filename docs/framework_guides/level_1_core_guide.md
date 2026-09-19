@@ -71,6 +71,7 @@ When working strictly at Level 1, your workflow looks like this:
 > - Absolute freedom. Write custom meta-learning loops, hybrid RL/Evolution loops, or completely non-standard algorithms without fighting the framework's Engine.
 > - The composable evaluator stack is still fully JIT-compatible — you get the benefits of the new architecture without needing the Engine.
 > - Full access to zero-dependency Level 1 logging (`malthusjax.core.logger`).
+> - Built-in runtime stabilization and native crash diagnostics (`malthusjax.core.diagnostics`) protecting against OpenMP thread collisions and GPU preallocation crashes.
 > - Perfect for rapid prototyping in Jupyter Notebooks.
 
 > [!WARNING]

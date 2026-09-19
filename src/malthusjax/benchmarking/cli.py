@@ -10,9 +10,16 @@ from typing import Any, List, Optional
 
 from malthusjax.composer import Composer
 from malthusjax.composer.catalog import OperatorCatalog
+from malthusjax.core.diagnostics import print_environment_diagnostics, uninstall_crash_handler
 from malthusjax.core.logger import configure_logging, get_logger
 
 logger = get_logger("benchmarking.cli")
+
+
+def handle_check_env(args: argparse.Namespace) -> int:
+    """Handle `mjax check-env`."""
+    print_environment_diagnostics()
+    return 0
 
 
 def _dump_results(comparison: Any, out_dir: Path, config_path: Path) -> None:
@@ -337,6 +344,12 @@ def main(args: Optional[List[str]] = None) -> int:
         default=argparse.SUPPRESS,
         help="Interval in generations for JIT telemetry callbacks",
     )
+    log_parser.add_argument(
+        "--no-crash-handler",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Disable native POSIX crash handler trap",
+    )
 
     parser = argparse.ArgumentParser(
         prog="mjax",
@@ -416,6 +429,14 @@ def main(args: Optional[List[str]] = None) -> int:
     )
     parser_catalog.set_defaults(func=handle_catalog)
 
+    # 8. CHECK-ENV
+    parser_check_env = subparsers.add_parser(
+        "check-env",
+        parents=[log_parser],
+        help="Inspect runtime environment, HPC thread limits, and JAX GPU configuration",
+    )
+    parser_check_env.set_defaults(func=handle_check_env)
+
     parsed = parser.parse_args(args)
 
     verbose = getattr(parsed, "verbose", False)
@@ -423,12 +444,17 @@ def main(args: Optional[List[str]] = None) -> int:
     log_file = getattr(parsed, "log_file", None)
     log_json = getattr(parsed, "log_json", False)
     log_interval = getattr(parsed, "log_interval", None)
+    no_crash_handler = getattr(parsed, "no_crash_handler", False)
 
     setattr(parsed, "verbose", verbose)
     setattr(parsed, "quiet", quiet)
     setattr(parsed, "log_file", log_file)
     setattr(parsed, "log_json", log_json)
     setattr(parsed, "log_interval", log_interval)
+    setattr(parsed, "no_crash_handler", no_crash_handler)
+
+    if no_crash_handler:
+        uninstall_crash_handler()
 
     if verbose:
         level = "DEBUG"

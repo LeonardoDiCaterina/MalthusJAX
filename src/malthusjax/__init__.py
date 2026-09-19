@@ -4,6 +4,19 @@ MalthusJAX: High-Performance Evolutionary Computation in JAX.
 
 __version__ = "0.2.0"
 
+# 1. Stabilize runtime environment and hook native crash diagnostics
+from .core.diagnostics import (
+    format_crash_banner,
+    get_environment_diagnostics,
+    install_crash_handler,
+    print_environment_diagnostics,
+    stabilize_runtime_environment,
+    uninstall_crash_handler,
+)
+
+stabilize_runtime_environment()
+install_crash_handler()
+
 import logging
 
 # Attach NullHandler to root library logger according to PEP 282
@@ -39,6 +52,13 @@ __all__ = [
     "selection",
     "crossover",
     "mutation",
+    # Diagnostics & stabilization
+    "stabilize_runtime_environment",
+    "install_crash_handler",
+    "uninstall_crash_handler",
+    "format_crash_banner",
+    "get_environment_diagnostics",
+    "print_environment_diagnostics",
     # Core top-level types
     "BaseGenome",
     "BasePopulation",

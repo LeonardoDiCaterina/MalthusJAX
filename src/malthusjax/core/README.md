@@ -106,4 +106,21 @@ logger = get_logger("my_subsystem")
 logger.info("Level 1 foundation initialized.")
 ```
 
+---
+
+## 6. Runtime Stabilization & Crash Diagnostics (`malthusjax.core.diagnostics`)
+
+Level 1 includes automatic process stabilization and native crash diagnostics to protect production runs and external users on high-core HPC nodes and multi-GPU servers.
+
+**Public API:**
+- `stabilize_runtime_environment()`: Clamps unconstrained C/Fortran math thread pools (`OMP_NUM_THREADS="1"`, `MKL_NUM_THREADS="1"`, `OPENBLAS_NUM_THREADS="1"`, `NUMEXPR_NUM_THREADS="1"`, `VECLIB_MAXIMUM_THREADS="1"`), sets `XLA_PYTHON_CLIENT_PREALLOCATE="false"`, and configures `multiprocessing` to use `"spawn"` on POSIX. Always uses `setdefault` so user settings are never overwritten.
+- `install_crash_handler(enable_fault_handler=True)`: Hooks `SIGSEGV`, `SIGBUS`, `SIGFPE`, and `SIGABRT`. Intercepts native C/CUDA crashes, flushes active loggers to preserve in-flight experiment data, writes a diagnostic report to `sys.stderr`, and dumps thread tracebacks.
+- `uninstall_crash_handler()`: Restores original system signal handlers.
+- `get_environment_diagnostics() -> Dict[str, Any]`: Returns a structured dictionary of hardware and runtime settings with actionable warnings.
+- `print_environment_diagnostics(stream=None)`: Displays the environment health card.
+
+**Environment Overrides & Opt-Outs:**
+- `MALTHUSJAX_DISABLE_ENV_STABILIZATION=1`: Disables automatic environment clamping.
+- `MALTHUSJAX_DISABLE_CRASH_HANDLER=1`: Disables POSIX crash signal interception.
+
 
