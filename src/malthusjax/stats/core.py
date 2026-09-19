@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 
 import numpy as np
 
@@ -123,6 +123,8 @@ class PairedMetricDataset:
 @dataclass(frozen=True)
 class TestResult:
     """Result for one statistical test."""
+
+    __test__: ClassVar[bool] = False
 
     name: str
     statistic: float | None

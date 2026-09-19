@@ -88,7 +88,7 @@ class BenchmarkRunner:
 
         for i, seed in iterable:
             print(f"  - Seed {i + 1}/{len(seeds)} start (seed={seed})", flush=True)
-            key = create_key(seed, impl=impl) if impl else jr.PRNGKey(seed)
+            key = create_key(seed, impl=impl)
             # Only trace the first seed
             trace_this = self.trace_dir if i == 0 else None
             run_result = self._run_single_seed(seed, key, timeout_seconds, trace_dir=trace_this)
