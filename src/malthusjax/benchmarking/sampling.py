@@ -6,7 +6,10 @@ from typing import Any, Dict, List
 
 from scipy.stats import qmc
 
+from ..core.logger import get_logger
 from .config import BenchmarkConfig, CartesianGridConfig, LHSGridConfig
+
+logger = get_logger("benchmarking.sampling")
 
 
 def generate_grid(config: BenchmarkConfig) -> List[Dict[str, Any]]:
@@ -41,6 +44,11 @@ def _generate_cartesian_grid(config: BenchmarkConfig) -> List[Dict[str, Any]]:
             }
         )
 
+    logger.debug(
+        "Generated %d Cartesian coordinates across %d functions",
+        len(coordinates),
+        len(config.grid.functions),
+    )
     return coordinates
 
 
@@ -86,4 +94,10 @@ def _generate_lhs_grid(config: BenchmarkConfig) -> List[Dict[str, Any]]:
                 {"fn_name": fn_name, "D": D, "P": P, "G": G, "lhs_id": f"lhs{i:03d}"}
             )
 
+    logger.debug(
+        "Generated %d LHS coordinates across %d functions (num_samples=%d)",
+        len(coordinates),
+        len(config.grid.functions),
+        config.grid.num_samples,
+    )
     return coordinates

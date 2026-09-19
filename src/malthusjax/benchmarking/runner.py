@@ -17,9 +17,12 @@ from typing import Any, Dict, List, Optional, Protocol, Sequence
 import chex
 import jax
 
+from ..core.logger import get_logger
 from ..core.random import create_key, resolve_prng_impl
 from .io import write_experiment_artifacts
 from .results import ExperimentResult, RunResult
+
+logger = get_logger("benchmarking.runner")
 
 # tqdm is optional; import lazily for progress bars in loops
 try:
@@ -86,18 +89,18 @@ class BenchmarkRunner:
             iterable = tqdm(iterable, total=len(seeds), desc="seeds")
 
         for i, seed in iterable:
-            print(f"  - Seed {i + 1}/{len(seeds)} start (seed={seed})", flush=True)
+            logger.debug("Seed %d/%d start (seed=%s)", i + 1, len(seeds), seed)
             key = create_key(seed, impl=impl)
             # Only trace the first seed
             trace_this = self.trace_dir if i == 0 else None
             run_result = self._run_single_seed(seed, key, timeout_seconds, trace_dir=trace_this)
             runs.append(run_result)
-            print(
-                "  - Seed "
-                f"{i + 1}/{len(seeds)} done "
-                f"status={run_result.status} "
-                f"duration={run_result.duration_seconds:.2f}s",
-                flush=True,
+            logger.info(
+                "Seed %d/%d done status=%s duration=%.2fs",
+                i + 1,
+                len(seeds),
+                run_result.status,
+                run_result.duration_seconds,
             )
 
         # Create experiment result

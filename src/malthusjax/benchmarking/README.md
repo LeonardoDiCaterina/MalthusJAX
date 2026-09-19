@@ -106,6 +106,20 @@ The `write_experiment_artifacts(experiment, output_dir)` function writes artifac
 
 ---
 
+## Structured Logging Channels
+
+The benchmarking subsystem utilizes MalthusJAX's unified logging infrastructure (`malthusjax.core.logger`):
+
+- **`malthusjax.benchmarking.runner`**:
+  - `DEBUG`: Logs seed execution starts (`"Seed 1/10 start (seed=42)"`).
+  - `INFO`: Logs seed execution completions (`"Seed 1/10 done status=success duration=0.12s"`).
+- **`malthusjax.benchmarking.sampling`**:
+  - `DEBUG`: Logs coordinate generation counts for Cartesian grids and Latin Hypercube Sampling (LHS) spaces.
+- **`malthusjax.benchmarking.suite`**:
+  - `INFO`: Logs high-throughput benchmark coordinate execution progress and wall-clock times.
+
+---
+
 ## `malthusjax.benchmarking.cli` (`mjax`)
 
 CLI module exposing commands via `argparse`:
