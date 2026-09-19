@@ -21,15 +21,48 @@ spec.loader.exec_module(analysis)
 
 
 @pytest.fixture(scope="module")
-def sample_json_path() -> Path:
-    # pick the first file under .benchmarks/*/*.json; tests will skip if none
+def sample_json_path(tmp_path_factory) -> Path:
+    # Use real benchmark file if present
     base = Path(".benchmarks")
-    if not base.exists():
-        pytest.skip("no benchmark directory present")
-    files = list(base.rglob("*.json"))
-    if not files:
-        pytest.skip("no benchmark json files found")
-    return files[0]
+    if base.exists():
+        files = list(base.rglob("*.json"))
+        if files:
+            return files[0]
+
+    # Otherwise create a valid synthetic benchmark JSON file so tests always execute
+    tmp_dir = tmp_path_factory.mktemp("benchmarks")
+    sample_file = tmp_dir / "sample_benchmark.json"
+    dummy_data = {
+        "benchmarks": [
+            {
+                "group": "operators",
+                "name": "crossover_benchmark",
+                "stats": {
+                    "mean": 0.0012,
+                    "stddev": 0.0001,
+                    "min": 0.0010,
+                    "max": 0.0015,
+                    "median": 0.0012,
+                },
+                "extra_info": {"pop_size": 100, "tags": ["fast"]},
+            },
+            {
+                "group": "operators",
+                "name": "crossover_benchmark",
+                "stats": {
+                    "mean": 0.0014,
+                    "stddev": 0.0002,
+                    "min": 0.0011,
+                    "max": 0.0018,
+                    "median": 0.0013,
+                },
+                "extra_info": {"pop_size": 100, "tags": ["fast"]},
+            },
+        ]
+    }
+    with open(sample_file, "w") as f:
+        json.dump(dummy_data, f)
+    return sample_file
 
 
 def test_load_and_records(sample_json_path: Path):
