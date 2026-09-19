@@ -127,8 +127,8 @@ class TestBuildEvosaxEngine:
         Note: LGA is skipped due to JAX version compatibility issues with
         evosax's pickled parameter loading.
         """
-        # Skip strategies due to external library compatibility issue with JAX pickling
-        skip_strategies = {"LGA", "EvoTF_ES", "LES", "LM_MA_ES", "SV_CMA_ES", "SV_Open_ES", "DES"}
+        # Skip strategies due to external library compatibility issue with JAX pickling or multi-population API
+        skip_strategies = {"LGA", "EvoTF_ES", "LES", "SV_CMA_ES", "SV_Open_ES"}
 
         for name in list_strategies():
             if name in skip_strategies:
@@ -385,12 +385,10 @@ class TestStrategySmoke:
             "LGA",
             "EvoTF_ES",
             "LES",
-            "LM_MA_ES",
             "SV_CMA_ES",
             "SV_Open_ES",
-            "DES",
         }:
-            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility issue")
+            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API")
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=4)
         adapter = build_evosax_engine(
@@ -413,12 +411,10 @@ class TestStrategySmoke:
             "LGA",
             "EvoTF_ES",
             "LES",
-            "LM_MA_ES",
             "SV_CMA_ES",
             "SV_Open_ES",
-            "DES",
         }:
-            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility issue")
+            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API")
 
         evalr = make_bbob_evaluator(fn_name="rastrigin", num_dims=5)
         adapter = build_evosax_engine(

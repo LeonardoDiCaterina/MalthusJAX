@@ -22,7 +22,7 @@ class PRNGImpl(str, Enum):
     """
 
     THREEFRY = "threefry2x32"
-    PHILOX = "philox4x32_10"
+    PHILOX = "philox4x32"
     RBG = "rbg"
     UNSAFE_RBG = "unsafe_rbg"
 
@@ -34,6 +34,7 @@ _PRNG_ALIASES: dict[str, PRNGImpl] = {
     "threefry": PRNGImpl.THREEFRY,
     "threefry2x32": PRNGImpl.THREEFRY,
     "philox": PRNGImpl.PHILOX,
+    "philox4x32": PRNGImpl.PHILOX,
     "philox4x32_10": PRNGImpl.PHILOX,
     "rbg": PRNGImpl.RBG,
     "unsafe_rbg": PRNGImpl.UNSAFE_RBG,

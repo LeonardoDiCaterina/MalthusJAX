@@ -136,7 +136,7 @@ class EvosaxEngineAdapter:
             if getattr(self, "maximize", False):
                 fit_init = -fit_init
 
-        if type(strategy).__name__ in distribution_based_algorithms:
+        if isinstance(strategy, tuple(distribution_based_algorithms.values())):
             # Distribution-based algorithms expect a mean instead of a population
             mean_init = jnp.mean(pop_init, axis=0)
             state = strategy.init(key, mean_init, params)
