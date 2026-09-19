@@ -50,8 +50,9 @@ def test_experiment_canonical_summary():
         artifacts={},
     )
     exp = ExperimentResult(name="ex", runs=[r1])
-    summary = exp.canonical_summary()
-    assert "mean_best_fitness" in summary
+    summary = exp.canonical_summary
+    assert "best_fitness" in summary
+    assert summary["best_fitness"] == 1.0
 
 def test_comparison_statistical_methods():
     r1 = RunResult(
@@ -77,5 +78,5 @@ def test_comparison_statistical_methods():
     speedup = comp.statistical_speedup("pipe2", "pipe1")
     assert speedup["mean_speedup"] == 2.0
     
-    delta = comp.statistical_fitness_delta("pipe2", "pipe1", metric="best_fitness")
-    assert delta["baseline_mean"] == 0.5
+    delta = comp.statistical_fitness_delta("pipe2", "pipe1", metric_key="best_fitness")
+    assert delta["mean_delta"] == 0.5
