@@ -239,3 +239,12 @@ Composer connects execution to `BenchmarkRunner` (`benchmarking` package):
 - **`ExperimentResult`**: Holds multi-seed `RunResult` records for a pipeline. Provides `.aggregated_summary()`, `.combined_history()`, and confidence intervals (`ci_lower`, `ci_upper`).
 - **`ComparisonResult`**: Holds multi-pipeline `ExperimentResult` objects. Supports `.summary_table()` (exportable to Markdown/LaTeX), `.plot_convergence()`, and statistical hypothesis tests.
 - **Artifact Serialization**: Automatically writes structured JSON outputs (`metadata/config_snapshot.toml`, `data/<pipeline>/seed_<X>.json`, `analysis/summary.json`).
+
+---
+
+## 9. Unified Logging Subsystem
+
+Composer natively interfaces with the zero-dependency MalthusJAX logging subsystem (`malthusjax.core.logger`):
+- **Diagnostic Logging (`malthusjax.composer`, `malthusjax.composer.adapters`)**: Pipeline execution, initialization, seed scheduling, and timing breakdowns are emitted as structured `INFO` and `DEBUG` events.
+- **On-Device Step Telemetry**: Passing `log_interval=N` to `quick_run(...)` or specifying `interval = N` in the TOML `[logging]` block compiles non-blocking `jax.lax.cond` + `jax.debug.callback` hooks into both native MalthusJAX engines and adapted external engines (`UniversalAdapterEngine`).
+- **Trace-Time Pruning**: When `log_interval` is omitted (`None`), Python trace-time branching completely eliminates callback nodes from the compiled XLA graph, guaranteeing 0 ns overhead in production benchmarks.

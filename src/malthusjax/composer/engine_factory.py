@@ -22,10 +22,13 @@ from ..core.genome.binary_genome import BinaryGenomeConfig
 
 # for now it only supports real genomes but it will be extended in the future
 from ..core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from ..core.logger import StepLoggingConfig, get_logger
 from ..core.random import resolve_prng_impl
 from ..engine.base import _get_evolution_kernel
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from ..engine.schedules import TrackBest
+
+logger = get_logger("composer.adapters")
 
 
 class GeneticEngineAdapter:
@@ -43,6 +46,7 @@ class GeneticEngineAdapter:
         prng_impl: Optional[str] = None,
         maximize: bool = False,
         history_metrics: Optional[Sequence[str]] = None,
+        step_logging: Optional[StepLoggingConfig] = None,
     ):
         self.genetic_engine = genetic_engine
         self.genome_config = genome_config
@@ -50,8 +54,11 @@ class GeneticEngineAdapter:
         self.prng_impl = prng_impl
         self.maximize = maximize
         self.history_metrics = history_metrics
+        self.step_logging = step_logging
 
-    def run_once(self, key: chex.Array) -> Dict[str, Any]:
+    def run_once(
+        self, key: chex.Array, step_logging: Optional[StepLoggingConfig] = None
+    ) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
 
         Notes
@@ -107,7 +114,10 @@ class GeneticEngineAdapter:
 
         # ---- Execution phase: run the pre-compiled scan (JIT cache warm) ----
         t_exec_start = time.perf_counter()
-        final_state, scan_history, _ = self.genetic_engine.run(state, time_it=True, compile=True)
+        active_logging = step_logging or self.step_logging
+        final_state, scan_history, _ = self.genetic_engine.run(
+            state, time_it=True, compile=True, step_logging=active_logging
+        )
         t_exec_end = time.perf_counter()
 
         num_gens = int(self.genetic_engine.engine_params.num_generations)
@@ -154,6 +164,13 @@ class GeneticEngineAdapter:
             "execution": t_exec_end - t_exec_start,
             "total": t_exec_end - t_warmup_start,
         }
+
+        logger.debug(
+            "GeneticEngineAdapter completed in %.4fs (warmup: %.4fs, exec: %.4fs)",
+            timings["total"],
+            timings["warmup"],
+            timings["execution"],
+        )
 
         return {
             "history": history,
@@ -261,12 +278,14 @@ def build_engine(
         schedule_extra["track_best"] = TrackBest.LIGHT
 
     engine_cls = kwargs.pop("engine_cls", GeneticEngine)
+    step_logging = kwargs.pop("step_logging", None)
 
     engine_params = GeneticEngineParams(
         pop_size=pop_size,
         num_generations=generations,
         elitism=elitism,
         unroll_num=unroll_factor,
+        step_logging=step_logging,
         **prng_extra,
         **schedule_extra,
     )
@@ -302,6 +321,7 @@ def build_engine(
         prng_impl=prng_impl_str,
         maximize=maximize_flag,
         history_metrics=history_metrics,
+        step_logging=step_logging,
     )
 
 

@@ -232,6 +232,7 @@ def build_evosax_engine(
         strategy_params=kwargs.get("strategy_params"),
         initial_population=init_pop,
         prng_impl=prng_impl,
+        step_logging=kwargs.get("step_logging"),
     )
 
 

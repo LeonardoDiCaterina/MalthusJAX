@@ -137,3 +137,59 @@ The Composer does not just orchestrate native MalthusJAX engines. It interacts n
 Because Adapters wrap external libraries (like `evosax`, `qdax`, and `tensorneat`) into the unified `UniversalAdapterEngine` protocol, you can benchmark native MalthusJAX pipelines directly alongside EvoSAX pipelines inside the exact same `.toml` file or `composer.compare()` dictionary!
 
 The BenchmarkRunner will execute them identically, time them identically, and aggregate their results into the same dataframes.
+
+---
+
+## 7. Unified Logging & Step Telemetry 🪵
+
+Level 4 exposes zero-overhead diagnostic and step telemetry logging across both native engines and external library adapters.
+
+### Programmatic Logging (`quick_run` & `compare`)
+
+You can control logging directly from Python by passing `log_interval` and `log_level`:
+
+```python
+from malthusjax.composer.composer import Composer
+
+composer = Composer.create_default()
+
+result = composer.quick_run(
+    fitness="sphere:dim=10",
+    pop_size=50,
+    generations=100,
+    log_interval=10,        # Emits on-device JIT callback telemetry every 10 generations
+    log_level="DEBUG",      # Enables verbose pipeline & timing diagnostics
+    log_nan_watchdog=True,  # Active on-device NaN/Inf detection watchdog
+)
+```
+
+### Declarative Experiments (`[logging]` in TOML)
+
+For version-controlled research, you can configure logging directly inside experiment `.toml` files:
+
+```toml
+[experiment]
+name = "benchmark_with_logging"
+
+[logging]
+level = "INFO"
+interval = 25
+nan_watchdog = true
+file = "results/benchmark.log"  # Optional file logging
+
+[experiment.shared]
+fitness = "sphere:dim=10"
+pop_size = 64
+generations = 200
+seeds = [42, 43, 44]
+
+[pipelines.ga_sbx]
+crossover = "simulated_binary:eta=20"
+mutation = "polynomial:mutation_rate=0.1,eta=20"
+```
+
+When running `Composer.from_toml("benchmark.toml")`, the Composer parses the `[logging]` section, configures the logger channel and output file, and injects `log_interval` into the JIT execution loop of every pipeline.
+
+### Adapter Telemetry Bridge
+
+External libraries adapted via `UniversalAdapterEngine` (e.g., EvoSAX, QDAX, TensorNEAT) inherit identical JIT step logging telemetry via `jax.lax.cond` and `jax.debug.callback`. When `log_interval` is unset (`None`), trace-time pruning removes all callback nodes completely, guaranteeing zero performance overhead in production benchmarks.

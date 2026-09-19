@@ -35,7 +35,7 @@ def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
     return cast(Dict[str, Any], pipeline)
 
 
-_EXPERIMENT_META_KEYS = {"name", "output_dir"}
+_EXPERIMENT_META_KEYS = {"name", "output_dir", "logging"}
 
 
 @dataclass
@@ -106,6 +106,8 @@ def load_experiment_config(
         k: v for k, v in experiment_raw.items() if k in _EXPERIMENT_META_KEYS
     }
     experiment_meta["shared"] = shared
+    if "logging" in cfg and "logging" not in experiment_meta:
+        experiment_meta["logging"] = dict(cfg["logging"])
 
     raw_pipelines: Dict[str, Any] = cfg.get("pipelines", {})
     if not raw_pipelines:

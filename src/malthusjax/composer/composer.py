@@ -41,8 +41,16 @@ from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 from ..benchmarking import BenchmarkRunner, ExperimentResult
 from ..benchmarking.results import ComparisonResult
+from ..core.logger import (
+    StepLoggingConfig,
+    configure_logging,
+    get_logger,
+    set_log_level,
+)
 from .catalog import OperatorCatalog
 from .config import load_experiment_config
+
+logger = get_logger("composer")
 
 try:
     from tqdm import tqdm
@@ -165,6 +173,11 @@ class Composer:
         trace_dir: Optional[Path | str] = None,
         data_config: Optional[Dict[str, Any]] = None,
         history_metrics: Optional[Sequence[str]] = None,
+        # Logging configuration
+        log_interval: Optional[int] = None,
+        log_level: Optional[str] = None,
+        log_nan_watchdog: bool = True,
+        step_logging: Optional[StepLoggingConfig] = None,
         **kwargs: Any,
     ) -> ExperimentResult:
         """Run a full evolutionary experiment with programmatic operator specs.
@@ -385,6 +398,16 @@ class Composer:
                 seeds=(1, 2),
             )
         """
+        if log_level is not None:
+            set_log_level(log_level)
+
+        if step_logging is None and log_interval is not None:
+            step_logging = StepLoggingConfig(
+                log_interval=log_interval,
+                log_nan_watchdog=log_nan_watchdog,
+                logger_name="malthusjax.composer",
+            )
+
         if output_dir is None:
             output_dir = Path("results") / experiment_name
         else:
@@ -484,6 +507,7 @@ class Composer:
                         maximize=maximize,
                         prng_impl=prng_impl,
                         history_metrics=history_metrics,
+                        step_logging=step_logging,
                         **strategy.algorithm_kwargs,
                         **kwargs,
                     )
@@ -498,6 +522,7 @@ class Composer:
                         maximize=maximize,
                         prng_impl=prng_impl,
                         history_metrics=history_metrics,
+                        step_logging=step_logging,
                         **strategy.algorithm_kwargs,
                         **kwargs,
                     )
@@ -511,6 +536,7 @@ class Composer:
                     bounds=bounds,
                     maximize=maximize,
                     history_metrics=history_metrics,
+                    step_logging=step_logging,
                     **kwargs,
                 )
             elif isinstance(strategy, TensorNEATStrategy):
@@ -523,6 +549,7 @@ class Composer:
                         generations=generations,
                         maximize=maximize,
                         history_metrics=history_metrics,
+                        step_logging=step_logging,
                         **kwargs,
                     )
                 else:
@@ -533,6 +560,7 @@ class Composer:
                         generations=generations,
                         maximize=maximize,
                         history_metrics=history_metrics,
+                        step_logging=step_logging,
                         **kwargs,
                     )
             elif isinstance(strategy, MapElitesStrategy):
@@ -545,6 +573,7 @@ class Composer:
                     history_metrics=history_metrics,
                     genome_length=genome_length,
                     bounds=bounds,
+                    step_logging=step_logging,
                     **kwargs,
                 )
             elif isinstance(strategy, GeneticStrategy):
@@ -563,10 +592,14 @@ class Composer:
                     prng_impl=prng_impl,
                     data_config=data_config,
                     history_metrics=history_metrics,
+                    step_logging=step_logging,
                     **kwargs,
                 )
             else:
                 engine = build_stub_engine(generations, **kwargs)
+        else:
+            if step_logging is not None and hasattr(engine, "step_logging"):
+                engine.step_logging = step_logging
 
         runner = BenchmarkRunner(
             engine=engine,
@@ -579,7 +612,18 @@ class Composer:
         )
 
         normalized_seeds = normalize_seeds(seeds)
+        logger.info(
+            "Starting quick_run: experiment='%s', backend='%s', seeds=%s",
+            experiment_name,
+            backend,
+            list(normalized_seeds),
+        )
         experiment = runner.run(normalized_seeds)
+        logger.info(
+            "Completed quick_run: experiment='%s' across %d seeds",
+            experiment_name,
+            len(normalized_seeds),
+        )
 
         # Composer-level postprocessing: when engines run with
         # TrackBest.NONE for speed they may omit or produce an
@@ -842,6 +886,20 @@ class Composer:
 
         trace_base = shared_kwargs.pop("trace_dir", None)
 
+        log_interval = shared_kwargs.get("log_interval")
+        log_level = shared_kwargs.get("log_level")
+        if log_level is not None:
+            set_log_level(log_level)
+
+        normalized_seeds = normalize_seeds(seeds)
+
+        logger.info(
+            "Comparing %d pipelines across %d seeds: %s",
+            len(pipelines),
+            len(normalized_seeds),
+            list(pipelines.keys()),
+        )
+
         results: Dict[str, ExperimentResult] = {}
         negate_map: Dict[str, bool] = {}
         last_init_pop = None
@@ -1046,6 +1104,16 @@ class Composer:
         output_dir = experiment_meta.get("output_dir")
         if output_dir:
             shared.setdefault("output_dir", output_dir)
+
+        logging_meta = experiment_meta.get("logging")
+        if logging_meta:
+            lvl = logging_meta.get("level", "INFO")
+            log_file = logging_meta.get("file")
+            configure_logging(level=lvl, log_file=log_file)
+            if "interval" in logging_meta:
+                shared.setdefault("log_interval", logging_meta["interval"])
+            if "nan_watchdog" in logging_meta:
+                shared.setdefault("log_nan_watchdog", logging_meta["nan_watchdog"])
 
         seeds = normalize_seeds(shared.pop("seeds", (42, 43, 44)))
 
