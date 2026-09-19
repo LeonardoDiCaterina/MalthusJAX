@@ -17,6 +17,8 @@ The CLI automates these constraints for you. By scaffolding components, you auto
 - **JAX-Compliant PyTrees:** All scaffolded classes are pre-decorated with `@struct.dataclass`.
 - **Automatic Registration:** Components are automatically wired into the Composer catalog using `@register_...` decorators.
 - **Boilerplate Compliance Testing:** The CLI writes `pytest` suites for your new components. These tests inherit from MalthusJAX's rigorous `ComplianceSuite` bases, automatically fuzz-testing your code against JAX constraints without you writing a single test case yourself!
+- **Pre-Configured Unified Logging:** All scaffolded components import and instantiate `logger = get_logger(...)`, providing immediate diagnostic tracing without manual setup.
+
 
 ---
 

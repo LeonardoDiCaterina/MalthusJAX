@@ -19,13 +19,16 @@ def to_snake_case(name: str) -> str:
 
 # --- IMPLEMENTATION TEMPLATES ---
 
-ADAPTER_TEMPLATE = string.Template('''from typing import Any, Tuple, Dict, Callable
+ADAPTER_TEMPLATE = string.Template('''from typing import Any, Tuple, Dict, Callable, Optional
 import jax
 import jax.numpy as jnp
 import chex
 
 from malthusjax.composer.adapters import adapter, EvalMode
 from malthusjax.composer.adapters.metrics import MetricSpec
+from malthusjax.core.logger import StepLoggingConfig, get_logger
+
+logger = get_logger("composer.adapters.${key}")
 
 ADAPTER_METRICS = [
     MetricSpec(name="best_fitness", source="best_fitness", is_objective_value=True),
@@ -41,7 +44,15 @@ ADAPTER_METRICS = [
 class ${name}:
     """Universal Adapter for ${key}."""
 
-    def _adapter_init(self, strategy: Any, key: chex.PRNGKey, params: Any, pop_init: Any = None) -> Any:
+    def _adapter_init(
+        self,
+        strategy: Any,
+        key: chex.PRNGKey,
+        params: Any,
+        pop_init: Any = None,
+        step_logging: Optional[StepLoggingConfig] = None,
+    ) -> Any:
+        logger.debug("Initializing ${name} adapter for strategy %s", strategy)
         # TODO: Initialize your framework's state here
         return None
 
@@ -69,6 +80,9 @@ from flax import struct
 
 from malthusjax.operators.base import BaseSelection
 from malthusjax.composer import register_selection
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("operators.selection.${key}")
 
 @register_selection("${key}", override=True)
 @struct.dataclass
@@ -76,6 +90,10 @@ class ${name}(BaseSelection):
     """A custom selection operator."""
 
     num_selections: int = struct.field(pytree_node=False)
+
+    def set_input_length(self, length: int) -> "${name}":
+        logger.debug("Configuring ${name} selection count: %d", length)
+        return self.replace(num_selections=length)
 
     def _select_one(self, rng: jax.Array, population: jax.Array, fitness: jax.Array) -> jax.Array:
         # TODO: Implement your selection logic here for ONE selection.
@@ -89,6 +107,9 @@ from flax import struct
 
 from malthusjax.operators.base import BaseMutation
 from malthusjax.composer import register_mutation
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("operators.mutation.${key}")
 
 @register_mutation("${key}", override=True, compatible_genomes=["real", "continuous"])
 @struct.dataclass
@@ -96,6 +117,10 @@ class ${name}(BaseMutation):
     """A custom mutation operator."""
 
     mutation_rate: float = 0.1
+
+    def set_input_length(self, length: int) -> "${name}":
+        logger.debug("Configuring ${name} input length: %d", length)
+        return self
 
     def _mutate_one(self, rng: jax.Array, genome: jax.Array) -> jax.Array:
         # TODO: Implement your mutation logic here
@@ -109,6 +134,9 @@ from typing import Tuple
 
 from malthusjax.operators.base import BaseCrossover
 from malthusjax.composer import register_crossover
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("operators.crossover.${key}")
 
 @register_crossover("${key}", override=True, compatible_genomes=["real", "continuous"])
 @struct.dataclass
@@ -116,6 +144,10 @@ class ${name}(BaseCrossover):
     """A custom crossover operator."""
 
     crossover_rate: float = 0.9
+
+    def set_input_length(self, length: int) -> "${name}":
+        logger.debug("Configuring ${name} input length: %d", length)
+        return self
 
     def _recombine_one(self, rng: jax.Array, parent1: jax.Array, parent2: jax.Array) -> Tuple[jax.Array, jax.Array]:
         # TODO: Implement your crossover logic here
@@ -132,6 +164,9 @@ from flax import struct
 from malthusjax.core.base import BasePopulation
 from malthusjax.operators.emitters.base import BaseEmitter, EmitterState
 from malthusjax.composer import register_emitter
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("operators.emitters.${key}")
 
 @struct.dataclass
 class ${name}State(EmitterState):
@@ -154,11 +189,13 @@ class ${name}(BaseEmitter):
         return 1
 
     def set_input_length(self, length: int) -> "${name}":
+        logger.debug("Configuring ${name} batch size: %d", length)
         return self.replace(_batch_size=length)
 
     def init(
         self, key: chex.Array, initial_population: BasePopulation[Any], params: Any = None
     ) -> Optional[EmitterState]:
+        logger.debug("Initializing ${name} emitter state")
         return ${name}State()
 
     def ask(
@@ -184,6 +221,9 @@ from flax import struct
 
 from malthusjax.engine.base import AbstractEngine, EngineState, AbstractEngineParams
 from malthusjax.composer import register_engine
+from malthusjax.core.logger import StepLoggingConfig, get_logger, _host_log_step, _host_log_nan_anomaly
+
+logger = get_logger("engine.${key}")
 
 @struct.dataclass
 class ${name}State(EngineState):
@@ -193,7 +233,7 @@ class ${name}State(EngineState):
 @register_engine("${key}", override=True)
 @struct.dataclass
 class ${name}(AbstractEngine):
-    """A custom evolutionary engine."""
+    """A custom evolutionary engine with unified logging support."""
 
     engine_params: AbstractEngineParams
 
@@ -202,6 +242,7 @@ class ${name}(AbstractEngine):
         return True
 
     def init_state(self, rng_key: jax.Array) -> ${name}State:
+        logger.debug("Initializing ${name} state")
         # TODO: Initialize engine state
         return ${name}State(
             generation=0,
@@ -212,7 +253,16 @@ class ${name}(AbstractEngine):
         )
 
     def step(self, state: ${name}State) -> Tuple[${name}State, Any]:
-        # TODO: Implement a single generation step
+        # TODO: Implement a single generation step.
+        # To bridge step telemetry to Python host logging:
+        # if self.engine_params.step_logging and self.engine_params.step_logging.is_active():
+        #     jax.lax.cond(
+        #         (state.generation % self.engine_params.step_logging.log_interval) == 0,
+        #         lambda: jax.debug.callback(
+        #             _host_log_step, state.generation, state.best_fitness, state.best_fitness, self.engine_params.step_logging.logger_name
+        #         ),
+        #         lambda: None,
+        #     )
         output = None
         return state, output
 ''')
@@ -226,9 +276,13 @@ from malthusjax.core.fitness.composable.evaluators import (
 )
 from malthusjax.core.fitness.composable.base import ScalarOutput, IdentityTransform
 from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("core.fitness.evaluator")
 
 def create_${module_name}() -> OptimizationEvaluator:
     """Builds and returns a configured composable evaluator."""
+    logger.debug("Building composable evaluator: %s", "${module_name}")
 
     # 1. Environment
     # env = CustomEnv(...)
@@ -258,18 +312,23 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.fitness.composable.base import BaseTransform
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("core.fitness.transform")
 
 @struct.dataclass
 class ${name}(BaseTransform[Any]):
     """A custom genotype-to-phenotype transform."""
 
     def transform(self, genome: Any, state: Any = None) -> Any:
+        logger.debug("Applying ${name} transform")
         # TODO: Implement your transformation logic here
         return genome
 
     # Optional: Override transform_population if the transform
     # must be applied at the population level (e.g. TensorNEAT).
     # def transform_population(self, genes: Any, state: Any = None) -> Any:
+    #     logger.debug("Applying population-level transform: ${name}")
     #     return super().transform_population(genes, state)
 ''')
 
@@ -283,6 +342,9 @@ from flax import struct
 
 from malthusjax.core.base import BaseGenome
 from malthusjax.composer import register_genome
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("core.genome.${key}")
 
 @register_genome("${key}", override=True)
 @struct.dataclass
@@ -293,6 +355,7 @@ class ${name}(BaseGenome):
 
     @classmethod
     def random_init(cls: Type["${name}"], key: chex.PRNGKey, config: Any) -> "${name}":
+        logger.debug("Initializing random genome ${name} with shape (10,)")
         # TODO: Initialize random genome values
         shape = (10,)
         return cls(values=jax.random.normal(key, shape))
@@ -326,6 +389,9 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BasePopulation
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("core.population")
 
 @struct.dataclass
 class ${name}(BasePopulation):
@@ -341,6 +407,9 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.fitness.composable.base import BaseInterpreter
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("core.fitness.interpreter")
 # TODO: Import the specific genome type this interpreter consumes, e.g.:
 # from malthusjax.core.genome.real_genome import RealGenome
 
@@ -366,6 +435,9 @@ import jax.numpy as jnp
 from flax import struct
 
 ${base_import}
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("core.fitness.environment.${key}")
 
 @struct.dataclass
 class ${name}(${base_class}):
@@ -720,6 +792,7 @@ def main():
     print(f"Successfully scaffolded {args.type} '{args.name}'")
     print(f"  Implementation: {impl_file}")
     print(f"  Test:           {test_file}")
+    print(f"  Logging:        Pre-configured via malthusjax.core.logger (get_logger)")
     return 0
 
 
