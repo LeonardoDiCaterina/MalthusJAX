@@ -82,34 +82,34 @@ def format_crash_banner(signum: int) -> str:
 
     lines = [
         "=" * 80,
-        f"🚨 [MalthusJAX Crash Diagnostic Reporter] Fatal Native Crash Intercepted: {sig_desc}",
+        f"[MalthusJAX Crash Diagnostic Reporter] Fatal Native Crash Intercepted: {sig_desc}",
         "=" * 80,
         "A fatal hardware or C-level error occurred outside Python exception handling.",
         "",
         "Active System Diagnostics:",
-        f"  • Platform / Python:   {sys.platform} | Python {sys.version.split()[0]}",
-        f"  • CPU Cores Detected:  {cpu_count}",
-        f"  • OMP_NUM_THREADS:     {omp_val}",
-        f"  • MKL_NUM_THREADS:     {mkl_val}",
-        f"  • OPENBLAS_NUM_THREADS:{openblas_val}",
-        f"  • CUDA_VISIBLE_DEVICES:{cuda_devs}",
-        f"  • XLA Preallocation:   {xla_prealloc}",
-        f"  • MP Start Method:     {mp_method}",
+        f"  - Platform / Python:   {sys.platform} | Python {sys.version.split()[0]}",
+        f"  - CPU Cores Detected:  {cpu_count}",
+        f"  - OMP_NUM_THREADS:     {omp_val}",
+        f"  - MKL_NUM_THREADS:     {mkl_val}",
+        f"  - OPENBLAS_NUM_THREADS:{openblas_val}",
+        f"  - CUDA_VISIBLE_DEVICES:{cuda_devs}",
+        f"  - XLA Preallocation:   {xla_prealloc}",
+        f"  - MP Start Method:     {mp_method}",
         "",
         "Most Common Causes & Resolutions:",
         "  1. OpenMP / BLAS Thread Contention on High-Core Linux Servers:",
         "     If running on a multi-core machine (>= 16 cores), C extensions (KMeans, cKDTree,",
         "     BLAS) default to spawning threads across ALL CPU cores, conflicting with JAX.",
-        "     👉 Fix: export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1",
+        "     Fix: export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1",
         "",
         "  2. GPU Memory (VRAM) Out of Memory / Preallocation Collision:",
         "     By default, JAX locks up to 90% of GPU memory at startup. When multiple pipelines,",
         "     processes, or frameworks run simultaneously on the same GPU, CUDA terminates.",
-        "     👉 Fix: export XLA_PYTHON_CLIENT_PREALLOCATE=false",
+        "     Fix: export XLA_PYTHON_CLIENT_PREALLOCATE=false",
         "",
         "  3. Process Forking with Active CUDA / JAX Runtime Handles:",
         "     Calling fork() in a process that already initialized CUDA causes driver segfaults.",
-        "     👉 Fix: Ensure multiprocessing uses 'spawn' or launch jobs via the 'mjax' CLI.",
+        "     Fix: Ensure multiprocessing uses 'spawn' or launch jobs via the 'mjax' CLI.",
         "",
         "For troubleshooting or reporting bugs, please include the trace below at:",
         "  https://github.com/LeonardoDiCaterina/MalthusJAX/issues",
@@ -255,10 +255,10 @@ def print_environment_diagnostics(stream: Optional[TextIO] = None) -> None:
     out = stream if stream is not None else sys.stdout
     diag = get_environment_diagnostics()
 
-    status_icon = "⚠️" if diag["warnings"] else "✅"
+    status_tag = "[WARNING]" if diag["warnings"] else "[OK]"
     lines = [
         "=" * 70,
-        f"{status_icon} MalthusJAX Environment & HPC Diagnostics",
+        f"{status_tag} MalthusJAX Environment & HPC Diagnostics",
         "=" * 70,
         f"Platform / Python:    {diag['platform']} (Python {diag['python_version']})",
         f"CPU Cores Detected:   {diag['cpu_count']}",
@@ -275,7 +275,7 @@ def print_environment_diagnostics(stream: Optional[TextIO] = None) -> None:
         lines.append("-" * 70)
         lines.append("Warnings & Recommendations:")
         for w in diag["warnings"]:
-            lines.append(f"  • {w}")
+            lines.append(f"  - {w}")
     else:
         lines.append("-" * 70)
         lines.append("Status: Environment configuration is optimized for JAX execution.")
