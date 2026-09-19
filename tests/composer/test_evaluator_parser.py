@@ -84,10 +84,13 @@ def test_parse_evaluator_tensorneat_problem_wrapper():
         "interpreter": "IdentityInterpreter",
         "output": "ScalarOutput",
     }
-    evalr = parse_evaluator(config)
-    assert evalr is not None
 
-    # Test missing tensorneat import
+    # 1. Test missing tensorneat import
     with patch("malthusjax.composer.evaluator_parser.TENSORNEAT_AVAILABLE", False):
         with pytest.raises(ImportError, match="TensorNEAT is not available"):
             parse_evaluator(config)
+
+    # 2. Test instantiation when tensorneat is installed
+    pytest.importorskip("tensorneat")
+    evalr = parse_evaluator(config)
+    assert evalr is not None

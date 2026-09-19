@@ -177,6 +177,7 @@ def test_map_elites_adapter_init_pop_ndarray_and_tuple():
 
 
 def test_resolve_tensorneat_problem():
+    pytest.importorskip("tensorneat")
     # Valid "xor"
     prob, prob_state = resolve_tensorneat_problem("xor", None)
     assert prob is not None
@@ -191,6 +192,7 @@ def test_resolve_tensorneat_problem():
 
 
 def test_build_tensorneat_engine_errors():
+    pytest.importorskip("tensorneat")
     strat_bad_algo = TensorNEATStrategy(
         algorithm_name="nonexistent_algo",
         genome_name="default",
