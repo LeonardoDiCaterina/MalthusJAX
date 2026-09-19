@@ -24,6 +24,7 @@ Base dataclass configuration for evolution engines (`pytree_node=False`):
 - `num_generations: int` (default 50) — Number of evolution steps.
 - `unroll_num: int` (default 1) — Scan unroll factor. Note: `compute_unroll_num()` always returns `1` (unrolling was deprecated to prevent linear XLA IR growth).
 - `track_metrics: bool` (default True) — Controls whether evaluation metrics are collected.
+- `step_logging: Optional[StepLoggingConfig]` (default None) — Optional configuration for JIT device-to-host telemetry and NaN anomaly detection via `jax.debug.callback`.
 
 ### `validate_engine_params(params)`
 Validates configuration constraints outside JIT context, raising `ValueError` if `pop_size <= 0`, `num_generations <= 0`, or `elitism` violates $0 \le \text{elitism} < \text{pop\_size}$.
@@ -32,7 +33,16 @@ Validates configuration constraints outside JIT context, raising `ValueError` if
 Mutable scan carry PyTree storing `population`, `best_genome`, `generation`, `best_fitness`, and `rng_key`. Supports deep copying via `state.copy()` to avoid JAX buffer donation errors across runs.
 
 ### `AbstractEngine[G, P]`
-Abstract base class hashable via `id(self)` for JIT `static_argnums`. Enforces standard engine interface: `maximize` property, `init_state(rng_key)`, `step(state)`, and debug methods (`debug_step`, `debug_run`).
+Abstract base class hashable via `id(self)` for JIT `static_argnums`. Enforces standard engine interface: `maximize` property, `init_state(rng_key)`, `step(state)`, and execution methods:
+- `run(initial_state, time_it=False, compile=True, verbose=False, return_history=True, step_logging=None)`: JIT-compiled evolution loop. Dispatches step telemetry when `step_logging` is active, and logs progress/completion via standard `malthusjax.engine` logger channels.
+- `debug_step(state)`: Executes a single generation update outside JIT, logging population dimensions and stage diagnostics to `malthusjax.engine.debug`.
+- `get_hlo_text(initial_state, optimize=True, print_analysis=True)`: Lowers and compiles the engine's XLA graph, logging line counts, fusion kernel counts, and loop structures.
+
+### JIT Telemetry & NaN Watchdog Bridge
+The engine scan kernel (`_get_evolution_kernel`) provides a zero-overhead callback bridge:
+- **Trace-Time Elimination**: When `step_logging=None` or inactive, all callback nodes and conditionals are completely pruned at Python trace-time before entering StableHLO.
+- **Device-to-Host Telemetry**: When `step_logging.log_interval` is set, `jax.lax.cond` triggers `_host_log_step` via `jax.debug.callback` every $k$ generations.
+- **NaN/Inf Anomaly Watchdog**: When `step_logging.log_nan_watchdog=True`, evaluates array finiteness on-device (`jnp.isnan` / `jnp.isinf`) and triggers `_host_log_nan_anomaly` (`CRITICAL` log on `malthusjax.engine.anomaly`) exclusively when non-finite values arise.
 
 ---
 

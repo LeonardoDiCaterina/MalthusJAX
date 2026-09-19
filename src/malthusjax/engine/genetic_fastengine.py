@@ -17,9 +17,12 @@ import numpy as np
 from flax import struct
 
 from malthusjax.core.fitness.base import BaseEvaluator, dispatch_evaluate_population
+from malthusjax.core.logger import StepLoggingConfig, get_logger
 from malthusjax.core.random import PRNGImpl, create_key, is_new_style_key, validate_key
 
 from ..core.base import BaseGenome, BasePopulation
+
+logger = get_logger("engine.genetic")
 from ..operators.base import BaseCrossover, BaseMutation, BaseSelection
 from .base import (
     AbstractEngine,
@@ -690,7 +693,16 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             leaves = jax.tree_util.tree_leaves(tree)
             if not leaves:
                 return []
-            arr = np.asarray(leaves[0])
+            leaf = leaves[0]
+            if hasattr(leaf, "dtype") and (
+                jnp.issubdtype(getattr(leaf, "dtype", None), jax.dtypes.prng_key)
+                or "key" in str(leaf.dtype)
+            ):
+                try:
+                    leaf = jax.random.key_data(leaf)
+                except Exception:
+                    pass
+            arr = np.asarray(leaf)
             if arr.ndim == 0:
                 return [arr.item()]
             return arr[: min(limit, arr.shape[0])].tolist()
@@ -712,51 +724,59 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             f"{state.resource_map.mutation.input_count}/{state.resource_map.mutation.output_count}"
         )
 
-        print(
-            "debug_step context: "
-            f"generation={state.generation}, population={len(state.population)}, "
-            f"best_fitness={state.best_fitness}, "
-            f"forward_presplit_keys={params.forward_presplit_keys}"
+        logger.debug(
+            "debug_step context: generation=%s, population=%d, best_fitness=%s, forward_presplit_keys=%s",
+            state.generation,
+            len(state.population),
+            state.best_fitness,
+            params.forward_presplit_keys,
         )
-        print(
-            "debug_step resource map: "
-            f"selection(in/out)={selection_io}, "
-            f"crossover(in/out)={crossover_io}, "
-            f"mutation(in/out)={mutation_io}, "
-            f"num_pairs={num_pairs}"
+        logger.debug(
+            "debug_step resource map: selection(in/out)=%s, crossover(in/out)=%s, mutation(in/out)=%s, num_pairs=%s",
+            selection_io,
+            crossover_io,
+            mutation_io,
+            num_pairs,
         )
 
         (k_sel, k_cross, k_mut, k_eval, k_next) = self._allocate_entropy(state)
-        print(
-            "phase 0 allocate entropy: "
-            f"selection={k_sel.shape}, crossover={k_cross.shape}, "
-            f"mutation={k_mut.shape}, next={k_next.shape}"
+        logger.debug(
+            "phase 0 allocate entropy: selection=%s, crossover=%s, mutation=%s, next=%s",
+            k_sel.shape,
+            k_cross.shape,
+            k_mut.shape,
+            k_next.shape,
         )
-        print(
-            "phase 0 key budget: "
-            f"expected_cross_keys={expected_cross_keys}, expected_mut_keys={expected_mut_keys}, "
-            f"k_cross_preview={_preview_leaf(k_cross)}, k_mut_preview={_preview_leaf(k_mut)}"
+        logger.debug(
+            "phase 0 key budget: expected_cross_keys=%s, expected_mut_keys=%s, k_cross_preview=%s, k_mut_preview=%s",
+            expected_cross_keys,
+            expected_mut_keys,
+            _preview_leaf(k_cross),
+            _preview_leaf(k_mut),
         )
 
         elites, parent_indices = self._selection_phase(
             k_sel, state.population, state.operators, self.engine_params
         )
         elite_shape = _first_leaf_shape(elites)
-        print(f"phase 1 selection: elites={elite_shape}, parents={parent_indices.shape}")
+        logger.debug("phase 1 selection: elites=%s, parents=%s", elite_shape, parent_indices.shape)
         parent_preview = np.asarray(parent_indices)[:8].tolist()
-        print(
-            "phase 1 selection preview: "
-            f"parent_idx[:{min(8, parent_indices.shape[0])}]={parent_preview}"
+        logger.debug(
+            "phase 1 selection preview: parent_idx[:%d]=%s",
+            min(8, parent_indices.shape[0]),
+            parent_preview,
         )
 
         p1_idx = parent_indices[:num_pairs]
         p2_idx = parent_indices[num_pairs : num_pairs * 2]
         p1_preview = np.asarray(p1_idx)[:8].tolist()
         p2_preview = np.asarray(p2_idx)[:8].tolist()
-        print(
-            "phase 1 pair split: "
-            f"p1_idx[:{min(8, p1_idx.shape[0])}]={p1_preview}, "
-            f"p2_idx[:{min(8, p2_idx.shape[0])}]={p2_preview}"
+        logger.debug(
+            "phase 1 pair split: p1_idx[:%d]=%s, p2_idx[:%d]=%s",
+            min(8, p1_idx.shape[0]),
+            p1_preview,
+            min(8, p2_idx.shape[0]),
+            p2_preview,
         )
 
         p1_genes = jax.tree_util.tree_map(lambda x: x[p1_idx], state.population.genes)
@@ -764,9 +784,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         dummy_fitness = jnp.zeros(num_pairs)
         p1_pop = state.population.spawn_offspring(p1_genes, fitness=dummy_fitness)
         p2_pop = state.population.spawn_offspring(p2_genes, fitness=dummy_fitness)
-        print(
-            "phase 1 parent previews: "
-            f"p1_first={_preview_leaf(p1_pop.genes)}, p2_first={_preview_leaf(p2_pop.genes)}"
+        logger.debug(
+            "phase 1 parent previews: p1_first=%s, p2_first=%s",
+            _preview_leaf(p1_pop.genes),
+            _preview_leaf(p2_pop.genes),
         )
 
         mutants = self._reproduction_phase(
@@ -779,26 +800,28 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             generation=state.generation,
         )
         mutant_shape = _first_leaf_shape(mutants.genes)
-        print(f"phase 2 reproduction: mutants={mutant_shape}")
-        print(f"phase 2 offspring preview: first_child={_preview_leaf(mutants.genes)}")
+        logger.debug("phase 2 reproduction: mutants=%s", mutant_shape)
+        logger.debug("phase 2 offspring preview: first_child=%s", _preview_leaf(mutants.genes))
 
         next_genes = self._merge(elites, mutants.genes, state)
         next_shape = _first_leaf_shape(next_genes)
-        print(f"phase 3a merge: next_genes={next_shape}")
-        print(f"phase 3a merge preview: first_gene={_preview_leaf(next_genes)}")
+        logger.debug("phase 3a merge: next_genes=%s", next_shape)
+        logger.debug("phase 3a merge preview: first_gene=%s", _preview_leaf(next_genes))
 
         # Enforce genome validity via autocorrect before evaluation
         if hasattr(next_genes, "autocorrect"):
             next_genes = next_genes.autocorrect(self.genome_config)
 
         new_pop = self._evaluate_phase(replace(state.population, genes=next_genes), k_eval)
-        print(
-            f"phase 3b evaluate: population={len(new_pop)}, best_fitness={jnp.min(new_pop.fitness)}"
+        logger.debug(
+            "phase 3b evaluate: population=%d, best_fitness=%s",
+            len(new_pop),
+            jnp.min(new_pop.fitness),
         )
-        print(
-            "phase 3b evaluate preview: "
-            f"fitness[:{min(3, len(new_pop))}]="
-            f"{np.asarray(new_pop.fitness)[:3].tolist()}"
+        logger.debug(
+            "phase 3b evaluate preview: fitness[:%d]=%s",
+            min(3, len(new_pop)),
+            np.asarray(new_pop.fitness)[:3].tolist(),
         )
 
         params = cast(GeneticEngineParams, self.engine_params)
@@ -833,6 +856,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             rng_key=k_next,
         )
 
+        logger.debug("debug_step population len: %d", len(final_state.population))
+
         metrics = GeneticGenerationOutput(
             best_fitness=metric_best,
             mean_fitness=jnp.mean(new_pop.fitness),
@@ -850,6 +875,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         compile: bool = True,
         verbose: bool = False,
         return_history: bool = True,
+        step_logging: Optional[StepLoggingConfig] = None,
     ) -> Tuple[
         AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any
     ]:
@@ -878,6 +904,9 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         return_history : bool, optional
             If True, return the history of generation metrics. Default: True.
+
+        step_logging : StepLoggingConfig, optional
+            Optional JIT device-to-host telemetry and NaN watchdog configuration.
 
         Returns
         -------
@@ -935,6 +964,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             compile=compile,
             verbose=verbose,
             return_history=return_history,
+            step_logging=step_logging,
         )
         params = cast(GeneticEngineParams, self.engine_params)
         if params.track_best in (TrackBest.NONE, TrackBest.LIGHT):

@@ -29,6 +29,8 @@ The `GeneticEngine` is the flagship orchestrator. It strictly enforces a 5-phase
 
 ---
 
+---
+
 ## 3️⃣ The Workflow (Level 1 + 2 + 3)
 
 1. **Build Components**: Define your Genome, Evaluator, and Operators (Levels 1 & 2).
@@ -41,13 +43,38 @@ The `GeneticEngine` is the flagship orchestrator. It strictly enforces a 5-phase
 
 ---
 
-## 4️⃣ Pros and Cons of Level 3
+## 4️⃣ Zero-Overhead JIT Telemetry & NaN Watchdog
+
+MalthusJAX engines support host-device telemetry through `StepLoggingConfig`:
+
+```python
+from malthusjax.core.logger import StepLoggingConfig, configure_logging
+
+configure_logging(level="INFO")
+
+# Enable step progress every 10 generations and non-finite watchdog
+step_cfg = StepLoggingConfig(log_interval=10, log_nan_watchdog=True)
+
+# Option A: Attach to engine params
+params = GeneticEngineParams(pop_size=100, num_generations=100, step_logging=step_cfg)
+
+# Option B: Pass directly to run()
+final_state, history, _ = engine.run(state, step_logging=step_cfg)
+```
+
+- **Trace-Time Pruning**: If `step_logging=None`, zero callback instructions exist in the lowered StableHLO graph.
+- **On-Device Anomaly Detection**: `jnp.isnan` / `jnp.isinf` evaluates on the accelerator, firing a `CRITICAL` log only when numerical instability occurs.
+
+---
+
+## 5️⃣ Pros and Cons of Level 3
 
 > [!TIP]
 > **Pros**:
 > - **Zero Boilerplate**: You don't have to write tracking metrics, `lax.scan` unrolling, or RNG key management.
 > - **Maximum Safety**: The Resource Mapper guarantees that keys are never reused, avoiding catastrophic correlations in evolution.
 > - **Insane Speed**: The entire 5-phase loop is perfectly fused into a single XLA kernel.
+> - **Native Observability**: Integrated device-to-host logging with zero overhead when disabled.
 
 > [!WARNING]
 > **Cons**:
