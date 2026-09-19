@@ -8,6 +8,13 @@ including random keys, genome configurations, and test data.
 import os
 import sys
 
+# Prevent OpenMP/BLAS thread explosion, deadlocks, and segfaults on high-core HPC nodes
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+
 # Ensure src/ is in PYTHONPATH for the remote benchmarking script
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 

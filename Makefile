@@ -24,6 +24,13 @@ else
     JAX_EXTRA := cpu
 endif
 # --------------------------------
+# --- Prevent OpenMP/BLAS thread explosion on multi-core HPC nodes ---
+export OMP_NUM_THREADS ?= 1
+export MKL_NUM_THREADS ?= 1
+export OPENBLAS_NUM_THREADS ?= 1
+export VECLIB_MAXIMUM_THREADS ?= 1
+export NUMEXPR_NUM_THREADS ?= 1
+# --------------------------------------------------------------------
 
 help:
 	@echo "--- MalthusJAX Development ---"

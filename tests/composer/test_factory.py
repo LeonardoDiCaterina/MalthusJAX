@@ -1,3 +1,4 @@
+import jax.numpy as jnp
 import pytest
 
 from malthusjax.composer.engine_factory import GeneticEngineAdapter
@@ -83,6 +84,7 @@ def test_build_qdax_engine_basic():
         mutation_sigma=0.1,
         num_descriptors=2,
         num_centroids=10,
+        centroids=jnp.zeros((10, 2)),
     )
     adapter = build_qdax_engine(
         strategy=strategy,
@@ -123,7 +125,11 @@ def test_build_tensorneat_engine_basic():
 
 def test_build_map_elites_engine_basic():
     strategy = MapElitesStrategy(
-        emitter="mixing", mutation_sigma=0.1, num_descriptors=2, num_centroids=10
+        emitter="mixing",
+        mutation_sigma=0.1,
+        num_descriptors=2,
+        num_centroids=10,
+        centroids=jnp.zeros((10, 2)),
     )
     # This requires qdax internally for centroids
     pytest.importorskip("qdax")
@@ -155,7 +161,12 @@ def test_build_map_elites_engine_tensorneat():
 
     emitter = TensorNeatEmitter(_batch_size=10, genome=genome, mutation=None, crossover=None)
 
-    strategy = MapElitesStrategy(emitter=emitter, num_descriptors=2, num_centroids=10)
+    strategy = MapElitesStrategy(
+        emitter=emitter,
+        num_descriptors=2,
+        num_centroids=10,
+        centroids=jnp.zeros((10, 2)),
+    )
 
     adapter = build_map_elites_engine(
         strategy=strategy,
