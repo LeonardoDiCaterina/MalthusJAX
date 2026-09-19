@@ -1201,6 +1201,7 @@ class ComparisonResult:
 
         if isinstance(seed_index, (list, tuple)):
             seed_list = list(seed_index)
+            fig_obj = None
             if ax is None:
                 fig, axes_array = plt.subplots(
                     1,
@@ -1209,6 +1210,7 @@ class ComparisonResult:
                     squeeze=False,
                 )
                 axes: list[Any] = list(axes_array[0])
+                fig_obj = fig
             elif hasattr(ax, "__iter__") and not isinstance(ax, (str, bytes)):
                 axes = list(ax)
                 if len(axes) != len(seed_list):

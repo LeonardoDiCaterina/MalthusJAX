@@ -234,3 +234,43 @@ def test_fully_connected_migration_maximize(maximize_engine):
 
     assert new_mean > original_mean
     assert migrated_pop.fitness.shape == (4, 10)
+
+
+def test_base_island_model_step(base_engine):
+    island_model = RingTopologyIsland(
+        engine=base_engine, num_islands=2, migration_interval=2, num_migrants=1
+    )
+    key = jax.random.PRNGKey(0)
+    state = island_model.init_state(key)
+    next_state, history = island_model.step(state)
+    assert next_state.population.fitness.shape == (2, 10)
+    assert next_state.population.genes.values.shape == (2, 10, 3)
+
+
+def test_base_island_model_maximize_from_evaluator_config():
+    @struct.dataclass
+    class EngineWithEvaluatorNoMaximize:
+        evaluator: DummyEvaluator
+
+        def init_state(self, key):
+            pass
+
+        def step(self, state):
+            pass
+
+    engine = EngineWithEvaluatorNoMaximize(evaluator=DummyEvaluator(DummyConfig(maximize=True)))
+    island = RingTopologyIsland(engine=engine, num_islands=2, migration_interval=1, num_migrants=1)
+    assert island.maximize is True
+
+
+def test_base_island_model_migrate_abstract(base_engine):
+    from malthusjax.engine.island_model.base import BaseIslandModel
+
+    @struct.dataclass
+    class IncompleteIsland(BaseIslandModel):
+        def migrate(self, key, multi_pop):
+            return super().migrate(key, multi_pop)
+
+    island = IncompleteIsland(engine=base_engine, num_islands=2, migration_interval=1, num_migrants=1)
+    with pytest.raises(NotImplementedError):
+        island.migrate(jax.random.PRNGKey(0), None)

@@ -257,7 +257,10 @@ def handle_aggregate(args: argparse.Namespace) -> int:
         logger.debug("Loading %s...", d)
         try:
             comp = _load_comparison(d)
-            comparisons[d.name] = comp
+            if comp.pipelines:
+                comparisons[d.name] = comp
+            else:
+                logger.warning("No pipelines found in %s", d)
         except Exception as e:
             logger.warning("Failed to load %s: %s", d, e)
 
