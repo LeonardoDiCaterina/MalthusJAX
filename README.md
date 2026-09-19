@@ -126,6 +126,8 @@ python scripts/scaffold.py -t mutation -n QuantumMutation -k quantum_mutation
 ```
 This generates your plugin *and* a `pytest` file that inherits from our **Standalone Compliance Suite**. The compliance suite automatically runs rigorous `jax.jit` and shape-contract tests on your plugin to ensure it will work flawlessly inside a complex MalthusJAX compiled loop. For complete usage across all 12 component types, see the [Extension CLI Guide](extension_cli_guide.md).
 
+For declarative experiment definitions, multi-operator ablations, and automated benchmarking suites, see the [TOML Configuration Guide](toml_guide.md).
+
 ### External Library Integrations
 MalthusJAX acts as a universal bridge, allowing you to natively compile and benchmark external libraries alongside MalthusJAX strategies:
 - **EvoSAX:** Run any EvoSAX strategy natively through our `Composer`.

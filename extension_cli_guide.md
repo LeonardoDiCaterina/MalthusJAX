@@ -225,3 +225,6 @@ python scripts/scaffold_toml.py -r benchmark_lhs -o configs/cluster_scaling.toml
 - **`benchmark_cartesian`**: Systematic Cartesian grid sweep suite.
 - **`benchmark_lhs`**: Latin Hypercube Sampling space-filling benchmark suite.
 
+For the exhaustive specification of all TOML keys, backends, operator DSL syntax, conflict resolution rules, and profiling options, see the [TOML Configuration Guide](toml_guide.md).
+
+

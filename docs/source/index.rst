@@ -24,6 +24,7 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.
 
    evaluator_design
    extension_cli_guide
+   toml_guide
    framework_guides/index
 
 .. toctree::
