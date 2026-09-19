@@ -74,7 +74,11 @@ class MalthusColorFormatter(logging.Formatter):
         self.show_timestamps = show_timestamps
         if use_color is None:
             # Auto-detect: only use color if stdout is a TTY and NO_COLOR is not set
-            self.use_color = hasattr(sys.stdout, "isatty") and sys.stdout.isatty() and "NO_COLOR" not in os.environ
+            self.use_color = (
+                hasattr(sys.stdout, "isatty")
+                and sys.stdout.isatty()
+                and "NO_COLOR" not in os.environ
+            )
         else:
             self.use_color = use_color
 
@@ -98,7 +102,9 @@ class MalthusColorFormatter(logging.Formatter):
 
         prefix = f"[{level_str}] [{short_name}]"
         if self.show_timestamps:
-            timestamp = datetime.datetime.fromtimestamp(record.created).strftime("%Y-%m-%d %H:%M:%S")
+            timestamp = datetime.datetime.fromtimestamp(record.created).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
             prefix = f"{timestamp} {prefix}"
 
         formatted = f"{prefix} {msg}"
@@ -152,7 +158,9 @@ def _resolve_level(level: Union[str, int]) -> int:
     name = str(level).strip().upper()
     level_val = getattr(logging, name, None)
     if not isinstance(level_val, int):
-        raise ValueError(f"Invalid log level: {level!r}. Expected one of DEBUG, INFO, WARNING, ERROR, CRITICAL.")
+        raise ValueError(
+            f"Invalid log level: {level!r}. Expected one of DEBUG, INFO, WARNING, ERROR, CRITICAL."
+        )
     return level_val
 
 
@@ -239,9 +247,7 @@ def configure_logging(
     if format_type.lower() == "json":
         stream_handler.setFormatter(MalthusJSONFormatter())
     else:
-        stream_handler.setFormatter(
-            MalthusColorFormatter(show_timestamps=show_timestamps)
-        )
+        stream_handler.setFormatter(MalthusColorFormatter(show_timestamps=show_timestamps))
     root.addHandler(stream_handler)
 
     # 2. File handler (optional)

@@ -40,9 +40,11 @@ P = TypeVar("P", bound=BasePopulation[Any])
 
 _field: Any = struct.field
 
+
 def _extract_genotypes(genes: Any) -> Any:
     try:
         import dataclasses
+
         fields = [f.name for f in dataclasses.fields(genes)]
         if "values" in fields:
             return genes.values
@@ -141,7 +143,10 @@ class MapElitesEngine(AbstractEngine[G, P]):
             lambda x: x[best_genome_idx], _extract_genotypes(eval_pop.genes)
         )
         import dataclasses
-        is_values_field = hasattr(eval_pop.genes, "values") and "values" in [f.name for f in dataclasses.fields(eval_pop.genes)]
+
+        is_values_field = hasattr(eval_pop.genes, "values") and "values" in [
+            f.name for f in dataclasses.fields(eval_pop.genes)
+        ]
         if is_values_field and hasattr(eval_pop.genes, "replace"):
             best_genome = eval_pop.genes.replace(values=best_genome_values)
         else:
@@ -271,7 +276,10 @@ class MapElitesEngine(AbstractEngine[G, P]):
             lambda x: x[best_genome_idx], new_repertoire.genotypes
         )
         import dataclasses
-        is_values_field = hasattr(state.best_genome, "values") and "values" in [f.name for f in dataclasses.fields(state.best_genome)]
+
+        is_values_field = hasattr(state.best_genome, "values") and "values" in [
+            f.name for f in dataclasses.fields(state.best_genome)
+        ]
         if is_values_field and hasattr(state.best_genome, "replace"):
             best_genome = state.best_genome.replace(values=best_genome_values)
         else:

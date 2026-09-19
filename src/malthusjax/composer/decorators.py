@@ -32,7 +32,7 @@ def _operator_decorator(
             defaults,
             override=override,
             compatible_genomes=compatible_genomes,
-            compatible_engines=compatible_engines
+            compatible_engines=compatible_engines,
         )
         return cls_or_func
 
@@ -49,11 +49,7 @@ def _engine_decorator(
 
     def wrapper(cls_or_func: Callable[..., Any]) -> Callable[..., Any]:
         _register_engine(
-            name,
-            cls_or_func,
-            defaults,
-            override=override,
-            compatible_genomes=compatible_genomes
+            name, cls_or_func, defaults, override=override, compatible_genomes=compatible_genomes
         )
         return cls_or_func
 

@@ -19,7 +19,7 @@ def test_evosax_adapter_includes_gap():
         env=BBOBEnv.create(fn_name="sphere", num_dims=5, seed=0),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
+        output=ScalarOutput(maximize=False),
     )
 
     adapter = build_evosax_engine(

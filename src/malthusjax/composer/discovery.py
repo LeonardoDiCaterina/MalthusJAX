@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 # Track loaded plugins to avoid double-loading
 _LOADED_PLUGINS: Set[str] = set()
 
+
 def discover_plugins() -> None:
     """Discover and load all MalthusJAX plugins.
 
@@ -66,7 +67,11 @@ def _discover_local_plugins() -> None:
 
     for py_file in plugins_dir.rglob("*.py"):
         # Ignore private files, __init__.py, and tests
-        if py_file.name.startswith("_") or py_file.name.startswith("test_") or "tests" in py_file.parts:
+        if (
+            py_file.name.startswith("_")
+            or py_file.name.startswith("test_")
+            or "tests" in py_file.parts
+        ):
             continue
 
         module_name = py_file.stem

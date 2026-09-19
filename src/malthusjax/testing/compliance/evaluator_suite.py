@@ -32,7 +32,9 @@ class EvaluatorComplianceSuite:
         assert hasattr(component, "_malthusjax_metadata"), "Missing @register_fitness decorator."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseEvaluator[Any]), "Component must inherit from BaseEvaluator[Any]."
+        assert isinstance(component, BaseEvaluator[Any]), (
+            "Component must inherit from BaseEvaluator[Any]."
+        )
 
     def test_jit_compilation(self, component, mock_population) -> None:
         """Verify the evaluator executes purely inside jax.jit."""
@@ -107,4 +109,3 @@ class ComposableEvaluatorComplianceSuite:
             assert evaluated_pop is not None
         except jax.errors.ConcretizationTypeError as e:
             pytest.fail(f"JIT compilation failed due to a tracer leak.\nDetails: {e}")
-

@@ -59,7 +59,9 @@ class MutationComplianceSuite:
             mutated_pop = jitted_call(keys, mock_population, config=None, generation=0)
             assert mutated_pop is not None
         except jax.errors.ConcretizationTypeError as e:
-            pytest.fail(f"JIT compilation failed due to a tracer leak (e.g., using Python 'if' on dynamic JAX arrays).\nDetails: {e}")
+            pytest.fail(
+                f"JIT compilation failed due to a tracer leak (e.g., using Python 'if' on dynamic JAX arrays).\nDetails: {e}"
+            )
 
     def test_output_shape_contract(self, component, mock_population) -> None:
         """Verify the mutation produces the correct number of offspring."""
@@ -99,7 +101,9 @@ class CrossoverComplianceSuite:
         assert hasattr(component, "_malthusjax_metadata"), "Missing @register_crossover decorator."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseCrossover[Any, Any]), "Component must inherit from BaseCrossover[Any, Any]."
+        assert isinstance(component, BaseCrossover[Any, Any]), (
+            "Component must inherit from BaseCrossover[Any, Any]."
+        )
 
     def test_jit_compilation(self, component, mock_pop1, mock_pop2) -> None:
         input_shape = jax.tree_util.tree_leaves(mock_pop1.genes)[0].shape
@@ -144,7 +148,9 @@ class SelectionComplianceSuite:
         assert hasattr(component, "_malthusjax_metadata"), "Missing @register_selection decorator."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseSelection[Any, Any]), "Component must inherit from BaseSelection[Any, Any]."
+        assert isinstance(component, BaseSelection[Any, Any]), (
+            "Component must inherit from BaseSelection[Any, Any]."
+        )
 
     def test_jit_compilation(self, component, mock_fitness) -> None:
         keys = jax.random.split(jax.random.PRNGKey(0), component.num_keys(mock_fitness.shape))
@@ -235,4 +241,3 @@ class EmitterComplianceSuite:
         assert len(offspring) == component.batch_size, (
             f"Shape contract violation: Expected {component.batch_size} individuals, got {len(offspring)}."
         )
-

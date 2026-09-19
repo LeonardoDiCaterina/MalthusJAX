@@ -49,10 +49,15 @@ def _check_compatibility(operator: Any, genome_type: str, engine_type: str, role
         metadata = operator._malthusjax_metadata
         comp_genomes = metadata.get("compatible_genomes")
         if comp_genomes is not None and genome_type not in comp_genomes:
-            raise ValueError(f"Error: {role} is only compatible with genomes: {comp_genomes}, but you requested '{genome_type}'.")
+            raise ValueError(
+                f"Error: {role} is only compatible with genomes: {comp_genomes}, but you requested '{genome_type}'."
+            )
         comp_engines = metadata.get("compatible_engines")
         if comp_engines is not None and engine_type not in comp_engines:
-            raise ValueError(f"Error: {role} is only compatible with engines: {comp_engines}, but you requested '{engine_type}'.")
+            raise ValueError(
+                f"Error: {role} is only compatible with engines: {comp_engines}, but you requested '{engine_type}'."
+            )
+
 
 def build_real_engine(
     strategy: BaseStrategy,
@@ -193,7 +198,7 @@ def build_evosax_engine(
                 env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
                 transform=IdentityTransform(),
                 interpreter=IdentityInterpreter(),
-                output=ScalarOutput(maximize=maxim)
+                output=ScalarOutput(maximize=maxim),
             )
         else:
             evalr = fitness_spec
@@ -211,7 +216,7 @@ def build_evosax_engine(
             env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
             transform=IdentityTransform(),
             interpreter=IdentityInterpreter(),
-            output=ScalarOutput(maximize=maxim)
+            output=ScalarOutput(maximize=maxim),
         )
     # If no initial_population provided and evaluator has sample() method,
     # use it for consistent initialization across backends
@@ -461,13 +466,18 @@ def resolve_tensorneat_problem(
             from lsp.evaluator.tensorneat_bridge import TensorNEATSupervisedProblem
 
             from malthusjax.composer.catalog import OperatorCatalog
+
             if not isinstance(fitness_spec, str):
-                raise ValueError("fitness_spec must be a string to resolve a MalthusJAX evaluator fallback")
+                raise ValueError(
+                    "fitness_spec must be a string to resolve a MalthusJAX evaluator fallback"
+                )
             mjax_evaluator = OperatorCatalog().get(fitness_spec)
             problem = TensorNEATSupervisedProblem(mjax_evaluator)
             return problem, problem.setup()
         except Exception as fallback_e:
-            raise ValueError(f"Unknown TensorNEAT problem: {base_name}. Fallback failed: {fallback_e}")
+            raise ValueError(
+                f"Unknown TensorNEAT problem: {base_name}. Fallback failed: {fallback_e}"
+            )
     kwargs: Dict[str, Any] = {}
     if ":" in name:
         args_part = name.split(":", 1)[1]
@@ -577,7 +587,7 @@ def build_map_elites_engine(
             evaluator = TensorNeatQDEvaluator(
                 objective_function=objective_fn,
                 config=BaseEvaluatorConfig(maximize=maximize),
-                data=None
+                data=None,
             )
     else:
         # We use the BaseQDEvaluator composition to match standard evaluation
@@ -702,7 +712,11 @@ def build_composable_tensorneat_engine(
     num_inputs = strategy.num_inputs
     num_outputs = strategy.num_outputs
 
-    if (num_inputs is None or num_outputs is None) and evaluator is not None and hasattr(evaluator, "interpreter"):
+    if (
+        (num_inputs is None or num_outputs is None)
+        and evaluator is not None
+        and hasattr(evaluator, "interpreter")
+    ):
         num_inputs = num_inputs or evaluator.interpreter.input_dim
         num_outputs = num_outputs or evaluator.interpreter.output_dim
 
@@ -764,6 +778,7 @@ def build_composable_evosax_engine(
     if fitness_spec is not None:
         if isinstance(fitness_spec, str):
             from .catalog import OperatorCatalog
+
             cat = OperatorCatalog()
             parsed_name, parsed_params = cat.parse_spec(fitness_spec)
             fn = parsed_params.get("fn_name", parsed_name)
@@ -774,7 +789,7 @@ def build_composable_evosax_engine(
                 env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
                 transform=IdentityTransform(),
                 interpreter=IdentityInterpreter(),
-                output=ScalarOutput(maximize=maxim)
+                output=ScalarOutput(maximize=maxim),
             )
         else:
             evalr = fitness_spec
@@ -797,5 +812,5 @@ def build_composable_evosax_engine(
         maximize=maxim,
         strategy_params=kwargs.get("strategy_params"),
         prng_impl=prng_impl,
-        **kwargs
+        **kwargs,
     )

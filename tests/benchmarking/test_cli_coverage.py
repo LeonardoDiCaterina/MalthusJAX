@@ -4,10 +4,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from malthusjax.benchmarking.cli import main
-from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult, RunResult
 
 
 def _create_mock_experiment_dir(
@@ -63,7 +60,9 @@ def test_cli_analyze_single_pipeline(tmp_path: Path):
 
 def test_cli_analyze_three_pipelines(tmp_path: Path):
     """Test handle_analyze when 3 pipelines are present."""
-    exp_dir = _create_mock_experiment_dir(tmp_path, "three_pipe_exp", ["pipe_a", "pipe_b", "pipe_c"])
+    exp_dir = _create_mock_experiment_dir(
+        tmp_path, "three_pipe_exp", ["pipe_a", "pipe_b", "pipe_c"]
+    )
     ret = main(["analyze", str(exp_dir)])
     assert ret == 0
 
@@ -77,6 +76,7 @@ def test_cli_analyze_missing_stats_module(tmp_path: Path, monkeypatch):
     exp_dir = _create_mock_experiment_dir(tmp_path, "two_pipe_exp", ["pipe_a", "pipe_b"])
 
     import sys
+
     monkeypatch.setitem(sys.modules, "malthusjax.stats", None)
 
     ret = main(["analyze", str(exp_dir)])
@@ -97,7 +97,9 @@ def test_cli_plot_subcommand(tmp_path: Path):
 
 def test_cli_report_subcommand(tmp_path: Path):
     """Test handle_report sequentially runs analyze and plot."""
-    exp_dir = _create_mock_experiment_dir(tmp_path, "report_exp", ["pipe_a", "pipe_b"], num_seeds=10)
+    exp_dir = _create_mock_experiment_dir(
+        tmp_path, "report_exp", ["pipe_a", "pipe_b"], num_seeds=10
+    )
     ret = main(["report", str(exp_dir)])
     assert ret == 0
 
@@ -132,6 +134,8 @@ def test_cli_aggregate_no_valid_dirs(tmp_path: Path):
 
 def test_cli_main_exception_handling():
     """Test main() exception handling when an unhandled exception occurs."""
-    with patch("malthusjax.benchmarking.cli.handle_catalog", side_effect=RuntimeError("Test crash")):
+    with patch(
+        "malthusjax.benchmarking.cli.handle_catalog", side_effect=RuntimeError("Test crash")
+    ):
         ret = main(["catalog"])
         assert ret == 1

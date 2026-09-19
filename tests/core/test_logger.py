@@ -185,15 +185,16 @@ def test_host_log_step_callback(caplog):
         # Step without mean fitness
         _host_log_step(20, 10.0, logger_name="malthusjax.engine.step")
         assert any(
-            "[Gen   20] Best Fitness:    10.0000" in record.message
-            for record in caplog.records
+            "[Gen   20] Best Fitness:    10.0000" in record.message for record in caplog.records
         )
 
 
 def test_host_log_nan_anomaly_callback(caplog):
     """Test host-side NaN anomaly callback prints critical alert."""
     with caplog.at_level(logging.CRITICAL):
-        _host_log_nan_anomaly(15, float("nan"), metric_name="fitness", logger_name="malthusjax.engine.anomaly")
+        _host_log_nan_anomaly(
+            15, float("nan"), metric_name="fitness", logger_name="malthusjax.engine.anomaly"
+        )
         assert any(
             "[CRITICAL] Non-finite fitness detected at generation 15: nan" in record.message
             for record in caplog.records

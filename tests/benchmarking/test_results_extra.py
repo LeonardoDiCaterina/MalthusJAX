@@ -28,6 +28,7 @@ def test_experiment_to_json_from_json():
     assert loaded_exp.runs[0].seed == r1.seed
     assert loaded_exp.runs[0].metrics == r1.metrics
 
+
 def test_run_result_from_dict():
     r1 = RunResult(
         seed=0,
@@ -42,6 +43,7 @@ def test_run_result_from_dict():
     assert r1_new.status == r1.status
     assert r1_new.metrics == r1.metrics
 
+
 def test_experiment_canonical_summary():
     r1 = RunResult(
         seed=0,
@@ -54,6 +56,7 @@ def test_experiment_canonical_summary():
     summary = exp.canonical_summary
     assert "best_fitness" in summary
     assert summary["best_fitness"] == 1.0
+
 
 def test_comparison_statistical_methods():
     r1 = RunResult(

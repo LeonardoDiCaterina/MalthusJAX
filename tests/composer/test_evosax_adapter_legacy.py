@@ -53,7 +53,7 @@ def make_bbob_evaluator(
         env=BBOBEnv.create(fn_name=fn_name, num_dims=num_dims, seed=seed),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=maximize)
+        output=ScalarOutput(maximize=maximize),
     )
 
 
@@ -214,7 +214,6 @@ class TestBuildEvosaxEngine:
 # ---------------------------------------------------------------------------
 
 
-
 class TestEvosaxAdapterRunOnce:
     """Tests that EvosaxEngineAdapter.run_once satisfies the Engine protocol."""
 
@@ -284,7 +283,6 @@ class TestEvosaxAdapterRunOnce:
 # ---------------------------------------------------------------------------
 
 
-
 class TestEvosaxDeterminism:
     """Verify reproducibility given the same PRNG key."""
 
@@ -325,7 +323,6 @@ class TestEvosaxDeterminism:
 # ---------------------------------------------------------------------------
 # Maximisation sign-flip
 # ---------------------------------------------------------------------------
-
 
 
 class TestMaximisationConvention:
@@ -449,7 +446,6 @@ class TestMaximisationConvention:
 # ---------------------------------------------------------------------------
 
 
-
 class TestStrategySmoke:
     """Quick smoke test for each registered strategy to ensure the full
     ask/tell loop completes without errors."""
@@ -494,7 +490,6 @@ class TestStrategySmoke:
 # ---------------------------------------------------------------------------
 # Integration with BenchmarkRunner
 # ---------------------------------------------------------------------------
-
 
 
 class TestEvosaxBenchmarkIntegration:

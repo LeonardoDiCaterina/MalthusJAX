@@ -137,12 +137,17 @@ class TestEvosaxAdapterMatchesRaw:
 
         # --- Adapter run ---
         evalr = OptimizationEvaluator(
-        env=BBOBEnv.create(fn_name=common_params["problem_name"], num_dims=common_params["num_dims"], seed=common_params["seed"]),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False,
-            )
-    )
+            env=BBOBEnv.create(
+                fn_name=common_params["problem_name"],
+                num_dims=common_params["num_dims"],
+                seed=common_params["seed"],
+            ),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(
+                maximize=False,
+            ),
+        )
         adapter = build_evosax_engine(
             strategy_name=common_params["strategy_name"],
             evaluator=evalr,
@@ -177,12 +182,17 @@ class TestEvosaxAdapterMatchesRaw:
         raw = _run_evosax_raw(key=key, maximize=True, **common_params)
 
         evalr = OptimizationEvaluator(
-        env=BBOBEnv.create(fn_name=common_params["problem_name"], num_dims=common_params["num_dims"], seed=common_params["seed"]),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=True,
-            )
-    )
+            env=BBOBEnv.create(
+                fn_name=common_params["problem_name"],
+                num_dims=common_params["num_dims"],
+                seed=common_params["seed"],
+            ),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(
+                maximize=True,
+            ),
+        )
         adapter = build_evosax_engine(
             strategy_name=common_params["strategy_name"],
             evaluator=evalr,
@@ -227,12 +237,17 @@ class TestEvosaxAdapterMatchesRaw:
 
         # --- Adapter run ---
         evalr = OptimizationEvaluator(
-        env=BBOBEnv.create(fn_name=common_params["problem_name"], num_dims=common_params["num_dims"], seed=common_params["seed"]),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False,
-            )
-    )
+            env=BBOBEnv.create(
+                fn_name=common_params["problem_name"],
+                num_dims=common_params["num_dims"],
+                seed=common_params["seed"],
+            ),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(
+                maximize=False,
+            ),
+        )
         adapter = build_evosax_engine(
             strategy_name=common_params["strategy_name"],
             evaluator=evalr,
@@ -265,12 +280,15 @@ class TestEvosaxAdapterMatchesRaw:
 
         raw = _run_evosax_raw(key=key, **params)
         evalr = OptimizationEvaluator(
-        env=BBOBEnv.create(fn_name=params["problem_name"], num_dims=params["num_dims"], seed=params["seed"]),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False,
-            )
-    )
+            env=BBOBEnv.create(
+                fn_name=params["problem_name"], num_dims=params["num_dims"], seed=params["seed"]
+            ),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(
+                maximize=False,
+            ),
+        )
         adapter = build_evosax_engine(
             strategy_name=params["strategy_name"],
             evaluator=evalr,

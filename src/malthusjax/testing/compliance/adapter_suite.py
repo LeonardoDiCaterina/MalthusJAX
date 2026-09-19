@@ -13,14 +13,20 @@ class AdapterComplianceSuite:
         assert hasattr(component, "_adapter_step"), "Adapter must implement _adapter_step"
 
         # The decorator should have injected the UniversalAdapterEngine instance
-        assert hasattr(component, "engine"), "Adapter must have 'engine' attribute injected by @adapter"
+        assert hasattr(component, "engine"), (
+            "Adapter must have 'engine' attribute injected by @adapter"
+        )
 
         # Verify run_once method exists (injected by @adapter)
-        assert hasattr(component, "run_once"), "Adapter must have 'run_once' method injected by @adapter"
+        assert hasattr(component, "run_once"), (
+            "Adapter must have 'run_once' method injected by @adapter"
+        )
 
     def test_metrics_catalog(self, component: Any) -> None:
         """Verify the adapter exposes a valid metrics catalog."""
-        assert hasattr(component, "get_supported_metrics"), "Adapter must have 'get_supported_metrics' method"
+        assert hasattr(component, "get_supported_metrics"), (
+            "Adapter must have 'get_supported_metrics' method"
+        )
         metrics = component.get_supported_metrics()
 
         assert isinstance(metrics, list), "Metrics catalog must be a list"
@@ -28,4 +34,6 @@ class AdapterComplianceSuite:
             assert isinstance(metric, MetricSpec), "Metrics must be instances of MetricSpec"
             assert isinstance(metric.name, str), "Metric name must be a string"
             assert isinstance(metric.source, str), "Metric source must be a string"
-            assert isinstance(metric.is_objective_value, bool), "Metric is_objective_value must be boolean"
+            assert isinstance(metric.is_objective_value, bool), (
+                "Metric is_objective_value must be boolean"
+            )

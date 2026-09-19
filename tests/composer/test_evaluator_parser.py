@@ -2,14 +2,14 @@
 
 from types import SimpleNamespace
 from unittest.mock import patch
+
 import pytest
 
 from malthusjax.composer.evaluator_parser import (
-    _instantiate_from_module,
     _parse_component,
     parse_evaluator,
 )
-from malthusjax.core.fitness.composable import base, environments, interpreters
+from malthusjax.core.fitness.composable import interpreters
 
 
 def test_parse_component_variations():

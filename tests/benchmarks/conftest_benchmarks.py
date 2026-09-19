@@ -196,7 +196,7 @@ def _build_malthusjax_engine(
         env=BBOBEnv.create(fn_name=problem, num_dims=dims, seed=SEED),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
+        output=ScalarOutput(maximize=False),
     )
 
     elite_count = max(1, int(pop_size * elite_ratio))

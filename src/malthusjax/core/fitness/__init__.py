@@ -93,29 +93,37 @@ from typing import Any as _Any
 from typing import Callable as _Callable
 
 
-def _make_bbob_factory(fn_name: str, *, maximize: bool = False) -> _Callable[..., "OptimizationEvaluator"]:
+def _make_bbob_factory(
+    fn_name: str, *, maximize: bool = False
+) -> _Callable[..., "OptimizationEvaluator"]:
     def _factory(**kwargs: _Any) -> "OptimizationEvaluator":
         _resolved_data = kwargs.pop("_resolved_data", None)
         return OptimizationEvaluator(
-            env=BBOBEnv.create(fn_name=fn_name, num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)), seed=kwargs.get("seed", 42)),
+            env=BBOBEnv.create(
+                fn_name=fn_name,
+                num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
+                seed=kwargs.get("seed", 42),
+            ),
             transform=IdentityTransform(),
             interpreter=IdentityInterpreter(),
-            output=ScalarOutput(maximize=kwargs.get("maximize", maximize))
+            output=ScalarOutput(maximize=kwargs.get("maximize", maximize)),
         )
+
     return _factory
 
 
 def _create_bbob_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
     _resolved_data = kwargs.pop("_resolved_data", None)
     return OptimizationEvaluator(
-        env=BBOBEnv.create(fn_name=kwargs.get("fn_name", "sphere"), num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)), seed=kwargs.get("seed", 42)),
+        env=BBOBEnv.create(
+            fn_name=kwargs.get("fn_name", "sphere"),
+            num_dims=kwargs.get("dim", kwargs.get("num_dims", 10)),
+            seed=kwargs.get("seed", 42),
+        ),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=kwargs.get("maximize", False))
+        output=ScalarOutput(maximize=kwargs.get("maximize", False)),
     )
-
-
-
 
 
 def _create_knapsack_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
@@ -129,11 +137,16 @@ def _create_knapsack_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
             pass
 
     return OptimizationEvaluator(
-        env=KnapsackEnv(weights=kwargs.get("weights"), values=kwargs.get("values"), capacity=kwargs.get("capacity", 100.0)),
+        env=KnapsackEnv(
+            weights=kwargs.get("weights"),
+            values=kwargs.get("values"),
+            capacity=kwargs.get("capacity", 100.0),
+        ),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=maximize)
+        output=ScalarOutput(maximize=maximize),
     )
+
 
 def _create_binary_sum_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
     _resolved_data = kwargs.pop("_resolved_data", None)
@@ -142,7 +155,7 @@ def _create_binary_sum_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
         env=BinarySumEnv(),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=maximize)
+        output=ScalarOutput(maximize=maximize),
     )
 
 

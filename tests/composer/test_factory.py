@@ -153,9 +153,7 @@ def test_build_map_elites_engine_tensorneat():
 
     genome = tensorneat.genome.DefaultGenome(num_inputs=2, num_outputs=1)
 
-    emitter = TensorNeatEmitter(
-        _batch_size=10, genome=genome, mutation=None, crossover=None
-    )
+    emitter = TensorNeatEmitter(_batch_size=10, genome=genome, mutation=None, crossover=None)
 
     strategy = MapElitesStrategy(emitter=emitter, num_descriptors=2, num_centroids=10)
 
@@ -172,5 +170,3 @@ def test_build_map_elites_engine_tensorneat():
     from malthusjax.composer.adapters.map_elites_adapter import MapElitesEngineAdapter
 
     assert isinstance(adapter, MapElitesEngineAdapter)
-
-

@@ -22,6 +22,7 @@ from malthusjax.core.genome.real_genome import RealGenome
 # IdentityInterpreter
 # =============================================================================
 
+
 @struct.dataclass
 class IdentityInterpreter(BaseInterpreter[RealGenome]):
     """Passes genome values directly as the solution.
@@ -59,6 +60,7 @@ class IdentityInterpreter(BaseInterpreter[RealGenome]):
 # =============================================================================
 # MLPInterpreter
 # =============================================================================
+
 
 @struct.dataclass
 class MLPInterpreter(BaseInterpreter[RealGenome]):
@@ -103,10 +105,7 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
         ``genome_spec.length == interpreter.num_params`` at build time.
         """
         sizes = self.layer_sizes
-        return sum(
-            sizes[i] * sizes[i + 1] + sizes[i + 1]
-            for i in range(len(sizes) - 1)
-        )
+        return sum(sizes[i] * sizes[i + 1] + sizes[i + 1] for i in range(len(sizes) - 1))
 
     def _get_activation_fn(self):
         """Return the JAX activation function for the configured name."""
@@ -118,8 +117,7 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
             return jax.nn.sigmoid
         else:
             raise ValueError(
-                f"Unknown activation '{self.activation}'. "
-                "Supported: 'tanh', 'relu', 'sigmoid'."
+                f"Unknown activation '{self.activation}'. Supported: 'tanh', 'relu', 'sigmoid'."
             )
 
     def _unflatten(self, flat_params: chex.Array) -> list[tuple[chex.Array, chex.Array]]:
@@ -174,6 +172,7 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
 # =============================================================================
 # LinearGPInterpreter
 # =============================================================================
+
 
 @struct.dataclass
 class LinearGPInterpreter(BaseInterpreter[LinearGenome]):

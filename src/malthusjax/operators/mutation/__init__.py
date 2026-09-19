@@ -8,6 +8,7 @@ from .categorical import SwapMutation as CategoricalSwapMutation
 
 try:
     from .evosax_mutation import BatchedEvosaxGaussianWrapper, EvosaxGaussianWrapper
+
     _HAS_EVOSAX = True
 except ImportError:
     _HAS_EVOSAX = False

@@ -66,6 +66,7 @@ def _evosax_mjx_eval(evaluator, pop, state, key):
 
     # 3. Evaluate using the standard MalthusJAX batched evaluator
     import inspect
+
     if "rng" in inspect.signature(evaluator.evaluate_population).parameters:
         population = evaluator.evaluate_population(population, rng=key)
     else:
@@ -219,7 +220,11 @@ def build_composable_evosax_engine(
         fn = parsed_params.get("fn_name", parsed_name)
         dims = parsed_params.get("dim", parsed_params.get("num_dims"))
         if dims is None:
-            dims = getattr(evaluator.env, "num_dims", 10) if hasattr(evaluator, "env") else getattr(evaluator.config, "num_dims", 10)
+            dims = (
+                getattr(evaluator.env, "num_dims", 10)
+                if hasattr(evaluator, "env")
+                else getattr(evaluator.config, "num_dims", 10)
+            )
         if "seed" in parsed_params:
             seed = parsed_params["seed"]
         if "maximize" in parsed_params:
@@ -232,7 +237,7 @@ def build_composable_evosax_engine(
             env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
             transform=IdentityTransform(),
             interpreter=IdentityInterpreter(),
-            output=ScalarOutput(maximize=maximize)
+            output=ScalarOutput(maximize=maximize),
         )
 
     if strategy_name not in EVOSAX_STRATEGIES:
@@ -243,7 +248,9 @@ def build_composable_evosax_engine(
     if isinstance(evaluator, OptimizationEvaluator) and hasattr(evaluator.env, "_problem"):
         problem = evaluator.env._problem  # type: ignore[attr-defined]
         problem_state = evaluator.env._state  # type: ignore[attr-defined]
-        num_dims = getattr(evaluator.env, "num_dims", getattr(evaluator.env._problem, "num_dims", 10))
+        num_dims = getattr(
+            evaluator.env, "num_dims", getattr(evaluator.env._problem, "num_dims", 10)
+        )
         eval_mode = EvalMode.NATIVE
     else:
         problem = None
@@ -282,7 +289,9 @@ def build_composable_evosax_engine(
     from malthusjax.composer.adapters.utils import resolve_bounds
 
     # Bounds extraction
-    resolved_bounds = resolve_bounds(bounds, evaluator, caller_name="build_composable_evosax_engine")
+    resolved_bounds = resolve_bounds(
+        bounds, evaluator, caller_name="build_composable_evosax_engine"
+    )
 
     init_solution = jr.uniform(
         rng, (num_dims,), minval=resolved_bounds[0], maxval=resolved_bounds[1]

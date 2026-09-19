@@ -13,6 +13,7 @@ class TestLinearGPInterpreter(InterpreterComplianceSuite):
     @pytest.fixture
     def mock_genome(self):
         from malthusjax.core.genome.real_genome import RealGenome
+
         return RealGenome(values=jnp.ones(10))
 
     @pytest.fixture

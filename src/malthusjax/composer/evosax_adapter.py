@@ -32,7 +32,11 @@ def list_strategies() -> list[str]:
 
 def _evosax_native_eval(evaluator, pop, state, key):
     """Executes the evosax native problem evaluation."""
-    if hasattr(evaluator, "env") and hasattr(evaluator.env, "_problem") and getattr(evaluator.env, "_problem") is not None:
+    if (
+        hasattr(evaluator, "env")
+        and hasattr(evaluator.env, "_problem")
+        and getattr(evaluator.env, "_problem") is not None
+    ):
         problem = evaluator.env._problem
         p_state = getattr(evaluator.env, "_state", None)
     elif hasattr(evaluator, "evosax_problem"):
@@ -55,7 +59,11 @@ def _evosax_mjx_eval(evaluator, pop, state, key):
     # the config attribute structure might vary, but standard evaluators have config.genome_config
     if hasattr(evaluator, "config") and hasattr(evaluator.config, "genome_config"):
         config = evaluator.config.genome_config
-    elif hasattr(evaluator, "env") and hasattr(evaluator.env, "config") and hasattr(evaluator.env.config, "genome_config"):
+    elif (
+        hasattr(evaluator, "env")
+        and hasattr(evaluator.env, "config")
+        and hasattr(evaluator.env.config, "genome_config")
+    ):
         config = evaluator.env.config.genome_config
     elif hasattr(evaluator, "env") and hasattr(evaluator.env, "genome_config"):
         config = evaluator.env.genome_config
@@ -219,7 +227,11 @@ def build_evosax_engine(
     if strategy_name not in EVOSAX_STRATEGIES:
         raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
 
-    if hasattr(evaluator, "env") and hasattr(evaluator.env, "_problem") and getattr(evaluator.env, "_problem") is not None:
+    if (
+        hasattr(evaluator, "env")
+        and hasattr(evaluator.env, "_problem")
+        and getattr(evaluator.env, "_problem") is not None
+    ):
         problem = evaluator.env._problem
         problem_state = getattr(evaluator.env, "_state", None)
         num_dims = getattr(evaluator.env, "num_dims", getattr(evaluator.env, "dim", 1))
@@ -229,7 +241,9 @@ def build_evosax_engine(
         problem_state = getattr(evaluator, "problem_state", None)
         num_dims = getattr(evaluator, "num_dims", getattr(evaluator, "dim", 1))
         if hasattr(evaluator, "config"):
-            num_dims = getattr(evaluator.config, "num_dims", getattr(evaluator.config, "dim", num_dims))
+            num_dims = getattr(
+                evaluator.config, "num_dims", getattr(evaluator.config, "dim", num_dims)
+            )
         eval_mode = EvalMode.NATIVE
     else:
         problem = None

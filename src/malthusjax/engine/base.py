@@ -434,7 +434,7 @@ def _get_evolution_kernel(
                         )
 
                     if cfg.log_interval is not None and cfg.log_interval > 0:
-                        should_log = (gen_val % cfg.log_interval == 0)
+                        should_log = gen_val % cfg.log_interval == 0
                         mean_fit = getattr(history_item, "mean_fitness", None)
                         if mean_fit is not None:
                             mf_val = (

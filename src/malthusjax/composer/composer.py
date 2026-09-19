@@ -497,6 +497,7 @@ class Composer:
             if isinstance(strategy, EvoSAXStrategy):
                 if backend == "composable_evosax":
                     from .factory import build_composable_evosax_engine
+
                     engine = build_composable_evosax_engine(
                         strategy_name=strategy.algorithm_name,
                         fitness_spec=fitness_obj,
@@ -542,6 +543,7 @@ class Composer:
             elif isinstance(strategy, TensorNEATStrategy):
                 if backend == "composable_tensorneat":
                     from .factory import build_composable_tensorneat_engine
+
                     engine = build_composable_tensorneat_engine(
                         strategy=strategy,
                         fitness_spec=fitness_obj,
@@ -728,7 +730,7 @@ class Composer:
                     env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=bbob_seed),
                     transform=IdentityTransform(),
                     interpreter=IdentityInterpreter(),
-                    output=ScalarOutput(maximize=config.get("maximize", False))
+                    output=ScalarOutput(maximize=config.get("maximize", False)),
                 )
                 pop_key = jr.PRNGKey(pop_seed)
                 sample_keys = jr.split(pop_key, pop_size)
@@ -886,7 +888,6 @@ class Composer:
 
         trace_base = shared_kwargs.pop("trace_dir", None)
 
-        log_interval = shared_kwargs.get("log_interval")
         log_level = shared_kwargs.get("log_level")
         if log_level is not None:
             set_log_level(log_level)

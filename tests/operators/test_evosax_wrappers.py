@@ -61,7 +61,7 @@ def test_evosax_wrappers_with_typed_keys():
         env=BBOBEnv.create(fn_name="sphere", num_dims=2),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
+        output=ScalarOutput(maximize=False),
     )
     selection = ElitePoolSelection(num_selections=4, elite_k=2)
     crossover = EvosaxUniformCrossoverWrapper(num_offspring=1, crossover_rate=0.5)

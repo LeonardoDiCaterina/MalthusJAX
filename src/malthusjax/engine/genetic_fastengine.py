@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import replace
-from typing import Any, Callable, Tuple, TypeVar, Union, cast
+from typing import Any, Callable, Optional, Tuple, TypeVar, Union, cast
 
 import chex
 import jax
@@ -1386,4 +1386,3 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
 # Backward compatibility alias for the primary Genetic Algorithm engine
 GeneticFastEngine = GeneticEngine
-

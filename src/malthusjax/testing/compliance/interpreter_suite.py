@@ -34,7 +34,9 @@ class InterpreterComplianceSuite:
         assert dataclasses.is_dataclass(component), "Component must be a dataclass."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseInterpreter), "Component must inherit from BaseInterpreter."
+        assert isinstance(component, BaseInterpreter), (
+            "Component must inherit from BaseInterpreter."
+        )
 
     def test_num_params_type(self, component) -> None:
         assert isinstance(component.num_params, int), "num_params must return an integer."
@@ -54,7 +56,7 @@ class InterpreterComplianceSuite:
             pytest.skip("Interpreter does not take inputs, skipping vmap test.")
 
         # Create a batch of 5 identical inputs
-        batched_inputs = jax.tree_util.tree_map(lambda x: jax.numpy.stack([x]*5), mock_inputs)
+        batched_inputs = jax.tree_util.tree_map(lambda x: jax.numpy.stack([x] * 5), mock_inputs)
 
         vmapped_apply = jax.vmap(component.apply, in_axes=(None, 0))
         try:
@@ -72,7 +74,4 @@ class InterpreterComplianceSuite:
         output2 = component.apply(mock_genome, mock_inputs)
 
         # Deep compare outputs
-        jax.tree_util.tree_map(
-            lambda x, y: np.testing.assert_allclose(x, y),
-            output1, output2
-        )
+        jax.tree_util.tree_map(lambda x, y: np.testing.assert_allclose(x, y), output1, output2)

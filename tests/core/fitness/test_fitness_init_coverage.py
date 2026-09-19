@@ -1,7 +1,6 @@
 """Targeted coverage tests for malthusjax.core.fitness factories."""
 
 import jax.numpy as jnp
-import pytest
 
 from malthusjax.core.fitness import (
     _create_bbob_evaluator,

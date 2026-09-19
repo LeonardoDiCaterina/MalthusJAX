@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from unittest.mock import patch
+
 import numpy as np
 import pytest
 
@@ -57,14 +58,7 @@ def test_data_loader_load_tsplib_and_load_any(tmp_path: Path):
 
     # Valid TSP
     valid_tsp = tmp_path / "valid.tsp"
-    valid_tsp.write_text(
-        "NAME: test\n"
-        "TYPE: TSP\n"
-        "NODE_COORD_SECTION\n"
-        "1 0.0 0.0\n"
-        "2 3.0 4.0\n"
-        "EOF\n"
-    )
+    valid_tsp.write_text("NAME: test\nTYPE: TSP\nNODE_COORD_SECTION\n1 0.0 0.0\n2 3.0 4.0\nEOF\n")
     mat = DataLoader.load_any(valid_tsp)
     assert mat.shape == (2, 2)
     assert float(mat[0, 1]) == pytest.approx(5.0)
@@ -96,7 +90,9 @@ def test_write_summary_json_exception_cleanup(tmp_path: Path):
 
 def test_write_histories_csv_exception_cleanup(tmp_path: Path):
     target = tmp_path / "histories.csv"
-    run = RunResult(seed=1, status="success", metrics={"best_fitness": 1.0}, history=[{"gen": 1, "fit": 1.0}])
+    run = RunResult(
+        seed=1, status="success", metrics={"best_fitness": 1.0}, history=[{"gen": 1, "fit": 1.0}]
+    )
     exp = ExperimentResult(name="test_exp", runs=[run])
 
     with patch("csv.DictWriter.writerows", side_effect=RuntimeError("write failed")):

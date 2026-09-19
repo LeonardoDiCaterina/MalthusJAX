@@ -126,7 +126,6 @@ class ComposableTensorNEATAdapter:
         if pop_init is not None:
             # pop_init from tensorneat engine/emitter should be a tuple (nodes, conns)
 
-
             # pop_init from tensorneat engine/emitter should be a tuple (nodes, conns)
             # or from TensorNeatPopulation object
             if hasattr(pop_init, "genes") and hasattr(pop_init.genes, "values"):

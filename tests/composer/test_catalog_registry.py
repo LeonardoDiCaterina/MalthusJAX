@@ -140,30 +140,30 @@ def test_no_unexpected_keys(catalog: OperatorCatalog) -> None:
     """
     # Keys that may be left behind by other test modules
     KNOWN_TEST_ARTIFACTS = {
-    "custom",
-    "__runtime_test__",
-    "__test_unique_op__",
-    "test_custom_mutation",
-    "test_custom_crossover",
-    "test_custom_fitness",
-    "test_custom_genome",
-    "test_custom_engine",
-    "test_override_op",
-    "test_custom_selection",
-    "mlp",
-    "continuous_mlp",
-    "masked_mlp",
-    "gymnax",
-    "jumanji",
-    "compliance_mutation",
-    "brax",
-    "linear",
-    "equation",
-    "binary_sum_env",
-    "knapsack_env",
-    "bbobax_env",
-    "linear_gp_interpreter"
-}
+        "custom",
+        "__runtime_test__",
+        "__test_unique_op__",
+        "test_custom_mutation",
+        "test_custom_crossover",
+        "test_custom_fitness",
+        "test_custom_genome",
+        "test_custom_engine",
+        "test_override_op",
+        "test_custom_selection",
+        "mlp",
+        "continuous_mlp",
+        "masked_mlp",
+        "gymnax",
+        "jumanji",
+        "compliance_mutation",
+        "brax",
+        "linear",
+        "equation",
+        "binary_sum_env",
+        "knapsack_env",
+        "bbobax_env",
+        "linear_gp_interpreter",
+    }
     available = set(catalog.list_available())
     extra = available - ALL_EXPECTED - KNOWN_TEST_ARTIFACTS
     assert not extra, f"Unexpected catalog keys: {sorted(extra)}"
@@ -274,17 +274,16 @@ def test_fitness_bbob_roundtrip(catalog: OperatorCatalog, spec: str, expected_cl
     assert isinstance(evaluator, expected_cls)
 
 
-
-
-
 def test_fitness_binary_sum(catalog: OperatorCatalog) -> None:
     from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+
     evaluator = catalog.get("binary_sum")
     assert isinstance(evaluator, OptimizationEvaluator)
 
 
 def test_fitness_knapsack(catalog: OperatorCatalog) -> None:
     from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+
     evaluator = catalog.get("knapsack")
     assert isinstance(evaluator, OptimizationEvaluator)
 

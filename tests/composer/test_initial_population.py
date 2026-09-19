@@ -27,7 +27,7 @@ def test_adapters_accept_same_initial_population():
         env=BBOBEnv.create(fn_name="sphere", num_dims=dim, seed=0),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
+        output=ScalarOutput(maximize=False),
     )
     ev_adapter = build_evosax_engine(
         strategy_name="SimpleGA",

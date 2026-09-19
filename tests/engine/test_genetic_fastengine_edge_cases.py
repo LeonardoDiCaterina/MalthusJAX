@@ -23,11 +23,11 @@ def test_tracing_enabled():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=(2,)),
         evaluator=OptimizationEvaluator(
-        env=SphereEnv(),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
-    ),
+            env=SphereEnv(),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=False),
+        ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -46,11 +46,11 @@ def test_debug_step_coverage():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=(2,)),
         evaluator=OptimizationEvaluator(
-        env=SphereEnv(),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
-    ),
+            env=SphereEnv(),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=False),
+        ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -69,11 +69,11 @@ def test_no_init_population():
     engine = GeneticEngine(
         genome_config=DummyConfig(),
         evaluator=OptimizationEvaluator(
-        env=SphereEnv(),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
-    ),
+            env=SphereEnv(),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=False),
+        ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -88,11 +88,11 @@ def test_ask_tell_with_key():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=(2,)),
         evaluator=OptimizationEvaluator(
-        env=SphereEnv(),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
-    ),
+            env=SphereEnv(),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=False),
+        ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -112,11 +112,11 @@ def test_enforce_layout_1d():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=()),
         evaluator=OptimizationEvaluator(
-        env=SphereEnv(),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
-    ),
+            env=SphereEnv(),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=False),
+        ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),
@@ -131,11 +131,11 @@ def test_forward_presplit_keys_true():
     engine = GeneticEngine(
         genome_config=RealGenomeConfig(shape=(2,)),
         evaluator=OptimizationEvaluator(
-        env=SphereEnv(),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
-    ),
+            env=SphereEnv(),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=False),
+        ),
         selection=TournamentSelection(num_selections=4, tournament_size=2),
         crossover=UniformCrossover(),
         mutation=GaussianMutation(),

@@ -69,4 +69,6 @@ def test_tensorneat_evaluator_parity():
 
     # 5. Assert Parity
     assert jnp.allclose(legacy_evaluated_pop.fitness, new_evaluated_pop.fitness, equal_nan=True)
-    assert jnp.allclose(legacy_evaluated_pop.info["descriptors"], new_evaluated_pop.info["descriptors"])
+    assert jnp.allclose(
+        legacy_evaluated_pop.info["descriptors"], new_evaluated_pop.info["descriptors"]
+    )

@@ -309,7 +309,9 @@ class LinearGPEvaluator(StochasticEvaluator[LinearGenome, LinearGPEvaluatorConfi
         X, y = self.data
 
         if self.config.batch_size is not None and rng is not None:
-            indices = jax.random.choice(rng, X.shape[0], shape=(self.config.batch_size,), replace=False)
+            indices = jax.random.choice(
+                rng, X.shape[0], shape=(self.config.batch_size,), replace=False
+            )
             X = X[indices]
             y = y[indices]
 

@@ -4,6 +4,7 @@ import jax.numpy as jnp
 try:
     from tensorneat.common import State
 except ImportError:
+
     class State:
         def __init__(self, randkey=None, **kwargs):
             self.randkey = randkey

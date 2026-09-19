@@ -38,18 +38,24 @@ def mock_tensorneat():
     tn.common = types.ModuleType("tensorneat.common")
 
     class SomeAlgo:
-        def ask(self): pass
-        def tell(self): pass
+        def ask(self):
+            pass
+
+        def tell(self):
+            pass
 
     class SomeGenome:
-        def initialize(self): pass
+        def initialize(self):
+            pass
 
     class SomeProblem:
-        def evaluate(self): pass
+        def evaluate(self):
+            pass
 
     class State:
         def register(self, **kwargs):
             return self
+
         def update(self, **kwargs):
             for k, v in kwargs.items():
                 setattr(self, k, v)
@@ -92,6 +98,7 @@ def test_build_engine_errors():
 def test_build_engine_native(mock_tensorneat):
     class DummyAlgo:
         pop_size = 15
+
     algo = DummyAlgo()
     engine = build_composable_tensorneat_engine(
         algorithm=algo, evaluator=(MagicMock(), MagicMock()), generations=10
@@ -100,22 +107,23 @@ def test_build_engine_native(mock_tensorneat):
 
 
 def test_adapter_init(mock_tensorneat):
-    adapter = ComposableTensorNEATAdapter(strategy=None, params=None, pop_size=10, num_generations=5)
+    adapter = ComposableTensorNEATAdapter(
+        strategy=None, params=None, pop_size=10, num_generations=5
+    )
     algo = MagicMock()
     algo.setup.return_value = mock_tensorneat.common.State()
 
     state = adapter._adapter_init(
-        algorithm=algo,
-        key=jnp.array([0, 0]),
-        params={},
-        pop_init=(jnp.array([1]), jnp.array([2]))
+        algorithm=algo, key=jnp.array([0, 0]), params={}, pop_init=(jnp.array([1]), jnp.array([2]))
     )
     assert hasattr(state, "pop_nodes")
     assert hasattr(state, "pop_conns")
 
 
 def test_adapter_step(mock_tensorneat):
-    adapter = ComposableTensorNEATAdapter(strategy=None, params=None, pop_size=10, num_generations=5)
+    adapter = ComposableTensorNEATAdapter(
+        strategy=None, params=None, pop_size=10, num_generations=5
+    )
     adapter.maximize = True
 
     algo = MagicMock()
@@ -133,8 +141,12 @@ def test_adapter_step(mock_tensorneat):
         return jnp.ones(10)
 
     new_state, metrics = adapter._adapter_step(
-        algorithm=algo, state=state, key=jnp.array([0, 0]), params={},
-        evaluator=None, eval_translator=dummy_eval
+        algorithm=algo,
+        state=state,
+        key=jnp.array([0, 0]),
+        params={},
+        evaluator=None,
+        eval_translator=dummy_eval,
     )
     assert new_state == "new_state"
     assert "best_fitness_in_generation" in metrics

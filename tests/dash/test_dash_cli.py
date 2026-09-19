@@ -1,7 +1,5 @@
 """Tests for MalthusDash CLI."""
 
-import pytest
-
 from malthusjax.dash.cli import main
 
 

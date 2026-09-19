@@ -79,7 +79,7 @@ def test_end_to_end_equivalence_manual_vs_composer_vs_toml(
         env=BBOBEnv.create(fn_name=fn_name, num_dims=dimensions, seed=seed),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
+        output=ScalarOutput(maximize=False),
     )
 
     pop_key = jr.PRNGKey(seed)
@@ -185,7 +185,7 @@ def test_evosax_backend_equivalence(tmp_path, fn_name, dimensions, pop_size, see
         env=BBOBEnv.create(fn_name=fn_name, num_dims=dimensions, seed=seed),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
+        output=ScalarOutput(maximize=False),
     )
 
     pop_key = jr.PRNGKey(seed)

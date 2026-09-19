@@ -53,6 +53,7 @@ def test_cartesian_config_from_toml():
 
         assert "base_ga" in config.pipelines
 
+
 def test_lhs_config_from_toml():
     toml_content = textwrap.dedent("""
     [suite]
@@ -84,6 +85,7 @@ def test_lhs_config_from_toml():
         assert config.grid.dims_min == 2
         assert config.grid.num_samples == 5
 
+
 def test_config_invalid_mode():
     toml_content = textwrap.dedent("""
     [suite]
@@ -98,6 +100,7 @@ def test_config_invalid_mode():
         f.flush()
         with pytest.raises(ValueError, match="Unknown suite mode: random"):
             BenchmarkConfig.from_toml(f.name)
+
 
 def test_config_missing_pipelines():
     toml_content = textwrap.dedent("""

@@ -10,6 +10,7 @@ from .binary import UniformCrossover as BinaryUniformCrossover
 
 try:
     from .evosax_crossover import BatchedEvosaxUniformWrapper, EvosaxUniformCrossoverWrapper
+
     _HAS_EVOSAX = True
 except ImportError:
     _HAS_EVOSAX = False

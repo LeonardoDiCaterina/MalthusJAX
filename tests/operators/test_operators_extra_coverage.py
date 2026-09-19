@@ -2,7 +2,6 @@
 
 import jax
 import jax.numpy as jnp
-import pytest
 
 from malthusjax.core.genome.categorical_genome import CategoricalGenome, CategoricalGenomeConfig
 from malthusjax.operators.mutation.categorical import ScrambleMutation, SwapMutation

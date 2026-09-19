@@ -81,6 +81,7 @@ class GeneticEngineAdapter:
             arr = jnp.asarray(self.initial_population)
             pop = RealPopulation.from_array(arr, self.genome_config, RealGenome, axis=0)
             from malthusjax.core.fitness.base import dispatch_evaluate_population
+
             evaluated_pop = cast(
                 RealPopulation,
                 dispatch_evaluate_population(self.genetic_engine.evaluator, pop, key),
@@ -220,6 +221,7 @@ def build_engine(
             genome_config = BinaryGenomeConfig(shape=genome_shape)
         else:
             from malthusjax.composer.genome_catalog import GenomeCatalog
+
             try:
                 # Fallback to the composer's genome registry
                 genome_spec = kwargs.get("genome", genome_type)

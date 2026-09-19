@@ -344,7 +344,9 @@ def build_evosax_engine(
     elif hasattr(evaluator, "env") and hasattr(evaluator.env, "_problem"):  # type: ignore[attr-defined]
         problem = evaluator.env._problem  # type: ignore[attr-defined]
         problem_state = getattr(evaluator.env, "_state", None)  # type: ignore[attr-defined]
-        num_dims = getattr(evaluator.env, "num_dims", getattr(evaluator.env._problem, "num_dims", 1))  # type: ignore[attr-defined]
+        num_dims = getattr(
+            evaluator.env, "num_dims", getattr(evaluator.env._problem, "num_dims", 1)
+        )  # type: ignore[attr-defined]
     else:
         raise NotImplementedError(
             "Only evaluators with evosax_problem instances are currently supported by the "

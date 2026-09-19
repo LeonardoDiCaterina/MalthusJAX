@@ -271,6 +271,8 @@ def test_base_island_model_migrate_abstract(base_engine):
         def migrate(self, key, multi_pop):
             return super().migrate(key, multi_pop)
 
-    island = IncompleteIsland(engine=base_engine, num_islands=2, migration_interval=1, num_migrants=1)
+    island = IncompleteIsland(
+        engine=base_engine, num_islands=2, migration_interval=1, num_migrants=1
+    )
     with pytest.raises(NotImplementedError):
         island.migrate(jax.random.PRNGKey(0), None)

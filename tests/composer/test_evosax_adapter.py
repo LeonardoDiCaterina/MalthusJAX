@@ -59,7 +59,7 @@ def make_bbob_evaluator(
         env=BBOBEnv.create(fn_name=fn_name, num_dims=num_dims, seed=seed),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=maximize)
+        output=ScalarOutput(maximize=maximize),
     )
 
 
@@ -388,7 +388,9 @@ class TestStrategySmoke:
             "SV_CMA_ES",
             "SV_Open_ES",
         }:
-            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API")
+            pytest.skip(
+                f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API"
+            )
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=4)
         adapter = build_evosax_engine(
@@ -414,7 +416,9 @@ class TestStrategySmoke:
             "SV_CMA_ES",
             "SV_Open_ES",
         }:
-            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API")
+            pytest.skip(
+                f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API"
+            )
 
         evalr = make_bbob_evaluator(fn_name="rastrigin", num_dims=5)
         adapter = build_evosax_engine(

@@ -41,6 +41,7 @@ O = TypeVar("O", bound=BaseOutputMode)  # noqa: E741
 # BaseComposableEvaluator
 # =============================================================================
 
+
 @struct.dataclass
 class BaseComposableEvaluator(Generic[E, T, I, O]):
     """Base class for the 4-axis evaluator paradigm."""
@@ -56,14 +57,21 @@ class BaseComposableEvaluator(Generic[E, T, I, O]):
             return self.env.get_gap_to_optimum(fitness)
         # Default fallback if optimum is unknown
         import jax.numpy as jnp
+
         return float(jnp.nan)
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args, **kwargs) -> tuple[chex.Array, dict]:
+    def evaluate(
+        self, raw_genome: Any, compiled_genome: Any, *args, **kwargs
+    ) -> tuple[chex.Array, dict]:
         """Evaluate a single genome and return (fitness, info)."""
         raise NotImplementedError
 
     def evaluate_population(
-        self, population: BasePopulation, rng: chex.PRNGKey | None = None, state: Any = None, **kwargs
+        self,
+        population: BasePopulation,
+        rng: chex.PRNGKey | None = None,
+        state: Any = None,
+        **kwargs,
     ) -> BasePopulation:
         """Vectorized stochastic or deterministic population evaluation.
 
@@ -82,9 +90,13 @@ class BaseComposableEvaluator(Generic[E, T, I, O]):
         # 2. Evaluate
         if rng is not None:
             rngs = jax.random.split(rng, population.fitness.shape[0])
-            fitness_scores, infos = jax.vmap(self.evaluate)(population.genes, compiled_pop, rngs, **kwargs)
+            fitness_scores, infos = jax.vmap(self.evaluate)(
+                population.genes, compiled_pop, rngs, **kwargs
+            )
         else:
-            fitness_scores, infos = jax.vmap(self.evaluate)(population.genes, compiled_pop, **kwargs)
+            fitness_scores, infos = jax.vmap(self.evaluate)(
+                population.genes, compiled_pop, **kwargs
+            )
 
         return cast(Any, population).replace(fitness=fitness_scores, info=infos)
 
@@ -93,19 +105,22 @@ class BaseComposableEvaluator(Generic[E, T, I, O]):
 # SupervisedEvaluator
 # =============================================================================
 
+
 @struct.dataclass
 class SupervisedEvaluator(
-    BaseComposableEvaluator[BaseSupervisedEnvironment, BaseTransform, BaseInterpreter, BaseOutputMode]
+    BaseComposableEvaluator[
+        BaseSupervisedEnvironment, BaseTransform, BaseInterpreter, BaseOutputMode
+    ]
 ):
     """Composable evaluator for SupervisedTask problems."""
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any) -> tuple[chex.Array, dict]:  # type: ignore[override]
+    def evaluate(
+        self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any
+    ) -> tuple[chex.Array, dict]:  # type: ignore[override]
         X = self.env.X
         y = self.env.y
 
-        predictions = jax.vmap(
-            lambda x_i: self.interpreter.apply(compiled_genome, x_i)
-        )(X)
+        predictions = jax.vmap(lambda x_i: self.interpreter.apply(compiled_genome, x_i))(X)
 
         return self.output.process_sl(raw_genome, X, y, predictions)
 
@@ -114,13 +129,18 @@ class SupervisedEvaluator(
 # OptimizationEvaluator
 # =============================================================================
 
+
 @struct.dataclass
 class OptimizationEvaluator(
-    BaseComposableEvaluator[BaseOptimizationEnvironment, BaseTransform, BaseInterpreter, BaseOutputMode]
+    BaseComposableEvaluator[
+        BaseOptimizationEnvironment, BaseTransform, BaseInterpreter, BaseOutputMode
+    ]
 ):
     """Composable evaluator for OptimizationTask problems."""
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any) -> tuple[chex.Array, dict]:  # type: ignore[override]
+    def evaluate(
+        self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any
+    ) -> tuple[chex.Array, dict]:  # type: ignore[override]
         solution = self.interpreter.apply(compiled_genome, inputs=None)
         raw_score = self.env.evaluate(solution)
         return self.output.process_opt(raw_genome, solution, raw_score)
@@ -129,6 +149,7 @@ class OptimizationEvaluator(
 # =============================================================================
 # RLEvaluator
 # =============================================================================
+
 
 @struct.dataclass
 class RLEvaluator(
@@ -139,7 +160,9 @@ class RLEvaluator(
     num_eval_envs: int = struct.field(pytree_node=False, default=1)
     max_steps: int = struct.field(pytree_node=False, default=500)
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, rng: chex.PRNGKey, **kwargs: Any) -> tuple[chex.Array, dict]:  # type: ignore[override]
+    def evaluate(
+        self, raw_genome: Any, compiled_genome: Any, rng: chex.PRNGKey, **kwargs: Any
+    ) -> tuple[chex.Array, dict]:  # type: ignore[override]
         max_steps = getattr(self.env, "max_steps", self.max_steps)
 
         def rollout_episode(rng_input: chex.PRNGKey) -> tuple[chex.Numeric, Any, Any]:
@@ -191,9 +214,12 @@ try:
 except ImportError:
     TNState = Any
 
+
 @struct.dataclass
 class TensorNeatEvaluator(
-    BaseComposableEvaluator[BaseOptimizationEnvironment, BaseTransform, BaseInterpreter, BaseOutputMode]
+    BaseComposableEvaluator[
+        BaseOptimizationEnvironment, BaseTransform, BaseInterpreter, BaseOutputMode
+    ]
 ):
     """Composable evaluator specifically designed to wrap TensorNEAT problems.
 
@@ -205,13 +231,20 @@ class TensorNeatEvaluator(
     seed: int = struct.field(pytree_node=False, default=42)
     maximize: bool = struct.field(pytree_node=False, default=True)
 
-    def evaluate(self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any) -> tuple[chex.Array, dict]:  # type: ignore[override]
-        raise NotImplementedError("TensorNeatEvaluator relies on vectorized batch evaluation via evaluate_population.")
+    def evaluate(
+        self, raw_genome: Any, compiled_genome: Any, *args: Any, **kwargs: Any
+    ) -> tuple[chex.Array, dict]:  # type: ignore[override]
+        raise NotImplementedError(
+            "TensorNeatEvaluator relies on vectorized batch evaluation via evaluate_population."
+        )
 
     def evaluate_population(
-        self, population: BasePopulation, rng: chex.PRNGKey | None = None, state: Any = None, **kwargs
+        self,
+        population: BasePopulation,
+        rng: chex.PRNGKey | None = None,
+        state: Any = None,
+        **kwargs,
     ) -> BasePopulation:
-
         # 1. Initialize a localized TensorNEAT State to manage PRNG for this generation
         key = jax.random.PRNGKey(self.seed) if rng is None else rng
         tn_state = TNState(randkey=key, generation=jnp.float32(0))
@@ -246,4 +279,3 @@ class TensorNeatEvaluator(
         new_info["descriptors"] = descriptors
 
         return cast(Any, population).replace(fitness=fitnesses, info=new_info)
-

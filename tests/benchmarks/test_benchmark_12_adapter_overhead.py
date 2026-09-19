@@ -37,11 +37,11 @@ class TestAdapterOverhead:
         num_gens = NUM_GENERATIONS_LONG
 
         evalr = OptimizationEvaluator(
-        env=BBOBEnv.create(fn_name="sphere", num_dims=dims, seed=SEED),
-        transform=IdentityTransform(),
-        interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
-    )
+            env=BBOBEnv.create(fn_name="sphere", num_dims=dims, seed=SEED),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(maximize=False),
+        )
         adapter = build_evosax_engine(
             strategy_name="SimpleGA",
             evaluator=evalr,

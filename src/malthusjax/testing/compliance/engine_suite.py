@@ -50,5 +50,9 @@ class EngineComplianceSuite:
         except jax.errors.ConcretizationTypeError as e:
             pytest.fail(f"step JIT compilation failed due to a tracer leak.\nDetails: {e}")
 
-        assert isinstance(next_state, AbstractEvolutionState), "step must return AbstractEvolutionState"
-        assert isinstance(output, AbstractGenerationOutput), "step must return AbstractGenerationOutput"
+        assert isinstance(next_state, AbstractEvolutionState), (
+            "step must return AbstractEvolutionState"
+        )
+        assert isinstance(output, AbstractGenerationOutput), (
+            "step must return AbstractGenerationOutput"
+        )

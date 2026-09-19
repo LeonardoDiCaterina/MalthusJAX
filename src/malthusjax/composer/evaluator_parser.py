@@ -16,6 +16,7 @@ from malthusjax.core.fitness.composable import (
 
 try:
     import tensorneat  # noqa: F401
+
     TENSORNEAT_AVAILABLE = True
 except ImportError:
     TENSORNEAT_AVAILABLE = False
@@ -57,7 +58,9 @@ def _parse_component(config: Any, module: Any, default_class: Optional[str] = No
     return _instantiate_from_module(module, class_name, kwargs)
 
 
-def parse_evaluator(config: Dict[str, Any]) -> evaluators.BaseComposableEvaluator[Any, Any, Any, Any]:
+def parse_evaluator(
+    config: Dict[str, Any],
+) -> evaluators.BaseComposableEvaluator[Any, Any, Any, Any]:
     """Parses a nested configuration dictionary into a Composable Evaluator.
 
     Example config:
@@ -76,23 +79,30 @@ def parse_evaluator(config: Dict[str, Any]) -> evaluators.BaseComposableEvaluato
 
     # 1. Parse Environment
     if "env" in kwargs:
-        if isinstance(kwargs["env"], dict) and kwargs["env"].get("type") == "TensorNEATProblemWrapper":
+        if (
+            isinstance(kwargs["env"], dict)
+            and kwargs["env"].get("type") == "TensorNEATProblemWrapper"
+        ):
             # Special case for TensorNEAT wrappers which need a problem instance
             if not TENSORNEAT_AVAILABLE:
-                raise ImportError("TensorNEAT is not available, but TensorNEATProblemWrapper was requested.")
+                raise ImportError(
+                    "TensorNEAT is not available, but TensorNEATProblemWrapper was requested."
+                )
             prob_dict = kwargs["env"].copy()
             prob_dict.pop("type", None)
             prob_type = prob_dict.pop("problem_type", "XOR")
             import tensorneat.problem  # noqa: F401
+
             try:
                 from tensorneat.problem.func_fit import xor
+
                 # simple mapping for now
                 if prob_type == "XOR":
                     problem = xor.XOR()
                 else:
                     problem = getattr(tensorneat.problem, prob_type)(**prob_dict)
             except AttributeError:
-                 problem = getattr(tensorneat.problem, prob_type)(**prob_dict)
+                problem = getattr(tensorneat.problem, prob_type)(**prob_dict)
 
             kwargs["env"] = environments.TensorNEATProblemWrapper(problem=problem)
         else:
@@ -108,7 +118,9 @@ def parse_evaluator(config: Dict[str, Any]) -> evaluators.BaseComposableEvaluato
             kwargs["interpreter"]["input_dim"] = env_inst.obs_dim
         if hasattr(env_inst, "action_dim") and "output_dim" not in kwargs["interpreter"]:
             kwargs["interpreter"]["output_dim"] = env_inst.action_dim
-    kwargs["interpreter"] = _parse_component(kwargs["interpreter"], interpreters, default_class="IdentityInterpreter")
+    kwargs["interpreter"] = _parse_component(
+        kwargs["interpreter"], interpreters, default_class="IdentityInterpreter"
+    )
 
     # 3. Parse Output
     if "output" not in kwargs:
@@ -118,7 +130,9 @@ def parse_evaluator(config: Dict[str, Any]) -> evaluators.BaseComposableEvaluato
     # 4. Parse Transform
     if "transform" not in kwargs:
         kwargs["transform"] = {"type": "IdentityTransform"}
-    kwargs["transform"] = _parse_component(kwargs["transform"], base, default_class="IdentityTransform")
+    kwargs["transform"] = _parse_component(
+        kwargs["transform"], base, default_class="IdentityTransform"
+    )
 
     # Instantiate the Evaluator itself
     return _instantiate_from_module(evaluators, evaluator_type, kwargs)

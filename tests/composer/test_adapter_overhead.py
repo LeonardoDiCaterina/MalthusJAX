@@ -81,6 +81,7 @@ def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
     # 3. TensorNEAT (optional dependency)
     try:
         import tensorneat  # noqa: F401
+
         has_tensorneat = True
     except ImportError:
         has_tensorneat = False

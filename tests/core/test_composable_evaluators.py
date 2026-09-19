@@ -30,12 +30,14 @@ from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
 # Helpers
 # =============================================================================
 
+
 def make_real_genome(values: list[float]) -> RealGenome:
     return RealGenome(values=jnp.array(values, dtype=jnp.float32))
 
 
 def make_real_population(n: int, length: int, seed: int = 0) -> RealPopulation:
     from malthusjax.core.genome.real_genome import RealGenomeConfig
+
     key = jax.random.PRNGKey(seed)
     genes_values = jax.random.normal(key, (n, length), dtype=jnp.float32)
     genes = RealGenome(values=genes_values)
@@ -44,10 +46,10 @@ def make_real_population(n: int, length: int, seed: int = 0) -> RealPopulation:
     return RealPopulation(genes=genes, fitness=fitness, config=config)
 
 
-
 # =============================================================================
 # MLPInterpreter Tests
 # =============================================================================
+
 
 class TestMLPInterpreter:
     def test_num_params_no_hidden(self):
@@ -102,7 +104,7 @@ class TestMLPInterpreter:
         n = interp.num_params
         # W0 shape: (1,2), b0 shape: (2,), W1 shape: (2,1), b1 shape: (1,)
         # Order is [b0, W0, b1, W1]
-        assert n == 2 + 1*2 + 1 + 2*1  # = 7
+        assert n == 2 + 1 * 2 + 1 + 2 * 1  # = 7
         params = jnp.array([0.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0])
         genome = RealGenome(values=params)
         result = interp.apply(genome, jnp.array([1.0]))
@@ -112,6 +114,7 @@ class TestMLPInterpreter:
 # =============================================================================
 # IdentityInterpreter Tests
 # =============================================================================
+
 
 class TestIdentityInterpreter:
     def test_returns_genome_values(self):
@@ -137,6 +140,7 @@ class TestIdentityInterpreter:
 # =============================================================================
 # SklearnEnv Tests
 # =============================================================================
+
 
 class TestSklearnEnv:
     def test_create_breast_cancer(self):
@@ -166,11 +170,10 @@ class TestSklearnEnv:
 # SupervisedEvaluator Tests
 # =============================================================================
 
+
 class TestSupervisedEvaluator:
     def setup_method(self):
-        self.env = SklearnEnv.create(
-            dataset="make_regression", n_samples=50, n_features=4
-        )
+        self.env = SklearnEnv.create(dataset="make_regression", n_samples=50, n_features=4)
         self.interp = MLPInterpreter(input_dim=4, output_dim=1, hidden=(8,))
         self.output = ScalarOutput(loss_fn="mse")
         self.evaluator = SupervisedEvaluator(
@@ -218,6 +221,7 @@ class TestSupervisedEvaluator:
 # =============================================================================
 # OptimizationEvaluator Tests
 # =============================================================================
+
 
 class TestOptimizationEvaluator:
     def setup_method(self):

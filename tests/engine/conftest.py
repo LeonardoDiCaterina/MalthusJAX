@@ -55,7 +55,7 @@ def bbob_evaluator():
         env=BBOBEnv.create(fn_name="sphere", num_dims=10),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
-        output=ScalarOutput(maximize=False)
+        output=ScalarOutput(maximize=False),
     )
 
 
@@ -153,7 +153,7 @@ def make_engine():
                 env=BBOBEnv.create(fn_name="sphere", num_dims=genome_shape[0]),
                 transform=IdentityTransform(),
                 interpreter=IdentityInterpreter(),
-                output=ScalarOutput(maximize=maximize)
+                output=ScalarOutput(maximize=maximize),
             )
             selection = ElitePoolSelection(num_selections=pop_size, elite_k=max(1, elitism))
             crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)

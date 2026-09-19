@@ -169,6 +169,7 @@ class UniversalAdapterEngine:
                 )
 
                 if step_logging.log_nan_watchdog:
+
                     def _nan_watchdog_cb():
                         jax.debug.callback(
                             _host_log_nan_anomaly,

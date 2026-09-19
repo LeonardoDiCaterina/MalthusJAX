@@ -134,4 +134,3 @@ def test_map_elites_engine_qdax_replica_and_minimize():
     final_state, history, _ = engine.run(engine_state, compile=True)
     assert final_state.generation == 2
     assert final_state.best_fitness is not None
-

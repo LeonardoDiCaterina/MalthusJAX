@@ -6,7 +6,6 @@ import logging
 from unittest.mock import patch
 
 import chex
-import pytest
 
 from malthusjax.benchmarking.config import BenchmarkConfig
 from malthusjax.benchmarking.runner import BenchmarkRunner, Engine
@@ -27,7 +26,9 @@ class SimpleMockEngine(Engine):
 
 def test_runner_emits_structured_logging(caplog):
     """Verify BenchmarkRunner emits DEBUG seed start and INFO seed completion traces."""
-    runner = BenchmarkRunner(engine=SimpleMockEngine(), experiment_name="test_log_exp", write_artifacts=False)
+    runner = BenchmarkRunner(
+        engine=SimpleMockEngine(), experiment_name="test_log_exp", write_artifacts=False
+    )
 
     with caplog.at_level(logging.DEBUG, logger="malthusjax.benchmarking.runner"):
         result = runner.run(seeds=[42, 43])
@@ -66,6 +67,7 @@ def test_sampling_emits_debug_logging(caplog):
     }
 
     import tempfile
+
     import toml
 
     with tempfile.NamedTemporaryFile("w", suffix=".toml") as f:
@@ -88,21 +90,26 @@ def test_regression_analyzer_emits_warning(caplog, tmp_path):
     analyzer = OLSRegressionAnalyzer(spec)
 
     import pandas as pd
-    mock_df = pd.DataFrame({
-        "pipeline": ["target", "target", "ref", "ref"],
-        "fn_name": ["sphere", "sphere", "sphere", "sphere"],
-        "D": [10, 20, 10, 20],
-        "P": [64, 64, 64, 64],
-        "G": [100, 100, 100, 100],
-        "seed": [1, 1, 1, 1],
-        "runtime": [0.1, 0.2, 0.15, 0.25],
-    })
+
+    mock_df = pd.DataFrame(
+        {
+            "pipeline": ["target", "target", "ref", "ref"],
+            "fn_name": ["sphere", "sphere", "sphere", "sphere"],
+            "D": [10, 20, 10, 20],
+            "P": [64, 64, 64, 64],
+            "G": [100, 100, 100, 100],
+            "seed": [1, 1, 1, 1],
+            "runtime": [0.1, 0.2, 0.15, 0.25],
+        }
+    )
 
     analysis_dir = tmp_path / "analysis"
     analysis_dir.mkdir()
 
     # Mock fit_ols to simulate failure
-    with patch("malthusjax.stats.regression_analyzer.fit_ols", side_effect=RuntimeError("Singular matrix")):
+    with patch(
+        "malthusjax.stats.regression_analyzer.fit_ols", side_effect=RuntimeError("Singular matrix")
+    ):
         with caplog.at_level(logging.WARNING, logger="malthusjax.stats.regression"):
             analyzer.analyze_suite(
                 df_global=mock_df,
@@ -113,4 +120,6 @@ def test_regression_analyzer_emits_warning(caplog, tmp_path):
 
     stats_records = [r for r in caplog.records if r.name == "malthusjax.stats.regression"]
     assert len(stats_records) >= 1
-    assert any("Failed to run OLS" in r.message and "Singular matrix" in r.message for r in stats_records)
+    assert any(
+        "Failed to run OLS" in r.message and "Singular matrix" in r.message for r in stats_records
+    )

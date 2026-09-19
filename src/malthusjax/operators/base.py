@@ -114,7 +114,6 @@ class BaseMutation(Generic[G, C]):
         logger.debug("%s: set max_generations=%d", type(self).__name__, n)
         return dataclasses.replace(self, max_generations=n)
 
-
     @abstractmethod
     def _mutate_one(self, genome: G, noise_data: Any, config: C, **kwargs: Any) -> G:
         """Tier 1 — Pure mutation arithmetic: genome + noise → mutated genome.
@@ -329,7 +328,6 @@ class BaseCrossover(Generic[G, C]):
         logger.debug("%s: set max_generations=%d", type(self).__name__, n)
         return dataclasses.replace(self, max_generations=n)
 
-
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
         """Tier 2 — Recombination mask/index generation: keys → noise PyTree."""
@@ -524,7 +522,6 @@ class BaseSelection(Generic[P, C]):
         """Set elite count for preservation (called once at engine init)."""
         logger.debug("%s: set n_elites=%d", type(self).__name__, n)
         return dataclasses.replace(self, n_elites=n)
-
 
     @property
     @abstractmethod

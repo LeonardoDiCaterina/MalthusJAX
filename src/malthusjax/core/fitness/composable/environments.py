@@ -27,10 +27,10 @@ except ImportError:
     TNBaseProblem = Any
 
 
-
 # =============================================================================
 # Supervised Environments
 # =============================================================================
+
 
 def _load_sklearn_data(dataset_name: str, **kwargs) -> tuple[chex.Array, chex.Array]:
     """Load and JAX-ify a scikit-learn dataset.
@@ -123,12 +123,14 @@ class CustomDatasetEnv(BaseSupervisedEnvironment):
 
         env = CustomDatasetEnv(data=(my_X, my_y))
     """
+
     pass
 
 
 # =============================================================================
 # Optimization Environments
 # =============================================================================
+
 
 @struct.dataclass
 class BinarySumEnv(BaseOptimizationEnvironment):
@@ -141,6 +143,7 @@ class BinarySumEnv(BaseOptimizationEnvironment):
         ones_count = jnp.sum(solution)
         zeros_count = solution.size - ones_count
         return zeros_count
+
 
 @struct.dataclass
 class KnapsackEnv(BaseOptimizationEnvironment):
@@ -162,6 +165,7 @@ class KnapsackEnv(BaseOptimizationEnvironment):
         value = total_value - penalty
         # Minimization convention
         return -value
+
 
 @struct.dataclass
 class BBOBEnv(BaseOptimizationEnvironment):
@@ -245,6 +249,7 @@ class BBOBEnv(BaseOptimizationEnvironment):
     def x_opt(self) -> chex.Array:
         """Known global optimum location for this BBOB instance."""
         return self._problem.x_opt
+
 
 @struct.dataclass
 class SphereEnv(BaseOptimizationEnvironment):
@@ -337,18 +342,20 @@ class TSPEnv(BaseOptimizationEnvironment):
 # Reinforcement Learning Environments
 # =============================================================================
 
+
 @struct.dataclass
 class GymnaxEnv(BaseRLEnvironment):
     """Gymnax reinforcement learning environment adapter."""
 
     env_name: str = struct.field(pytree_node=False)
     env: Any = struct.field(pytree_node=False)
-    env_params: Any = struct.field(pytree_node=False) # gymnax EnvParams is mostly static/dataclass
+    env_params: Any = struct.field(pytree_node=False)  # gymnax EnvParams is mostly static/dataclass
 
     @classmethod
     def create(cls, env_name: str, **kwargs) -> GymnaxEnv:
         """Create a Gymnax environment instance."""
         import gymnax
+
         env, env_params = gymnax.make(env_name, **kwargs)
         return cls(env_name=env_name, env=env, env_params=env_params)
 
@@ -362,9 +369,13 @@ class GymnaxEnv(BaseRLEnvironment):
         obs, state = self.env.reset(key, self.env_params)
         return obs, state
 
-    def step(self, state: Any, action: chex.Array, key: chex.PRNGKey) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
+    def step(
+        self, state: Any, action: chex.Array, key: chex.PRNGKey
+    ) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
         """Take one step: (obs, state, reward, done, info)."""
-        next_obs, next_state, reward, done, info = self.env.step(key, state, action, self.env_params)
+        next_obs, next_state, reward, done, info = self.env.step(
+            key, state, action, self.env_params
+        )
         return next_obs, next_state, reward, done, info
 
     def preprocess_obs(self, obs: chex.Array) -> chex.Array:
@@ -385,6 +396,7 @@ class GymnaxEnv(BaseRLEnvironment):
     def obs_dim(self) -> int:
         """Flattened observation dimensionality."""
         import numpy as np
+
         shape = self.env.observation_space(self.env_params).shape
         return int(np.prod(shape))
 
@@ -396,7 +408,9 @@ class GymnaxEnv(BaseRLEnvironment):
             return space.n
         else:
             import numpy as np
+
             return int(np.prod(space.shape))
+
 
 @struct.dataclass
 class JumanjiEnv(BaseRLEnvironment):
@@ -408,6 +422,7 @@ class JumanjiEnv(BaseRLEnvironment):
     @classmethod
     def create(cls, env_name: str, **kwargs) -> JumanjiEnv:
         import jumanji
+
         env = jumanji.make(env_name, **kwargs)
         return cls(env_name=env_name, env=env)
 
@@ -419,7 +434,9 @@ class JumanjiEnv(BaseRLEnvironment):
         state, timestep = self.env.reset(key)
         return timestep, state
 
-    def step(self, state: Any, action: chex.Array, key: chex.PRNGKey) -> tuple[Any, Any, chex.Numeric, chex.Array, Any]:
+    def step(
+        self, state: Any, action: chex.Array, key: chex.PRNGKey
+    ) -> tuple[Any, Any, chex.Numeric, chex.Array, Any]:
         next_state, next_timestep = self.env.step(state, action)
         return next_timestep, next_state, next_timestep.reward, next_timestep.last(), {}
 
@@ -446,7 +463,12 @@ class JumanjiEnv(BaseRLEnvironment):
     @property
     def obs_dim(self) -> int:
         import numpy as np
-        spec = self.env.observation_spec() if callable(self.env.observation_spec) else self.env.observation_spec
+
+        spec = (
+            self.env.observation_spec()
+            if callable(self.env.observation_spec)
+            else self.env.observation_spec
+        )
         if hasattr(spec, "observation"):
             return int(np.prod(spec.observation.shape))
         elif hasattr(spec, "grid"):
@@ -462,8 +484,9 @@ class JumanjiEnv(BaseRLEnvironment):
         if hasattr(spec, "num_values"):
             # MultiDiscrete is handled by prod(num_values)
             import numpy as np
+
             return int(np.prod(spec.num_values))
-        return spec.num_values # scalar discrete
+        return spec.num_values  # scalar discrete
 
 
 @struct.dataclass
@@ -476,6 +499,7 @@ class BraxEnv(BaseRLEnvironment):
     @classmethod
     def create(cls, env_name: str, **kwargs) -> BraxEnv:
         from brax import envs
+
         env = envs.create(env_name=env_name, **kwargs)
         return cls(env_name=env_name, env=env)
 
@@ -483,7 +507,9 @@ class BraxEnv(BaseRLEnvironment):
         state = self.env.reset(key)
         return state.obs, state
 
-    def step(self, state: Any, action: chex.Array, key: chex.PRNGKey) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
+    def step(
+        self, state: Any, action: chex.Array, key: chex.PRNGKey
+    ) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
         next_state = self.env.step(state, action)
         return next_state.obs, next_state, next_state.reward, next_state.done, {}
 
@@ -507,6 +533,7 @@ class BraxEnv(BaseRLEnvironment):
 # TensorNEAT Proxy Environment
 # =============================================================================
 
+
 @struct.dataclass
 class TensorNEATProblemWrapper(BaseOptimizationEnvironment):
     """A wrapper for TensorNEAT internal problems to be used directly by TensorNeatEvaluator.
@@ -524,6 +551,6 @@ class TensorNEATProblemWrapper(BaseOptimizationEnvironment):
 
     def evaluate(self, solution: chex.Array) -> chex.Numeric:
         # Evaluation is handled directly by TensorNeatEvaluator bypassing this fallback.
-        raise NotImplementedError("TensorNEAT environments must be evaluated via TensorNeatEvaluator")
-
-
+        raise NotImplementedError(
+            "TensorNEAT environments must be evaluated via TensorNeatEvaluator"
+        )

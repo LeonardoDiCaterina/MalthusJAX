@@ -5,8 +5,6 @@ import logging
 import os
 from pathlib import Path
 
-import pytest
-
 from malthusjax.benchmarking.cli import main
 from malthusjax.core.logger import _ROOT_LOGGER_NAME
 
@@ -111,12 +109,17 @@ def test_cli_log_interval_flag(tmp_path: Path):
     original_cwd = os.getcwd()
     os.chdir(tmp_path)
     try:
-        result = main([
-            "-v",
-            "--log-interval", "2",
-            "--log-file", str(log_file),
-            "run", str(config_path),
-        ])
+        result = main(
+            [
+                "-v",
+                "--log-interval",
+                "2",
+                "--log-file",
+                str(log_file),
+                "run",
+                str(config_path),
+            ]
+        )
         assert result == 0
         assert log_file.exists()
         content = log_file.read_text()

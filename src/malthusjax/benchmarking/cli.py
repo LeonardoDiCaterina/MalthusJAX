@@ -367,9 +367,7 @@ def main(args: Optional[List[str]] = None) -> int:
         parents=[log_parser],
         help="Calculate statistical summaries from raw data",
     )
-    parser_analyze.add_argument(
-        "results_dir", type=Path, help="Directory containing raw JSON data"
-    )
+    parser_analyze.add_argument("results_dir", type=Path, help="Directory containing raw JSON data")
     parser_analyze.set_defaults(func=handle_analyze)
 
     # 4. PLOT
@@ -378,9 +376,7 @@ def main(args: Optional[List[str]] = None) -> int:
         parents=[log_parser],
         help="Generate diagnostic plots from raw data and analysis",
     )
-    parser_plot.add_argument(
-        "results_dir", type=Path, help="Directory containing raw JSON data"
-    )
+    parser_plot.add_argument("results_dir", type=Path, help="Directory containing raw JSON data")
     parser_plot.set_defaults(func=handle_plot)
 
     # 5. REPORT (Analyze + Plot)
@@ -389,9 +385,7 @@ def main(args: Optional[List[str]] = None) -> int:
         parents=[log_parser],
         help="Generate both statistical summaries and diagnostic plots",
     )
-    parser_report.add_argument(
-        "results_dir", type=Path, help="Directory containing raw JSON data"
-    )
+    parser_report.add_argument("results_dir", type=Path, help="Directory containing raw JSON data")
     parser_report.set_defaults(func=handle_report)
 
     # 6. AGGREGATE
@@ -456,4 +450,3 @@ def main(args: Optional[List[str]] = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

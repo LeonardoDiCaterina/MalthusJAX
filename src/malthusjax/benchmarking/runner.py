@@ -257,8 +257,6 @@ class StubEngine:
         except Exception:
             seed_int = 0
 
-
-
         history = []
         current_fitness = self.base_fitness
 

@@ -15,9 +15,11 @@ from malthusjax.benchmarking.sampling import (
 def test_generate_cartesian_grid():
     config = BenchmarkConfig(
         suite=SuiteConfig(name="test", mode="cartesian", output_dir=".", num_seeds=1),
-        grid=CartesianGridConfig(functions=["sphere", "rastrigin"], dims=[10], pops=[100, 200], gens=[50]),
+        grid=CartesianGridConfig(
+            functions=["sphere", "rastrigin"], dims=[10], pops=[100, 200], gens=[50]
+        ),
         analysis=AnalysisConfig(reference_pipeline="test"),
-        pipelines={"test": {}}
+        pipelines={"test": {}},
     )
 
     grid = generate_grid(config)
@@ -31,18 +33,22 @@ def test_generate_cartesian_grid():
     ]
     assert grid == expected
 
+
 def test_generate_lhs_grid():
     config = BenchmarkConfig(
         suite=SuiteConfig(name="test", mode="lhs", output_dir=".", num_seeds=1),
         grid=LHSGridConfig(
             functions=["sphere", "rastrigin"],
-            dims_min=2, dims_max=20,
-            pops_min=10, pops_max=1000,
-            gens_min=50, gens_max=200,
-            num_samples=3
+            dims_min=2,
+            dims_max=20,
+            pops_min=10,
+            pops_max=1000,
+            gens_min=50,
+            gens_max=200,
+            num_samples=3,
         ),
         analysis=AnalysisConfig(reference_pipeline="test"),
-        pipelines={"test": {}}
+        pipelines={"test": {}},
     )
 
     grid = generate_grid(config)
@@ -57,12 +63,13 @@ def test_generate_lhs_grid():
         assert 50 <= entry["G"] <= 200
         assert entry["lhs_id"].startswith("lhs")
 
+
 def test_generate_grid_invalid_mode():
     config = BenchmarkConfig(
-        suite=SuiteConfig(name="test", mode="invalid_mode", output_dir=".", num_seeds=1), # type: ignore
+        suite=SuiteConfig(name="test", mode="invalid_mode", output_dir=".", num_seeds=1),  # type: ignore
         grid=CartesianGridConfig(functions=["sphere"], dims=[10], pops=[100], gens=[50]),
         analysis=AnalysisConfig(reference_pipeline="test"),
-        pipelines={"test": {}}
+        pipelines={"test": {}},
     )
 
     with pytest.raises(ValueError, match="Unknown mode: invalid_mode"):

@@ -28,7 +28,9 @@ class EnvironmentComplianceSuite:
         assert dataclasses.is_dataclass(component), "Component must be a dataclass."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseEnvironment), "Component must inherit from BaseEnvironment."
+        assert isinstance(component, BaseEnvironment), (
+            "Component must inherit from BaseEnvironment."
+        )
 
     def test_supervised_env_has_X_y(self, component) -> None:
         """Verify SupervisedEnvironments have valid X and y arrays."""
@@ -39,7 +41,9 @@ class EnvironmentComplianceSuite:
         assert hasattr(component, "y"), "SupervisedEnvironment must have a y property."
         assert isinstance(component.X, jax.Array), "X must be a JAX array."
         assert isinstance(component.y, jax.Array), "y must be a JAX array."
-        assert component.X.shape[0] == component.y.shape[0], "X and y must have the same number of samples."
+        assert component.X.shape[0] == component.y.shape[0], (
+            "X and y must have the same number of samples."
+        )
 
     def test_optimization_env_evaluate_shape(self, component) -> None:
         """Verify OptimizationEnvironments evaluate to a scalar."""

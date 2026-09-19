@@ -176,7 +176,12 @@ class OperatorCatalog:
 
         return value_str
 
-    def get(self, spec: Union[str, Dict[str, Any]], data_registry: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Any:
+    def get(
+        self,
+        spec: Union[str, Dict[str, Any]],
+        data_registry: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ) -> Any:
         """Resolve *spec* to a configured operator instance.  The
         spec string may include comma-separated parameter overrides.  A
         ``KeyError`` is raised for unknown operator types and a

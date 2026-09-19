@@ -10,11 +10,7 @@ def test_composable_evosax_adapter_dimension_extraction():
 
     # 1. Build an RLEvaluator manually
     env = GymnaxEnv.create(env_name="CartPole-v1")
-    interpreter = MLPInterpreter(
-        input_dim=env.obs_dim,
-        output_dim=env.action_dim,
-        hidden=(32,)
-    )
+    interpreter = MLPInterpreter(input_dim=env.obs_dim, output_dim=env.action_dim, hidden=(32,))
     output = ScalarOutput(maximize=True)
     evaluator = RLEvaluator(env=env, interpreter=interpreter, output=output, max_steps=100)
 

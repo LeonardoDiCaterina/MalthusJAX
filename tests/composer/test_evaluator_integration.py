@@ -8,6 +8,7 @@ from malthusjax.composer.composer import Composer
 has_lsp = False
 try:
     import lsp.evaluator.predictors  # noqa: F401
+
     has_lsp = True
 except ImportError:
     pass

@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
+
 import jax
 import jax.numpy as jnp
 import pytest
@@ -27,13 +28,17 @@ def test_composer_main():
     mock_result = MagicMock()
     mock_result.summary.return_value = "Run Summary OK"
     with patch("sys.argv", ["composer", "config.toml"]):
-        with patch("malthusjax.composer.Composer.from_toml", return_value=mock_result) as mock_from_toml:
+        with patch(
+            "malthusjax.composer.Composer.from_toml", return_value=mock_result
+        ) as mock_from_toml:
             composer_main()
             mock_from_toml.assert_called_once_with("config.toml", pipelines=None)
 
     # 3. Config with pipelines
     with patch("sys.argv", ["composer", "config.toml", "pipe_a", "pipe_b"]):
-        with patch("malthusjax.composer.Composer.from_toml", return_value=mock_result) as mock_from_toml:
+        with patch(
+            "malthusjax.composer.Composer.from_toml", return_value=mock_result
+        ) as mock_from_toml:
             composer_main()
             mock_from_toml.assert_called_once_with("config.toml", pipelines=["pipe_a", "pipe_b"])
 

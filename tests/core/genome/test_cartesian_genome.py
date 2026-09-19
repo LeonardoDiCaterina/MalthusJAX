@@ -17,7 +17,7 @@ def test_levels_back_constraint_respected():
         num_outputs=1,
         num_ops=2,
         max_arity=2,
-        levels_back=l_back
+        levels_back=l_back,
     )
 
     lo, hi = config._col_connection_bounds()
@@ -47,13 +47,7 @@ def test_levels_back_constraint_respected():
 def test_autocorrect_clamps_invalid_mutations():
     """Test that autocorrect strictly clamps illegal topological mutations."""
     config = CartesianGenomeConfig(
-        num_rows=2,
-        num_cols=3,
-        num_inputs=2,
-        num_outputs=1,
-        num_ops=2,
-        max_arity=2,
-        levels_back=1
+        num_rows=2, num_cols=3, num_inputs=2, num_outputs=1, num_ops=2, max_arity=2, levels_back=1
     )
 
     # Total nodes = 6 (absolute indices 2 through 7)
@@ -62,14 +56,16 @@ def test_autocorrect_clamps_invalid_mutations():
     # col 2: nodes 6, 7.  Can reach 4..5  (lo=4, hi=6)
 
     # Inject an invalid genome that tries to connect forward or out-of-bounds backward
-    args = jnp.array([
-        [10, 10],  # col 0 node 2: connects forward to 10! (invalid, max is 1)
-        [0, 1],    # col 0 node 3: valid
-        [0, 5],    # col 1 node 4: 0 is backward too far (min is 2). 5 is forward (max is 3).
-        [2, 3],    # col 1 node 5: valid
-        [1, 1],    # col 2 node 6: 1 is backward too far (min is 4).
-        [4, 5]     # col 2 node 7: valid
-    ])
+    args = jnp.array(
+        [
+            [10, 10],  # col 0 node 2: connects forward to 10! (invalid, max is 1)
+            [0, 1],  # col 0 node 3: valid
+            [0, 5],  # col 1 node 4: 0 is backward too far (min is 2). 5 is forward (max is 3).
+            [2, 3],  # col 1 node 5: valid
+            [1, 1],  # col 2 node 6: 1 is backward too far (min is 4).
+            [4, 5],  # col 2 node 7: valid
+        ]
+    )
 
     ops = jnp.zeros(6, dtype=jnp.int32)
     out_nodes = jnp.zeros(1, dtype=jnp.int32)

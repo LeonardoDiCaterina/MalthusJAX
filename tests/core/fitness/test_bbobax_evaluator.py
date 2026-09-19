@@ -3,12 +3,14 @@
 Since bbobax is now available in the test environment, these tests use the
 real implementation rather than mocks.
 """
+
 import jax.numpy as jnp
 import pytest
 
 try:
     from malthusjax.core.fitness.bbobax_evaluator import BBOBAXConfig, BBOBAXEvaluator
     from malthusjax.core.genome.real_genome import RealGenome
+
     HAS_BBOBAX = True
 except ImportError:
     HAS_BBOBAX = False

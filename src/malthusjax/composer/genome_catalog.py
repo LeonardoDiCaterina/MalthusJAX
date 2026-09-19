@@ -50,8 +50,24 @@ def _register_builtins() -> None:
         [
             ("real", _create_real, {"dim": 10, "bounds": (-5.0, 5.0)}),
             ("binary", _create_binary, {"length": 10}),
-            ("linear", _create_linear, {"length": 10, "num_inputs": 2, "num_ops": 5, "max_arity": 2}),
-            ("cartesian", _create_cartesian, {"num_rows": 1, "num_cols": 10, "levels_back": 10, "num_inputs": 2, "num_outputs": 1, "num_ops": 5, "max_arity": 2}),
+            (
+                "linear",
+                _create_linear,
+                {"length": 10, "num_inputs": 2, "num_ops": 5, "max_arity": 2},
+            ),
+            (
+                "cartesian",
+                _create_cartesian,
+                {
+                    "num_rows": 1,
+                    "num_cols": 10,
+                    "levels_back": 10,
+                    "num_inputs": 2,
+                    "num_outputs": 1,
+                    "num_ops": 5,
+                    "max_arity": 2,
+                },
+            ),
         ],
         override=True,
     )

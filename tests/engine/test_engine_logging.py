@@ -9,8 +9,8 @@ Validates that:
 """
 
 import logging
+
 import chex
-import jax
 import jax.numpy as jnp
 import pytest
 
@@ -22,7 +22,6 @@ from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
 from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.core.logger import StepLoggingConfig
-from malthusjax.engine.base import AbstractEngineParams
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
 from malthusjax.operators.mutation.real import GaussianMutation
@@ -71,7 +70,9 @@ def test_step_logging_emits_telemetry(test_engine, caplog):
         final_state, history, _ = test_engine.run(state, step_logging=step_cfg)
 
     step_records = [r for r in caplog.records if r.name == "malthusjax.engine.step"]
-    assert len(step_records) == 2, f"Expected 2 step log records for 4 gens at interval 2, got {len(step_records)}"
+    assert len(step_records) == 2, (
+        f"Expected 2 step log records for 4 gens at interval 2, got {len(step_records)}"
+    )
     assert "[Gen    2]" in step_records[0].message
     assert "Best Fitness:" in step_records[0].message
     assert "[Gen    4]" in step_records[1].message
@@ -136,7 +137,11 @@ def test_zero_overhead_when_step_logging_disabled(test_engine):
     )
     engine_active = test_engine.replace(engine_params=params_active)
     hlo_active = engine_active.get_hlo_text(state, optimize=False, print_analysis=False)
-    assert "custom-call" in hlo_active or "callback" in hlo_active or "xla.python.callback" in hlo_active
+    assert (
+        "custom-call" in hlo_active
+        or "callback" in hlo_active
+        or "xla.python.callback" in hlo_active
+    )
 
 
 def test_debug_step_logging(test_engine, caplog):

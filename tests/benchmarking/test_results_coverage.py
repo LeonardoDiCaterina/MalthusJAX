@@ -81,8 +81,12 @@ def test_run_result_serialization():
 
 
 def test_experiment_result_serialization_and_history():
-    run1 = RunResult(seed=1, status="success", metrics={"best_fitness": 0.1}, history=[{"gen": 1, "val": 0.5}])
-    run2 = RunResult(seed=2, status="success", metrics={"best_fitness": 0.2}, history=[{"gen": 1, "val": 0.6}])
+    run1 = RunResult(
+        seed=1, status="success", metrics={"best_fitness": 0.1}, history=[{"gen": 1, "val": 0.5}]
+    )
+    run2 = RunResult(
+        seed=2, status="success", metrics={"best_fitness": 0.2}, history=[{"gen": 1, "val": 0.6}]
+    )
     exp = ExperimentResult(name="test_exp", runs=[run1, run2])
 
     d = exp.to_dict()
@@ -193,4 +197,3 @@ def test_meta_comparison_grid_plots(tmp_path: Path):
     empty_meta = MetaComparison({})
     assert empty_meta.plot_convergence_grid() is None
     assert empty_meta.plot_boxplot_grid() is None
-

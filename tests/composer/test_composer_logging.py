@@ -1,17 +1,13 @@
 import logging
-import tempfile
 import textwrap
-from pathlib import Path
 from unittest.mock import MagicMock
 
-import chex
 import jax.numpy as jnp
 import jax.random as jr
-import pytest
 
 from malthusjax.composer.adapters.base import UniversalAdapterEngine
 from malthusjax.composer.composer import Composer
-from malthusjax.core.logger import StepLoggingConfig, configure_logging, set_log_level
+from malthusjax.core.logger import StepLoggingConfig
 
 
 def test_composer_quick_run_with_step_logging(caplog, tmp_path):
@@ -38,7 +34,9 @@ def test_composer_quick_run_with_step_logging(caplog, tmp_path):
     assert any("Completed quick_run" in m for m in messages)
 
     # Verify JIT step telemetry callbacks fired every 2 generations (gen 2, 4, 6)
-    step_logs = [m for m in messages if "Generation" in m or "Gen" in m or "generation" in m.lower()]
+    step_logs = [
+        m for m in messages if "Generation" in m or "Gen" in m or "generation" in m.lower()
+    ]
     assert len(step_logs) >= 3
 
 
@@ -78,6 +76,7 @@ def test_composer_from_toml_with_logging_section(caplog, tmp_path):
 
 def test_universal_adapter_engine_step_logging_telemetry(caplog):
     """Verify UniversalAdapterEngine JIT loop invokes _host_log_step via callback."""
+
     # Build minimal mock framework components
     def mock_init(fw_obj, key, params, init_pop):
         return jnp.zeros((10, 2))
@@ -122,6 +121,7 @@ def test_universal_adapter_engine_step_logging_telemetry(caplog):
 
 def test_universal_adapter_engine_zero_overhead_when_disabled():
     """Verify that UniversalAdapterEngine runs cleanly with step_logging=None."""
+
     def mock_init(fw_obj, key, params, init_pop):
         return jnp.zeros((5, 2))
 
