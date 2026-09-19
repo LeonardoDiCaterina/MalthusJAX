@@ -1,5 +1,13 @@
 import jax
 import jax.numpy as jnp
+import pytest
+
+try:
+    from tensorneat.common import State
+except ImportError:
+    class State:
+        def __init__(self, randkey=None, **kwargs):
+            self.randkey = randkey
 
 # The bug exists in the objective_fn wrapper created inside `_build_map_elites_engine`.
 # Since `_build_map_elites_engine` dynamically creates `obj_fn` inside `composer.py`,
@@ -37,8 +45,6 @@ def create_mock_obj_fn(maximize: bool):
 
     # 3. Create the objective function (simulating composer.py)
     def obj_fn(nodes, conns):
-        from tensorneat.common import State
-
         # Ensure batch dimension
         if nodes.ndim == 2:
             nodes = jnp.expand_dims(nodes, 0)
