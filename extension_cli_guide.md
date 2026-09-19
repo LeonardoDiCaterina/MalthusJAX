@@ -193,3 +193,35 @@ class MyFrameworkAdapter:
 ```
 
 The `@adapter` decorator automatically injects MalthusJAX's `run_once` execution engine and bridges the fitness evaluation modes. The CLI also provides `pytest` compliance tests to ensure your wrapper seamlessly operates within the Composer ecosystem.
+
+---
+
+## 6. Scaffolding TOML Configurations (`scripts/scaffold_toml.py`)
+
+In addition to Python component boilerplate, MalthusJAX provides an automated generator for compliant TOML configuration files via `scripts/scaffold_toml.py` (or `make scaffold-toml`).
+
+```bash
+# List all available configuration recipes
+python scripts/scaffold_toml.py --list-recipes
+
+# Scaffold a quick single-run experiment:
+python scripts/scaffold_toml.py -r single_run -o configs/my_sphere.toml
+
+# Scaffold an operator ablation comparing crossover variants on Rastrigin:
+python scripts/scaffold_toml.py -r ablation -o configs/ablation_rastrigin.toml -f "rastrigin:dim=30"
+
+# Scaffold a multi-dimensional Latin Hypercube Sampling (LHS) benchmarking suite:
+python scripts/scaffold_toml.py -r benchmark_lhs -o configs/cluster_scaling.toml -n cluster_scaling -s 50
+```
+
+### Supported Recipes:
+- **`single_run`**: Single pipeline with pre-configured unified logging (`[logging]`).
+- **`ablation`**: Multi-operator ablation on a shared objective with identical population seeds.
+- **`parity`**: Statistical parity comparison between MalthusJAX and EvoSAX.
+- **`backend_comparison`**: Multi-backend performance study (MalthusJAX vs. CMA-ES vs. OpenES).
+- **`quality_diversity`**: MAP-Elites parameter study with tessellated archive grids.
+- **`composable_rl`**: Composable RL pipeline wrapping Brax environments and MLP interpreters.
+- **`data_registry`**: Combinatorial optimization (e.g. TSP) with decoupled `[data.*]` registries.
+- **`benchmark_cartesian`**: Systematic Cartesian grid sweep suite.
+- **`benchmark_lhs`**: Latin Hypercube Sampling space-filling benchmark suite.
+

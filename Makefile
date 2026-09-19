@@ -43,6 +43,7 @@ help:
 	@echo "  make type-check         mypy strict check on src/"
 	@echo "  make check-all          lint + format-check + type-check + test"
 	@echo "  make scaffold ARGS=...  Generate a boilerplate JAX component (e.g., --type mutation --name QuantumMutation --key quantum)"
+	@echo "  make scaffold-toml ARGS=... Generate a compliant TOML configuration (e.g., -r ablation -o configs/test.toml)"
 	@echo ""
 	@echo "--- Experiment Execution (TOML-based) ---"
 	@echo "  make run-toml TOML=<file>           Run experiment from TOML file"
@@ -648,4 +649,8 @@ perf-all-nohup:
 .PHONY: scaffold
 scaffold:
 	$(PYTHON) scripts/scaffold.py $(ARGS)
+
+.PHONY: scaffold-toml
+scaffold-toml:
+	$(PYTHON) scripts/scaffold_toml.py $(ARGS)
 
