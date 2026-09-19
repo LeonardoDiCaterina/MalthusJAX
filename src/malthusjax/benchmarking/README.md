@@ -124,6 +124,20 @@ The benchmarking subsystem utilizes MalthusJAX's unified logging infrastructure 
 
 CLI module exposing commands via `argparse`:
 
+### Global Logging & Telemetry Flags
+
+The following flags can be passed globally to `mjax` or directly to any subcommand:
+
+| Flag | Type | Description |
+|---|---|---|
+| `-v`, `--verbose` | boolean | Enables verbose debug logging (`DEBUG` level across all subsystems). |
+| `-q`, `--quiet` | boolean | Suppresses informational progress messages (`WARNING` level). |
+| `--log-file PATH` | Path | Routes structured log records to a persistent file (creates parent directories). |
+| `--log-json` | boolean | Formats console and file logs as newline-delimited JSON objects. |
+| `--log-interval N` | int | Enables opt-in on-device JIT telemetry callbacks dispatching every `N` generations. |
+
+### Subcommands
+
 | Command | Arguments / Flags | Functionality |
 |---|---|---|
 | `mjax run` | `config` (Path) | Runs multi-seed pipeline execution from a TOML configuration file and saves raw JSON results. |

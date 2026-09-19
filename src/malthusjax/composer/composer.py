@@ -963,6 +963,8 @@ class Composer:
         shared_initial_population: bool = True,
         pop_seed: int = 123,
         trace_dir: Optional[str | Path] = None,
+        log_interval: Optional[int] = None,
+        configure_log: bool = True,
     ) -> ComparisonResult:
         """Load and execute a declarative TOML experiment specification.
 
@@ -1107,13 +1109,17 @@ class Composer:
 
         logging_meta = experiment_meta.get("logging")
         if logging_meta:
-            lvl = logging_meta.get("level", "INFO")
-            log_file = logging_meta.get("file")
-            configure_logging(level=lvl, log_file=log_file)
+            if configure_log:
+                lvl = logging_meta.get("level", "INFO")
+                log_file = logging_meta.get("file")
+                configure_logging(level=lvl, log_file=log_file)
             if "interval" in logging_meta:
                 shared.setdefault("log_interval", logging_meta["interval"])
             if "nan_watchdog" in logging_meta:
                 shared.setdefault("log_nan_watchdog", logging_meta["nan_watchdog"])
+
+        if log_interval is not None:
+            shared["log_interval"] = log_interval
 
         seeds = normalize_seeds(shared.pop("seeds", (42, 43, 44)))
 
