@@ -37,6 +37,18 @@ These plug into one of the three evaluator shells: `OptimizationEvaluator`, `Sup
 ### 4. `BaseEvaluatorConfig`
 Holds cross-cutting configuration (e.g., `maximize: bool`). For most cases this is managed internally by `ScalarOutput`.
 
+### 5. Unified Logging Subsystem (`malthusjax.core.logger`)
+Level 1 includes a zero-dependency, hierarchical logging framework. You can control logging verbosity, enable ANSI-colored output, route logs to files, or configure `StepLoggingConfig` for your own custom `lax.scan` loops:
+
+```python
+from malthusjax.core import get_logger, configure_logging
+
+configure_logging(level="INFO", format_type="color")
+logger = get_logger("my_custom_loop")
+
+logger.info("Starting manual evolutionary loop...")
+```
+
 ---
 
 ## 2️⃣ The Workflow (Manual Orchestration)
@@ -58,6 +70,7 @@ When working strictly at Level 1, your workflow looks like this:
 > **Pros**:
 > - Absolute freedom. Write custom meta-learning loops, hybrid RL/Evolution loops, or completely non-standard algorithms without fighting the framework's Engine.
 > - The composable evaluator stack is still fully JIT-compatible — you get the benefits of the new architecture without needing the Engine.
+> - Full access to zero-dependency Level 1 logging (`malthusjax.core.logger`).
 > - Perfect for rapid prototyping in Jupyter Notebooks.
 
 > [!WARNING]
@@ -67,3 +80,4 @@ When working strictly at Level 1, your workflow looks like this:
 > - You cannot use the TOML **Composer** to load pipelines dynamically.
 
 Check out the accompanying script for a fully functional, self-contained example!
+

@@ -1,5 +1,5 @@
-import pytest
-from malthusjax.benchmarking.results import ExperimentResult, RunResult, ComparisonResult
+from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult, RunResult
+
 
 def test_experiment_to_json_from_json():
     r1 = RunResult(
@@ -18,10 +18,11 @@ def test_experiment_to_json_from_json():
     )
 
     exp = ExperimentResult(name="ex", runs=[r1, r2])
-    
+
     json_str = exp.to_json()
+    assert isinstance(json_str, str) and len(json_str) > 0
     loaded_exp = ExperimentResult.from_dict(exp.to_dict())
-    
+
     assert loaded_exp.name == exp.name
     assert len(loaded_exp.runs) == 2
     assert loaded_exp.runs[0].seed == r1.seed
@@ -74,9 +75,9 @@ def test_comparison_statistical_methods():
     exp1 = ExperimentResult(name="ex1", runs=[r1])
     exp2 = ExperimentResult(name="ex2", runs=[r2])
     comp = ComparisonResult(pipelines={"pipe1": exp1, "pipe2": exp2})
-    
+
     speedup = comp.statistical_speedup("pipe2", "pipe1")
     assert speedup["mean_speedup"] == 2.0
-    
+
     delta = comp.statistical_fitness_delta("pipe2", "pipe1", metric_key="best_fitness")
     assert delta["mean_delta"] == 0.5

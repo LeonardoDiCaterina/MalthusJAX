@@ -4,6 +4,11 @@ MalthusJAX: High-Performance Evolutionary Computation in JAX.
 
 __version__ = "0.2.0"
 
+import logging
+
+# Attach NullHandler to root library logger according to PEP 282
+logging.getLogger("malthusjax").addHandler(logging.NullHandler())
+
 from .core.base import BaseGenome, BasePopulation, DistanceMetric
 from .core.fitness.base import BaseEvaluator
 from .core.fitness.binary_evaluators import (
@@ -19,9 +24,16 @@ from .core.genome.categorical_genome import (
     CategoricalPopulation,
 )
 from .core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from .core.logger import (
+    StepLoggingConfig,
+    configure_logging,
+    get_logger,
+    set_log_level,
+)
 from .operators import crossover, mutation, selection
 
 # Explicitly define what `from malthusjax import *` exports
+
 __all__ = [
     # Submodules
     "selection",
@@ -57,6 +69,11 @@ __all__ = [
     "GeneticGenerationOutput",
     "ScheduleType",
     "compute_scheduled_strength",
+    # Logging subsystem
+    "get_logger",
+    "set_log_level",
+    "configure_logging",
+    "StepLoggingConfig",
 ]
 
 # --- 3. ENGINE (Top Level) ---

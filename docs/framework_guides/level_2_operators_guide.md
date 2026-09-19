@@ -41,8 +41,10 @@ If you are writing your own custom training loop (ignoring the Engine/ResourceMa
 > **Pros**:
 > - **Incredible Reusability**: You can swap operators instantly because they all share the exact same `__call__` signature.
 > - **Performance**: The 3-Tier separation ensures your operators fuse perfectly in XLA without dynamic shape recompilations.
+> - **Diagnostic Logging**: Operators emit debug messages under `"malthusjax.operators"` when locking population length or budgeting keys.
 > - **Still Flexible**: You still have complete freedom to write wild custom loops (like co-evolution or RL).
 
 > [!WARNING]
 > **Cons**:
 > - **Manual RNG Budgeting**: Because you are not using the Engine's `ResourceMapper`, you still have to manually query `operator.num_keys(pop_size)` and meticulously split your PRNG keys before passing them into the operators. If you get the shapes wrong, JAX will crash!
+

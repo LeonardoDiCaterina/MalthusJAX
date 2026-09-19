@@ -9,10 +9,14 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
+from malthusjax.core.logger import get_logger
 from malthusjax.core.random import is_new_style_key
+
+logger = get_logger("operators")
 
 G = TypeVar("G", bound=BaseGenome)  # Genome Data
 C = TypeVar("C")  # Config Data
+
 
 # Backward compatibility: P is kept as a module-level name so that existing
 # code using ``from malthusjax.operators.base import P`` continues to work,
@@ -59,6 +63,10 @@ class BaseMutation(Generic[G, C]):
             if args is not None and len(args) == 3:
                 origin = getattr(base, "__origin__", None)
                 if origin is BaseMutation:
+                    logger.warning(
+                        "%s uses BaseMutation[G, C, P] which is deprecated. Use BaseMutation[G, C] instead.",
+                        cls.__qualname__,
+                    )
                     warnings.warn(
                         f"{cls.__qualname__} uses BaseMutation[G, C, P] which is "
                         "deprecated. Use BaseMutation[G, C] instead — the population "
@@ -89,6 +97,7 @@ class BaseMutation(Generic[G, C]):
 
     def set_input_length(self, length: int) -> "BaseMutation[G, C]":
         """Lock population size for static key budgeting."""
+        logger.debug("%s: set input_length=%d", type(self).__name__, length)
         return dataclasses.replace(self, input_length=length)
 
     def set_typed_keys(self, typed: bool) -> "BaseMutation[G, C]":
@@ -97,11 +106,14 @@ class BaseMutation(Generic[G, C]):
         True = new-style typed keys,
         False = legacy uint32[2].
         """
+        logger.debug("%s: set typed_keys=%s", type(self).__name__, typed)
         return dataclasses.replace(self, typed_keys=typed)
 
     def set_max_generations(self, n: int) -> "BaseMutation[G, C]":
         """Set total generation count for operator-level scheduling."""
+        logger.debug("%s: set max_generations=%d", type(self).__name__, n)
         return dataclasses.replace(self, max_generations=n)
+
 
     @abstractmethod
     def _mutate_one(self, genome: G, noise_data: Any, config: C, **kwargs: Any) -> G:
@@ -265,6 +277,10 @@ class BaseCrossover(Generic[G, C]):
             if args is not None and len(args) == 3:
                 origin = getattr(base, "__origin__", None)
                 if origin is BaseCrossover:
+                    logger.warning(
+                        "%s uses BaseCrossover[G, C, P] which is deprecated. Use BaseCrossover[G, C] instead.",
+                        cls.__qualname__,
+                    )
                     warnings.warn(
                         f"{cls.__qualname__} uses BaseCrossover[G, C, P] which is "
                         "deprecated. Use BaseCrossover[G, C] instead — the population "
@@ -296,6 +312,7 @@ class BaseCrossover(Generic[G, C]):
 
     def set_input_length(self, length: int) -> "BaseCrossover[G, C]":
         """Lock pair count for static key budgeting."""
+        logger.debug("%s: set input_length=%d", type(self).__name__, length)
         return dataclasses.replace(self, input_length=length)
 
     def set_typed_keys(self, typed: bool) -> "BaseCrossover[G, C]":
@@ -304,11 +321,14 @@ class BaseCrossover(Generic[G, C]):
         True = new-style typed keys,
         False = legacy uint32[2].
         """
+        logger.debug("%s: set typed_keys=%s", type(self).__name__, typed)
         return dataclasses.replace(self, typed_keys=typed)
 
     def set_max_generations(self, n: int) -> "BaseCrossover[G, C]":
         """Set total generation count for operator-level scheduling."""
+        logger.debug("%s: set max_generations=%d", type(self).__name__, n)
         return dataclasses.replace(self, max_generations=n)
+
 
     @abstractmethod
     def _generate_noise(self, keys: chex.PRNGKey, config: C, generation: int = 0) -> Any:
@@ -488,6 +508,7 @@ class BaseSelection(Generic[P, C]):
 
     def set_input_length(self, length: int) -> "BaseSelection[P, C]":
         """Lock population size for static budgeting."""
+        logger.debug("%s: set input_length=%d", type(self).__name__, length)
         return dataclasses.replace(self, input_length=length)
 
     def set_typed_keys(self, typed: bool) -> "BaseSelection[P, C]":
@@ -496,11 +517,14 @@ class BaseSelection(Generic[P, C]):
         True = new-style typed keys,
         False = legacy uint32[2].
         """
+        logger.debug("%s: set typed_keys=%s", type(self).__name__, typed)
         return dataclasses.replace(self, typed_keys=typed)
 
     def set_n_elites(self, n: int) -> "BaseSelection[P, C]":
         """Set elite count for preservation (called once at engine init)."""
+        logger.debug("%s: set n_elites=%d", type(self).__name__, n)
         return dataclasses.replace(self, n_elites=n)
+
 
     @property
     @abstractmethod

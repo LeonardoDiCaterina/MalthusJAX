@@ -89,9 +89,7 @@ def test_config_invalid_mode():
     [suite]
     name = "test_invalid"
     mode = "random"
-    output_dir = "out"
     num_seeds = 1
-    
     [grid]
     """)
     with tempfile.NamedTemporaryFile("w", suffix=".toml") as f:

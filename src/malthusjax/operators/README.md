@@ -126,3 +126,17 @@ Custom emitters can be registered using `@register_emitter("key")` and verified 
 A complete standalone script demonstrating Level 2 selection, crossover, mutation, and emitters in pure JAX is available at:
 - **[examples/operators_basic_demo.py](file:///Users/leonardodicaterina/Documents/GitHub/MalthusJAX/examples/operators_basic_demo.py)**
 
+---
+
+## Diagnostic Logging (`malthusjax.operators`)
+
+All Level 2 operators integrate with the Level 1 logging subsystem (`malthusjax.core.logger`), emitting diagnostic traces under the `"malthusjax.operators"` channel at `DEBUG` level during key budgeting, input length locking, and elitism configuration:
+
+```python
+from malthusjax import configure_logging
+
+configure_logging(level="DEBUG")
+# Operators will now emit debug traces when budgeting keys or setting population length
+```
+
+

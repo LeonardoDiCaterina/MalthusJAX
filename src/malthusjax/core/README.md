@@ -84,3 +84,26 @@ This eliminates the coupling between genome decoding and problem environments, a
 - **Linear GP Evaluators** (`linear_gp_evaluator.py`): Sequence and expression evaluation for Linear Genetic Programming.
 - **Third-Party Bridges**: Native adapters for Google Brax, Gymnax, and Instadeep Jumanji.
 
+---
+
+## 5. Unified Logging & Telemetry Subsystem (`malthusjax.core.logger`)
+
+Level 1 provides a zero-dependency, hierarchical logging subsystem complying with PEP 282 (library silence by default via `NullHandler`).
+
+**Public API:**
+- `get_logger(name=None)`: Retrieves hierarchical logger under `"malthusjax.*"`.
+- `configure_logging(level="INFO", log_file=None, format_type="color", show_timestamps=False)`: Configures ANSI colored or JSON console and file loggers.
+- `set_log_level(level)`: Dynamically changes subsystem logging thresholds.
+- `StepLoggingConfig(log_interval=None, log_nan_watchdog=True)`: Controls device-to-host telemetry (`jax.debug.callback`).
+
+**Usage:**
+```python
+from malthusjax.core import get_logger, configure_logging
+
+# Configure console logging
+configure_logging(level="DEBUG")
+logger = get_logger("my_subsystem")
+logger.info("Level 1 foundation initialized.")
+```
+
+

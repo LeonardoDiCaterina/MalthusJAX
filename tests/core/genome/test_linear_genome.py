@@ -67,7 +67,7 @@ def test_linear_genome_distance():
     )
     dist = g1.distance(g2)
     assert dist == 2 # 1 ops diff, 1 args diff
-    
+
     dist_euclid = g1.distance(g2, metric=DistanceMetric.EUCLIDEAN)
     assert dist_euclid > 0
 

@@ -14,9 +14,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol, Sequence
 
-# import chex
 import chex
-import jax.random as jr
+import jax
 
 from ..core.random import create_key, resolve_prng_impl
 from .io import write_experiment_artifacts
@@ -240,8 +239,22 @@ class StubEngine:
         This stub avoids any actual computation while still exercising the
         benchmarking machinery.
         """
-        # Use seed to make results deterministic but varied
-        seed_int = int(key[0]) if hasattr(key, "__getitem__") else 42
+        # Use seed to make results deterministic but varied across both legacy and typed PRNG keys
+        try:
+            if hasattr(jax.random, "key_data"):
+                try:
+                    data = jax.random.key_data(key)
+                    seed_int = int(data[0]) if hasattr(data, "__getitem__") else int(data)
+                except Exception:
+                    seed_int = int(key[0]) if hasattr(key, "ndim") and key.ndim > 0 else 0
+            elif hasattr(key, "ndim") and key.ndim > 0:
+                seed_int = int(key[0])
+            else:
+                seed_int = 0
+        except Exception:
+            seed_int = 0
+
+
 
         history = []
         current_fitness = self.base_fitness
