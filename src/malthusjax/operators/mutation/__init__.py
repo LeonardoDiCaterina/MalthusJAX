@@ -49,9 +49,11 @@ if _HAS_EVOSAX:
 
 def _register_mutation() -> None:
     """Register mutation operators with the global catalog registry."""
+    from typing import Any, Callable, Dict, List, Tuple
+
     from malthusjax.composer._registry import register_table
 
-    table = [
+    table: List[Tuple[str, Callable[..., Any], Dict[str, Any]]] = [
         # Real-valued mutation
         ("gaussian", GaussianMutation, {}),
         ("gaussian_injection", GaussianMutation_injection, {}),

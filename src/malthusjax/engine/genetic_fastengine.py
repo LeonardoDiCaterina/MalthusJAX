@@ -695,8 +695,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                 return []
             leaf = leaves[0]
             if hasattr(leaf, "dtype") and (
-                jnp.issubdtype(getattr(leaf, "dtype", None), jax.dtypes.prng_key)
-                or "key" in str(leaf.dtype)
+                jnp.issubdtype(leaf.dtype, jax.dtypes.prng_key) or "key" in str(leaf.dtype)
             ):
                 try:
                     leaf = jax.random.key_data(leaf)

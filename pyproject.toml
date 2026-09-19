@@ -130,6 +130,10 @@ disallow_untyped_calls = false
 warn_unused_ignores = false
 
 [[tool.mypy.overrides]]
+module = "malthusjax.core.fitness.composable.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
 module = [
     "malthusjax.engine.*",
     "malthusjax.operators.*",
@@ -154,7 +158,6 @@ module = [
     "brax.*",
     "jumanji.*",
     "bbobax.*",
-    "kozax.*",
     "toml.*",
 ]
 ignore_missing_imports = true

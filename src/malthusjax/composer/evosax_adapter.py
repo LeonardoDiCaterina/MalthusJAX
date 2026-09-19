@@ -144,12 +144,16 @@ class EvosaxEngineAdapter:
             if getattr(self, "maximize", False):
                 fit_init = -fit_init
 
-        if isinstance(strategy, tuple(distribution_based_algorithms.values())):
+        strat: Any = strategy
+        is_dist = bool(distribution_based_algorithms) and isinstance(
+            strat, tuple(distribution_based_algorithms.values())
+        )
+        if is_dist:
             # Distribution-based algorithms expect a mean instead of a population
             mean_init = jnp.mean(pop_init, axis=0)
-            state = strategy.init(key, mean_init, params)
+            state = getattr(strat, "init")(key, mean_init, params)
         else:
-            state = strategy.init(key, pop_init, fit_init, params)
+            state = getattr(strat, "init")(key, pop_init, fit_init, params)
         return state
 
     def _adapter_step(

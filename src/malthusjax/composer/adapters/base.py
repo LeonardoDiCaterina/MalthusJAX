@@ -148,7 +148,7 @@ class UniversalAdapterEngine:
 
                 normalized_metrics[metric.name] = val
 
-            if active_step_logging:
+            if active_step_logging and step_logging is not None:
                 gen = jnp.int32(1) + step_idx
                 best_fit = normalized_metrics.get("best_fitness", jnp.nan)
                 mean_fit = normalized_metrics.get("mean_fitness", jnp.nan)
@@ -162,11 +162,12 @@ class UniversalAdapterEngine:
                         step_logging.logger_name,
                     )
 
-                jax.lax.cond(
-                    (gen % step_logging.log_interval) == 0,
-                    _log_step_cb,
-                    lambda: None,
-                )
+                if step_logging.log_interval is not None and step_logging.log_interval > 0:
+                    jax.lax.cond(
+                        (gen % step_logging.log_interval) == 0,
+                        _log_step_cb,
+                        lambda: None,
+                    )
 
                 if step_logging.log_nan_watchdog:
 
@@ -243,7 +244,12 @@ class UniversalAdapterEngine:
             for g in range(self.num_generations):
                 carry, metrics = scan_step(carry, g)
                 metrics_history.append(metrics)
-                if active_step_logging and ((g + 1) % step_logging.log_interval == 0):
+                if (
+                    active_step_logging
+                    and step_logging is not None
+                    and step_logging.log_interval is not None
+                    and ((g + 1) % step_logging.log_interval == 0)
+                ):
                     best_fit = metrics.get("best_fitness", float("nan"))
                     mean_fit = metrics.get("mean_fitness", float("nan"))
                     _host_log_step(g + 1, best_fit, mean_fit, step_logging.logger_name)

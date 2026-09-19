@@ -223,8 +223,9 @@ def build_composable_evosax_engine(
             dims = (
                 getattr(evaluator.env, "num_dims", 10)
                 if hasattr(evaluator, "env")
-                else getattr(evaluator.config, "num_dims", 10)
+                else getattr(getattr(evaluator, "config", None), "num_dims", 10)
             )
+        dims_int: int = int(dims) if dims is not None else 10
         if "seed" in parsed_params:
             seed = parsed_params["seed"]
         if "maximize" in parsed_params:
@@ -234,7 +235,7 @@ def build_composable_evosax_engine(
         from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
         evaluator = OptimizationEvaluator(
-            env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=seed),
+            env=BBOBEnv.create(fn_name=fn, num_dims=dims_int, seed=seed),
             transform=IdentityTransform(),
             interpreter=IdentityInterpreter(),
             output=ScalarOutput(maximize=maximize),
@@ -246,8 +247,8 @@ def build_composable_evosax_engine(
     rng = jr.PRNGKey(seed)
 
     if isinstance(evaluator, OptimizationEvaluator) and hasattr(evaluator.env, "_problem"):
-        problem = evaluator.env._problem  # type: ignore[attr-defined]
-        problem_state = evaluator.env._state  # type: ignore[attr-defined]
+        problem = getattr(evaluator.env, "_problem")
+        problem_state = getattr(evaluator.env, "_state", None)
         num_dims = getattr(
             evaluator.env, "num_dims", getattr(evaluator.env._problem, "num_dims", 10)
         )

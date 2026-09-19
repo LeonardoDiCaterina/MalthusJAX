@@ -54,9 +54,11 @@ if _HAS_EVOSAX:
 
 def _register_crossover() -> None:
     """Register crossover operators with the global catalog registry."""
+    from typing import Any, Callable, Dict, List, Tuple
+
     from malthusjax.composer._registry import register_table
 
-    table = [
+    table: List[Tuple[str, Callable[..., Any], Dict[str, Any]]] = [
         ("uniform_real", RealUniformCrossover, {}),
         ("uniform_real_injection", RealUniformCrossover_injection, {}),
         ("blend", BlendCrossover, {}),

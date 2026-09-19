@@ -83,7 +83,7 @@ class BaseMutation_injection(BaseMutation[G, C]):
             raise ValueError("No RNG keys provided to BaseMutation_injection")
         if (
             is_new_style_key(all_keys)
-            or jnp.issubdtype(getattr(all_keys, "dtype", None), jax.dtypes.prng_key)
+            or (hasattr(all_keys, "dtype") and jnp.issubdtype(all_keys.dtype, jax.dtypes.prng_key))
             or "key" in str(getattr(all_keys, "dtype", ""))
         ):
             single_key = all_keys.ravel()[0]
@@ -215,7 +215,7 @@ class BaseCrossover_injection(Generic[G, C]):
             raise ValueError("No RNG keys provided to BaseCrossover_injection")
         if (
             is_new_style_key(all_keys)
-            or jnp.issubdtype(getattr(all_keys, "dtype", None), jax.dtypes.prng_key)
+            or (hasattr(all_keys, "dtype") and jnp.issubdtype(all_keys.dtype, jax.dtypes.prng_key))
             or "key" in str(getattr(all_keys, "dtype", ""))
         ):
             single_key = all_keys.ravel()[0]
