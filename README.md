@@ -79,26 +79,26 @@ $$\text{State}_t \xrightarrow{\text{entropy + selection + reproduction + evaluat
 
 ```mermaid
 graph TD
-    subgraph composer_layer[Composer Layer (Level 4)]
+    subgraph composer_layer["Composer Layer (Level 4)"]
         cli["Unified mjax CLI"] --> config["TOML Configs"]
         config --> composer["Composer"]
         decorators["@register_* Decorators"] --> registry["Catalog Registry"]
         composer --> registry
     end
 
-    subgraph engine_layer[Engine Layer (Level 3)]
+    subgraph engine_layer["Engine Layer (Level 3)"]
         composer --> base_engine["GeneticEngine / GeneticFastEngine"]
         composer --> mo_engine["MOEngine (NSGA-II)"]
         composer --> island_meta["BaseIslandModel"]
     end
 
-    subgraph operators_layer[Operators Layer (Level 2)]
+    subgraph operators_layer["Operators Layer (Level 2)"]
         base_engine --> selection["Selection Operators"]
         base_engine --> crossover["Crossover Operators"]
         base_engine --> mutation["Mutation Operators"]
     end
     
-    subgraph core_layer[Core State Layer (Level 1)]
+    subgraph core_layer["Core State Layer (Level 1)"]
         selection --> core["BasePopulation & Genomes (PyTrees)"]
         crossover --> core
         mutation --> core
