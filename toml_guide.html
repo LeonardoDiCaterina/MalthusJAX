@@ -1,0 +1,854 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Developer &amp; Framework Guides" href="framework_guides/index.html"><link rel="prev" title="Extension CLI Guide: Building MalthusJAX Projects" href="extension_cli_guide.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>TOML Configuration &amp; Scaffolding Guide - MalthusJAX documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">MalthusJAX  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">MalthusJAX  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Execution and Results Schema</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">TOML Configuration &amp; Scaffolding Guide</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/level_3_engines_guide.html">Level 3: Engines &amp; Resource Mapper – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/level_4_composer_guide.html">Level 4: The Composer 🎼</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/genome_extension_guide.html">Extending Genomes in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/population_guide.html">Populations and Genomes in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/fitness_extension_guide.html">Extending Fitness Evaluators in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/interpreter_guide.html">Extending Genome Interpreters in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/operator_extension_guide.html">Extending Genetic Operators in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/engine_extension_guide.html">Engines in MalthusJAX – Outline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/genetic_fastengine_guide.html">Deep Dive: GeneticEngine in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/resource_mapper_guide.html">Resource Mapper in MalthusJAX## 📚 Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/adapter_extension_guide.html">Composer Adapters in MalthusJAX## 📚 Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/plugin_architecture_guide.html">MalthusJAX Plugin Architecture &amp; Compatibility Guardrails</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a><input aria-label="Toggle navigation of malthusjax package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.benchmarking.html">malthusjax.benchmarking package</a><input aria-label="Toggle navigation of malthusjax.benchmarking package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.analysis.html">malthusjax.benchmarking.analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.cli.html">malthusjax.benchmarking.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.io.html">malthusjax.benchmarking.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.results.html">malthusjax.benchmarking.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.runner.html">malthusjax.benchmarking.runner module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.composer.html">malthusjax.composer package</a><input aria-label="Toggle navigation of malthusjax.composer package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.catalog.html">malthusjax.composer.catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.composer.html">malthusjax.composer.composer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.config.html">malthusjax.composer.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_catalog.html">malthusjax.composer.engine_catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_factory.html">malthusjax.composer.engine_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_registry.html">malthusjax.composer.engine_registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.evosax_adapter.html">malthusjax.composer.evosax_adapter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.node.html">malthusjax.composer.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.pipeline.html">malthusjax.composer.pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.registry.html">malthusjax.composer.registry module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.binary_genome.html">malthusjax.core.genome.binary_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.categorical_genome.html">malthusjax.core.genome.categorical_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.linear_genome.html">malthusjax.core.genome.linear_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.real_genome.html">malthusjax.core.genome.real_genome module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.core.base.html">malthusjax.core.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.core.random.html">malthusjax.core.random module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.engine.html">malthusjax.engine package</a><input aria-label="Toggle navigation of malthusjax.engine package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.base.html">malthusjax.engine.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.genetic_fastengine.html">malthusjax.engine.genetic_fastengine module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.resource_mapper.html">malthusjax.engine.resource_mapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.schedules.html">malthusjax.engine.schedules module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.operators.html">malthusjax.operators package</a><input aria-label="Toggle navigation of malthusjax.operators package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.crossover.html">malthusjax.operators.crossover package</a><input aria-label="Toggle navigation of malthusjax.operators.crossover package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.binary.html">malthusjax.operators.crossover.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.evosax_crossover.html">malthusjax.operators.crossover.evosax_crossover module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.real.html">malthusjax.operators.crossover.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.mutation.html">malthusjax.operators.mutation package</a><input aria-label="Toggle navigation of malthusjax.operators.mutation package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.binary.html">malthusjax.operators.mutation.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.evosax_mutation.html">malthusjax.operators.mutation.evosax_mutation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.real.html">malthusjax.operators.mutation.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.selection.html">malthusjax.operators.selection package</a><input aria-label="Toggle navigation of malthusjax.operators.selection package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base.html">malthusjax.operators.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base_ablation.html">malthusjax.operators.base_ablation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base_injection.html">malthusjax.operators.base_injection module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/toml_guide.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="toml-configuration-scaffolding-guide">
+<h1>TOML Configuration &amp; Scaffolding Guide<a class="headerlink" href="#toml-configuration-scaffolding-guide" title="Link to this heading">¶</a></h1>
+<p>MalthusJAX uses declarative TOML configurations to manage experiments, benchmark suites, cross-backend comparisons, and automated parameter sweeps.</p>
+<p>This guide explains the dual-architecture configuration system, how inheritance and conflict resolution operate, how to control PRNG algorithms and capture Perfetto execution traces, and how to rapidly scaffold configurations using <code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code>.</p>
+<hr class="docutils" />
+<section id="dual-architecture-overview">
+<h2>1. Dual-Architecture Overview<a class="headerlink" href="#dual-architecture-overview" title="Link to this heading">¶</a></h2>
+<p>MalthusJAX separates experiment specifications into two specialized schemas:</p>
+<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+    subgraph S1["Schema 1: Composer Experiment Config"]
+        T1["experiment.toml"] --&gt; P1["Composer.from_toml()&lt;br&gt;Composer.quick_run()"]
+        P1 --&gt; CLI1["mjax run&lt;br&gt;mjax parity"]
+    end
+
+    subgraph S2["Schema 2: Benchmarking Suite Config"]
+        T2["suite_config.toml"] --&gt; P2["BenchmarkConfig.from_toml()&lt;br&gt;generate_grid()"]
+        P2 --&gt; CLI2["python scripts/benchmark_runner.py"]
+    end
+
+    CLI1 --&gt; RES["results/&lt;experiment_name&gt;/"]
+    CLI2 --&gt; RES
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Dimension</p></th>
+<th class="head text-left"><p>Schema 1: Composer Experiment TOML</p></th>
+<th class="head text-left"><p>Schema 2: Benchmarking Suite TOML</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><strong>Primary Parser</strong></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">malthusjax.composer.config.load_experiment_config</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">malthusjax.benchmarking.config.BenchmarkConfig.from_toml</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><strong>Primary Executor</strong></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">malthusjax.composer.Composer.from_toml</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">scripts/benchmark_runner.py</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><strong>CLI Commands</strong></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">run</span> <span class="pre">&lt;config&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">parity</span> <span class="pre">&lt;config&gt;</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">scripts/benchmark_runner.py</span> <span class="pre">&lt;config&gt;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><strong>Core Intent</strong></p></td>
+<td class="text-left"><p>Single runs, multi-operator ablations, cross-backend comparisons, composable RL</p></td>
+<td class="text-left"><p>Systematic Cartesian grids &amp; Latin Hypercube Sampling (LHS) sweeps</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><strong>Root Sections</strong></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">[experiment]</span></code>, <code class="docutils literal notranslate"><span class="pre">[logging]</span></code>, <code class="docutils literal notranslate"><span class="pre">[data]</span></code>, <code class="docutils literal notranslate"><span class="pre">[pipelines]</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">[suite]</span></code>, <code class="docutils literal notranslate"><span class="pre">[grid]</span></code>, <code class="docutils literal notranslate"><span class="pre">[analysis]</span></code>, <code class="docutils literal notranslate"><span class="pre">[pipelines]</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<hr class="docutils" />
+<section id="composer-experiment-configurations-schema-1">
+<h2>2. Composer Experiment Configurations (Schema 1)<a class="headerlink" href="#composer-experiment-configurations-schema-1" title="Link to this heading">¶</a></h2>
+<section id="the-top-level-experiment-section">
+<h3>2.1 The Top-Level <code class="docutils literal notranslate"><span class="pre">[experiment]</span></code> Section<a class="headerlink" href="#the-top-level-experiment-section" title="Link to this heading">¶</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment]</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"sphere_comparison"</span><span class="w">           </span><span class="c1"># Unique experiment name (used for output folders)</span>
+<span class="n">output_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"results/sphere_study"</span><span class="w">   </span><span class="c1"># Directory where metadata/, data/, and traces are written</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Compare operators on 25D sphere"</span>
+<span class="n">seeds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="mi">43</span><span class="p">,</span><span class="w"> </span><span class="mi">44</span><span class="p">]</span><span class="w">                  </span><span class="c1"># Seeds list or integer count (e.g. 5 -&gt; seeds 1..5)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="unified-logging-logging">
+<h3>2.2 Unified Logging: <code class="docutils literal notranslate"><span class="pre">[logging]</span></code><a class="headerlink" href="#unified-logging-logging" title="Link to this heading">¶</a></h3>
+<p>MalthusJAX includes a zero-overhead host and JIT device logging subsystem:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[logging]</span>
+<span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"INFO"</span><span class="w">               </span><span class="c1"># "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"</span>
+<span class="n">log_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"experiment.log"</span><span class="w">  </span><span class="c1"># Optional file destination (omitted = stderr)</span>
+<span class="n">format_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"color"</span><span class="w">        </span><span class="c1"># "color" (rich ANSI console) or "json" (structured JSONL)</span>
+<span class="n">show_timestamps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">      </span><span class="c1"># Include millisecond ISO timestamps</span>
+<span class="n">log_interval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="w">            </span><span class="c1"># Trigger JIT host callback every N generations (None = disabled)</span>
+<span class="n">log_nan_watchdog</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">      </span><span class="c1"># Halt/alert on device-side NaN/Inf detections in fitness</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>[!TIP]
+When <code class="docutils literal notranslate"><span class="pre">log_interval</span></code> is omitted or set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, <strong>zero callback instructions</strong> are inserted into the compiled XLA graph, guaranteeing 100% maximum execution speed.</p>
+</div></blockquote>
+</section>
+<hr class="docutils" />
+<section id="shared-defaults-conflict-resolution-experiment-shared">
+<h3>2.3 Shared Defaults &amp; Conflict Resolution (<code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>)<a class="headerlink" href="#shared-defaults-conflict-resolution-experiment-shared" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> section allows you to define baseline parameters once and share them across all pipeline variations.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment.shared]</span>
+<span class="n">fitness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"sphere:dim=25"</span>
+<span class="n">pop_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span>
+<span class="n">generations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span>
+<span class="n">seeds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]</span>
+<span class="n">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">-5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">]</span>
+<span class="n">maximize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">elitism</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="n">selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"tournament:num_selections=32,tournament_size=3"</span>
+<span class="n">mutation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"gaussian:mutation_rate=0.1,mutation_strength=0.1"</span>
+
+<span class="c1"># Pipeline 1: Inherits all shared parameters verbatim</span>
+<span class="k">[pipelines.uniform]</span>
+<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"uniform_real"</span>
+
+<span class="c1"># Pipeline 2: Overrides pop_size to 256; inherits all other shared parameters</span>
+<span class="k">[pipelines.large_pop]</span>
+<span class="n">pop_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span>
+<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"blend:alpha=0.5"</span>
+
+<span class="c1"># Pipeline 3: Completely replaces mutation operator</span>
+<span class="k">[pipelines.polynomial]</span>
+<span class="n">mutation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"polynomial:mutation_rate=0.05,eta=20"</span>
+<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"uniform_real"</span>
+</pre></div>
+</div>
+<section id="conflict-resolution-mechanics">
+<h4>Conflict Resolution Mechanics:<a class="headerlink" href="#conflict-resolution-mechanics" title="Link to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Pipeline-Specific Precedence</strong>:
+Values defined in <code class="docutils literal notranslate"><span class="pre">[pipelines.&lt;name&gt;]</span></code> <strong>strictly override</strong> identical keys in <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>.</p></li>
+<li><p><strong>Shallow Key Replacement</strong>:
+Merging occurs via Python <code class="docutils literal notranslate"><span class="pre">{**shared,</span> <span class="pre">**pipeline_cfg}</span></code>. Sub-tables (like <code class="docutils literal notranslate"><span class="pre">strategy_params</span></code>) completely replace shared sub-tables; they are not recursively merged.</p></li>
+<li><p><strong>Immutable Coercion</strong>:
+Lists for <code class="docutils literal notranslate"><span class="pre">bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">seeds</span></code> are automatically converted to immutable Python tuples (<code class="docutils literal notranslate"><span class="pre">(-5.0,</span> <span class="pre">5.0)</span></code>) to satisfy JAX PyTree requirements.</p></li>
+<li><p><strong>Fallback Cascade</strong>:
+If omitted from both sections, <code class="docutils literal notranslate"><span class="pre">genome_length</span></code> is inferred from <code class="docutils literal notranslate"><span class="pre">fitness</span> <span class="pre">=</span> <span class="pre">&quot;name:dim=N&quot;</span></code> (or defaults to <code class="docutils literal notranslate"><span class="pre">10</span></code>), <code class="docutils literal notranslate"><span class="pre">maximize</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>, <code class="docutils literal notranslate"><span class="pre">elitism</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">2</span></code>, and <code class="docutils literal notranslate"><span class="pre">backend</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code>.</p></li>
+<li><p><strong>Shared Initial Population</strong>:
+By default, <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">run</span></code> and <code class="docutils literal notranslate"><span class="pre">Composer.from_toml</span></code> generate a single random initial population at seed 123 and inject it across all pipelines, ensuring that differences in convergence are purely algorithmic. If a pipeline defines its own <code class="docutils literal notranslate"><span class="pre">initial_population</span></code>, its explicit value takes precedence.</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="advanced-hardware-profiling-controls">
+<h3>2.4 Advanced Hardware &amp; Profiling Controls<a class="headerlink" href="#advanced-hardware-profiling-controls" title="Link to this heading">¶</a></h3>
+<section id="controlling-the-prng-implementation-prng-impl">
+<h4>Controlling the PRNG Implementation (<code class="docutils literal notranslate"><span class="pre">prng_impl</span></code>)<a class="headerlink" href="#controlling-the-prng-implementation-prng-impl" title="Link to this heading">¶</a></h4>
+<p>Select the underlying pseudo-random number generator depending on hardware and scale:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment.shared]</span>
+<span class="n">prng_impl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"philox4x32"</span><span class="w">     </span><span class="c1"># Options: "threefry2x32" (default), "philox4x32", "rbg"</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">threefry2x32</span></code></strong>: Standard counter-based JAX PRNG. Strong statistical guarantees.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">philox4x32</span></code></strong>: High-throughput parallel PRNG. <strong>Recommended for large GPU runs</strong> (2–3× speedup during heavy parallel mutation).</p></li>
+</ul>
+</section>
+<section id="capturing-perfetto-profiling-traces-trace-dir">
+<h4>Capturing Perfetto Profiling Traces (<code class="docutils literal notranslate"><span class="pre">trace_dir</span></code>)<a class="headerlink" href="#capturing-perfetto-profiling-traces-trace-dir" title="Link to this heading">¶</a></h4>
+<p>Generate execution traces to profile XLA compilation and kernel timelines:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment.shared]</span>
+<span class="n">trace_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"results/traces"</span>
+</pre></div>
+</div>
+<p>Inspect traces interactively:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tensorboard<span class="w"> </span>--logdir<span class="w"> </span>results/traces<span class="w"> </span>--port<span class="w"> </span><span class="m">6006</span>
+</pre></div>
+</div>
+<p>Or open <a class="reference external" href="https://ui.perfetto.dev">ui.perfetto.dev</a> and drag-and-drop the generated trace file.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="operator-string-specification-dsl">
+<h3>2.5 Operator String-Specification DSL<a class="headerlink" href="#operator-string-specification-dsl" title="Link to this heading">¶</a></h3>
+<p>MalthusJAX uses a concise string syntax for operator instantiation: <code class="docutils literal notranslate"><span class="pre">&quot;name:key1=val1,key2=val2&quot;</span></code>.</p>
+<section id="selection-operators">
+<h4>Selection Operators:<a class="headerlink" href="#selection-operators" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;tournament:num_selections=N,tournament_size=K&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;roulette:num_selections=N&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;elite_pool:num_selections=N,elite_k=K&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;evosax_mimic_selection:num_selections=N,elite_k=K&quot;</span></code> (Exact bit-for-bit EvoSAX parity)</p></li>
+</ul>
+</section>
+<section id="crossover-operators">
+<h4>Crossover Operators:<a class="headerlink" href="#crossover-operators" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Real: <code class="docutils literal notranslate"><span class="pre">&quot;uniform_real&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;blend:alpha=0.5&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;simulated_binary:eta=20.0&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;binomial:cr=0.8&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;batched_evosax_uniform:crossover_rate=0.3&quot;</span></code></p></li>
+<li><p>Binary: <code class="docutils literal notranslate"><span class="pre">&quot;single_point&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;uniform_binary&quot;</span></code></p></li>
+</ul>
+</section>
+<section id="mutation-operators">
+<h4>Mutation Operators:<a class="headerlink" href="#mutation-operators" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Real: <code class="docutils literal notranslate"><span class="pre">&quot;gaussian:mutation_rate=0.1,mutation_strength=0.1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ball:radius=0.5&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;polynomial:mutation_rate=0.1,eta=20.0&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;batched_evosax_gaussian:mutation_strength=0.1&quot;</span></code></p></li>
+<li><p>Binary: <code class="docutils literal notranslate"><span class="pre">&quot;bitflip:mutation_rate=0.05&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;swap:mutation_rate=0.1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;scramble:mutation_rate=0.1&quot;</span></code></p></li>
+</ul>
+</section>
+<section id="fitness-functions">
+<h4>Fitness Functions:<a class="headerlink" href="#fitness-functions" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Continuous: <code class="docutils literal notranslate"><span class="pre">&quot;sphere:dim=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;rastrigin:dim=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;rosenbrock:dim=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;griewank:dim=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;bbob:fn=1..24,dims=N&quot;</span></code></p></li>
+<li><p>Combinatorial / Binary: <code class="docutils literal notranslate"><span class="pre">&quot;knapsack:capacity=N,num_items=M&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;binary_sum:length=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tsp:data_id=ID&quot;</span></code></p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="external-framework-adapters">
+<h3>2.6 External Framework Adapters<a class="headerlink" href="#external-framework-adapters" title="Link to this heading">¶</a></h3>
+<p>MalthusJAX can orchestrate external evolutionary libraries with zero python overhead:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. EvoSAX Backend</span>
+<span class="k">[pipelines.cma_es]</span>
+<span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"evosax"</span>
+<span class="n">evosax_strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"CMA_ES"</span><span class="w">   </span><span class="c1"># "SimpleGA", "OpenES", "DifferentialEvolution", "PGPE", "ARS"</span>
+
+<span class="k">[pipelines.cma_es.strategy_params]</span>
+<span class="n">sigma_init</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
+<span class="n">elite_ratio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
+
+<span class="c1"># 2. QDax Backend (MAP-Elites)</span>
+<span class="k">[pipelines.map_elites]</span>
+<span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"qdax"</span>
+<span class="n">qdax_strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"MAPElites"</span>
+<span class="n">grid_shape</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">]</span>
+<span class="n">bd_extractors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"identity"</span><span class="p">,</span><span class="w"> </span><span class="s2">"identity"</span><span class="p">]</span>
+
+<span class="c1"># 3. Composable Reinforcement Learning (Brax + Neural MLP)</span>
+<span class="k">[pipelines.robot_ant]</span>
+<span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"composable_evosax"</span>
+<span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"OpenES"</span>
+
+<span class="k">[pipelines.robot_ant.fitness]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"RLEvaluator"</span>
+<span class="n">max_steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span>
+
+<span class="k">[pipelines.robot_ant.fitness.env]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"BraxEnv"</span>
+<span class="n">env_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ant"</span>
+
+<span class="k">[pipelines.robot_ant.fitness.interpreter]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"MLPInterpreter"</span>
+<span class="n">hidden</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">]</span>
+<span class="n">activation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"swish"</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="benchmarking-suite-configurations-schema-2">
+<h2>3. Benchmarking Suite Configurations (Schema 2)<a class="headerlink" href="#benchmarking-suite-configurations-schema-2" title="Link to this heading">¶</a></h2>
+<p>Benchmarking suite configurations drive systematic parameter sweeps for academic papers and scalability profiling.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[suite]</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"scalability_study"</span>
+<span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"lhs"</span><span class="w">                         </span><span class="c1"># "cartesian" or "lhs"</span>
+<span class="n">output_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"results/scalability"</span>
+<span class="n">num_seeds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span>
+<span class="n">aggregation_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"summary_only"</span><span class="w">   </span><span class="c1"># "summary_only", "full_trace", "final_only"</span>
+
+<span class="c1"># Latin Hypercube Sampling Space-Filling Grid</span>
+<span class="k">[grid]</span>
+<span class="n">functions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"sphere"</span><span class="p">,</span><span class="w"> </span><span class="s2">"rosenbrock"</span><span class="p">,</span><span class="w"> </span><span class="s2">"rastrigin"</span><span class="p">,</span><span class="w"> </span><span class="s2">"schwefel"</span><span class="p">]</span>
+<span class="n">dims_min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+<span class="n">dims_max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span>
+<span class="n">pops_min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span>
+<span class="n">pops_max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2048</span>
+<span class="n">gens_min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span>
+<span class="n">gens_max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span>
+<span class="n">num_samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span>
+
+<span class="k">[analysis]</span>
+<span class="n">reference_pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"malthusjax_fast"</span>
+<span class="n">target_metrics</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">,</span><span class="w"> </span><span class="s2">"execution_time"</span><span class="p">,</span><span class="w"> </span><span class="s2">"warmup_time"</span><span class="p">]</span>
+
+<span class="c1"># Pipelines with Dynamic Coordinate Interpolation</span>
+<span class="k">[pipelines.malthusjax_fast]</span>
+<span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"malthusjax"</span>
+<span class="n">selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"</span>
+<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"batched_evosax_uniform:crossover_rate=0.3"</span>
+<span class="n">mutation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"batched_evosax_gaussian:mutation_strength=1.0"</span>
+<span class="n">elitism</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+</pre></div>
+</div>
+<section id="dynamic-coordinate-placeholders">
+<h3>Dynamic Coordinate Placeholders:<a class="headerlink" href="#dynamic-coordinate-placeholders" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">{pop_size}</span></code>: Evaluated population size for the coordinate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{genome_length}</span></code>: Evaluated problem dimension $D$.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{generations}</span></code>: Evaluated generation limit $G$.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{elite_k}</span></code>: Auto-computed elite size: $\max(2, \lfloor P / 6 \rfloor)$.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="automated-toml-scaffolding-cli-scripts-scaffold-toml-py">
+<h2>4. Automated TOML Scaffolding CLI (<code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code>)<a class="headerlink" href="#automated-toml-scaffolding-cli-scripts-scaffold-toml-py" title="Link to this heading">¶</a></h2>
+<p>MalthusJAX provides an automated scaffolding CLI that generates compliant TOML configurations across 9 specialized recipes.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>--recipe<span class="w"> </span>&lt;RECIPE&gt;<span class="w"> </span>--output<span class="w"> </span>&lt;PATH&gt;<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p>Or via <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>scaffold-toml<span class="w"> </span><span class="nv">ARGS</span><span class="o">=</span><span class="s2">"-r &lt;RECIPE&gt; -o &lt;PATH&gt;"</span>
+</pre></div>
+</div>
+<section id="what-is-a-recipe">
+<h3>What Is a <code class="docutils literal notranslate"><span class="pre">--recipe</span></code>?<a class="headerlink" href="#what-is-a-recipe" title="Link to this heading">¶</a></h3>
+<p>A recipe is a <strong>parameterized template archetype</strong> representing a concrete scientific experimentation pattern. It automatically configures the appropriate schema, pre-wires inheritance defaults, sets up unified logging, and applies any command-line overrides.</p>
+</section>
+<section id="the-9-available-recipes">
+<h3>The 9 Available Recipes:<a class="headerlink" href="#the-9-available-recipes" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>scaffold-toml<span class="w"> </span><span class="nv">ARGS</span><span class="o">=</span><span class="s2">"--list-recipes"</span>
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Recipe Key</p></th>
+<th class="head text-left"><p>Schema</p></th>
+<th class="head text-left"><p>Description &amp; Intent</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">single_run</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
+<td class="text-left"><p>Single-pipeline experiment with pre-configured unified logging.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">ablation</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
+<td class="text-left"><p>Multi-operator ablation (Uniform vs. BLX-$\alpha$ vs. SBX) on a shared objective.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">parity</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
+<td class="text-left"><p>Statistical parity test between MalthusJAX and EvoSAX SimpleGA.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">backend_comparison</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
+<td class="text-left"><p>Cross-framework comparison (MalthusJAX vs. CMA-ES vs. OpenES).</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">quality_diversity</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
+<td class="text-left"><p>MAP-Elites quality-diversity archive study.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">composable_rl</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
+<td class="text-left"><p>Composable RL pipeline wrapping Brax environments and MLP neural network interpreters.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">data_registry</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
+<td class="text-left"><p>Combinatorial optimization (TSP / Knapsack) with decoupled <code class="docutils literal notranslate"><span class="pre">[data.*]</span></code> registries.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">benchmark_cartesian</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">SUITE</span></code></p></td>
+<td class="text-left"><p>High-throughput Cartesian grid sweep suite.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">benchmark_lhs</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">SUITE</span></code></p></td>
+<td class="text-left"><p>Latin Hypercube Sampling (LHS) space-filling scalability study.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="cli-options">
+<h3>CLI Options:<a class="headerlink" href="#cli-options" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-r</span></code>, <code class="docutils literal notranslate"><span class="pre">--recipe</span></code>: Recipe name (default: <code class="docutils literal notranslate"><span class="pre">single_run</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-o</span></code>, <code class="docutils literal notranslate"><span class="pre">--output</span></code>: Output filepath (required).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-n</span></code>, <code class="docutils literal notranslate"><span class="pre">--name</span></code>: Experiment/suite name (defaults to file stem).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-f</span></code>, <code class="docutils literal notranslate"><span class="pre">--fitness</span></code>: Fitness spec (default: <code class="docutils literal notranslate"><span class="pre">&quot;sphere:dim=20&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p</span></code>, <code class="docutils literal notranslate"><span class="pre">--pop-size</span></code>: Population size override (default: <code class="docutils literal notranslate"><span class="pre">64</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-g</span></code>, <code class="docutils literal notranslate"><span class="pre">--generations</span></code>: Generation limit override (default: <code class="docutils literal notranslate"><span class="pre">100</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-s</span></code>, <code class="docutils literal notranslate"><span class="pre">--seeds</span></code>: Seed count or list (e.g. <code class="docutils literal notranslate"><span class="pre">10</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;[1,</span> <span class="pre">2,</span> <span class="pre">3]&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--no-logging</span></code>: Omit the <code class="docutils literal notranslate"><span class="pre">[logging]</span></code> section.</p></li>
+</ul>
+</section>
+<section id="scaffolding-examples">
+<h3>Scaffolding Examples:<a class="headerlink" href="#scaffolding-examples" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Quick single run with logging:</span>
+python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>single_run<span class="w"> </span>-o<span class="w"> </span>configs/test_sphere.toml
+
+<span class="c1"># 2. Operator ablation on Rastrigin 30D:</span>
+python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>ablation<span class="w"> </span>-o<span class="w"> </span>configs/ablation_rastrigin.toml<span class="w"> </span>-f<span class="w"> </span><span class="s2">"rastrigin:dim=30"</span>
+
+<span class="c1"># 3. Cluster LHS scaling study:</span>
+python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>benchmark_lhs<span class="w"> </span>-o<span class="w"> </span>configs/cluster_lhs.toml<span class="w"> </span>-n<span class="w"> </span>cluster_scaling<span class="w"> </span>-s<span class="w"> </span><span class="m">50</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="execution-reference">
+<h2>5. Execution Reference<a class="headerlink" href="#execution-reference" title="Link to this heading">¶</a></h2>
+<p>Once scaffolded, execute your configuration with standard MalthusJAX tools:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Execute Composer experiment (Schema 1):</span>
+mjax<span class="w"> </span>run<span class="w"> </span>configs/my_experiment.toml
+
+<span class="c1"># Execute statistical parity comparison:</span>
+mjax<span class="w"> </span>parity<span class="w"> </span>configs/parity_test.toml
+
+<span class="c1"># Execute benchmarking sweep suite (Schema 2):</span>
+python<span class="w"> </span>scripts/benchmark_runner.py<span class="w"> </span>configs/cluster_lhs.toml
+
+<span class="c1"># Run quick 2-coordinate smoke test of a suite:</span>
+python<span class="w"> </span>scripts/benchmark_runner.py<span class="w"> </span>configs/cluster_lhs.toml<span class="w"> </span>--smoke
+</pre></div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="framework_guides/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Developer &amp; Framework Guides</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="extension_cli_guide.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Extension CLI Guide: Building MalthusJAX Projects</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Leonardo Di Caterina
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">TOML Configuration &amp; Scaffolding Guide</a><ul>
+<li><a class="reference internal" href="#dual-architecture-overview">1. Dual-Architecture Overview</a></li>
+<li><a class="reference internal" href="#composer-experiment-configurations-schema-1">2. Composer Experiment Configurations (Schema 1)</a><ul>
+<li><a class="reference internal" href="#the-top-level-experiment-section">2.1 The Top-Level <code class="docutils literal notranslate"><span class="pre">[experiment]</span></code> Section</a></li>
+<li><a class="reference internal" href="#unified-logging-logging">2.2 Unified Logging: <code class="docutils literal notranslate"><span class="pre">[logging]</span></code></a></li>
+<li><a class="reference internal" href="#shared-defaults-conflict-resolution-experiment-shared">2.3 Shared Defaults &amp; Conflict Resolution (<code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>)</a><ul>
+<li><a class="reference internal" href="#conflict-resolution-mechanics">Conflict Resolution Mechanics:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#advanced-hardware-profiling-controls">2.4 Advanced Hardware &amp; Profiling Controls</a><ul>
+<li><a class="reference internal" href="#controlling-the-prng-implementation-prng-impl">Controlling the PRNG Implementation (<code class="docutils literal notranslate"><span class="pre">prng_impl</span></code>)</a></li>
+<li><a class="reference internal" href="#capturing-perfetto-profiling-traces-trace-dir">Capturing Perfetto Profiling Traces (<code class="docutils literal notranslate"><span class="pre">trace_dir</span></code>)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#operator-string-specification-dsl">2.5 Operator String-Specification DSL</a><ul>
+<li><a class="reference internal" href="#selection-operators">Selection Operators:</a></li>
+<li><a class="reference internal" href="#crossover-operators">Crossover Operators:</a></li>
+<li><a class="reference internal" href="#mutation-operators">Mutation Operators:</a></li>
+<li><a class="reference internal" href="#fitness-functions">Fitness Functions:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#external-framework-adapters">2.6 External Framework Adapters</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#benchmarking-suite-configurations-schema-2">3. Benchmarking Suite Configurations (Schema 2)</a><ul>
+<li><a class="reference internal" href="#dynamic-coordinate-placeholders">Dynamic Coordinate Placeholders:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#automated-toml-scaffolding-cli-scripts-scaffold-toml-py">4. Automated TOML Scaffolding CLI (<code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code>)</a><ul>
+<li><a class="reference internal" href="#what-is-a-recipe">What Is a <code class="docutils literal notranslate"><span class="pre">--recipe</span></code>?</a></li>
+<li><a class="reference internal" href="#the-9-available-recipes">The 9 Available Recipes:</a></li>
+<li><a class="reference internal" href="#cli-options">CLI Options:</a></li>
+<li><a class="reference internal" href="#scaffolding-examples">Scaffolding Examples:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#execution-reference">5. Execution Reference</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    </body>
+</html>

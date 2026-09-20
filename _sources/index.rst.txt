@@ -19,6 +19,15 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.
    6-BENCHMARKING_FRAMEWORK
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Developer & Architecture Guides:
+
+   evaluator_design
+   extension_cli_guide
+   toml_guide
+   framework_guides/index
+
+.. toctree::
    :maxdepth: 3
    :caption: API Reference:
 

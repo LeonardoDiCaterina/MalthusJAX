@@ -1,0 +1,1100 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Extension CLI Guide: Building MalthusJAX Projects" href="extension_cli_guide.html"><link rel="prev" title="Benchmarking Framework: Multi-Seed Execution and Results Schema" href="6-BENCHMARKING_FRAMEWORK.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>Evaluator Architecture: Composable Fitness Evaluation - MalthusJAX documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">MalthusJAX  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">MalthusJAX  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Execution and Results Schema</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/level_3_engines_guide.html">Level 3: Engines &amp; Resource Mapper – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/level_4_composer_guide.html">Level 4: The Composer 🎼</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/genome_extension_guide.html">Extending Genomes in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/population_guide.html">Populations and Genomes in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/fitness_extension_guide.html">Extending Fitness Evaluators in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/interpreter_guide.html">Extending Genome Interpreters in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/operator_extension_guide.html">Extending Genetic Operators in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/engine_extension_guide.html">Engines in MalthusJAX – Outline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/genetic_fastengine_guide.html">Deep Dive: GeneticEngine in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/resource_mapper_guide.html">Resource Mapper in MalthusJAX## 📚 Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/adapter_extension_guide.html">Composer Adapters in MalthusJAX## 📚 Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framework_guides/plugin_architecture_guide.html">MalthusJAX Plugin Architecture &amp; Compatibility Guardrails</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/malthusjax.html">malthusjax package</a><input aria-label="Toggle navigation of malthusjax package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.benchmarking.html">malthusjax.benchmarking package</a><input aria-label="Toggle navigation of malthusjax.benchmarking package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.analysis.html">malthusjax.benchmarking.analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.cli.html">malthusjax.benchmarking.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.io.html">malthusjax.benchmarking.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.results.html">malthusjax.benchmarking.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.benchmarking.runner.html">malthusjax.benchmarking.runner module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.composer.html">malthusjax.composer package</a><input aria-label="Toggle navigation of malthusjax.composer package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.catalog.html">malthusjax.composer.catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.composer.html">malthusjax.composer.composer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.config.html">malthusjax.composer.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_catalog.html">malthusjax.composer.engine_catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_factory.html">malthusjax.composer.engine_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.engine_registry.html">malthusjax.composer.engine_registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.evosax_adapter.html">malthusjax.composer.evosax_adapter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.node.html">malthusjax.composer.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.pipeline.html">malthusjax.composer.pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.composer.registry.html">malthusjax.composer.registry module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.binary_genome.html">malthusjax.core.genome.binary_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.categorical_genome.html">malthusjax.core.genome.categorical_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.linear_genome.html">malthusjax.core.genome.linear_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.genome.real_genome.html">malthusjax.core.genome.real_genome module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.core.base.html">malthusjax.core.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.core.random.html">malthusjax.core.random module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.engine.html">malthusjax.engine package</a><input aria-label="Toggle navigation of malthusjax.engine package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.base.html">malthusjax.engine.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.genetic_fastengine.html">malthusjax.engine.genetic_fastengine module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.resource_mapper.html">malthusjax.engine.resource_mapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.engine.schedules.html">malthusjax.engine.schedules module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.operators.html">malthusjax.operators package</a><input aria-label="Toggle navigation of malthusjax.operators package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.crossover.html">malthusjax.operators.crossover package</a><input aria-label="Toggle navigation of malthusjax.operators.crossover package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.binary.html">malthusjax.operators.crossover.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.evosax_crossover.html">malthusjax.operators.crossover.evosax_crossover module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.crossover.real.html">malthusjax.operators.crossover.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.mutation.html">malthusjax.operators.mutation package</a><input aria-label="Toggle navigation of malthusjax.operators.mutation package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.binary.html">malthusjax.operators.mutation.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.evosax_mutation.html">malthusjax.operators.mutation.evosax_mutation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.mutation.real.html">malthusjax.operators.mutation.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.operators.selection.html">malthusjax.operators.selection package</a><input aria-label="Toggle navigation of malthusjax.operators.selection package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base.html">malthusjax.operators.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base_ablation.html">malthusjax.operators.base_ablation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.operators.base_injection.html">malthusjax.operators.base_injection module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/evaluator_design.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="evaluator-architecture-composable-fitness-evaluation">
+<h1>Evaluator Architecture: Composable Fitness Evaluation<a class="headerlink" href="#evaluator-architecture-composable-fitness-evaluation" title="Link to this heading">¶</a></h1>
+<blockquote>
+<div><p><strong>Status</strong>: Design Proposal — <code class="docutils literal notranslate"><span class="pre">feature/evaluator-task-refactor</span></code> branch<br />
+<strong>Authors</strong>: MalthusJAX Core Team<br />
+<strong>Related branches</strong>: <code class="docutils literal notranslate"><span class="pre">main</span></code> (current monolithic evaluators), <code class="docutils literal notranslate"><span class="pre">feature/evaluator-task-refactor</span></code> (this refactor)</p>
+</div></blockquote>
+<hr class="docutils" />
+<section id="motivation">
+<h2>1. Motivation<a class="headerlink" href="#motivation" title="Link to this heading">¶</a></h2>
+<section id="the-problem-with-the-current-architecture">
+<h3>The Problem with the Current Architecture<a class="headerlink" href="#the-problem-with-the-current-architecture" title="Link to this heading">¶</a></h3>
+<p>Every evaluator in the current MalthusJAX codebase secretly bundles two completely independent concerns into a single class:</p>
+<p><strong>Concern A — Interpretation</strong>: How do we turn a raw genome (a JAX array) into something that can <em>act</em> in an environment?</p>
+<p><strong>Concern B — Environment/Data</strong>: What environment, dataset, or benchmark function does the interpreted genome interact with to produce a scalar fitness?</p>
+<p>This tight coupling causes a <strong>combinatorial explosion</strong>. Every time a new dataset is added, a new evaluator must be written for every genome type that might evaluate on it:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>SKLearn Dataset</p></th>
+<th class="head"><p>Equation Generator</p></th>
+<th class="head"><p>Custom Dataset</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LinearGPGenome</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SklearnMEPEvaluator</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EquationMEPEvaluator</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CustomMEPEvaluator</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CartesianGPGenome</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SklearnCGPEvaluator</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EquationCGPEvaluator</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CustomCGPEvaluator</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TensorNEATGenome</span></code></p></td>
+<td><p><strong>impossible</strong> (bridge hack needed)</p></td>
+<td><p><strong>impossible</strong></p></td>
+<td><p><strong>impossible</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">TensorNEATGenome</span></code> row is completely broken: because <code class="docutils literal notranslate"><span class="pre">SklearnMEPEvaluator.evaluate()</span></code> expects a MEP program string, it cannot be used to evaluate a TensorNEAT neural network. A manual, one-off bridge class (<code class="docutils literal notranslate"><span class="pre">TensorNEATSupervisedProblem</span></code>) was required.</p>
+<p>Furthermore, QD (Quality Diversity) and Multi-Objective evaluators are currently handled by subclassing, scattering descriptor computation logic throughout the evaluator hierarchy when it should be orthogonal to it.</p>
+</section>
+<section id="the-goal">
+<h3>The Goal<a class="headerlink" href="#the-goal" title="Link to this heading">¶</a></h3>
+<p>Replace the monolithic evaluator with a <strong>three-axis decomposition</strong> that achieves:</p>
+<ol class="arabic simple">
+<li><p><strong>Zero combinatorial explosion</strong>: write each component once, mix freely.</p></li>
+<li><p><strong>TensorNEAT and all future adapters work natively</strong> with any environment.</p></li>
+<li><p><strong>QD and MO</strong> are orthogonal extensions, not subclasses.</p></li>
+<li><p><strong>JAX-friendly</strong>: all components are stateless, JIT-compilable, and shape-static.</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="core-vocabulary">
+<h2>2. Core Vocabulary<a class="headerlink" href="#core-vocabulary" title="Link to this heading">¶</a></h2>
+<p>The new architecture introduces four distinct concepts:</p>
+<section id="task-type-abstract-category">
+<h3>2.1 Task Type (Abstract Category)<a class="headerlink" href="#task-type-abstract-category" title="Link to this heading">¶</a></h3>
+<p>The abstract <em>kind</em> of learning problem. Determines the <strong>evaluation loop structure</strong>.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Task Type</p></th>
+<th class="head"><p>Pattern</p></th>
+<th class="head"><p>Output Contract</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OptimizationTask</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">f(genome,</span> <span class="pre">instance_data)</span> <span class="pre">→</span> <span class="pre">scalar</span></code></p></td>
+<td><p>Direct evaluation of genome as solution against a problem instance</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SupervisedTask</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">predict(genome,</span> <span class="pre">X)</span> <span class="pre">→</span> <span class="pre">y_hat;</span> <span class="pre">loss(y_hat,</span> <span class="pre">y)</span></code></p></td>
+<td><p>Prediction over static dataset</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ReinforcementTask</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">reset();</span> <span class="pre">step()</span> <span class="pre">×</span> <span class="pre">T;</span> <span class="pre">accumulate</span> <span class="pre">reward</span></code></p></td>
+<td><p>Episode rollout</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UnsupervisedTask</span></code></p></td>
+<td><p>TBD</p></td>
+<td><p>TBD</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<div><p><strong>Key insight for <code class="docutils literal notranslate"><span class="pre">OptimizationTask</span></code></strong>: The problem instance data <em>defines</em> f(x). For BBOB the instance is analytically described (no data needed). For TSP the instance is the city coordinates matrix. For Knapsack it is the item weights, values, and capacity. In all cases the genome <em>is</em> the candidate solution, evaluated directly — there is no MLP inference or program execution in between.</p>
+</div></blockquote>
+<p>The Task Type is <strong>fixed by the environment</strong> — a <code class="docutils literal notranslate"><span class="pre">SklearnEnv</span></code> is always a <code class="docutils literal notranslate"><span class="pre">SupervisedTask</span></code>. A <code class="docutils literal notranslate"><span class="pre">GymnaxEnv</span></code> is always a <code class="docutils literal notranslate"><span class="pre">ReinforcementTask</span></code>. Users never declare the Task Type explicitly; it is implied by their Environment choice.</p>
+</section>
+<section id="environment-concrete-implementation">
+<h3>2.2 Environment (Concrete Implementation)<a class="headerlink" href="#environment-concrete-implementation" title="Link to this heading">¶</a></h3>
+<p>The <em>specific</em> environment, dataset, or benchmark function. Belongs to exactly one Task Type.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SupervisedTask environments:
+├── SklearnEnv(dataset="breast_cancer")         # (X, y) from scikit-learn
+├── EquationEnv(equation="feynman_01")           # (X, y) generated from equation
+└── CustomDatasetEnv(X=my_X, y=my_y)            # user-provided arrays
+
+ReinforcementTask environments:
+├── GymnaxEnv(env_name="CartPole-v1")            # JAX-native RL (gymnax)
+├── JumanjiEnv(env_name="RubiksCube-v0")         # JAX-native combinatorial RL (jumanji)
+└── BraxEnv(env_name="ant")                      # physics-based RL (brax)
+
+OptimizationTask environments:
+├── BBOBEnv(fn_name="sphere", num_dims=10)       # analytic black-box (no data needed)
+├── BBOBAxEnv(fn_name="rastrigin", num_dims=10)  # analytic black-box (bbobax)
+├── TSPEnv(cities=city_coords)                   # TSP instance — data defines f(tour)
+├── KnapsackEnv(weights=w, values=v, cap=C)      # Knapsack instance — data defines f(selection)
+└── GraphColoringEnv(adjacency=adj_matrix)       # graph problem instance
+</pre></div>
+</div>
+<p>The Environment exposes a unified interface per Task Type so that the Evaluator loop never needs to know which library it is talking to. For example, all <code class="docutils literal notranslate"><span class="pre">ReinforcementTask</span></code> environments expose:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BaseRLEnvironment</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">):</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">preprocess_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">flat_array</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">postprocess_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">action</span><span class="p">:</span> <span class="o">...</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">obs_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span> <span class="o">...</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span> <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="interpreter-genome-decoder">
+<h3>2.3 Interpreter (Genome Decoder)<a class="headerlink" href="#interpreter-genome-decoder" title="Link to this heading">¶</a></h3>
+<p>The bridge that decodes a <strong>genome</strong> into a <strong>callable</strong> that can interact with an environment. It is:</p>
+<ul class="simple">
+<li><p><strong>Stateless</strong>: all configuration (input/output dimensions, architecture) is compiled in at construction time.</p></li>
+<li><p><strong>Genome-specific</strong>: typed to a specific genome type.</p></li>
+<li><p><strong>Task-agnostic</strong>: its output is always <code class="docutils literal notranslate"><span class="pre">apply(genome,</span> <span class="pre">inputs)</span> <span class="pre">→</span> <span class="pre">outputs</span></code>.</p></li>
+</ul>
+<p>The core interface:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BaseInterpreter</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""Decodes a genome into a callable over inputs.</span>
+<span class="sd">    </span>
+<span class="sd">    The key method signature is:</span>
+<span class="sd">        apply(genome: G, inputs: Array) -&gt; Array</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Total parameter count — defines the required genome length."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</pre></div>
+</div>
+<section id="origin-of-interpreters">
+<h4>Origin of Interpreters<a class="headerlink" href="#origin-of-interpreters" title="Link to this heading">¶</a></h4>
+<p>There are two origins, depending on the framework:</p>
+<p><strong>For native MalthusJAX genomes</strong> — the Interpreter is declared explicitly by the user:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Interpreter</p></th>
+<th class="head"><p>Genome</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IdentityInterpreter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RealGenome</span></code>, <code class="docutils literal notranslate"><span class="pre">BinaryGenome</span></code></p></td>
+<td><p>Genome IS the solution — passes raw values directly to the environment (BBOB, TSP, Knapsack)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MLPInterpreter(input_dim,</span> <span class="pre">output_dim,</span> <span class="pre">hidden)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RealGenome</span></code></p></td>
+<td><p>Unflatten flat array → MLP weights → apply to inputs (RL/SL)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LinearGPInterpreter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LinearGenome</span></code></p></td>
+<td><p>Execute MEP program over inputs (SL)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CartesianGPInterpreter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CartesianGenome</span></code></p></td>
+<td><p>Evaluate CGP graph over inputs (SL)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>For adapter frameworks</strong> (TensorNEAT, evosax) — the Interpreter is provided automatically by the adapter. The user never constructs it. The adapter’s internal representation compiles the genome into a callable:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Interpreter</p></th>
+<th class="head"><p>Genome</p></th>
+<th class="head"><p>Provided by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TensorNEATInterpreter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TensorNEATGenome</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TensorNEATAdapter</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">EvosaxInterpreter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EvosaxGenome</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EvosaxAdapter</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="the-self-consistency-constraint">
+<h4>The Self-Consistency Constraint<a class="headerlink" href="#the-self-consistency-constraint" title="Link to this heading">¶</a></h4>
+<p>Because <code class="docutils literal notranslate"><span class="pre">MLPInterpreter</span></code> specifies <code class="docutils literal notranslate"><span class="pre">input_dim</span></code>, <code class="docutils literal notranslate"><span class="pre">output_dim</span></code>, and <code class="docutils literal notranslate"><span class="pre">hidden</span></code>, it knows its total parameter count:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interp</span> <span class="o">=</span> <span class="n">MLPInterpreter</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">output_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="c1"># interp.num_params == 4*64 + 64 + 64*2 + 2 == 450</span>
+
+<span class="c1"># The genome MUST have exactly this many values:</span>
+<span class="n">genome</span> <span class="o">=</span> <span class="n">RealGenomeSpec</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="n">interp</span><span class="o">.</span><span class="n">num_params</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This constraint is <strong>checkable at construction time</strong>, not at runtime.</p>
+</section>
+</section>
+<section id="output-mode-engine-contract">
+<h3>2.4 Output Mode (Engine Contract)<a class="headerlink" href="#output-mode-engine-contract" title="Link to this heading">¶</a></h3>
+<p>Defines what the Evaluator <strong>returns</strong> to the engine. This is <strong>orthogonal</strong> to Task Type, Environment, and Interpreter — you can apply any Output Mode to any combination of the other three.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Output Mode</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Used by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ScalarOutput</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fitness:</span> <span class="pre">Array[pop_size]</span></code></p></td>
+<td><p>Standard GA, ES</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDOutput(descriptor_fn)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(fitness,</span> <span class="pre">descriptors)</span></code></p></td>
+<td><p>MAP-Elites, CVT-MAP-Elites</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MOOutput</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fitness_vector:</span> <span class="pre">Array[pop_size,</span> <span class="pre">n_obj]</span></code></p></td>
+<td><p>NSGA-II, MOEA/D</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="qd-descriptors-are-injectable">
+<h4>QD Descriptors are Injectable<a class="headerlink" href="#qd-descriptors-are-injectable" title="Link to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">QDOutput</span></code> takes a <code class="docutils literal notranslate"><span class="pre">DescriptorFn</span></code> as a separate, injectable object. The Evaluator itself knows <strong>nothing</strong> about descriptors:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BaseDescriptorFn</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Computes behavior descriptors from a genome and evaluation result."""</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DimensionActivityDescriptor</span><span class="p">(</span><span class="n">BaseDescriptorFn</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Describes which input dimensions dominate the genome's behaviour."""</span>
+    
+<span class="k">class</span><span class="w"> </span><span class="nc">EpisodeLengthDescriptor</span><span class="p">(</span><span class="n">BaseDescriptorFn</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Describes average episode length for RL rollouts."""</span>
+</pre></div>
+</div>
+<p>The Evaluator produces the raw result; <code class="docutils literal notranslate"><span class="pre">DescriptorFn</span></code> computes the behavior characterization from it. These two concerns are fully decoupled.</p>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="the-composition-formula">
+<h2>3. The Composition Formula<a class="headerlink" href="#the-composition-formula" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Problem  = TaskType × Environment × Interpreter
+Output   = ScalarOutput | QDOutput(DescriptorFn) | MOOutput
+Evaluator = Problem × Output
+</pre></div>
+</div>
+<p>The Evaluator is now just the <strong>orchestrator</strong> — it runs the evaluation loop defined by the Task Type, using the Environment for data/dynamics and the Interpreter to decode genomes. It then packages results according to the Output Mode.</p>
+<section id="usage-examples">
+<h3>3.1 Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading">¶</a></h3>
+<section id="standard-ga-on-bbob-continuous-optimization">
+<h4>Standard GA on BBOB (continuous optimization)<a class="headerlink" href="#standard-ga-on-bbob-continuous-optimization" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">BBOBEnv</span><span class="p">(</span><span class="n">fn_name</span><span class="o">=</span><span class="s2">"sphere"</span><span class="p">,</span> <span class="n">num_dims</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">IdentityInterpreter</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># genome IS the solution vector</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">ScalarOutput</span><span class="p">()</span>
+
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">OptimizationEvaluator</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">interpreter</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="standard-ga-on-tsp-combinatorial-optimization">
+<h4>Standard GA on TSP (combinatorial optimization)<a class="headerlink" href="#standard-ga-on-tsp-combinatorial-optimization" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">TSPEnv</span><span class="p">(</span><span class="n">cities</span><span class="o">=</span><span class="n">city_coordinates</span><span class="p">)</span>  <span class="c1"># problem instance data defines f(tour)</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">IdentityInterpreter</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">n_cities</span><span class="p">)</span>  <span class="c1"># genome IS the tour encoding</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">ScalarOutput</span><span class="p">()</span>
+
+<span class="c1"># Same evaluator class — different environment, zero new code</span>
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">OptimizationEvaluator</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">interpreter</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="malthusjax-mlp-on-sklearn-regression">
+<h4>MalthusJAX MLP on SKLearn Regression<a class="headerlink" href="#malthusjax-mlp-on-sklearn-regression" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">SklearnEnv</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">"california_housing"</span><span class="p">)</span>  <span class="c1"># provides X, y</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">MLPInterpreter</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">output_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>  
+<span class="c1"># interp.num_params == 8*64 + 64 + 64*1 + 1 == 641</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">ScalarOutput</span><span class="p">(</span><span class="n">loss_fn</span><span class="o">=</span><span class="s2">"mse"</span><span class="p">)</span>
+
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">SupervisedEvaluator</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">interpreter</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="tensorneat-on-sklearn-classification-the-previously-impossible-case">
+<h4>TensorNEAT on SKLearn Classification (the previously impossible case)<a class="headerlink" href="#tensorneat-on-sklearn-classification-the-previously-impossible-case" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">SklearnEnv</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">"breast_cancer"</span><span class="p">)</span>  <span class="c1"># same env as above!</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">TensorNEATInterpreter</span><span class="p">(</span><span class="n">algorithm</span><span class="o">=</span><span class="n">neat_algo</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">neat_state</span><span class="p">)</span>  <span class="c1"># adapter provides this</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">ScalarOutput</span><span class="p">(</span><span class="n">loss_fn</span><span class="o">=</span><span class="s2">"bce"</span><span class="p">)</span>
+
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">SupervisedEvaluator</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">interpreter</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+<span class="c1"># TensorNEAT works on sklearn with zero bridge code!</span>
+</pre></div>
+</div>
+</section>
+<section id="mlp-on-gymnax-rl">
+<h4>MLP on Gymnax (RL)<a class="headerlink" href="#mlp-on-gymnax-rl" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">GymnaxEnv</span><span class="p">(</span><span class="n">env_name</span><span class="o">=</span><span class="s2">"CartPole-v1"</span><span class="p">)</span>  <span class="c1"># obs_dim=4, action_dim=2</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">MLPInterpreter</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">output_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">ScalarOutput</span><span class="p">()</span>
+
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">RLEvaluator</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">interpreter</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="tensorneat-on-jumanji-rl-the-ultimate-mix-and-match">
+<h4>TensorNEAT on Jumanji (RL — the ultimate mix-and-match)<a class="headerlink" href="#tensorneat-on-jumanji-rl-the-ultimate-mix-and-match" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">JumanjiEnv</span><span class="p">(</span><span class="n">env_name</span><span class="o">=</span><span class="s2">"TSP-v1"</span><span class="p">)</span>  <span class="c1"># different library, same interface!</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">TensorNEATInterpreter</span><span class="p">(</span><span class="n">algorithm</span><span class="o">=</span><span class="n">neat_algo</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">neat_state</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">ScalarOutput</span><span class="p">()</span>
+
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">RLEvaluator</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">interpreter</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+<span class="c1"># TensorNEAT on Jumanji: zero new code needed</span>
+</pre></div>
+</div>
+</section>
+<section id="map-elites-qd-on-gymnax">
+<h4>MAP-Elites QD on Gymnax<a class="headerlink" href="#map-elites-qd-on-gymnax" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">GymnaxEnv</span><span class="p">(</span><span class="n">env_name</span><span class="o">=</span><span class="s2">"Ant-v1"</span><span class="p">)</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">MLPInterpreter</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="mi">27</span><span class="p">,</span> <span class="n">output_dim</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">])</span>
+<span class="n">descriptor_fn</span> <span class="o">=</span> <span class="n">EpisodeFeatureDescriptor</span><span class="p">(</span><span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="s2">"avg_velocity"</span><span class="p">,</span> <span class="s2">"episode_length"</span><span class="p">])</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">QDOutput</span><span class="p">(</span><span class="n">descriptor_fn</span><span class="o">=</span><span class="n">descriptor_fn</span><span class="p">)</span>
+
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">RLEvaluator</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">interpreter</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+<span class="c1"># MAP-Elites can consume this evaluator directly</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="the-mix-and-match-matrix">
+<h2>4. The Mix-and-Match Matrix<a class="headerlink" href="#the-mix-and-match-matrix" title="Link to this heading">¶</a></h2>
+<p>The power of this decomposition is that any valid combination just works:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Interpreter</p></th>
+<th class="head text-center"><p><code class="docutils literal notranslate"><span class="pre">SklearnEnv</span></code></p></th>
+<th class="head text-center"><p><code class="docutils literal notranslate"><span class="pre">GymnaxEnv</span></code></p></th>
+<th class="head text-center"><p><code class="docutils literal notranslate"><span class="pre">JumanjiEnv</span></code></p></th>
+<th class="head text-center"><p><code class="docutils literal notranslate"><span class="pre">BBOBEnv</span></code></p></th>
+<th class="head text-center"><p><code class="docutils literal notranslate"><span class="pre">TSPEnv</span></code></p></th>
+<th class="head text-center"><p><code class="docutils literal notranslate"><span class="pre">KnapsackEnv</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IdentityInterpreter</span></code></p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MLPInterpreter</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LinearGPInterpreter</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CartesianGPInterpreter</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TensorNEATInterpreter</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+<td class="text-center"><p>❌</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<div><p><strong>Why ❌ for <code class="docutils literal notranslate"><span class="pre">IdentityInterpreter</span></code> + RL/SL?</strong> RL and SL require the genome to produce a <em>callable</em> (a policy or predictor). <code class="docutils literal notranslate"><span class="pre">IdentityInterpreter</span></code> outputs a raw vector — it is meaningless as a policy. Only <code class="docutils literal notranslate"><span class="pre">OptimizationTask</span></code> environments accept raw vectors directly.</p>
+<p><strong>Why ❌ for <code class="docutils literal notranslate"><span class="pre">MLPInterpreter</span></code> + Optimization?</strong> Optimization tasks do not have an input → output inference step. There is no <code class="docutils literal notranslate"><span class="pre">obs</span></code> to feed into the MLP. The solution <em>is</em> the genome.</p>
+</div></blockquote>
+<p>Any <code class="docutils literal notranslate"><span class="pre">✅</span></code> combination produces a valid <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code> with <strong>zero new code</strong>.</p>
+</section>
+<hr class="docutils" />
+<section id="backward-compatibility">
+<h2>5. Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Link to this heading">¶</a></h2>
+<p>The existing evaluator classes (<code class="docutils literal notranslate"><span class="pre">BBOBEvaluator</span></code>, <code class="docutils literal notranslate"><span class="pre">LinearGPEvaluator</span></code>, <code class="docutils literal notranslate"><span class="pre">SklearnMEPEvaluator</span></code>, etc.) will continue to function as convenience wrappers. Internally they will be refactored to compose the new primitives, but their external interface stays unchanged.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Old API — still works</span>
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">SklearnMEPEvaluator</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">"make_regression"</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># New API — full control</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">SklearnEnv</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">"make_regression"</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">LinearGPInterpreter</span><span class="p">(</span><span class="n">num_inputs</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">SupervisedEvaluator</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">interpreter</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">ScalarOutput</span><span class="p">(</span><span class="n">loss_fn</span><span class="o">=</span><span class="s2">"mse"</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="implementation-roadmap">
+<h2>6. Implementation Roadmap<a class="headerlink" href="#implementation-roadmap" title="Link to this heading">¶</a></h2>
+<section id="phase-1-core-interfaces">
+<h3>Phase 1: Core Interfaces<a class="headerlink" href="#phase-1-core-interfaces" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/environments/base.py</span></code> — <code class="docutils literal notranslate"><span class="pre">BaseEnvironment</span></code>, <code class="docutils literal notranslate"><span class="pre">BaseRLEnvironment</span></code>, <code class="docutils literal notranslate"><span class="pre">BaseSupervisedEnvironment</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/interpreters/base.py</span></code> — <code class="docutils literal notranslate"><span class="pre">BaseInterpreter</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/output/base.py</span></code> — <code class="docutils literal notranslate"><span class="pre">BaseOutputMode</span></code>, <code class="docutils literal notranslate"><span class="pre">ScalarOutput</span></code>, <code class="docutils literal notranslate"><span class="pre">QDOutput</span></code>, <code class="docutils literal notranslate"><span class="pre">MOOutput</span></code></p></li>
+</ul>
+</section>
+<section id="phase-2-concrete-environments">
+<h3>Phase 2: Concrete Environments<a class="headerlink" href="#phase-2-concrete-environments" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/environments/sklearn_env.py</span></code> — <code class="docutils literal notranslate"><span class="pre">SklearnEnv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/environments/gymnax_env.py</span></code> — <code class="docutils literal notranslate"><span class="pre">GymnaxEnv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/environments/jumanji_env.py</span></code> — <code class="docutils literal notranslate"><span class="pre">JumanjiEnv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/environments/bbob_env.py</span></code> — <code class="docutils literal notranslate"><span class="pre">BBOBEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">BBOBAxEnv</span></code></p></li>
+</ul>
+</section>
+<section id="phase-3-concrete-interpreters">
+<h3>Phase 3: Concrete Interpreters<a class="headerlink" href="#phase-3-concrete-interpreters" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/interpreters/identity.py</span></code> — <code class="docutils literal notranslate"><span class="pre">IdentityInterpreter</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/interpreters/mlp.py</span></code> — <code class="docutils literal notranslate"><span class="pre">MLPInterpreter</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/interpreters/linear_gp.py</span></code> — <code class="docutils literal notranslate"><span class="pre">LinearGPInterpreter</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/interpreters/cartesian_gp.py</span></code> — <code class="docutils literal notranslate"><span class="pre">CartesianGPInterpreter</span></code></p></li>
+</ul>
+</section>
+<section id="phase-4-evaluator-loops">
+<h3>Phase 4: Evaluator Loops<a class="headerlink" href="#phase-4-evaluator-loops" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/evaluators/supervised.py</span></code> — <code class="docutils literal notranslate"><span class="pre">SupervisedEvaluator</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/evaluators/rl.py</span></code> — <code class="docutils literal notranslate"><span class="pre">RLEvaluator</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/evaluators/optimization.py</span></code> — <code class="docutils literal notranslate"><span class="pre">OptimizationEvaluator</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/environments/tsp_env.py</span></code> — <code class="docutils literal notranslate"><span class="pre">TSPEnv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/environments/knapsack_env.py</span></code> — <code class="docutils literal notranslate"><span class="pre">KnapsackEnv</span></code></p></li>
+</ul>
+</section>
+<section id="phase-5-adapter-integration">
+<h3>Phase 5: Adapter Integration<a class="headerlink" href="#phase-5-adapter-integration" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">TensorNEATAdapter</span></code> to expose <code class="docutils literal notranslate"><span class="pre">TensorNEATInterpreter</span></code></p></li>
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">EvosaxAdapter</span></code> to expose <code class="docutils literal notranslate"><span class="pre">EvosaxInterpreter</span></code></p></li>
+</ul>
+</section>
+<section id="phase-6-composer-integration">
+<h3>Phase 6: Composer Integration<a class="headerlink" href="#phase-6-composer-integration" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">Composer</span></code> to accept the three-axis decomposition as first-class parameters</p></li>
+<li><p>Maintain backward-compatible string parsing for legacy <code class="docutils literal notranslate"><span class="pre">fitness=&quot;sklearn_mep&quot;</span></code> syntax</p></li>
+</ul>
+</section>
+<section id="phase-7-descriptor-functions">
+<h3>Phase 7: Descriptor Functions<a class="headerlink" href="#phase-7-descriptor-functions" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src/malthusjax/core/fitness/descriptors/base.py</span></code> — <code class="docutils literal notranslate"><span class="pre">BaseDescriptorFn</span></code></p></li>
+<li><p>Migrate existing QD evaluator descriptor logic into injectable <code class="docutils literal notranslate"><span class="pre">DescriptorFn</span></code> objects</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="design-decisions">
+<h2>7. Design Decisions<a class="headerlink" href="#design-decisions" title="Link to this heading">¶</a></h2>
+<section id="composer-api">
+<h3>7.1 Composer API<a class="headerlink" href="#composer-api" title="Link to this heading">¶</a></h3>
+<p>The current Composer TOML uses flat string keys:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">fitness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"sklearn_mep:dataset=make_regression,n_samples=50,n_features=5"</span>
+</pre></div>
+</div>
+<p>This works but becomes <strong>unreadable</strong> and <strong>unextensible</strong> for the three-axis decomposition. We need to express <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">interpreter</span></code>, and <code class="docutils literal notranslate"><span class="pre">output</span></code> cleanly. Two options were evaluated:</p>
+<hr class="docutils" />
+<p><strong>Option A: Fully Decomposed (breaking change)</strong></p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment.shared.fitness]</span>
+<span class="n">env</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"sklearn"</span>
+<span class="n">env</span><span class="p">.</span><span class="n">dataset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"make_regression"</span>
+<span class="n">env</span><span class="p">.</span><span class="n">n_samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span>
+<span class="n">env</span><span class="p">.</span><span class="n">n_features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
+
+<span class="n">interpreter</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"mlp"</span>
+<span class="n">interpreter</span><span class="p">.</span><span class="n">input_dim</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
+<span class="n">interpreter</span><span class="p">.</span><span class="n">output_dim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="n">interpreter</span><span class="p">.</span><span class="n">hidden</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">]</span>
+
+<span class="n">output</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"scalar"</span>
+<span class="n">output</span><span class="p">.</span><span class="n">loss_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"mse"</span>
+</pre></div>
+</div>
+<p>Python API equivalent:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Composer</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="n">SklearnEnv</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">"make_regression"</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+    <span class="n">interpreter</span><span class="o">=</span><span class="n">MLPInterpreter</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">output_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">]),</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">ScalarOutput</span><span class="p">(</span><span class="n">loss_fn</span><span class="o">=</span><span class="s2">"mse"</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>✅ Clean. Each concern is explicit and independently configurable.<br />
+✅ Scales to any combination without new string parsers.<br />
+❌ Breaks all existing configs.</p>
+<hr class="docutils" />
+<p><strong>Option B: Backward-Compatible TOML Section</strong></p>
+<p>Old configs keep working. New configs can use a structured <code class="docutils literal notranslate"><span class="pre">[fitness]</span></code> subsection:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Old style — still works</span>
+<span class="n">fitness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"sklearn_mep:dataset=make_regression,n_samples=50,n_features=5"</span>
+
+<span class="c1"># OR: new structured style for the new architecture</span>
+<span class="k">[pipelines.tensorneat.fitness]</span>
+<span class="n">env</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="s2">"sklearn"</span>
+<span class="n">env</span><span class="p">.</span><span class="n">dataset</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"breast_cancer"</span>
+<span class="n">interpreter</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"tensorneat"</span><span class="w">     </span><span class="c1"># adapter provides this automatically</span>
+<span class="n">output</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="s2">"scalar"</span>
+<span class="n">output</span><span class="p">.</span><span class="n">loss_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"bce"</span>
+</pre></div>
+</div>
+<p>The Composer detects which format is used:</p>
+<ul class="simple">
+<li><p>String <code class="docutils literal notranslate"><span class="pre">fitness</span> <span class="pre">=</span> <span class="pre">&quot;...&quot;</span></code> → legacy string parser (existing behavior)</p></li>
+<li><p>Table <code class="docutils literal notranslate"><span class="pre">[fitness]</span></code> → new three-axis parser</p></li>
+</ul>
+<p>✅ Zero migration cost for existing configs.<br />
+✅ New configs are clean and structured.<br />
+✅ Both syntaxes can coexist in the same TOML (pipeline-level override still works).<br />
+❌ Two parsers to maintain during transition.</p>
+<hr class="docutils" />
+<p><strong>Decision</strong>: <strong>Option B</strong> — structured <code class="docutils literal notranslate"><span class="pre">[fitness]</span></code> section with backward compatibility.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">fitness</span> <span class="pre">=</span> <span class="pre">&quot;sklearn_mep&quot;</span></code> string syntax represents the <em>old</em> bundled world and continues to work forever as a convenience alias. New code and new configs use <code class="docutils literal notranslate"><span class="pre">[fitness]</span></code> with explicit keys. When the <code class="docutils literal notranslate"><span class="pre">[fitness]</span></code> table is present, it takes precedence over the string key.</p>
+</section>
+<hr class="docutils" />
+<section id="adapter-interpreter-initialization">
+<h3>7.2 Adapter Interpreter Initialization<a class="headerlink" href="#adapter-interpreter-initialization" title="Link to this heading">¶</a></h3>
+<p>For adapter frameworks (TensorNEAT), there is a dependency order:</p>
+<ol class="arabic simple">
+<li><p>The algorithm must be initialized first: <code class="docutils literal notranslate"><span class="pre">state</span> <span class="pre">=</span> <span class="pre">algorithm.init(key)</span></code> — this compiles the network graph, sets up jit-traced operations, etc.</p></li>
+<li><p>Only then can <code class="docutils literal notranslate"><span class="pre">TensorNEATInterpreter(algorithm=algo,</span> <span class="pre">state=state)</span></code> be created.</p></li>
+</ol>
+<p><strong>Option A: Adapter exposes interpreter as a property</strong></p>
+<p>The adapter initializes everything and makes the interpreter available:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">adapter</span> <span class="o">=</span> <span class="n">TensorNEATAdapter</span><span class="p">(</span><span class="n">algorithm</span><span class="o">=</span><span class="n">neat</span><span class="p">)</span>
+<span class="n">adapter</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>  <span class="c1"># runs algorithm.init() internally</span>
+<span class="n">interpreter</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">interpreter</span>  <span class="c1"># TensorNEATInterpreter(algo, state) ready to use</span>
+</pre></div>
+</div>
+<p>✅ User never manually manages TensorNEAT state.<br />
+✅ The adapter is the single authority on its own initialization.<br />
+✅ Consistent with how adapters are used elsewhere in MalthusJAX.</p>
+<p><strong>Option B: User constructs interpreter directly</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="n">neat</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="n">interpreter</span> <span class="o">=</span> <span class="n">TensorNEATInterpreter</span><span class="p">(</span><span class="n">algorithm</span><span class="o">=</span><span class="n">neat</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>✅ Explicit and transparent.<br />
+❌ Requires user to manage TensorNEAT internals.<br />
+❌ Breaks encapsulation — the adapter abstraction exists precisely to hide this.</p>
+<p><strong>Decision</strong>: <strong>Option A</strong> — the adapter provides the interpreter via a property. The Composer calls <code class="docutils literal notranslate"><span class="pre">adapter.interpreter</span></code> automatically when <code class="docutils literal notranslate"><span class="pre">interpreter</span> <span class="pre">=</span> <span class="pre">&quot;tensorneat&quot;</span></code> is declared. For native MalthusJAX interpreters (MLPInterpreter, LinearGPInterpreter), the user always constructs them directly.</p>
+</section>
+<hr class="docutils" />
+<section id="genome-spec-derivation">
+<h3>7.3 Genome Spec Derivation<a class="headerlink" href="#genome-spec-derivation" title="Link to this heading">¶</a></h3>
+<p><strong>Decision</strong>: <strong>Explicit declaration with loud validation</strong>.</p>
+<p>The user always declares the genome length explicitly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interp</span> <span class="o">=</span> <span class="n">MLPInterpreter</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">output_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="c1"># interp.num_params == 450</span>
+
+<span class="n">genome_spec</span> <span class="o">=</span> <span class="n">RealGenomeSpec</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">450</span><span class="p">)</span>   <span class="c1"># user declares explicitly</span>
+</pre></div>
+</div>
+<p>At Composer build time, a validation step checks:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">genome_spec</span><span class="o">.</span><span class="n">length</span> <span class="o">!=</span> <span class="n">interpreter</span><span class="o">.</span><span class="n">num_params</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="n">ConfigurationError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"Genome length </span><span class="si">{</span><span class="n">genome_spec</span><span class="o">.</span><span class="n">length</span><span class="si">}</span><span class="s2"> does not match "</span>
+        <span class="sa">f</span><span class="s2">"MLPInterpreter.num_params=</span><span class="si">{</span><span class="n">interpreter</span><span class="o">.</span><span class="n">num_params</span><span class="si">}</span><span class="s2">. "</span>
+        <span class="sa">f</span><span class="s2">"Set genome_length = </span><span class="si">{</span><span class="n">interpreter</span><span class="o">.</span><span class="n">num_params</span><span class="si">}</span><span class="s2"> in your config."</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>This is intentionally <strong>loud</strong>. Silent auto-configuration would hide bugs where the wrong genome size is accidentally used. By requiring explicit declaration, mismatches are caught before any JAX tracing begins, with a clear error message pointing to the exact fix.</p>
+<p>For TOML configs:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">genome_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">450</span><span class="w">   </span><span class="c1"># must match interpreter.num_params exactly — Composer validates this</span>
+
+<span class="k">[pipelines.mlp_cartpole.fitness]</span>
+<span class="n">interpreter</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"mlp"</span>
+<span class="n">interpreter</span><span class="p">.</span><span class="n">input_dim</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span>
+<span class="n">interpreter</span><span class="p">.</span><span class="n">output_dim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="n">interpreter</span><span class="p">.</span><span class="n">hidden</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">]</span>
+<span class="c1"># Composer will raise ConfigurationError if genome_length != 450</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="extension_cli_guide.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Extension CLI Guide: Building MalthusJAX Projects</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="6-BENCHMARKING_FRAMEWORK.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Benchmarking Framework: Multi-Seed Execution and Results Schema</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Leonardo Di Caterina
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Evaluator Architecture: Composable Fitness Evaluation</a><ul>
+<li><a class="reference internal" href="#motivation">1. Motivation</a><ul>
+<li><a class="reference internal" href="#the-problem-with-the-current-architecture">The Problem with the Current Architecture</a></li>
+<li><a class="reference internal" href="#the-goal">The Goal</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#core-vocabulary">2. Core Vocabulary</a><ul>
+<li><a class="reference internal" href="#task-type-abstract-category">2.1 Task Type (Abstract Category)</a></li>
+<li><a class="reference internal" href="#environment-concrete-implementation">2.2 Environment (Concrete Implementation)</a></li>
+<li><a class="reference internal" href="#interpreter-genome-decoder">2.3 Interpreter (Genome Decoder)</a><ul>
+<li><a class="reference internal" href="#origin-of-interpreters">Origin of Interpreters</a></li>
+<li><a class="reference internal" href="#the-self-consistency-constraint">The Self-Consistency Constraint</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#output-mode-engine-contract">2.4 Output Mode (Engine Contract)</a><ul>
+<li><a class="reference internal" href="#qd-descriptors-are-injectable">QD Descriptors are Injectable</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-composition-formula">3. The Composition Formula</a><ul>
+<li><a class="reference internal" href="#usage-examples">3.1 Usage Examples</a><ul>
+<li><a class="reference internal" href="#standard-ga-on-bbob-continuous-optimization">Standard GA on BBOB (continuous optimization)</a></li>
+<li><a class="reference internal" href="#standard-ga-on-tsp-combinatorial-optimization">Standard GA on TSP (combinatorial optimization)</a></li>
+<li><a class="reference internal" href="#malthusjax-mlp-on-sklearn-regression">MalthusJAX MLP on SKLearn Regression</a></li>
+<li><a class="reference internal" href="#tensorneat-on-sklearn-classification-the-previously-impossible-case">TensorNEAT on SKLearn Classification (the previously impossible case)</a></li>
+<li><a class="reference internal" href="#mlp-on-gymnax-rl">MLP on Gymnax (RL)</a></li>
+<li><a class="reference internal" href="#tensorneat-on-jumanji-rl-the-ultimate-mix-and-match">TensorNEAT on Jumanji (RL — the ultimate mix-and-match)</a></li>
+<li><a class="reference internal" href="#map-elites-qd-on-gymnax">MAP-Elites QD on Gymnax</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-mix-and-match-matrix">4. The Mix-and-Match Matrix</a></li>
+<li><a class="reference internal" href="#backward-compatibility">5. Backward Compatibility</a></li>
+<li><a class="reference internal" href="#implementation-roadmap">6. Implementation Roadmap</a><ul>
+<li><a class="reference internal" href="#phase-1-core-interfaces">Phase 1: Core Interfaces</a></li>
+<li><a class="reference internal" href="#phase-2-concrete-environments">Phase 2: Concrete Environments</a></li>
+<li><a class="reference internal" href="#phase-3-concrete-interpreters">Phase 3: Concrete Interpreters</a></li>
+<li><a class="reference internal" href="#phase-4-evaluator-loops">Phase 4: Evaluator Loops</a></li>
+<li><a class="reference internal" href="#phase-5-adapter-integration">Phase 5: Adapter Integration</a></li>
+<li><a class="reference internal" href="#phase-6-composer-integration">Phase 6: Composer Integration</a></li>
+<li><a class="reference internal" href="#phase-7-descriptor-functions">Phase 7: Descriptor Functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#design-decisions">7. Design Decisions</a><ul>
+<li><a class="reference internal" href="#composer-api">7.1 Composer API</a></li>
+<li><a class="reference internal" href="#adapter-interpreter-initialization">7.2 Adapter Interpreter Initialization</a></li>
+<li><a class="reference internal" href="#genome-spec-derivation">7.3 Genome Spec Derivation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    </body>
+</html>

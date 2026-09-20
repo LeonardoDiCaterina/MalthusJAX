@@ -1,0 +1,852 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../../genindex.html"><link rel="search" title="Search" href="../../../../../search.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>malthusjax.core.fitness.composable.base - MalthusJAX documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../../index.html"><div class="brand">MalthusJAX  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../../index.html">
+  
+  <span class="sidebar-brand-text">MalthusJAX  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Execution and Results Schema</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/level_3_engines_guide.html">Level 3: Engines &amp; Resource Mapper – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/level_4_composer_guide.html">Level 4: The Composer 🎼</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/genome_extension_guide.html">Extending Genomes in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/population_guide.html">Populations and Genomes in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/fitness_extension_guide.html">Extending Fitness Evaluators in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/interpreter_guide.html">Extending Genome Interpreters in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/operator_extension_guide.html">Extending Genetic Operators in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/engine_extension_guide.html">Engines in MalthusJAX – Outline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/genetic_fastengine_guide.html">Deep Dive: GeneticEngine in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/resource_mapper_guide.html">Resource Mapper in MalthusJAX## 📚 Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/adapter_extension_guide.html">Composer Adapters in MalthusJAX## 📚 Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/plugin_architecture_guide.html">MalthusJAX Plugin Architecture &amp; Compatibility Guardrails</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../../api/malthusjax.html">malthusjax package</a><input aria-label="Toggle navigation of malthusjax package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/malthusjax.benchmarking.html">malthusjax.benchmarking package</a><input aria-label="Toggle navigation of malthusjax.benchmarking package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.benchmarking.analysis.html">malthusjax.benchmarking.analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.benchmarking.cli.html">malthusjax.benchmarking.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.benchmarking.io.html">malthusjax.benchmarking.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.benchmarking.results.html">malthusjax.benchmarking.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.benchmarking.runner.html">malthusjax.benchmarking.runner module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/malthusjax.composer.html">malthusjax.composer package</a><input aria-label="Toggle navigation of malthusjax.composer package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.catalog.html">malthusjax.composer.catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.composer.html">malthusjax.composer.composer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.config.html">malthusjax.composer.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.engine_catalog.html">malthusjax.composer.engine_catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.engine_factory.html">malthusjax.composer.engine_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.engine_registry.html">malthusjax.composer.engine_registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.evosax_adapter.html">malthusjax.composer.evosax_adapter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.node.html">malthusjax.composer.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.pipeline.html">malthusjax.composer.pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.composer.registry.html">malthusjax.composer.registry module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.genome.binary_genome.html">malthusjax.core.genome.binary_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.genome.categorical_genome.html">malthusjax.core.genome.categorical_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.genome.linear_genome.html">malthusjax.core.genome.linear_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.core.genome.real_genome.html">malthusjax.core.genome.real_genome module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.core.base.html">malthusjax.core.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.core.random.html">malthusjax.core.random module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/malthusjax.engine.html">malthusjax.engine package</a><input aria-label="Toggle navigation of malthusjax.engine package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.engine.base.html">malthusjax.engine.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.engine.genetic_fastengine.html">malthusjax.engine.genetic_fastengine module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.engine.resource_mapper.html">malthusjax.engine.resource_mapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.engine.schedules.html">malthusjax.engine.schedules module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/malthusjax.operators.html">malthusjax.operators package</a><input aria-label="Toggle navigation of malthusjax.operators package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../../api/malthusjax.operators.crossover.html">malthusjax.operators.crossover package</a><input aria-label="Toggle navigation of malthusjax.operators.crossover package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.crossover.binary.html">malthusjax.operators.crossover.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.crossover.evosax_crossover.html">malthusjax.operators.crossover.evosax_crossover module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.crossover.real.html">malthusjax.operators.crossover.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../../api/malthusjax.operators.mutation.html">malthusjax.operators.mutation package</a><input aria-label="Toggle navigation of malthusjax.operators.mutation package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.mutation.binary.html">malthusjax.operators.mutation.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.mutation.evosax_mutation.html">malthusjax.operators.mutation.evosax_mutation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.mutation.real.html">malthusjax.operators.mutation.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../../api/malthusjax.operators.selection.html">malthusjax.operators.selection package</a><input aria-label="Toggle navigation of malthusjax.operators.selection package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.operators.base.html">malthusjax.operators.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.operators.base_ablation.html">malthusjax.operators.base_ablation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/malthusjax.operators.base_injection.html">malthusjax.operators.base_injection module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for malthusjax.core.fitness.composable.base</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Base interfaces for the composable evaluator architecture.</span>
+
+<span class="sd">Defines the three-axis decomposition:</span>
+<span class="sd">  Problem  = TaskType × Environment × Interpreter</span>
+<span class="sd">  Output   = ScalarOutput | QDOutput(DescriptorFn) | MOOutput</span>
+<span class="sd">  Evaluator = Problem × Output</span>
+
+<span class="sd">See docs/evaluator_design.md for the full design document.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">struct</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGenome</span>
+
+<span class="n">G</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"G"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseGenome</span><span class="p">)</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Transforms</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="BaseTransform">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseTransform">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseTransform</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""Genotype to phenotype mapping axis."""</span>
+
+<div class="viewcode-block" id="BaseTransform.transform">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseTransform.transform">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Convert a single genome to a computationally optimized representation."""</span>
+        <span class="k">return</span> <span class="n">genome</span></div>
+
+
+<div class="viewcode-block" id="BaseTransform.transform_population">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseTransform.transform_population">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genes</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Convert a population of genomes. Overridable for population-level transforms."""</span>
+        <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))(</span><span class="n">genes</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IdentityTransform">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.IdentityTransform">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IdentityTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">[</span><span class="n">Any</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""Default no-op transform for direct parameter encoding."""</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># BaseInterpreter</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="BaseInterpreter">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseInterpreter">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseInterpreter</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">G</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""Decodes a genome into outputs given inputs.</span>
+
+<span class="sd">    The Interpreter is the genome-side bridge. It is:</span>
+<span class="sd">    - **Stateless**: all configuration (dims, architecture) is compiled in at</span>
+<span class="sd">      construction time as pytree_node=False fields.</span>
+<span class="sd">    - **Genome-specific**: typed to a specific genome type ``G``.</span>
+<span class="sd">    - **Task-agnostic**: its output is always ``apply(genome, inputs) → outputs``.</span>
+
+<span class="sd">    For native MalthusJAX genomes (RealGenome, LinearGenome, etc.), the user</span>
+<span class="sd">    declares the Interpreter explicitly.</span>
+
+<span class="sd">    For adapter frameworks (TensorNEAT, evosax), the adapter provides an</span>
+<span class="sd">    Interpreter via ``adapter.interpreter`` — the user never constructs it.</span>
+
+<span class="sd">    The key invariant::</span>
+
+<span class="sd">        genome_spec.length == interpreter.num_params</span>
+
+<span class="sd">    The Composer validates this at build time and raises ``ConfigurationError``</span>
+<span class="sd">    loudly if there is a mismatch, before any JAX tracing begins.</span>
+<span class="sd">    """</span>
+
+<div class="viewcode-block" id="BaseInterpreter.apply">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseInterpreter.apply">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Apply the genome as a function over the given inputs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            genome: A single (unbatched) genome.</span>
+<span class="sd">            inputs: The input array — could be an observation vector (RL),</span>
+<span class="sd">                a data matrix row (SL), or None (Optimization tasks).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Output array — action logits (RL), predictions (SL), or raw</span>
+<span class="sd">            solution vector (Optimization, via IdentityInterpreter).</span>
+<span class="sd">        """</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Total number of genome values consumed by this interpreter.</span>
+
+<span class="sd">        Returns -1 for ``IdentityInterpreter`` where the genome length is</span>
+<span class="sd">        dictated by the problem, not the interpreter.</span>
+<span class="sd">        """</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># BaseEnvironment hierarchy</span>
+<span class="c1"># =============================================================================</span>
+
+
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseEnvironment</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Root base class for all environments.</span>
+
+<span class="sd">    Concrete environments inherit from one of the three task-type-specific</span>
+<span class="sd">    subclasses:  ``BaseOptimizationEnvironment``, ``BaseSupervisedEnvironment``,</span>
+<span class="sd">    or ``BaseRLEnvironment``.</span>
+
+<span class="sd">    The Task Type is fixed by the environment: a ``SklearnEnv`` is always</span>
+<span class="sd">    a SupervisedTask; a ``BBOBEnv`` is always an OptimizationTask.</span>
+<span class="sd">    Users never declare the Task Type explicitly.</span>
+<span class="sd">    """</span>
+
+    <span class="k">pass</span>
+
+
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseOptimizationEnvironment</span><span class="p">(</span><span class="n">BaseEnvironment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Environment for OptimizationTask: f(genome, instance_data) → scalar.</span>
+
+<span class="sd">    Covers both analytic black-box functions (BBOB) and data-defined problem</span>
+<span class="sd">    instances (TSP, Knapsack, Graph Coloring). The key insight is that the</span>
+<span class="sd">    environment carries the problem instance data and the genome is evaluated</span>
+<span class="sd">    directly as a candidate solution — no MLP or program execution involved.</span>
+
+<span class="sd">    Concrete subclasses must implement ``evaluate(solution)``.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Evaluate a candidate solution vector against this problem instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            solution: Raw solution vector from the genome (via IdentityInterpreter).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Scalar objective value. Convention follows ``config.maximize``.</span>
+<span class="sd">        """</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseSupervisedEnvironment</span><span class="p">(</span><span class="n">BaseEnvironment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Environment for SupervisedTask: a static (X, y) dataset.</span>
+
+<span class="sd">    Carries the full dataset as non-pytree fields so it remains static across</span>
+<span class="sd">    ``jax.vmap`` lifting. Concrete subclasses populate ``data = (X, y)`` at</span>
+<span class="sd">    construction time.</span>
+
+<span class="sd">    The Interpreter is responsible for mapping ``genome → predictor(X) → y_hat``.</span>
+<span class="sd">    The Evaluator computes the loss between ``y_hat`` and ``y``.</span>
+<span class="sd">    """</span>
+
+    <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">X</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Input feature matrix, shape (n_samples, n_features)."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Target labels/values, shape (n_samples,) or (n_samples, n_outputs)."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseRLEnvironment</span><span class="p">(</span><span class="n">BaseEnvironment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Environment for ReinforcementTask: JAX-native RL interface.</span>
+
+<span class="sd">    Normalizes the API across different RL libraries (gymnax, jumanji, brax)</span>
+<span class="sd">    so that ``RLEvaluator`` never needs to know which library it is talking to.</span>
+
+<span class="sd">    Concrete subclasses (``GymnaxEnv``, ``JumanjiEnv``) implement:</span>
+<span class="sd">    - ``reset(key)`` → ``(obs, state)``</span>
+<span class="sd">    - ``step(state, action, key)`` → ``(obs, state, reward, done)``</span>
+<span class="sd">    - ``preprocess_obs(obs)`` → flat array (handles pytree observations)</span>
+<span class="sd">    - ``postprocess_action(logits)`` → env-compatible action</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Reset the environment and return initial (obs, state)."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Take one step: (obs, state, reward, done, info)."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">preprocess_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Flatten/normalize raw environment observation to a 1D array."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">postprocess_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">raw_obs</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Convert interpreter output logits to environment-compatible action.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            logits: Output array from the interpreter.</span>
+<span class="sd">            raw_obs: The raw observation before preprocessing. Used by some</span>
+<span class="sd">                environments (like Jumanji) to apply action masks.</span>
+<span class="sd">        """</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">obs_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Flattened observation dimensionality (required by MLPInterpreter)."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Action dimensionality (required by MLPInterpreter)."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Output Modes</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="n">SUPPORTED_LOSS_FNS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"mse"</span><span class="p">,</span> <span class="s2">"bce"</span><span class="p">,</span> <span class="s2">"mae"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BaseOutputMode">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseOutputMode">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseOutputMode</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Interface for evaluating a genome's result and computing fitness + info."""</span>
+
+<div class="viewcode-block" id="BaseOutputMode.process_sl">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseOutputMode.process_sl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_sl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">predictions</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="BaseOutputMode.process_opt">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseOutputMode.process_opt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_opt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">solution</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">raw_score</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="BaseOutputMode.process_rl">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseOutputMode.process_rl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_rl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">total_reward</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">final_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">step_infos</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="BaseOutputMode.observe_step">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseOutputMode.observe_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">observe_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">reward</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Called at each RL step to accumulate trajectory info (e.g. for QD)."""</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ScalarOutput">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.ScalarOutput">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ScalarOutput</span><span class="p">(</span><span class="n">BaseOutputMode</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Scalar fitness output mode for standard GA / ES engines.</span>
+
+<span class="sd">    Computes a single scalar fitness per genome using the specified loss</span>
+<span class="sd">    function. The ``maximize`` flag controls sign convention:</span>
+<span class="sd">    - ``maximize=False`` (default): lower loss is better (minimization).</span>
+<span class="sd">    - ``maximize=True``: higher value is better (maximization), loss is negated.</span>
+<span class="sd">    """</span>
+
+    <span class="n">loss_fn</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"mse"</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+    <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+
+<div class="viewcode-block" id="ScalarOutput.compute_loss">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.ScalarOutput.compute_loss">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predictions</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Compute scalar loss between predictions and targets."""</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">==</span> <span class="s2">"mse"</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">predictions</span> <span class="o">-</span> <span class="n">targets</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">==</span> <span class="s2">"bce"</span><span class="p">:</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                <span class="n">targets</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">probs</span> <span class="o">+</span> <span class="mf">1e-7</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">targets</span><span class="p">)</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">probs</span> <span class="o">+</span> <span class="mf">1e-7</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">==</span> <span class="s2">"mae"</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">predictions</span> <span class="o">-</span> <span class="n">targets</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Unknown loss function '</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="si">}</span><span class="s2">'. Supported: </span><span class="si">{</span><span class="n">SUPPORTED_LOSS_FNS</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_fitness</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScalarOutput.format_fitness">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.ScalarOutput.format_fitness">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_fitness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Format a raw scalar score according to the maximize flag.</span>
+
+<span class="sd">        Since the core engine always minimizes, if maximize=True, we negate the score.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">score</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="n">score</span></div>
+
+
+    <span class="c1"># --- BaseOutputMode implementations ---</span>
+
+<div class="viewcode-block" id="ScalarOutput.process_sl">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.ScalarOutput.process_sl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_sl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">predictions</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="ScalarOutput.process_opt">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.ScalarOutput.process_opt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_opt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">solution</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">raw_score</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_fitness</span><span class="p">(</span><span class="n">raw_score</span><span class="p">),</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="ScalarOutput.process_rl">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.ScalarOutput.process_rl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_rl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">total_reward</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">final_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">step_infos</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_fitness</span><span class="p">(</span><span class="n">total_reward</span><span class="p">),</span> <span class="p">{}</span></div>
+</div>
+
+
+
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseDescriptorFn</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Computes behavior descriptors for QD algorithms.</span>
+
+<span class="sd">    Injected into ``QDOutput`` — the Evaluator itself knows nothing about</span>
+<span class="sd">    descriptors. This keeps QD concerns fully orthogonal to the Task/Env/Interpreter</span>
+<span class="sd">    decomposition.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">outputs</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Compute behavior descriptor for Supervised/Optimization tasks."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_rl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">final_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">step_infos</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Compute behavior descriptor for RL tasks."""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">observe_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">reward</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Optional: Accumulate step info during RL rollouts."""</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="QDOutput">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.QDOutput">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QDOutput</span><span class="p">(</span><span class="n">BaseOutputMode</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""QD (Quality Diversity) output mode: fitness + behavior descriptors.</span>
+
+<span class="sd">    Wraps a ``ScalarOutput`` for fitness and takes a separate</span>
+<span class="sd">    ``BaseDescriptorFn`` for descriptor computation.</span>
+<span class="sd">    """</span>
+
+    <span class="n">scalar_output</span><span class="p">:</span> <span class="n">ScalarOutput</span>
+    <span class="n">descriptor_fn</span><span class="p">:</span> <span class="n">BaseDescriptorFn</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+
+<div class="viewcode-block" id="QDOutput.process_sl">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.QDOutput.process_sl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_sl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">predictions</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">fitness</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scalar_output</span><span class="o">.</span><span class="n">process_sl</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor_fn</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fitness</span><span class="p">,</span> <span class="p">{</span><span class="s2">"descriptors"</span><span class="p">:</span> <span class="n">desc</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="QDOutput.process_opt">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.QDOutput.process_opt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_opt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">solution</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">raw_score</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">fitness</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scalar_output</span><span class="o">.</span><span class="n">process_opt</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">raw_score</span><span class="p">)</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor_fn</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">solution</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fitness</span><span class="p">,</span> <span class="p">{</span><span class="s2">"descriptors"</span><span class="p">:</span> <span class="n">desc</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="QDOutput.process_rl">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.QDOutput.process_rl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_rl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">total_reward</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">final_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">step_infos</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">fitness</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scalar_output</span><span class="o">.</span><span class="n">process_rl</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">total_reward</span><span class="p">,</span> <span class="n">final_state</span><span class="p">,</span> <span class="n">step_infos</span><span class="p">)</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor_fn</span><span class="o">.</span><span class="n">compute_rl</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">final_state</span><span class="p">,</span> <span class="n">step_infos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fitness</span><span class="p">,</span> <span class="p">{</span><span class="s2">"descriptors"</span><span class="p">:</span> <span class="n">desc</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="QDOutput.observe_step">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.QDOutput.observe_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">observe_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">reward</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor_fn</span><span class="o">.</span><span class="n">observe_step</span><span class="p">(</span><span class="n">env_state</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">reward</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MOOutput">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MOOutput">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MOOutput</span><span class="p">(</span><span class="n">BaseOutputMode</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Multi-Objective output mode: vector fitness per genome."""</span>
+
+    <span class="n">objectives</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ScalarOutput</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+
+<div class="viewcode-block" id="MOOutput.process_sl">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MOOutput.process_sl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_sl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">predictions</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">fitness_vec</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">obj</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objectives</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">fitness_vec</span><span class="p">,</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="MOOutput.process_opt">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MOOutput.process_opt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_opt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">solution</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">raw_score</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">fitness_vec</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">obj</span><span class="o">.</span><span class="n">format_fitness</span><span class="p">(</span><span class="n">raw_score</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objectives</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">fitness_vec</span><span class="p">,</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="MOOutput.process_rl">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MOOutput.process_rl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_rl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">total_reward</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">final_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">step_infos</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">fitness_vec</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">obj</span><span class="o">.</span><span class="n">format_fitness</span><span class="p">(</span><span class="n">total_reward</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objectives</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">fitness_vec</span><span class="p">,</span> <span class="p">{}</span></div>
+</div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Leonardo Di Caterina
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+    </body>
+</html>

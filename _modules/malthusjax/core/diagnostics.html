@@ -1,0 +1,682 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>malthusjax.core.diagnostics - MalthusJAX documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">MalthusJAX  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <span class="sidebar-brand-text">MalthusJAX  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Execution and Results Schema</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_3_engines_guide.html">Level 3: Engines &amp; Resource Mapper – Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_4_composer_guide.html">Level 4: The Composer 🎼</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/genome_extension_guide.html">Extending Genomes in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/population_guide.html">Populations and Genomes in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/fitness_extension_guide.html">Extending Fitness Evaluators in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/interpreter_guide.html">Extending Genome Interpreters in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/operator_extension_guide.html">Extending Genetic Operators in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/engine_extension_guide.html">Engines in MalthusJAX – Outline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/genetic_fastengine_guide.html">Deep Dive: GeneticEngine in MalthusJAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/resource_mapper_guide.html">Resource Mapper in MalthusJAX## 📚 Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/adapter_extension_guide.html">Composer Adapters in MalthusJAX## 📚 Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/plugin_architecture_guide.html">MalthusJAX Plugin Architecture &amp; Compatibility Guardrails</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/malthusjax.html">malthusjax package</a><input aria-label="Toggle navigation of malthusjax package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.benchmarking.html">malthusjax.benchmarking package</a><input aria-label="Toggle navigation of malthusjax.benchmarking package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.analysis.html">malthusjax.benchmarking.analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.cli.html">malthusjax.benchmarking.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.io.html">malthusjax.benchmarking.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.results.html">malthusjax.benchmarking.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.benchmarking.runner.html">malthusjax.benchmarking.runner module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.composer.html">malthusjax.composer package</a><input aria-label="Toggle navigation of malthusjax.composer package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.catalog.html">malthusjax.composer.catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.composer.html">malthusjax.composer.composer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.config.html">malthusjax.composer.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.engine_catalog.html">malthusjax.composer.engine_catalog module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.engine_factory.html">malthusjax.composer.engine_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.engine_registry.html">malthusjax.composer.engine_registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.evosax_adapter.html">malthusjax.composer.evosax_adapter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.node.html">malthusjax.composer.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.pipeline.html">malthusjax.composer.pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.composer.registry.html">malthusjax.composer.registry module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.genome.binary_genome.html">malthusjax.core.genome.binary_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.genome.categorical_genome.html">malthusjax.core.genome.categorical_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.genome.linear_genome.html">malthusjax.core.genome.linear_genome module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.genome.real_genome.html">malthusjax.core.genome.real_genome module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.core.base.html">malthusjax.core.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.core.random.html">malthusjax.core.random module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.engine.html">malthusjax.engine package</a><input aria-label="Toggle navigation of malthusjax.engine package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.engine.base.html">malthusjax.engine.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.engine.genetic_fastengine.html">malthusjax.engine.genetic_fastengine module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.engine.resource_mapper.html">malthusjax.engine.resource_mapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.engine.schedules.html">malthusjax.engine.schedules module</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.operators.html">malthusjax.operators package</a><input aria-label="Toggle navigation of malthusjax.operators package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.operators.crossover.html">malthusjax.operators.crossover package</a><input aria-label="Toggle navigation of malthusjax.operators.crossover package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.crossover.binary.html">malthusjax.operators.crossover.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.crossover.evosax_crossover.html">malthusjax.operators.crossover.evosax_crossover module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.crossover.real.html">malthusjax.operators.crossover.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.operators.mutation.html">malthusjax.operators.mutation package</a><input aria-label="Toggle navigation of malthusjax.operators.mutation package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.mutation.binary.html">malthusjax.operators.mutation.binary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.mutation.evosax_mutation.html">malthusjax.operators.mutation.evosax_mutation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.mutation.real.html">malthusjax.operators.mutation.real module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.operators.selection.html">malthusjax.operators.selection package</a><input aria-label="Toggle navigation of malthusjax.operators.selection package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.selection.elite_pool.html">malthusjax.operators.selection.elite_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.selection.roulette.html">malthusjax.operators.selection.roulette module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.operators.selection.tournament.html">malthusjax.operators.selection.tournament module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.operators.base.html">malthusjax.operators.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.operators.base_ablation.html">malthusjax.operators.base_ablation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/malthusjax.operators.base_injection.html">malthusjax.operators.base_injection module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for malthusjax.core.diagnostics</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Runtime process stabilization, environment sanitization, and native crash diagnostics.</span>
+
+<span class="sd">This module provides Level 1 foundational utilities to safeguard MalthusJAX against</span>
+<span class="sd">native C/C++ segmentation faults, OpenMP/BLAS thread contention on high-core HPC nodes,</span>
+<span class="sd">CUDA driver context deadlocks, and silent process crashes.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">faulthandler</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">signal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TextIO</span>
+
+<span class="n">_CRASH_HANDLER_INSTALLED</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">_PREVIOUS_HANDLERS</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Signal names mapping for readable diagnostics</span>
+<span class="n">_SIGNAL_NAMES</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">SIGSEGV</span><span class="p">:</span> <span class="s2">"SIGSEGV (Segmentation Fault - Invalid Memory Access)"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="s2">"SIGBUS"</span><span class="p">):</span>
+    <span class="n">_SIGNAL_NAMES</span><span class="p">[</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGBUS</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"SIGBUS (Bus Error - Unaligned or Non-Existent Physical Memory)"</span>
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="s2">"SIGFPE"</span><span class="p">):</span>
+    <span class="n">_SIGNAL_NAMES</span><span class="p">[</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGFPE</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"SIGFPE (Fatal Floating-Point Exception)"</span>
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="s2">"SIGABRT"</span><span class="p">):</span>
+    <span class="n">_SIGNAL_NAMES</span><span class="p">[</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGABRT</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"SIGABRT (Process Aborted by C Library or Assertion)"</span>
+
+
+<div class="viewcode-block" id="stabilize_runtime_environment">
+<a class="viewcode-back" href="../../../api/malthusjax.core.html#malthusjax.stabilize_runtime_environment">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stabilize_runtime_environment</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Stabilizes the runtime environment with safe defaults for OpenMP, BLAS, and JAX.</span>
+
+<span class="sd">    Respects pre-existing user environment variables: `os.environ.setdefault` is used</span>
+<span class="sd">    exclusively, ensuring that any explicit configuration set by the user or cluster</span>
+<span class="sd">    job scheduler is 100% preserved.</span>
+
+<span class="sd">    Can be completely disabled by setting `MALTHUSJAX_DISABLE_ENV_STABILIZATION=1`.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MALTHUSJAX_DISABLE_ENV_STABILIZATION"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"1"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">,</span> <span class="s2">"yes"</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="c1"># 1. Clamp C/Fortran math thread pools to prevent thread explosion and OpenMP</span>
+    <span class="c1"># thread pool race conditions on high-core Linux nodes (e.g. 64-128 core HPC nodes).</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="s2">"OMP_NUM_THREADS"</span><span class="p">,</span>
+        <span class="s2">"MKL_NUM_THREADS"</span><span class="p">,</span>
+        <span class="s2">"OPENBLAS_NUM_THREADS"</span><span class="p">,</span>
+        <span class="s2">"NUMEXPR_NUM_THREADS"</span><span class="p">,</span>
+        <span class="s2">"VECLIB_MAXIMUM_THREADS"</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">)</span>
+
+    <span class="c1"># 2. Prevent JAX/XLA from locking 90% of GPU VRAM on initialization.</span>
+    <span class="c1"># Enables multi-pipeline execution, side-by-side benchmarking, and shared GPU cluster usage.</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"XLA_PYTHON_CLIENT_PREALLOCATE"</span><span class="p">,</span> <span class="s2">"false"</span><span class="p">)</span>
+
+    <span class="c1"># 3. Enforce safe multiprocessing start method on POSIX systems.</span>
+    <span class="c1"># Avoids inheriting active CUDA contexts or OpenMP lock structures across fork().</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s2">"win32"</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mp</span><span class="o">.</span><span class="n">get_start_method</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mp</span><span class="o">.</span><span class="n">set_start_method</span><span class="p">(</span><span class="s2">"spawn"</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="format_crash_banner">
+<a class="viewcode-back" href="../../../api/malthusjax.core.html#malthusjax.format_crash_banner">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_crash_banner</span><span class="p">(</span><span class="n">signum</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Formats an actionable, human-readable diagnostic banner for a native crash signal."""</span>
+    <span class="n">sig_desc</span> <span class="o">=</span> <span class="n">_SIGNAL_NAMES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Signal </span><span class="si">{</span><span class="n">signum</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">cpu_count</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">1</span>
+    <span class="n">omp_val</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"OMP_NUM_THREADS"</span><span class="p">,</span> <span class="s2">"&lt;unset - defaulting to all cores&gt;"</span><span class="p">)</span>
+    <span class="n">mkl_val</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MKL_NUM_THREADS"</span><span class="p">,</span> <span class="s2">"&lt;unset&gt;"</span><span class="p">)</span>
+    <span class="n">openblas_val</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"OPENBLAS_NUM_THREADS"</span><span class="p">,</span> <span class="s2">"&lt;unset&gt;"</span><span class="p">)</span>
+    <span class="n">cuda_devs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CUDA_VISIBLE_DEVICES"</span><span class="p">,</span> <span class="s2">"&lt;all devices visible&gt;"</span><span class="p">)</span>
+    <span class="n">xla_prealloc</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">"XLA_PYTHON_CLIENT_PREALLOCATE"</span><span class="p">,</span> <span class="s2">"&lt;default (true/preallocate 90%)&gt;"</span>
+    <span class="p">)</span>
+    <span class="n">mp_method</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">get_start_method</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"default"</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">"="</span> <span class="o">*</span> <span class="mi">80</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"[MalthusJAX Crash Diagnostic Reporter] Fatal Native Crash Intercepted: </span><span class="si">{</span><span class="n">sig_desc</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"="</span> <span class="o">*</span> <span class="mi">80</span><span class="p">,</span>
+        <span class="s2">"A fatal hardware or C-level error occurred outside Python exception handling."</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"Active System Diagnostics:"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  - Platform / Python:   </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="si">}</span><span class="s2"> | Python </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  - CPU Cores Detected:  </span><span class="si">{</span><span class="n">cpu_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  - OMP_NUM_THREADS:     </span><span class="si">{</span><span class="n">omp_val</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  - MKL_NUM_THREADS:     </span><span class="si">{</span><span class="n">mkl_val</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  - OPENBLAS_NUM_THREADS:</span><span class="si">{</span><span class="n">openblas_val</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  - CUDA_VISIBLE_DEVICES:</span><span class="si">{</span><span class="n">cuda_devs</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  - XLA Preallocation:   </span><span class="si">{</span><span class="n">xla_prealloc</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  - MP Start Method:     </span><span class="si">{</span><span class="n">mp_method</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"Most Common Causes &amp; Resolutions:"</span><span class="p">,</span>
+        <span class="s2">"  1. OpenMP / BLAS Thread Contention on High-Core Linux Servers:"</span><span class="p">,</span>
+        <span class="s2">"     If running on a multi-core machine (&gt;= 16 cores), C extensions (KMeans, cKDTree,"</span><span class="p">,</span>
+        <span class="s2">"     BLAS) default to spawning threads across ALL CPU cores, conflicting with JAX."</span><span class="p">,</span>
+        <span class="s2">"     Fix: export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  2. GPU Memory (VRAM) Out of Memory / Preallocation Collision:"</span><span class="p">,</span>
+        <span class="s2">"     By default, JAX locks up to 90</span><span class="si">% o</span><span class="s2">f GPU memory at startup. When multiple pipelines,"</span><span class="p">,</span>
+        <span class="s2">"     processes, or frameworks run simultaneously on the same GPU, CUDA terminates."</span><span class="p">,</span>
+        <span class="s2">"     Fix: export XLA_PYTHON_CLIENT_PREALLOCATE=false"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  3. Process Forking with Active CUDA / JAX Runtime Handles:"</span><span class="p">,</span>
+        <span class="s2">"     Calling fork() in a process that already initialized CUDA causes driver segfaults."</span><span class="p">,</span>
+        <span class="s2">"     Fix: Ensure multiprocessing uses 'spawn' or launch jobs via the 'mjax' CLI."</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"For troubleshooting or reporting bugs, please include the trace below at:"</span><span class="p">,</span>
+        <span class="s2">"  https://github.com/LeonardoDiCaterina/MalthusJAX/issues"</span><span class="p">,</span>
+        <span class="s2">"="</span> <span class="o">*</span> <span class="mi">80</span><span class="p">,</span>
+        <span class="s2">"CPython Thread Stack Trace at Fault Site:"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_native_crash_signal_handler</span><span class="p">(</span><span class="n">signum</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Low-level signal handler invoked on SIGSEGV, SIGBUS, SIGFPE, or SIGABRT."""</span>
+    <span class="c1"># 1. Flush all active loggers so in-flight experiment logs are committed to disk</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># 2. Write diagnostic banner directly to stderr using low-level unbuffered write</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">banner</span> <span class="o">=</span> <span class="n">format_crash_banner</span><span class="p">(</span><span class="n">signum</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">banner</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># 3. Dump CPython thread stack traces</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">faulthandler</span><span class="o">.</span><span class="n">dump_traceback</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">all_threads</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># 4. Chain to previous handler if one was registered and is callable</span>
+    <span class="n">prev</span> <span class="o">=</span> <span class="n">_PREVIOUS_HANDLERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">signum</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">prev</span><span class="p">)</span> <span class="ow">and</span> <span class="n">prev</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIG_DFL</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_IGN</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">prev</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="c1"># 5. Cleanly terminate with standard POSIX signal exit code (128 + signal_number)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">_exit</span><span class="p">(</span><span class="mi">128</span> <span class="o">+</span> <span class="n">signum</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="install_crash_handler">
+<a class="viewcode-back" href="../../../api/malthusjax.core.html#malthusjax.install_crash_handler">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">install_crash_handler</span><span class="p">(</span><span class="n">enable_fault_handler</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Installs POSIX signal handlers and enables `faulthandler` for crash diagnostics.</span>
+
+<span class="sd">    Hooks `SIGSEGV`, `SIGBUS`, `SIGFPE`, and `SIGABRT` to output an actionable,</span>
+<span class="sd">    formatted diagnostic report before process termination.</span>
+
+<span class="sd">    Can be disabled by setting `MALTHUSJAX_DISABLE_CRASH_HANDLER=1`.</span>
+<span class="sd">    """</span>
+    <span class="k">global</span> <span class="n">_CRASH_HANDLER_INSTALLED</span>
+    <span class="k">if</span> <span class="n">_CRASH_HANDLER_INSTALLED</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MALTHUSJAX_DISABLE_CRASH_HANDLER"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"1"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">,</span> <span class="s2">"yes"</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Enable native CPython faulthandler</span>
+    <span class="k">if</span> <span class="n">enable_fault_handler</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">faulthandler</span><span class="o">.</span><span class="n">enable</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">all_threads</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="c1"># Trap critical native fault signals</span>
+    <span class="n">signals_to_trap</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGSEGV</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="s2">"SIGBUS"</span><span class="p">):</span>
+        <span class="n">signals_to_trap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGBUS</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="s2">"SIGFPE"</span><span class="p">):</span>
+        <span class="n">signals_to_trap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGFPE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="s2">"SIGABRT"</span><span class="p">):</span>
+        <span class="n">signals_to_trap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGABRT</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="n">signals_to_trap</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">getsignal</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">prev</span> <span class="o">!=</span> <span class="n">_native_crash_signal_handler</span><span class="p">:</span>
+                <span class="n">_PREVIOUS_HANDLERS</span><span class="p">[</span><span class="n">sig</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev</span>
+                <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">_native_crash_signal_handler</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+            <span class="c1"># Signal handling might not be permitted in non-main threads or restricted runtimes</span>
+            <span class="k">pass</span>
+
+    <span class="n">_CRASH_HANDLER_INSTALLED</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="uninstall_crash_handler">
+<a class="viewcode-back" href="../../../api/malthusjax.core.html#malthusjax.uninstall_crash_handler">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">uninstall_crash_handler</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Restores original signal handlers and disables crash interception."""</span>
+    <span class="k">global</span> <span class="n">_CRASH_HANDLER_INSTALLED</span>
+    <span class="k">for</span> <span class="n">sig</span><span class="p">,</span> <span class="n">handler</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">_PREVIOUS_HANDLERS</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+            <span class="k">pass</span>
+    <span class="n">_PREVIOUS_HANDLERS</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">_CRASH_HANDLER_INSTALLED</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="get_environment_diagnostics">
+<a class="viewcode-back" href="../../../api/malthusjax.core.html#malthusjax.get_environment_diagnostics">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_environment_diagnostics</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Inspects the active runtime and returns a structured health diagnostics dictionary."""</span>
+    <span class="n">cpu_count</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">1</span>
+    <span class="n">omp_threads</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"OMP_NUM_THREADS"</span><span class="p">)</span>
+    <span class="n">mkl_threads</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MKL_NUM_THREADS"</span><span class="p">)</span>
+    <span class="n">openblas_threads</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"OPENBLAS_NUM_THREADS"</span><span class="p">)</span>
+    <span class="n">xla_prealloc</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"XLA_PYTHON_CLIENT_PREALLOCATE"</span><span class="p">)</span>
+    <span class="n">cuda_devs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CUDA_VISIBLE_DEVICES"</span><span class="p">)</span>
+
+    <span class="n">warnings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"linux"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cpu_count</span> <span class="o">&gt;=</span> <span class="mi">16</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">omp_threads</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">omp_threads</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">omp_threads</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"High CPU core count (</span><span class="si">{</span><span class="n">cpu_count</span><span class="si">}</span><span class="s2">) with unconstrained OMP_NUM_THREADS=</span><span class="si">{</span><span class="n">omp_threads</span><span class="si">}</span><span class="s2">. "</span>
+                <span class="s2">"OpenMP may collide with JAX; recommend setting OMP_NUM_THREADS=1."</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">xla_prealloc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">xla_prealloc</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"true"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="s2">"XLA_PYTHON_CLIENT_PREALLOCATE is active or unset. "</span>
+            <span class="s2">"JAX will preallocate 75-90</span><span class="si">% o</span><span class="s2">f GPU VRAM; recommend setting to 'false' for multi-pipeline runs."</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"platform"</span><span class="p">:</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">,</span>
+        <span class="s2">"python_version"</span><span class="p">:</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="s2">"cpu_count"</span><span class="p">:</span> <span class="n">cpu_count</span><span class="p">,</span>
+        <span class="s2">"omp_num_threads"</span><span class="p">:</span> <span class="n">omp_threads</span><span class="p">,</span>
+        <span class="s2">"mkl_num_threads"</span><span class="p">:</span> <span class="n">mkl_threads</span><span class="p">,</span>
+        <span class="s2">"openblas_num_threads"</span><span class="p">:</span> <span class="n">openblas_threads</span><span class="p">,</span>
+        <span class="s2">"numexpr_num_threads"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"NUMEXPR_NUM_THREADS"</span><span class="p">),</span>
+        <span class="s2">"veclib_maximum_threads"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"VECLIB_MAXIMUM_THREADS"</span><span class="p">),</span>
+        <span class="s2">"xla_python_client_preallocate"</span><span class="p">:</span> <span class="n">xla_prealloc</span><span class="p">,</span>
+        <span class="s2">"cuda_visible_devices"</span><span class="p">:</span> <span class="n">cuda_devs</span><span class="p">,</span>
+        <span class="s2">"multiprocessing_start_method"</span><span class="p">:</span> <span class="n">mp</span><span class="o">.</span><span class="n">get_start_method</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="s2">"crash_handler_installed"</span><span class="p">:</span> <span class="n">_CRASH_HANDLER_INSTALLED</span><span class="p">,</span>
+        <span class="s2">"warnings"</span><span class="p">:</span> <span class="n">warnings</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="print_environment_diagnostics">
+<a class="viewcode-back" href="../../../api/malthusjax.core.html#malthusjax.print_environment_diagnostics">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_environment_diagnostics</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextIO</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Formats and prints an environment health card to the given output stream."""</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">stream</span> <span class="k">if</span> <span class="n">stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="n">diag</span> <span class="o">=</span> <span class="n">get_environment_diagnostics</span><span class="p">()</span>
+
+    <span class="n">status_tag</span> <span class="o">=</span> <span class="s2">"[WARNING]"</span> <span class="k">if</span> <span class="n">diag</span><span class="p">[</span><span class="s2">"warnings"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">"[OK]"</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">"="</span> <span class="o">*</span> <span class="mi">70</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">status_tag</span><span class="si">}</span><span class="s2"> MalthusJAX Environment &amp; HPC Diagnostics"</span><span class="p">,</span>
+        <span class="s2">"="</span> <span class="o">*</span> <span class="mi">70</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"Platform / Python:    </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'platform'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (Python </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'python_version'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"CPU Cores Detected:   </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'cpu_count'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"OMP_NUM_THREADS:      </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'omp_num_threads'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'&lt;unset&gt;'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"MKL_NUM_THREADS:      </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'mkl_num_threads'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'&lt;unset&gt;'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"OPENBLAS_NUM_THREADS: </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'openblas_num_threads'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'&lt;unset&gt;'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"XLA Preallocation:    </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'xla_python_client_preallocate'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'&lt;default&gt;'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"CUDA_VISIBLE_DEVICES: </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'cuda_visible_devices'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'&lt;all&gt;'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"Multiprocessing:      </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">'multiprocessing_start_method'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'&lt;default&gt;'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"Crash Handler:        </span><span class="si">{</span><span class="s1">'Active'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">diag</span><span class="p">[</span><span class="s1">'crash_handler_installed'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'Inactive'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">diag</span><span class="p">[</span><span class="s2">"warnings"</span><span class="p">]:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"-"</span> <span class="o">*</span> <span class="mi">70</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"Warnings &amp; Recommendations:"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">diag</span><span class="p">[</span><span class="s2">"warnings"</span><span class="p">]:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - </span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"-"</span> <span class="o">*</span> <span class="mi">70</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"Status: Environment configuration is optimized for JAX execution."</span><span class="p">)</span>
+
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"="</span> <span class="o">*</span> <span class="mi">70</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Leonardo Di Caterina
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    </body>
+</html>
