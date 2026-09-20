@@ -52,17 +52,75 @@ MalthusJAX supports continuous, combinatorial, categorical, and experimental pro
 | **Real** | `real_genome.py` | `float32` arrays | Bounds clipping via `autocorrect()`, L2 normalization, Euclidean/Manhattan distance |
 | **Binary** | `binary_genome.py` | `{0,1}` integer bits | Bit-to-int conversion (`to_int()`), Hamming/Euclidean distance |
 | **Categorical** | `categorical_genome.py` | `int32` category IDs | Permutation validation (`is_permutation()`), swap utilities, Hamming/Euclidean/Manhattan distance |
-| **Linear GP** *(Exp)* | `linear_genome.py` | `(ops, args)` DAG instructions | DAG validity enforcement, assembly rendering (`render()`), XLA `lax.switch` interpreter |
+| **Series** | `series_genome.py` | 2D `(time, features)` arrays | Temporal/feature-axis operators, sequence bounds enforcement |
+| **Linear GP** | `linear_genome.py` | `(ops, args)` DAG arrays | Linear Genetic Programming (MEP), DAG causality validation, fast sequence execution |
+| **Cartesian GP** | `cartesian_genome.py` | 2D `(nodes, arity)` integers | Cartesian Genetic Programming (CGP), topological levels-back constraints via pure JAX masks |
+| **TensorNEAT** | `tensorneat_genome.py` | Graph nodes & connections | Variable-topology neuroevolution networks, compatible with structural mutations and Emitters |
 
 ---
 
-## 4. Fitness Evaluators (`malthusjax.core.fitness`)
+## 4. Composable Fitness Evaluators (`malthusjax.core.fitness`)
 
-All evaluators adhere to the framework-wide minimization contract (`maximize=False` returns lower-is-better scalar values).
+MalthusJAX decouples objective evaluation using a 4-axis **Composable Evaluator Architecture**:
 
-### Evaluator Suite
-- **BBOB Suite** (`bbob_evaluator.py`): Wraps standard black-box optimization benchmarking problems via `BBOBEvaluator`.
-- **Continuous Evaluators** (`real_evaluators.py`): `SphereEvaluator`, `GriewankEvaluator`, `BoxEvaluator`.
-- **Combinatorial Evaluators** (`binary_evaluators.py`): `BinarySumEvaluator` (OneMax), `KnapsackEvaluator` (0/1 Knapsack with linear penalty).
-- **Permutation Evaluators** (`tsp_evaluator.py`): `TSPEvaluator` for Traveling Salesperson Problem permutation decoding.
-- **Stochastic Evaluators** (`StochasticEvaluator`): Handles PRNG key splitting per individual for noisy/stochastic fitness landscapes.
+$$\text{Evaluator} = \text{Shell}(\text{Environment} \times \text{Transform} \times \text{Interpreter} \times \text{Output})$$
+
+This eliminates the coupling between genome decoding and problem environments, allowing any genome representation to be evaluated against any task.
+
+### Composable Task Shells (`composable/evaluators.py`)
+- **`OptimizationEvaluator`**: Continuous functions, physics simulations, combinatorial optimization, and analytical benchmarks.
+- **`SupervisedEvaluator`**: Supervised learning datasets `(X, y)` computing regression or classification losses.
+- **`RLEvaluator`**: Dynamic rollout-based evaluations in reinforcement learning environments (`reset` / `step`).
+
+### Core Composable Primitives (`composable/base.py`)
+- **Environment** (`BaseOptimizationEnvironment`, `BaseSupervisedEnvironment`, `BaseRLEnvironment`): Problem logic or dataset definitions.
+- **Transform** (`BaseTransform`): Genotype-to-phenotype transformation (e.g., `IdentityTransform`, `TensorNeatTransform`).
+- **Interpreter** (`BaseInterpreter`): Decodes genome payloads into callable actions, MLPs, or programs (e.g., `IdentityInterpreter`, `LinearGPInterpreter`).
+- **Output** (`ScalarOutput`, `QDOutput`, `MOOutput`): Handles fitness aggregation, optimization direction (`maximize=True/False`), multi-objective metrics, and QD descriptors.
+
+### Out-of-the-Box Evaluators & Benchmarks
+- **BBOB-JAX** (`bbobax_evaluator.py`): Pure JAX implementation of the 24 Black-Box Optimization Benchmarks (`BBOBAXEvaluator`).
+- **Combinatorial Evaluators** (`binary_evaluators.py`): `BinarySumEvaluator` (OneMax), `KnapsackEvaluator` (0/1 Knapsack with differentiable penalty).
+- **Linear GP Evaluators** (`linear_gp_evaluator.py`): Sequence and expression evaluation for Linear Genetic Programming.
+- **Third-Party Bridges**: Native adapters for Google Brax, Gymnax, and Instadeep Jumanji.
+
+---
+
+## 5. Unified Logging & Telemetry Subsystem (`malthusjax.core.logger`)
+
+Level 1 provides a zero-dependency, hierarchical logging subsystem complying with PEP 282 (library silence by default via `NullHandler`).
+
+**Public API:**
+- `get_logger(name=None)`: Retrieves hierarchical logger under `"malthusjax.*"`.
+- `configure_logging(level="INFO", log_file=None, format_type="color", show_timestamps=False)`: Configures ANSI colored or JSON console and file loggers.
+- `set_log_level(level)`: Dynamically changes subsystem logging thresholds.
+- `StepLoggingConfig(log_interval=None, log_nan_watchdog=True)`: Controls device-to-host telemetry (`jax.debug.callback`).
+
+**Usage:**
+```python
+from malthusjax.core import get_logger, configure_logging
+
+# Configure console logging
+configure_logging(level="DEBUG")
+logger = get_logger("my_subsystem")
+logger.info("Level 1 foundation initialized.")
+```
+
+---
+
+## 6. Runtime Stabilization & Crash Diagnostics (`malthusjax.core.diagnostics`)
+
+Level 1 includes automatic process stabilization and native crash diagnostics to protect production runs and external users on high-core HPC nodes and multi-GPU servers.
+
+**Public API:**
+- `stabilize_runtime_environment()`: Clamps unconstrained C/Fortran math thread pools (`OMP_NUM_THREADS="1"`, `MKL_NUM_THREADS="1"`, `OPENBLAS_NUM_THREADS="1"`, `NUMEXPR_NUM_THREADS="1"`, `VECLIB_MAXIMUM_THREADS="1"`), sets `XLA_PYTHON_CLIENT_PREALLOCATE="false"`, and configures `multiprocessing` to use `"spawn"` on POSIX. Always uses `setdefault` so user settings are never overwritten.
+- `install_crash_handler(enable_fault_handler=True)`: Hooks `SIGSEGV`, `SIGBUS`, `SIGFPE`, and `SIGABRT`. Intercepts native C/CUDA crashes, flushes active loggers to preserve in-flight experiment data, writes a diagnostic report to `sys.stderr`, and dumps thread tracebacks.
+- `uninstall_crash_handler()`: Restores original system signal handlers.
+- `get_environment_diagnostics() -> Dict[str, Any]`: Returns a structured dictionary of hardware and runtime settings with actionable warnings.
+- `print_environment_diagnostics(stream=None)`: Displays the environment health card.
+
+**Environment Overrides & Opt-Outs:**
+- `MALTHUSJAX_DISABLE_ENV_STABILIZATION=1`: Disables automatic environment clamping.
+- `MALTHUSJAX_DISABLE_CRASH_HANDLER=1`: Disables POSIX crash signal interception.
+
+

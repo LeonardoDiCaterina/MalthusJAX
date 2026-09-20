@@ -20,12 +20,13 @@ except ImportError:
 
 @pytest.mark.skipif(not TENSORNEAT_AVAILABLE, reason="tensorneat is not installed")
 def test_tensorneat_native_evaluator():
-    """Verify TensorNeatQDEvaluator correctly intercepts and evaluates populations."""
-    from malthusjax.core.fitness.qd.tensorneat_evaluator import (
-        TensorNeatEvaluatorConfig,
-        TensorNeatQDEvaluator,
-    )
+    """Verify TensorNeatEvaluator correctly intercepts and evaluates populations."""
+    from malthusjax.core.fitness.composable.base import ScalarOutput
+    from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
+    from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
     from malthusjax.core.genome.tensorneat_genome import TensorNeatGenome, TensorNeatPopulation
+    from plugins.tensor_neat_transform import TensorNeatTransform
 
     problem = XOR()
     genome = DefaultGenome(num_inputs=2, num_outputs=1, max_nodes=10, max_conns=20)
@@ -42,12 +43,13 @@ def test_tensorneat_native_evaluator():
     genes = TensorNeatGenome(values=pop_values)
     dummy_pop = TensorNeatPopulation(genes=genes, fitness=jnp.zeros(10), config=None)
 
-    # 3. Evaluate
-    evaluator = TensorNeatQDEvaluator.create(
-        algorithm=algorithm,
-        problem=problem,
+    evaluator = TensorNeatEvaluator(
+        env=TensorNEATProblemWrapper(problem=problem),
+        transform=TensorNeatTransform(algorithm=algorithm),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(),
         forward_fn=algorithm.forward,
-        config=TensorNeatEvaluatorConfig(seed=42),
+        seed=42,
     )
 
     evaluated_pop = evaluator.evaluate_population(dummy_pop)

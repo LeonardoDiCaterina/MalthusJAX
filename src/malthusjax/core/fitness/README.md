@@ -1,253 +1,161 @@
-# malthusjax.core.fitness — Technical Specification & Architecture
+# `malthusjax.core.fitness` — Composable Evaluator Architecture & Reference
 
-This document describes how MalthusJAX handles candidate evaluation in a JAX-native way. It targets developers who will implement new evaluators, adapt external benchmarks, or integrate domain-specific data into fitness pipelines.
+`malthusjax.core.fitness` defines how candidates are evaluated across benchmark problems, datasets, and dynamical simulations in **MalthusJAX**.
 
----
-
-## 1) The Abstract Evaluator Paradigm
-
-### Core idea
-- The package exposes an abstract `BaseEvaluator[G, C, D]` that separates a single-individual evaluation from population-level execution.
-- `G` is a `BaseGenome` subtype, `C` is a `BaseEvaluatorConfig` subtype, and `D` is an arbitrary data payload (e.g., `RegressionData`).
-
-### Functional split
-- `evaluate(self, genome: G) -> chex.Numeric` — implement the per-individual math here. It receives a single (non-batched) genome instance.
-- `evaluate_population(self, population: BasePopulation[G]) -> BasePopulation[G]` — implemented in `BaseEvaluator` and uses `jax.vmap(self.evaluate)` to run the per-individual function across the leading axis of the population `genes` PyTree.
-
-Why this design:
-- Developers only write the scalar/vector math for one genome and get a highly-optimized, batched evaluation for free via `vmap`.
-- This keeps implementations small, testable, and JIT-friendly.
+MalthusJAX separates candidate evaluation into a modular, 4-axis **Composable Evaluator Architecture** that eliminates the coupling between genome representations and problem environments.
 
 ---
 
-## 2) Type-Safe Configuration
+## 1. The Composable Evaluator Paradigm
 
-`BaseEvaluatorConfig` is a minimal Flax dataclass used by all evaluators. Important points:
+In monolithic evolutionary frameworks, evaluators tightly bundle genome decoding, dataset interactions, and fitness scoring into single bespoke classes. This creates a combinatorial explosion: evaluating a new genome encoding on an existing problem requires writing a brand-new evaluator class from scratch.
 
-- **maximize: bool** is mandatory and explicit in every evaluator config.
-  - This single boolean makes the optimization direction explicit (Maximization vs Minimization).
-  - Engines and selection operators rely on this to compare and sort candidates consistently.
+MalthusJAX decomposes candidate evaluation into four orthogonal axes:
 
-Table — common config fields
+$$\text{Evaluator} = \text{TaskShell}(\text{Environment} \times \text{Transform} \times \text{Interpreter} \times \text{Output})$$
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `maximize` | bool | If True, higher fitness is better. Must be set by the problem author. |
-| `seed`, `fn_name`, `target`, ... | domain-dependent | Other fields should be annotated with `pytree_node=False` if they are static/config-only.
-
----
-
-## 3) Handling Optimization Direction (Avoiding Python control flow)
-
-- Inside `evaluate` implementations prefer `jax.lax.select(condition, true_val, false_val)` to flip the sign or choose between outcomes depending on `config.maximize`.
-- Do **not** use Python `if/else` on `config.maximize` inside JIT-traced functions — that would create separate XLA graphs and can cause recompilation or runtime errors.
-
-Example:
-
-```py
-# prefer this inside evaluate()
-val = compute_objective(...)
-return jax.lax.select(self.config.maximize, val, -val)
-
-# avoid this pattern inside a JIT-traced function
-if self.config.maximize:
-    return val
-else:
-    return -val
+```mermaid
+graph LR
+    Genome["Genome PyTree"] --> Transform["Transform (Genotype → Phenotype)"]
+    Transform --> Interpreter["Interpreter (Decoding / Policy Call)"]
+    Interpreter --> Environment["Environment (Task / Dataset / Rollout)"]
+    Environment --> Output["Output (Scalar / MO / QD)"]
+    Output --> Fitness["Fitness & State Transition"]
 ```
 
-Reason: `jax.lax.select` composes into the single XLA graph, keeping JIT compilation stable and the runtime efficient.
+### Why This Matters:
+- **Zero Combinatorial Explosion**: Any genome encoding (Real, Binary, Linear GP, TensorNEAT) can be plugged into any task (Analytical, Supervised, Reinforcement Learning).
+- **Pure JAX Transformations**: Every stage is a pure function or `@struct.dataclass` PyTree compatible with `jax.vmap`, `jax.jit`, and `jax.lax.scan`.
+- **Stateless & Type-Safe**: Problem datasets and static configurations are marked with `pytree_node=False` to prevent unnecessary JIT re-tracing.
 
 ---
 
-## 4) Static Configuration and Data Storage
+## 2. The Three Composable Task Shells (`composable/evaluators.py`)
 
-All evaluators follow a consistent pattern for handling configuration and problem-specific data:
+All evaluations are orchestrated through one of three composable task shells:
 
-- **Config field (`C`)**: Stored as a `@struct.dataclass` with `pytree_node=False` to mark it as static. This prevents JAX from treating config as trainable state and avoids embedding it repeatedly into JIT traces.
-- **Data field (`D`)**: Stored with `pytree_node=False` annotation. This ensures large or immutable problem data (training sets, distance matrices, lookup tables) remains static across `vmap` and `jit` operations.
+### 1. `OptimizationEvaluator`
+- **Use Case**: Continuous benchmark functions, physics parameters, direct mathematical objectives, and combinatorial search.
+- **Evaluation Flow**:
+  1. `phenotype = transform(genome)`
+  2. `candidate = interpreter(phenotype)`
+  3. `raw_score = env.evaluate(candidate)`
+  4. `fitness = output(raw_score)`
 
-Example pattern:
-```py
-@struct.dataclass
-class MyEvaluatorConfig(BaseEvaluatorConfig):
-    param1: int = struct.field(pytree_node=False)
-    param2: str = struct.field(pytree_node=False)
+### 2. `SupervisedEvaluator`
+- **Use Case**: Dataset-driven regression or classification tasks `(X, y)`.
+- **Evaluation Flow**:
+  1. `phenotype = transform(genome)`
+  2. `predictor = interpreter(phenotype)`
+  3. `y_pred = predictor(env.X)`
+  4. `loss = env.compute_loss(y_pred, env.y)`
+  5. `fitness = output(loss)`
 
-@struct.dataclass
-class MyEvaluator(BaseEvaluator[G, MyEvaluatorConfig, D]):
-    config: MyEvaluatorConfig
-    data: D = struct.field(pytree_node=False)  # Mark large data as static
-```
-
-This pattern ensures:
-- Configuration changes don't require recompilation of JIT code
-- Large datasets aren't copied unnecessarily during vectorization
-- Evaluators remain pure functions from the JAX perspective
-
----
-
-## 5) Specialized Evaluator Implementations
-
-The repository includes several evaluator categories with canonical implementations:
-
-- **Analytical Evaluators** (e.g., `SphereEvaluator`, `GriewankEvaluator`)
-  - Operate directly on `RealGenome.values` and implement classic continuous test functions.
-  - Return a scalar `chex.Numeric` and use `jax.lax.select` to apply `maximize` consistently.
-
-- **Combinatorial Evaluators** (e.g., `KnapsackEvaluator`)
-  - Work on discrete genomes like `BinaryGenome`.
-  - Accept either static problem data or a fully-specified `KnapsackConfig` with `weights`, `values`, and `capacity`.
-  - Use vectorized linear algebra (dot products) and linear penalty terms for constraint violations:
-    - Penalty is constructed using differentiable-friendly ops such as `jnp.maximum(0, excess)` so the evaluator remains JIT-friendly.
-
-- **BBOB Adapter** (`BBOBEvaluator`) — wrapping external packages (evosax)
-  - Uses evosax `BBOBProblem` under the hood and leverages its high-performance (batch) API for population evaluation.
-  - Handles sign convention internally: MalthusJAX engines always maximize, so for `maximize=False` problems, the evaluator negates the raw evosax score (turning minimization into maximization of the negated objective).
-  - Stores problem instance and state as static (`pytree_node=False`) non-PyTree fields to avoid recompilation.
-  - Example pattern: `fitness_scores, state, info = self.evosax_problem.eval(keys, X, self.evosax_state)` and then update population with `.replace(fitness=fitness_scores)`.
-
-- **TSP (Traveling Salesman Problem)** (`TSPEvaluator`)
-  - Solves the classic TSP using a distance matrix and a real-valued genome encoding (Random Key permutation).
-  - **Encoding**: Uses `RealGenome` values where `argsort(genome.values)` produces a city tour permutation. This "random key" encoding avoids explicit permutation genomes while leveraging continuous operators.
-  - **Distance matrix**: Stored as evaluator data; can be generated synthetically `create_synthetic(num_cities, seed)` or loaded from file `create_from_data(config, distance_matrix)`.
-  - **Computation**: Computes total tour distance via `distance_matrix[tour, roll(tour)]` and returns distance (for minimization) or negated distance (for maximization).
+### 3. `RLEvaluator`
+- **Use Case**: Dynamic MDP episode rollouts (Brax, Gymnax, Jumanji).
+- **Evaluation Flow**:
+  1. `policy = interpreter(transform(genome))`
+  2. Steps through `env.reset()` and `env.step()` using `jax.lax.scan` for `max_steps`
+  3. Accumulates trajectory rewards
+  4. `fitness = output(total_reward, trajectory_info)`
 
 ---
 
-## 6) Data Management
+## 3. The Four Core Primitives (`composable/base.py`)
 
-- Static problem data such as training sets, distance matrices, and lookup tables should be stored in the `data` field of your evaluator and marked with `pytree_node=False`.
-- `RegressionData` is a type alias: `RegressionData = Tuple[chex.Array, chex.Array]` representing `(X, y)`.
-- For deterministic or static datasets, store them as `chex.Array` objects to be carried efficiently in JIT traces.
-- Example: `TSPEvaluator` stores a distance matrix; `BBOBEvaluator` stores the evosax problem state.
+### Axis 1: Environment (`BaseEnvironment`)
+Defines the task domain, dataset, or dynamical simulator:
+- **`BaseOptimizationEnvironment`**: Exposes `evaluate(solution: chex.Array) -> chex.Numeric`.
+- **`BaseSupervisedEnvironment`**: Stores dataset `data: Tuple[chex.Array, chex.Array] = (X, y)` marked with `pytree_node=False`.
+- **`BaseRLEnvironment`**: Implements `reset(key)` and `step(state, action, key)`.
 
----
+### Axis 2: Transform (`BaseTransform[G]`)
+Translates the raw genetic representation into a decoded phenotype:
+- **`IdentityTransform`**: Passes the genome through unchanged (default for direct encoding).
+- **`TensorNeatTransform`**: Normalizes and structures variable-topology graph tensors.
 
-## 7) Implementation Best Practices — Developer's Checklist
+### Axis 3: Interpreter (`BaseInterpreter[G]`)
+Transforms the phenotype into an executable callable:
+- **`IdentityInterpreter`**: Uses raw array values directly as the solution.
+- **`LinearGPInterpreter`**: Executes Linear GP / MEP opcode sequences across input features.
+- **`MLPInterpreter`**: Reshapes flat weight arrays into a neural network forward function.
 
-When adding a new evaluator, follow this checklist to ensure compatibility with MalthusJAX engines and JAX tracing:
-
-1. Use `chex.Numeric` as the return type for `evaluate` to avoid tracer-vs-float conflicts.
-2. Make evaluators pure and free of side effects. Avoid random draws inside `evaluate` unless you accept non-determinism; prefer passing RNGs explicitly where needed.
-3. Use `jax.lax.select` for decisions depending on `config.maximize` so the code is compatible with `jit` and produces a single XLA graph.
-4. Handle numerical stability explicitly (examples):
-   - Protected division: `jnp.where(jnp.abs(y) < eps, 0.0, x / y)`
-   - Log-domain math: `jnp.where(x > 0, jnp.log(x), fallback)`
-   - Use `jnp.nan_to_num` when operations (e.g., division, trigonometric functions) can produce NaNs/inf.
-5. Type-safe population updates: When returning a new population with updated `fitness`, use the Flax `.replace` pattern while satisfying MyPy and Flax typing:
-
-```py
-from typing import Any, cast
-
-return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
-```
-
-6. If you need to dispatch among many small functions (e.g., tensor GP op-codes), prefer `jax.lax.switch` to keep control flow inside the XLA graph.
-7. Mark truly static config values with `pytree_node=False` to avoid embedding large arrays into the JIT trace as mutable nodes.
-8. Add a factory method for complex third-party adapters (e.g., `BBOBEvaluator.create(config)`) so initialization (problem state, rotations, seeds) is explicit and separable from JIT-time evaluation.
+### Axis 4: Output (`BaseOutput`)
+Standardizes objective values and optimization direction:
+- **`ScalarOutput(maximize=True/False)`**: Normalizes scalar fitness. Handles minimization/maximization sign conventions.
+- **`MOOutput`**: Manages multi-objective score vectors for Pareto ranking (`MOEngine`).
+- **`QDOutput`**: Extracts behavioral descriptors and fitness pairs for MAP-Elites archives (`QDEngine`).
 
 ---
 
-## 8) Quick Examples
+## 4. Built-in Benchmark Evaluators
 
-- Vectorized evaluation using an existing evaluator:
+In addition to custom composable setups, MalthusJAX includes standard out-of-the-box evaluators:
 
-```py
-# given: evaluator: BaseEvaluator and population: BasePopulation[G]
-# vectorized (and JIT-able) evaluation is a single call
-new_pop = evaluator.evaluate_population(population)
-# new_pop.fitness now contains a batched fitness array
+### BBOB-JAX (`bbobax_evaluator.py`)
+- High-performance, pure-JAX implementation of the 24 Black-Box Optimization Benchmarking (BBOB) functions.
+- Integrates seamlessly with `BBOBAXEvaluator(config=BBOBAXConfig(fn_name="sphere", dim=10))`.
+- Operates natively over `RealPopulation` using vectorized batch operations.
+
+### Combinatorial Evaluators (`binary_evaluators.py`)
+- **`BinarySumEvaluator`**: Classic OneMax problem for discrete search verification.
+- **`KnapsackEvaluator`**: 0/1 Knapsack problem featuring a differentiable constraint violation penalty:
+  $$\text{penalty} = \lambda \cdot \max(0, \text{weight} - \text{capacity})$$
+
+### Linear GP Evaluator (`linear_gp_evaluator.py`)
+- Fast linear instruction sequence evaluator for Multi-Expression Programming (MEP) with symbiotic best-node tracking.
+
+---
+
+## 5. Quickstart & Usage Examples
+
+### Example 1: Composing a 3-Line Optimization Evaluator
+```python
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from plugins.binary_sum_env import BinarySumEnv
+
+# Compose: Environment + Transform + Interpreter + Output
+evaluator = OptimizationEvaluator(
+    env=BinarySumEnv(),
+    transform=IdentityTransform(),
+    interpreter=IdentityInterpreter(),
+    output=ScalarOutput(maximize=True),
+)
+
+# Evaluate a batched population in parallel on the GPU
+evaluated_pop = evaluator.evaluate_population(population)
 ```
 
-- Creating and evaluating a knapsack problem
-
-```py
-from malthusjax.core.fitness.binary_evaluators import KnapsackEvaluator
-from malthusjax.core.fitness.binary_evaluators import KnapsackConfig
-
-# create problem
-config = KnapsackEvaluator.create_random_problem(jax.random.PRNGKey(0), n_items=20)
-knapsack = KnapsackEvaluator(config=config)
-
-# The evaluator may also be constructed with explicit `data` if desired:
-# weights = jnp.array([...]); values = jnp.array([...]); capacity = 10.0
-# knapsack = KnapsackEvaluator(config=config, data=KnapsackData(weights=weights, values=values))
-
-# evaluate population
-pop = ...  # some BasePopulation[BinaryGenome]
-pop = knapsack.evaluate_population(pop)
-```
-
-- Creating and evaluating a TSP instance
-
-```py
-from malthusjax.core.fitness.tsp_evaluator import TSPEvaluator
-
-# create synthetic TSP with 50 cities
-tsp = TSPEvaluator.create_synthetic(num_cities=50, seed=42)
-
-# evaluate population
-pop = ...  # some BasePopulation[RealGenome] with 50 dimensions
-pop = tsp.evaluate_population(pop)
-```
-
-- Setting up and evaluating a Linear Genetic Programming (Linear GP) evaluator
-
-```py
-import jax
+### Example 2: Composing a Supervised Learning Evaluator
+```python
 import jax.numpy as jnp
-from malthusjax.core.fitness.linear_gp_evaluator import (
-    LinearGPEvaluator,
-    LinearGPEvaluatorConfig,
+from malthusjax.core.fitness.composable.evaluators import SupervisedEvaluator
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from plugins.linear_gp_interpreter import LinearGPInterpreter
+
+# Dataset (X, y)
+X = jnp.ones((100, 4))
+y = jnp.zeros((100, 1))
+
+evaluator = SupervisedEvaluator(
+    env=CustomSupervisedEnv(data=(X, y)),
+    transform=IdentityTransform(),
+    interpreter=LinearGPInterpreter(),
+    output=ScalarOutput(maximize=False),  # Minimize MSE
 )
-from malthusjax.core.genome.linear_genome import LinearGenome
-
-# Create regression data (X, y tuple)
-X = jnp.array([
-    [1.0, 2.0, 3.0],
-    [4.0, 5.0, 6.0],
-    [7.0, 8.0, 9.0],
-])
-y = jnp.array([6.0, 15.0, 24.0])
-
-# Setup evaluator
-config = LinearGPEvaluatorConfig(
-    num_inputs=3,      # 3 input features
-    length=5,          # 5 instructions
-    maximize=False     # minimize MSE
-)
-evaluator = LinearGPEvaluator(config=config, data=(X, y))
-
-# Create a linear genome with 5 instructions
-ops = jnp.array([0, 1, 2, 3, 4])  # operation codes (ADD, SUB, MUL, DIV, ABS)
-args = jnp.array([
-    [0, 1, 2],  # Instruction 0: READ inputs 0,1,2
-    [0, 1, 2],  # Instruction 1
-    [1, 2, 0],  # Instruction 2
-    [2, 3, 1],  # Instruction 3
-    [3, 1, 2],  # Instruction 4
-])
-genome = LinearGenome(ops=ops, args=args)
-
-# Evaluate single genome: predict all instruction outputs on all data points
-all_predictions = jax.vmap(
-    evaluator.predict_one, in_axes=(None, 0)
-)(genome, X)
-print(f"Shape: {all_predictions.shape}")  # (num_samples, num_instructions)
-
-# Get fitness (negative MSE via symbiotic selection)
-fitness = evaluator.evaluate(genome)
-
-# Evaluate population
-pop = ...  # some BasePopulation[LinearGenome]
-pop = evaluator.evaluate_population(pop)
 ```
 
 ---
 
-## 9) Final Notes
+## 6. JAX & XLA Compilation Best Practices
 
-- The package emphasizes single-responsibility evaluator implementations (single-individual math) combined with the SoA structure and `vmap` for efficient batched execution.
-- Following the developer checklist will keep new evaluators robust, JIT-friendly, and consistent with engine semantics (maximize/minimize).
+To guarantee that evaluators fuse efficiently inside `jax.lax.scan` and `jax.jit` loops:
 
+1. **Avoid Python Control Flow on Dynamic Data**:
+   Never use Python `if/else` on evaluated candidate values or dynamic booleans. Use `jax.lax.select` or `jnp.where` so the compiler generates a single fused XLA computation graph.
+2. **Mark Large or Static Data with `pytree_node=False`**:
+   Datasets, lookup tables, and environment configs must be annotated with `struct.field(pytree_node=False)`. This ensures JAX treats them as static metadata rather than flattening them into active PyTree leaves.
+3. **Keep Return Types Type-Stable**:
+   Ensure `evaluate()` returns `chex.Numeric` or `chex.Array` with consistent shape and dtype across all execution paths.

@@ -84,3 +84,9 @@ tests in each problem's `tests` dict are not part of the correction pool.
   affect the formal decision or get corrected for multiple comparisons.
 - `decision_reliable` currently only checks normality for parametric bases; it
   doesn't check other test assumptions (e.g. Wilcoxon's symmetry assumption).
+
+## Structured Logging
+
+The statistical analysis layer emits diagnostic and anomaly logs through MalthusJAX's unified logging system:
+- **`malthusjax.stats.regression`**: Emits `WARNING` level logs when OLS scaling regressions encounter numerical singularities or collinearity failures during suite analysis.
+

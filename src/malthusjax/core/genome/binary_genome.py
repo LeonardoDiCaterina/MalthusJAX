@@ -205,7 +205,11 @@ class BinaryGenome(BaseGenome):
 
     def flip_bit(self, index: int) -> BinaryGenome:
         """Toggle bit at index via JAX .at[index].set() functional update."""
-        new_values = self.values.at[index].set(1 - self.values[index])
+        if self.values.dtype == jnp.bool_:
+            new_val = ~self.values[index]
+        else:
+            new_val = 1 - self.values[index]
+        new_values = self.values.at[index].set(new_val)
         return cast(BinaryGenome, cast(Any, self).replace(values=new_values))
 
     def __repr__(self) -> str:

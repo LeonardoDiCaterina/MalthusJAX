@@ -1,7 +1,7 @@
 import pytest
 
 from malthusjax.composer.catalog import OperatorCatalog
-from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.selection.tournament import TournamentSelection
 
@@ -80,8 +80,8 @@ def test_get_fitness_evaluator():
     catalog = OperatorCatalog()
 
     evaluator = catalog.get("sphere:dim=10")
-    assert isinstance(evaluator, BBOBEvaluator)
-    assert evaluator.config.num_dims == 10
+    assert isinstance(evaluator, OptimizationEvaluator)
+    assert evaluator.env.num_dims == 10
 
 
 def test_unknown_operator():
@@ -141,15 +141,15 @@ def test_bbob_evaluator():
 
     # Test basic BBOB creation
     bbob_eval = catalog.get("bbob:fn_name=sphere,dim=5")
-    assert isinstance(bbob_eval, BBOBEvaluator)
+    assert isinstance(bbob_eval, OptimizationEvaluator)
 
     # Test with different parameters
     bbob_eval2 = catalog.get("bbob:fn_name=rastrigin,dim=10,maximize=False,seed=123")
-    assert isinstance(bbob_eval2, BBOBEvaluator)
+    assert isinstance(bbob_eval2, OptimizationEvaluator)
 
     # Test default parameters
     bbob_eval3 = catalog.get("bbob")  # Should use defaults
-    assert isinstance(bbob_eval3, BBOBEvaluator)
+    assert isinstance(bbob_eval3, OptimizationEvaluator)
 
 
 def test_bbob_in_available_operators():

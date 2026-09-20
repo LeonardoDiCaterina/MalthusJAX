@@ -13,7 +13,7 @@ from __future__ import annotations
 import pytest
 
 from malthusjax.composer.catalog import OperatorCatalog
-from malthusjax.core.fitness.bbob_evaluator import BBOBEvaluator
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
 from malthusjax.operators.crossover import (
     BinaryUniformCrossover,
     BinomialCrossover,
@@ -99,13 +99,12 @@ EXPECTED_FITNESS = {
     "sphere_minimize",
     "sphere_maximize",
     "bbob",
-    "griewank",
     "binary_sum",
     "knapsack",
-    "tsp",
     "griewank_rosenbrock",
     "rosenbrock",
     "ellipsoidal_rotated",
+    "tsp",
 }
 EXPECTED_EVOSAX = {"evosax_simplega", "evosax_mr15", "evosax_de"}
 EXPECTED_EMITTER = {
@@ -151,6 +150,28 @@ def test_no_unexpected_keys(catalog: OperatorCatalog) -> None:
         "test_custom_engine",
         "test_override_op",
         "test_custom_selection",
+        "mlp",
+        "continuous_mlp",
+        "masked_mlp",
+        "gymnax",
+        "jumanji",
+        "compliance_mutation",
+        "brax",
+        "linear",
+        "equation",
+        "binary_sum_env",
+        "knapsack_env",
+        "bbobax_env",
+        "linear_gp_interpreter",
+        # Discovered extension plugin operators
+        "cartesian_emitter",
+        "cartesian_micro",
+        "cartesian_noop",
+        "cgp_neutral",
+        "diff_cartesian_mutation",
+        "neat_crossover",
+        "neat_emitter",
+        "neat_mutation",
     }
     available = set(catalog.list_available())
     extra = available - ALL_EXPECTED - KNOWN_TEST_ARTIFACTS
@@ -248,13 +269,13 @@ def test_mutation_roundtrip(catalog: OperatorCatalog, key: str, cls: type) -> No
 @pytest.mark.parametrize(
     "spec, expected_cls",
     [
-        ("sphere", BBOBEvaluator),
-        ("sphere:dim=5", BBOBEvaluator),
-        ("rastrigin", BBOBEvaluator),
-        ("sphere_minimize", BBOBEvaluator),
-        ("sphere_maximize", BBOBEvaluator),
-        ("bbob", BBOBEvaluator),
-        ("bbob:fn_name=rastrigin,dim=5", BBOBEvaluator),
+        ("sphere", OptimizationEvaluator),
+        ("sphere:dim=5", OptimizationEvaluator),
+        ("rastrigin", OptimizationEvaluator),
+        ("sphere_minimize", OptimizationEvaluator),
+        ("sphere_maximize", OptimizationEvaluator),
+        ("bbob", OptimizationEvaluator),
+        ("bbob:fn_name=rastrigin,dim=5", OptimizationEvaluator),
     ],
 )
 def test_fitness_bbob_roundtrip(catalog: OperatorCatalog, spec: str, expected_cls: type) -> None:
@@ -262,40 +283,18 @@ def test_fitness_bbob_roundtrip(catalog: OperatorCatalog, spec: str, expected_cl
     assert isinstance(evaluator, expected_cls)
 
 
-def test_fitness_griewank(catalog: OperatorCatalog) -> None:
-    from malthusjax.core.fitness import GriewankEvaluator
-
-    evaluator = catalog.get("griewank")
-    assert isinstance(evaluator, GriewankEvaluator)
-
-
 def test_fitness_binary_sum(catalog: OperatorCatalog) -> None:
-    from malthusjax.core.fitness import BinarySumEvaluator
+    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
 
     evaluator = catalog.get("binary_sum")
-    assert isinstance(evaluator, BinarySumEvaluator)
+    assert isinstance(evaluator, OptimizationEvaluator)
 
 
 def test_fitness_knapsack(catalog: OperatorCatalog) -> None:
-    import jax.numpy as jnp
+    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
 
-    from malthusjax.core.fitness import KnapsackEvaluator
-
-    # Knapsack requires weights, values, capacity — register with defaults
-    catalog.register(
-        "knapsack",
-        lambda **kw: KnapsackEvaluator(
-            __import__("malthusjax.core.fitness", fromlist=["KnapsackConfig"]).KnapsackConfig(
-                maximize=kw.get("maximize", True),
-                weights=kw.get("weights", jnp.array([1.0, 2.0, 3.0])),
-                values=kw.get("values", jnp.array([10.0, 20.0, 30.0])),
-                capacity=kw.get("capacity", 5.0),
-            )
-        ),
-        override=True,
-    )
     evaluator = catalog.get("knapsack")
-    assert isinstance(evaluator, KnapsackEvaluator)
+    assert isinstance(evaluator, OptimizationEvaluator)
 
 
 # ---------------------------------------------------------------------------
@@ -387,7 +386,7 @@ def test_registry_register_and_get() -> None:
     try:
         register(key, lambda **kw: "dummy", {"a": 1})
         assert key in _OPERATOR_REGISTRY
-        factory, defaults = _OPERATOR_REGISTRY[key]
+        factory, defaults, metadata = _OPERATOR_REGISTRY[key]
         assert factory(a=1) == "dummy"
         assert defaults == {"a": 1}
     finally:
@@ -413,7 +412,7 @@ def test_registry_override_flag() -> None:
     try:
         register(key, lambda **kw: "first")
         register(key, lambda **kw: "second", override=True)
-        factory, _ = _OPERATOR_REGISTRY[key]
+        factory, _, _ = _OPERATOR_REGISTRY[key]
         assert factory() == "second"
     finally:
         _OPERATOR_REGISTRY.pop(key, None)
@@ -425,7 +424,7 @@ def test_get_registry_returns_copy() -> None:
     copy = get_registry()
     assert copy == _OPERATOR_REGISTRY
     # Mutations to the copy must not affect the original
-    copy["__phantom__"] = (lambda: None, {})
+    copy["__phantom__"] = (lambda: None, {}, {})
     assert "__phantom__" not in _OPERATOR_REGISTRY
 
 

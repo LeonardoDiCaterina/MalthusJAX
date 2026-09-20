@@ -1,6 +1,10 @@
 import numpy as np
 import pytest
 
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:Importing from malthusjax.benchmarking.statistics is deprecated"
+)
+
 from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult, RunResult
 from malthusjax.benchmarking.statistics import (
     EffectSizeResult,

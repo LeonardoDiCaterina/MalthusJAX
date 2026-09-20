@@ -176,13 +176,25 @@ class OperatorCatalog:
 
         return value_str
 
-    def get(self, spec: str, data_registry: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Any:
+    def get(
+        self,
+        spec: Union[str, Dict[str, Any]],
+        data_registry: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ) -> Any:
         """Resolve *spec* to a configured operator instance.  The
         spec string may include comma-separated parameter overrides.  A
         ``KeyError`` is raised for unknown operator types and a
         ``ValueError`` for invalid parameter combinations.
         """
-        operator_type, user_params = self.parse_spec(spec)
+        if isinstance(spec, dict):
+            spec_dict = spec.copy()
+            if "type" not in spec_dict:
+                raise ValueError("Operator specification dict must contain a 'type' key.")
+            operator_type = spec_dict.pop("type")
+            user_params = spec_dict
+        else:
+            operator_type, user_params = self.parse_spec(spec)
 
         merged_params = {**user_params, **kwargs}
 
@@ -196,10 +208,16 @@ class OperatorCatalog:
             return self._evosax_strategies[operator_type]
 
         if operator_type not in self._registry:
+            from malthusjax.composer.plugins import load_plugins
+
+            load_plugins()
+            self._registry = get_registry()
+
+        if operator_type not in self._registry:
             available = sorted(list(self._registry.keys()) + list(self._evosax_strategies.keys()))
             raise KeyError(f"Unknown operator type: '{operator_type}'. Available: {available}")
 
-        factory, default_params = self._registry[operator_type]
+        factory, default_params, metadata = self._registry[operator_type]
 
         merged = default_params.copy()
         merged.update(merged_params)
@@ -220,10 +238,22 @@ class OperatorCatalog:
 
         filtered_merged = {k: v for k, v in merged.items() if k in valid_keys or has_kwargs}
 
+        # Keep metadata so `factory.py` can read it if needed
+        operator_instance = None
         try:
-            return factory(**filtered_merged)
+            operator_instance = factory(**filtered_merged)
         except TypeError as e:
             raise ValueError(f"Invalid parameters for '{operator_type}': {e}") from e
+
+        # Attach metadata to the instantiated operator so the Composer can validate it!
+        if operator_instance is not None:
+            if not hasattr(operator_instance, "_malthusjax_metadata"):
+                try:
+                    object.__setattr__(operator_instance, "_malthusjax_metadata", metadata)
+                except (TypeError, AttributeError):
+                    pass
+
+        return operator_instance
 
     def register(
         self,
@@ -241,10 +271,14 @@ class OperatorCatalog:
             raise KeyError(f"Operator type '{operator_type}' already registered")
 
         _registry_register(operator_type, factory, override=True)
-        self._registry[operator_type] = (factory, {})
+        self._registry[operator_type] = (factory, {}, {})
 
     def list_available(self) -> List[str]:
         """Return sorted list of all registered operator keys."""
+        from malthusjax.composer.plugins import load_plugins
+
+        load_plugins()
+        self._registry = get_registry()
         return sorted(list(self._registry.keys()) + list(self._evosax_strategies.keys()))
 
     def get_help(self, operator_type: str) -> str:

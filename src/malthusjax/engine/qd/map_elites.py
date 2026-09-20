@@ -41,6 +41,18 @@ P = TypeVar("P", bound=BasePopulation[Any])
 _field: Any = struct.field
 
 
+def _extract_genotypes(genes: Any) -> Any:
+    try:
+        import dataclasses
+
+        fields = [f.name for f in dataclasses.fields(genes)]
+        if "values" in fields:
+            return genes.values
+    except TypeError:
+        pass
+    return getattr(genes, "values", genes) if not hasattr(genes, "__dataclass_fields__") else genes
+
+
 @struct.dataclass
 class MapElitesEngineParams(AbstractEngineParams):
     """
@@ -111,7 +123,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
         # Notice that MapElitesRepertoire expects genotypes as a PyTree
         # We pass the underlying genome values instead of the wrapper for cleaner JAX tree structures.
         repertoire = MapElitesRepertoire.init(
-            genotypes=getattr(eval_pop.genes, "values", eval_pop.genes),
+            genotypes=_extract_genotypes(eval_pop.genes),
             fitnesses=repertoire_fitnesses,
             descriptors=eval_pop.info["descriptors"],
             centroids=centroids,
@@ -128,9 +140,14 @@ class MapElitesEngine(AbstractEngine[G, P]):
 
         best_genome_idx = jnp.argmax(repertoire.fitnesses)
         best_genome_values = jax.tree_util.tree_map(
-            lambda x: x[best_genome_idx], getattr(eval_pop.genes, "values", eval_pop.genes)
+            lambda x: x[best_genome_idx], _extract_genotypes(eval_pop.genes)
         )
-        if hasattr(eval_pop.genes, "replace"):
+        import dataclasses
+
+        is_values_field = hasattr(eval_pop.genes, "values") and "values" in [
+            f.name for f in dataclasses.fields(eval_pop.genes)
+        ]
+        if is_values_field and hasattr(eval_pop.genes, "replace"):
             best_genome = eval_pop.genes.replace(values=best_genome_values)
         else:
             best_genome = best_genome_values
@@ -201,7 +218,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
             eval_pop.fitness if self.engine_params.maximize else -eval_pop.fitness
         )
         new_repertoire = state.repertoire.add(
-            eval_pop.genes.values, eval_pop.info["descriptors"], repertoire_fitnesses
+            _extract_genotypes(eval_pop.genes), eval_pop.info["descriptors"], repertoire_fitnesses
         )
 
         # 4. Tell the emitter the results
@@ -258,11 +275,15 @@ class MapElitesEngine(AbstractEngine[G, P]):
         best_genome_values = jax.tree_util.tree_map(
             lambda x: x[best_genome_idx], new_repertoire.genotypes
         )
-        best_genome = (
-            state.best_genome.replace(values=best_genome_values)
-            if hasattr(state.best_genome, "replace")
-            else best_genome_values
-        )
+        import dataclasses
+
+        is_values_field = hasattr(state.best_genome, "values") and "values" in [
+            f.name for f in dataclasses.fields(state.best_genome)
+        ]
+        if is_values_field and hasattr(state.best_genome, "replace"):
+            best_genome = state.best_genome.replace(values=best_genome_values)
+        else:
+            best_genome = best_genome_values
 
         kpi = QDGenerationOutput(
             best_fitness=best_fitness,

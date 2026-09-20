@@ -31,10 +31,11 @@ except ImportError:
 
 from malthusjax.composer import Composer
 from malthusjax.composer.strategies.core import MapElitesStrategy
-from malthusjax.core.fitness.qd.tensorneat_evaluator import (
-    TensorNeatEvaluatorConfig,
-    TensorNeatQDEvaluator,
-)
+from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
+from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
+from plugins.tensor_neat_transform import TensorNeatTransform
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.fitness.composable.base import ScalarOutput
 from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
 
 
@@ -135,11 +136,14 @@ def main() -> None:
     tn_genome = DefaultGenome(num_inputs=2, num_outputs=1, max_nodes=10, max_conns=20)
     tn_algorithm = NEAT(pop_size=pop_size, species_size=2, genome=tn_genome)
 
-    native_evaluator = TensorNeatQDEvaluator.create(
-        algorithm=tn_algorithm,
-        problem=problem,
+    native_evaluator = TensorNeatEvaluator(
+        env=TensorNEATProblemWrapper(problem=problem),
+        transform=TensorNeatTransform(algorithm=tn_algorithm),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(),
         forward_fn=tn_algorithm.forward,
-        config=TensorNeatEvaluatorConfig(seed=42, maximize=True),
+        maximize=True,
+        seed=42,
     )
     native_emitter = TensorNeatEmitter(_batch_size=pop_size, genome=tn_genome)
 

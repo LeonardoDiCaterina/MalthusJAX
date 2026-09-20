@@ -24,6 +24,13 @@ else
     JAX_EXTRA := cpu
 endif
 # --------------------------------
+# --- Prevent OpenMP/BLAS thread explosion on multi-core HPC nodes ---
+export OMP_NUM_THREADS ?= 1
+export MKL_NUM_THREADS ?= 1
+export OPENBLAS_NUM_THREADS ?= 1
+export VECLIB_MAXIMUM_THREADS ?= 1
+export NUMEXPR_NUM_THREADS ?= 1
+# --------------------------------------------------------------------
 
 help:
 	@echo "--- MalthusJAX Development ---"
@@ -42,6 +49,8 @@ help:
 	@echo "  make format-check       Ruff format check only (no mutations)"
 	@echo "  make type-check         mypy strict check on src/"
 	@echo "  make check-all          lint + format-check + type-check + test"
+	@echo "  make scaffold ARGS=...  Generate a boilerplate JAX component (e.g., --type mutation --name QuantumMutation --key quantum)"
+	@echo "  make scaffold-toml ARGS=... Generate a compliant TOML configuration (e.g., -r ablation -o configs/test.toml)"
 	@echo ""
 	@echo "--- Experiment Execution (TOML-based) ---"
 	@echo "  make run-toml TOML=<file>           Run experiment from TOML file"
@@ -292,6 +301,10 @@ test-bench-group-11:
 	@echo "--- Running injection + key derivation parity benchmarks ---"
 	pytest tests/benchmarks/test_benchmark_11_injection_parity.py --no-cov -v --benchmark-only
 
+test-bench-group-12:
+	@echo "--- Running adapter overhead verification benchmarks ---"
+	pytest tests/benchmarks/test_benchmark_12_adapter_overhead.py --no-cov -v --benchmark-only
+
 # nohup variants for each group
 
 test-bench-group-01-nohup:
@@ -327,6 +340,9 @@ test-bench-group-10-nohup:
 test-bench-group-11-nohup:
 	$(call bg_task,test-bench-group-11,make test-bench-group-11)
 
+test-bench-group-12-nohup:
+	$(call bg_task,test-bench-group-12,make test-bench-group-12)
+
 # ============================================================================= #
 # Documentation targets
 # ============================================================================= #
@@ -355,23 +371,23 @@ docs-open:
 define bg_task
 	@mkdir -p results
 	@TIMESTAMP=$$(date +%Y%m%d_%H%M%S); \
-	LOGFILE="results/$$1_$$TIMESTAMP.log"; \
-	nohup $$2 > $$LOGFILE 2>&1 & \
+	LOGFILE="results/$(1)_$${TIMESTAMP}.log"; \
+	nohup $(2) > "$${LOGFILE}" 2>&1 & \
 	PID=$$!; \
-	echo "
-======================================================="; \
-	echo " BACKGROUND TASK STARTED: $$1"; \
+	echo ""; \
 	echo "======================================================="; \
-	echo " PID: $$PID"; \
-	echo " Log file: $$LOGFILE"; \
+	echo " BACKGROUND TASK STARTED: $(1)"; \
+	echo "======================================================="; \
+	echo " PID: $${PID}"; \
+	echo " Log file: $${LOGFILE}"; \
 	echo ""; \
 	echo " To watch the logs live, run:"; \
-	echo "    tail -f $$LOGFILE"; \
+	echo "    tail -f $${LOGFILE}"; \
 	echo ""; \
 	echo " To kill the process, run:"; \
-	echo "    kill $$PID"; \
-	echo "=======================================================
-"
+	echo "    kill $${PID}"; \
+	echo "======================================================="; \
+	echo ""
 endef
 
 test-nohup:
@@ -635,4 +651,13 @@ perf-all:
 
 perf-all-nohup:
 	$(call bg_task,perf-all,make perf-all PERF_TOML=$(PERF_TOML) PORT=$(PORT))
+
+# --- Scaffolding ---
+.PHONY: scaffold
+scaffold:
+	$(PYTHON) scripts/scaffold.py $(ARGS)
+
+.PHONY: scaffold-toml
+scaffold-toml:
+	$(PYTHON) scripts/scaffold_toml.py $(ARGS)
 

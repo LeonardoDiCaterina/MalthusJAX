@@ -35,7 +35,7 @@ def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
     return cast(Dict[str, Any], pipeline)
 
 
-_EXPERIMENT_META_KEYS = {"name", "output_dir"}
+_EXPERIMENT_META_KEYS = {"name", "output_dir", "logging"}
 
 
 @dataclass
@@ -106,6 +106,8 @@ def load_experiment_config(
         k: v for k, v in experiment_raw.items() if k in _EXPERIMENT_META_KEYS
     }
     experiment_meta["shared"] = shared
+    if "logging" in cfg and "logging" not in experiment_meta:
+        experiment_meta["logging"] = dict(cfg["logging"])
 
     raw_pipelines: Dict[str, Any] = cfg.get("pipelines", {})
     if not raw_pipelines:
@@ -173,4 +175,16 @@ def infer_genome_length(cfg: Dict[str, Any]) -> int:
         dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
         if dim_val is not None:
             return int(dim_val)
+    elif isinstance(fitness_spec, dict):
+        if "interpreter" in fitness_spec and isinstance(fitness_spec["interpreter"], dict):
+            # If interpreter is specified, its input_dim might be the genome length if identity,
+            # or it might have a num_weights property. We can check `input_dim`.
+            pass
+        if "env" in fitness_spec and isinstance(fitness_spec["env"], dict):
+            # Same logic
+            env_spec = fitness_spec["env"]
+            if "num_dims" in env_spec:
+                return int(env_spec["num_dims"])
+            if "dim" in env_spec:
+                return int(env_spec["dim"])
     return 10

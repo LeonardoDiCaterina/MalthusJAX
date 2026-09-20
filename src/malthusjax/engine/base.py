@@ -10,6 +10,15 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
+from malthusjax.core.logger import (
+    StepLoggingConfig,
+    _host_log_nan_anomaly,
+    _host_log_step,
+    get_logger,
+)
+
+logger = get_logger("engine")
+
 
 """
 Level 3 Engine Architecture - Abstract Base Classes
@@ -70,6 +79,7 @@ class AbstractEngineParams:
     num_generations: int = _field(pytree_node=False, default=50)
     unroll_num: int = _field(pytree_node=False, default=1)
     track_metrics: bool = _field(pytree_node=False, default=True)
+    step_logging: Optional[StepLoggingConfig] = _field(pytree_node=False, default=None)
 
 
 @struct.dataclass
@@ -187,11 +197,11 @@ class AbstractEngine(Generic[G, P], ABC):
     def debug_step(
         self, state: AbstractEvolutionState[G, P]
     ) -> Tuple[AbstractEvolutionState[G, P], AbstractGenerationOutput]:
-        """Run one step and print the resulting population length."""
+        """Run one step and log the resulting population length."""
         new_state, output = self.step(state)
         population = getattr(new_state, "population", None)
         if population is not None:
-            print(f"population len: {len(population)}")
+            logger.debug("debug_step population len: %d", len(population))
         return new_state, output
 
     def debug_run(
@@ -212,19 +222,30 @@ class AbstractEngine(Generic[G, P], ABC):
         compile: bool = True,
         verbose: bool = False,
         return_history: bool = True,
+        step_logging: Optional[StepLoggingConfig] = None,
     ) -> Tuple[AbstractEvolutionState[G, P], Any, Optional[float]]:
         """Run the full evolution loop starting from *initial_state*.
 
-        This method obtains the JIT‑compiled scan kernel and executes it for
+        This method obtains the JIT-compiled scan kernel and executes it for
         the configured number of generations. If *time_it* is true the method
-        measures wall‑clock duration, optionally printing progress when
-        *verbose* is enabled. Returns the final state, the stacked KPI history,
+        measures wall-clock duration, optionally logging progress when
+        *verbose* is enabled or via logger. Returns the final state, the stacked KPI history,
         and an optional elapsed time.
         """
+        effective_step_logging = step_logging or getattr(self.engine_params, "step_logging", None)
+        logger.debug(
+            "Initiating evolution run: %d generations, pop_size=%d, compile=%s, step_logging=%s",
+            self.engine_params.num_generations,
+            self.engine_params.pop_size,
+            compile,
+            effective_step_logging is not None,
+        )
         if verbose:
-            print(
-                f"Starting evolution: {self.engine_params.num_generations} generations, "
-                f"population size {self.engine_params.pop_size}, compile={compile}"
+            logger.info(
+                "Starting evolution: %d generations, population size %d, compile=%s",
+                self.engine_params.num_generations,
+                self.engine_params.pop_size,
+                compile,
             )
         # Retrieve the compiled loop function
         evolve_fn = _get_evolution_kernel(
@@ -232,6 +253,7 @@ class AbstractEngine(Generic[G, P], ABC):
             compile_jit=compile,
             unroll_num=self.engine_params.unroll_num,
             return_history=return_history,
+            step_logging=effective_step_logging,
         )
 
         start_time = time.time()
@@ -245,13 +267,15 @@ class AbstractEngine(Generic[G, P], ABC):
                 _ = final_state.best_fitness.block_until_ready()
 
         except Exception as e:
+            logger.error("Evolution failed during scan execution: %s", str(e), exc_info=True)
             raise RuntimeError(f"Evolution failed: {str(e)}") from e
 
         elapsed_time = None
         if time_it:
             elapsed_time = time.time() - start_time
             if verbose:
-                print(f"Done in {elapsed_time:.3f}s")
+                logger.info("Evolution completed in %.3fs", elapsed_time)
+            logger.debug("Evolution wall-clock runtime: %.4fs", elapsed_time)
 
         return final_state, history, elapsed_time
 
@@ -300,7 +324,7 @@ class AbstractEngine(Generic[G, P], ABC):
         If optimize=True, runs the full XLA compiler to show FUSION.
         If optimize=False, shows the raw graph (faster, good for debugging shapes).
         """
-        print(f"--- Extracting HLO (Optimize={optimize}) ---")
+        logger.debug("Extracting HLO (Optimize=%s)", optimize)
 
         # 1. Get JIT Kernel
         jit_kernel = _get_evolution_kernel(
@@ -324,11 +348,12 @@ class AbstractEngine(Generic[G, P], ABC):
             loop_count = hlo_text.count("while")
             # Note: 'while' may be transformed (e.g., to 'custom-call') by the backend optimizations
 
-            print("HLO Analysis:")
-            print(f"  - Total Lines of IR: {line_count}")
-            print(f"  - Fusion Kernels:    {fusion_count} (Higher is better)")
-            print(f"  - Explicit Loops:    {loop_count} (Should be 1 for the main scan)")
-            print("-" * 30)
+            logger.info(
+                "HLO Analysis: Total Lines of IR=%d, Fusion Kernels=%d, Explicit Loops=%d",
+                line_count,
+                fusion_count,
+                loop_count,
+            )
 
         return hlo_text
 
@@ -342,6 +367,7 @@ def _get_evolution_kernel(
     compile_jit: bool = True,
     unroll_num: int = 1,
     return_history: bool = True,
+    step_logging: Optional[StepLoggingConfig] = None,
 ) -> Any:
     """
     Factory: Builds evolution kernel (jax.lax.scan loop).
@@ -367,6 +393,13 @@ def _get_evolution_kernel(
             stacklevel=3,
         )
 
+    cfg = step_logging or getattr(params, "step_logging", None)
+    anomaly_logger_name = (
+        "malthusjax.engine.anomaly"
+        if cfg is None or cfg.logger_name == "malthusjax.engine.step"
+        else f"{cfg.logger_name}.anomaly"
+    )
+
     def _evolve_loop(
         engine: AbstractEngine[G, P], initial_state: AbstractEvolutionState[G, P]
     ) -> Tuple[AbstractEvolutionState[G, P], Any]:
@@ -374,6 +407,62 @@ def _get_evolution_kernel(
             state: AbstractEvolutionState[G, P], __: Any
         ) -> Tuple[AbstractEvolutionState[G, P], Any]:
             new_state, history_item = engine.step(state)
+
+            if cfg is not None and cfg.is_active():
+                gen = getattr(new_state, "generation", None)
+                best_fit = getattr(new_state, "best_fitness", None)
+                if gen is not None and best_fit is not None:
+                    gen_val = jnp.squeeze(gen)
+                    bf_val = best_fit.ravel()[0] if getattr(best_fit, "ndim", 0) > 0 else best_fit
+
+                    if cfg.log_nan_watchdog:
+                        is_anomalous = jnp.squeeze(
+                            jnp.any(jnp.isnan(best_fit) | jnp.isinf(best_fit))
+                        )
+                        jax.lax.cond(
+                            is_anomalous,
+                            lambda g, bf: jax.debug.callback(
+                                _host_log_nan_anomaly,
+                                g,
+                                bf,
+                                "best_fitness",
+                                anomaly_logger_name,
+                            ),
+                            lambda g, bf: None,
+                            gen_val,
+                            bf_val,
+                        )
+
+                    if cfg.log_interval is not None and cfg.log_interval > 0:
+                        should_log = gen_val % cfg.log_interval == 0
+                        mean_fit = getattr(history_item, "mean_fitness", None)
+                        if mean_fit is not None:
+                            mf_val = (
+                                mean_fit.ravel()[0]
+                                if getattr(mean_fit, "ndim", 0) > 0
+                                else mean_fit
+                            )
+                            jax.lax.cond(
+                                should_log,
+                                lambda g, bf, mf: jax.debug.callback(
+                                    _host_log_step, g, bf, mf, cfg.logger_name
+                                ),
+                                lambda g, bf, mf: None,
+                                gen_val,
+                                bf_val,
+                                mf_val,
+                            )
+                        else:
+                            jax.lax.cond(
+                                should_log,
+                                lambda g, bf: jax.debug.callback(
+                                    _host_log_step, g, bf, None, cfg.logger_name
+                                ),
+                                lambda g, bf: None,
+                                gen_val,
+                                bf_val,
+                            )
+
             if not return_history:
                 history_item = cast(Any, ())
             return new_state, history_item

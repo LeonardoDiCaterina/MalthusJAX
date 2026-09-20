@@ -143,20 +143,35 @@ class EngineRegistry:
         engine_name, spec_params = self.parse_spec(spec)
 
         if engine_name not in self._registry:
+            from malthusjax.composer.plugins import load_plugins
+
+            load_plugins()
+            self._registry = get_registry()
+
+        if engine_name not in self._registry:
             available = ", ".join(self.list_available())
             raise KeyError(f"Unknown engine '{engine_name}'. Available: [{available}]")
 
-        factory, defaults = self._registry[engine_name]
+        factory, defaults, metadata = self._registry[engine_name]
         merged_params = {**defaults, **spec_params, **kwargs}
 
+        # We can attach metadata to the returned engine adapter if needed
+        # but engines are just callables right now. If it returns an object, we can attach.
+
         try:
-            return factory(
+            engine_instance = factory(
                 evaluator=evaluator,
                 selection=selection,
                 crossover=crossover,
                 mutation=mutation,
                 **merged_params,
             )
+            if not hasattr(engine_instance, "_malthusjax_metadata"):
+                try:
+                    object.__setattr__(engine_instance, "_malthusjax_metadata", metadata)
+                except (TypeError, AttributeError):
+                    pass
+            return engine_instance
         except TypeError as e:
             raise ValueError(f"Invalid parameters for engine '{engine_name}': {e}") from e
 
@@ -178,10 +193,14 @@ class EngineRegistry:
             raise KeyError(f"Engine '{engine_name}' is already registered")
 
         _engine_register(engine_name, factory, defaults, override=True)
-        self._registry[engine_name] = (factory, defaults or {})
+        self._registry[engine_name] = (factory, defaults or {}, {})
 
     def list_available(self) -> List[str]:
         """Return sorted list of all registered engine names."""
+        from malthusjax.composer.plugins import load_plugins
+
+        load_plugins()
+        self._registry = get_registry()
         return sorted(self._registry.keys())
 
     def get_help(self, engine_name: str) -> str:
@@ -193,13 +212,15 @@ class EngineRegistry:
         if engine_name not in self._registry:
             raise KeyError(f"Unknown engine: '{engine_name}'")
 
-        factory, defaults = self._registry[engine_name]
+        factory, defaults, metadata = self._registry[engine_name]
         doc = factory.__doc__ or "No documentation available."
         defaults_str = ", ".join(f"{k}={v}" for k, v in defaults.items())
+        meta_str = ", ".join(f"{k}={v}" for k, v in metadata.items()) if metadata else ""
 
         return (
             f"{engine_name}\n"
             f"{'-' * len(engine_name)}\n\n"
             f"{doc}\n\n"
-            f"Defaults: {defaults_str if defaults_str else '(none)'}"
+            f"Defaults: {defaults_str if defaults_str else '(none)'}\n"
+            f"Metadata: {meta_str if meta_str else '(none)'}"
         )

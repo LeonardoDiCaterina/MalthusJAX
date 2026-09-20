@@ -97,3 +97,40 @@ def test_map_elites_engine_split():
 
     final_state, history, _ = engine.run(engine_state, compile=True)
     assert final_state.generation == 2
+
+
+def test_map_elites_engine_qdax_replica_and_minimize():
+    from malthusjax.engine.qd.map_elites import _extract_genotypes
+    from malthusjax.operators.emitters.qdax_replica import QDAXReplicaMixingEmitter
+
+    # Test _extract_genotypes fallback on raw array
+    raw_arr = jnp.zeros((5, 2))
+    assert _extract_genotypes(raw_arr) is raw_arr
+
+    genome_config = RealGenomeConfig(shape=(10,), bounds=(-5.12, 5.12))
+    emitter = QDAXReplicaMixingEmitter(
+        mutation_fn=lambda x, k: x + 0.1 * jax.random.normal(k, x.shape),
+        variation_fn=lambda x1, x2, k: (x1 + x2) / 2.0,
+        _batch_size=8,
+        genome_config=genome_config,
+    )
+
+    evaluator = DummyRealEvaluator(config=None, data=None)
+
+    # Test maximize=False (minimization) and qdax_replica key derivation
+    engine_params = MapElitesEngineParams(
+        pop_size=8, num_generations=2, key_derivation="qdax_replica", maximize=False
+    )
+    engine = MapElitesEngine(emitter=emitter, evaluator=evaluator, engine_params=engine_params)
+    assert engine.maximize is False
+
+    key = jax.random.PRNGKey(42)
+    k1, k2, k3 = jax.random.split(key, 3)
+
+    centroids = compute_cvt_centroids(2, 500, 5, 0.0, 1.0, k1)
+    initial_pop = genome_config.init_population(k2, engine_params.pop_size)
+    engine_state = engine.init_state(k3, initial_pop, centroids=centroids)
+
+    final_state, history, _ = engine.run(engine_state, compile=True)
+    assert final_state.generation == 2
+    assert final_state.best_fitness is not None

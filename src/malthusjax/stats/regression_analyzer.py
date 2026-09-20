@@ -5,10 +5,13 @@ import numpy as np
 import pandas as pd
 from statsmodels.stats.multitest import multipletests
 
+from malthusjax.core.logger import get_logger
 from malthusjax.stats.core import RegressionDataset
 from malthusjax.stats.dataset_builder import build_design_matrix, synthesize_regression_dataset
 from malthusjax.stats.io import regression_to_markdown
 from malthusjax.stats.regression import fit_ols
+
+logger = get_logger("stats.regression")
 
 
 @dataclasses.dataclass
@@ -109,7 +112,7 @@ class OLSRegressionAnalyzer:
                         pivot_rows.append(row)
 
                     except Exception as e:
-                        print(f"Warning: Failed to run OLS for {prefix}_{var}: {e}")
+                        logger.warning("Failed to run OLS for %s_%s: %s", prefix, var, e)
 
         df_pivot = pd.DataFrame(pivot_rows)
 

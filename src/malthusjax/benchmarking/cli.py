@@ -6,10 +6,20 @@ import shutil
 import sys
 import time
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 from malthusjax.composer import Composer
 from malthusjax.composer.catalog import OperatorCatalog
+from malthusjax.core.diagnostics import print_environment_diagnostics, uninstall_crash_handler
+from malthusjax.core.logger import configure_logging, get_logger
+
+logger = get_logger("benchmarking.cli")
+
+
+def handle_check_env(args: argparse.Namespace) -> int:
+    """Handle `mjax check-env`."""
+    print_environment_diagnostics()
+    return 0
 
 
 def _dump_results(comparison: Any, out_dir: Path, config_path: Path) -> None:
@@ -37,33 +47,43 @@ def _dump_results(comparison: Any, out_dir: Path, config_path: Path) -> None:
 def handle_run(args: argparse.Namespace) -> int:
     """Handle `mjax run`."""
     config_path = args.config
-    print(f"Running experiment from {config_path}...")
+    logger.info("Running experiment from %s...", config_path)
     t0 = time.time()
-    comparison = Composer.from_toml(config_path, shared_initial_population=True)
+    comparison = Composer.from_toml(
+        config_path,
+        shared_initial_population=True,
+        log_interval=getattr(args, "log_interval", None),
+        configure_log=not getattr(args, "_cli_logging_configured", False),
+    )
     dur = time.time() - t0
 
     out_dir = Path("results") / config_path.stem
     _dump_results(comparison, out_dir, config_path)
 
-    print(f"Experiment complete in {dur:.2f}s.")
-    print(f"Raw data saved to {out_dir}/data")
+    logger.info("Experiment complete in %.2fs.", dur)
+    logger.info("Raw data saved to %s/data", out_dir)
     return 0
 
 
 def handle_parity(args: argparse.Namespace) -> int:
     """Handle `mjax parity`."""
     config_path = args.config
-    print(f"Running statistical parity execution from {config_path}...")
+    logger.info("Running statistical parity execution from %s...", config_path)
     t0 = time.time()
     # parity implies enforcing a shared initial pop for exact alignment
-    comparison = Composer.from_toml(config_path, shared_initial_population=True)
+    comparison = Composer.from_toml(
+        config_path,
+        shared_initial_population=True,
+        log_interval=getattr(args, "log_interval", None),
+        configure_log=not getattr(args, "_cli_logging_configured", False),
+    )
     dur = time.time() - t0
 
     out_dir = Path("results") / config_path.stem
     _dump_results(comparison, out_dir, config_path)
 
-    print(f"Parity execution complete in {dur:.2f}s.")
-    print(f"Raw data saved to {out_dir}/data")
+    logger.info("Parity execution complete in %.2fs.", dur)
+    logger.info("Raw data saved to %s/data", out_dir)
     return 0
 
 
@@ -72,15 +92,6 @@ from malthusjax.benchmarking.results import (
     ExperimentResult,
     MetaComparison,
     RunResult,
-)
-from malthusjax.benchmarking.statistics import (
-    ExpectedDirection,
-    HypothesisKind,
-    MultipleTestingPolicy,
-    Sidedness,
-    StatisticalComparator,
-    StatisticalComparisonSpec,
-    paired_dataset_from_comparison,
 )
 
 
@@ -105,7 +116,7 @@ def _load_comparison(results_dir: Path) -> ComparisonResult:
 def handle_analyze(args: argparse.Namespace) -> int:
     """Handle `mjax analyze`."""
     results_dir = args.results_dir
-    print(f"Analyzing results in {results_dir}...")
+    logger.info("Analyzing results in %s...", results_dir)
     comparison = _load_comparison(results_dir)
 
     pipe_names = list(comparison.pipelines.keys())
@@ -114,8 +125,26 @@ def handle_analyze(args: argparse.Namespace) -> int:
     analysis_dir.mkdir(exist_ok=True)
 
     if len(pipe_names) == 2:
+        try:
+            from malthusjax.stats import (
+                ExpectedDirection,
+                HypothesisKind,
+                MultipleTestingPolicy,
+                Sidedness,
+                StatisticalComparator,
+                StatisticalComparisonSpec,
+                paired_dataset_from_comparison,
+            )
+        except ImportError as err:
+            logger.error(
+                "Statistical analysis requires optional dependencies (%s). "
+                "Please install via: pip install 'malthusjax[stats]'",
+                err,
+            )
+            return 1
+
         left, right = pipe_names[0], pipe_names[1]
-        print(f"Running statistical parity analysis for {left} vs {right}...")
+        logger.info("Running statistical parity analysis for %s vs %s...", left, right)
         spec = StatisticalComparisonSpec(
             metric_name="best_fitness",
             hypothesis_kind=HypothesisKind("location_shift"),
@@ -138,10 +167,10 @@ def handle_analyze(args: argparse.Namespace) -> int:
         print("\n--- Parity Summary ---")
         print(md_text)
         print("----------------------\n")
-        print("Analysis generated in analysis/")
+        logger.info("Analysis generated in %s", analysis_dir)
     else:
         # Just standard mean/std dumps
-        print("Saving standard mean/std dumps and unified tables...")
+        logger.info("Saving standard mean/std dumps and unified tables...")
         for name, exp in comparison.pipelines.items():
             summary = exp.aggregated_summary()
             with open(analysis_dir / f"{name}_summary.json", "w") as f:
@@ -176,7 +205,7 @@ def handle_analyze(args: argparse.Namespace) -> int:
                 with open(analysis_dir / "comparison_table.tex", "w") as f:
                     f.write(latex_str)
         except Exception as e:
-            print(f"Could not generate unified tables: {e}")
+            logger.warning("Could not generate unified tables: %s", e)
 
     return 0
 
@@ -184,7 +213,7 @@ def handle_analyze(args: argparse.Namespace) -> int:
 def handle_plot(args: argparse.Namespace) -> int:
     """Handle `mjax plot`."""
     results_dir = args.results_dir
-    print(f"Plotting results for {results_dir}...")
+    logger.info("Plotting results for %s...", results_dir)
 
     comparison = _load_comparison(results_dir)
     plot_dir = results_dir / "plots"
@@ -193,34 +222,34 @@ def handle_plot(args: argparse.Namespace) -> int:
     # Try to generate the combined convergence plot
     try:
         comparison.plot_convergence(save_path=plot_dir / "convergence.png")
-        print("Generated plots/convergence.png")
+        logger.info("Generated %s", plot_dir / "convergence.png")
     except Exception as e:
-        print(f"Could not generate convergence plot: {e}")
+        logger.warning("Could not generate convergence plot: %s", e)
 
     # Try to generate the boxplot comparison
     try:
         comparison.plot_boxplots(save_path=plot_dir / "fitness_distribution.png")
-        print("Generated plots/fitness_distribution.png")
+        logger.info("Generated %s", plot_dir / "fitness_distribution.png")
     except Exception as e:
-        print(f"Could not generate boxplots: {e}")
+        logger.warning("Could not generate boxplots: %s", e)
 
     # Try to generate the timings boxplot
     try:
         comparison.plot_boxplots(metric_key="duration_seconds", save_path=plot_dir / "timings.png")
-        print("Generated plots/timings.png")
+        logger.info("Generated %s", plot_dir / "timings.png")
     except Exception as e:
-        print(f"Could not generate timings boxplot: {e}")
+        logger.warning("Could not generate timings boxplot: %s", e)
 
     return 0
 
 
 def handle_report(args: argparse.Namespace) -> int:
     """Handle `mjax report`."""
-    print(f"Generating full report for {args.results_dir}")
-    # TODO: Chain analyze and plot
-    handle_analyze(args)
-    handle_plot(args)
-    return 0
+    logger.info("Generating full report for %s", args.results_dir)
+    res = handle_analyze(args)
+    if res != 0:
+        return res
+    return handle_plot(args)
 
 
 def handle_aggregate(args: argparse.Namespace) -> int:
@@ -228,19 +257,22 @@ def handle_aggregate(args: argparse.Namespace) -> int:
     out_dir = args.out_dir
     results_dirs = args.results_dirs
 
-    print(f"Aggregating {len(results_dirs)} experiments into {out_dir}...")
+    logger.info("Aggregating %d experiments into %s...", len(results_dirs), out_dir)
 
     comparisons = {}
     for d in results_dirs:
-        print(f"  Loading {d}...")
+        logger.debug("Loading %s...", d)
         try:
             comp = _load_comparison(d)
-            comparisons[d.name] = comp
+            if comp.pipelines:
+                comparisons[d.name] = comp
+            else:
+                logger.warning("No pipelines found in %s", d)
         except Exception as e:
-            print(f"  Failed to load {d}: {e}")
+            logger.warning("Failed to load %s: %s", d, e)
 
     if not comparisons:
-        print("No valid experiments loaded.")
+        logger.error("No valid experiments loaded.")
         return 1
 
     meta = MetaComparison(comparisons)
@@ -249,21 +281,21 @@ def handle_aggregate(args: argparse.Namespace) -> int:
     plot_dir = out_dir / "plots"
     plot_dir.mkdir(exist_ok=True)
 
-    print("Generating aggregate convergence grid...")
+    logger.info("Generating aggregate convergence grid...")
     meta.plot_convergence_grid(save_path=plot_dir / "convergence_grid.png")
 
-    print("Generating aggregate boxplot grid...")
+    logger.info("Generating aggregate boxplot grid...")
     meta.plot_boxplot_grid(save_path=plot_dir / "fitness_distribution_grid.png")
 
-    print("Generating aggregate timings grid...")
+    logger.info("Generating aggregate timings grid...")
     meta.plot_boxplot_grid(metric_key="duration_seconds", save_path=plot_dir / "timings_grid.png")
 
-    print("Generating aggregate summary JSON...")
+    logger.info("Generating aggregate summary JSON...")
     summary = meta.summary_table()
     with open(out_dir / "aggregate_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
 
-    print(f"Aggregate report complete. Results saved in {out_dir}")
+    logger.info("Aggregate report complete. Results saved in %s", out_dir)
     return 0
 
 
@@ -279,65 +311,185 @@ def handle_catalog(args: argparse.Namespace) -> int:
 
 def main(args: Optional[List[str]] = None) -> int:
     """Main CLI entry point."""
+    log_parser = argparse.ArgumentParser(add_help=False)
+    log_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Enable verbose debug logging (DEBUG level)",
+    )
+    log_parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Suppress informational logging (WARNING level)",
+    )
+    log_parser.add_argument(
+        "--log-file",
+        type=Path,
+        default=argparse.SUPPRESS,
+        help="Destination file path for structured logs",
+    )
+    log_parser.add_argument(
+        "--log-json",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Format console and file logs as JSON lines",
+    )
+    log_parser.add_argument(
+        "--log-interval",
+        type=int,
+        default=argparse.SUPPRESS,
+        help="Interval in generations for JIT telemetry callbacks",
+    )
+    log_parser.add_argument(
+        "--no-crash-handler",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Disable native POSIX crash handler trap",
+    )
+
     parser = argparse.ArgumentParser(
-        prog="mjax", description="MalthusJAX Unified Benchmarking & Analysis CLI"
+        prog="mjax",
+        description="MalthusJAX Unified Benchmarking & Analysis CLI",
+        parents=[log_parser],
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # 1. RUN
-    parser_run = subparsers.add_parser("run", help="Run an experiment from a TOML config")
+    parser_run = subparsers.add_parser(
+        "run", parents=[log_parser], help="Run an experiment from a TOML config"
+    )
     parser_run.add_argument("config", type=Path, help="Path to experiment TOML config")
     parser_run.set_defaults(func=handle_run)
 
     # 2. PARITY
     parser_parity = subparsers.add_parser(
-        "parity", help="Run seed-aligned statistical parity between pipelines"
+        "parity",
+        parents=[log_parser],
+        help="Run seed-aligned statistical parity between pipelines",
     )
     parser_parity.add_argument("config", type=Path, help="Path to parity TOML config")
     parser_parity.set_defaults(func=handle_parity)
 
     # 3. ANALYZE
     parser_analyze = subparsers.add_parser(
-        "analyze", help="Calculate statistical summaries from raw data"
+        "analyze",
+        parents=[log_parser],
+        help="Calculate statistical summaries from raw data",
     )
     parser_analyze.add_argument("results_dir", type=Path, help="Directory containing raw JSON data")
     parser_analyze.set_defaults(func=handle_analyze)
 
     # 4. PLOT
     parser_plot = subparsers.add_parser(
-        "plot", help="Generate diagnostic plots from raw data and analysis"
+        "plot",
+        parents=[log_parser],
+        help="Generate diagnostic plots from raw data and analysis",
     )
     parser_plot.add_argument("results_dir", type=Path, help="Directory containing raw JSON data")
     parser_plot.set_defaults(func=handle_plot)
 
     # 5. REPORT (Analyze + Plot)
     parser_report = subparsers.add_parser(
-        "report", help="Generate both statistical summaries and diagnostic plots"
+        "report",
+        parents=[log_parser],
+        help="Generate both statistical summaries and diagnostic plots",
     )
     parser_report.add_argument("results_dir", type=Path, help="Directory containing raw JSON data")
     parser_report.set_defaults(func=handle_report)
 
     # 6. AGGREGATE
     parser_aggregate = subparsers.add_parser(
-        "aggregate", help="Aggregate multiple experiments into a suite report"
+        "aggregate",
+        parents=[log_parser],
+        help="Aggregate multiple experiments into a suite report",
     )
     parser_aggregate.add_argument(
-        "--out_dir", type=Path, required=True, help="Output directory for the aggregate suite"
+        "--out_dir",
+        type=Path,
+        required=True,
+        help="Output directory for the aggregate suite",
     )
     parser_aggregate.add_argument(
-        "results_dirs", type=Path, nargs="+", help="One or more experiment result directories"
+        "results_dirs",
+        type=Path,
+        nargs="+",
+        help="One or more experiment result directories",
     )
     parser_aggregate.set_defaults(func=handle_aggregate)
 
     # 7. CATALOG
-    parser_catalog = subparsers.add_parser("catalog", help="List registered framework operators")
+    parser_catalog = subparsers.add_parser(
+        "catalog",
+        parents=[log_parser],
+        help="List registered framework operators",
+    )
     parser_catalog.set_defaults(func=handle_catalog)
 
+    # 8. CHECK-ENV
+    parser_check_env = subparsers.add_parser(
+        "check-env",
+        parents=[log_parser],
+        help="Inspect runtime environment, HPC thread limits, and JAX GPU configuration",
+    )
+    parser_check_env.set_defaults(func=handle_check_env)
+
+    # 9. Discovered extension commands (e.g., gp, neat, or third-party extensions)
+    from malthusjax.composer.plugins import discover_cli_commands
+
+    for cmd_name, cmd_entrypoint in discover_cli_commands().items():
+
+        def _make_handler(ep: Any) -> Callable[[argparse.Namespace], int]:
+            return lambda parsed_args: int(ep(getattr(parsed_args, "sub_args", [])))
+
+        ext_parser = subparsers.add_parser(
+            cmd_name,
+            help=f"{cmd_name.upper()} extension commands",
+        )
+        ext_parser.add_argument(
+            "sub_args",
+            nargs=argparse.REMAINDER,
+            help=f"Arguments forwarded to {cmd_name}",
+        )
+        ext_parser.set_defaults(func=_make_handler(cmd_entrypoint))
+
     parsed = parser.parse_args(args)
+
+    verbose = getattr(parsed, "verbose", False)
+    quiet = getattr(parsed, "quiet", False)
+    log_file = getattr(parsed, "log_file", None)
+    log_json = getattr(parsed, "log_json", False)
+    log_interval = getattr(parsed, "log_interval", None)
+    no_crash_handler = getattr(parsed, "no_crash_handler", False)
+
+    setattr(parsed, "verbose", verbose)
+    setattr(parsed, "quiet", quiet)
+    setattr(parsed, "log_file", log_file)
+    setattr(parsed, "log_json", log_json)
+    setattr(parsed, "log_interval", log_interval)
+    setattr(parsed, "no_crash_handler", no_crash_handler)
+
+    if no_crash_handler:
+        uninstall_crash_handler()
+
+    if verbose:
+        level = "DEBUG"
+    elif quiet:
+        level = "WARNING"
+    else:
+        level = "INFO"
+
+    format_type = "json" if log_json else "color"
+    configure_logging(level=level, log_file=log_file, format_type=format_type)
+    setattr(parsed, "_cli_logging_configured", True)
+
     try:
         return parsed.func(parsed)
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        logger.error("Command failed: %s", e)
         return 1
 
 

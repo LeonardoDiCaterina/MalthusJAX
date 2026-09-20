@@ -41,12 +41,16 @@ Different application areas require different genetic encodings. MalthusJAX prov
 
 **The Array Family:**
 - **`RealGenome`**: Stores continuous variables. Uses `bounds` and wraps mutated values with `jax.numpy.clip`.
-- **`BinaryGenome`**: Represents its data as boolean arrays.
+- **`BinaryGenome`**: Represents its data as boolean/bit arrays.
 - **`CategoricalGenome`**: Encodes each gene as an integer index within a specified set of categories.
 - **`SeriesGenome`**: Encodes 2D time-series or sequence data, where operations can occur along specific time or feature axes.
 
+**The Program & Graph Family:**
+- **`LinearGenome`**: Linear Genetic Programming / Multi-Expression Programming (MEP) instructions `(ops, args)` executed with DAG causality enforcement.
+- **`CartesianGenome`**: 2D directed acyclic graph (DAG) grid of cells for Cartesian Genetic Programming (CGP) with vectorized `levels_back` boundaries.
+
 **The Neuroevolution Family:**
-- **`TensorNEATGenome`**: Represents neural network topologies and weights. Unlike simple array genomes, it encapsulates multiple distinct arrays (nodes, edges, activations) and relies on specialized **Emitters** rather than standard arithmetic operators to evolve structurally.
+- **`TensorNeatGenome`**: Represents variable-topology neural networks. Encapsulates graph nodes, connections, and activations, and relies on specialized **Emitters** rather than standard arithmetic operators to evolve structurally.
 
 All of these types participate transparently in batching and JIT compilation.
 
@@ -80,23 +84,30 @@ Different evolutionary engines require different state tracking. Instead of poll
 
 By extending the population object, custom KPIs (e.g. diversity, age, novelty) can be seamlessly integrated. Consumers can access these values with the usual attribute lookup (`pop.pareto_rank`) and JIT compilation carries them through the engine efficiently.
 
-## 2.2. Fitness Evaluators (malthusjax.core.fitness)
+## 2.2. Composable Fitness Evaluators (malthusjax.core.fitness)
 
-Fitness evaluators define the objective function. MalthusJAX separates the evaluation of a single genome from the batched evaluation of a population.
+Candidate evaluation in MalthusJAX is decoupled into a 4-axis **Composable Evaluator Architecture**:
 
-### 2.2.1. The Evaluator Contract
+$$\text{Evaluator} = \text{TaskShell}(\text{Environment} \times \text{Transform} \times \text{Interpreter} \times \text{Output})$$
 
-**Concept:** Defining a pure function `score = evaluator(genome)`.
+This formulation decouples *what is evaluated* (the problem/environment) from *how it is represented* (the genome encoding) and *how it is scored* (scalar, multi-objective, or quality-diversity).
 
-Fitness evaluators must behave as pure functions: given the same genome and inputs, they always return the same scalar (or vector for MO) score. This property is essential for reproducibility and for enabling JIT compilation across populations. Evaluators avoid hidden state; any required data, such as training examples for a neural network, is supplied explicitly via additional static arguments.
+### 2.2.1. The Three Task Shells
 
-### 2.2.2. Continuous Benchmarking (BBOBEvaluator)
+- **`OptimizationEvaluator`**: Standard analytical and physics benchmarks where solutions map directly or through an interpreter to produce an objective score.
+- **`SupervisedEvaluator`**: Evaluates candidates against fixed dataset tensors `(X, y)` marked as static fields (`pytree_node=False`) to compute regression or classification losses.
+- **`RLEvaluator`**: Unrolls multi-step Markov Decision Process (MDP) episodes across Brax, Gymnax, or Jumanji environments using `jax.lax.scan`.
 
-**Concept:** Integrating standard Black-Box Optimization Benchmarks.
+### 2.2.2. Orthogonal Primitives
 
-To facilitate fair comparisons with the optimization literature, MalthusJAX includes the `BBOBEvaluator`. It wraps well‑known mathematical test functions (Sphere, Rastrigin, Rosenbrock) that challenge optimization algorithms with multimodality and flat regions.
+1. **Environment (`BaseEnvironment`)**: The task definition or dataset (e.g. `BaseOptimizationEnvironment`, `BaseSupervisedEnvironment`, `BaseRLEnvironment`).
+2. **Transform (`BaseTransform`)**: Genotype-to-phenotype translation (e.g. `IdentityTransform`, `TensorNeatTransform`).
+3. **Interpreter (`BaseInterpreter`)**: Decodes the phenotype into an executable callable (e.g. `IdentityInterpreter`, `LinearGPInterpreter`, `MLPInterpreter`).
+4. **Output (`BaseOutput`)**: Aggregates raw outcomes and enforces the framework optimization contract (`ScalarOutput`, `MOOutput`, `QDOutput`).
 
-The implementations are written entirely with `jax.numpy`. A single call accepts a batch of genomes and returns a batch of scores using `jax.vmap`. This vectorization is critical for high throughput benchmarking.
+### 2.2.3. Continuous Benchmarking (BBOBAXEvaluator)
+
+To facilitate standardized comparisons with optimization literature, MalthusJAX includes `BBOBAXEvaluator` (`bbobax_evaluator.py`). It implements the 24 Black-Box Optimization Benchmarks (Sphere, Rastrigin, Rosenbrock, Gallagher, Schwefel) completely in pure `jax.numpy` without external dependencies. A single call evaluates an entire `RealPopulation` in parallel on the GPU using `jax.vmap`.
 
 ## 2.3. Deterministic Stochasticity (malthusjax.core.random)
 

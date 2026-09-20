@@ -18,11 +18,10 @@ from malthusjax.composer.evosax_adapter import (
     EVOSAX_STRATEGIES,
     build_evosax_engine,
 )
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
-
-# ---------------------------------------------------------------------------
-# Helper: vanilla evosax run (no adapter)
-# ---------------------------------------------------------------------------
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 
 def _run_evosax_raw(
@@ -137,13 +136,17 @@ class TestEvosaxAdapterMatchesRaw:
         raw = _run_evosax_raw(key=key, **common_params)
 
         # --- Adapter run ---
-        evalr = BBOBEvaluator.create(
-            BBOBConfig(
+        evalr = OptimizationEvaluator(
+            env=BBOBEnv.create(
                 fn_name=common_params["problem_name"],
                 num_dims=common_params["num_dims"],
                 seed=common_params["seed"],
+            ),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(
                 maximize=False,
-            )
+            ),
         )
         adapter = build_evosax_engine(
             strategy_name=common_params["strategy_name"],
@@ -178,13 +181,17 @@ class TestEvosaxAdapterMatchesRaw:
 
         raw = _run_evosax_raw(key=key, maximize=True, **common_params)
 
-        evalr = BBOBEvaluator.create(
-            BBOBConfig(
+        evalr = OptimizationEvaluator(
+            env=BBOBEnv.create(
                 fn_name=common_params["problem_name"],
                 num_dims=common_params["num_dims"],
                 seed=common_params["seed"],
+            ),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(
                 maximize=True,
-            )
+            ),
         )
         adapter = build_evosax_engine(
             strategy_name=common_params["strategy_name"],
@@ -229,13 +236,17 @@ class TestEvosaxAdapterMatchesRaw:
         raw = _run_evosax_raw_with_init_pop(key=key, initial_population=init_pop, **common_params)
 
         # --- Adapter run ---
-        evalr = BBOBEvaluator.create(
-            BBOBConfig(
+        evalr = OptimizationEvaluator(
+            env=BBOBEnv.create(
                 fn_name=common_params["problem_name"],
                 num_dims=common_params["num_dims"],
                 seed=common_params["seed"],
+            ),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(
                 maximize=False,
-            )
+            ),
         )
         adapter = build_evosax_engine(
             strategy_name=common_params["strategy_name"],
@@ -268,13 +279,15 @@ class TestEvosaxAdapterMatchesRaw:
         )
 
         raw = _run_evosax_raw(key=key, **params)
-        evalr = BBOBEvaluator.create(
-            BBOBConfig(
-                fn_name=params["problem_name"],
-                num_dims=params["num_dims"],
-                seed=params["seed"],
+        evalr = OptimizationEvaluator(
+            env=BBOBEnv.create(
+                fn_name=params["problem_name"], num_dims=params["num_dims"], seed=params["seed"]
+            ),
+            transform=IdentityTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(
                 maximize=False,
-            )
+            ),
         )
         adapter = build_evosax_engine(
             strategy_name=params["strategy_name"],

@@ -25,6 +25,9 @@ else:
 from malthusjax.benchmarking.config import BenchmarkConfig
 from malthusjax.benchmarking.sampling import generate_grid
 from malthusjax.composer import Composer
+from malthusjax.core.logger import get_logger
+
+logger = get_logger("benchmarking.suite")
 
 
 def run_suite(toml_path: str, force_smoke: bool = False) -> None:
@@ -82,6 +85,15 @@ def run_suite(toml_path: str, force_smoke: bool = False) -> None:
         exp_output = output_dir / experiment_name
         exp_output.mkdir(parents=True, exist_ok=True)
 
+        logger.info(
+            "Executing coordinate %d/%d: %s (D=%d, P=%d, G=%d)",
+            i,
+            total_experiments,
+            experiment_name,
+            D,
+            P,
+            G,
+        )
         print(f"\n>>> Experiment {i}/{total_experiments} | {experiment_name}")
 
         # Build pipelines dynamically from TOML definitions
@@ -121,6 +133,7 @@ def run_suite(toml_path: str, force_smoke: bool = False) -> None:
                 **shared_kwargs,
             )
             wall_time = time.time() - t0
+            logger.info("Coordinate %s completed in %.2fs", experiment_name, wall_time)
 
             # Prune and Format Results safely into python primitives
             result_summary = {

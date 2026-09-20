@@ -15,7 +15,7 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig, RegressionData
+from malthusjax.core.fitness.base import BaseEvaluatorConfig, RegressionData
 from malthusjax.core.genome.linear_genome import LinearGenome
 
 PROTECTED_DIV_EPS: float = 1e-6
@@ -262,8 +262,7 @@ TENSORGP_NAMES: List[str] = [
 ]
 
 
-from malthusjax.core.fitness.base import StochasticEvaluator, BaseEvaluatorConfig, RegressionData
-from malthusjax.core.genome.linear_genome import LinearGenome
+from malthusjax.core.fitness.base import StochasticEvaluator
 
 
 @struct.dataclass
@@ -310,7 +309,9 @@ class LinearGPEvaluator(StochasticEvaluator[LinearGenome, LinearGPEvaluatorConfi
         X, y = self.data
 
         if self.config.batch_size is not None and rng is not None:
-            indices = jax.random.choice(rng, X.shape[0], shape=(self.config.batch_size,), replace=False)
+            indices = jax.random.choice(
+                rng, X.shape[0], shape=(self.config.batch_size,), replace=False
+            )
             X = X[indices]
             y = y[indices]
 

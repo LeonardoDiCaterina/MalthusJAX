@@ -8,8 +8,11 @@ genomes, and operators for consistent test execution across the test suite.
 import jax.random as jar
 import pytest
 
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 from malthusjax.core.fitness.binary_evaluators import BinarySumConfig, BinarySumEvaluator
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.genetic_fastengine import (
@@ -48,8 +51,12 @@ def engine_params():
 @pytest.fixture
 def bbob_evaluator():
     """BBOB Sphere evaluator for fitness testing."""
-    bbob_config = BBOBConfig(fn_name="sphere", num_dims=10, maximize=False)
-    return BBOBEvaluator.create(bbob_config)
+    return OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name="sphere", num_dims=10),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False),
+    )
 
 
 @pytest.fixture
@@ -142,8 +149,11 @@ def make_engine():
 
         if genome_type == "real":
             genome_cfg = RealGenomeConfig(shape=genome_shape, bounds=bounds)
-            evaluator = BBOBEvaluator.create(
-                BBOBConfig(fn_name="sphere", num_dims=genome_shape[0], maximize=maximize)
+            evaluator = OptimizationEvaluator(
+                env=BBOBEnv.create(fn_name="sphere", num_dims=genome_shape[0]),
+                transform=IdentityTransform(),
+                interpreter=IdentityInterpreter(),
+                output=ScalarOutput(maximize=maximize),
             )
             selection = ElitePoolSelection(num_selections=pop_size, elite_k=max(1, elitism))
             crossover = SimulatedBinaryCrossover(num_offspring=2, eta=15.0)

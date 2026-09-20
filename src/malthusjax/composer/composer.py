@@ -16,6 +16,7 @@ import jax
 import jax.random as jr
 
 from malthusjax.composer.config import infer_genome_length, normalize_seeds
+from malthusjax.composer.evaluator_parser import parse_evaluator
 from malthusjax.composer.factory import (
     build_evosax_engine,
     build_map_elites_engine,
@@ -33,12 +34,23 @@ from malthusjax.composer.strategies.core import (
     QDAXStrategy,
     TensorNEATStrategy,
 )
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 from ..benchmarking import BenchmarkRunner, ExperimentResult
 from ..benchmarking.results import ComparisonResult
+from ..core.logger import (
+    StepLoggingConfig,
+    configure_logging,
+    get_logger,
+    set_log_level,
+)
 from .catalog import OperatorCatalog
 from .config import load_experiment_config
+
+logger = get_logger("composer")
 
 try:
     from tqdm import tqdm
@@ -145,7 +157,7 @@ class Composer:
         # Real operator specifications (malthusjax backend)
         strategy: Optional[BaseStrategy] = None,
         genome: Optional[str] = None,
-        fitness: Optional[str] = None,
+        fitness: Optional[Any] = None,
         selection: Optional[str] = None,
         crossover: Optional[str] = None,
         mutation: Optional[str] = None,
@@ -161,6 +173,11 @@ class Composer:
         trace_dir: Optional[Path | str] = None,
         data_config: Optional[Dict[str, Any]] = None,
         history_metrics: Optional[Sequence[str]] = None,
+        # Logging configuration
+        log_interval: Optional[int] = None,
+        log_level: Optional[str] = None,
+        log_nan_watchdog: bool = True,
+        step_logging: Optional[StepLoggingConfig] = None,
         **kwargs: Any,
     ) -> ExperimentResult:
         """Run a full evolutionary experiment with programmatic operator specs.
@@ -381,6 +398,16 @@ class Composer:
                 seeds=(1, 2),
             )
         """
+        if log_level is not None:
+            set_log_level(log_level)
+
+        if step_logging is None and log_interval is not None:
+            step_logging = StepLoggingConfig(
+                log_interval=log_interval,
+                log_nan_watchdog=log_nan_watchdog,
+                logger_name="malthusjax.composer",
+            )
+
         if output_dir is None:
             output_dir = Path("results") / experiment_name
         else:
@@ -392,7 +419,11 @@ class Composer:
                 from .genome_catalog import GenomeCatalog
 
                 cat = GenomeCatalog()
-                g_type, g_params = cat.parse_spec(genome)
+                if isinstance(genome, dict):
+                    g_type = genome.get("type", "real")
+                    g_params = genome.copy()
+                else:
+                    g_type, g_params = cat.parse_spec(genome)
                 if genome_type is None:
                     genome_type = g_type
                 if genome_length is None:
@@ -424,8 +455,14 @@ class Composer:
             if bounds is None:
                 bounds = (-5.0, 5.0)
 
+            fitness_obj: Any
+            if isinstance(fitness, dict):
+                fitness_obj = parse_evaluator(fitness)
+            else:
+                fitness_obj = fitness
+
             if strategy is None:
-                if backend == "evosax":
+                if backend in ("evosax", "composable_evosax"):
                     strategy = EvoSAXStrategy(algorithm_name=evosax_strategy)
                 elif backend == "qdax":
                     strategy = QDAXStrategy(
@@ -435,7 +472,7 @@ class Composer:
                         mutation_sigma=qdax_mutation_sigma,
                         algorithm_kwargs=kwargs,
                     )
-                elif backend == "tensorneat":
+                elif backend in ("tensorneat", "composable_tensorneat"):
                     strategy = TensorNEATStrategy(
                         algorithm_name=tensorneat_algorithm,
                         genome_name=tensorneat_genome,
@@ -458,58 +495,94 @@ class Composer:
                     )
 
             if isinstance(strategy, EvoSAXStrategy):
-                engine = build_evosax_engine(
-                    strategy_name=strategy.algorithm_name,
-                    fitness_spec=fitness,
-                    pop_size=pop_size,
-                    generations=generations,
-                    num_dims=genome_length,
-                    bounds=bounds,
-                    maximize=maximize,
-                    prng_impl=prng_impl,
-                    history_metrics=history_metrics,
-                    **strategy.algorithm_kwargs,
-                    **kwargs,
-                )
+                if backend == "composable_evosax":
+                    from .factory import build_composable_evosax_engine
+
+                    engine = build_composable_evosax_engine(
+                        strategy_name=strategy.algorithm_name,
+                        fitness_spec=fitness_obj,
+                        pop_size=pop_size,
+                        generations=generations,
+                        num_dims=genome_length,
+                        bounds=bounds,
+                        maximize=maximize,
+                        prng_impl=prng_impl,
+                        history_metrics=history_metrics,
+                        step_logging=step_logging,
+                        **strategy.algorithm_kwargs,
+                        **kwargs,
+                    )
+                else:
+                    engine = build_evosax_engine(
+                        strategy_name=strategy.algorithm_name,
+                        fitness_spec=fitness_obj,
+                        pop_size=pop_size,
+                        generations=generations,
+                        num_dims=genome_length,
+                        bounds=bounds,
+                        maximize=maximize,
+                        prng_impl=prng_impl,
+                        history_metrics=history_metrics,
+                        step_logging=step_logging,
+                        **strategy.algorithm_kwargs,
+                        **kwargs,
+                    )
             elif isinstance(strategy, QDAXStrategy):
                 engine = build_qdax_engine(
                     strategy=strategy,
-                    fitness_spec=fitness,
+                    fitness_spec=fitness_obj,
                     pop_size=pop_size,
                     generations=generations,
                     genome_length=genome_length,
                     bounds=bounds,
                     maximize=maximize,
                     history_metrics=history_metrics,
+                    step_logging=step_logging,
                     **kwargs,
                 )
             elif isinstance(strategy, TensorNEATStrategy):
-                engine = build_tensorneat_engine(
-                    strategy=strategy,
-                    fitness_spec=fitness,
-                    pop_size=pop_size,
-                    generations=generations,
-                    maximize=maximize,
-                    history_metrics=history_metrics,
-                    **kwargs,
-                )
+                if backend == "composable_tensorneat":
+                    from .factory import build_composable_tensorneat_engine
+
+                    engine = build_composable_tensorneat_engine(
+                        strategy=strategy,
+                        fitness_spec=fitness_obj,
+                        pop_size=pop_size,
+                        generations=generations,
+                        maximize=maximize,
+                        history_metrics=history_metrics,
+                        step_logging=step_logging,
+                        **kwargs,
+                    )
+                else:
+                    engine = build_tensorneat_engine(
+                        strategy=strategy,
+                        fitness_spec=fitness_obj,
+                        pop_size=pop_size,
+                        generations=generations,
+                        maximize=maximize,
+                        history_metrics=history_metrics,
+                        step_logging=step_logging,
+                        **kwargs,
+                    )
             elif isinstance(strategy, MapElitesStrategy):
                 engine = build_map_elites_engine(
                     strategy=strategy,
-                    fitness_spec=fitness,
+                    fitness_spec=fitness_obj,
                     pop_size=pop_size,
                     generations=generations,
                     maximize=maximize,
                     history_metrics=history_metrics,
                     genome_length=genome_length,
                     bounds=bounds,
+                    step_logging=step_logging,
                     **kwargs,
                 )
             elif isinstance(strategy, GeneticStrategy):
                 engine = build_real_engine(
                     strategy=strategy,
                     genome=genome,
-                    fitness=fitness,
+                    fitness=fitness_obj,
                     engine_type=engine_type,
                     genome_type=genome_type,
                     pop_size=pop_size,
@@ -521,10 +594,14 @@ class Composer:
                     prng_impl=prng_impl,
                     data_config=data_config,
                     history_metrics=history_metrics,
+                    step_logging=step_logging,
                     **kwargs,
                 )
             else:
                 engine = build_stub_engine(generations, **kwargs)
+        else:
+            if step_logging is not None and hasattr(engine, "step_logging"):
+                engine.step_logging = step_logging
 
         runner = BenchmarkRunner(
             engine=engine,
@@ -537,7 +614,18 @@ class Composer:
         )
 
         normalized_seeds = normalize_seeds(seeds)
+        logger.info(
+            "Starting quick_run: experiment='%s', backend='%s', seeds=%s",
+            experiment_name,
+            backend,
+            list(normalized_seeds),
+        )
         experiment = runner.run(normalized_seeds)
+        logger.info(
+            "Completed quick_run: experiment='%s' across %d seeds",
+            experiment_name,
+            len(normalized_seeds),
+        )
 
         # Composer-level postprocessing: when engines run with
         # TrackBest.NONE for speed they may omit or produce an
@@ -638,17 +726,15 @@ class Composer:
                 fn = parsed_params.get("fn_name", parsed_params.get("fn", "rosenbrock"))
                 dims = parsed_params.get("dim", parsed_params.get("num_dims", genome_length))
                 bbob_seed = parsed_params.get("seed", 0)
-                bbob_eval = BBOBEvaluator.create(
-                    BBOBConfig(
-                        fn_name=fn,
-                        num_dims=dims,
-                        seed=bbob_seed,
-                        maximize=config.get("maximize", False),
-                    )
+                bbob_eval = OptimizationEvaluator(
+                    env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=bbob_seed),
+                    transform=IdentityTransform(),
+                    interpreter=IdentityInterpreter(),
+                    output=ScalarOutput(maximize=config.get("maximize", False)),
                 )
                 pop_key = jr.PRNGKey(pop_seed)
                 sample_keys = jr.split(pop_key, pop_size)
-                return jax.vmap(bbob_eval.evosax_problem.sample)(sample_keys)
+                return jax.vmap(bbob_eval.env._problem.sample)(sample_keys)  # type: ignore[attr-defined]
 
         return jr.uniform(
             jr.PRNGKey(pop_seed),
@@ -802,6 +888,19 @@ class Composer:
 
         trace_base = shared_kwargs.pop("trace_dir", None)
 
+        log_level = shared_kwargs.get("log_level")
+        if log_level is not None:
+            set_log_level(log_level)
+
+        normalized_seeds = normalize_seeds(seeds)
+
+        logger.info(
+            "Comparing %d pipelines across %d seeds: %s",
+            len(pipelines),
+            len(normalized_seeds),
+            list(pipelines.keys()),
+        )
+
         results: Dict[str, ExperimentResult] = {}
         negate_map: Dict[str, bool] = {}
         last_init_pop = None
@@ -865,6 +964,8 @@ class Composer:
         shared_initial_population: bool = True,
         pop_seed: int = 123,
         trace_dir: Optional[str | Path] = None,
+        log_interval: Optional[int] = None,
+        configure_log: bool = True,
     ) -> ComparisonResult:
         """Load and execute a declarative TOML experiment specification.
 
@@ -1006,6 +1107,20 @@ class Composer:
         output_dir = experiment_meta.get("output_dir")
         if output_dir:
             shared.setdefault("output_dir", output_dir)
+
+        logging_meta = experiment_meta.get("logging")
+        if logging_meta:
+            if configure_log:
+                lvl = logging_meta.get("level", "INFO")
+                log_file = logging_meta.get("file")
+                configure_logging(level=lvl, log_file=log_file)
+            if "interval" in logging_meta:
+                shared.setdefault("log_interval", logging_meta["interval"])
+            if "nan_watchdog" in logging_meta:
+                shared.setdefault("log_nan_watchdog", logging_meta["nan_watchdog"])
+
+        if log_interval is not None:
+            shared["log_interval"] = log_interval
 
         seeds = normalize_seeds(shared.pop("seeds", (42, 43, 44)))
 

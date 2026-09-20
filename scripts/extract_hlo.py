@@ -125,11 +125,17 @@ def extract_mjx_hlo(
     optimize: bool = True,
 ) -> str:
     """Extract HLO for a MalthusJAX pipeline using its built-in get_hlo_text()."""
-    from malthusjax.composer.catalog import OperatorCatalog
-    from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+    from malthusjax.composer.engine_factory import build_engine
+    from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+    from malthusjax.core.fitness.composable.environments import SphereEnv
+    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
-    evaluator = BBOBEvaluator.create(
-        BBOBConfig(fn_name="sphere", num_dims=num_dims, seed=42, maximize=False)
+    evaluator = OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False),
     )
 
     # Strip keys not understood by build_engine
@@ -139,33 +145,14 @@ def extract_mjx_hlo(
         if k
         not in {
             "backend",
+            "engine_type",
             "evosax_strategy",
             "strategy_params",
         }
     }
 
-    catalog = OperatorCatalog()
-    sel_str = kwargs.pop("selection", None)
-    cross_str = kwargs.pop("crossover", None)
-    mut_str = kwargs.pop("mutation", None)
-
-    sel = catalog.get(sel_str) if sel_str else None
-    cross = catalog.get(cross_str) if cross_str else None
-    mut = catalog.get(mut_str) if mut_str else None
-
-    engine_type = kwargs.pop("engine_type", "ga")
-
-    # engine_factory.build_engine takes engine_cls, but we just use engine_type through Composer's EngineRegistry
-    from malthusjax.composer.engine_catalog import EngineRegistry
-
-    registry = EngineRegistry()
-
-    adapter = registry.get(
-        engine_type,
-        evaluator=evaluator,
-        selection=sel,
-        crossover=cross,
-        mutation=mut,
+    adapter = build_engine(
+        fitness_evaluator=evaluator,
         genome_type="real",
         pop_size=pop_size,
         generations=gens,
@@ -178,12 +165,6 @@ def extract_mjx_hlo(
     state = engine.init_state(key)
     hlo = engine.get_hlo_text(state, optimize=optimize, print_analysis=False)
     return hlo  # type: ignore[return-value]
-
-
-# ---------------------------------------------------------------------------
-# Markdown summary
-# ---------------------------------------------------------------------------
-
 
 def _write_summary(results: dict[str, dict[str, Any]], out_dir: Path) -> None:
     """Write a Markdown table comparing HLO stats for all pipelines."""

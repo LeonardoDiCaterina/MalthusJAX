@@ -14,6 +14,8 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 from ..core.genome.binary_genome import BinaryGenomeConfig
+from ..core.genome.cartesian_genome import CartesianGenomeConfig
+from ..core.genome.linear_genome import LinearGenomeConfig
 from ..core.genome.real_genome import RealGenomeConfig
 from ._genome_registry import get_registry, register_table
 from ._genome_registry import register as _registry_register
@@ -38,10 +40,34 @@ def _register_builtins() -> None:
         shape = kwargs.pop("shape", (length,))
         return BinaryGenomeConfig(shape=shape, **kwargs)
 
+    def _create_linear(**kwargs: Any) -> LinearGenomeConfig:
+        return LinearGenomeConfig(**kwargs)
+
+    def _create_cartesian(**kwargs: Any) -> CartesianGenomeConfig:
+        return CartesianGenomeConfig(**kwargs)
+
     register_table(
         [
             ("real", _create_real, {"dim": 10, "bounds": (-5.0, 5.0)}),
             ("binary", _create_binary, {"length": 10}),
+            (
+                "linear",
+                _create_linear,
+                {"length": 10, "num_inputs": 2, "num_ops": 5, "max_arity": 2},
+            ),
+            (
+                "cartesian",
+                _create_cartesian,
+                {
+                    "num_rows": 1,
+                    "num_cols": 10,
+                    "levels_back": 10,
+                    "num_inputs": 2,
+                    "num_outputs": 1,
+                    "num_ops": 5,
+                    "max_arity": 2,
+                },
+            ),
         ],
         override=True,
     )
@@ -127,18 +153,37 @@ class GenomeCatalog:
 
         return value_str
 
-    def get(self, spec: str, **kwargs: Any) -> Any:
-        genome_name, spec_params = self.parse_spec(spec)
+    def get(self, spec: Union[str, Dict[str, Any]], **kwargs: Any) -> Any:
+        if isinstance(spec, dict):
+            spec_dict = spec.copy()
+            if "type" not in spec_dict:
+                raise ValueError("Genome specification dict must contain a 'type' key.")
+            genome_name = spec_dict.pop("type")
+            spec_params = spec_dict
+        else:
+            genome_name, spec_params = self.parse_spec(spec)
+
+        if genome_name not in self._registry:
+            from malthusjax.composer.plugins import load_plugins
+
+            load_plugins()
+            self._registry = get_registry()
 
         if genome_name not in self._registry:
             available = ", ".join(self.list_available())
             raise KeyError(f"Unknown genome '{genome_name}'. Available: [{available}]")
 
-        factory, defaults = self._registry[genome_name]
+        factory, defaults, metadata = self._registry[genome_name]
         merged_params = {**defaults, **spec_params, **kwargs}
 
         try:
-            return factory(**merged_params)
+            genome_config = factory(**merged_params)
+            if not hasattr(genome_config, "_malthusjax_metadata"):
+                try:
+                    object.__setattr__(genome_config, "_malthusjax_metadata", metadata)
+                except (TypeError, AttributeError):
+                    pass
+            return genome_config
         except TypeError as e:
             raise ValueError(f"Invalid parameters for genome '{genome_name}': {e}") from e
 
@@ -153,7 +198,11 @@ class GenomeCatalog:
             raise KeyError(f"Genome '{name}' is already registered")
 
         _registry_register(name, factory, defaults, override=True)
-        self._registry[name] = (factory, defaults or {})
+        self._registry[name] = (factory, defaults or {}, {})
 
     def list_available(self) -> List[str]:
+        from malthusjax.composer.plugins import load_plugins
+
+        load_plugins()
+        self._registry = get_registry()
         return sorted(self._registry.keys())

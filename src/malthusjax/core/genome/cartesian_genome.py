@@ -64,7 +64,7 @@ class CartesianGenomeConfig:
     def dtype(self) -> Any:
         return jnp.int32
 
-    def init_population(self, key: chex.PRNGKey, size: int) -> "BasePopulation":
+    def init_population(self, key: chex.PRNGKey, size: int) -> "BasePopulation[CartesianGenome]":
         keys = jax.random.split(key, size)
         genomes = jax.vmap(CartesianGenome.random_init, in_axes=(0, None))(keys, self)
         # Use CartesianPopulation instead of BasePopulation so type checking works out
@@ -89,12 +89,15 @@ class CartesianGenomeConfig:
         node_idx = jnp.arange(self.num_nodes)  # 0 .. num_nodes-1
         col = node_idx // nr  # column of each node
 
-        # The earliest column reachable is max(0, c - l).
-        # Nodes from [earliest_col, col) are valid sources.
-        # Absolute node index of those nodes: N + earliest_col * nr  ..  N + col * nr - 1
-        # Primary inputs [0, N) are ALWAYS valid so lo = 0.
-        hi = N + col * nr  # exclusive upper bound
-        lo = jnp.zeros_like(hi)  # primary inputs always OK
+        # Exclusive upper bound (cannot connect to nodes in own column or beyond)
+        hi = N + col * nr
+
+        # Lower bound using mathematical mask for the levels_back (l) constraint:
+        # If col < l_back, mask is 0 -> lo = 0 (can connect to primary inputs).
+        # If col >= l_back, mask is 1 -> lo = N + (col - l_back) * nr (cannot reach primary inputs).
+        l_back = self.effective_levels_back
+        lo = (col >= l_back) * (N + (col - l_back) * nr)
+
         return lo, hi
 
 
@@ -128,11 +131,11 @@ class CartesianGenome(BaseGenome):
         ops = jax.random.randint(k_ops, (num_nodes,), 0, config.num_ops)
 
         # Connection bounds per node
-        _, hi = config._col_connection_bounds()  # (num_nodes,)
+        lo, hi = config._col_connection_bounds()  # (num_nodes,)
 
-        # Sample args globally then clip per-node to [0, hi-1]
+        # Sample args globally then clip per-node to [lo, hi-1]
         raw_args = jax.random.randint(k_args, (num_nodes, config.max_arity), 0, N + num_nodes)
-        args = jnp.clip(raw_args, 0, hi[:, None] - 1)
+        args = jnp.clip(raw_args, lo[:, None], hi[:, None] - 1)
 
         # Output genes: point to any node or primary input
         total_nodes_and_inputs = N + num_nodes
@@ -144,9 +147,9 @@ class CartesianGenome(BaseGenome):
         """Clip all genes to valid ranges (XLA-safe, no branches)."""
         valid_ops = jnp.clip(self.ops, 0, config.num_ops - 1)
 
-        _, hi = config._col_connection_bounds()
+        lo, hi = config._col_connection_bounds()
         max_arg = hi[:, None] - 1
-        valid_args = jnp.clip(self.args, 0, max_arg)
+        valid_args = jnp.clip(self.args, lo[:, None], max_arg)
 
         total = config.num_inputs + config.num_nodes
         valid_out = jnp.clip(self.out_nodes, 0, total - 1)
@@ -168,8 +171,8 @@ class CartesianGenome(BaseGenome):
         return int(self.ops.shape[-1])
 
     @property
-    def shape(self) -> tuple:
-        return cast(tuple, self.ops.shape + self.args.shape[1:])
+    def shape(self) -> Tuple[int, ...]:
+        return cast(Tuple[int, ...], self.ops.shape + self.args.shape[1:])
 
     @classmethod
     def from_tensor(cls, arr: Any, config: Any = None) -> "CartesianGenome":

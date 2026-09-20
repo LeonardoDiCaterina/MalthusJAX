@@ -58,10 +58,11 @@ def main():
     from tensorneat.genome import DefaultGenome
     from tensorneat.problem import XOR
 
-    from malthusjax.core.fitness.qd.tensorneat_evaluator import (
-        TensorNeatEvaluatorConfig,
-        TensorNeatQDEvaluator,
-    )
+    from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
+    from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
+    from plugins.tensor_neat_transform import TensorNeatTransform
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+    from malthusjax.core.fitness.composable.base import ScalarOutput
     from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
 
     # Setup the native TensorNEAT operators for the evaluator and emitter
@@ -69,11 +70,13 @@ def main():
     genome = DefaultGenome(num_inputs=2, num_outputs=1, max_nodes=10, max_conns=20)
     algorithm = NEAT(pop_size=pop_size, species_size=2, genome=genome)
 
-    evaluator = TensorNeatQDEvaluator.create(
-        algorithm=algorithm,
-        problem=problem,
+    evaluator = TensorNeatEvaluator(
+        env=TensorNEATProblemWrapper(problem=problem),
+        transform=TensorNeatTransform(algorithm=algorithm),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(),
         forward_fn=algorithm.forward,
-        config=TensorNeatEvaluatorConfig(seed=42),
+        seed=42,
     )
 
     # The MapElites Repertoire will store the TensorNEAT dynamic graphs!

@@ -42,6 +42,15 @@ class LinearGenomeConfig:
     num_ops: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
     max_arity: int = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
 
+    @property
+    def dtype(self) -> Any:
+        return jnp.int32
+
+    def init_population(self, key: chex.PRNGKey, size: int) -> "BasePopulation[LinearGenome]":
+        keys = jax.random.split(key, size)
+        genomes = jax.vmap(LinearGenome.random_init, in_axes=(0, None))(keys, self)
+        return BasePopulation(genes=genomes, fitness=jnp.zeros(size), info={})
+
 
 @struct.dataclass
 class LinearGenome(BaseGenome):

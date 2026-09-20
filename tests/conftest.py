@@ -8,6 +8,13 @@ including random keys, genome configurations, and test data.
 import os
 import sys
 
+# Prevent OpenMP/BLAS thread explosion, deadlocks, and segfaults on high-core HPC nodes
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+
 # Ensure src/ is in PYTHONPATH for the remote benchmarking script
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
@@ -290,7 +297,10 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
 
     Useful for PRNG-focused tests that need a baked operator set in `state.operators`.
     """
-    from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+    from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+    from malthusjax.core.fitness.composable.environments import SphereEnv
+    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
     from malthusjax.core.genome.real_genome import RealGenomeConfig
     from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
     from malthusjax.operators.crossover.real import SimulatedBinaryCrossover
@@ -306,12 +316,18 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
     )
 
     genome_config = RealGenomeConfig(shape=(5,), bounds=(-5.0, 5.0))
-    bbob = BBOBEvaluator.create(BBOBConfig(fn_name="sphere", num_dims=5, maximize=False))
+    env = SphereEnv()
+    evaluator = OptimizationEvaluator(
+        env=env,
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False),
+    )
 
     engine = GeneticEngine(
         engine_params=params,
         genome_config=genome_config,
-        evaluator=bbob,
+        evaluator=evaluator,
         selection=ElitePoolSelection(num_selections=32, elite_k=2),
         crossover=SimulatedBinaryCrossover(num_offspring=2, eta=15.0),
         mutation=GaussianMutation(num_offspring=1, mutation_rate=0.1, mutation_strength=0.1),

@@ -9,7 +9,10 @@ from examples.toy_gap_convergence import _shared_initial_population
 from malthusjax.benchmarking.results import ExperimentResult
 from malthusjax.composer.composer import Composer
 from malthusjax.composer.evosax_adapter import build_evosax_engine
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
@@ -72,13 +75,16 @@ def test_end_to_end_equivalence_manual_vs_composer_vs_toml(
     elite_k = max(1, pop_size // 2) if elitism > 0 else 1
 
     # Build evaluator and shared initial population (same logic composer uses)
-    evaluator = BBOBEvaluator.create(
-        BBOBConfig(fn_name=fn_name, num_dims=dimensions, seed=seed, maximize=False)
+    evaluator = OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name=fn_name, num_dims=dimensions, seed=seed),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False),
     )
 
     pop_key = jr.PRNGKey(seed)
     sample_keys = jr.split(pop_key, pop_size)
-    shared_pop = jax.vmap(evaluator.evosax_problem.sample)(sample_keys)
+    shared_pop = jax.vmap(evaluator.env._problem.sample)(sample_keys)
 
     # --- Manual engine run (MalthusJAX) ---------------------------------
     genome_config = RealGenomeConfig(shape=(dimensions,), bounds=(-5.0, 5.0))
@@ -175,13 +181,16 @@ elitism = {elitism}
 def test_evosax_backend_equivalence(tmp_path, fn_name, dimensions, pop_size, seed):
     generations = 1
 
-    evaluator = BBOBEvaluator.create(
-        BBOBConfig(fn_name=fn_name, num_dims=dimensions, seed=seed, maximize=False)
+    evaluator = OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name=fn_name, num_dims=dimensions, seed=seed),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=False),
     )
 
     pop_key = jr.PRNGKey(seed)
     sample_keys = jr.split(pop_key, pop_size)
-    shared_pop = jax.vmap(evaluator.evosax_problem.sample)(sample_keys)
+    shared_pop = jax.vmap(evaluator.env._problem.sample)(sample_keys)
 
     # Manual evosax adapter run using the same initial population
     adapter = build_evosax_engine(

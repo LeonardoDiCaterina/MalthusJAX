@@ -170,13 +170,9 @@ class TensorNEATEngineAdapter:
         safe_tn_fitness = jnp.where(valid_mask, tn_fitness, -jnp.inf)
 
         metrics = {
-            "best_fitness_in_generation": jnp.where(
-                self.maximize,
-                jnp.max(jnp.where(valid_mask, fitness, -jnp.inf)),
-                jnp.min(jnp.where(valid_mask, fitness, jnp.inf)),
-            ),
-            "mean_fitness": jnp.mean(jnp.where(valid_mask, fitness, jnp.nan)),
-            "std_fitness": jnp.std(jnp.where(valid_mask, fitness, jnp.nan)),
+            "best_fitness_in_generation": jnp.max(jnp.where(valid_mask, tn_fitness, -jnp.inf)),
+            "mean_fitness": jnp.mean(jnp.where(valid_mask, tn_fitness, jnp.nan)),
+            "std_fitness": jnp.std(jnp.where(valid_mask, tn_fitness, jnp.nan)),
         }
 
         # 4. Tell

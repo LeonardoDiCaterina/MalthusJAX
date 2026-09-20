@@ -1,0 +1,26 @@
+[experiment]
+seeds = [123]
+
+[pipelines.main]
+backend = "composable_evosax"
+strategy = "CMA_ES"
+pop_size = 64
+generations = 10
+maximize = true
+
+[pipelines.main.fitness]
+type = "RLEvaluator"
+max_steps = 100
+
+[pipelines.main.fitness.env]
+type = "BraxEnv"
+env_name = "ant"
+
+[pipelines.main.fitness.interpreter]
+type = "MLPInterpreter"
+hidden = [32, 32]
+activation = "tanh"
+
+[pipelines.main.fitness.output]
+type = "ScalarOutput"
+maximize = true

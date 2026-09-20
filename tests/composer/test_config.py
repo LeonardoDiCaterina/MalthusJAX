@@ -52,7 +52,7 @@ def test_load_experiment_config(tmp_path):
 
     [pipelines.pipeline_a]
     strategy = "ga"
-    
+
     [pipelines.pipeline_b]
     strategy = "es"
     pop_size = 100
@@ -122,7 +122,7 @@ def test_load_experiment_config_no_pipelines(tmp_path):
     toml_file = tmp_path / "exp.toml"
     toml_file.write_text(toml_content)
 
-    with pytest.raises(KeyError, match="No \\\\[pipelines.\\*\\\\] sections found"):
+    with pytest.raises((KeyError, ValueError), match=r"No \[pipelines\.\*\] sections found"):
         load_experiment_config(str(toml_file))
 
 
@@ -130,7 +130,7 @@ def test_parse_data_section(tmp_path):
     toml_content = """
     [data.dataset1]
     path = "data.csv"
-    
+
     [pipelines.p1]
     """
     toml_file = tmp_path / "exp.toml"

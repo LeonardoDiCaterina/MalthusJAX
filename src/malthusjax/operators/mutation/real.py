@@ -219,8 +219,8 @@ class GaussianMutation_injection(BaseMutation_injection[RealGenome, RealGenomeCo
         n = int(self.input_length * self.num_offspring)
         total = n * self.num_keys_per_atomic_operation
         subkeys = jax.random.split(key, total)
-        # reshape to (n, atomic_keys, 2)
-        subkeys = subkeys.reshape((n, self.num_keys_per_atomic_operation, -1))
+        # reshape to (n, atomic_keys, ...) matching key dimensions
+        subkeys = subkeys.reshape((n, self.num_keys_per_atomic_operation) + key.shape)
 
         if self.schedule_type == ScheduleType.CONSTANT:
             strength = jnp.asarray(self.mutation_strength)
@@ -375,7 +375,7 @@ class BallMutation_injection(BaseMutation_injection[RealGenome, RealGenomeConfig
         n = int(self.input_length * self.num_offspring)
         total = n * self.num_keys_per_atomic_operation
         subkeys = jax.random.split(key, total)
-        subkeys = subkeys.reshape((n, self.num_keys_per_atomic_operation, -1))
+        subkeys = subkeys.reshape((n, self.num_keys_per_atomic_operation) + key.shape)
 
         if self.schedule_type == ScheduleType.CONSTANT:
             radius = jnp.asarray(self.radius)
@@ -527,7 +527,7 @@ class PolynomialMutation_injection(BaseMutation_injection[RealGenome, RealGenome
         n = int(self.input_length * self.num_offspring)
         total = n * self.num_keys_per_atomic_operation
         subkeys = jax.random.split(key, total)
-        subkeys = subkeys.reshape((n, self.num_keys_per_atomic_operation, -1))
+        subkeys = subkeys.reshape((n, self.num_keys_per_atomic_operation) + key.shape)
 
         def per_row(k_row: chex.Array) -> chex.Array:
             k_mask, k_val = k_row[0], k_row[1]

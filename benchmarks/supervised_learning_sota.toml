@@ -1,0 +1,45 @@
+[experiment]
+name = "LSP Supervised Learning SOTA Comparison"
+output_dir = "results/supervised_sota"
+
+[experiment.shared]
+fitness = "sklearn_cgp:dataset=make_regression,n_samples=50,n_features=5"
+pop_size = 128
+generations = 20
+seeds = [1, 2, 3]
+maximize = false
+
+# ----------------- PIPELINES -----------------
+
+[pipelines.miller]
+engine_type = "ga"
+genome_type = "cartesian:num_inputs=5,num_outputs=1"
+mutation = "cartesian_micro:mutation_rate=0.2"
+crossover = "cartesian_noop"
+
+[pipelines.oltean]
+engine_type = "ga"
+genome_type = "linear:length=50,num_inputs=5"
+mutation = "mep_micro:mutation_rate=0.2"
+crossover = "mep_one_point"
+fitness = "sklearn_mep:dataset=make_regression,n_samples=50,n_features=5"
+
+[pipelines.izzo]
+engine_type = "ga"
+genome_type = "neural_cartesian:num_inputs=5,num_outputs=1"
+mutation = "cgpann_hybrid"
+crossover = "cartesian_noop"
+fitness = "sklearn_neural_cgp:dataset=make_regression,n_samples=50,n_features=5"
+
+[pipelines.d_izzo]
+engine_type = "ga"
+genome_type = "cartesian:num_inputs=5,num_outputs=1"
+mutation = "cartesian_micro:mutation_rate=0.2"
+crossover = "cartesian_noop"
+fitness = "sklearn_dcgp:dataset=make_regression,n_samples=50,n_features=5"
+
+[pipelines.tensorneat]
+backend = "tensorneat"
+tensorneat_num_inputs = 5
+tensorneat_num_outputs = 1
+# Automatically wrapped into TensorNEATSupervisedProblem via tensorneat adapter.

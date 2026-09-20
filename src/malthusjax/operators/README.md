@@ -100,12 +100,43 @@ In MalthusJAX, operators are pure functions (or `@struct.dataclass` PyTrees) des
 
 ## `malthusjax.operators.emitters`
 
-**Purpose**: Quality-Diversity (QD) emitter interface for topological, grid-based, or complex variation.
+**Purpose**: Quality-Diversity (QD) emitter interface for topological, grid-based, or complex variation that bridges reproduction operators with archives and repertoires.
 
-**Core Classes (`emitters/base.py`)**:
-- `BaseEmitter`: Defines QD emitter contract (`batch_size`, `num_keys`, `init`, `ask`, `tell`).
-- `AtomicEmitter`: Enforces single-consumer 3-tier architecture for atomic QD variation.
-- `GeneticEmitter` (`genetic.py`): Combines selection, crossover, and mutation into a QD emitter.
-- `MixingEmitter` (`mixing.py`): Combines multiple sub-emitters with custom selection probabilities.
-- `QDAXReplicaEmitter` (`qdax_replica.py`): Wraps QDAX emitters to run inside MalthusJAX engines.
-- `TensorNEATEmitter` (`tensorneat_emitter.py`): Wraps TensorNEAT algorithms for evolving neural topologies.
+> For the comprehensive architectural reference, mathematical contracts, and guide, see **[malthusjax.operators.emitters Reference](file:///Users/leonardodicaterina/Documents/GitHub/MalthusJAX/src/malthusjax/operators/emitters/README.md)**.
+
+### Core Protocols (`emitters/base.py`)
+- `BaseEmitter`: Universal emitter contract (`batch_size`, `num_keys()`, `init()`, `ask()`, `tell()`, `set_input_length()`).
+- `AtomicEmitter`: Enforces single-consumer 3-tier progressive architecture (`_emit_one`, `_sample_parents`, `ask`).
+- `EmitterState`: State carry dataclass for internal emitter adaptation.
+
+### Built-in Emitters
+- **Genetic Emitters (`emitters/genetic.py`)**: `GeneticMutationEmitter`, `GeneticCrossoverEmitter`, `GeneticMixingEmitter` wrap MalthusJAX selection, crossover, and scheduled mutation for Quality Diversity (MAP-Elites).
+- **Compositional (`emitters/mixing.py`)**: `MixingEmitter` distributes generation quotas across multiple sub-emitters.
+- **QDAX Replica (`emitters/qdax_replica.py`)**: `QDAXReplicaEmitter` provides pure JAX parity with QDAX emitters.
+- **Neuroevolution (`emitters/tensorneat_emitter.py`)**: `TensorNeatEmitter` evolves variable-topology neural networks.
+
+### Scaffolding & Extension
+Scaffold custom emitters with automated compliance test suites:
+```bash
+python scripts/scaffold.py -t emitter -n MyEmitter -k my_emitter -o src/malthusjax/plugins -to tests/plugins
+```
+Custom emitters can be registered using `@register_emitter("key")` and verified using `malthusjax.testing.compliance.EmitterComplianceSuite`.
+
+### Runnable Demonstration
+A complete standalone script demonstrating Level 2 selection, crossover, mutation, and emitters in pure JAX is available at:
+- **[examples/operators_basic_demo.py](file:///Users/leonardodicaterina/Documents/GitHub/MalthusJAX/examples/operators_basic_demo.py)**
+
+---
+
+## Diagnostic Logging (`malthusjax.operators`)
+
+All Level 2 operators integrate with the Level 1 logging subsystem (`malthusjax.core.logger`), emitting diagnostic traces under the `"malthusjax.operators"` channel at `DEBUG` level during key budgeting, input length locking, and elitism configuration:
+
+```python
+from malthusjax import configure_logging
+
+configure_logging(level="DEBUG")
+# Operators will now emit debug traces when budgeting keys or setting population length
+```
+
+

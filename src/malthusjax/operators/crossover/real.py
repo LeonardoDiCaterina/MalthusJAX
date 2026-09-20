@@ -322,7 +322,7 @@ class BlendCrossover_injection(BaseCrossover_injection[RealGenome, RealGenomeCon
                 "Set `input_length` and `num_offspring` before calling _generate_noise."
             )
         n = int(self.input_length * self.num_offspring)
-        subkeys = jax.random.split(key, n * 2).reshape((n, 2, -1))
+        subkeys = jax.random.split(key, n * 2).reshape((n, 2) + key.shape)
 
         def per_row(k_row: chex.Array) -> Tuple[chex.Array, chex.Array]:
             k_do, k_val = k_row[0], k_row[1]
@@ -584,7 +584,9 @@ class SimulatedBinaryCrossover_injection(BaseCrossover_injection[RealGenome, Rea
             )
         n = int(self.input_length * self.num_offspring)
         total = n * self.num_keys_per_atomic_operation
-        subkeys = jax.random.split(key, total).reshape((n, self.num_keys_per_atomic_operation, -1))
+        subkeys = jax.random.split(key, total).reshape(
+            (n, self.num_keys_per_atomic_operation) + key.shape
+        )
 
         def per_row(k_row: chex.Array) -> Tuple[chex.Array, chex.Array, chex.Array]:
             k_do, k_beta, k_swap = k_row[0], k_row[1], k_row[2]

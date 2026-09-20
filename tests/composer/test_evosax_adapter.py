@@ -20,7 +20,10 @@ from malthusjax.composer.evosax_adapter import (
     list_strategies,
 )
 from malthusjax.core.fitness.base import BaseEvaluator
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
+from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+from malthusjax.core.fitness.composable.environments import BBOBEnv
+from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 from .base_adapter_suite import BaseAdapterTestSuite
 
@@ -51,9 +54,12 @@ except Exception:
 
 def make_bbob_evaluator(
     fn_name: str = "sphere", num_dims: int = 3, seed: int = 42, maximize: bool = False
-) -> BBOBEvaluator:
-    return BBOBEvaluator.create(
-        BBOBConfig(fn_name=fn_name, num_dims=num_dims, seed=seed, maximize=maximize)
+) -> OptimizationEvaluator:
+    return OptimizationEvaluator(
+        env=BBOBEnv.create(fn_name=fn_name, num_dims=num_dims, seed=seed),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=maximize),
     )
 
 
@@ -103,7 +109,7 @@ class TestBuildEvosaxEngine:
         assert adapter.num_dims == 5
 
     def test_unwraps_bbob_evaluator(self):
-        """Passing a BBOBEvaluator results in a raw evosax problem stored."""
+        """Passing a OptimizationEvaluator results in a raw evosax problem stored."""
         from evosax.problems import BBOBProblem
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=2)
@@ -121,8 +127,8 @@ class TestBuildEvosaxEngine:
         Note: LGA is skipped due to JAX version compatibility issues with
         evosax's pickled parameter loading.
         """
-        # Skip strategies due to external library compatibility issue with JAX pickling
-        skip_strategies = {"LGA", "EvoTF_ES", "LES", "LM_MA_ES", "SV_CMA_ES", "SV_Open_ES", "DES"}
+        # Skip strategies due to external library compatibility issue with JAX pickling or multi-population API
+        skip_strategies = {"LGA", "EvoTF_ES", "LES", "SV_CMA_ES", "SV_Open_ES"}
 
         for name in list_strategies():
             if name in skip_strategies:
@@ -379,12 +385,12 @@ class TestStrategySmoke:
             "LGA",
             "EvoTF_ES",
             "LES",
-            "LM_MA_ES",
             "SV_CMA_ES",
             "SV_Open_ES",
-            "DES",
         }:
-            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility issue")
+            pytest.skip(
+                f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API"
+            )
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=4)
         adapter = build_evosax_engine(
@@ -407,12 +413,12 @@ class TestStrategySmoke:
             "LGA",
             "EvoTF_ES",
             "LES",
-            "LM_MA_ES",
             "SV_CMA_ES",
             "SV_Open_ES",
-            "DES",
         }:
-            pytest.skip(f"{strategy_name} skipped due to evosax JAX compatibility issue")
+            pytest.skip(
+                f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API"
+            )
 
         evalr = make_bbob_evaluator(fn_name="rastrigin", num_dims=5)
         adapter = build_evosax_engine(

@@ -50,8 +50,8 @@ def test_different_impls_different_keys():
     except ValueError:
         pytest.skip("One of the impls not supported by this JAX build")
 
-    # It's extremely likely they differ; assert non-equality
-    assert not jnp.allclose(jnp.asarray(k1), jnp.asarray(k2))
+    # They have different key dtypes (e.g. key<phx4> vs key<fry>)
+    assert k1.dtype != k2.dtype
 
 
 def test_impl_propagates_through_split():

@@ -4,6 +4,24 @@ MalthusJAX: High-Performance Evolutionary Computation in JAX.
 
 __version__ = "0.2.0"
 
+# 1. Stabilize runtime environment and hook native crash diagnostics
+from .core.diagnostics import (
+    format_crash_banner,
+    get_environment_diagnostics,
+    install_crash_handler,
+    print_environment_diagnostics,
+    stabilize_runtime_environment,
+    uninstall_crash_handler,
+)
+
+stabilize_runtime_environment()
+install_crash_handler()
+
+import logging
+
+# Attach NullHandler to root library logger according to PEP 282
+logging.getLogger("malthusjax").addHandler(logging.NullHandler())
+
 from .core.base import BaseGenome, BasePopulation, DistanceMetric
 from .core.fitness.base import BaseEvaluator
 from .core.fitness.binary_evaluators import (
@@ -12,14 +30,6 @@ from .core.fitness.binary_evaluators import (
     KnapsackConfig,
     KnapsackEvaluator,
 )
-from .core.fitness.real_evaluators import (
-    BoxConfig,
-    BoxEvaluator,
-    GriewankConfig,
-    GriewankEvaluator,
-    SphereConfig,
-    SphereEvaluator,
-)
 from .core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
 from .core.genome.categorical_genome import (
     CategoricalGenome,
@@ -27,14 +37,28 @@ from .core.genome.categorical_genome import (
     CategoricalPopulation,
 )
 from .core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from .core.logger import (
+    StepLoggingConfig,
+    configure_logging,
+    get_logger,
+    set_log_level,
+)
 from .operators import crossover, mutation, selection
 
 # Explicitly define what `from malthusjax import *` exports
+
 __all__ = [
     # Submodules
     "selection",
     "crossover",
     "mutation",
+    # Diagnostics & stabilization
+    "stabilize_runtime_environment",
+    "install_crash_handler",
+    "uninstall_crash_handler",
+    "format_crash_banner",
+    "get_environment_diagnostics",
+    "print_environment_diagnostics",
     # Core top-level types
     "BaseGenome",
     "BasePopulation",
@@ -45,12 +69,6 @@ __all__ = [
     "BinarySumEvaluator",
     "KnapsackConfig",
     "KnapsackEvaluator",
-    "BoxConfig",
-    "BoxEvaluator",
-    "GriewankConfig",
-    "GriewankEvaluator",
-    "SphereConfig",
-    "SphereEvaluator",
     # Genomes & populations
     "BinaryGenome",
     "BinaryGenomeConfig",
@@ -71,6 +89,11 @@ __all__ = [
     "GeneticGenerationOutput",
     "ScheduleType",
     "compute_scheduled_strength",
+    # Logging subsystem
+    "get_logger",
+    "set_log_level",
+    "configure_logging",
+    "StepLoggingConfig",
 ]
 
 # --- 3. ENGINE (Top Level) ---

@@ -165,7 +165,7 @@ class TestComposerQuickRun:
         def mock_build(*args, **kwargs):
             return StubEngine(generations=2)
 
-        monkeypatch.setattr("malthusjax.composer.qdax_adapter.build_qdax_engine", mock_build)
+        monkeypatch.setattr("malthusjax.composer.composer.build_qdax_engine", mock_build)
 
         # QDAX strategy string map
         result = composer.quick_run(

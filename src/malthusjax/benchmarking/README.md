@@ -106,9 +106,37 @@ The `write_experiment_artifacts(experiment, output_dir)` function writes artifac
 
 ---
 
+## Structured Logging Channels
+
+The benchmarking subsystem utilizes MalthusJAX's unified logging infrastructure (`malthusjax.core.logger`):
+
+- **`malthusjax.benchmarking.runner`**:
+  - `DEBUG`: Logs seed execution starts (`"Seed 1/10 start (seed=42)"`).
+  - `INFO`: Logs seed execution completions (`"Seed 1/10 done status=success duration=0.12s"`).
+- **`malthusjax.benchmarking.sampling`**:
+  - `DEBUG`: Logs coordinate generation counts for Cartesian grids and Latin Hypercube Sampling (LHS) spaces.
+- **`malthusjax.benchmarking.suite`**:
+  - `INFO`: Logs high-throughput benchmark coordinate execution progress and wall-clock times.
+
+---
+
 ## `malthusjax.benchmarking.cli` (`mjax`)
 
 CLI module exposing commands via `argparse`:
+
+### Global Logging & Telemetry Flags
+
+The following flags can be passed globally to `mjax` or directly to any subcommand:
+
+| Flag | Type | Description |
+|---|---|---|
+| `-v`, `--verbose` | boolean | Enables verbose debug logging (`DEBUG` level across all subsystems). |
+| `-q`, `--quiet` | boolean | Suppresses informational progress messages (`WARNING` level). |
+| `--log-file PATH` | Path | Routes structured log records to a persistent file (creates parent directories). |
+| `--log-json` | boolean | Formats console and file logs as newline-delimited JSON objects. |
+| `--log-interval N` | int | Enables opt-in on-device JIT telemetry callbacks dispatching every `N` generations. |
+
+### Subcommands
 
 | Command | Arguments / Flags | Functionality |
 |---|---|---|

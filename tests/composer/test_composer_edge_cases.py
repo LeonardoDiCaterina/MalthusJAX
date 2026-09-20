@@ -47,7 +47,12 @@ def test_composer_backends():
         generations=1,
     )
 
-    # TensorNEAT backend
+    # TensorNEAT backend (optional external dependency)
+    try:
+        import tensorneat  # noqa: F401
+    except ImportError:
+        return
+
     composer.quick_run(
         fitness="xor",
         backend="tensorneat",

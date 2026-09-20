@@ -7,6 +7,7 @@ with sensible defaults and declarative configuration.
 from .composer import Composer
 from .decorators import (
     register_crossover,
+    register_emitter,
     register_engine,
     register_fitness,
     register_genome,
@@ -26,9 +27,15 @@ __all__ = [
     "register_selection",
     "register_mutation",
     "register_crossover",
+    "register_emitter",
     "register_fitness",
     "register_engine",
     "register_genome",
     "MOEngineAdapter",
     "build_mo_engine",
 ]
+
+# Auto-discover plugins on import
+from .discovery import discover_plugins
+
+discover_plugins()

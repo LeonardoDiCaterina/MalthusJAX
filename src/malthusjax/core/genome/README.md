@@ -80,11 +80,71 @@ Notes:
   - **RealGenome**: `metric="euclidean"` (L2 norm, default)
   - **BinaryGenome**: `metric="hamming"` (bitwise mismatch count, default)
   - **CategoricalGenome**: `metric="hamming"` (category mismatch count, default)
+  - **SeriesGenome**: `metric="euclidean"` (L2 distance across coefficient tensors)
+  - **LinearGenome**: `metric="hamming"` (instruction/opcode alignment difference)
+  - **CartesianGenome**: `metric="hamming"` (node operation and connection divergence)
+  - **TensorNeatGenome**: Structural distance based on graph excess/disjoint genes and weight divergence.
 
 **Important**: 
 - Algorithms should call `BaseGenome.distance(...)` polymorphically without assuming concrete type internals.
 - Concrete subclasses cast `other` internally (`other_real = cast(RealGenome, other)`) to access subclass-specific data.
 - When implementing a new genome, provide sensible defaults that match the domain (metrics for permutations differ from continuous spaces).
+
+---
+
+## Supported Genome Representations
+
+MalthusJAX ships with a diverse suite of JAX-native genome representations covering continuous, discrete, temporal, programmatic, and graph-based domains:
+
+| Representation | Class & Config | Payload Structure | Domain Constraints & Autocorrect | Primary Applications |
+| :--- | :--- | :--- | :--- | :--- |
+| **Real Vector** | `RealGenome`<br>`RealGenomeConfig` | `values: chex.Array` (`float32`) | Clips values to `bounds=(min, max)`. Supports L2 normalization. | Continuous optimization, BBOB, physics parameters, direct policy weights. |
+| **Binary String** | `BinaryGenome`<br>`BinaryGenomeConfig` | `values: chex.Array` (`int32` bits in `{0, 1}`) | Bounds checking and binary cast. Supports `to_int()` decoding. | Combinatorial search, OneMax, 0/1 Knapsack, feature selection. |
+| **Categorical** | `CategoricalGenome`<br>`CategoricalGenomeConfig` | `values: chex.Array` (`int32` indices) | Snaps out-of-range categories; checks permutation validity via `is_permutation()`. | TSP, scheduling, discrete choice, permutation problems. |
+| **Series / Temporal** | `SeriesGenome`<br>`SeriesGenomeConfig` | `values: chex.Array` (`(n_dims, n_coeffs)`) | Basis expansion projection (`basis: BasisFunction`) and coefficient bounding. | Time-series prediction, trajectory optimization, dynamical signal shaping. |
+| **Linear GP (MEP)** | `LinearGenome`<br>`LinearGenomeConfig` | `ops: chex.Array`<br>`args: chex.Array` | Strictly enforces DAG causality ($c_{ij} < i$); bounds opcodes to `[0, num_ops)`. | Symbolic regression, program synthesis, Multi-Expression Programming. |
+| **Cartesian GP (CGP)** | `CartesianGenome`<br>`CartesianGenomeConfig` | `ops: chex.Array`<br>`args: chex.Array`<br>`out_nodes: chex.Array` | Mathematical enforcement of `levels_back` boundaries using vectorized Heaviside masks. | Digital logic synthesis, neural architecture search, 2D DAG algorithms. |
+| **TensorNEAT Graph** | `TensorNeatGenome`<br>`TensorNeatGenomeConfig` | `values: (nodes, conns)` | Fixed-size tensor buffers (`max_nodes`, `max_conns`) compatible with structural mutation. | Variable-topology neuroevolution, direct topology and weight evolution. |
+
+### Configuration Schemas & Payloads
+
+#### 1. `RealGenomeConfig`
+- `shape: Tuple[int, ...]`: Shape of the continuous tensor payload (e.g. `(10,)` or `(5, 5)`).
+- `bounds: Tuple[float, float]`: Min/max bounds enforced during `autocorrect()`.
+- `dtype: Any`: Precision dtype (default `jnp.float32`).
+
+#### 2. `BinaryGenomeConfig`
+- `shape: Tuple[int, ...]`: Shape of binary array (defaults to `(1,)`).
+- Legacy parameter: `length: int` automatically converted to `shape=(length,)`.
+
+#### 3. `CategoricalGenomeConfig`
+- `shape: Tuple[int, ...]`: Shape of categorical array.
+- `num_categories: int`: Total number of discrete category tokens.
+
+#### 4. `SeriesGenomeConfig`
+- `n_dims: int`: Number of independent output dimensions.
+- `n_coeffs: int`: Number of basis coefficients per dimension.
+- `basis: BasisFunction`: Basis expansion type (e.g., Fourier, Polynomial, Chebyshev).
+- `bounds: Tuple[float, float]`: Coefficient clipping boundaries.
+
+#### 5. `LinearGenomeConfig`
+- `length: int`: Total number of instruction nodes in the linear sequence.
+- `num_inputs: int`: Number of program input terminals.
+- `num_ops: int`: Total count of primitive opcodes in the function set.
+- `max_arity: int`: Maximum arity across all opcodes.
+
+#### 6. `CartesianGenomeConfig`
+- `num_rows: int`: Number of rows in the Cartesian grid.
+- `num_cols: int`: Number of columns in the Cartesian grid.
+- `num_inputs: int`: Number of problem inputs.
+- `num_outputs: int`: Number of final outputs extracted from the grid.
+- `num_ops: int`: Number of primitive node functions.
+- `max_arity: int`: Maximum inputs per node.
+- `levels_back: int`: Permissible look-back distance for node input connections.
+
+#### 7. `TensorNeatGenomeConfig`
+- `max_nodes: int`: Maximum allocated node tensor capacity.
+- `max_conns: int`: Maximum allocated connection gene tensor capacity.
 
 ---
 

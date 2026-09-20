@@ -10,15 +10,19 @@ from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 import chex
 import jax
 import jax.numpy as jnp
-from evosax.algorithms import distribution_based_algorithms, population_based_algorithms
+
+try:
+    from evosax.algorithms import distribution_based_algorithms, population_based_algorithms
+
+    EVOSAX_STRATEGIES: Dict[str, type] = {
+        **population_based_algorithms,
+        **distribution_based_algorithms,
+    }
+except ImportError:
+    EVOSAX_STRATEGIES = {}
 
 from malthusjax.composer.adapters import EvalMode, adapter
 from malthusjax.composer.adapters.metrics import MetricSpec
-
-EVOSAX_STRATEGIES: Dict[str, type] = {
-    **population_based_algorithms,
-    **distribution_based_algorithms,
-}
 
 
 def list_strategies() -> list[str]:
@@ -28,7 +32,14 @@ def list_strategies() -> list[str]:
 
 def _evosax_native_eval(evaluator, pop, state, key):
     """Executes the evosax native problem evaluation."""
-    if hasattr(evaluator, "evosax_problem"):
+    if (
+        hasattr(evaluator, "env")
+        and hasattr(evaluator.env, "_problem")
+        and getattr(evaluator.env, "_problem") is not None
+    ):
+        problem = evaluator.env._problem
+        p_state = getattr(evaluator.env, "_state", None)
+    elif hasattr(evaluator, "evosax_problem"):
         problem = evaluator.evosax_problem
         p_state = evaluator.problem_state
     else:
@@ -46,8 +57,16 @@ def _evosax_mjx_eval(evaluator, pop, state, key):
 
     # Access the config from the evaluator. Depending on the evaluator type,
     # the config attribute structure might vary, but standard evaluators have config.genome_config
-    if hasattr(evaluator.config, "genome_config"):
+    if hasattr(evaluator, "config") and hasattr(evaluator.config, "genome_config"):
         config = evaluator.config.genome_config
+    elif (
+        hasattr(evaluator, "env")
+        and hasattr(evaluator.env, "config")
+        and hasattr(evaluator.env.config, "genome_config")
+    ):
+        config = evaluator.env.config.genome_config
+    elif hasattr(evaluator, "env") and hasattr(evaluator.env, "genome_config"):
+        config = evaluator.env.genome_config
     else:
         # Fallback if the evaluator uses a different config pattern
         from malthusjax.core.genome.real_genome import RealGenomeConfig
@@ -125,12 +144,16 @@ class EvosaxEngineAdapter:
             if getattr(self, "maximize", False):
                 fit_init = -fit_init
 
-        if type(strategy).__name__ in distribution_based_algorithms:
+        strat: Any = strategy
+        is_dist = bool(distribution_based_algorithms) and isinstance(
+            strat, tuple(distribution_based_algorithms.values())
+        )
+        if is_dist:
             # Distribution-based algorithms expect a mean instead of a population
             mean_init = jnp.mean(pop_init, axis=0)
-            state = strategy.init(key, mean_init, params)
+            state = getattr(strat, "init")(key, mean_init, params)
         else:
-            state = strategy.init(key, pop_init, fit_init, params)
+            state = getattr(strat, "init")(key, pop_init, fit_init, params)
         return state
 
     def _adapter_step(
@@ -175,15 +198,13 @@ class EvosaxEngineAdapter:
 
 import jax.random as jr
 
-from malthusjax.core.fitness.base import BaseEvaluator
-from malthusjax.core.fitness.bbob_evaluator import BBOBConfig, BBOBEvaluator
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 
 
 def build_evosax_engine(
     strategy_name: str = "SimpleGA",
     *,
-    evaluator: Optional[BaseEvaluator[Any, Any, Any]] = None,
+    evaluator: Optional[Any] = None,
     fitness_spec: Optional[str] = None,
     pop_size: int = 50,
     generations: int = 100,
@@ -195,6 +216,7 @@ def build_evosax_engine(
     prng_impl: Optional[str] = None,
     history_metrics: Optional[Sequence[str]] = None,
     use_python_loop: bool = False,
+    step_logging: Optional[Any] = None,
     **kwargs: Any,
 ) -> EvosaxEngineAdapter:
     """Build an :class:`EvosaxEngineAdapter` from high-level specs."""
@@ -204,47 +226,52 @@ def build_evosax_engine(
     if evaluator is None:
         raise ValueError("build_evosax_engine requires an evaluator argument")
 
-    if fitness_spec is not None and isinstance(evaluator, BBOBEvaluator):
-        from .catalog import OperatorCatalog
-
-        cat = OperatorCatalog()
-        parsed_name, parsed_params = cat.parse_spec(fitness_spec)
-        fn = parsed_params.get("fn_name", parsed_name)
-        dims = parsed_params.get("dim", parsed_params.get("num_dims"))
-        if dims is None:
-            dims = evaluator.config.num_dims
-        if "seed" in parsed_params:
-            seed = parsed_params["seed"]
-        if "maximize" in parsed_params:
-            maximize = parsed_params["maximize"]
-        evaluator = BBOBEvaluator.create(
-            BBOBConfig(fn_name=fn, num_dims=dims, seed=seed, maximize=maximize)
-        )
+    rng = jr.PRNGKey(seed)
 
     if strategy_name not in EVOSAX_STRATEGIES:
         raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
 
-    rng = jr.PRNGKey(seed)
-
-    if isinstance(evaluator, BBOBEvaluator):
+    if (
+        hasattr(evaluator, "env")
+        and hasattr(evaluator.env, "_problem")
+        and getattr(evaluator.env, "_problem") is not None
+    ):
+        problem = evaluator.env._problem
+        problem_state = getattr(evaluator.env, "_state", None)
+        num_dims = getattr(evaluator.env, "num_dims", getattr(evaluator.env, "dim", 1))
+        eval_mode = EvalMode.NATIVE
+    elif hasattr(evaluator, "evosax_problem"):
         problem = evaluator.evosax_problem
-        problem_state = evaluator.problem_state
-        num_dims = evaluator.config.num_dims
+        problem_state = getattr(evaluator, "problem_state", None)
+        num_dims = getattr(evaluator, "num_dims", getattr(evaluator, "dim", 1))
+        if hasattr(evaluator, "config"):
+            num_dims = getattr(
+                evaluator.config, "num_dims", getattr(evaluator.config, "dim", num_dims)
+            )
         eval_mode = EvalMode.NATIVE
     else:
         problem = None
         problem_state = None
         # Infer dimensions from the MalthusJAX evaluator's genome config
         if hasattr(evaluator, "config"):
-            if hasattr(evaluator.config, "genome_config") and hasattr(
-                evaluator.config.genome_config, "shape"
+            evaluator_config = evaluator.config
+        elif hasattr(evaluator, "env") and hasattr(evaluator.env, "config"):
+            evaluator_config = evaluator.env.config
+        elif hasattr(evaluator, "env"):
+            evaluator_config = evaluator.env
+        else:
+            evaluator_config = None
+
+        if evaluator_config is not None:
+            if hasattr(evaluator_config, "genome_config") and hasattr(
+                evaluator_config.genome_config, "shape"
             ):
-                num_dims = evaluator.config.genome_config.shape[0]
-            elif hasattr(evaluator.config, "dim"):
-                num_dims = getattr(evaluator.config, "dim")
+                num_dims = evaluator_config.genome_config.shape[0]
+            elif hasattr(evaluator_config, "dim"):
+                num_dims = getattr(evaluator_config, "dim")
                 RealGenomeConfig(shape=(num_dims,))
-            elif hasattr(evaluator.config, "num_dims"):
-                num_dims = getattr(evaluator.config, "num_dims")
+            elif hasattr(evaluator_config, "num_dims"):
+                num_dims = getattr(evaluator_config, "num_dims")
             elif "num_dims" in kwargs or "genome_length" in kwargs:
                 num_dims = int(kwargs.get("num_dims", kwargs.get("genome_length")) or 0)
             else:
@@ -256,6 +283,17 @@ def build_evosax_engine(
         else:
             raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
         eval_mode = EvalMode.MALTHUSJAX
+
+    if fitness_spec is not None:
+        from malthusjax.composer.catalog import OperatorCatalog
+
+        cat = OperatorCatalog()
+        parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+        num_dims = parsed_params.get("dim", parsed_params.get("num_dims", num_dims))
+        if "seed" in parsed_params:
+            seed = parsed_params["seed"]
+        if "maximize" in parsed_params:
+            maximize = parsed_params["maximize"]
 
     from malthusjax.composer.adapters.utils import resolve_bounds
 
@@ -318,4 +356,5 @@ def build_evosax_engine(
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
         backend_maximizes=False,
+        step_logging=step_logging,
     )  # type: ignore[call-arg]

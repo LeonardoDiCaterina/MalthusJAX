@@ -4,9 +4,11 @@ from typing import Any, Generic, Tuple, cast
 
 import chex
 import jax
+import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BasePopulation
+from malthusjax.core.random import is_new_style_key
 from malthusjax.operators.base import BaseMutation, C, G, _field
 
 
@@ -77,10 +79,17 @@ class BaseMutation_injection(BaseMutation[G, C]):
         For num_offspring=1 uses a single flat vmap (no reshape, no tree_map).
         For num_offspring>1 uses nested vmap with a pair-major flatten at the end.
         """
-        flat_keys = all_keys.reshape((-1, all_keys.shape[-1]))
-        if flat_keys.shape[0] == 0:
+        if all_keys.size == 0:
             raise ValueError("No RNG keys provided to BaseMutation_injection")
-        single_key = flat_keys[0]
+        if (
+            is_new_style_key(all_keys)
+            or (hasattr(all_keys, "dtype") and jnp.issubdtype(all_keys.dtype, jax.dtypes.prng_key))
+            or "key" in str(getattr(all_keys, "dtype", ""))
+        ):
+            single_key = all_keys.ravel()[0]
+        else:
+            flat_keys = all_keys.reshape((-1, 2))
+            single_key = flat_keys[0]
 
         noise = self._generate_noise(single_key, config, generation)  # leading dim: (N*K, ...)
 
@@ -202,10 +211,17 @@ class BaseCrossover_injection(Generic[G, C]):
 
         Note: _recombine_one must return a single genome G, not a tuple.
         """
-        flat_keys = all_keys.reshape((-1, all_keys.shape[-1]))
-        if flat_keys.shape[0] == 0:
+        if all_keys.size == 0:
             raise ValueError("No RNG keys provided to BaseCrossover_injection")
-        single_key = flat_keys[0]
+        if (
+            is_new_style_key(all_keys)
+            or (hasattr(all_keys, "dtype") and jnp.issubdtype(all_keys.dtype, jax.dtypes.prng_key))
+            or "key" in str(getattr(all_keys, "dtype", ""))
+        ):
+            single_key = all_keys.ravel()[0]
+        else:
+            flat_keys = all_keys.reshape((-1, 2))
+            single_key = flat_keys[0]
 
         noise = self._generate_noise(single_key, config, generation)
 

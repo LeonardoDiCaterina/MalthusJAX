@@ -27,6 +27,34 @@ Unified statistical analyzer processing raw JSON artifacts produced by `benchmar
   python scripts/benchmark_analyzer.py --dir results/h1_speed_vs_evosax
   ```
 
+### `scaffold.py` — Component & Plugin Scaffolding Generator
+Automated boilerplate code generator for extending MalthusJAX with new components, operators, engines, and third-party adapters.
+- **Functionality**: Generates compliant `@struct.dataclass` implementation code, registry decorators (`@register_*`), and matching compliance test suites ensuring JAX JIT/vmap compatibility.
+- **Supported Component Types (12)**:
+  - `genome`: Custom PyTree genome representation with domain bounds and distance metrics.
+  - `population`: Structure-of-Arrays (SoA) population container with batch slicing.
+  - `transform`: Genotype-to-phenotype translation layer.
+  - `interpreter`: Phenotype decoder / callable forward pass (e.g., MLP, GP).
+  - `environment`: Problem environments (`optimization`, `supervised`, `rl`).
+  - `evaluator`: Composable 4-axis evaluator factory.
+  - `selection`: Parent selection operator with static RNG budgeting.
+  - `mutation`: Mutation operator adhering to the 3-tier hierarchy.
+  - `crossover`: Crossover recombination operator.
+  - `emitter`: Quality-Diversity Ask/Tell emitter (`BaseEmitter`, `AtomicEmitter`).
+  - `engine`: Evolutionary engine with state PyTree and 5-phase execution loop.
+  - `adapter`: Third-party framework adapter using the universal `@adapter` decorator.
+- **Usage**:
+  ```bash
+  # Via Makefile
+  make scaffold TYPE=mutation NAME=AdaptiveGaussian KEY=adaptive_gaussian
+  make scaffold TYPE=emitter NAME=AdaptiveEmitter KEY=adaptive_emitter
+
+  # Directly via CLI
+  python scripts/scaffold.py -t genome -n QuaternionGenome -k quaternion
+  python scripts/scaffold.py -t environment -n AcrobotEnv -k acrobot --env-kind rl
+  python scripts/scaffold.py -t adapter -n EvoTorchAdapter -k evotorch --framework evotorch
+  ```
+
 ---
 
 ## 🔍 Diagnostic & Profiling Tools

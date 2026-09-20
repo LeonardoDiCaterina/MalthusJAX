@@ -16,6 +16,14 @@ import jax
 import jax.numpy as jnp
 
 from malthusjax.core.fitness.base import BaseEvaluator
+from malthusjax.core.logger import (
+    StepLoggingConfig,
+    _host_log_nan_anomaly,
+    _host_log_step,
+    get_logger,
+)
+
+logger = get_logger("composer.adapters")
 
 
 def _has_block_until_ready(obj: Any) -> bool:
@@ -69,6 +77,7 @@ class UniversalAdapterEngine:
         state_has_randkey: bool = False,
         use_python_loop: bool = False,
         backend_maximizes: bool = False,
+        step_logging: Optional[StepLoggingConfig] = None,
     ) -> None:
         self.framework_obj = framework_obj
         self.framework_params = framework_params
@@ -87,6 +96,7 @@ class UniversalAdapterEngine:
         self.state_has_randkey = state_has_randkey
         self.use_python_loop = use_python_loop
         self.backend_maximizes = backend_maximizes
+        self.step_logging = step_logging
 
         self._jit_run_loop = None
 
@@ -98,7 +108,10 @@ class UniversalAdapterEngine:
         def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
             return self.eval_translator(*args, **kwargs)
 
-        def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
+        step_logging = self.step_logging
+        active_step_logging = step_logging is not None and step_logging.is_active()
+
+        def scan_step(carry: Tuple[Any, Any], step_idx: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
             rng, key_step = jax.random.split(rng)
 
@@ -135,12 +148,51 @@ class UniversalAdapterEngine:
 
                 normalized_metrics[metric.name] = val
 
+            if active_step_logging and step_logging is not None:
+                gen = jnp.int32(1) + step_idx
+                best_fit = normalized_metrics.get("best_fitness", jnp.nan)
+                mean_fit = normalized_metrics.get("mean_fitness", jnp.nan)
+
+                def _log_step_cb():
+                    jax.debug.callback(
+                        _host_log_step,
+                        gen,
+                        best_fit,
+                        mean_fit,
+                        step_logging.logger_name,
+                    )
+
+                if step_logging.log_interval is not None and step_logging.log_interval > 0:
+                    jax.lax.cond(
+                        (gen % step_logging.log_interval) == 0,
+                        _log_step_cb,
+                        lambda: None,
+                    )
+
+                if step_logging.log_nan_watchdog:
+
+                    def _nan_watchdog_cb():
+                        jax.debug.callback(
+                            _host_log_nan_anomaly,
+                            gen,
+                            best_fit,
+                            "best_fitness",
+                            step_logging.logger_name,
+                        )
+
+                    jax.lax.cond(
+                        jnp.isnan(best_fit) | jnp.isinf(best_fit),
+                        _nan_watchdog_cb,
+                        lambda: None,
+                    )
+
             return (rng, state), normalized_metrics
 
         def run_loop(rng: Any, state_init: Any) -> Tuple[Any, Any]:
             carry = (rng, state_init)
+            scan_xs = jnp.arange(self.num_generations) if active_step_logging else None
             carry, metrics = jax.lax.scan(
-                scan_step, carry, None, length=self.num_generations, unroll=1
+                scan_step, carry, scan_xs, length=self.num_generations, unroll=1
             )
             return carry[1], metrics
 
@@ -153,7 +205,10 @@ class UniversalAdapterEngine:
         def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
             return self.eval_translator(*args, **kwargs)
 
-        def scan_step(carry: Tuple[Any, Any], _: Any) -> Tuple[Tuple[Any, Any], Any]:
+        step_logging = self.step_logging
+        active_step_logging = step_logging is not None and step_logging.is_active()
+
+        def scan_step(carry: Tuple[Any, Any], step_idx: Any) -> Tuple[Tuple[Any, Any], Any]:
             rng, state = carry
             rng, key_step = jax.random.split(rng)
 
@@ -186,9 +241,18 @@ class UniversalAdapterEngine:
             carry = (rng, state_init)
             metrics_history = []
 
-            for _ in range(self.num_generations):
-                carry, metrics = scan_step(carry, None)
+            for g in range(self.num_generations):
+                carry, metrics = scan_step(carry, g)
                 metrics_history.append(metrics)
+                if (
+                    active_step_logging
+                    and step_logging is not None
+                    and step_logging.log_interval is not None
+                    and ((g + 1) % step_logging.log_interval == 0)
+                ):
+                    best_fit = metrics.get("best_fitness", float("nan"))
+                    mean_fit = metrics.get("mean_fitness", float("nan"))
+                    _host_log_step(g + 1, best_fit, mean_fit, step_logging.logger_name)
 
             # Stack metrics to match lax.scan output format
             stacked_metrics = {}
@@ -204,6 +268,11 @@ class UniversalAdapterEngine:
         self, key: chex.Array, unroll_factor: int = 1, compile: bool = True
     ) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results."""
+        logger.debug(
+            "UniversalAdapterEngine starting run for %d generations (pop_size=%d)...",
+            self.num_generations,
+            self.pop_size,
+        )
         t_warmup_start = time.perf_counter()
 
         key, key_init, key_eval = jax.random.split(key, 3)
@@ -282,6 +351,13 @@ class UniversalAdapterEngine:
             "execution": t_exec_end - t_exec_start,
             "total": t_exec_end - t_warmup_start,
         }
+
+        logger.debug(
+            "UniversalAdapterEngine completed in %.4fs (warmup: %.4fs, exec: %.4fs)",
+            timings["total"],
+            timings["warmup"],
+            timings["execution"],
+        )
 
         return {
             "history": history,

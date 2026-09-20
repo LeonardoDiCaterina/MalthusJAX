@@ -81,6 +81,8 @@ def adapter(
                 # Evosax adapter accesses this attribute during _adapter_init
                 self._framework_evaluator = framework_evaluator
 
+                step_logging = kwargs.pop("step_logging", None)
+
                 self.engine = UniversalAdapterEngine(
                     framework_obj=strategy,
                     framework_params=params,
@@ -99,6 +101,7 @@ def adapter(
                     state_has_randkey=False,
                     use_python_loop=use_python_loop,
                     backend_maximizes=backend_maximizes,
+                    step_logging=step_logging,
                 )
 
             def run_once(self, key: Any, unroll_factor: int = 1, compile: bool = True) -> Any:
