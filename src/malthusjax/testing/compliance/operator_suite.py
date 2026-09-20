@@ -101,8 +101,8 @@ class CrossoverComplianceSuite:
         assert hasattr(component, "_malthusjax_metadata"), "Missing @register_crossover decorator."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseCrossover[Any, Any]), (
-            "Component must inherit from BaseCrossover[Any, Any]."
+        assert isinstance(component, BaseCrossover), (
+            "Component must inherit from BaseCrossover."
         )
 
     def test_jit_compilation(self, component, mock_pop1, mock_pop2) -> None:
@@ -148,8 +148,8 @@ class SelectionComplianceSuite:
         assert hasattr(component, "_malthusjax_metadata"), "Missing @register_selection decorator."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseSelection[Any, Any]), (
-            "Component must inherit from BaseSelection[Any, Any]."
+        assert isinstance(component, BaseSelection), (
+            "Component must inherit from BaseSelection."
         )
 
     def test_jit_compilation(self, component, mock_fitness) -> None:

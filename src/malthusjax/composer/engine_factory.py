@@ -56,6 +56,18 @@ class GeneticEngineAdapter:
         self.history_metrics = history_metrics
         self.step_logging = step_logging
 
+    def init_state(self, key: chex.Array) -> Any:
+        return self.genetic_engine.init_state(key)
+
+    def step(self, state: Any) -> Any:
+        return self.genetic_engine.step(state)
+
+    def run(self, state: Any, **kwargs: Any) -> Any:
+        return self.genetic_engine.run(state, **kwargs)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.genetic_engine, name)
+
     def run_once(
         self, key: chex.Array, step_logging: Optional[StepLoggingConfig] = None
     ) -> Dict[str, Any]:
