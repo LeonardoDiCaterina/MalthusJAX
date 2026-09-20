@@ -208,6 +208,12 @@ class OperatorCatalog:
             return self._evosax_strategies[operator_type]
 
         if operator_type not in self._registry:
+            from malthusjax.composer.plugins import load_plugins
+
+            load_plugins()
+            self._registry = get_registry()
+
+        if operator_type not in self._registry:
             available = sorted(list(self._registry.keys()) + list(self._evosax_strategies.keys()))
             raise KeyError(f"Unknown operator type: '{operator_type}'. Available: {available}")
 
@@ -269,6 +275,10 @@ class OperatorCatalog:
 
     def list_available(self) -> List[str]:
         """Return sorted list of all registered operator keys."""
+        from malthusjax.composer.plugins import load_plugins
+
+        load_plugins()
+        self._registry = get_registry()
         return sorted(list(self._registry.keys()) + list(self._evosax_strategies.keys()))
 
     def get_help(self, operator_type: str) -> str:

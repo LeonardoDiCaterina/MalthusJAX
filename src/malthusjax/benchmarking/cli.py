@@ -6,7 +6,7 @@ import shutil
 import sys
 import time
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 from malthusjax.composer import Composer
 from malthusjax.composer.catalog import OperatorCatalog
@@ -436,6 +436,25 @@ def main(args: Optional[List[str]] = None) -> int:
         help="Inspect runtime environment, HPC thread limits, and JAX GPU configuration",
     )
     parser_check_env.set_defaults(func=handle_check_env)
+
+    # 9. Discovered extension commands (e.g., gp, neat, or third-party extensions)
+    from malthusjax.composer.plugins import discover_cli_commands
+
+    for cmd_name, cmd_entrypoint in discover_cli_commands().items():
+
+        def _make_handler(ep: Any) -> Callable[[argparse.Namespace], int]:
+            return lambda parsed_args: int(ep(getattr(parsed_args, "sub_args", [])))
+
+        ext_parser = subparsers.add_parser(
+            cmd_name,
+            help=f"{cmd_name.upper()} extension commands",
+        )
+        ext_parser.add_argument(
+            "sub_args",
+            nargs=argparse.REMAINDER,
+            help=f"Arguments forwarded to {cmd_name}",
+        )
+        ext_parser.set_defaults(func=_make_handler(cmd_entrypoint))
 
     parsed = parser.parse_args(args)
 

@@ -163,6 +163,15 @@ def test_no_unexpected_keys(catalog: OperatorCatalog) -> None:
         "knapsack_env",
         "bbobax_env",
         "linear_gp_interpreter",
+        # Discovered extension plugin operators
+        "cartesian_emitter",
+        "cartesian_micro",
+        "cartesian_noop",
+        "cgp_neutral",
+        "diff_cartesian_mutation",
+        "neat_crossover",
+        "neat_emitter",
+        "neat_mutation",
     }
     available = set(catalog.list_available())
     extra = available - ALL_EXPECTED - KNOWN_TEST_ARTIFACTS

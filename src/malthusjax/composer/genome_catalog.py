@@ -164,6 +164,12 @@ class GenomeCatalog:
             genome_name, spec_params = self.parse_spec(spec)
 
         if genome_name not in self._registry:
+            from malthusjax.composer.plugins import load_plugins
+
+            load_plugins()
+            self._registry = get_registry()
+
+        if genome_name not in self._registry:
             available = ", ".join(self.list_available())
             raise KeyError(f"Unknown genome '{genome_name}'. Available: [{available}]")
 
@@ -195,4 +201,8 @@ class GenomeCatalog:
         self._registry[name] = (factory, defaults or {}, {})
 
     def list_available(self) -> List[str]:
+        from malthusjax.composer.plugins import load_plugins
+
+        load_plugins()
+        self._registry = get_registry()
         return sorted(self._registry.keys())

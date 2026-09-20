@@ -143,6 +143,12 @@ class EngineRegistry:
         engine_name, spec_params = self.parse_spec(spec)
 
         if engine_name not in self._registry:
+            from malthusjax.composer.plugins import load_plugins
+
+            load_plugins()
+            self._registry = get_registry()
+
+        if engine_name not in self._registry:
             available = ", ".join(self.list_available())
             raise KeyError(f"Unknown engine '{engine_name}'. Available: [{available}]")
 
@@ -191,6 +197,10 @@ class EngineRegistry:
 
     def list_available(self) -> List[str]:
         """Return sorted list of all registered engine names."""
+        from malthusjax.composer.plugins import load_plugins
+
+        load_plugins()
+        self._registry = get_registry()
         return sorted(self._registry.keys())
 
     def get_help(self, engine_name: str) -> str:
