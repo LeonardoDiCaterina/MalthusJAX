@@ -29,8 +29,6 @@ The `GeneticEngine` is the flagship orchestrator. It strictly enforces a 5-phase
 
 ---
 
----
-
 ## 3️⃣ The Workflow (Level 1 + 2 + 3)
 
 1. **Build Components**: Define your Genome, Evaluator, and Operators (Levels 1 & 2).

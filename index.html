@@ -196,11 +196,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">Experiment Orchestration via Composer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Execution and Results Schema</a></li>
@@ -370,27 +366,12 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l2"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html#deterministic-stochasticity-malthusjax-core-random">2.3. Deterministic Stochasticity (malthusjax.core.random)</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">3.1. Operator Base Architecture (malthusjax.operators.base)</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-pure-operator-contract">3.1.1. The Pure Operator Contract</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#operators-as-pytrees">3.1.2. Operators as PyTrees</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#vectorized-tournament-selection">3.2.1. Vectorized Tournament Selection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#roulette-wheel-proportionate-selection">3.2.2. Roulette Wheel / Proportionate Selection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#elite-pool-selection">3.2.3. Elite Pool Selection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#evosax-mimic-selection-parity-operators">3.2.4. EvoSAX Mimic Selection (Parity Operators)</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#tier-3-population-level-traversal-call">3.3.1. Tier 3: Population-Level Traversal (<code class="docutils literal notranslate"><span class="pre">__call__</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#tier-2-noise-generation-generate-noise">3.3.2. Tier 2: Noise Generation (<code class="docutils literal notranslate"><span class="pre">_generate_noise</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#tier-1-pure-unbatched-kernels-mutate-one-recombine-one">3.3.3. Tier 1: Pure Unbatched Kernels (<code class="docutils literal notranslate"><span class="pre">_mutate_one</span></code>, <code class="docutils literal notranslate"><span class="pre">_recombine_one</span></code>)</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#injection-and-regressions-base-injection-py">3.5.1. Injection and Regressions (base_injection.py)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#operator-base-architecture-malthusjax-operators-base">3.1. Operator Base Architecture (malthusjax.operators.base)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#selection-mechanisms-malthusjax-operators-selection">3.2. Selection Mechanisms (malthusjax.operators.selection)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#the-array-family-variation-mechanism">3.3. The Array-Family Variation Mechanism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#emitters-complex-topological-variation">3.4. Emitters: Complex &amp; Topological Variation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GENETIC_OPERATORS.html#randomness-and-prng-management">3.5. Randomness and PRNG Management</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="4-ENGINE_ORCHESTRATION.html">The Engine: Orchestration and Compilation</a><ul>
