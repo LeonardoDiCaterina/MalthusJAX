@@ -94,7 +94,7 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
 
     @property
     def layer_sizes(self) -> tuple[int, ...]:
-        """Full layer size sequence: (input_dim, *hidden, output_dim)."""
+        """Full layer size sequence: ``(input_dim, *hidden, output_dim)``."""
         return (self.input_dim,) + tuple(self.hidden) + (self.output_dim,)
 
     @property

@@ -46,7 +46,14 @@ typehints_document_rtype = True
 always_use_bars_union = True
 
 # Suppress duplicate object description warnings from re-exported symbols
-suppress_warnings = ["autodoc.import_object", "ref.duplicate", "ref.python"]
+suppress_warnings = [
+    "autodoc.import_object",
+    "ref.duplicate",
+    "ref.python",
+    "misc.highlighting_failure",
+    "myst.xref_missing",
+    "myst.header",
+]
 
 # -- MyST settings -----------------------------------------------------------
 source_suffix = {

@@ -1,4 +1,6 @@
 
+# Genetic Operators: Selection, Variation, and Emitters
+
 This section covers the `malthusjax.operators` module. In MalthusJAX, operators (Selection, Crossover, Mutation, and Emitters) are strictly pure functions (or stateless PyTree structs) that transform an input Population into a new Population without mutating the original arrays in place.
 
 ## 3.1. Operator Base Architecture (malthusjax.operators.base)

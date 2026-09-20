@@ -57,6 +57,7 @@ class BaseInterpreter(Generic[G]):
     """Decodes a genome into outputs given inputs.
 
     The Interpreter is the genome-side bridge. It is:
+
     - **Stateless**: all configuration (dims, architecture) is compiled in at
       construction time as pytree_node=False fields.
     - **Genome-specific**: typed to a specific genome type ``G``.
