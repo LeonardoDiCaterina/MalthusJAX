@@ -86,6 +86,22 @@ Documentation = "https://malthusjax.readthedocs.io"
 Repository = "https://github.com/LeonardoDiCaterina/MalthusJAX"
 Issues = "https://github.com/LeonardoDiCaterina/MalthusJAX/issues"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/malthusjax"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/LICENSE",
+    "/README.md",
+    "/pyproject.toml",
+]
+exclude = [
+    "/packages",
+    "/benchmarks/*.csv",
+    "/benchmarks/*.png",
+]
+
 # === Tool Configurations ===
 
 [tool.ruff]
