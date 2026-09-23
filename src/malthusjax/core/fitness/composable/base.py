@@ -141,7 +141,7 @@ class BaseOptimizationEnvironment(BaseEnvironment):
             solution: Raw solution vector from the genome (via IdentityInterpreter).
 
         Returns:
-            Scalar objective value. Convention follows ``config.maximize``.
+            Scalar objective value. Evaluators format this into lower-is-better fitness via BaseOutputMode.
         """
         raise NotImplementedError
 
@@ -227,7 +227,14 @@ SUPPORTED_LOSS_FNS = ("mse", "bce", "mae")
 
 @struct.dataclass
 class BaseOutputMode:
-    """Interface for evaluating a genome's result and computing fitness + info."""
+    """Interface for evaluating a genome's result and computing fitness + info.
+
+    OPTIMIZATION DIRECTION CONTRACT (SINGLE SOURCE OF TRUTH):
+        All evaluators MUST return fitness in LOWER-IS-BETTER form. An evaluator
+        constructed with maximize=True must internally negate (or otherwise invert)
+        its raw objective before returning it as fitness. No engine-level code may
+        branch on `maximize`; the engine uniformly minimizes.
+    """
 
     def process_sl(
         self, genome: Any, X: chex.Array, y: chex.Array, predictions: chex.Array
@@ -256,9 +263,9 @@ class ScalarOutput(BaseOutputMode):
     """Scalar fitness output mode for standard GA / ES engines.
 
     Computes a single scalar fitness per genome using the specified loss
-    function. The ``maximize`` flag controls sign convention:
-    - ``maximize=False`` (default): lower loss is better (minimization).
-    - ``maximize=True``: higher value is better (maximization), loss is negated.
+    function. Follows the single-source-of-truth optimization direction contract:
+    - ``maximize=False`` (default): lower loss / objective is better (minimization).
+    - ``maximize=True``: raw score is negated internally (-score) so lower-is-better holds.
     """
 
     loss_fn: str = struct.field(pytree_node=False, default="mse")  # type: ignore[no-untyped-call]

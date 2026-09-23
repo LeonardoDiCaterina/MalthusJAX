@@ -24,11 +24,19 @@ D = TypeVar("D")  # Data type (e.g., training data, environment params)
 class BaseEvaluatorConfig:
     """Base configuration for fitness evaluation.
 
+    OPTIMIZATION DIRECTION CONTRACT (SINGLE SOURCE OF TRUTH):
+        All evaluators MUST return fitness in LOWER-IS-BETTER form. An evaluator
+        constructed with maximize=True must internally negate (or otherwise invert)
+        its raw objective before returning it as fitness. No engine-level code may
+        branch on `maximize`; the engine uniformly minimizes.
+
     Attributes:
-        maximize: Optimization direction. If True, higher fitness is better;
-            otherwise, lower is better (default). Follows evosax convention:
-            lower-is-better (minimize) is the default. Controls jax.lax.select
-            branching in single and batch evaluators.
+        maximize: Optimization direction. If True, the evaluator internally negates
+            the raw objective so that the engine's uniform minimization maximizes
+            the user objective. If False (default), the raw objective is returned
+            unchanged for minimization.
+        batch_size: Optional mini-batch size for subsampling datasets.
+        loss_function: Loss function identifier (e.g. "mse", "bce").
     """
 
     maximize: bool = struct.field(pytree_node=False, default=False)  # type: ignore[no-untyped-call]
