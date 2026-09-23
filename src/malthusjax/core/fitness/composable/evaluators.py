@@ -270,10 +270,12 @@ class TensorNeatEvaluator(
             fitnesses = raw_results
             descriptors = jnp.zeros((pop_size, 0))
 
-        fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
-
-        if not self.maximize:
+        # Lower-is-better convention: if maximizing raw score, negate it
+        if self.maximize:
             fitnesses = -1.0 * fitnesses
+
+        # In minimization space, worst possible value for NaN/failed evaluations is +inf
+        fitnesses = jnp.where(jnp.isnan(fitnesses), jnp.inf, fitnesses)
 
         new_info = dict(population.info) if population.info else {}
         new_info["descriptors"] = descriptors
