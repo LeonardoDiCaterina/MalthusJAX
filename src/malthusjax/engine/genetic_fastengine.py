@@ -989,10 +989,6 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         """Validate components that require instantiation."""
         # Validation could be added here if necessary
 
-    @property
-    def maximize(self) -> bool:
-        return self.evaluator.config.maximize
-
     def init_state(self, rng_key: Union[int, jnp.ndarray]) -> GeneticEvolutionState:
         """Initialize evolution and compile the inference plan (Init-Phase Compilation).
 

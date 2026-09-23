@@ -247,11 +247,8 @@ class IslandMapElitesAdapter:
         # Global best reduction across all islands and all repertoire cells
         # current_state.repertoire.fitnesses has shape (num_islands, num_centroids, 1) or (num_islands, num_centroids)
         rep_fitnesses = current_state.repertoire.fitnesses.squeeze()
-        if self.maximize:
-            flat_best_idx = jnp.argmax(rep_fitnesses)
-        else:
-            # Repertoire stores maximization scores, so maximum is highest (best)
-            flat_best_idx = jnp.argmax(rep_fitnesses)
+        # Repertoire stores maximization scores, so maximum is highest (best)
+        flat_best_idx = jnp.argmax(rep_fitnesses)
 
         island_idx, centroid_idx = jnp.unravel_index(flat_best_idx, rep_fitnesses.shape)
 
