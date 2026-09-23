@@ -30,10 +30,6 @@ class DummyEvaluator:
 class DummyEngine(AbstractEngine):
     evaluator: DummyEvaluator = struct.field(pytree_node=False)
 
-    @property
-    def maximize(self) -> bool:
-        return self.evaluator.config.maximize
-
     def init_state(self, key):
         # We need a fixed pop_size since the DummyEngine doesn't have engine_params configured cleanly in the test.
         # But wait, we can just hardcode pop_size=10 for the test
@@ -71,24 +67,24 @@ def adapter_engine():
     return DummyAdapterEngine(maximize=True)
 
 
-def test_adapter_shape_maximize(adapter_engine):
+def test_island_model_uniform_direction_contract(adapter_engine):
+    """Ensure island models follow uniform minimization contract without engine maximize branching."""
     island_model = RingTopologyIsland(
         engine=adapter_engine, num_islands=3, migration_interval=2, num_migrants=1
     )
-    # Ensure it correctly auto-derives from .maximize
-    assert island_model.maximize is True
+    assert not hasattr(island_model, "maximize")
 
 
-def test_missing_maximize_raises_value_error():
+def test_engine_without_maximize_initializes_cleanly():
+    """Engines without maximize property initialize cleanly since direction is handled by evaluators."""
     @struct.dataclass
-    class InvalidEngine:
+    class MinimalEngine:
         pass
 
     island_model = RingTopologyIsland(
-        engine=InvalidEngine(), num_islands=3, migration_interval=2, num_migrants=1
+        engine=MinimalEngine(), num_islands=3, migration_interval=2, num_migrants=1
     )
-    with pytest.raises(ValueError, match="Cannot determine optimization direction"):
-        _ = island_model.maximize
+    assert island_model.num_islands == 3
 
 
 def test_ring_topology_initialization(base_engine):
@@ -155,35 +151,31 @@ def test_ring_topology_migration_maximize(maximize_engine):
     key = jax.random.PRNGKey(0)
     config = RealGenomeConfig(shape=(3,), bounds=(-1.0, 1.0))
 
-    # We mock a population where islands have distinctly ranked fitnesses
-    # Island 0: [0, 1, 2, 3]
-    # Island 1: [10, 11, 12, 13]
-    # Island 2: [20, 21, 22, 23]
+    # Under canonical lower-is-better for a maximization task, raw scores [0, 1, 2, 3]
+    # are negated to [0.0, -1.0, -2.0, -3.0].
+    # Best of island 0 is index 3 (-3.0), worst is index 0 (0.0).
     fitness = jnp.array(
         [
-            [0.0, 1.0, 2.0, 3.0],
-            [10.0, 11.0, 12.0, 13.0],
-            [20.0, 21.0, 22.0, 23.0],
+            [0.0, -1.0, -2.0, -3.0],
+            [-10.0, -11.0, -12.0, -13.0],
+            [-20.0, -21.0, -22.0, -23.0],
         ]
     )
 
     genes_values = jnp.zeros((3, 4, 3))
-    # Best of island 0 is index 3 (val 3.0), worst is index 0 (val 0.0)
-    # Ring shifts right. Island 1 should receive Island 0's best (3.0).
-
     genes = RealGenome(values=genes_values)
     multi_pop = BasePopulation(config=config, genes=genes, fitness=fitness)
 
     migrated_pop = island_model.migrate(key, multi_pop)
 
-    # Best of Island 0 (fitness 3.0) should overwrite worst of Island 1 (fitness 10.0)
-    assert migrated_pop.fitness[1, 0] == 3.0
+    # Best of Island 0 (-3.0) overwrites worst of Island 1 (which was 0.0 or highest fitness, index 0).
+    assert migrated_pop.fitness[1, 0] == -3.0
 
-    # Best of Island 1 (fitness 13.0) should overwrite worst of Island 2 (fitness 20.0)
-    assert migrated_pop.fitness[2, 0] == 13.0
+    # Best of Island 1 (-13.0) overwrites worst of Island 2 (-20.0 at index 0).
+    assert migrated_pop.fitness[2, 0] == -13.0
 
-    # Best of Island 2 (fitness 23.0) should overwrite worst of Island 0 (fitness 0.0)
-    assert migrated_pop.fitness[0, 0] == 23.0
+    # Best of Island 2 (-23.0) overwrites worst of Island 0 (0.0 at index 0).
+    assert migrated_pop.fitness[0, 0] == -23.0
 
 
 def test_fully_connected_migration(base_engine):
@@ -219,20 +211,19 @@ def test_fully_connected_migration_maximize(maximize_engine):
     key = jax.random.PRNGKey(0)
     config = RealGenomeConfig(shape=(3,), bounds=(-1.0, 1.0))
 
-    fitness = jnp.arange(40).reshape(4, 10).astype(jnp.float32)
+    # Under canonical lower-is-better, maximization returns negated fitness
+    fitness = -jnp.arange(40).reshape(4, 10).astype(jnp.float32)
     genes_values = jnp.zeros((4, 10, 3))
     genes = RealGenome(values=genes_values)
     multi_pop = BasePopulation(config=config, genes=genes, fitness=fitness)
 
     migrated_pop = island_model.migrate(key, multi_pop)
 
-    # For maximize=True, the elites are the ones with the highest fitness values.
-    # We overwrite the worst elements (lowest fitness values) with copies of the best elements.
-    # So the mean fitness should strictly increase.
+    # Overwriting worst (least negative) with best (most negative) strictly decreases mean fitness.
     original_mean = jnp.mean(multi_pop.fitness)
     new_mean = jnp.mean(migrated_pop.fitness)
 
-    assert new_mean > original_mean
+    assert new_mean < original_mean
     assert migrated_pop.fitness.shape == (4, 10)
 
 
@@ -247,7 +238,8 @@ def test_base_island_model_step(base_engine):
     assert next_state.population.genes.values.shape == (2, 10, 3)
 
 
-def test_base_island_model_maximize_from_evaluator_config():
+def test_base_island_model_no_maximize_attribute():
+    """Verify BaseIslandModel conforms to uniform minimization contract without maximize property."""
     @struct.dataclass
     class EngineWithEvaluatorNoMaximize:
         evaluator: DummyEvaluator
@@ -260,7 +252,7 @@ def test_base_island_model_maximize_from_evaluator_config():
 
     engine = EngineWithEvaluatorNoMaximize(evaluator=DummyEvaluator(DummyConfig(maximize=True)))
     island = RingTopologyIsland(engine=engine, num_islands=2, migration_interval=1, num_migrants=1)
-    assert island.maximize is True
+    assert not hasattr(island, "maximize")
 
 
 def test_base_island_model_migrate_abstract(base_engine):
