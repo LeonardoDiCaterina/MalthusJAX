@@ -33,7 +33,7 @@ Validates configuration constraints outside JIT context, raising `ValueError` if
 Mutable scan carry PyTree storing `population`, `best_genome`, `generation`, `best_fitness`, and `rng_key`. Supports deep copying via `state.copy()` to avoid JAX buffer donation errors across runs.
 
 ### `AbstractEngine[G, P]`
-Abstract base class hashable via `id(self)` for JIT `static_argnums`. Enforces standard engine interface: `maximize` property, `init_state(rng_key)`, `step(state)`, and execution methods:
+Abstract base class hashable via `id(self)` for JIT `static_argnums`. Enforces standard engine interface: `init_state(rng_key)`, `step(state)`, and execution methods:
 - `run(initial_state, time_it=False, compile=True, verbose=False, return_history=True, step_logging=None)`: JIT-compiled evolution loop. Dispatches step telemetry when `step_logging` is active, and logs progress/completion via standard `malthusjax.engine` logger channels.
 - `debug_step(state)`: Executes a single generation update outside JIT, logging population dimensions and stage diagnostics to `malthusjax.engine.debug`.
 - `get_hlo_text(initial_state, optimize=True, print_analysis=True)`: Lowers and compiles the engine's XLA graph, logging line counts, fusion kernel counts, and loop structures.
@@ -43,6 +43,15 @@ The engine scan kernel (`_get_evolution_kernel`) provides a zero-overhead callba
 - **Trace-Time Elimination**: When `step_logging=None` or inactive, all callback nodes and conditionals are completely pruned at Python trace-time before entering StableHLO.
 - **Device-to-Host Telemetry**: When `step_logging.log_interval` is set, `jax.lax.cond` triggers `_host_log_step` via `jax.debug.callback` every $k$ generations.
 - **NaN/Inf Anomaly Watchdog**: When `step_logging.log_nan_watchdog=True`, evaluates array finiteness on-device (`jnp.isnan` / `jnp.isinf`) and triggers `_host_log_nan_anomaly` (`CRITICAL` log on `malthusjax.engine.anomaly`) exclusively when non-finite values arise.
+
+---
+
+## Optimization Direction Contract (Single Source of Truth)
+
+All evaluators in MalthusJAX MUST return fitness in **lower-is-better** (minimization) form.
+- An evaluator constructed with `maximize=True` internally negates its raw objective before returning it as fitness (`-score`).
+- No engine-level code branches on `maximize`; all engines uniformly minimize using `jnp.min`, `jnp.minimum`, and `jnp.argmin`.
+- Evaluators constructed with `maximize=False` genuinely minimize the raw objective.
 
 ---
 
@@ -72,10 +81,10 @@ Mutation strength schedules evaluated inside JAX loops via `compute_scheduled_st
 - `EXPONENTIAL_DECAY` (3): Exponential decay.
 
 ### `TrackBest` (IntEnum)
-Controls Hall-of-Fame tracking in scan carry:
-- `NONE` (0): Zero extra ops per step in carry; `best_genome` and `best_fitness` populated post-scan.
-- `LIGHT` (1, default): Tracks monotonic `best_fitness` in carry via `jnp.max`/`jnp.maximum`; `best_genome` populated post-scan via `jnp.argmax`.
-- `FULL` (2): Tracks both `best_fitness` and `best_genome` in carry every step using `jnp.max`, `jnp.argmax`, `Gather`, and element-wise `jnp.where`.
+Controls Hall-of-Fame tracking in scan carry (uniform minimization):
+- `NONE` (0): Zero extra ops per step in carry; `best_genome` and `best_fitness` populated post-scan via `jnp.argmin`.
+- `LIGHT` (1, default): Tracks monotonic `best_fitness` in carry via `jnp.min`/`jnp.minimum`; `best_genome` populated post-scan via `jnp.argmin`.
+- `FULL` (2): Tracks both `best_fitness` and `best_genome` in carry every step using `jnp.min`, `jnp.argmin`, `Gather`, and element-wise `jnp.where`.
 
 ---
 

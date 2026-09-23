@@ -112,6 +112,12 @@ MalthusJAX was designed with rigorous empirical validation and statistical parit
 - **Optimization Quality Parity**: TOST equivalence tests support practical equivalence with EvoSAX ($p > 0.05$ across standard BBOB functions).
 - **Zero-Overhead Abstractions**: Swapping individual genetic operators shows $p_{\text{holm}} = 1.0$ across function timing regressions, demonstrating zero performance hit from our modular composition.
 
+> [!NOTE]
+> **Optimization Direction Convention & Benchmark Re-run Advisory**:
+> MalthusJAX enforces a canonical **lower-is-better (minimization)** convention across all engines and evaluators. Evaluators constructed with `maximize=True` negate raw objectives (`-score`), while engines minimize uniformly. Benchmark results involving `BinarySumEvaluator` and `KnapsackEvaluator` (under both `maximize=True` and `maximize=False`) require regeneration following the standardization of evaluation signs.
+>
+> *Migration notice*: If you were using `maximize=False` on `BinarySumEvaluator` or `KnapsackEvaluator` expecting it to find good solutions, switch to `maximize=True` — the old behavior was accidental due to inverted proxy encodings.
+
 ---
 
 ## 🛠️ The Ecosystem & Integrations
