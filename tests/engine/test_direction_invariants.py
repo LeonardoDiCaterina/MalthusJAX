@@ -174,9 +174,17 @@ def test_direction_invariance_across_track_best_modes(eval_type: str, maximize: 
         mutation = GaussianMutation(num_offspring=1, mutation_rate=0.2, mutation_strength=0.1)
 
         def raw_oracle(genes: RealGenome) -> np.ndarray:
-            # Independent raw BBOBAX sphere task evaluation
-            vals = np.asarray(genes.values)
-            return np.sum(vals**2, axis=-1)
+            # Independent raw BBOBAX task evaluation directly from the underlying BBOB task
+            rng = jax.random.PRNGKey(0)
+
+            def eval_single(x):
+                if evaluator.state is not None:
+                    _, res = evaluator.task.evaluate(rng, x, evaluator.state, evaluator.params)
+                else:
+                    res = evaluator.task.evaluate(rng, x, evaluator.params)
+                return res.fitness
+
+            return np.asarray(jax.vmap(eval_single)(genes.values))
 
     import numpy as np
 
