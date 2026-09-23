@@ -130,7 +130,12 @@ def test_bbob_minimization_improves(make_engine, prng_key):
 @pytest.mark.slow
 @pytest.mark.integration
 def test_maximization_monotonic_improvement_real(make_engine, prng_key):
-    """Test that best fitness increases monotonically when maximizing (maximize=True)."""
+    """Test that best fitness improves monotonically when maximizing (maximize=True).
+
+    Under the canonical lower-is-better convention:
+    - Engine internal best_fitness decreases (minimization): best_history[i] <= best_history[i-1]
+    - User raw objective increases: (-best_history[i]) >= (-best_history[i-1])
+    """
     engine = make_engine(pop_size=50, num_generations=10, maximize=True)
     state = engine.init_state(prng_key)
 
@@ -140,13 +145,21 @@ def test_maximization_monotonic_improvement_real(make_engine, prng_key):
         best_history.append(float(output.best_fitness))
 
     for i in range(1, len(best_history)):
+        # Internal engine fitness invariant (canonical minimization)
         assert best_history[i] <= best_history[i - 1] + 1e-5
+        # Raw objective invariant (maximization)
+        assert -best_history[i] >= -best_history[i - 1] - 1e-5
 
 
 @pytest.mark.slow
 @pytest.mark.integration
 def test_maximization_monotonic_improvement_binary(make_engine, prng_key):
-    """Test that best fitness increases monotonically when maximizing with binary genomes."""
+    """Test that best fitness improves monotonically when maximizing with binary genomes.
+
+    Under the canonical lower-is-better convention:
+    - Engine internal best_fitness decreases (minimization): best_history[i] <= best_history[i-1]
+    - User raw objective (ones count) increases: (-best_history[i]) >= (-best_history[i-1])
+    """
     engine = make_engine(pop_size=50, genome_type="binary", genome_shape=(20,), maximize=True)
     state = engine.init_state(prng_key)
 
@@ -156,7 +169,10 @@ def test_maximization_monotonic_improvement_binary(make_engine, prng_key):
         best_history.append(float(output.best_fitness))
 
     for i in range(1, len(best_history)):
+        # Internal engine fitness invariant (canonical minimization)
         assert best_history[i] <= best_history[i - 1] + 1e-5
+        # Raw objective invariant (maximization of ones count)
+        assert -best_history[i] >= -best_history[i - 1] - 1e-5
 
 
 @pytest.mark.parametrize("num_gens", [1, 50])
