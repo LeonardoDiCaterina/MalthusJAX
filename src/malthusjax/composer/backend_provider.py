@@ -9,8 +9,9 @@ in ``factory.py``.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Protocol, Sequence, Tuple, runtime_checkable
+from typing import Any, Optional, Protocol, Sequence, Tuple, runtime_checkable
 
+from malthusjax.composer.engine_protocol import Engine
 from malthusjax.composer.strategies.base import BaseStrategy
 
 
@@ -97,17 +98,13 @@ class BackendProvider(Protocol):
         history_metrics: Optional[Sequence[str]] = None,
         step_logging: Any = None,
         **kwargs: Any,
-    ) -> Any:
-        """Build and return a concrete engine adapter.
-
-        Replaces ``composer.py`` Cascade 2 (L497-601) and the ``build_*``
-        functions in ``factory.py``.
-        """
+    ) -> Engine:
+        """Build and return a concrete engine adapter satisfying the Engine protocol."""
         ...
 
     def generate_initial_population(
         self,
-        config: Dict[str, Any],
+        config: Any,
         pop_seed: int,
     ) -> Optional[Any]:
         """Generate a shared initial population for ``compare()`` parity.

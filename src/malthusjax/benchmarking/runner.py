@@ -31,25 +31,7 @@ except ImportError:  # pragma: no cover
     tqdm = None
 
 
-class Engine(Protocol):
-    """Simple protocol that engines must satisfy.
-
-    Any engine plugged into :class:`BenchmarkRunner` needs to expose a
-    ``run_once`` method accepting a JAX random key and returning a dictionary
-    containing three standard entries: ``'history'`` for per-generation
-    statistics, ``'summary'`` for final metrics, and an optional ``'timings'``
-    dictionary capturing performance data.  This loose contract allows the
-    benchmarking infrastructure to remain agnostic to concrete engine
-    implementations.
-    """
-
-    def run_once(self, key: chex.Array) -> Dict[str, Any]:
-        """Execute a single run of the engine and return its result dictionary.
-
-        The caller is responsible for interpreting the resulting keys as
-        described in the class docstring above.
-        """
-        ...
+from malthusjax.composer.engine_protocol import Engine
 
 
 @dataclass
