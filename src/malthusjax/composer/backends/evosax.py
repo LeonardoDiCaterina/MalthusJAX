@@ -1,10 +1,8 @@
 """Evosax backend provider — wraps EvoSAX strategies and composable variant."""
+
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Tuple
-
-import jax
-import jax.random as jr
+from typing import Any, Optional, Sequence, Tuple
 
 from malthusjax.composer.backend_registry import register_backend
 from malthusjax.composer.strategies.base import BaseStrategy
@@ -220,44 +218,14 @@ class EvosaxProvider:
 
     def generate_initial_population(
         self,
-        config: Dict[str, Any],
+        config: Any,
         pop_seed: int,
     ) -> Optional[Any]:
-        from malthusjax.composer.catalog import OperatorCatalog
-        from malthusjax.composer.config import infer_genome_length
-        from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
-        from malthusjax.core.fitness.composable.environments import BBOBEnv
-        from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-        from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-
-        pop_size = int(config.get("pop_size", 50))
-        genome_length = infer_genome_length(config)
-        bounds = config.get("bounds", (-5.0, 5.0))
-        fitness_spec = config.get("fitness")
-
-        if fitness_spec and isinstance(fitness_spec, str) and "bbob" in fitness_spec.lower():
-            cat = OperatorCatalog()
-            parsed_name, parsed_params = cat.parse_spec(fitness_spec)
-            if parsed_name == "bbob":
-                fn = parsed_params.get("fn_name", parsed_params.get("fn", "rosenbrock"))
-                dims = parsed_params.get("dim", parsed_params.get("num_dims", genome_length))
-                bbob_seed = parsed_params.get("seed", 0)
-                bbob_eval = OptimizationEvaluator(
-                    env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=bbob_seed),
-                    transform=IdentityTransform(),
-                    interpreter=IdentityInterpreter(),
-                    output=ScalarOutput(maximize=config.get("maximize", False)),
-                )
-                pop_key = jr.PRNGKey(pop_seed)
-                sample_keys = jr.split(pop_key, pop_size)
-                return jax.vmap(bbob_eval.env._problem.sample)(sample_keys)
-
-        return jr.uniform(
-            jr.PRNGKey(pop_seed),
-            (pop_size, genome_length),
-            minval=float(bounds[0]),
-            maxval=float(bounds[1]),
+        from malthusjax.composer.backends._population_init import (
+            generate_initial_population as _gen_init_pop,
         )
+
+        return _gen_init_pop(config, pop_seed)
 
 
 _evosax_provider = EvosaxProvider()

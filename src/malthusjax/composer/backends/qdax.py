@@ -1,7 +1,8 @@
 """QDAX backend provider — quality diversity algorithms."""
+
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Optional, Sequence, Tuple
 
 import jax.random as jr
 
@@ -253,20 +254,14 @@ class QdaxProvider:
 
     def generate_initial_population(
         self,
-        config: Dict[str, Any],
+        config: Any,
         pop_seed: int,
     ) -> Optional[Any]:
-        from malthusjax.composer.config import infer_genome_length
-
-        pop_size = int(config.get("pop_size", 50))
-        genome_length = infer_genome_length(config)
-        bounds = config.get("bounds", (-5.0, 5.0))
-        return jr.uniform(
-            jr.PRNGKey(pop_seed),
-            (pop_size, genome_length),
-            minval=float(bounds[0]),
-            maxval=float(bounds[1]),
+        from malthusjax.composer.backends._population_init import (
+            generate_initial_population as _gen_init_pop,
         )
+
+        return _gen_init_pop(config, pop_seed)
 
 
 _qdax_provider = QdaxProvider()
