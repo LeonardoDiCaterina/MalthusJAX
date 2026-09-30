@@ -41,6 +41,29 @@ class TensorneatProvider:
                 "strategy",
                 "data_config",
                 "composable",
+                "genome",
+                "engine_type",
+                "genome_type",
+                "selection",
+                "crossover",
+                "mutation",
+                "elitism",
+                "experiment_name",
+                "output_dir",
+                "engine",
+                "trace_dir",
+                "eval_mode",
+                "evosax_strategy",
+                "evosax_es_params",
+                "qdax_strategy",
+                "qdax_num_descriptors",
+                "qdax_num_centroids",
+                "qdax_mutation_sigma",
+                "seed",
+                "num_dims",
+                "num_parallel",
+                "num_inputs",
+                "num_outputs",
             }
             algo_kwargs = {k: v for k, v in kwargs.items() if k not in exclude}
 
@@ -51,6 +74,13 @@ class TensorneatProvider:
             num_inputs=kwargs.get("tensorneat_num_inputs", kwargs.get("num_inputs", 2)),
             num_outputs=kwargs.get("tensorneat_num_outputs", kwargs.get("num_outputs", 1)),
             algorithm_kwargs=algo_kwargs,
+        )
+
+    def handles_strategy(self, strategy: Any) -> bool:
+        from malthusjax.composer.strategies.core import TensorNEATStrategy
+
+        return isinstance(strategy, TensorNEATStrategy) or (
+            isinstance(strategy, str) and "tensorneat" in strategy
         )
 
     def resolve_evaluator(
@@ -94,6 +124,38 @@ class TensorneatProvider:
         composable: bool = False,
         **kwargs: Any,
     ) -> Any:
+        if isinstance(strategy, str):
+            parts = strategy.split(":")
+            strat_kwargs = {}
+            for p in parts[1:]:
+                if "=" in p:
+                    k, v = p.split("=", 1)
+                    try:
+                        v = int(v)
+                    except ValueError:
+                        try:
+                            v = float(v)
+                        except ValueError:
+                            pass
+                    strat_kwargs[k] = v
+            from malthusjax.composer.strategies.core import TensorNEATStrategy
+
+            strat_pop_size = strat_kwargs.pop("pop_size", pop_size)
+            strategy = TensorNEATStrategy(
+                algorithm_name=strat_kwargs.pop("algorithm", "neat"),
+                genome_name=strat_kwargs.pop("genome", "default"),
+                problem_name=strat_kwargs.pop("problem", None),
+                num_inputs=strat_kwargs.pop("num_inputs", 2),
+                num_outputs=strat_kwargs.pop("num_outputs", 1),
+                algorithm_kwargs=strat_kwargs,
+            )
+            pop_size = strat_pop_size
+        elif hasattr(strategy, "algorithm_kwargs") and "pop_size" in getattr(strategy, "algorithm_kwargs", {}):
+            from dataclasses import replace
+            strat_kwargs = dict(strategy.algorithm_kwargs)
+            pop_size = strat_kwargs.pop("pop_size")
+            strategy = replace(strategy, algorithm_kwargs=strat_kwargs)
+
         if composable:
             from malthusjax.composer.factory import build_composable_tensorneat_engine
 

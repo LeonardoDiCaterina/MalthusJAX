@@ -17,27 +17,8 @@ import jax.random as jr
 
 from malthusjax.composer.config import infer_genome_length, normalize_seeds
 from malthusjax.composer.evaluator_parser import parse_evaluator
-from malthusjax.composer.factory import (
-    build_evosax_engine,
-    build_map_elites_engine,
-    build_qdax_engine,
-    build_real_engine,
-    build_stub_engine,
-    build_tensorneat_engine,
-    has_real_operators,
-)
+from malthusjax.composer.backend_registry import get_backends, list_backends
 from malthusjax.composer.strategies.base import BaseStrategy
-from malthusjax.composer.strategies.core import (
-    EvoSAXStrategy,
-    GeneticStrategy,
-    MapElitesStrategy,
-    QDAXStrategy,
-    TensorNEATStrategy,
-)
-from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
-from malthusjax.core.fitness.composable.environments import BBOBEnv
-from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 from ..benchmarking import BenchmarkRunner, ExperimentResult
 from ..benchmarking.results import ComparisonResult
@@ -461,144 +442,80 @@ class Composer:
             else:
                 fitness_obj = fitness
 
+            _backends = get_backends()
+
+            if backend not in _backends:
+                from .plugins import load_plugins
+
+                load_plugins()
+                _backends = get_backends()
+
+            if strategy is not None and backend == "malthusjax":
+                for name, entry in _backends.items():
+                    p = entry[0]
+                    if name != "malthusjax" and hasattr(p, "handles_strategy") and p.handles_strategy(strategy):
+                        backend = name
+                        break
+
+            if backend not in _backends:
+                available = ", ".join(list_backends())
+                raise ValueError(f"Unknown backend '{backend}'. Available: [{available}]")
+
+            provider_entry = _backends[backend]
+            provider = provider_entry[0]
+            provider_defaults = provider_entry[1]
+
+            provider_kwargs = {**provider_defaults, **kwargs}
+
             if strategy is None:
-                if backend in ("evosax", "composable_evosax"):
-                    strategy = EvoSAXStrategy(algorithm_name=evosax_strategy)
-                elif backend == "qdax":
-                    strategy = QDAXStrategy(
-                        strategy_cls=qdax_strategy,
-                        num_descriptors=qdax_num_descriptors,
-                        num_centroids=qdax_num_centroids,
-                        mutation_sigma=qdax_mutation_sigma,
-                        algorithm_kwargs=kwargs,
-                    )
-                elif backend in ("tensorneat", "composable_tensorneat"):
-                    strategy = TensorNEATStrategy(
-                        algorithm_name=tensorneat_algorithm,
-                        genome_name=tensorneat_genome,
-                        problem_name=tensorneat_problem,
-                        num_inputs=tensorneat_num_inputs,
-                        num_outputs=tensorneat_num_outputs,
-                        algorithm_kwargs=kwargs,
-                    )
-                elif backend == "malthusjax" and engine_type == "map_elites":
-                    strategy = MapElitesStrategy(
-                        emitter=kwargs.get("map_elites_emitter", kwargs.get("emitter", "mixing")),
-                        num_descriptors=qdax_num_descriptors,
-                        num_centroids=qdax_num_centroids,
-                    )
-                elif has_real_operators(genome, fitness, selection, crossover, mutation):
-                    strategy = GeneticStrategy(
-                        selection=selection,
-                        crossover=crossover,
-                        mutation=mutation,
-                    )
-
-            if isinstance(strategy, EvoSAXStrategy):
-                if backend == "composable_evosax":
-                    from .factory import build_composable_evosax_engine
-
-                    engine = build_composable_evosax_engine(
-                        strategy_name=strategy.algorithm_name,
-                        fitness_spec=fitness_obj,
-                        pop_size=pop_size,
-                        generations=generations,
-                        num_dims=genome_length,
-                        bounds=bounds,
-                        maximize=maximize,
-                        prng_impl=prng_impl,
-                        history_metrics=history_metrics,
-                        step_logging=step_logging,
-                        **strategy.algorithm_kwargs,
-                        **kwargs,
-                    )
-                else:
-                    engine = build_evosax_engine(
-                        strategy_name=strategy.algorithm_name,
-                        fitness_spec=fitness_obj,
-                        pop_size=pop_size,
-                        generations=generations,
-                        num_dims=genome_length,
-                        bounds=bounds,
-                        maximize=maximize,
-                        prng_impl=prng_impl,
-                        history_metrics=history_metrics,
-                        step_logging=step_logging,
-                        **strategy.algorithm_kwargs,
-                        **kwargs,
-                    )
-            elif isinstance(strategy, QDAXStrategy):
-                engine = build_qdax_engine(
-                    strategy=strategy,
-                    fitness_spec=fitness_obj,
-                    pop_size=pop_size,
-                    generations=generations,
-                    genome_length=genome_length,
-                    bounds=bounds,
-                    maximize=maximize,
-                    history_metrics=history_metrics,
-                    step_logging=step_logging,
-                    **kwargs,
-                )
-            elif isinstance(strategy, TensorNEATStrategy):
-                if backend == "composable_tensorneat":
-                    from .factory import build_composable_tensorneat_engine
-
-                    engine = build_composable_tensorneat_engine(
-                        strategy=strategy,
-                        fitness_spec=fitness_obj,
-                        pop_size=pop_size,
-                        generations=generations,
-                        maximize=maximize,
-                        history_metrics=history_metrics,
-                        step_logging=step_logging,
-                        **kwargs,
-                    )
-                else:
-                    engine = build_tensorneat_engine(
-                        strategy=strategy,
-                        fitness_spec=fitness_obj,
-                        pop_size=pop_size,
-                        generations=generations,
-                        maximize=maximize,
-                        history_metrics=history_metrics,
-                        step_logging=step_logging,
-                        **kwargs,
-                    )
-            elif isinstance(strategy, MapElitesStrategy):
-                engine = build_map_elites_engine(
-                    strategy=strategy,
-                    fitness_spec=fitness_obj,
-                    pop_size=pop_size,
-                    generations=generations,
-                    maximize=maximize,
-                    history_metrics=history_metrics,
-                    genome_length=genome_length,
-                    bounds=bounds,
-                    step_logging=step_logging,
-                    **kwargs,
-                )
-            elif isinstance(strategy, GeneticStrategy):
-                engine = build_real_engine(
-                    strategy=strategy,
+                strategy = provider.default_strategy(
+                    evosax_strategy=evosax_strategy,
+                    qdax_strategy=qdax_strategy,
+                    tensorneat_algorithm=tensorneat_algorithm,
+                    tensorneat_genome=tensorneat_genome,
+                    tensorneat_problem=tensorneat_problem,
+                    tensorneat_num_inputs=tensorneat_num_inputs,
+                    tensorneat_num_outputs=tensorneat_num_outputs,
+                    qdax_num_descriptors=qdax_num_descriptors,
+                    qdax_num_centroids=qdax_num_centroids,
+                    qdax_mutation_sigma=qdax_mutation_sigma,
+                    engine_type=engine_type,
                     genome=genome,
                     fitness=fitness_obj,
-                    engine_type=engine_type,
-                    genome_type=genome_type,
-                    pop_size=pop_size,
-                    generations=generations,
-                    genome_shape=genome_length,
-                    bounds=bounds,
-                    elitism=elitism,
-                    maximize=maximize,
-                    prng_impl=prng_impl,
-                    data_config=data_config,
-                    history_metrics=history_metrics,
-                    step_logging=step_logging,
-                    **kwargs,
+                    selection=selection,
+                    crossover=crossover,
+                    mutation=mutation,
+                    **provider_kwargs,
                 )
-            else:
-                engine = build_stub_engine(generations, **kwargs)
+
+            evaluator = provider.resolve_evaluator(
+                fitness_obj,
+                maximize=maximize,
+                seed=kwargs.get("seed", 42),
+                num_dims=genome_length,
+                bounds=bounds,
+                data_config=data_config,
+                **provider_kwargs,
+            )
+
+            engine = provider.build_engine(
+                strategy,
+                evaluator,
+                pop_size=pop_size,
+                generations=generations,
+                maximize=maximize,
+                bounds=bounds,
+                genome_length=genome_length,
+                genome_type=genome_type,
+                elitism=elitism,
+                prng_impl=prng_impl,
+                history_metrics=history_metrics,
+                step_logging=step_logging,
+                engine_type=engine_type,
+                genome=genome,
+                data_config=data_config,
+                **provider_kwargs,
+            )
         else:
             if step_logging is not None and hasattr(engine, "step_logging"):
                 engine.step_logging = step_logging
@@ -691,56 +608,19 @@ class Composer:
         Ensures that pipelines with identical bounds, population sizes, and dimensionality
         receive the exact same starting points, while dynamically scaling to the requested pop_size.
         """
-
-        pop_size = int(config.get("pop_size", 50))
-        genome_length = infer_genome_length(config)
-        bounds = config.get("bounds", (-5.0, 5.0))
-        fitness_spec = config.get("fitness")
-
-        # Check if this pipeline uses TensorNEAT topology evolution
-        if config.get("backend") == "tensorneat" or config.get("genome_type") == "tensorneat":
-            import tensorneat.algorithm
-            import tensorneat.genome
-            from tensorneat.common import State
-
-            # For parity, we just need a shared structure.
-            # We'll assume default genome and minimal sizes if not provided.
-            num_inputs = config.get("num_inputs", 2)
-            num_outputs = config.get("num_outputs", 1)
-
-            genome = tensorneat.genome.DefaultGenome(num_inputs=num_inputs, num_outputs=num_outputs)
-            algorithm = tensorneat.algorithm.NEAT(pop_size=pop_size, genome=genome)
-
-            state = State(randkey=jr.PRNGKey(pop_seed))
-            state = algorithm.setup(state)
-
-            # Extract the raw matrices to be shared as initial_population
-            pop_nodes = getattr(state, "pop_nodes", state.state_dict.get("pop_nodes"))
-            pop_conns = getattr(state, "pop_conns", state.state_dict.get("pop_conns"))
-            return (pop_nodes, pop_conns)
-
-        if fitness_spec and isinstance(fitness_spec, str) and "bbob" in fitness_spec.lower():
-            cat = OperatorCatalog()
-            parsed_name, parsed_params = cat.parse_spec(fitness_spec)
-            if parsed_name == "bbob":
-                fn = parsed_params.get("fn_name", parsed_params.get("fn", "rosenbrock"))
-                dims = parsed_params.get("dim", parsed_params.get("num_dims", genome_length))
-                bbob_seed = parsed_params.get("seed", 0)
-                bbob_eval = OptimizationEvaluator(
-                    env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=bbob_seed),
-                    transform=IdentityTransform(),
-                    interpreter=IdentityInterpreter(),
-                    output=ScalarOutput(maximize=config.get("maximize", False)),
-                )
-                pop_key = jr.PRNGKey(pop_seed)
-                sample_keys = jr.split(pop_key, pop_size)
-                return jax.vmap(bbob_eval.env._problem.sample)(sample_keys)  # type: ignore[attr-defined]
+        backend = config.get("backend", "malthusjax")
+        _backends = get_backends()
+        if backend in _backends:
+            provider = _backends[backend][0]
+            result = provider.generate_initial_population(config, pop_seed)
+            if result is not None:
+                return result
 
         return jr.uniform(
             jr.PRNGKey(pop_seed),
-            (pop_size, genome_length),
-            minval=float(bounds[0]),
-            maxval=float(bounds[1]),
+            (int(config.get("pop_size", 50)), infer_genome_length(config)),
+            minval=float(config.get("bounds", (-5.0, 5.0))[0]),
+            maxval=float(config.get("bounds", (-5.0, 5.0))[1]),
         )
 
     def compare(

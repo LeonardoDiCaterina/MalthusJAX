@@ -44,6 +44,11 @@ class MalthusJAXProvider:
 
         return BaseStrategy()
 
+    def handles_strategy(self, strategy: BaseStrategy) -> bool:
+        from malthusjax.composer.strategies.core import GeneticStrategy, MapElitesStrategy
+
+        return isinstance(strategy, (GeneticStrategy, MapElitesStrategy))
+
     def resolve_evaluator(
         self,
         fitness_spec: Any,

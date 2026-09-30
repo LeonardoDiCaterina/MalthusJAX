@@ -47,6 +47,11 @@ class EvosaxProvider:
             algorithm_kwargs=algo_kwargs,
         )
 
+    def handles_strategy(self, strategy: BaseStrategy) -> bool:
+        from malthusjax.composer.strategies.core import EvoSAXStrategy
+
+        return isinstance(strategy, EvoSAXStrategy)
+
     def resolve_evaluator(
         self,
         fitness_spec: Any,
@@ -103,6 +108,16 @@ class EvosaxProvider:
             "elitism",
             "data_config",
             "num_dims",
+            "pop_size",
+            "generations",
+            "bounds",
+            "maximize",
+            "prng_impl",
+            "history_metrics",
+            "step_logging",
+            "strategy_name",
+            "fitness_spec",
+            "evaluator",
         ):
             engine_kwargs.pop(ignored, None)
 

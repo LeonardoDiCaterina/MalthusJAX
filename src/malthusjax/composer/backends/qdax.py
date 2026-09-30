@@ -49,6 +49,11 @@ class QdaxProvider:
             algorithm_kwargs=algo_kwargs,
         )
 
+    def handles_strategy(self, strategy: BaseStrategy) -> bool:
+        from malthusjax.composer.strategies.core import QDAXStrategy
+
+        return isinstance(strategy, QDAXStrategy)
+
     def resolve_evaluator(
         self,
         fitness_spec: Any,

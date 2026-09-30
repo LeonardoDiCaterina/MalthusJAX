@@ -17,6 +17,9 @@ class StubProvider:
     def default_strategy(self, **kwargs: Any) -> BaseStrategy:
         return BaseStrategy()
 
+    def handles_strategy(self, strategy: BaseStrategy) -> bool:
+        return False
+
     def resolve_evaluator(
         self,
         fitness_spec: Any,

@@ -430,10 +430,14 @@ def build_tensorneat_engine(
             break
     if genome_cls is None:
         raise ValueError(f"Unknown TensorNEAT genome: {strategy.genome_name}")
-    genome = genome_cls(num_inputs=strategy.num_inputs, num_outputs=strategy.num_outputs)
     # initial_population may have leaked into algorithm_kwargs via kwargs
     alg_kwargs = strategy.algorithm_kwargs.copy()
     init_pop = alg_kwargs.pop("initial_population", kwargs.get("initial_population", None))
+    pop_size = alg_kwargs.pop("pop_size", pop_size)
+    genome_sig = inspect.signature(genome_cls.__init__)
+    genome_params = set(genome_sig.parameters.keys()) - {"self", "num_inputs", "num_outputs"}
+    genome_kwargs = {p: alg_kwargs.pop(p) for p in list(alg_kwargs.keys()) if p in genome_params}
+    genome = genome_cls(num_inputs=strategy.num_inputs, num_outputs=strategy.num_outputs, **genome_kwargs)
     algorithm = algorithm_cls(pop_size=pop_size, genome=genome, **alg_kwargs)
     problem, problem_state = resolve_tensorneat_problem(strategy.problem_name, fitness_spec)
     return adapter_build_tensorneat_engine(
@@ -455,6 +459,10 @@ def resolve_tensorneat_problem(
     import tensorneat.problem
 
     name = problem_name or (fitness_spec if isinstance(fitness_spec, str) else "xor")
+    if name.startswith("tensorneat:"):
+        name = name[len("tensorneat:") :]
+    if name.startswith("problem="):
+        name = name[len("problem=") :]
     base_name = name.split(":")[0].lower()
     problem_cls: Any = None
     for cls_name, cls_obj in inspect.getmembers(tensorneat.problem, inspect.isclass):
@@ -742,10 +750,13 @@ def build_composable_tensorneat_engine(
     if genome_cls is None:
         raise ValueError(f"Unknown TensorNEAT genome: {strategy.genome_name}")
 
-    genome = genome_cls(num_inputs=num_inputs, num_outputs=num_outputs)
-
     alg_kwargs = strategy.algorithm_kwargs.copy()
     init_pop = alg_kwargs.pop("initial_population", kwargs.get("initial_population", None))
+    pop_size = alg_kwargs.pop("pop_size", pop_size)
+    genome_sig = inspect.signature(genome_cls.__init__)
+    genome_params = set(genome_sig.parameters.keys()) - {"self", "num_inputs", "num_outputs"}
+    genome_kwargs = {p: alg_kwargs.pop(p) for p in list(alg_kwargs.keys()) if p in genome_params}
+    genome = genome_cls(num_inputs=num_inputs, num_outputs=num_outputs, **genome_kwargs)
     algorithm = algorithm_cls(pop_size=pop_size, genome=genome, **alg_kwargs)
 
     return adapter_build_composable_tensorneat_engine(

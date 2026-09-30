@@ -57,6 +57,14 @@ class BackendProvider(Protocol):
         """
         ...
 
+    def handles_strategy(self, strategy: BaseStrategy) -> bool:
+        """Return True if this provider can handle the given strategy instance.
+
+        Enables Composer to infer the backend when an explicit strategy object
+        is passed without a matching backend name.
+        """
+        ...
+
     def resolve_evaluator(
         self,
         fitness_spec: Any,

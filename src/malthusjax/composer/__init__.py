@@ -37,7 +37,11 @@ __all__ = [
     "build_mo_engine",
 ]
 
+# Ensure built-in backends are registered
+import malthusjax.composer.backends  # noqa: F401
+
 # Auto-discover plugins on import
 from .discovery import discover_plugins
 
 discover_plugins()
+

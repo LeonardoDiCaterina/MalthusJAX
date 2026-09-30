@@ -152,6 +152,21 @@ def _resolve_bbob_spec(
 
     fn_param = parsed_params.get("fn_name", parsed_params.get("fn", None))
 
+    if fn_param is None:
+        import evosax.problems.bbob.meta_bbob as mb
+
+        bbob_keys = list(mb.bbob_fns.keys())
+        for key in list(parsed_params.keys()):
+            for fn in bbob_keys:
+                if fn in key.lower():
+                    fn_param = fn
+                    if ":" in key:
+                        sub_key = key.split(":")[-1]
+                        parsed_params[sub_key] = parsed_params[key]
+                    break
+            if fn_param is not None:
+                break
+
     if isinstance(fn_param, int):
         # Numeric BBOB index — resolve to function name
         import evosax.problems.bbob.meta_bbob as mb

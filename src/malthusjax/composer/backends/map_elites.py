@@ -25,6 +25,11 @@ class MapElitesProvider:
             num_centroids=kwargs.get("qdax_num_centroids", kwargs.get("num_centroids", 100)),
         )
 
+    def handles_strategy(self, strategy: BaseStrategy) -> bool:
+        from malthusjax.composer.strategies.core import MapElitesStrategy
+
+        return isinstance(strategy, MapElitesStrategy)
+
     def resolve_evaluator(
         self,
         fitness_spec: Any,
