@@ -1,7 +1,17 @@
-"""Backend providers for MalthusJAX.
+"""Backend providers for MalthusJAX — triggers self-registration on import."""
+from malthusjax.composer.backends import (  # noqa: F401
+    evosax,
+    malthusjax as _malthusjax,
+    map_elites,
+    qdax,
+    stub,
+    tensorneat,
+)
 
-Importing this package triggers self-registration of all built-in backends
-into the BackendRegistry.  External plugins register via entry points.
-
-Provider modules are imported lazily — see Phase 2 of the refactoring plan.
-"""
+__all__ = [
+    "evosax",
+    "map_elites",
+    "qdax",
+    "stub",
+    "tensorneat",
+]

@@ -1,0 +1,167 @@
+"""Evosax backend provider — wraps EvoSAX strategies and composable variant."""
+from __future__ import annotations
+
+from typing import Any, Dict, Optional, Sequence, Tuple
+
+import jax
+import jax.random as jr
+
+from malthusjax.composer.backend_registry import register_backend
+from malthusjax.composer.strategies.base import BaseStrategy
+
+
+class EvosaxProvider:
+    """Backend provider for EvoSAX evolutionary strategies."""
+
+    @property
+    def name(self) -> str:
+        return "evosax"
+
+    def default_strategy(self, **kwargs: Any) -> BaseStrategy:
+        from malthusjax.composer.strategies.core import EvoSAXStrategy
+
+        algo_kwargs = kwargs.get("algorithm_kwargs")
+        if algo_kwargs is None:
+            exclude = {
+                "evosax_strategy",
+                "backend",
+                "fitness",
+                "pop_size",
+                "generations",
+                "seeds",
+                "maximize",
+                "bounds",
+                "num_dims",
+                "genome_length",
+                "prng_impl",
+                "step_logging",
+                "history_metrics",
+                "strategy",
+                "data_config",
+                "composable",
+            }
+            algo_kwargs = {k: v for k, v in kwargs.items() if k not in exclude}
+
+        return EvoSAXStrategy(
+            algorithm_name=kwargs.get("evosax_strategy", "SimpleGA"),
+            algorithm_kwargs=algo_kwargs,
+        )
+
+    def resolve_evaluator(
+        self,
+        fitness_spec: Any,
+        *,
+        maximize: bool = False,
+        seed: int = 42,
+        num_dims: int = 10,
+        bounds: Tuple[float, float] = (-5.0, 5.0),
+        **kwargs: Any,
+    ) -> Any:
+        from malthusjax.composer.backends._evaluator_resolver import resolve_evaluator_base
+
+        return resolve_evaluator_base(
+            fitness_spec,
+            maximize=maximize,
+            seed=seed,
+            num_dims=num_dims,
+            bounds=bounds,
+        )
+
+    def build_engine(
+        self,
+        strategy: BaseStrategy,
+        evaluator: Any,
+        *,
+        pop_size: int = 50,
+        generations: int = 100,
+        maximize: bool = False,
+        bounds: Tuple[float, float] = (-5.0, 5.0),
+        history_metrics: Optional[Sequence[str]] = None,
+        step_logging: Any = None,
+        composable: bool = False,
+        **kwargs: Any,
+    ) -> Any:
+        if composable:
+            from malthusjax.composer.factory import (
+                build_composable_evosax_engine as builder,
+            )
+        else:
+            from malthusjax.composer.factory import (
+                build_evosax_engine as builder,
+            )
+
+        algo_kwargs = getattr(strategy, "algorithm_kwargs", {}) or {}
+        num_dims = kwargs.get("num_dims", kwargs.get("genome_length", 10))
+
+        engine_kwargs = {**algo_kwargs, **kwargs}
+        for ignored in (
+            "composable",
+            "genome_length",
+            "genome_shape",
+            "engine_type",
+            "genome_type",
+            "elitism",
+            "data_config",
+            "num_dims",
+        ):
+            engine_kwargs.pop(ignored, None)
+
+        return builder(
+            strategy_name=getattr(strategy, "algorithm_name", "SimpleGA"),
+            fitness_spec=evaluator,
+            pop_size=pop_size,
+            generations=generations,
+            num_dims=num_dims,
+            bounds=bounds,
+            maximize=maximize,
+            prng_impl=kwargs.get("prng_impl"),
+            history_metrics=history_metrics,
+            step_logging=step_logging,
+            **engine_kwargs,
+        )
+
+    def generate_initial_population(
+        self,
+        config: Dict[str, Any],
+        pop_seed: int,
+    ) -> Optional[Any]:
+        from malthusjax.composer.catalog import OperatorCatalog
+        from malthusjax.composer.config import infer_genome_length
+        from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
+        from malthusjax.core.fitness.composable.environments import BBOBEnv
+        from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
+        from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+
+        pop_size = int(config.get("pop_size", 50))
+        genome_length = infer_genome_length(config)
+        bounds = config.get("bounds", (-5.0, 5.0))
+        fitness_spec = config.get("fitness")
+
+        if fitness_spec and isinstance(fitness_spec, str) and "bbob" in fitness_spec.lower():
+            cat = OperatorCatalog()
+            parsed_name, parsed_params = cat.parse_spec(fitness_spec)
+            if parsed_name == "bbob":
+                fn = parsed_params.get("fn_name", parsed_params.get("fn", "rosenbrock"))
+                dims = parsed_params.get("dim", parsed_params.get("num_dims", genome_length))
+                bbob_seed = parsed_params.get("seed", 0)
+                bbob_eval = OptimizationEvaluator(
+                    env=BBOBEnv.create(fn_name=fn, num_dims=dims, seed=bbob_seed),
+                    transform=IdentityTransform(),
+                    interpreter=IdentityInterpreter(),
+                    output=ScalarOutput(maximize=config.get("maximize", False)),
+                )
+                pop_key = jr.PRNGKey(pop_seed)
+                sample_keys = jr.split(pop_key, pop_size)
+                return jax.vmap(bbob_eval.env._problem.sample)(sample_keys)
+
+        return jr.uniform(
+            jr.PRNGKey(pop_seed),
+            (pop_size, genome_length),
+            minval=float(bounds[0]),
+            maxval=float(bounds[1]),
+        )
+
+
+_evosax_provider = EvosaxProvider()
+register_backend("evosax", _evosax_provider)
+register_backend("composable_evosax", _evosax_provider, defaults={"composable": True})
