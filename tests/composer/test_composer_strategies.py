@@ -21,7 +21,7 @@ def test_quick_run_with_default_malthusjax(mock_build_real_engine, mock_runner):
 
 
 @patch("malthusjax.composer.composer.BenchmarkRunner")
-@patch("malthusjax.composer.factory.build_evosax_engine")
+@patch("malthusjax.composer.backends.evosax.build_evosax_engine")
 def test_quick_run_with_evosax_backend(mock_build_evosax_engine, mock_runner):
     composer = Composer()
 
@@ -36,7 +36,7 @@ def test_quick_run_with_evosax_backend(mock_build_evosax_engine, mock_runner):
 
 
 @patch("malthusjax.composer.composer.BenchmarkRunner")
-@patch("malthusjax.composer.factory.build_evosax_engine")
+@patch("malthusjax.composer.backends.evosax.build_evosax_engine")
 def test_quick_run_with_evosax_strategy_explicit(mock_build_evosax_engine, mock_runner):
     composer = Composer()
 
@@ -52,7 +52,7 @@ def test_quick_run_with_evosax_strategy_explicit(mock_build_evosax_engine, mock_
 
 
 @patch("malthusjax.composer.composer.BenchmarkRunner")
-@patch("malthusjax.composer.factory.build_qdax_engine")
+@patch("malthusjax.composer.backends.qdax.build_qdax_engine")
 def test_quick_run_with_qdax_backend(mock_build_qdax_engine, mock_runner):
     composer = Composer()
 
@@ -67,7 +67,7 @@ def test_quick_run_with_qdax_backend(mock_build_qdax_engine, mock_runner):
 
 
 @patch("malthusjax.composer.composer.BenchmarkRunner")
-@patch("malthusjax.composer.factory.build_qdax_engine")
+@patch("malthusjax.composer.backends.qdax.build_qdax_engine")
 def test_quick_run_with_qdax_strategy_explicit(mock_build_qdax_engine, mock_runner):
     composer = Composer()
 

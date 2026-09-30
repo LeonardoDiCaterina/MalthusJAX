@@ -90,7 +90,7 @@ class MalthusJAXProvider:
         from malthusjax.composer.strategies.core import GeneticStrategy, MapElitesStrategy
 
         if isinstance(strategy, MapElitesStrategy):
-            from malthusjax.composer.factory import build_map_elites_engine
+            from malthusjax.composer.backends.map_elites import build_map_elites_engine
 
             engine_kwargs = dict(kwargs)
             for k in (
@@ -160,7 +160,7 @@ class MalthusJAXProvider:
                 **engine_kwargs,
             )
 
-        from malthusjax.composer.factory import build_stub_engine
+        from malthusjax.composer.backends.stub import build_stub_engine
 
         return build_stub_engine(generations, **kwargs)
 

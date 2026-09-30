@@ -9,6 +9,154 @@ from malthusjax.composer.backend_registry import register_backend
 from malthusjax.composer.strategies.base import BaseStrategy
 
 
+def resolve_qdax_evaluator(
+    fitness_spec: Optional[Any], bounds: Tuple[float, float], maximize: bool
+) -> Any:
+    from malthusjax.composer.catalog import OperatorCatalog
+    from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
+
+    class QDAXNativeEvaluator:
+        def __init__(self, fitness_fn, evaluator=None, num_descriptors=2):
+            self._fitness_fn = fitness_fn
+            self._evaluator = evaluator
+            self._num_descriptors = num_descriptors
+
+        def scoring_function(self, genotypes, random_key):
+            import jax
+            import jax.numpy as jnp
+
+            if self._evaluator is not None:
+                genes = RealGenome(values=genotypes)
+                pop = RealPopulation(
+                    genes=genes, fitness=jnp.zeros(genotypes.shape[0]), config=None
+                )
+                updated_pop = self._evaluator.evaluate_population(pop)
+                fitnesses = updated_pop.fitness
+                if not maximize:
+                    fitnesses = -fitnesses
+                if hasattr(updated_pop, "descriptors"):
+                    descriptors = updated_pop.descriptors
+                else:
+                    desc_dims = genotypes[:, : self._num_descriptors]
+                    lo, hi = float(bounds[0]), float(bounds[1])
+                    descriptors = (desc_dims - lo) / (hi - lo)
+            else:
+                fitnesses = jax.vmap(self._fitness_fn)(genotypes)
+                desc_dims = genotypes[:, : self._num_descriptors]
+                lo, hi = float(bounds[0]), float(bounds[1])
+                descriptors = (desc_dims - lo) / (hi - lo)
+            return fitnesses, descriptors, {}
+
+    if isinstance(fitness_spec, str):
+        cat = OperatorCatalog()
+        resolved = cat.get(fitness_spec)
+        return QDAXNativeEvaluator(None, evaluator=resolved)
+    elif fitness_spec is not None:
+        return QDAXNativeEvaluator(None, evaluator=fitness_spec)
+    else:
+        import jax.numpy as jnp
+
+        def fn(x):
+            return -jnp.sum(jnp.square(x))
+
+        return QDAXNativeEvaluator(fn)
+
+
+def build_qdax_engine(
+    strategy: Any,
+    fitness_spec: Optional[Any],
+    pop_size: int,
+    generations: int,
+    genome_length: int,
+    bounds: Tuple[float, float],
+    maximize: bool,
+    history_metrics: Optional[Sequence[str]],
+    **kwargs: Any,
+) -> Any:
+    import functools
+
+    from qdax.core.containers.mapelites_repertoire import compute_cvt_centroids
+    from qdax.utils.metrics import default_qd_metrics
+
+    from malthusjax.composer.qdax_adapter import build_qdax_engine as adapter_build_qdax_engine
+
+    # 1. Resolve strategy class
+    strategy_cls = getattr(strategy, "strategy_cls", "MAPElites")
+    if isinstance(strategy_cls, str):
+        import importlib
+        import pkgutil
+
+        import qdax.core
+
+        resolved_cls = None
+        for _, name, is_pkg in pkgutil.iter_modules(qdax.core.__path__):
+            if not is_pkg:
+                mod = importlib.import_module(f"qdax.core.{name}")
+                if hasattr(mod, strategy_cls):
+                    resolved_cls = getattr(mod, strategy_cls)
+                    break
+        if resolved_cls is None:
+            raise ValueError(f"Unknown QDAX strategy: {strategy_cls}")
+        strategy_cls = resolved_cls
+    # 2. Auto-create emitter if not provided
+    emitter = getattr(strategy, "emitter", None)
+    if isinstance(emitter, str):
+        if emitter.lower() == "mixing":
+            sigma = getattr(strategy, "mutation_sigma", 0.05)
+            var_pct = kwargs.pop("qdax_variation_percentage", 0.5)
+            emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},variation_percentage={var_pct}"
+        else:
+            if ":" in emitter:
+                emitter_spec = f"{emitter},batch_size={pop_size}"
+            else:
+                emitter_spec = f"{emitter}:batch_size={pop_size}"
+        from malthusjax.composer.catalog import OperatorCatalog
+
+        catalog = OperatorCatalog()
+        emitter = catalog.get(emitter_spec)
+    elif emitter is None:
+        sigma = getattr(strategy, "mutation_sigma", 0.05)
+        var_pct = kwargs.pop("qdax_variation_percentage", 0.5)
+        emitter_spec = f"qdax_native:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},variation_percentage={var_pct}"
+        from malthusjax.composer.catalog import OperatorCatalog
+
+        catalog = OperatorCatalog()
+        emitter = catalog.get(emitter_spec)
+    # 3. Auto-create metrics function if not provided
+    metrics_fn = getattr(strategy, "metrics_function", None)
+    if metrics_fn is None:
+        metrics_fn = functools.partial(default_qd_metrics, qd_offset=0.0)
+    # 4. Auto-compute centroids if not provided
+    centroids = getattr(strategy, "centroids", None)
+    if centroids is None:
+        centroids = compute_cvt_centroids(
+            num_descriptors=getattr(strategy, "num_descriptors", 2),
+            num_init_cvt_samples=50000,
+            num_centroids=getattr(strategy, "num_centroids", 100),
+            minval=0.0,
+            maxval=1.0,
+            key=jr.PRNGKey(42),
+        )
+    init_variables = getattr(strategy, "init_variables", None)
+    evaluator = resolve_qdax_evaluator(fitness_spec, bounds, maximize)
+    return adapter_build_qdax_engine(
+        strategy_cls=strategy_cls,
+        emitter=emitter,
+        metrics_function=metrics_fn,
+        evaluator=evaluator,
+        init_variables=init_variables,
+        centroids=centroids,
+        pop_size=pop_size,
+        generations=generations,
+        maximize=maximize,
+        eval_mode="native",
+        history_metrics=history_metrics or ["qd_score", "coverage"],
+        bounds=bounds,
+        genome_length=genome_length,
+        **kwargs,
+    )
+
+
 class QdaxProvider:
     """Backend provider for QDAX algorithms."""
 
@@ -64,8 +212,6 @@ class QdaxProvider:
         bounds: Tuple[float, float] = (-5.0, 5.0),
         **kwargs: Any,
     ) -> Any:
-        from malthusjax.composer.factory import resolve_qdax_evaluator
-
         return resolve_qdax_evaluator(fitness_spec, bounds=bounds, maximize=maximize)
 
     def build_engine(
@@ -81,8 +227,6 @@ class QdaxProvider:
         step_logging: Any = None,
         **kwargs: Any,
     ) -> Any:
-        from malthusjax.composer.factory import build_qdax_engine
-
         engine_kwargs = dict(kwargs)
         for k in (
             "genome_type",

@@ -10,6 +10,93 @@ from malthusjax.composer.backend_registry import register_backend
 from malthusjax.composer.strategies.base import BaseStrategy
 
 
+def build_evosax_engine(
+    strategy_name: str,
+    fitness_spec: Optional[Any],
+    pop_size: int,
+    generations: int,
+    num_dims: int,
+    bounds: Tuple[float, float],
+    maximize: bool,
+    prng_impl: Optional[str] = None,
+    history_metrics: Optional[Sequence[str]] = None,
+    step_logging: Any = None,
+    **kwargs: Any,
+) -> Any:
+    from malthusjax.composer.evosax_adapter import (
+        build_evosax_engine as adapter_build_evosax_engine,
+    )
+
+    if isinstance(fitness_spec, (str, dict)):
+        from malthusjax.composer.backends._evaluator_resolver import resolve_evaluator_base
+
+        fitness_spec = resolve_evaluator_base(
+            fitness_spec,
+            maximize=maximize,
+            seed=kwargs.get("seed", 42),
+            num_dims=num_dims,
+            bounds=bounds,
+        )
+
+    return adapter_build_evosax_engine(
+        strategy_name=strategy_name,
+        evaluator=fitness_spec,
+        pop_size=pop_size,
+        generations=generations,
+        num_dims=num_dims,
+        bounds=bounds,
+        maximize=maximize,
+        prng_impl=prng_impl,
+        history_metrics=history_metrics,
+        step_logging=step_logging,
+        **kwargs,
+    )
+
+
+def build_composable_evosax_engine(
+    strategy_name: str = "SimpleGA",
+    fitness_spec: Optional[Any] = None,
+    pop_size: int = 50,
+    generations: int = 100,
+    num_dims: int = 1,
+    bounds: Optional[Tuple[float, float]] = None,
+    maximize: bool = False,
+    prng_impl: Optional[str] = None,
+    history_metrics: Optional[Sequence[str]] = None,
+    step_logging: Any = None,
+    **kwargs: Any,
+) -> Any:
+    from malthusjax.composer.composable_evosax_adapter import (
+        build_composable_evosax_engine as adapter_build_composable_evosax_engine,
+    )
+
+    if isinstance(fitness_spec, (str, dict)):
+        from malthusjax.composer.backends._evaluator_resolver import resolve_evaluator_base
+
+        fitness_spec = resolve_evaluator_base(
+            fitness_spec,
+            maximize=maximize,
+            seed=kwargs.get("seed", 42),
+            num_dims=num_dims,
+            bounds=bounds or (-5.0, 5.0),
+        )
+
+    return adapter_build_composable_evosax_engine(
+        strategy_name=strategy_name,
+        evaluator=fitness_spec,
+        pop_size=pop_size,
+        generations=generations,
+        num_dims=num_dims,
+        bounds=bounds,
+        maximize=maximize,
+        strategy_params=kwargs.get("strategy_params"),
+        prng_impl=prng_impl,
+        history_metrics=history_metrics,
+        step_logging=step_logging,
+        **kwargs,
+    )
+
+
 class EvosaxProvider:
     """Backend provider for EvoSAX evolutionary strategies."""
 
@@ -87,13 +174,9 @@ class EvosaxProvider:
         **kwargs: Any,
     ) -> Any:
         if composable:
-            from malthusjax.composer.factory import (
-                build_composable_evosax_engine as builder,
-            )
+            builder = build_composable_evosax_engine
         else:
-            from malthusjax.composer.factory import (
-                build_evosax_engine as builder,
-            )
+            builder = build_evosax_engine
 
         algo_kwargs = getattr(strategy, "algorithm_kwargs", {}) or {}
         num_dims = kwargs.get("num_dims", kwargs.get("genome_length", 10))

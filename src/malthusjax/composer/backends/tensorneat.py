@@ -9,6 +9,203 @@ from malthusjax.composer.backend_registry import register_backend
 from malthusjax.composer.strategies.base import BaseStrategy
 
 
+def resolve_tensorneat_problem(
+    problem_name: Optional[str], fitness_spec: Optional[str]
+) -> Tuple[Any, Any]:
+    import inspect
+
+    import tensorneat.problem
+
+    name = problem_name or (fitness_spec if isinstance(fitness_spec, str) else "xor")
+    if name.startswith("tensorneat:"):
+        name = name[len("tensorneat:") :]
+    if name.startswith("problem="):
+        name = name[len("problem=") :]
+    base_name = name.split(":")[0].lower()
+    problem_cls: Any = None
+    for cls_name, cls_obj in inspect.getmembers(tensorneat.problem, inspect.isclass):
+        if cls_name.lower() == base_name:
+            problem_cls = cls_obj
+            break
+    if problem_cls is None:
+        try:
+            from lsp.evaluator.tensorneat_bridge import TensorNEATSupervisedProblem
+
+            from malthusjax.composer.catalog import OperatorCatalog
+
+            if not isinstance(fitness_spec, str):
+                raise ValueError(
+                    "fitness_spec must be a string to resolve a MalthusJAX evaluator fallback"
+                )
+            mjax_evaluator = OperatorCatalog().get(fitness_spec)
+            problem = TensorNEATSupervisedProblem(mjax_evaluator)
+            return problem, problem.setup()
+        except Exception as fallback_e:
+            raise ValueError(
+                f"Unknown TensorNEAT problem: {base_name}. Fallback failed: {fallback_e}"
+            )
+    kwargs: Dict[str, Any] = {}
+    if ":" in name:
+        args_part = name.split(":", 1)[1]
+        for kv in args_part.split(","):
+            if "=" in kv:
+                k, v = kv.split("=", 1)
+                kwargs[k] = v
+    if base_name == "gymnaxenv" and "action_policy" not in kwargs:
+        import jax.numpy as jnp
+
+        def default_discrete_policy(randkey, forward_func, obs):
+            logits = forward_func(obs)
+            if logits.ndim > 0 and logits.shape[-1] > 1:
+                return jnp.reshape(jnp.argmax(logits, axis=-1), ())
+            return logits
+
+        kwargs["action_policy"] = default_discrete_policy
+    problem = problem_cls(**kwargs)
+    return problem, problem.setup()
+
+
+def build_tensorneat_engine(
+    strategy: Any,
+    fitness_spec: Optional[Any],
+    pop_size: int,
+    generations: int,
+    maximize: bool,
+    history_metrics: Optional[Sequence[str]],
+    **kwargs: Any,
+) -> Any:
+    import inspect
+
+    import tensorneat.algorithm
+    import tensorneat.genome
+
+    from malthusjax.composer.tensorneat_adapter import (
+        build_tensorneat_engine as adapter_build_tensorneat_engine,
+    )
+
+    algorithm_cls: Any = None
+    for name, obj in inspect.getmembers(tensorneat.algorithm, inspect.isclass):
+        if name.lower() == strategy.algorithm_name.lower():
+            algorithm_cls = obj
+            break
+    if algorithm_cls is None:
+        raise ValueError(f"Unknown TensorNEAT algorithm: {strategy.algorithm_name}")
+
+    genome_cls: Any = None
+    target_genome = strategy.genome_name.lower()
+    for name, obj in inspect.getmembers(tensorneat.genome, inspect.isclass):
+        name_lower = name.lower()
+        if name_lower == target_genome or name_lower == f"{target_genome}genome":
+            genome_cls = obj
+            break
+    if genome_cls is None:
+        raise ValueError(f"Unknown TensorNEAT genome: {strategy.genome_name}")
+
+    alg_kwargs = strategy.algorithm_kwargs.copy()
+    init_pop = alg_kwargs.pop("initial_population", kwargs.get("initial_population", None))
+    pop_size = alg_kwargs.pop("pop_size", pop_size)
+    genome_sig = inspect.signature(genome_cls.__init__)
+    genome_params = set(genome_sig.parameters.keys()) - {"self", "num_inputs", "num_outputs"}
+    genome_kwargs = {p: alg_kwargs.pop(p) for p in list(alg_kwargs.keys()) if p in genome_params}
+    genome = genome_cls(
+        num_inputs=strategy.num_inputs, num_outputs=strategy.num_outputs, **genome_kwargs
+    )
+    algorithm = algorithm_cls(pop_size=pop_size, genome=genome, **alg_kwargs)
+    problem, problem_state = resolve_tensorneat_problem(strategy.problem_name, fitness_spec)
+    return adapter_build_tensorneat_engine(
+        algorithm=algorithm,
+        evaluator=(problem, problem_state),
+        generations=generations,
+        pop_size=pop_size,
+        maximize=maximize,
+        history_metrics=history_metrics,
+        initial_population=init_pop,
+    )
+
+
+def build_composable_tensorneat_engine(
+    strategy: Any,
+    fitness_spec: Optional[Any],
+    pop_size: int,
+    generations: int,
+    maximize: bool,
+    history_metrics: Optional[Sequence[str]],
+    **kwargs: Any,
+) -> Any:
+    import inspect
+
+    import tensorneat.algorithm
+    import tensorneat.genome
+
+    from malthusjax.composer.composable_tensor_neat_adapter import (
+        build_composable_tensorneat_engine as adapter_build_composable_tensorneat_engine,
+    )
+
+    if not isinstance(fitness_spec, str) and fitness_spec is not None:
+        evaluator = fitness_spec
+        if hasattr(evaluator, "evosax_problem"):
+            problem = evaluator.evosax_problem
+            problem_state = evaluator.problem_state
+        else:
+            problem = None
+            problem_state = None
+    else:
+        problem, problem_state = resolve_tensorneat_problem(strategy.problem_name, fitness_spec)
+        evaluator = None
+
+    num_inputs = strategy.num_inputs
+    num_outputs = strategy.num_outputs
+
+    if (
+        (num_inputs is None or num_outputs is None)
+        and evaluator is not None
+        and hasattr(evaluator, "interpreter")
+    ):
+        num_inputs = num_inputs or evaluator.interpreter.input_dim
+        num_outputs = num_outputs or evaluator.interpreter.output_dim
+
+    if num_inputs is None or num_outputs is None:
+        num_inputs = num_inputs or 2
+        num_outputs = num_outputs or 1
+
+    algorithm_cls: Any = None
+    for name, obj in inspect.getmembers(tensorneat.algorithm, inspect.isclass):
+        if name.lower() == strategy.algorithm_name.lower():
+            algorithm_cls = obj
+            break
+    if algorithm_cls is None:
+        raise ValueError(f"Unknown TensorNEAT algorithm: {strategy.algorithm_name}")
+
+    genome_cls: Any = None
+    target_genome = strategy.genome_name.lower()
+    for name, obj in inspect.getmembers(tensorneat.genome, inspect.isclass):
+        name_lower = name.lower()
+        if name_lower == target_genome or name_lower == f"{target_genome}genome":
+            genome_cls = obj
+            break
+    if genome_cls is None:
+        raise ValueError(f"Unknown TensorNEAT genome: {strategy.genome_name}")
+
+    alg_kwargs = strategy.algorithm_kwargs.copy()
+    init_pop = alg_kwargs.pop("initial_population", kwargs.get("initial_population", None))
+    pop_size = alg_kwargs.pop("pop_size", pop_size)
+    genome_sig = inspect.signature(genome_cls.__init__)
+    genome_params = set(genome_sig.parameters.keys()) - {"self", "num_inputs", "num_outputs"}
+    genome_kwargs = {p: alg_kwargs.pop(p) for p in list(alg_kwargs.keys()) if p in genome_params}
+    genome = genome_cls(num_inputs=num_inputs, num_outputs=num_outputs, **genome_kwargs)
+    algorithm = algorithm_cls(pop_size=pop_size, genome=genome, **alg_kwargs)
+
+    return adapter_build_composable_tensorneat_engine(
+        algorithm=algorithm,
+        evaluator=evaluator or (problem, problem_state),
+        generations=generations,
+        pop_size=pop_size,
+        maximize=maximize,
+        history_metrics=history_metrics,
+        initial_population=init_pop,
+    )
+
+
 class TensorneatProvider:
     """Backend provider for TensorNEAT neuroevolution algorithms."""
 
@@ -150,19 +347,18 @@ class TensorneatProvider:
                 algorithm_kwargs=strat_kwargs,
             )
             pop_size = strat_pop_size
-        elif hasattr(strategy, "algorithm_kwargs") and "pop_size" in getattr(strategy, "algorithm_kwargs", {}):
+        elif hasattr(strategy, "algorithm_kwargs") and "pop_size" in getattr(
+            strategy, "algorithm_kwargs", {}
+        ):
             from dataclasses import replace
+
             strat_kwargs = dict(strategy.algorithm_kwargs)
             pop_size = strat_kwargs.pop("pop_size")
             strategy = replace(strategy, algorithm_kwargs=strat_kwargs)
 
         if composable:
-            from malthusjax.composer.factory import build_composable_tensorneat_engine
-
             builder = build_composable_tensorneat_engine
         else:
-            from malthusjax.composer.factory import build_tensorneat_engine
-
             builder = build_tensorneat_engine
 
         engine_kwargs = dict(kwargs)

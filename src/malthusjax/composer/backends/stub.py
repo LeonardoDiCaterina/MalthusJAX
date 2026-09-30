@@ -7,6 +7,18 @@ from malthusjax.composer.backend_registry import register_backend
 from malthusjax.composer.strategies.base import BaseStrategy
 
 
+def build_stub_engine(generations: int, **kwargs: Any) -> Any:
+    from malthusjax.benchmarking import StubEngine
+
+    base_fitness = kwargs.get("base_fitness", 1.0)
+    improvement_rate = kwargs.get("improvement_rate", 0.1)
+    return StubEngine(
+        generations=generations,
+        base_fitness=base_fitness,
+        improvement_rate=improvement_rate,
+    )
+
+
 class StubProvider:
     """Fallback provider that returns a StubEngine for pipeline testing."""
 
@@ -45,8 +57,6 @@ class StubProvider:
         step_logging: Any = None,
         **kwargs: Any,
     ) -> Any:
-        from malthusjax.composer.factory import build_stub_engine
-
         return build_stub_engine(
             generations=generations,
             base_fitness=kwargs.get("base_fitness", 1.0),

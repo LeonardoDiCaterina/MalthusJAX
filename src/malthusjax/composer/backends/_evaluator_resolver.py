@@ -120,9 +120,12 @@ def _resolve_string_spec(
             num_dims=num_dims,
         )
 
-    # For all other string specs, use the catalog.
-    # Inject seed into the spec string if missing.
     spec_str = fitness_spec
+    if "dim" not in parsed_params and "num_dims" not in parsed_params:
+        if ":" in spec_str:
+            spec_str = f"{spec_str},dim={num_dims}"
+        else:
+            spec_str = f"{spec_str}:dim={num_dims}"
     if "seed=" not in spec_str:
         if ":" in spec_str:
             spec_str = f"{spec_str},seed={seed}"
