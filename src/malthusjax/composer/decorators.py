@@ -13,6 +13,7 @@ from typing import Any, Callable, Dict, Optional
 
 from malthusjax.composer._genome_registry import register as _register_genome
 from malthusjax.composer._registry import register as _register_operator
+from malthusjax.composer.backend_registry import register_backend as _register_backend
 from malthusjax.composer.engine_registry import register as _register_engine
 
 
@@ -78,3 +79,21 @@ register_predictor = _operator_decorator
 
 register_engine = _engine_decorator
 register_genome = _genome_decorator
+
+
+def _backend_decorator(
+    name: str,
+    defaults: Optional[Dict[str, Any]] = None,
+    override: bool = False,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """Internal decorator factory for backend registration."""
+
+    def wrapper(cls_or_func: Callable[..., Any]) -> Callable[..., Any]:
+        _register_backend(name, cls_or_func, defaults, override=override)
+        return cls_or_func
+
+    return wrapper
+
+
+register_backend = _backend_decorator
+

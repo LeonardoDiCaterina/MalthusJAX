@@ -6,6 +6,7 @@ with sensible defaults and declarative configuration.
 
 from .composer import Composer
 from .decorators import (
+    register_backend,
     register_crossover,
     register_emitter,
     register_engine,
@@ -24,6 +25,7 @@ __all__ = [
     "EvosaxEngineAdapter",
     "build_evosax_engine",
     "list_strategies",
+    "register_backend",
     "register_selection",
     "register_mutation",
     "register_crossover",
