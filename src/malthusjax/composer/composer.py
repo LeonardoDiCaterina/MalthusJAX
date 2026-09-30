@@ -16,8 +16,8 @@ import jax
 import jax.random as jr
 
 from malthusjax.composer.config import infer_genome_length, normalize_seeds
-from malthusjax.composer.evaluator_parser import parse_evaluator
-from malthusjax.composer.backend_registry import get_backends, list_backends
+from malthusjax.composer.engine_factory_v2 import EngineFactory
+from malthusjax.composer.experiment_config import ExperimentConfig
 from malthusjax.composer.strategies.base import BaseStrategy
 
 from ..benchmarking import BenchmarkRunner, ExperimentResult
@@ -28,7 +28,6 @@ from ..core.logger import (
     get_logger,
     set_log_level,
 )
-from .catalog import OperatorCatalog
 from .config import load_experiment_config
 
 logger = get_logger("composer")
@@ -389,158 +388,87 @@ class Composer:
                 logger_name="malthusjax.composer",
             )
 
-        if output_dir is None:
-            output_dir = Path("results") / experiment_name
-        else:
-            output_dir = Path(output_dir)
+        kwargs_dict = {
+            "fitness": fitness,
+            "selection": selection,
+            "crossover": crossover,
+            "mutation": mutation,
+            "seeds": seeds,
+            "generations": generations,
+            "pop_size": pop_size,
+            "genome_length": genome_length,
+            "bounds": bounds,
+            "genome_type": genome_type,
+            "genome": genome,
+            "maximize": maximize,
+            "backend": backend,
+            "evosax_strategy": evosax_strategy,
+            "qdax_strategy": qdax_strategy,
+            "tensorneat_algorithm": tensorneat_algorithm,
+            "tensorneat_genome": tensorneat_genome,
+            "tensorneat_problem": tensorneat_problem,
+            "tensorneat_num_inputs": tensorneat_num_inputs,
+            "tensorneat_num_outputs": tensorneat_num_outputs,
+            "qdax_num_descriptors": qdax_num_descriptors,
+            "qdax_num_centroids": qdax_num_centroids,
+            "qdax_mutation_sigma": qdax_mutation_sigma,
+            "strategy": strategy,
+            "engine_type": engine_type,
+            "elitism": elitism,
+            "experiment_name": experiment_name,
+            "output_dir": output_dir,
+            "prng_impl": prng_impl,
+            "trace_dir": trace_dir,
+            "history_metrics": history_metrics,
+            "log_level": log_level,
+            "log_interval": log_interval,
+            "log_nan_watchdog": log_nan_watchdog,
+            "use_history_for_final": use_history_for_final,
+            "data_config": data_config,
+            **kwargs,
+        }
 
+        # Step 1: CONFIGURE — flat kwargs -> structured config
+        config = ExperimentConfig.from_quick_run_kwargs(**kwargs_dict)
+
+        # Step 2: RESOLVE ENGINE — config -> engine
         if engine is None:
-            # Resolve genome defaults and specification
-            if genome is not None:
-                from .genome_catalog import GenomeCatalog
+            factory = EngineFactory()
+            engine = factory.build(config)
+        elif step_logging is not None and hasattr(engine, "step_logging"):
+            engine.step_logging = step_logging
 
-                cat = GenomeCatalog()
-                if isinstance(genome, dict):
-                    g_type = genome.get("type", "real")
-                    g_params = genome.copy()
-                else:
-                    g_type, g_params = cat.parse_spec(genome)
-                if genome_type is None:
-                    genome_type = g_type
-                if genome_length is None:
-                    genome_length = g_params.get("dim", g_params.get("length", 10))
-                if bounds is None and "bounds" in g_params:
-                    b = g_params["bounds"]
-                    if isinstance(b, str):
-                        b_str = b.strip("()[]")
-                        parts = b_str.split(",")
-                        bounds = (float(parts[0]), float(parts[1]))
-                    else:
-                        bounds = tuple(b)
-                if genome_length is None and "shape" in g_params:
-                    shape_val = g_params["shape"]
-                    genome_length = shape_val[0] if hasattr(shape_val, "__len__") else shape_val
-
-            # If genome length is still unset, infer from fitness spec (e.g. "sphere:dim=5").
-            if genome_length is None and isinstance(fitness, str):
-                parsed_name, parsed_params = OperatorCatalog().parse_spec(fitness)
-                _ = parsed_name  # parsed_name intentionally unused; kept for clarity.
-                dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
-                if dim_val is not None:
-                    genome_length = int(dim_val)
-
-            if genome_type is None:
-                genome_type = "real"
-            if genome_length is None:
-                genome_length = 10
-            if bounds is None:
-                bounds = (-5.0, 5.0)
-
-            fitness_obj: Any
-            if isinstance(fitness, dict):
-                fitness_obj = parse_evaluator(fitness)
-            else:
-                fitness_obj = fitness
-
-            _backends = get_backends()
-
-            if backend not in _backends:
-                from .plugins import load_plugins
-
-                load_plugins()
-                _backends = get_backends()
-
-            if strategy is not None and backend == "malthusjax":
-                for name, entry in _backends.items():
-                    p = entry[0]
-                    if name != "malthusjax" and hasattr(p, "handles_strategy") and p.handles_strategy(strategy):
-                        backend = name
-                        break
-
-            if backend not in _backends:
-                available = ", ".join(list_backends())
-                raise ValueError(f"Unknown backend '{backend}'. Available: [{available}]")
-
-            provider_entry = _backends[backend]
-            provider = provider_entry[0]
-            provider_defaults = provider_entry[1]
-
-            provider_kwargs = {**provider_defaults, **kwargs}
-
-            if strategy is None:
-                strategy = provider.default_strategy(
-                    evosax_strategy=evosax_strategy,
-                    qdax_strategy=qdax_strategy,
-                    tensorneat_algorithm=tensorneat_algorithm,
-                    tensorneat_genome=tensorneat_genome,
-                    tensorneat_problem=tensorneat_problem,
-                    tensorneat_num_inputs=tensorneat_num_inputs,
-                    tensorneat_num_outputs=tensorneat_num_outputs,
-                    qdax_num_descriptors=qdax_num_descriptors,
-                    qdax_num_centroids=qdax_num_centroids,
-                    qdax_mutation_sigma=qdax_mutation_sigma,
-                    engine_type=engine_type,
-                    genome=genome,
-                    fitness=fitness_obj,
-                    selection=selection,
-                    crossover=crossover,
-                    mutation=mutation,
-                    **provider_kwargs,
-                )
-
-            evaluator = provider.resolve_evaluator(
-                fitness_obj,
-                maximize=maximize,
-                seed=kwargs.get("seed", 42),
-                num_dims=genome_length,
-                bounds=bounds,
-                data_config=data_config,
-                **provider_kwargs,
-            )
-
-            engine = provider.build_engine(
-                strategy,
-                evaluator,
-                pop_size=pop_size,
-                generations=generations,
-                maximize=maximize,
-                bounds=bounds,
-                genome_length=genome_length,
-                genome_type=genome_type,
-                elitism=elitism,
-                prng_impl=prng_impl,
-                history_metrics=history_metrics,
-                step_logging=step_logging,
-                engine_type=engine_type,
-                genome=genome,
-                data_config=data_config,
-                **provider_kwargs,
-            )
-        else:
-            if step_logging is not None and hasattr(engine, "step_logging"):
-                engine.step_logging = step_logging
+        # Step 3: EXECUTE — engine -> results
+        out_dir = (
+            Path(config.output.output_dir)
+            if config.output.output_dir
+            else Path("results") / config.output.experiment_name
+        )
+        tr_dir = (
+            Path(config.output.trace_dir) if config.output.trace_dir else Path("results/traces")
+        )
 
         runner = BenchmarkRunner(
             engine=engine,
-            experiment_name=experiment_name,
-            output_dir=output_dir,
+            experiment_name=config.output.experiment_name,
+            output_dir=out_dir,
             write_artifacts=True,
-            prng_impl=prng_impl,
-            trace_dir=Path(trace_dir) if trace_dir is not None else Path("results/traces"),
+            prng_impl=config.execution.prng_impl,
+            trace_dir=tr_dir,
             serialize_history=kwargs.get("serialize_history", True),
         )
 
-        normalized_seeds = normalize_seeds(seeds)
+        normalized_seeds = normalize_seeds(config.execution.seeds)
         logger.info(
             "Starting quick_run: experiment='%s', backend='%s', seeds=%s",
-            experiment_name,
-            backend,
+            config.output.experiment_name,
+            config.backend.name,
             list(normalized_seeds),
         )
         experiment = runner.run(normalized_seeds)
         logger.info(
             "Completed quick_run: experiment='%s' across %d seeds",
-            experiment_name,
+            config.output.experiment_name,
             len(normalized_seeds),
         )
 
@@ -549,7 +477,9 @@ class Composer:
         # invalid `summary['best_fitness']`. Allow callers to request
         # that the final best is derived from the last history entry
         # (history[-1]) instead. We also auto-fix non-finite summaries.
-        self._postprocess_experiment_final_from_history(experiment, use_history_for_final)
+        self._postprocess_experiment_final_from_history(
+            experiment, config.execution.use_history_for_final
+        )
 
         return experiment
 
@@ -602,25 +532,37 @@ class Composer:
                 except Exception:
                     pass
 
-    def _generate_initial_population(self, config: Dict[str, Any], pop_seed: int) -> Any:
+    def _generate_initial_population(self, config: Any, pop_seed: int) -> Any:
         """Deterministically generate a shared initial population matrix for a given pipeline config.
 
         Ensures that pipelines with identical bounds, population sizes, and dimensionality
         receive the exact same starting points, while dynamically scaling to the requested pop_size.
         """
-        backend = config.get("backend", "malthusjax")
-        _backends = get_backends()
-        if backend in _backends:
-            provider = _backends[backend][0]
-            result = provider.generate_initial_population(config, pop_seed)
-            if result is not None:
-                return result
+        from .backends._population_init import generate_initial_population
+
+        result = generate_initial_population(config, pop_seed)
+        if result is not None:
+            return result
+
+        pop_size = (
+            int(config.get("pop_size", 50)) if isinstance(config, dict) else config.population.size
+        )
+        genome_length = (
+            infer_genome_length(config)
+            if isinstance(config, dict)
+            else config.population.genome_length
+        )
+        bounds = (
+            config.get("bounds", (-5.0, 5.0))
+            if isinstance(config, dict)
+            else config.population.bounds
+        )
 
         return jr.uniform(
             jr.PRNGKey(pop_seed),
-            (int(config.get("pop_size", 50)), infer_genome_length(config)),
-            minval=float(config.get("bounds", (-5.0, 5.0))[0]),
-            maxval=float(config.get("bounds", (-5.0, 5.0))[1]),
+            (pop_size, genome_length),
+            minval=float(bounds[0]),
+            maxval=float(bounds[1]),
         )
 
     def compare(
