@@ -4,6 +4,7 @@ Core builder logic for native MalthusJAX engines and data registries.
 Backend-specific builder functions have migrated into their respective
 BackendProvider modules in ``malthusjax.composer.backends.*``.
 """
+
 from typing import Any, Dict, Optional
 
 from malthusjax.composer.catalog import OperatorCatalog

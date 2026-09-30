@@ -1,4 +1,5 @@
 """TensorNEAT backend provider — topology and neural evolution."""
+
 from __future__ import annotations
 
 from typing import Any, Dict, Optional, Sequence, Tuple

@@ -101,10 +101,6 @@ def _resolve_string_spec(
     other specs.
     """
     from malthusjax.composer.catalog import OperatorCatalog
-    from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
-    from malthusjax.core.fitness.composable.environments import BBOBEnv
-    from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
-    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
     cat = OperatorCatalog()
     parsed_name, parsed_params = cat.parse_spec(fitness_spec)
@@ -176,14 +172,10 @@ def _resolve_bbob_spec(
 
         bbob_keys = list(mb.bbob_fns.keys())
         if fn_param < 1 or fn_param > len(bbob_keys):
-            raise ValueError(
-                f"BBOB function index {fn_param} is out of range (1-{len(bbob_keys)})"
-            )
+            raise ValueError(f"BBOB function index {fn_param} is out of range (1-{len(bbob_keys)})")
         fn_name = bbob_keys[fn_param - 1]
     elif fn_param is None:
-        raise ValueError(
-            "BBOB fitness specification requires either fn_name or fn index"
-        )
+        raise ValueError("BBOB fitness specification requires either fn_name or fn index")
     else:
         fn_name = fn_param
 

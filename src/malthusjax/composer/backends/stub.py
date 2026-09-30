@@ -1,4 +1,5 @@
 """StubEngine backend provider — used when no real backend is selected."""
+
 from __future__ import annotations
 
 from typing import Any, Dict, Optional, Sequence, Tuple

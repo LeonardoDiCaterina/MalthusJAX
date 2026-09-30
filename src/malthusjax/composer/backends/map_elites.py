@@ -1,4 +1,5 @@
 """MAP-Elites backend provider."""
+
 from __future__ import annotations
 
 from typing import Any, Dict, Optional, Sequence, Tuple, cast
@@ -33,13 +34,9 @@ def build_map_elites_engine(
             emitter_spec = f"qdax_replica:mutation=gaussian:sigma={sigma},crossover=none,batch_size={pop_size},genome_length={genome_length}"
         else:
             if ":" in emitter_obj:
-                emitter_spec = (
-                    f"{emitter_obj},batch_size={pop_size},genome_length={genome_length}"
-                )
+                emitter_spec = f"{emitter_obj},batch_size={pop_size},genome_length={genome_length}"
             else:
-                emitter_spec = (
-                    f"{emitter_obj}:batch_size={pop_size},genome_length={genome_length}"
-                )
+                emitter_spec = f"{emitter_obj}:batch_size={pop_size},genome_length={genome_length}"
         from malthusjax.composer.catalog import OperatorCatalog
 
         catalog = OperatorCatalog()
@@ -62,6 +59,7 @@ def build_map_elites_engine(
                 problem_name, fitness_spec if isinstance(fitness_spec, str) else None
             )
             import inspect
+
             import tensorneat.genome
 
             target_genome = kwargs.get("tensorneat_genome", "default").lower()
