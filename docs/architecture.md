@@ -32,7 +32,10 @@ MalthusJAX is structured into four distinct layers that decouple high-level expe
                     XLA Kernel
 ```
 
-- **Composer Layer**: Parses TOML configurations or Python specs, resolves registered operators/evaluators, and constructs the appropriate engine instance.
+- **Composer Layer**: Orchestrates experiments using a Hydra/Kedro-grade 3-layer design:
+  1. *Configuration*: Immutable typed `ExperimentConfig` dataclasses with fail-fast `.validate()` and TOML loaders.
+  2. *Instantiation Boundary*: `EngineFactory.build(config)` resolving engines via `BackendRegistry` and pluggable `BackendProvider` implementations with centralized initial population sampling (`_population_init.py`).
+  3. *Execution Orchestration*: Formal `@runtime_checkable class Engine(Protocol)` executed across random seeds via `BenchmarkRunner` with strict JIT warmup isolation and zero-overhead JIT telemetry.
 - **Engine Layer**: Manages the 5-phase generational loop (`entropy`, `selection`, `reproduction`, `merge`, `evaluation`).
 - **Operators Layer**: Contains vectorized genetic operators implemented across progressive vectorization tiers.
 - **Core Layer**: Implements immutable PyTree structures (`BaseGenome`, `BasePopulation`, `GeneticEngineState`) and deterministic PRNG key management.

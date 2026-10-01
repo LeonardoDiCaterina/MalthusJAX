@@ -1,250 +1,352 @@
 # `malthusjax.composer` — Technical Reference
 
-Scope: `malthusjax.composer.composer`, `malthusjax.composer.catalog`, `malthusjax.composer.config`, `malthusjax.composer.strategies`, `malthusjax.composer.evaluator_parser`, `malthusjax.composer.engine_catalog`, `malthusjax.composer.engine_factory`, `malthusjax.composer.genome_catalog`, `malthusjax.composer.decorators`, `malthusjax.composer.adapters`, `malthusjax.composer.composable_evosax_adapter`, `malthusjax.composer.composable_tensor_neat_adapter`, `malthusjax.composer.evosax_adapter`, `malthusjax.composer.qdax_adapter`, `malthusjax.composer.tensorneat_adapter`, `malthusjax.composer.kozax_adapter`, `malthusjax.composer.pipeline`.
+Scope: `malthusjax.composer.composer`, `malthusjax.composer.experiment_config`, `malthusjax.composer.engine_factory`, `malthusjax.composer.engine_protocol`, `malthusjax.composer.backend_provider`, `malthusjax.composer.backend_registry`, `malthusjax.composer.backends`, `malthusjax.composer.catalog`, `malthusjax.composer.config`, `malthusjax.composer.strategies`, `malthusjax.composer.evaluator_parser`, `malthusjax.composer.decorators`, `malthusjax.composer.adapters`.
 
 ---
 
-## 1. Overview & Architecture
+## 1. Overview & 3-Layer Architecture
 
-The `malthusjax.composer` package provides the top-level declarative and programmatic experiment orchestration layer of **MalthusJAX**. It bridges low-level core genomes, operators, composable evaluators, and evolutionary engines with high-level multi-seed experiment workflows.
+The `malthusjax.composer` package is the top-level orchestration layer of **MalthusJAX**.
+
+Following the architectural standards of production-grade frameworks like **Hydra**, **Kedro**, and **PyTorch Lightning**, the Composer establishes a clean, decoupled **3-Layer Architecture**:
 
 ```
-                  +----------------------------------------------+
-                  |              Composer Entry Point            |
-                  |   quick_run()  |  from_toml()  |  compare()  |
-                  +----------------------------------------------+
-                                         |
-         +-------------------------------+-------------------------------+
-         |                               |                               |
-+-------------------+         +---------------------+         +---------------------+
-| OperatorCatalog   |         | Strategies Layer    |         | EvaluatorParser     |
-| - String DSL      |         | - GeneticStrategy   |         | - 4-Axis Parsing    |
-| - Param Coercion  |         | - MapElitesStrategy |         | - Dim Auto-wiring   |
-| - Type Validation |         | - EvoSAXStrategy    |         | - Composable Envs   |
-| - Global Registry |         | - QDAXStrategy      |         |   & Interpreters    |
-+-------------------+         | - TensorNEATStrategy|         +---------------------+
-         |                    +---------------------+                    |
-         +-------------------------------+-------------------------------+
-                                         |
-                  +----------------------------------------------+
-                  |             Universal Engine Layer           |
-                  |  - Native Engines: GeneticEngine (5-phase),  |
-                  |    MOEngine (NSGA-II), MapElitesEngine (QD)  |
-                  |  - Universal Framework Adapters:             |
-                  |    EvoSAX, QDAX, TensorNEAT, Kozax           |
-                  +----------------------------------------------+
-                                         |
-                  +----------------------------------------------+
-                  |               BenchmarkRunner                |
-                  |   Shared PRNG Seeds | Multi-Run Aggregation  |
-                  |   ExperimentResult  | ComparisonResult       |
-                  +----------------------------------------------+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. CONFIGURATION LAYER (Declarative, Immutable, Type-Safe)              │
+│                                                                         │
+│   ExperimentConfig                                                      │
+│   ├── PopulationConfig (size, type, length, bounds, spec)               │
+│   ├── ExecutionConfig  (generations, seeds, maximize, prng)             │
+│   ├── BackendConfig    (MalthusJAX, Evosax, Qdax, Tensorneat, Generic)  │
+│   ├── LoggingConfig    (intervals, watchdog, metrics)                   │
+│   └── OutputConfig     (name, output_dir, trace_dir)                    │
+│                                                                         │
+│   Parsers & Loaders:                                                    │
+│   • ExperimentConfig.from_dict()                                        │
+│   • ExperimentConfig.from_toml()                                        │
+│   • ExperimentConfig.from_quick_run_kwargs() (100% backward-compatible) │
+│   • config.validate() (structural & semantic verification)              │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. INSTANTIATION / FACTORY BOUNDARY (Dependency Injection & Resolution) │
+│                                                                         │
+│   EngineFactory.build(config: ExperimentConfig) -> Engine               │
+│   ├── Step 1: config.validate()                                         │
+│   ├── Step 2: BackendRegistry.get_backend(name)                         │
+│   ├── Step 3: Provider.resolve_evaluator(spec, **kwargs)                │
+│   ├── Step 4: Provider.default_strategy(**kwargs)                       │
+│   └── Step 5: Provider.build_engine(strategy, evaluator, **kwargs)      │
+│                                                                         │
+│   Centralized Contracts & Boundaries:                                   │
+│   • BackendRegistry: Strict runtime method validation on registration   │
+│   • BackendProvider: Abstract base class for native and third-party libs│
+│   • _population_init: Shared uniform & BBOB initial population sampler  │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 3. EXECUTION ORCHESTRATION (Hardware JIT Loop & Multi-Run Benchmarking) │
+│                                                                         │
+│   @runtime_checkable class Engine(Protocol):                            │
+│       run_once(key: chex.Array) -> Dict[str, Any]                       │
+│       (Contract output: "history", "summary", "timings")                │
+│                                                                         │
+│   BenchmarkRunner.run(engine: Engine, seeds: Sequence[int])             │
+│   • Native JIT Loops (jax.lax.scan)                                     │
+│   • Universal Adapters (UniversalAdapterEngine)                         │
+│   • Result Aggregation: ExperimentResult & ComparisonResult             │
+│   • Telemetry: Zero-overhead JIT callbacks & NaN/Inf watchdogs          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
-
-### Key Capabilities
-1. **String DSL & Operator Specs**: Parse compact configuration strings (`"operator:param1=val1,param2=val2"`) into validated, JIT-ready dataclass instances.
-2. **Algorithmic Strategies (`strategies/`)**: Declarative specifications binding evolutionary engines with operators, emitters, and hyperparameters.
-3. **Dynamic Composable Evaluator Parser (`evaluator_parser.py`)**: Instantiate full 4-axis evaluators (`OptimizationEvaluator`, `SupervisedEvaluator`, `RLEvaluator`) from hierarchical dictionaries or TOML blocks with automatic dimension propagation.
-4. **Data-Driven Evaluation (Option C)**: Inject problem datasets or synthetic problem generators via `[data.<data_id>]` sections into problem environments (e.g. TSP, Knapsack).
-5. **Universal Framework Adapters**: Wrap external evolutionary algorithms (EvoSAX, QDAX, TensorNEAT, Kozax) under a single uniform `Engine` protocol interface (`run_once(key) -> Dict[str, Any]`).
-6. **Statistically Fair Benchmarking**: Share exact PRNG seeds, initial populations, and evaluation environments across competing pipelines.
 
 ---
 
-## 2. `malthusjax.composer.composer`
+## 2. Layer 1: Typed Configuration Model (`experiment_config.py`)
 
-The `Composer` class is the central orchestrator, exposing three primary execution workflows:
+All experiment configurations are defined as frozen dataclasses in `experiment_config.py`. This ensures immutable, hashable, and fully verifiable specifications prior to any JAX compilation.
 
-### `quick_run(...) -> ExperimentResult`
-Interactive execution method for running single pipeline sweeps across multiple random seeds.
+### The Config Tree
+- **`ExperimentConfig`**: Root container aggregating all sub-configurations:
+  - `population: PopulationConfig`
+  - `execution: ExecutionConfig`
+  - `backend: BackendConfig` (discriminated union)
+  - `logging: LoggingConfig`
+  - `output: OutputConfig`
+
+### Sub-Configuration Schemas
 ```python
-from malthusjax.composer import Composer
+@dataclass(frozen=True)
+class PopulationConfig:
+    size: int = 50
+    genome_type: str = "real"
+    genome_length: int = 10
+    bounds: Tuple[float, float] = (-5.0, 5.0)
+    genome_spec: Optional[str] = None
 
-composer = Composer()
-result = composer.quick_run(
-    fitness="sphere:dim=10,maximize=false",
-    selection="tournament:num_selections=50,tournament_size=3",
-    crossover="uniform_real:crossover_rate=0.9",
-    mutation="gaussian:mutation_rate=0.1,mutation_strength=0.05",
-    pop_size=100,
-    generations=100,
-    seeds=5,
-    backend="malthusjax",
+@dataclass(frozen=True)
+class ExecutionConfig:
+    generations: int = 100
+    seeds: Tuple[int, ...] = (1, 2, 3)
+    maximize: bool = False
+    prng_impl: Optional[str] = None
+    use_history_for_final: bool = False
+
+@dataclass(frozen=True)
+class LoggingConfig:
+    log_level: Optional[str] = None
+    log_interval: Optional[int] = None
+    log_nan_watchdog: bool = True
+    history_metrics: Optional[Tuple[str, ...]] = None
+
+@dataclass(frozen=True)
+class OutputConfig:
+    experiment_name: str = "quick_experiment"
+    output_dir: Optional[str] = None
+    trace_dir: Optional[str] = None
+```
+
+### Backend Configurations
+- `MalthusJAXBackendConfig`: Parameters for native genetic engines (`selection`, `crossover`, `mutation`, `engine_type`).
+- `EvosaxBackendConfig`: Parameters for EvoSAX strategies (`strategy_name`, `strategy_kwargs`).
+- `QdaxBackendConfig`: Parameters for QDAX Quality-Diversity algorithms (`emitter`, `num_descriptors`).
+- `TensorneatBackendConfig`: Parameters for TensorNEAT neuroevolution (`algorithm_name`, `problem_name`).
+- `GenericBackendConfig`: Extensible key-value store for third-party or custom backend providers.
+
+### Validation & Serialization
+```python
+# Validation
+config.validate()  # Validates positive pop_size, valid bounds, non-empty seeds, etc.
+
+# Serialization
+data = config.to_dict()
+reconstructed = ExperimentConfig.from_dict(data)
+
+# Backward-Compatible Kwargs Conversion
+config = ExperimentConfig.from_quick_run_kwargs(
+    fitness="sphere:dim=10", pop_size=64, generations=100, seeds=[42, 43]
 )
-summary = result.aggregated_summary()
-print("Best fitness mean:", summary["best_fitness"]["mean"])
-```
-- **Backend Selection**: `"malthusjax"` (default), `"evosax"`, `"qdax"`, `"tensorneat"`, `"kozax"`.
-- **Data Configuration**: Accepts `data_config={...}` to resolve problem-specific `data_id` references.
-- **Seed Handling**: Normalizes integer seed counts or explicit seed sequences via `_normalize_seeds()`.
 
-### `from_toml(path, ...) -> ComparisonResult`
-Declarative entry point for loading experiment TOML files via `load_experiment_config`.
-```python
-comparison = composer.from_toml("configs/examples/tsp_tour_optimization.toml")
-table = comparison.summary_table()
-print(table)
+# Declarative TOML Loading
+config = ExperimentConfig.from_toml("path/to/experiment.toml")
 ```
-- Parses shared baseline defaults (`[experiment.shared]`) and per-pipeline overrides (`[pipelines.*]`).
-- Supports data-driven registries (`[data.*]`).
-- Executes all pipelines in sequence across specified random seeds.
-
-### `compare(pipelines, ...) -> ComparisonResult`
-Programmatic multi-pipeline benchmarking entry point.
-- Accepts a dictionary mapping pipeline names to `quick_run` parameter keyword dictionaries.
-- Enforces identical random seed initialization across pipelines for fair statistical comparison.
 
 ---
 
-## 3. Algorithmic Strategies (`malthusjax.composer.strategies`)
+## 3. Layer 2: Instantiation Boundary (`engine_factory.py`)
 
-The `strategies` module provides declarative dataclasses that specify engine topologies and operator configurations:
-
-| Strategy | Description | Key Fields | Target Engine |
-| :--- | :--- | :--- | :--- |
-| `GeneticStrategy` | Standard 5-phase genetic algorithm | `selection`, `crossover`, `mutation` | `GeneticEngine` (`GeneticFastEngine`) |
-| `MapElitesStrategy` | Native Quality-Diversity archive search | `emitter`, `num_descriptors`, `num_centroids`, `mutation_sigma`, `key_derivation`, `maximize` | `MapElitesEngine` |
-| `EvoSAXStrategy` | External EvoSAX evolutionary strategy | `algorithm_name`, `algorithm_kwargs` | `UniversalAdapterEngine` (`evosax`) |
-| `QDAXStrategy` | External QDAX Quality-Diversity algorithm | `strategy_cls`, `emitter`, `num_descriptors`, `num_centroids`, `metrics_function` | `UniversalAdapterEngine` (`qdax`) |
-| `TensorNEATStrategy` | External TensorNEAT neuroevolution algorithm | `algorithm_name`, `genome_name`, `problem_name`, `num_inputs`, `num_outputs` | `UniversalAdapterEngine` (`tensorneat`) |
-
-When multiple operators are passed to `GeneticStrategy` or `MapElitesStrategy`, they are automatically composed via a `MixingEmitter` or executed in the 5-phase engine sequence.
-
----
-
-## 4. Dynamic Composable Evaluator Parser (`evaluator_parser.py`)
-
-The `evaluator_parser` module translates nested dictionary configurations (e.g. from TOML) into strongly typed, JIT-compatible Composable Evaluators:
+The `EngineFactory` acts as the single entry point for instantiating evolutionary algorithms from declarative configurations.
 
 ```python
-from malthusjax.composer.evaluator_parser import parse_evaluator
+from malthusjax.composer.engine_factory import EngineFactory
 
-config = {
-    "type": "OptimizationEvaluator",
-    "env": {"type": "SphereEnv", "dim": 20},
-    "interpreter": {"type": "IdentityInterpreter"},
-    "output": {"type": "ScalarOutput", "maximize": False},
-    "transform": {"type": "IdentityTransform"},
-}
+# Build an engine directly from a validated configuration:
+engine = EngineFactory.build(config)
 
-evaluator = parse_evaluator(config)
+# Or pass a pre-resolved custom evaluator:
+engine = EngineFactory.build_with_evaluator(config, evaluator=custom_eval_fn)
 ```
 
-### Automatic Wiring & Special Features
-1. **Dimension Auto-Wiring**: If `env` exposes `obs_dim` or `action_dim` (e.g. `BraxEnv`, `GymnaxEnv`), `parse_evaluator` automatically binds them to `interpreter.input_dim` and `interpreter.output_dim` if omitted.
-2. **Sensible Defaults**:
-   - `interpreter`: Defaults to `IdentityInterpreter`.
-   - `output`: Defaults to `ScalarOutput(maximize=False)`.
-   - `transform`: Defaults to `IdentityTransform`.
-3. **TensorNEAT Integration**: Resolves `type = "TensorNEATProblemWrapper"` by dynamically instantiating problems from `tensorneat.problem` (e.g. `XOR`, `GymProblem`).
+### Dynamic Backend Resolution
+`EngineFactory.build()`:
+1. Calls `config.validate()`.
+2. Queries `BackendRegistry.get_backend(config.backend.backend_name)`.
+3. Instantiates the registered [BackendProvider](file:///Users/leonardodicaterina/Documents/GitHub/MalthusJAX/src/malthusjax/composer/backend_provider.py).
+4. Invokes `provider.resolve_evaluator(...)` with population config dimensions.
+5. Invokes `provider.default_strategy(...)`.
+6. Invokes `provider.build_engine(strategy, evaluator, **kwargs) -> Engine`.
+
+### The `BackendProvider` Contract
+```python
+class BackendProvider(ABC):
+    @abstractmethod
+    def build_engine(self, strategy: Any, evaluator: Any, **kwargs: Any) -> Engine: ...
+
+    @abstractmethod
+    def resolve_evaluator(self, evaluator_spec: Any, **kwargs: Any) -> Any: ...
+
+    @abstractmethod
+    def default_strategy(self, **kwargs: Any) -> Any: ...
+
+    def generate_initial_population(self, key: chex.Array, config: Any, evaluator: Any = None) -> Any: ...
+```
+
+### Centralized Population Initialization (`backends/_population_init.py`)
+To prevent divergent random population sampling across backends, `_population_init.py` provides shared, deterministic population generators:
+- `generate_initial_population(key, pop_size, genome_type, genome_length, bounds, fitness_spec, evaluator)`
+- `sample_population_bbob(...)`: Calibrated sampling for BBOB benchmarking functions.
 
 ---
 
-## 5. `malthusjax.composer.catalog` & Global Registries
+## 4. Layer 3: Execution Protocol & Orchestration
+
+### The `Engine` Protocol (`engine_protocol.py`)
+MalthusJAX formalizes execution using a `@runtime_checkable` Python Protocol:
+
+```python
+@runtime_checkable
+class Engine(Protocol):
+    def run_once(self, key: chex.Array) -> Dict[str, Any]:
+        """Execute a single seed run.
+        
+        Returns:
+            Dict containing:
+            - 'history': Sequence[Dict[str, Any]] (per-generation metrics)
+            - 'summary': Dict[str, Any] (aggregated final metrics)
+            - 'timings': Dict[str, float] (wall-clock / warmup durations)
+        """
+        ...
+```
+
+### The Orchestrator (`composer.py`)
+The `Composer` class wires the 3 layers together:
+
+```python
+class Composer:
+    def quick_run(self, **kwargs) -> ExperimentResult:
+        # Step 1: Configure
+        config = ExperimentConfig.from_quick_run_kwargs(**kwargs)
+        # Step 2: Resolve & Build
+        engine = self.factory.build(config)
+        # Step 3: Execute
+        runner = BenchmarkRunner(engine=engine, experiment_name=config.output.name)
+        return runner.run(config.execution.seeds)
+
+    def from_toml(self, path: str) -> ComparisonResult:
+        ...
+
+    def compare(self, pipelines: Dict[str, Dict[str, Any]], **kwargs) -> ComparisonResult:
+        ...
+```
+
+---
+
+## 5. Catalog & Dynamic Registries
+
+MalthusJAX retains rich string DSL parsing for rapid interactive experimentation:
 
 ### `OperatorCatalog` (`catalog.py`)
-Parses and resolves operator string specifications:
-- **DSL Syntax**: `"operator_name:param1=val1,param2=val2"`.
-- **Automatic Type Coercion**: Converts numerical strings to `int` / `float`, `"true"` / `"false"` to `bool`.
-- **Parameter Validation**: Reflects over factory signatures; raises descriptive errors on unrecognized parameters.
-- **Data Injection**: Resolves `data_id` references using the registered `data_registry` and passes `_resolved_data` to evaluators.
-
-### Global Component Registries
-MalthusJAX uses lightweight catalog registries (`_shared_registry.py`) providing `register`, `register_table`, and `get_registry()`:
-
-- **Operator Registry** (`_registry.py`): Genetic operators (selection, crossover, mutation, emitters, evaluators).
-- **Engine Registry** (`engine_registry.py`): Engine factories (`"ga"`, `"mo"`, `"qd"`, `"island"`).
-- **Genome Registry** (`_genome_registry.py`): Genome configurations (`"real"`, `"binary"`, `"categorical"`, `"linear"`, `"cartesian"`, `"series"`).
-
-### Component Decorators (`decorators.py`)
-Modules use these decorators to register new plugins automatically:
-- `@register_selection(name="...", compatible_genomes=[...])`
-- `@register_crossover(name="...", compatible_genomes=[...])`
-- `@register_mutation(name="...", compatible_genomes=[...])`
-- `@register_emitter(name="...", compatible_genomes=[...])`
-- `@register_fitness(name="...", compatible_genomes=[...])`
-- `@register_engine(name="...")`
-- `@register_genome(name="...")`
+- Syntax: `"operator_name:param1=val1,param2=val2"`.
+- Automatic Type Coercion: Automatically casts `"0.1"` to float, `"10"` to int, `"true"` to bool.
+- Registry Decorators (`decorators.py`):
+  - `@register_selection(name="...")`
+  - `@register_crossover(name="...")`
+  - `@register_mutation(name="...")`
+  - `@register_fitness(name="...")`
+  - `@register_backend(name="...")`
 
 ---
 
-## 6. External Framework Adapters
+## 6. External Framework Adapters (`adapters/`)
 
-Composer bridges third-party evolutionary computation frameworks into the standard MalthusJAX `Engine` protocol interface (`run_once(key) -> Dict[str, Any]` returning `"history"`, `"summary"`, `"timings"`).
+External libraries are wrapped under the unified `Engine` protocol using `UniversalAdapterEngine`:
 
-### Universal Composable Adapters
-- **Composable EvoSAX Adapter (`composable_evosax_adapter.py`)**:
-  - Wraps any distribution-based or population-based EvoSAX strategy (e.g., `SimpleGA`, `CMA_ES`, `DifferentialEvolution`, `OpenES`).
-  - Supports dual evaluation modes (`EvalMode`):
-    - `EvalMode.MJX`: Evaluates raw EvoSAX population arrays using MalthusJAX composable evaluators (`_evosax_mjx_eval`).
-    - `EvalMode.NATIVE`: Runs native EvoSAX problem instances (`_evosax_native_eval`).
-  - Custom metrics specification via `MetricSpec`.
-- **Composable TensorNEAT Adapter (`composable_tensor_neat_adapter.py`)**:
-  - Bridges TensorNEAT NEAT and HyperNEAT algorithms.
-  - Dynamically inspects available algorithms (`list_algorithms`), genomes (`list_genomes`), and problems (`list_problems`).
-  - Supports both native problem evaluations and MalthusJAX composable evaluators.
+- **EvoSAX (`evosax_adapter.py`)**: Adapts `SimpleGA`, `CMA_ES`, `DifferentialEvolution`, `OpenES`. Supports native EvoSAX problems or MalthusJAX PyTree evaluators.
+- **QDAX (`qdax_adapter.py`)**: Adapts MAP-Elites, emitters, and repertoires.
+- **TensorNEAT (`tensorneat_adapter.py`)**: Adapts NEAT and HyperNEAT algorithms and problem wrappers.
+- **Kozax (`kozax_adapter.py`)**: Adapts Kozax genetic programming trees.
 
-### Standard Factory Adapters
-- **EvoSAX Adapter (`evosax_adapter.py`)**: `build_evosax_engine()` wraps legacy and direct EvoSAX pipelines.
-- **QDAX Adapter (`qdax_adapter.py`)**: `build_qdax_engine()` wraps QDAX emitters, repertoires, and metrics into `UniversalAdapterEngine`.
-- **TensorNEAT Adapter (`tensorneat_adapter.py`)**: `build_tensorneat_engine()` wraps TensorNEAT pipelines.
-- **Kozax Adapter (`kozax_adapter.py`)**: `build_kozax_engine()` wraps Kozax Genetic Programming workflows.
+All adapters inherit:
+- Standardized `t_warmup` and `t_exec` timing using `jax.block_until_ready()`.
+- Standardized JIT step telemetry callbacks via `log_interval`.
+- Exact PRNG seed alignment.
 
 ---
 
-## 7. TOML Configuration Structure (Option C)
+## 7. Declarative TOML Schema
 
-The `load_experiment_config(path)` function parses declarative TOML files:
+The Composer loads reproducible experiment files via `Composer.from_toml(path)`:
 
 ```toml
 [experiment]
-name        = "tsp_demo"
-output_dir  = "results/tsp_demo"
-description = "Benchmark GA on 52-city TSP with blend crossover variants"
+name       = "crossover_comparison"
+output_dir = "results/crossover_comparison"
+
+[logging]
+level        = "INFO"
+interval     = 25
+nan_watchdog = true
 
 [experiment.shared]
-fitness       = "tsp:data_id=berlin52_synthetic,maximize=false"
-genome_type   = "real"
-genome_length = 52
-bounds        = [0.0, 1.0]
+fitness       = "sphere:dim=10"
+pop_size      = 50
+generations   = 100
+genome_length = 10
+bounds        = [-5.0, 5.0]
+seeds         = [42, 43, 44]
+elitism       = 2
 maximize      = false
-pop_size      = 100
-generations   = 50
-seeds         = [1, 2, 3]
-selection     = "tournament:num_selections=50,tournament_size=3"
-mutation      = "gaussian:mutation_rate=0.1,mutation_strength=0.2"
 
-# Data-driven registry section
-[data.berlin52_synthetic]
-source        = "synthetic"
-type          = "tsp"
-num_cities    = 52
-random_seed   = 42
+[pipelines.blend_ga]
+backend   = "malthusjax"
+selection = "tournament:tournament_size=3"
+crossover = "blend:alpha=0.5"
+mutation  = "gaussian:mutation_rate=0.1"
 
-[pipelines.ga_baseline]
-description   = "BLX-α with α=0.5"
-crossover     = "blend:alpha=0.5"
-
-[pipelines.ga_blend]
-description   = "BLX-α with α=0.8"
-crossover     = "blend:alpha=0.8"
+[pipelines.evosax_cma]
+backend       = "evosax"
+strategy_name = "CMA_ES"
 ```
 
 ---
 
-## 8. Result Objects & Serialization
+## 8. Submodule File Directory
 
-Composer connects execution to `BenchmarkRunner` (`benchmarking` package):
-- **`RunResult`**: Output of a single seed execution containing history arrays, timing breakdowns, and final population metrics.
-- **`ExperimentResult`**: Holds multi-seed `RunResult` records for a pipeline. Provides `.aggregated_summary()`, `.combined_history()`, and confidence intervals (`ci_lower`, `ci_upper`).
-- **`ComparisonResult`**: Holds multi-pipeline `ExperimentResult` objects. Supports `.summary_table()` (exportable to Markdown/LaTeX), `.plot_convergence()`, and statistical hypothesis tests.
-- **Artifact Serialization**: Automatically writes structured JSON outputs (`metadata/config_snapshot.toml`, `data/<pipeline>/seed_<X>.json`, `analysis/summary.json`).
+| File | Role |
+| :--- | :--- |
+| `experiment_config.py` | Typed dataclass tree (`ExperimentConfig`, `PopulationConfig`, etc.) |
+| `engine_factory.py` | Factory boundary resolving configs into `Engine` instances |
+| `engine_protocol.py` | Runtime-checkable `Engine` protocol and metric contracts |
+| `backend_provider.py` | Abstract base class for engine backend providers |
+| `backend_registry.py` | Central backend registry with contract enforcement |
+| `backends/_population_init.py` | Centralized population initialization utilities |
+| `backends/malthusjax.py` | Native MalthusJAX backend provider |
+| `backends/evosax.py` | EvoSAX backend provider |
+| `backends/qdax.py` | QDAX backend provider |
+| `backends/tensorneat.py` | TensorNEAT backend provider |
+| `composer.py` | High-level `Composer` API (`quick_run`, `compare`, `from_toml`) |
+| `config.py` | TOML experiment configuration loader |
+| `catalog.py` | String DSL operator parser |
+| `decorators.py` | Registry decorators (`@register_selection`, etc.) |
+| `adapters/` | Universal adapters for external libraries |
 
 ---
 
-## 9. Unified Logging Subsystem
+## 9. Showcase Demonstrations & Cross-Backend Benchmarks
 
-Composer natively interfaces with the zero-dependency MalthusJAX logging subsystem (`malthusjax.core.logger`):
-- **Diagnostic Logging (`malthusjax.composer`, `malthusjax.composer.adapters`)**: Pipeline execution, initialization, seed scheduling, and timing breakdowns are emitted as structured `INFO` and `DEBUG` events.
-- **On-Device Step Telemetry**: Passing `log_interval=N` to `quick_run(...)` or specifying `interval = N` in the TOML `[logging]` block compiles non-blocking `jax.lax.cond` + `jax.debug.callback` hooks into both native MalthusJAX engines and adapted external engines (`UniversalAdapterEngine`).
-- **Trace-Time Pruning**: When `log_interval` is omitted (`None`), Python trace-time branching completely eliminates callback nodes from the compiled XLA graph, guaranteeing 0 ns overhead in production benchmarks.
+The suite in [`examples/showcase/showcase_cross_backend_compare.py`](file:///Users/leonardodicaterina/Documents/GitHub/MalthusJAX/examples/showcase/showcase_cross_backend_compare.py) demonstrates cross-framework benchmarking and parity validation:
+
+```bash
+# Run any individual demo or all of them:
+python examples/showcase/showcase_cross_backend_compare.py --demo 1 --plot
+python examples/showcase/showcase_cross_backend_compare.py --demo 2 --plot
+python examples/showcase/showcase_cross_backend_compare.py --demo 3 --plot --seeds 30
+python examples/showcase/showcase_cross_backend_compare.py --demo 5 --plot
+python examples/showcase/showcase_cross_backend_compare.py --demo 7
+```
+
+### Showcase Highlights:
+
+1. **Showcase 1: GA Operator Ablation** (Multimodal 10D Rastrigin):
+   - Compares Uniform + Gaussian vs. Blend + Gaussian vs. SBX + Polynomial mutation.
+   - Demonstrates declarative operator mix-and-match in pure MalthusJAX.
+
+2. **Showcase 2: Cross-Framework Battle** (10D Sphere):
+   - Direct head-to-head comparison between **MalthusJAX GA**, **EvoSAX CMA-ES**, **EvoSAX Sep-CMA-ES**, **EvoSAX Open-ES**, and **MalthusJAX Native MAP-Elites**.
+   - Proves unified telemetry and fair evaluation across heterogeneous algorithm paradigms.
+
+3. **Showcase 3: Quality-Diversity Cross-Validation** (Native MAP-Elites vs QDAX):
+   - Evaluates on 5D BBOB Rastrigin with CVT Voronoi centroids (64 cells).
+   - Validates **100% initial population parity** (Gen 0 fitness identical at $-90.058$).
+   - Validates **final archive coverage parity** ($82.8125\%$ for both across 1,920 evaluations).
+   - Proves **statistical parity** across 30 seeds ($p = 0.3704 > 0.05$ on paired $t$-test; $p = 0.3492$ on Wilcoxon signed-rank).
+   - Demonstrates **2.5x runtime speedup** for Native MalthusJAX over upstream QDAX.
+
+4. **Showcase 5: Hard BBOB Landscape Evaluation**:
+   - Assesses algorithms across ill-conditioned Rosenbrock valleys (f8) and highly multimodal Rastrigin landscapes (f15).
+
+5. **Showcase 7: Level 3 Engine Parity Reproduction**:
+   - Demonstrates 1:1 parity between raw Level 3 `GeneticEngine` and Level 4 `Composer.quick_run()`.
+   - Proves seamless registration and execution of custom subclassed engines (`DiversityTrackingEngine`) via `@register_engine` and `@register_genome`.
+
