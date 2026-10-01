@@ -20,7 +20,6 @@ import jax
 import jax.numpy as jnp
 
 from malthusjax.benchmarking.runner import BenchmarkRunner
-from malthusjax.composer.backend_provider import BackendProvider
 from malthusjax.composer.backend_registry import register_backend
 from malthusjax.composer.engine_factory import EngineFactory
 from malthusjax.composer.engine_protocol import Engine

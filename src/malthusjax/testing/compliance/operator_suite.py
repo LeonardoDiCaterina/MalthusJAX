@@ -101,9 +101,7 @@ class CrossoverComplianceSuite:
         assert hasattr(component, "_malthusjax_metadata"), "Missing @register_crossover decorator."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseCrossover), (
-            "Component must inherit from BaseCrossover."
-        )
+        assert isinstance(component, BaseCrossover), "Component must inherit from BaseCrossover."
 
     def test_jit_compilation(self, component, mock_pop1, mock_pop2) -> None:
         input_shape = jax.tree_util.tree_leaves(mock_pop1.genes)[0].shape
@@ -148,9 +146,7 @@ class SelectionComplianceSuite:
         assert hasattr(component, "_malthusjax_metadata"), "Missing @register_selection decorator."
 
     def test_inheritance(self, component) -> None:
-        assert isinstance(component, BaseSelection), (
-            "Component must inherit from BaseSelection."
-        )
+        assert isinstance(component, BaseSelection), "Component must inherit from BaseSelection."
 
     def test_jit_compilation(self, component, mock_fitness) -> None:
         keys = jax.random.split(jax.random.PRNGKey(0), component.num_keys(mock_fitness.shape))

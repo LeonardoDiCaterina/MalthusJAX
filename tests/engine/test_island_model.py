@@ -77,6 +77,7 @@ def test_island_model_uniform_direction_contract(adapter_engine):
 
 def test_engine_without_maximize_initializes_cleanly():
     """Engines without maximize property initialize cleanly since direction is handled by evaluators."""
+
     @struct.dataclass
     class MinimalEngine:
         pass
@@ -240,6 +241,7 @@ def test_base_island_model_step(base_engine):
 
 def test_base_island_model_no_maximize_attribute():
     """Verify BaseIslandModel conforms to uniform minimization contract without maximize property."""
+
     @struct.dataclass
     class EngineWithEvaluatorNoMaximize:
         evaluator: DummyEvaluator

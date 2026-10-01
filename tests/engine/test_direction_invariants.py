@@ -19,7 +19,6 @@ import pytest
 from flax import struct
 
 from malthusjax.core.base import BasePopulation
-from malthusjax.core.fitness.base import BaseEvaluatorConfig
 from malthusjax.core.fitness.bbobax_evaluator import BBOBAXConfig, BBOBAXEvaluator
 from malthusjax.core.fitness.binary_evaluators import (
     BinarySumConfig,
@@ -35,7 +34,6 @@ from malthusjax.core.fitness.composable.environments import (
 )
 from malthusjax.core.fitness.composable.evaluators import (
     OptimizationEvaluator,
-    SupervisedEvaluator,
     TensorNeatEvaluator,
 )
 from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
@@ -52,7 +50,6 @@ from malthusjax.operators.mutation.binary import BitFlipMutation
 from malthusjax.operators.mutation.real import GaussianMutation
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 from malthusjax.operators.selection.tournament import TournamentSelection
-
 
 # =============================================================================
 # Helper Environments & Dummy Problems for Independent Oracles
@@ -85,7 +82,9 @@ class DummyLinearInterpreter(IdentityInterpreter):
 class DummyTensorNeatProblem:
     """Mock problem for testing TensorNeatEvaluator direction and NaN sentinels."""
 
-    def evaluate(self, state: Any, key: Any, forward_fn: Any, pop_member: Any) -> Tuple[chex.Array, chex.Array]:
+    def evaluate(
+        self, state: Any, key: Any, forward_fn: Any, pop_member: Any
+    ) -> Tuple[chex.Array, chex.Array]:
         # pop_member is an array whose first element indicates score
         score = pop_member[0]
         # Return (score, empty_descriptors)
@@ -109,7 +108,9 @@ class DummyTensorNeatTransform:
 )
 @pytest.mark.parametrize("maximize", [True, False])
 @pytest.mark.parametrize("track_best", [TrackBest.NONE, TrackBest.LIGHT])
-def test_direction_invariance_across_track_best_modes(eval_type: str, maximize: bool, track_best: TrackBest):
+def test_direction_invariance_across_track_best_modes(
+    eval_type: str, maximize: bool, track_best: TrackBest
+):
     """Assert that final_state.best_genome corresponds to the individual with the
 
     best RAW objective according to declared maximize intent.
@@ -272,7 +273,9 @@ def test_run_post_processing_matches_manual_step_loop(maximize: bool, track_best
     # If track_best == TrackBest.NONE or LIGHT, run() post-processes the final population
     expected_best_idx = int(jnp.argmin(state.population.fitness))
     if track_best in (TrackBest.NONE, TrackBest.LIGHT):
-        expected_genome = jax.tree_util.tree_map(lambda x: x[expected_best_idx], state.population.genes)
+        expected_genome = jax.tree_util.tree_map(
+            lambda x: x[expected_best_idx], state.population.genes
+        )
     else:
         expected_genome = state.best_genome
 
@@ -334,7 +337,9 @@ def test_no_engine_level_maximize_branching_ast():
                     # Check arguments for fitness
                     args_text = ast.unparse(node)
                     # Exclude QD repertoires where QDAX explicitly maximizes
-                    if "fitness" in args_text and not ("repertoire" in args_text or "rep_" in args_text):
+                    if "fitness" in args_text and not (
+                        "repertoire" in args_text or "rep_" in args_text
+                    ):
                         pytest.fail(
                             f"Forbidden argmax on fitness array found in {py_file.name}:{node.lineno}: {args_text}"
                         )
@@ -403,7 +408,7 @@ def test_evaluator_sign_convention_knapsack(maximize: bool):
     evaluator = KnapsackEvaluator(config=cfg, data=KnapsackData(weights=weights, values=values))
 
     g_high_val = BinaryGenome(values=jnp.array([1, 1, 1, 1]))  # value = 37.0
-    g_low_val = BinaryGenome(values=jnp.array([1, 0, 0, 0]))   # value = 2.0
+    g_low_val = BinaryGenome(values=jnp.array([1, 0, 0, 0]))  # value = 2.0
 
     better = g_high_val if maximize else g_low_val
     worse = g_low_val if maximize else g_high_val

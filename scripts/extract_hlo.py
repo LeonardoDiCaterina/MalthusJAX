@@ -166,6 +166,7 @@ def extract_mjx_hlo(
     hlo = engine.get_hlo_text(state, optimize=optimize, print_analysis=False)
     return hlo  # type: ignore[return-value]
 
+
 def _write_summary(results: dict[str, dict[str, Any]], out_dir: Path) -> None:
     """Write a Markdown table comparing HLO stats for all pipelines."""
     rows = []
