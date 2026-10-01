@@ -6,6 +6,7 @@ suite consistent.
 
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import jax.numpy as jnp
 import jax.random as jr
@@ -220,7 +221,7 @@ class TestEvosaxAdapterRunOnce:
     @pytest.fixture()
     def small_adapter(self) -> EvosaxEngineAdapter:
         """A tiny adapter for fast tests."""
-        evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3)
+        evalr: Any = make_bbob_evaluator(fn_name="sphere", num_dims=3)
         return build_evosax_engine(
             strategy_name="SimpleGA",
             evaluator=evalr,

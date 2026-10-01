@@ -72,10 +72,6 @@ class MOEngine(AbstractEngine[G, P]):
     evaluator: BaseMOEvaluator[Any, Any, Any] = _field(pytree_node=False)
     engine_params: MOEngineParams = _field(pytree_node=False)
 
-    @property
-    def maximize(self) -> bool:
-        return self.evaluator.config.maximize
-
     def init_state(  # type: ignore[override]
         self, rng_key: chex.Array, initial_population: BasePopulation[G]
     ) -> MOState[G, P]:

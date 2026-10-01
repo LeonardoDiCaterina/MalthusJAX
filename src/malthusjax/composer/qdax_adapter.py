@@ -232,6 +232,15 @@ def build_qdax_engine(
         kwargs.get("bounds"), evaluator, caller_name="build_qdax_engine"
     )
 
+    init_pop = kwargs.get("initial_population", init_variables)
+    if init_pop is not None and init_variables is None:
+        if hasattr(init_pop, "genes") and hasattr(init_pop.genes, "values"):
+            init_variables = init_pop.genes.values
+        elif hasattr(init_pop, "values"):
+            init_variables = init_pop.values
+        else:
+            init_variables = jnp.asarray(init_pop)
+
     params = {
         "init_variables": init_variables,
         "centroids": centroids,
@@ -253,4 +262,5 @@ def build_qdax_engine(
         history_metrics=history_metrics,
         use_python_loop=use_python_loop,
         backend_maximizes=True,
+        initial_population=init_pop,
     )  # type: ignore[call-arg]

@@ -111,13 +111,12 @@ class TensorNeatQDEvaluator(BaseQDEvaluator[TensorNeatGenome, TensorNeatEvaluato
             fitnesses = raw_results
             descriptors = jnp.zeros((pop_size, 0))
 
-        # TensorNEAT replaces NaN with -inf natively, we ensure it here
-        fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
-
-        # MalthusJAX defaults to minimization; if config says maximize=False, we flip it.
-        # TensorNEAT natively maximizes, so if config.maximize is True, we keep it as is.
-        if not self.config.maximize:
+        # Lower-is-better convention: if maximizing raw score, negate it
+        if self.config.maximize:
             fitnesses = -1.0 * fitnesses
+
+        # In minimization space, worst possible value for NaN/failed evaluations is +inf
+        fitnesses = jnp.where(jnp.isnan(fitnesses), jnp.inf, fitnesses)
 
         # 5. RE-PACKAGE: Embed results back into the MalthusJAX PyTree structure
         new_info = dict(population.info) if population.info else {}

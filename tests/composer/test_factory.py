@@ -1,13 +1,13 @@
 import jax.numpy as jnp
 import pytest
 
+from malthusjax.composer.backends.evosax import build_evosax_engine
+from malthusjax.composer.backends.map_elites import build_map_elites_engine
+from malthusjax.composer.backends.qdax import build_qdax_engine
+from malthusjax.composer.backends.tensorneat import build_tensorneat_engine
 from malthusjax.composer.engine_factory import GeneticEngineAdapter
 from malthusjax.composer.factory import (
-    build_evosax_engine,
-    build_map_elites_engine,
-    build_qdax_engine,
     build_real_engine,
-    build_tensorneat_engine,
     has_real_operators,
 )
 from malthusjax.composer.strategies.core import (

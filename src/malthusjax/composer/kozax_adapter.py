@@ -90,7 +90,7 @@ def build_kozax_engine(
     pop_size: Optional[int] = None,
     maximize: bool = False,
     initial_population: chex.Array = None,
-    eval_mode: EvalMode = EvalMode.NATIVE,
+    eval_mode: EvalMode | str = EvalMode.NATIVE,
     history_metrics: Optional[list[str]] = None,
     use_python_loop: bool = True,
 ) -> Any:

@@ -44,15 +44,13 @@ MalthusJAX is designed so you can enter the framework at the exact depth your pr
 
 ## ⚡ Quickstart (Level 4: The Composer)
 
-Get your first hardware-accelerated evolutionary pipeline running on a GPU in under 10 lines of code using the Level 4 Python API:
+Get your first hardware-accelerated evolutionary pipeline running on a GPU in under 10 lines of code:
 
+### Option A: Interactive Exploratory Run
 ```python
 from malthusjax.composer import Composer
 
-# Create default composer (automatically discovers registered operators)
 composer = Composer.create_default()
-
-# Run a fully compiled, multi-seed genetic algorithm on the GPU
 result = composer.quick_run(
     fitness="sphere:dim=10",
     selection="tournament:num_selections=64,tournament_size=3",
@@ -62,8 +60,35 @@ result = composer.quick_run(
     generations=200,
     seeds=(42, 43, 44),
 )
+print(result.aggregated_summary())
+```
 
-# Print standard summary metrics
+### Option B: Production Typed Configuration
+```python
+from malthusjax.composer.experiment_config import (
+    ExperimentConfig, PopulationConfig, ExecutionConfig, MalthusJAXBackendConfig
+)
+from malthusjax.composer.engine_factory import EngineFactory
+from malthusjax.benchmarking.runner import BenchmarkRunner
+
+# 1. Type-safe, immutable config tree
+config = ExperimentConfig(
+    population=PopulationConfig(size=100, genome_length=10),
+    execution=ExecutionConfig(generations=200, seeds=(42, 43, 44)),
+    backend=MalthusJAXBackendConfig(
+        fitness="sphere:dim=10",
+        selection="tournament:num_selections=64,tournament_size=3",
+        crossover="blend:alpha=0.5",
+        mutation="gaussian:mutation_rate=0.1",
+        elitism=2,
+    ),
+)
+config.validate()
+
+# 2. Build via single factory boundary & execute
+engine = EngineFactory.build(config)
+runner = BenchmarkRunner(engine=engine, experiment_name=config.output.experiment_name)
+result = runner.run(seeds=config.execution.seeds)
 print(result.aggregated_summary())
 ```
 
@@ -80,16 +105,17 @@ $$\text{State}_t \xrightarrow{\text{entropy + selection + reproduction + evaluat
 ```mermaid
 graph TD
     subgraph composer_layer["Composer Layer (Level 4)"]
-        cli["Unified mjax CLI"] --> config["TOML Configs"]
-        config --> composer["Composer"]
-        decorators["@register_* Decorators"] --> registry["Catalog Registry"]
-        composer --> registry
+        cli["Unified mjax CLI"] --> config["ExperimentConfig / TOML"]
+        config --> factory["EngineFactory Boundary"]
+        factory --> registry["BackendRegistry"]
+        registry --> runner["Composer / BenchmarkRunner"]
     end
 
     subgraph engine_layer["Engine Layer (Level 3)"]
-        composer --> base_engine["GeneticEngine / GeneticFastEngine"]
-        composer --> mo_engine["MOEngine (NSGA-II)"]
-        composer --> island_meta["BaseIslandModel"]
+        runner --> base_engine["GeneticEngine / GeneticFastEngine"]
+        runner --> mo_engine["MOEngine (NSGA-II)"]
+        runner --> island_meta["BaseIslandModel"]
+        runner --> adapters["Universal Adapters (EvoSAX, QDAX)"]
     end
 
     subgraph operators_layer["Operators Layer (Level 2)"]
@@ -111,6 +137,12 @@ MalthusJAX was designed with rigorous empirical validation and statistical parit
 - **~2.14x Generation Speedup**: Fusing generation loops into pure JAX kernels executes in **18.9 ms** vs native EvoSAX's **40.6 ms** per run on an H100.
 - **Optimization Quality Parity**: TOST equivalence tests support practical equivalence with EvoSAX ($p > 0.05$ across standard BBOB functions).
 - **Zero-Overhead Abstractions**: Swapping individual genetic operators shows $p_{\text{holm}} = 1.0$ across function timing regressions, demonstrating zero performance hit from our modular composition.
+
+> [!NOTE]
+> **Optimization Direction Convention & Benchmark Re-run Advisory**:
+> MalthusJAX enforces a canonical **lower-is-better (minimization)** convention across all engines and evaluators. Evaluators constructed with `maximize=True` negate raw objectives (`-score`), while engines minimize uniformly. Benchmark results involving `BinarySumEvaluator` and `KnapsackEvaluator` (under both `maximize=True` and `maximize=False`) require regeneration following the standardization of evaluation signs.
+>
+> *Migration notice*: If you were using `maximize=False` on `BinarySumEvaluator` or `KnapsackEvaluator` expecting it to find good solutions, switch to `maximize=True` — the old behavior was accidental due to inverted proxy encodings.
 
 ---
 

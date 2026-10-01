@@ -1,6 +1,9 @@
 import jax
 
-from malthusjax.composer.factory import build_composable_evosax_engine, build_evosax_engine
+from malthusjax.composer.backends.evosax import (
+    build_composable_evosax_engine,
+    build_evosax_engine,
+)
 
 
 def test_evosax_adapters_parity():

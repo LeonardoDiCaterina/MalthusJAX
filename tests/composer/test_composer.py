@@ -5,9 +5,9 @@ import pytest
 
 from malthusjax.benchmarking import StubEngine
 from malthusjax.benchmarking.results import ComparisonResult, ExperimentResult
+from malthusjax.composer.backends.evosax import build_evosax_engine
 from malthusjax.composer.composer import Composer
 from malthusjax.composer.config import infer_genome_length, normalize_seeds
-from malthusjax.composer.factory import build_evosax_engine
 from malthusjax.composer.strategies.core import EvoSAXStrategy, GeneticStrategy, QDAXStrategy
 
 
@@ -165,7 +165,7 @@ class TestComposerQuickRun:
         def mock_build(*args, **kwargs):
             return StubEngine(generations=2)
 
-        monkeypatch.setattr("malthusjax.composer.composer.build_qdax_engine", mock_build)
+        monkeypatch.setattr("malthusjax.composer.backends.qdax.build_qdax_engine", mock_build)
 
         # QDAX strategy string map
         result = composer.quick_run(

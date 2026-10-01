@@ -967,12 +967,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
         params = cast(GeneticEngineParams, self.engine_params)
         if params.track_best in (TrackBest.NONE, TrackBest.LIGHT):
-            is_max = getattr(self, "maximize", False)
-            best_idx = (
-                jnp.argmax(final_state.population.fitness)
-                if is_max
-                else jnp.argmin(final_state.population.fitness)
-            )
+            best_idx = jnp.argmin(final_state.population.fitness)
             final_best_genome = jax.tree_util.tree_map(
                 lambda x: x[best_idx], final_state.population.genes
             )
@@ -982,12 +977,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
 
         if params.track_best == TrackBest.NONE:
-            is_max = getattr(self, "maximize", False)
-            best_idx = (
-                jnp.argmax(final_state.population.fitness)
-                if is_max
-                else jnp.argmin(final_state.population.fitness)
-            )
+            best_idx = jnp.argmin(final_state.population.fitness)
             final_state = cast(
                 GeneticEvolutionState,
                 replace(final_state, best_fitness=final_state.population.fitness[best_idx]),
@@ -998,10 +988,6 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
     def __post_init__(self):
         """Validate components that require instantiation."""
         # Validation could be added here if necessary
-
-    @property
-    def maximize(self) -> bool:
-        return self.evaluator.config.maximize
 
     def init_state(self, rng_key: Union[int, jnp.ndarray]) -> GeneticEvolutionState:
         """Initialize evolution and compile the inference plan (Init-Phase Compilation).

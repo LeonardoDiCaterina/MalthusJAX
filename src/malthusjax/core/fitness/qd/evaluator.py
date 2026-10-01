@@ -71,9 +71,9 @@ class SimpleQDEvaluator(BaseQDEvaluator[G, Any, Any]):
         fitness = result[0]
         descriptors = result[1]
 
-        # Evosax / Composer convention is lower-is-better by default,
-        # but QD natively maximizes. If maximize=False, we negate the fitness.
-        if self.config is not None and not self.config.maximize:
+        # Follows canonical lower-is-better convention:
+        # If maximize=True, negate raw objective so lower is better.
+        if self.config is not None and self.config.maximize:
             fitness = -1.0 * fitness
 
         return fitness, descriptors

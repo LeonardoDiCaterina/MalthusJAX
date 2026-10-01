@@ -357,3 +357,13 @@ def build_engine_from_catalog(
         mutation_op=catalog_operators["mutation"],
         **config,
     )
+
+
+from .engine_factory_v2 import EngineFactory
+
+__all__ = [
+    "GeneticEngineAdapter",
+    "build_engine",
+    "build_engine_from_catalog",
+    "EngineFactory",
+]

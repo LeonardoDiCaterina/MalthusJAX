@@ -45,13 +45,14 @@ class BinarySumEvaluator(BaseEvaluator[BinaryGenome, BinarySumConfig, Any]):
     data: Any = struct.field(pytree_node=False, default=None)  # type: ignore[no-untyped-call]
 
     def evaluate(self, genome: BinaryGenome) -> chex.Numeric:
-        """Evaluate a single binary genome by counting zeros.
+        """Evaluate a single binary genome.
 
-        Minimization convention: fewer zeros = better fitness (lower value).
+        Follows canonical lower-is-better convention:
+        - maximize=True: negates ones count (-score) so higher ones = lower fitness
+        - maximize=False: returns ones count (score) so fewer ones = lower fitness
         """
-        ones_count = jnp.sum(genome.values)
-        zeros_count = genome.size - ones_count
-        return ones_count if self.config.maximize else zeros_count
+        score = jnp.sum(genome.values)
+        return -score if self.config.maximize else score
 
 
 @struct.dataclass
@@ -106,7 +107,7 @@ class KnapsackEvaluator(BaseEvaluator[BinaryGenome, KnapsackConfig, Optional[Kna
         penalty = excess_weight * self.config.penalty_factor
 
         value = total_value - penalty
-        return value if self.config.maximize else -value
+        return -value if self.config.maximize else value
 
     @classmethod
     def create_random_problem(

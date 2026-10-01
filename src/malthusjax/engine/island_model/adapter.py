@@ -76,10 +76,7 @@ class IslandEngineAdapter:
         # Extract global best genome and fitness across all islands and individuals
         # final_multi_state.population.fitness shape: (num_islands, pop_size)
         fitness_matrix = final_multi_state.population.fitness
-        if self.maximize:
-            best_idx = jnp.argmax(fitness_matrix)
-        else:
-            best_idx = jnp.argmin(fitness_matrix)
+        best_idx = jnp.argmin(fitness_matrix)
 
         island_idx, ind_idx = jnp.unravel_index(best_idx, fitness_matrix.shape)
         global_best_fitness = fitness_matrix[island_idx, ind_idx]

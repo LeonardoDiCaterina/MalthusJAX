@@ -9,8 +9,8 @@ import pytest
 
 from malthusjax.composer.__main__ import main as composer_main
 from malthusjax.composer.adapters.map_elites_adapter import MapElitesEngineAdapter
-from malthusjax.composer.factory import (
-    build_map_elites_engine,
+from malthusjax.composer.backends.map_elites import build_map_elites_engine
+from malthusjax.composer.backends.tensorneat import (
     build_tensorneat_engine,
     resolve_tensorneat_problem,
 )

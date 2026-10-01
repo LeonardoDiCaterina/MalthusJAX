@@ -32,7 +32,8 @@ def test_binary_sum_mathematical_correctness(binary_population):
             genome = BinaryGenome(values=jnp.array([], dtype=jnp.int32))
 
         actual_fitness = evaluator.evaluate(genome)
-        chex.assert_trees_all_close(actual_fitness, expected_count, rtol=0.0, atol=0.0)
+        # Evaluators adhere to canonical lower-is-better: returns -count for maximize=True
+        chex.assert_trees_all_close(actual_fitness, -expected_count, rtol=0.0, atol=0.0)
 
 
 def test_binary_sum_vmap_consistency(binary_population):
@@ -93,8 +94,8 @@ def test_knapsack_penalty_formula_precision(binary_genome_config):
         chex.assert_trees_all_close(actual_value, expected_value, rtol=1e-6, atol=1e-7)
         chex.assert_trees_all_close(actual_penalty, expected_penalty, rtol=1e-6, atol=1e-7)
 
-        # Final fitness
-        chex.assert_trees_all_close(actual_fitness, expected_fitness, rtol=1e-6, atol=1e-7)
+        # Final fitness (canonical lower-is-better: returns -value for maximize=True)
+        chex.assert_trees_all_close(actual_fitness, -expected_fitness, rtol=1e-6, atol=1e-7)
 
 
 def test_knapsack_capacity_edge_cases():
@@ -110,7 +111,8 @@ def test_knapsack_capacity_edge_cases():
 
     one_item = BinaryGenome(values=jnp.array([1, 0, 0]))
     fitness_one = evaluator_zero.evaluate(one_item)
-    chex.assert_trees_all_close(fitness_one, -90.0, rtol=1e-6, atol=1e-7)
+    # Raw value: 10 - (1-0)*100 = -90. Under maximize=True: -(-90) = 90.0
+    chex.assert_trees_all_close(fitness_one, 90.0, rtol=1e-6, atol=1e-7)
 
     config_inf = KnapsackConfig(
         maximize=True,
@@ -124,7 +126,8 @@ def test_knapsack_capacity_edge_cases():
     all_items = BinaryGenome(values=jnp.array([1, 1, 1]))
     fitness_all = evaluator_inf.evaluate(all_items)
     expected_total_value = jnp.sum(values)
-    chex.assert_trees_all_close(fitness_all, expected_total_value, rtol=1e-6, atol=1e-7)
+    # Under maximize=True: -expected_total_value
+    chex.assert_trees_all_close(fitness_all, -expected_total_value, rtol=1e-6, atol=1e-7)
 
 
 def test_knapsack_factory_determinism_and_properties(rng_key):
@@ -172,7 +175,7 @@ def test_knapsack_zero_weight_items():
 
     selection = BinaryGenome(values=jnp.array([1, 1, 0]))
     fitness = evaluator.evaluate(selection)
-    expected_fitness = 5.0 + 10.0
+    expected_fitness = -(5.0 + 10.0)
     chex.assert_trees_all_close(fitness, expected_fitness, rtol=1e-6, atol=1e-7)
 
     weights_zv = jnp.array([1.0, 1.0])

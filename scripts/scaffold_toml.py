@@ -491,23 +491,27 @@ def main(args_list: list[str] | None = None) -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(rendered)
 
-    print(f"\nSuccessfully scaffolded TOML configuration!")
+    print("\nSuccessfully scaffolded TOML configuration!")
     print(f"  Recipe:         {args.recipe} ({recipe_info['type'].upper()})")
     print(f"  Output File:    {args.output}")
     print(f"  Experiment:     {exp_name}")
     print(f"  Fitness:        {args.fitness}")
     print(f"  Population:     {args.pop_size} | Generations: {args.generations}")
-    print(f"  Logging:        {'Pre-configured via [logging]' if args.with_logging else 'Disabled'}")
+    print(
+        f"  Logging:        {'Pre-configured via [logging]' if args.with_logging else 'Disabled'}"
+    )
 
     if recipe_info["type"] == "composer":
-        print(f"\nTo run this experiment:")
+        print("\nTo run this experiment:")
         print(f"  mjax run {args.output}")
-        print(f"  # or programmatically:")
-        print(f"  # from malthusjax.composer import Composer; res = Composer.from_toml('{args.output}')")
+        print("  # or programmatically:")
+        print(
+            f"  # from malthusjax.composer import Composer; res = Composer.from_toml('{args.output}')"
+        )
     else:
-        print(f"\nTo execute this benchmarking suite:")
+        print("\nTo execute this benchmarking suite:")
         print(f"  python scripts/benchmark_runner.py {args.output}")
-        print(f"  # or run a quick smoke test:")
+        print("  # or run a quick smoke test:")
         print(f"  python scripts/benchmark_runner.py {args.output} --smoke")
 
     return 0

@@ -22,11 +22,10 @@ class RingTopologyIsland(BaseIslandModel[E]):
 
     def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation[Any]) -> BasePopulation[Any]:
         # multi_pop.fitness shape: (num_islands, island_size)
-        sort_fitness = -multi_pop.fitness if self.maximize else multi_pop.fitness
-        sorted_indices = jnp.argsort(sort_fitness, axis=-1)
+        # Lower fitness is better uniformly across all engines and evaluators
+        sorted_indices = jnp.argsort(multi_pop.fitness, axis=-1)
 
-        # elite_indices will correspond to the lowest values in sort_fitness,
-        # which are the best individuals for both minimize and maximize.
+        # elite_indices correspond to the lowest values (best individuals)
         elite_indices = sorted_indices[:, : self.num_migrants]
         worst_indices = sorted_indices[:, -self.num_migrants :]
 
@@ -67,8 +66,8 @@ class FullyConnectedIsland(BaseIslandModel[E]):
     """
 
     def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation[Any]) -> BasePopulation[Any]:
-        sort_fitness = -multi_pop.fitness if self.maximize else multi_pop.fitness
-        sorted_indices = jnp.argsort(sort_fitness, axis=-1)
+        # Lower fitness is better uniformly across all engines and evaluators
+        sorted_indices = jnp.argsort(multi_pop.fitness, axis=-1)
 
         elite_indices = sorted_indices[:, : self.num_migrants]
         worst_indices = sorted_indices[:, -self.num_migrants :]

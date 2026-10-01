@@ -1,4 +1,5 @@
 import functools
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -77,6 +78,7 @@ class TestQDaxAdapter(BaseAdapterTestSuite, QDAdapterTestSuiteMixin):
         # Metrics function
         metrics_fn = functools.partial(default_qd_metrics, qd_offset=0.0)
 
+        evalr: Any
         if eval_mode == EvalMode.MALTHUSJAX:
             evalr = DummyQDEval(config=MockConfig(genome_config=RealGenomeConfig(shape=(dim,))))
         else:
