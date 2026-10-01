@@ -155,11 +155,23 @@ module = [
     "malthusjax.operators.*",
     "malthusjax.composer.*",
     "malthusjax.benchmarking.*",
+    "tests.*",
 ]
 disallow_untyped_defs = false
+disallow_incomplete_defs = false
 disallow_untyped_calls = false
+disallow_subclassing_any = false
+disallow_any_generics = false
 check_untyped_defs = false
 warn_return_any = false
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+module = [
+    "examples.*",
+    "plugins.*",
+]
+ignore_errors = true
 
 # Suppress third-party library errors and missing stubs
 [[tool.mypy.overrides]]

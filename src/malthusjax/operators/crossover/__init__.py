@@ -45,6 +45,7 @@ __all__ = [
     "BlendCrossover_injection",
     "BinomialCrossover",
     "BinomialCrossover_injection",
+    "SimulatedBinaryCrossover",
     "SimulatedBinaryCrossover_injection",
     "BatchedUniformCrossover",
 ]
