@@ -13,18 +13,26 @@ It features full **Scikit-Learn estimator interoperability**, **Quality-Diversit
 
 ---
 
-## 1. Feature Matrix & Ecosystem Comparison
+## 1. Ecosystem Context & What `malthus-neat` Adds
 
-| Capability | `NEAT-Python` | `PureJaxNEAT` | `malthus-neat` |
+`malthus-neat` bridges the gap between raw accelerated research code and standard production machine learning workflows:
+
+- **[`NEAT-Python`](https://github.com/CodeReclaimers/neat-python)**: The classic CPU-bound Python implementation. While popular and versatile, it runs sequential Python loops over dynamic graph objects, making GPU/TPU acceleration impossible.
+- **[`TensorNEAT`](https://github.com/EMI-Group/tensorneat)** (*GECCO 2024 Best Paper*, [arXiv:2404.01817](https://arxiv.org/abs/2404.01817)): Pioneered the mathematical tensorization of NEAT graphs into fixed-capacity matrices, unlocking massive JAX/GPU acceleration primarily for reinforcement learning (Brax / Gymnax).
+- **`malthus-neat`**: Builds directly on top of `TensorNEAT`'s tensorized genome representations and integrates them into the **`MalthusJAX`** ecosystem, adding Scikit-Learn estimators, Quality-Diversity MAP-Elites, multi-island distributed search, TOML persistence, and a production CLI.
+
+### Feature Comparison Matrix
+
+| Capability | `NEAT-Python` (Legacy) | `TensorNEAT` (GECCO 2024) | `malthus-neat` (Ours) |
 |:---|:---:|:---:|:---:|
-| **Hardware Acceleration** | None (CPU only) | GPU/TPU (JAX) | **GPU / TPU / CPU (XLA)** |
-| **Vectorized Population Execution** | Sequential Python loop | Single task JIT | **Nested `jax.vmap` batching** |
-| **Scikit-Learn API** | Custom API | Custom JAX functions | **`NEATClassifier` & `NEATRegressor`** |
+| **Hardware Acceleration** | None (CPU only) | GPU / TPU / CPU (JAX) | **GPU / TPU / CPU (XLA)** |
+| **Vectorized Population Execution** | Sequential Python loop | Vectorized JIT | **Nested `jax.vmap` batching** |
+| **Scikit-Learn API (`fit` / `predict`)** | None (custom loops) | None (research RL API) | **`NEATClassifier` & `NEATRegressor`** |
 | **Quality-Diversity (QD-NEAT)** | Third-party hacks | Not supported | **Native MAP-Elites & 2D Descriptors** |
-| **Multi-Island Distributed Evolution** | Manual multiprocessing | None | **Native `island_neat` & migration** |
-| **Persistence & Reproducibility** | Python `pickle` | Raw checkpoint arrays | **Human-readable, auditable TOML** |
+| **Multi-Island Distributed Search** | Manual multiprocessing | None | **Native `island_neat` & migration** |
+| **Auditable Model Persistence** | Python `pickle` | Raw checkpoint arrays | **Human-readable, versioned TOML** |
 | **CLI & Batch Orchestration** | None | None | **Production `mneat` executable** |
-| **Topology Visualization** | Graphviz dependency | Minimal Matplotlib | **Subplot integration + Graphviz DOT** |
+| **Visual Diagnostic Subplots** | Graphviz dependency | Basic Matplotlib | **Subplot integration + Graphviz DOT** |
 
 ---
 
