@@ -1,0 +1,7 @@
+"""Pytest configuration and fixtures for malthus_optimize tests."""
+
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "src"))
