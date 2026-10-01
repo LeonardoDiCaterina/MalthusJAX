@@ -11,9 +11,14 @@ from malthusjax.composer.strategies.base import BaseStrategy
 
 
 def resolve_qdax_evaluator(
-    fitness_spec: Optional[Any], bounds: Tuple[float, float], maximize: bool
+    fitness_spec: Optional[Any],
+    bounds: Tuple[float, float],
+    maximize: bool,
+    seed: int = 42,
+    num_dims: int = 10,
+    **kwargs: Any,
 ) -> Any:
-    from malthusjax.composer.catalog import OperatorCatalog
+    from malthusjax.composer.backends._evaluator_resolver import resolve_evaluator_base
     from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
 
     class QDAXNativeEvaluator:
@@ -48,19 +53,18 @@ def resolve_qdax_evaluator(
                 descriptors = (desc_dims - lo) / (hi - lo)
             return fitnesses, descriptors, {}
 
-    if isinstance(fitness_spec, str):
-        cat = OperatorCatalog()
-        resolved = cat.get(fitness_spec)
-        return QDAXNativeEvaluator(None, evaluator=resolved)
-    elif fitness_spec is not None:
-        return QDAXNativeEvaluator(None, evaluator=fitness_spec)
-    else:
-        import jax.numpy as jnp
+    if hasattr(fitness_spec, "scoring_function"):
+        return fitness_spec
 
-        def fn(x):
-            return -jnp.sum(jnp.square(x))
-
-        return QDAXNativeEvaluator(fn)
+    resolved = resolve_evaluator_base(
+        fitness_spec,
+        maximize=maximize,
+        seed=seed,
+        num_dims=num_dims,
+        bounds=bounds,
+        **kwargs,
+    )
+    return QDAXNativeEvaluator(None, evaluator=resolved)
 
 
 def build_qdax_engine(
@@ -139,7 +143,25 @@ def build_qdax_engine(
             key=jr.PRNGKey(42),
         )
     init_variables = getattr(strategy, "init_variables", None)
-    evaluator = resolve_qdax_evaluator(fitness_spec, bounds, maximize)
+    if init_variables is None:
+        init_variables = kwargs.get("initial_population", None)
+    if init_variables is not None:
+        if hasattr(init_variables, "genes") and hasattr(init_variables.genes, "values"):
+            init_variables = init_variables.genes.values
+        elif hasattr(init_variables, "values"):
+            init_variables = init_variables.values
+        else:
+            import jax.numpy as jnp
+
+            init_variables = jnp.asarray(init_variables)
+
+    evaluator = resolve_qdax_evaluator(
+        fitness_spec,
+        bounds,
+        maximize,
+        seed=kwargs.get("seed", 42),
+        num_dims=genome_length,
+    )
     return adapter_build_qdax_engine(
         strategy_cls=strategy_cls,
         emitter=emitter,
@@ -213,7 +235,14 @@ class QdaxProvider:
         bounds: Tuple[float, float] = (-5.0, 5.0),
         **kwargs: Any,
     ) -> Any:
-        return resolve_qdax_evaluator(fitness_spec, bounds=bounds, maximize=maximize)
+        return resolve_qdax_evaluator(
+            fitness_spec,
+            bounds=bounds,
+            maximize=maximize,
+            seed=seed,
+            num_dims=num_dims,
+            **kwargs,
+        )
 
     def build_engine(
         self,

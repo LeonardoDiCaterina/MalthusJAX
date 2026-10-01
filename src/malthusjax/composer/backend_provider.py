@@ -25,15 +25,15 @@ class BackendProvider(Protocol):
 
     Methods
     -------
-    name : str (property)
+    ``name : str`` (property)
         Canonical backend name used as the registry key.
-    default_strategy(**user_kwargs) -> BaseStrategy
+    ``default_strategy(**user_kwargs) -> BaseStrategy``
         Create the default Strategy dataclass from user-facing kwargs.
-    resolve_evaluator(fitness_spec, ...) -> Any
+    ``resolve_evaluator(fitness_spec, ...) -> Any``
         Resolve a fitness spec into a concrete evaluator.
-    build_engine(strategy, evaluator, ...) -> Any
+    ``build_engine(strategy, evaluator, ...) -> Any``
         Build and return a concrete engine adapter.
-    generate_initial_population(config, pop_seed) -> Optional[Any]
+    ``generate_initial_population(config, pop_seed) -> Optional[Any]``
         Generate a shared initial population for compare() parity.
     """
 

@@ -26,7 +26,8 @@ class EngineFactory:
     This is the Hydra-style instantiate() for MalthusJAX.
     """
 
-    def build(self, config: ExperimentConfig) -> Any:
+    @classmethod
+    def build(cls, config: ExperimentConfig) -> Any:
         """Build and return an Engine conforming to the Engine protocol.
 
         Parameters
@@ -39,10 +40,11 @@ class EngineFactory:
         Engine
             Instantiated engine ready for execution.
         """
-        engine, _ = self.build_with_evaluator(config)
+        engine, _ = cls.build_with_evaluator(config)
         return engine
 
-    def build_with_evaluator(self, config: ExperimentConfig) -> Tuple[Any, Any]:
+    @classmethod
+    def build_with_evaluator(cls, config: ExperimentConfig) -> Tuple[Any, Any]:
         """Build engine and return both the engine and its resolved evaluator.
 
         Parameters
@@ -78,11 +80,14 @@ class EngineFactory:
             raise ValueError(f"Unknown backend '{backend_name}'. Available: [{available}]")
 
         provider_entry = backends[backend_name]
-        provider = provider_entry[0]
+        provider: Any = provider_entry[0]
         provider_defaults = provider_entry[1]
 
         # Resolve raw fitness spec / dict if present
         fitness_raw = getattr(config.backend, "fitness", None)
+        if fitness_raw is None and hasattr(config.backend, "extra_kwargs"):
+            fitness_raw = config.backend.extra_kwargs.get("fitness")
+        fitness_obj: Any
         if isinstance(fitness_raw, dict):
             fitness_obj = parse_evaluator(fitness_raw)
         else:

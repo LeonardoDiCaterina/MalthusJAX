@@ -12,7 +12,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import chex
 import jax
@@ -31,7 +31,7 @@ except ImportError:  # pragma: no cover
     tqdm = None
 
 
-from malthusjax.composer.engine_protocol import Engine
+from malthusjax.composer.engine_protocol import Engine as Engine
 
 
 @dataclass

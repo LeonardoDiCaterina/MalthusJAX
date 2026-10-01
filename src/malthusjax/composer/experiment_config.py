@@ -59,6 +59,7 @@ class BackendConfig:
     """Base for all backend configurations. Subclass per backend."""
 
     name: str = "malthusjax"
+    fitness: Optional[Any] = None
     extra_kwargs: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -507,13 +508,16 @@ class ExperimentConfig:
             )
         else:
             # Custom, plugin, or map_elites backend
-            extra = {k: v for k, v in kwargs.items() if k not in known_top_level}
+            fitness = kwargs.get("fitness")
+            known_generic = known_top_level | {"fitness", "strategy"}
+            extra = {k: v for k, v in kwargs.items() if k not in known_generic}
             if strategy_obj is not None:
                 extra["strategy"] = strategy_obj
             if "initial_population" in kwargs and kwargs["initial_population"] is not None:
                 extra["initial_population"] = kwargs["initial_population"]
             backend = GenericBackendConfig(
                 name=raw_backend if isinstance(raw_backend, str) else backend_name,
+                fitness=fitness,
                 extra_kwargs=extra,
             )
 

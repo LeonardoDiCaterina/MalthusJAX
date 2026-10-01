@@ -322,41 +322,45 @@ class TensorneatProvider:
         composable: bool = False,
         **kwargs: Any,
     ) -> Any:
-        if isinstance(strategy, str):
-            parts = strategy.split(":")
-            strat_kwargs = {}
+        strat_obj: Any = strategy
+        if isinstance(strat_obj, str):
+            parts = strat_obj.split(":")
+            strat_kwargs: Dict[str, Any] = {}
             for p in parts[1:]:
                 if "=" in p:
-                    k, v = p.split("=", 1)
+                    k, raw_v = p.split("=", 1)
+                    parsed_v: Any
                     try:
-                        v = int(v)
+                        parsed_v = int(raw_v)
                     except ValueError:
                         try:
-                            v = float(v)
+                            parsed_v = float(raw_v)
                         except ValueError:
-                            pass
-                    strat_kwargs[k] = v
+                            parsed_v = raw_v
+                    strat_kwargs[k] = parsed_v
             from malthusjax.composer.strategies.core import TensorNEATStrategy
 
-            strat_pop_size = strat_kwargs.pop("pop_size", pop_size)
-            strategy = TensorNEATStrategy(
-                algorithm_name=strat_kwargs.pop("algorithm", "neat"),
-                genome_name=strat_kwargs.pop("genome", "default"),
+            strat_pop_size = int(strat_kwargs.pop("pop_size", pop_size))
+            strat_obj = TensorNEATStrategy(
+                algorithm_name=str(strat_kwargs.pop("algorithm", "neat")),
+                genome_name=str(strat_kwargs.pop("genome", "default")),
                 problem_name=strat_kwargs.pop("problem", None),
-                num_inputs=strat_kwargs.pop("num_inputs", 2),
-                num_outputs=strat_kwargs.pop("num_outputs", 1),
+                num_inputs=int(strat_kwargs.pop("num_inputs", 2)),
+                num_outputs=int(strat_kwargs.pop("num_outputs", 1)),
                 algorithm_kwargs=strat_kwargs,
             )
             pop_size = strat_pop_size
-        elif hasattr(strategy, "algorithm_kwargs") and "pop_size" in getattr(
-            strategy, "algorithm_kwargs", {}
+        elif hasattr(strat_obj, "algorithm_kwargs") and "pop_size" in getattr(
+            strat_obj, "algorithm_kwargs", {}
         ):
             from dataclasses import replace
 
-            strat_kwargs = dict(strategy.algorithm_kwargs)
-            pop_size = strat_kwargs.pop("pop_size")
-            strategy = replace(strategy, algorithm_kwargs=strat_kwargs)
+            strat_kwargs = dict(strat_obj.algorithm_kwargs)
+            pop_size = int(strat_kwargs.pop("pop_size"))
+            strat_obj = replace(strat_obj, algorithm_kwargs=strat_kwargs)
 
+        strategy = strat_obj
+        builder: Any
         if composable:
             builder = build_composable_tensorneat_engine
         else:

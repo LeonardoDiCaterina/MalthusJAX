@@ -171,6 +171,7 @@ class EvosaxProvider:
         composable: bool = False,
         **kwargs: Any,
     ) -> Any:
+        builder: Any
         if composable:
             builder = build_composable_evosax_engine
         else:

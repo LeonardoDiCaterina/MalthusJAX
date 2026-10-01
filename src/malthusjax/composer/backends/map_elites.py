@@ -121,10 +121,10 @@ def build_map_elites_engine(
         num_desc = getattr(strategy, "num_descriptors", 2)
 
         class ComposedQDEvaluator(BaseQDEvaluator[Any, Any, Any]):
-            def evaluate_qd(genome):
+            def evaluate_qd(self, genome):
                 raise NotImplementedError("Use evaluate_population directly")
 
-            def evaluate_population(population):
+            def evaluate_population(self, population, key=None):
                 updated_pop = resolved_base_evaluator.evaluate_population(population)
                 genotypes = getattr(population.genes, "values", population.genes)
                 desc_dims = genotypes[:, :num_desc]
@@ -151,11 +151,15 @@ def build_map_elites_engine(
             maxval=1.0,
             key=jr.PRNGKey(42),
         )
+    key_deriv = getattr(strategy, "key_derivation", kwargs.get("key_derivation", "fold_in"))
     engine: Any = MapElitesEngine(
         emitter=emitter_obj,
         evaluator=evaluator,
         engine_params=MapElitesEngineParams(
-            pop_size=pop_size, num_generations=generations, maximize=maximize
+            pop_size=pop_size,
+            num_generations=generations,
+            maximize=maximize,
+            key_derivation=key_deriv,
         ),
     )
     from malthusjax.composer.adapters.map_elites_adapter import MapElitesEngineAdapter

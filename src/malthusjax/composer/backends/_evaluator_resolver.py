@@ -20,6 +20,7 @@ def resolve_evaluator_base(
     num_dims: int = 10,
     bounds: Tuple[float, float] = (-5.0, 5.0),
     data_registry: Optional[Dict[str, Any]] = None,
+    **_kwargs: Any,
 ) -> Any:
     """Resolve a fitness spec into a concrete evaluator object.
 

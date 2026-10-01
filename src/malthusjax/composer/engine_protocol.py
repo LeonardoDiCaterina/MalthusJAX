@@ -47,7 +47,7 @@ class Engine(Protocol):
         ----------
         key : chex.Array
             JAX PRNG key for this run.
-        **kwargs : Any
+        \\*\\*kwargs : Any
             Optional execution parameters (e.g., step_logging).
 
         Returns

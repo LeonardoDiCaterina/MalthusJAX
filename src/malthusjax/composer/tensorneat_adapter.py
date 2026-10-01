@@ -187,7 +187,7 @@ def build_tensorneat_engine(
     generations: int,
     pop_size: Optional[int] = None,
     maximize: bool = True,
-    eval_mode: EvalMode = EvalMode.NATIVE,
+    eval_mode: EvalMode | str = EvalMode.NATIVE,
     history_metrics: Optional[Sequence[str]] = None,
     use_python_loop: bool = False,
     initial_population: Optional[Any] = None,
