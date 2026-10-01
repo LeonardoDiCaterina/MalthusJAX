@@ -87,20 +87,20 @@ graph TD
 
 ## Showcase Gallery
 
-### 1. XRD Peak Deconvolution & Pseudo-Voigt Doublet Fitting
-Global evolutionary parameter estimation fitting 10 coupled parameters (doublet centers, Gaussian/Lorentzian weight mixtures, FWHM widths, amplitudes, and polynomial background) in under 3.5 seconds.
+### 1. Damped Harmonic Oscillator Curve Fitting
+Non-linear parameter estimation fitting 5 physical parameters ($A, \gamma, \omega, \phi, C$) of a damped sinusoidal signal in 1.5 seconds with exact covariance quantification, overcoming local minima traps that hinder gradient descent.
 
-![XRD Peak Fitting](examples/plots/01_xrd_peak_fitting.png)
+![Damped Oscillator Curve Fitting](examples/plots/01_damped_oscillator_fitting.png)
 
 ### 2. Multimodal Benchmark Landscape Trajectories
 Differential Evolution, CMA-ES, Particle Swarm Optimization, and Genetic Algorithm navigating 5D Rastrigin and 5D Rosenbrock landscapes.
 
 ![Global Optimization Benchmarks](examples/plots/02_global_optimization_benchmarks.png)
 
-### 3. Non-Linear Chemical Kinetics & Arrhenius Energy Estimation
-Simultaneous multi-temperature concentration decay fitting and analytical Arrhenius linearization without manual initial guesses.
+### 3. 2D Sensor Network Trilateration
+Geometric non-linear least squares estimating the unknown 2D coordinates of an emitter from noisy distance measurements to anchor stations in under 1 second.
 
-![Chemical Kinetics Modeling](examples/plots/03_kinetic_modeling.png)
+![2D Sensor Network Trilateration](examples/plots/03_sensor_trilateration.png)
 
 ---
 

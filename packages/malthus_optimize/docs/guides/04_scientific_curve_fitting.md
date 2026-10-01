@@ -1,17 +1,17 @@
-# User Guide 4: Scientific Non-Linear Curve Fitting & Residual Analysis
+# User Guide 4: Non-Linear Curve Fitting & Residual Uncertainty
 
-`malthus_optimize.curve_fit` is a drop-in replacement for `scipy.optimize.curve_fit` designed specifically for experimental physics, spectroscopy, chemical kinetics, and materials science.
+`malthus_optimize.curve_fit` is a drop-in replacement for `scipy.optimize.curve_fit` designed for continuous scientific parameter estimation, time-series modeling, signal processing, and experimental curve fitting.
 
 ---
 
 ## 1. Why Evolutionary Curve Fitting?
 
 Traditional Levenberg-Marquardt or Gauss-Newton curve fitters (`scipy.optimize.curve_fit(method='lm')`) rely on local gradient descent. When fitting:
-- Overlapping spectroscopic peaks (e.g. XRD doublets, NMR, Raman, XPS)
-- Multi-exponential decay curves
-- Highly non-linear Arrhenius or Michaelis-Menten dynamics
+- Oscillatory signals with unknown frequency or phase (e.g. damped sinusoids, acoustic decays)
+- Multi-modal response curves or non-linear sigmoids
+- Coupled multi-parameter physical equations
 
-Local optimizers frequently get trapped in sub-optimal local minima unless an initial guess `p0` within 1% of the true parameters is provided.
+Local gradient descent frequently becomes trapped in sub-optimal local minima unless an initial guess `p0` extremely close to the true parameters is provided.
 
 **`malthus-optimize.curve_fit`** uses global evolutionary search (`'de'` by default) across bounded parameter domains, eliminating the need for delicate manual initialization.
 
@@ -37,37 +37,37 @@ popt, pcov = curve_fit(
 
 ---
 
-## 3. Working Example: Multi-Peak Fitting (XRD / Spectroscopy)
+## 3. Working Example: Damped Harmonic Oscillator
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
 from malthus_optimize import curve_fit
 
-# Multi-peak model (Sum of two Gaussians + background)
-def two_peaks(x, a1, mu1, sig1, a2, mu2, sig2, bg):
-    g1 = a1 * np.exp(-0.5 * ((x - mu1) / sig1)**2)
-    g2 = a2 * np.exp(-0.5 * ((x - mu2) / sig2)**2)
-    return g1 + g2 + bg
+# Damped harmonic oscillator model: y(t) = A * exp(-gamma * t) * cos(omega * t + phi) + C
+def damped_oscillator(t, amplitude, decay_rate, omega, phase, offset):
+    return amplitude * np.exp(-decay_rate * t) * np.cos(omega * t + phase) + offset
 
-# Synthesize noisy spectrometer data
-x = np.linspace(10.0, 50.0, 200)
-y_clean = two_peaks(x, 100.0, 25.0, 1.5, 75.0, 32.0, 2.0, 10.0)
-y_obs = y_clean + np.random.normal(0, 3.0, size=len(x))
+# Synthesize noisy experimental signal
+t = np.linspace(0.0, 8.0, 120)
+true_params = [5.0, 0.4, 4.5, 0.8, 1.2]
+y_clean = damped_oscillator(t, *true_params)
+y_obs = y_clean + np.random.normal(0.0, 0.25, size=len(t))
 
-# Define physically plausible boundaries (NO sensitive p0 guess needed!)
+# Define bounded search domain (NO sensitive p0 guess needed!)
 bounds = (
-    [10.0, 15.0, 0.5, 10.0, 25.0, 0.5, 0.0],   # Lower bounds
-    [200.0, 30.0, 5.0, 200.0, 40.0, 5.0, 30.0]  # Upper bounds
+    [1.0, 0.05, 1.0, -np.pi, -2.0],  # Lower bounds
+    [10.0, 1.5, 8.0, np.pi, 4.0],    # Upper bounds
 )
 
-popt, pcov = curve_fit(two_peaks, x, y_obs, bounds=bounds, seed=42)
+popt, pcov = curve_fit(damped_oscillator, t, y_obs, bounds=bounds, seed=42)
 
 # Extract standard errors from covariance diagonal
 perr = np.sqrt(np.diag(pcov))
 
-print("Fitted Peak 1 Center:", f"{popt[1]:.3f} ± {perr[1]:.3f}")
-print("Fitted Peak 2 Center:", f"{popt[4]:.3f} ± {perr[4]:.3f}")
+print(f"Fitted Amplitude : {popt[0]:.3f} ± {perr[0]:.3f} (True: {true_params[0]})")
+print(f"Fitted Decay Rate: {popt[1]:.3f} ± {perr[1]:.3f} (True: {true_params[1]})")
+print(f"Fitted Frequency : {popt[2]:.3f} ± {perr[2]:.3f} (True: {true_params[2]})")
 ```
 
 ---
