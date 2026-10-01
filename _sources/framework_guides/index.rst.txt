@@ -29,4 +29,5 @@ Extension & Component Guides
    genetic_fastengine_guide
    resource_mapper_guide
    adapter_extension_guide
+   backend_provider_extension_guide
    plugin_architecture_guide
