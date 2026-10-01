@@ -1,4 +1,5 @@
 """Tests verifying third-party extensibility and error handling in backend registration."""
+
 from __future__ import annotations
 
 import pytest

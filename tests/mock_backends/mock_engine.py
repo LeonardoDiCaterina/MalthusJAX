@@ -144,7 +144,7 @@ class MockUniversalEngine:
 
     # --- TensorNEAT API ---
     def setup(self, state: Any = None) -> Any:
-        return DummyState(generation=0)
+        return DummyState(generation=0)  # type: ignore[call-arg]
 
     def transform(self, state: Any, pop: chex.Array) -> chex.Array:
         return pop

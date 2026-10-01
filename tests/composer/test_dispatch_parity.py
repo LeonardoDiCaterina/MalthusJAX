@@ -1,4 +1,5 @@
 """Tests verifying that the BackendRegistry dispatch routes to the expected builder."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock

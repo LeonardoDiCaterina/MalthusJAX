@@ -1,7 +1,6 @@
 """Regression guard tests preserving behavioral invariants across composer refactoring."""
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from malthusjax.benchmarking.runner import StubEngine
 from malthusjax.composer.backend_registry import get_backends

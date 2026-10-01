@@ -1,10 +1,10 @@
 """Tests verifying shared initial population parity and determinism in compare()."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
 
 import jax.numpy as jnp
-import pytest
 
 from malthusjax.composer.composer import Composer
 

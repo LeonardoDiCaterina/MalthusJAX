@@ -1,4 +1,5 @@
 """Tests for BackendProvider protocol compliance across all registered providers."""
+
 from __future__ import annotations
 
 import pytest

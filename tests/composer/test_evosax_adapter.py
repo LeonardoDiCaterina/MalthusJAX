@@ -6,6 +6,7 @@ suite consistent.
 
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import jax.numpy as jnp
 import jax.random as jr
@@ -265,6 +266,7 @@ class TestEvosaxAdapter(BaseAdapterTestSuite):
     """General MalthusJAX test harness conformance for Evosax adapter."""
 
     def make_adapter(self, maximize: bool = False, eval_mode: str = "native", seed: int = 0):
+        evalr: Any
         if eval_mode == "native":
             evalr = make_bbob_evaluator(fn_name="sphere", num_dims=3, maximize=maximize, seed=seed)
         else:

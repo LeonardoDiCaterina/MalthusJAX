@@ -1,4 +1,5 @@
 """Tests verifying TOML configuration compatibility with the backend registry."""
+
 from __future__ import annotations
 
 import pytest
@@ -52,7 +53,9 @@ TOML_FIXTURES = [
 ]
 
 
-@pytest.mark.parametrize("desc,toml_content,expected", TOML_FIXTURES, ids=lambda x: x if isinstance(x, str) else "")
+@pytest.mark.parametrize(
+    "desc,toml_content,expected", TOML_FIXTURES, ids=lambda x: x if isinstance(x, str) else ""
+)
 def test_from_toml_backward_compat(desc, toml_content, expected, tmp_path):
     """Existing TOML configs must continue to produce results with expected pipeline names."""
     path = tmp_path / f"{desc}.toml"

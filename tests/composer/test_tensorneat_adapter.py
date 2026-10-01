@@ -1,4 +1,5 @@
 import sys
+from typing import Any
 from unittest.mock import MagicMock
 
 import jax
@@ -11,7 +12,7 @@ from flax import struct
 
 @struct.dataclass
 class MockState:
-    data: dict = struct.field(default_factory=dict)
+    data: dict[str, Any] = struct.field(default_factory=dict)
 
     def register(self, **kwargs):
         new_data = self.data.copy()

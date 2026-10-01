@@ -1,8 +1,8 @@
 """Tests verifying composable backend consolidation via provider flags."""
+
 from __future__ import annotations
 
 import jax.random as jr
-import pytest
 
 from malthusjax.composer.backend_registry import get_backends
 
@@ -13,8 +13,12 @@ def test_composable_evosax_flag():
     strategy = provider.default_strategy(evosax_strategy="SimpleGA")
     evaluator = provider.resolve_evaluator("sphere:dim=2")
 
-    engine_std = provider.build_engine(strategy, evaluator, pop_size=4, generations=1, num_dims=2, composable=False)
-    engine_comp = provider.build_engine(strategy, evaluator, pop_size=4, generations=1, num_dims=2, composable=True)
+    engine_std = provider.build_engine(
+        strategy, evaluator, pop_size=4, generations=1, num_dims=2, composable=False
+    )
+    engine_comp = provider.build_engine(
+        strategy, evaluator, pop_size=4, generations=1, num_dims=2, composable=True
+    )
 
     assert hasattr(engine_std, "run_once")
     assert hasattr(engine_comp, "run_once")
@@ -32,8 +36,12 @@ def test_composable_tensorneat_flag():
     strategy = provider.default_strategy()
     evaluator = provider.resolve_evaluator("xor", composable=True)
 
-    engine_std = provider.build_engine(strategy, evaluator, pop_size=4, generations=1, composable=False)
-    engine_comp = provider.build_engine(strategy, evaluator, pop_size=4, generations=1, composable=True)
+    engine_std = provider.build_engine(
+        strategy, evaluator, pop_size=4, generations=1, composable=False
+    )
+    engine_comp = provider.build_engine(
+        strategy, evaluator, pop_size=4, generations=1, composable=True
+    )
 
     assert hasattr(engine_std, "run_once")
     assert hasattr(engine_comp, "run_once")

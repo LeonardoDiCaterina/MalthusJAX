@@ -38,9 +38,7 @@ class TestResolveEvaluatorBase:
 
     def test_dict_spec(self):
         """A dict spec must resolve to an evaluator."""
-        evaluator = resolve_evaluator_base(
-            {"type": "sphere", "dim": 3}, seed=42
-        )
+        evaluator = resolve_evaluator_base({"type": "sphere", "dim": 3}, seed=42)
         assert evaluator is not None
 
     def test_prebuilt_object_passthrough(self):
@@ -116,4 +114,4 @@ class TestResolutionParity:
         e1 = resolve_evaluator_base("sphere:dim=2", seed=42)
         e2 = resolve_evaluator_base("sphere:dim=2", seed=42)
         # Both should exist and be structurally equivalent
-        assert type(e1) == type(e2)
+        assert type(e1) is type(e2)
