@@ -3,7 +3,8 @@
 	run-toml-nohup run-benchmark-nohup parity-toml-nohup suite-parity-nohup benchmark-run-nohup benchmark-run-smoke-nohup \
 	lint format format-check type-check check-all docs docs-clean docs-open \
 	demo demo-nohup reproduce reproduce-nohup smoke-all smoke-all-nohup \
-	perf-bench perf-bench-nohup perf-bench-smoke perf-bench-smoke-nohup perf-hlo perf-hlo-nohup perf-perfetto perf-perfetto-nohup perf-tb perf-tb-bg perf-all perf-all-nohup
+	perf-bench perf-bench-nohup perf-bench-smoke perf-bench-smoke-nohup perf-hlo perf-hlo-nohup perf-perfetto perf-perfetto-nohup perf-tb perf-tb-bg perf-all perf-all-nohup \
+	build clean-build check-package
 
 # --- Auto-Detect CUDA Version ---
 HAS_NVIDIA := $(shell command -v nvidia-smi 2> /dev/null)
@@ -49,6 +50,9 @@ help:
 	@echo "  make format-check       Ruff format check only (no mutations)"
 	@echo "  make type-check         mypy strict check on src/"
 	@echo "  make check-all          lint + format-check + type-check + test"
+	@echo "  make build              Build distribution packages (sdist + wheel) into dist/"
+	@echo "  make clean-build        Remove dist/, build/, and *.egg-info"
+	@echo "  make check-package      Build and validate distribution packages with twine"
 	@echo "  make scaffold ARGS=...  Generate a boilerplate JAX component (e.g., --type mutation --name QuantumMutation --key quantum)"
 	@echo "  make scaffold-toml ARGS=... Generate a compliant TOML configuration (e.g., -r ablation -o configs/test.toml)"
 	@echo ""
@@ -246,6 +250,20 @@ type-check:
 
 check-all: lint format-check type-check test
 	@echo "--- All checks passed! ---"
+
+clean-build:
+	@echo "--- Cleaning distribution build artifacts ---"
+	rm -rf dist/ build/ src/*.egg-info *.egg-info
+
+build: clean-build
+	@echo "--- Building MalthusJAX distribution packages ---"
+	python -m build
+	@echo "--- Package artifacts generated in dist/ ---"
+	@ls -lh dist/
+
+check-package: build
+	@echo "--- Validating package distributions with twine ---"
+	twine check --strict dist/*
 
 test-bench:
 	@echo "--- Running benchmark unit tests (functional, no timing harness) ---"

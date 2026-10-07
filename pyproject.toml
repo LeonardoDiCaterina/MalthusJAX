@@ -8,6 +8,9 @@ version = "0.2.0"
 description = "JAX-native evolutionary computation framework with composable operators, config-driven experiments, and GPU-speed multi-seed benchmarking"
 readme = "README.md"
 license = {file = "LICENSE"}
+authors = [
+    {name = "Leonardo Di Caterina"}
+]
 
 keywords = ["genetic-algorithms", "evolutionary-computation", "jax", "machine-learning", "evosax"]
 requires-python = ">=3.11"

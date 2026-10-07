@@ -21,7 +21,7 @@ MalthusJAX is strictly built on top of JAX and Flax. To ensure high performance,
 
 To drastically reduce friction, MalthusJAX provides a built-in Scaffolding CLI to instantly generate boilerplate code and tests for any component. 
 
-**For a full walkthrough on building an independent project or plugin from scratch, see the [Extension CLI Guide](extension_cli_guide.md).**
+**For a full walkthrough on building an independent project or plugin from scratch, see the [Extension CLI Guide](docs/source/extension_cli_guide.md).**
 
 To use the CLI, simply run the `scaffold` Makefile target from the repository root:
 
