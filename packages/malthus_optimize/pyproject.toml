@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "malthus-optimize"
+version = "0.1.0"
+description = "SciPy-compatible global optimization & curve fitting powered by JAX and MalthusJAX Composer"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "MalthusJAX Contributors" }
+]
+keywords = [
+    "optimization",
+    "scipy",
+    "differential-evolution",
+    "curve-fit",
+    "jax",
+    "evolutionary-computation",
+    "cma-es",
+    "pso",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "jax>=0.4.0",
+    "numpy>=1.24.0",
+    "flax>=0.7.0",
+    "chex>=0.1.7",
+    "malthusjax>=0.2.0",
+    "scipy>=1.9.0",
+]
+
+[project.scripts]
+mopt = "malthus_optimize.cli:main"
+
+[project.entry-points."malthusjax.plugins"]
+optimize = "malthus_optimize"
+
+[project.entry-points."malthusjax.commands"]
+optimize = "malthus_optimize.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "matplotlib>=3.6.0",
+    "evosax>=0.1.4",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/malthus_optimize"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+ignore = ["E402", "E501"]
