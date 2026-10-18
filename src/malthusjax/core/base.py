@@ -9,13 +9,14 @@ jit/vmap patterns.
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import replace
 from typing import Any, Generic, Iterator, Optional, Type, TypeVar, Union, cast
 
 import chex
 import jax
 import jax.numpy as jnp
+import numpy as np
 from flax import struct
 
 # Covariant TypeVar for the Genome implementation.
@@ -34,7 +35,7 @@ class DistanceMetric:
 
 
 @struct.dataclass
-class BaseGenome:
+class BaseGenome(ABC):
     """Immutable genome representation optimized for JAX PyTree lifting.
 
     Single-genome methods compose with jax.vmap to implement population-level
@@ -79,9 +80,18 @@ class BaseGenome:
         reconstructs the correct subclass type (RealGenome, CategoricalGenome, etc.)
         based on the frozen dataclass wrapper, with no explicit dispatch needed.
         """
-        # Determine if this is a batched genome by checking array leaf dimensions
+        # Determine if this is a batched genome by checking array leaf dimensions vs config shape
         leaves = jax.tree_util.tree_leaves(self)
-        is_batched = leaves and hasattr(leaves[0], "shape") and len(leaves[0].shape) > 1
+        cfg = getattr(self, "config", None)
+        if cfg is not None and hasattr(cfg, "shape"):
+            expected_ndim = len(cfg.shape)
+            is_batched = bool(
+                leaves and hasattr(leaves[0], "ndim") and leaves[0].ndim == expected_ndim + 1
+            )
+        elif hasattr(self, "_is_batched"):
+            is_batched = bool(getattr(self, "_is_batched"))
+        else:
+            is_batched = bool(leaves and hasattr(leaves[0], "shape") and len(leaves[0].shape) > 1)
 
         if is_batched:
             # Batched genome: use tree_map to extract and reconstruct individual/sub-genome
@@ -114,7 +124,16 @@ class BaseGenome:
         """
         # Determine if this is a batched genome
         leaves = jax.tree_util.tree_leaves(self)
-        is_batched = leaves and hasattr(leaves[0], "shape") and len(leaves[0].shape) > 1
+        cfg = getattr(self, "config", None)
+        if cfg is not None and hasattr(cfg, "shape"):
+            expected_ndim = len(cfg.shape)
+            is_batched = bool(
+                leaves and hasattr(leaves[0], "ndim") and leaves[0].ndim == expected_ndim + 1
+            )
+        elif hasattr(self, "_is_batched"):
+            is_batched = bool(getattr(self, "_is_batched"))
+        else:
+            is_batched = bool(leaves and hasattr(leaves[0], "shape") and len(leaves[0].shape) > 1)
 
         if is_batched:
             # Batched genome: iterate and yield individual genomes
@@ -300,7 +319,7 @@ class BasePopulation(Generic[G]):
             fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
 
         if info is None:
-            info = {}
+            info = self.info
 
         return replace(self, genes=new_genes, fitness=fitness, info=info)
 
@@ -318,12 +337,15 @@ class BasePopulation(Generic[G]):
         """
         sliced_genes = jax.tree_util.tree_map(lambda x: x[key], self.genes)
 
-        if isinstance(key, int):
+        is_scalar_key = isinstance(key, (int, np.integer)) or (
+            hasattr(key, "ndim") and key.ndim == 0
+        )
+        if is_scalar_key:
             return cast(G, sliced_genes)
 
         # Safely slice info dict arrays while ignoring non-arrays (like strings/metadata)
         sliced_info = jax.tree_util.tree_map(
-            lambda x: x[key] if hasattr(x, "shape") else x, self.info
+            lambda x: x[key] if hasattr(x, "ndim") and x.ndim > 0 else x, self.info
         )
 
         return replace(self, genes=sliced_genes, fitness=self.fitness[key], info=sliced_info)

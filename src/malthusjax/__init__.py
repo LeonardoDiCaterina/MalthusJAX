@@ -4,7 +4,10 @@ MalthusJAX: High-Performance Evolutionary Computation in JAX.
 
 __version__ = "0.2.0"
 
-# 1. Stabilize runtime environment and hook native crash diagnostics
+import logging
+
+# Runtime stabilization and crash handlers are opted into explicitly
+# by entrypoints/CLIs via malthusjax.stabilize_runtime_environment().
 from .core.diagnostics import (
     format_crash_banner,
     get_environment_diagnostics,
@@ -13,11 +16,6 @@ from .core.diagnostics import (
     stabilize_runtime_environment,
     uninstall_crash_handler,
 )
-
-stabilize_runtime_environment()
-install_crash_handler()
-
-import logging
 
 # Attach NullHandler to root library logger according to PEP 282
 logging.getLogger("malthusjax").addHandler(logging.NullHandler())

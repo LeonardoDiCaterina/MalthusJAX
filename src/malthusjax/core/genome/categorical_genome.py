@@ -7,7 +7,7 @@ operations and initialization.
 
 from __future__ import annotations
 
-from typing import Any, Tuple, cast
+from typing import Any, Optional, Tuple, cast
 
 import chex
 import jax
@@ -33,6 +33,7 @@ class CategoricalGenomeConfig:
         pytree_node=False,
         default=jnp.int32,  # type: ignore[no-untyped-call]
     )
+    is_permutation: Optional[bool] = struct.field(pytree_node=False, default=None)
 
     def init_population(self, key: chex.PRNGKey, size: int) -> BasePopulation[CategoricalGenome]:
         """Create a random population from this config (protocol method for JR-2)."""
@@ -51,10 +52,20 @@ class CategoricalGenome(BaseGenome):
 
     @classmethod
     def random_init(cls, key: chex.PRNGKey, config: CategoricalGenomeConfig) -> CategoricalGenome:
-        """Create random categorical genome using discrete uniform sampling."""
-        values = jax.random.randint(key, config.shape, 0, config.num_categories).astype(
-            config.dtype
-        )
+        """Create random categorical genome.
+
+        Produces a permutation when config.is_permutation is True (or when unspecified
+        and shape matches num_categories), and uniform discrete samples otherwise.
+        """
+        is_perm = getattr(config, "is_permutation", None)
+        if is_perm is True or (
+            is_perm is None and len(config.shape) == 1 and config.shape[0] == config.num_categories
+        ):
+            values = jax.random.permutation(key, config.num_categories).astype(config.dtype)
+        else:
+            values = jax.random.randint(key, config.shape, 0, config.num_categories).astype(
+                config.dtype
+            )
         return cls(values=values)
 
     def autocorrect(self, config: CategoricalGenomeConfig) -> CategoricalGenome:
