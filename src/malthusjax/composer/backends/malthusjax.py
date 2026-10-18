@@ -117,6 +117,7 @@ class MalthusJAXProvider:
             )
 
         if isinstance(strategy, GeneticStrategy):
+            from malthusjax.composer.config import infer_genome_length
             from malthusjax.composer.factory import build_real_engine
 
             engine_kwargs = dict(kwargs)
@@ -147,7 +148,19 @@ class MalthusJAXProvider:
                 genome_type=kwargs.get("genome_type", "real"),
                 pop_size=pop_size,
                 generations=generations,
-                genome_shape=kwargs.get("genome_length", kwargs.get("genome_shape", 10)),
+                genome_shape=kwargs.get(
+                    "genome_length",
+                    kwargs.get(
+                        "genome_shape",
+                        infer_genome_length(
+                            {
+                                **kwargs,
+                                "fitness": getattr(strategy, "fitness", evaluator),
+                                "data_config": kwargs.get("data_config"),
+                            }
+                        ),
+                    ),
+                ),
                 bounds=bounds,
                 elitism=kwargs.get("elitism", True),
                 maximize=maximize,

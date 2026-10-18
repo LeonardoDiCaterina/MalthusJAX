@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import replace
-from typing import Any, Dict, Optional, Sequence, Tuple, cast
+from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
 
 import chex
 import jax.numpy as jnp
@@ -201,7 +201,7 @@ def build_engine(
     pop_size: int = 50,
     generations: int = 100,
     elitism: int = 2,
-    genome_shape: Tuple[int, ...] = (10,),
+    genome_shape: Optional[Union[int, Tuple[int, ...]]] = None,
     bounds: Tuple[float, float] = (-5.0, 5.0),
     unroll_factor: int = 1,
     history_metrics: Optional[Sequence[str]] = None,
@@ -220,10 +220,26 @@ def build_engine(
     if "genome_config" in kwargs:
         genome_config = kwargs.pop("genome_config")
     else:
+        explicit_shape = genome_shape
         if "genome_length" in kwargs:
-            genome_shape = (int(kwargs.pop("genome_length")),)
-        if isinstance(genome_shape, int):
-            genome_shape = (genome_shape,)
+            explicit_shape = (int(kwargs.pop("genome_length")),)
+        elif explicit_shape is not None:
+            if isinstance(explicit_shape, int):
+                explicit_shape = (explicit_shape,)
+
+        if explicit_shape is None:
+            env = getattr(fitness_evaluator, "env", None)
+            if env is not None:
+                if hasattr(env, "weights") and env.weights is not None:
+                    explicit_shape = (env.weights.shape[-1],)
+                elif hasattr(env, "distance_matrix") and env.distance_matrix is not None:
+                    explicit_shape = (env.distance_matrix.shape[0],)
+                elif hasattr(env, "num_dims") and env.num_dims is not None:
+                    explicit_shape = (int(env.num_dims),)
+            if explicit_shape is None:
+                explicit_shape = (10,)
+
+        genome_shape = explicit_shape
 
         if genome_type == "real":
             genome_config = RealGenomeConfig(

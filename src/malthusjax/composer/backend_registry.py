@@ -57,3 +57,19 @@ def register_backend(
             f"Missing or non-callable methods: {missing}"
         )
     _raw_register_backend(name, provider, defaults=defaults, override=override, **kwargs)
+
+
+def get_backend(name: str) -> Optional[Any]:
+    """Retrieve registered BackendProvider instance for *name*.
+
+    Automatically loads plugins if backend is not yet registered.
+    """
+    backends = get_backends()
+    if name not in backends:
+        from .plugins import load_plugins
+
+        load_plugins()
+        backends = get_backends()
+    if name in backends:
+        return backends[name][0]
+    return None

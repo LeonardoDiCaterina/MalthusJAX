@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import jax
-import jax.random as jr
 
 from malthusjax.composer.config import infer_genome_length, normalize_seeds
 from malthusjax.composer.engine_factory_v2 import EngineFactory
@@ -533,37 +532,26 @@ class Composer:
                     pass
 
     def _generate_initial_population(self, config: Any, pop_seed: int) -> Any:
-        """Deterministically generate a shared initial population matrix for a given pipeline config.
+        """Deterministically generate a shared initial population for a given pipeline config.
 
-        Ensures that pipelines with identical bounds, population sizes, and dimensionality
-        receive the exact same starting points, while dynamically scaling to the requested pop_size.
+        Dispatches to the registered BackendProvider.generate_initial_population()
+        to support backend- and genome-specific initialization polymorphically.
         """
+        from .backend_registry import get_backend
+
+        backend_name = "malthusjax"
+        if hasattr(config, "backend") and hasattr(config.backend, "name"):
+            backend_name = config.backend.name
+        elif isinstance(config, dict):
+            backend_name = config.get("backend", "malthusjax")
+
+        provider = get_backend(backend_name)
+        if provider is not None and hasattr(provider, "generate_initial_population"):
+            return provider.generate_initial_population(config, pop_seed)
+
         from .backends._population_init import generate_initial_population
 
-        result = generate_initial_population(config, pop_seed)
-        if result is not None:
-            return result
-
-        pop_size = (
-            int(config.get("pop_size", 50)) if isinstance(config, dict) else config.population.size
-        )
-        genome_length = (
-            infer_genome_length(config)
-            if isinstance(config, dict)
-            else config.population.genome_length
-        )
-        bounds = (
-            config.get("bounds", (-5.0, 5.0))
-            if isinstance(config, dict)
-            else config.population.bounds
-        )
-
-        return jr.uniform(
-            jr.PRNGKey(pop_seed),
-            (pop_size, genome_length),
-            minval=float(bounds[0]),
-            maxval=float(bounds[1]),
-        )
+        return generate_initial_population(config, pop_seed)
 
     def compare(
         self,
@@ -741,16 +729,17 @@ class Composer:
 
             if shared_initial_population and "initial_population" not in merged:
                 pipeline_init_pop = self._generate_initial_population(merged, pop_seed)
-                p_genome_length = infer_genome_length(merged)
+                if pipeline_init_pop is not None:
+                    p_genome_length = infer_genome_length(merged)
 
-                if hasattr(pipeline_init_pop, "shape"):
-                    if int(pipeline_init_pop.shape[1]) != p_genome_length:
-                        raise ValueError(
-                            "Shared initial population dimension mismatch: "
-                            f"expected {p_genome_length}, got {pipeline_init_pop.shape[1]}"
-                        )
-                merged["initial_population"] = pipeline_init_pop
-                last_init_pop = pipeline_init_pop
+                    if hasattr(pipeline_init_pop, "shape"):
+                        if int(pipeline_init_pop.shape[1]) != p_genome_length:
+                            raise ValueError(
+                                "Shared initial population dimension mismatch: "
+                                f"expected {p_genome_length}, got {pipeline_init_pop.shape[1]}"
+                            )
+                    merged["initial_population"] = pipeline_init_pop
+                    last_init_pop = pipeline_init_pop
 
             results[name] = self.quick_run(**merged)
             maximize_flag = bool(merged.get("maximize", False))
@@ -955,11 +944,16 @@ class Composer:
             }
             pipeline_overrides[name] = overrides
 
+        shared_init_pop = experiment_meta.get(
+            "shared_initial_population",
+            shared.pop("shared_initial_population", shared_initial_population),
+        )
+
         composer = cls.create_default()
         return composer.compare(
             pipelines=pipeline_overrides,
             seeds=seeds,
-            shared_initial_population=shared_initial_population,
+            shared_initial_population=shared_init_pop,
             pop_seed=pop_seed,
             trace_dir=trace_dir,
             data_config=data_registry,

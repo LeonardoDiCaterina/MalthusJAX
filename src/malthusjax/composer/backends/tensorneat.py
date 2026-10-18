@@ -217,53 +217,55 @@ class TensorneatProvider:
     def default_strategy(self, **kwargs: Any) -> BaseStrategy:
         from malthusjax.composer.strategies.core import TensorNEATStrategy
 
-        algo_kwargs = kwargs.get("algorithm_kwargs")
-        if algo_kwargs is None:
-            exclude = {
-                "tensorneat_algorithm",
-                "tensorneat_genome",
-                "tensorneat_problem",
-                "tensorneat_num_inputs",
-                "tensorneat_num_outputs",
-                "backend",
-                "fitness",
-                "pop_size",
-                "generations",
-                "seeds",
-                "maximize",
-                "bounds",
-                "genome_length",
-                "prng_impl",
-                "step_logging",
-                "history_metrics",
-                "strategy",
-                "data_config",
-                "composable",
-                "genome",
-                "engine_type",
-                "genome_type",
-                "selection",
-                "crossover",
-                "mutation",
-                "elitism",
-                "experiment_name",
-                "output_dir",
-                "engine",
-                "trace_dir",
-                "eval_mode",
-                "evosax_strategy",
-                "evosax_es_params",
-                "qdax_strategy",
-                "qdax_num_descriptors",
-                "qdax_num_centroids",
-                "qdax_mutation_sigma",
-                "seed",
-                "num_dims",
-                "num_parallel",
-                "num_inputs",
-                "num_outputs",
-            }
-            algo_kwargs = {k: v for k, v in kwargs.items() if k not in exclude}
+        algo_kwargs = dict(kwargs.get("algorithm_kwargs") or {})
+        exclude = {
+            "tensorneat_algorithm",
+            "tensorneat_genome",
+            "tensorneat_problem",
+            "tensorneat_num_inputs",
+            "tensorneat_num_outputs",
+            "backend",
+            "fitness",
+            "pop_size",
+            "generations",
+            "seeds",
+            "maximize",
+            "bounds",
+            "genome_length",
+            "prng_impl",
+            "step_logging",
+            "history_metrics",
+            "strategy",
+            "data_config",
+            "composable",
+            "genome",
+            "engine_type",
+            "genome_type",
+            "selection",
+            "crossover",
+            "mutation",
+            "elitism",
+            "experiment_name",
+            "output_dir",
+            "engine",
+            "trace_dir",
+            "eval_mode",
+            "evosax_strategy",
+            "evosax_es_params",
+            "qdax_strategy",
+            "qdax_num_descriptors",
+            "qdax_num_centroids",
+            "qdax_mutation_sigma",
+            "seed",
+            "num_dims",
+            "num_parallel",
+            "num_inputs",
+            "num_outputs",
+            "algorithm_kwargs",
+        }
+        for k, v in kwargs.items():
+            if k not in exclude and k not in algo_kwargs:
+                algo_kwargs[k] = v
 
         return TensorNEATStrategy(
             algorithm_name=kwargs.get("tensorneat_algorithm", "NEAT"),
@@ -393,26 +395,55 @@ class TensorneatProvider:
 
     def generate_initial_population(
         self,
-        config: Dict[str, Any],
+        config: Any,
         pop_seed: int,
     ) -> Optional[Any]:
-        import tensorneat.algorithm
-        import tensorneat.genome
-        from tensorneat.common import State
+        try:
+            import tensorneat.algorithm
+            import tensorneat.genome
+            from tensorneat.common import State
+        except ImportError:
+            return None
 
-        pop_size = int(config.get("pop_size", 50))
-        num_inputs = config.get("num_inputs", 2)
-        num_outputs = config.get("num_outputs", 1)
+        if hasattr(config, "population"):
+            pop_size = int(config.population.size)
+        elif isinstance(config, dict):
+            pop_size = int(config.get("pop_size", 50))
+        else:
+            pop_size = 50
 
-        genome = tensorneat.genome.DefaultGenome(num_inputs=num_inputs, num_outputs=num_outputs)
-        algorithm = tensorneat.algorithm.NEAT(pop_size=pop_size, genome=genome)
+        if hasattr(config, "backend"):
+            num_inputs = getattr(config.backend, "num_inputs", 2)
+            num_outputs = getattr(config.backend, "num_outputs", 1)
+            species_size = getattr(config.backend, "species_size", 5)
+            max_nodes = getattr(config.backend, "max_nodes", 10)
+            max_conns = getattr(config.backend, "max_conns", 20)
+        elif isinstance(config, dict):
+            num_inputs = config.get("num_inputs", config.get("tensorneat_num_inputs", 2))
+            num_outputs = config.get("num_outputs", config.get("tensorneat_num_outputs", 1))
+            species_size = config.get("species_size", 5)
+            max_nodes = config.get("max_nodes", 10)
+            max_conns = config.get("max_conns", 20)
+        else:
+            num_inputs, num_outputs = 2, 1
+            species_size = 5
+            max_nodes, max_conns = 10, 20
+
+        genome = tensorneat.genome.DefaultGenome(
+            num_inputs=num_inputs,
+            num_outputs=num_outputs,
+            max_nodes=max_nodes,
+            max_conns=max_conns,
+        )
+        algorithm = tensorneat.algorithm.NEAT(
+            pop_size=pop_size,
+            species_size=species_size,
+            genome=genome,
+        )
 
         state = State(randkey=jr.PRNGKey(pop_seed))
         state = algorithm.setup(state)
-
-        pop_nodes = getattr(state, "pop_nodes", state.state_dict.get("pop_nodes"))
-        pop_conns = getattr(state, "pop_conns", state.state_dict.get("pop_conns"))
-        return (pop_nodes, pop_conns)
+        return algorithm.ask(state)
 
 
 _tensorneat_provider = TensorneatProvider()

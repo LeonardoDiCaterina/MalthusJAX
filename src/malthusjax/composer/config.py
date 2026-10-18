@@ -162,8 +162,9 @@ def infer_genome_length(cfg: Dict[str, Any]) -> int:
     """Infer genome length from config, preferring explicit values.
     Priority:
     1) ``genome_length`` kwarg
-    2) ``fitness`` spec params ``dim`` / ``num_dims``
-    3) default 10
+    2) ``fitness`` spec params ``dim`` / ``num_dims`` / ``num_items`` / ``num_cities``
+    3) Data registry item/city count for ``data_id``
+    4) default 10
     """
     if "genome_length" in cfg and cfg["genome_length"] is not None:
         return int(cfg["genome_length"])
@@ -172,19 +173,36 @@ def infer_genome_length(cfg: Dict[str, Any]) -> int:
         from .catalog import OperatorCatalog
 
         parsed_name, parsed_params = OperatorCatalog().parse_spec(fitness_spec)
-        dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
+        dim_val = parsed_params.get(
+            "dim",
+            parsed_params.get(
+                "num_dims",
+                parsed_params.get("num_items", parsed_params.get("num_cities")),
+            ),
+        )
         if dim_val is not None:
             return int(dim_val)
+
+        data_id = parsed_params.get("data_id")
+        if data_id:
+            data_sec = cfg.get("data_config") or cfg.get("data_registry") or cfg.get("data")
+            if isinstance(data_sec, dict) and data_id in data_sec:
+                ds = data_sec[data_id]
+                if isinstance(ds, dict):
+                    len_val = ds.get("num_items", ds.get("num_cities", ds.get("num_dims")))
+                    if len_val is not None:
+                        return int(len_val)
     elif isinstance(fitness_spec, dict):
         if "interpreter" in fitness_spec and isinstance(fitness_spec["interpreter"], dict):
-            # If interpreter is specified, its input_dim might be the genome length if identity,
-            # or it might have a num_weights property. We can check `input_dim`.
             pass
         if "env" in fitness_spec and isinstance(fitness_spec["env"], dict):
-            # Same logic
             env_spec = fitness_spec["env"]
             if "num_dims" in env_spec:
                 return int(env_spec["num_dims"])
             if "dim" in env_spec:
                 return int(env_spec["dim"])
+            if "num_items" in env_spec:
+                return int(env_spec["num_items"])
+            if "num_cities" in env_spec:
+                return int(env_spec["num_cities"])
     return 10
