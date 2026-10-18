@@ -81,7 +81,7 @@ def test_tell_updates_best_genome_on_improvement(make_engine, prng_key):
     updated_state = engine_with_entropy.tell(state, better_pop)
 
     best_idx = jnp.argmin(better_pop.fitness)
-    expected_genome = better_pop[best_idx].genes
+    expected_genome = getattr(better_pop[best_idx], "genes", better_pop[best_idx])
 
     chex.assert_trees_all_close(updated_state.best_genome, expected_genome)
 

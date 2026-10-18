@@ -383,8 +383,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                     k1 = key_selection[0]
                     k2 = key_selection[1]
                     sel_op = dataclasses.replace(operators.selection, num_selections=pop_size)
-                    p1_idx, _ = sel_op(jnp.expand_dims(k1, 0), population)
-                    p2_idx, _ = sel_op(jnp.expand_dims(k2, 0), population)
+                    p1_idx, _ = sel_op(k1, population)
+                    p2_idx, _ = sel_op(k2, population)
                     parent_idx = jnp.concatenate([p1_idx, p2_idx], axis=0)
                 else:
                     # Fallback: if the operator expects 2*pop_size selections,
@@ -398,8 +398,8 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
                         )
                         k1, k2 = jax.random.split(key_base, 2)
                         sel_op = dataclasses.replace(operators.selection, num_selections=pop_size)
-                        p1_idx, _ = sel_op(jnp.expand_dims(k1, 0), population)
-                        p2_idx, _ = sel_op(jnp.expand_dims(k2, 0), population)
+                        p1_idx, _ = sel_op(k1, population)
+                        p2_idx, _ = sel_op(k2, population)
                         parent_idx = jnp.concatenate([p1_idx, p2_idx], axis=0)
         except Exception:
             # Any failure: keep original single-call result
@@ -831,7 +831,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             new_best_genome = state.best_genome
             metric_best = gen_best_fitness
         elif params.track_best == TrackBest.LIGHT:
-            new_best_fitness = jnp.minimum(gen_best_fitness, state.best_fitness)
+            is_new = jnp.where(
+                jnp.isnan(state.best_fitness), True, gen_best_fitness < state.best_fitness
+            )
+            new_best_fitness = jnp.where(is_new, gen_best_fitness, state.best_fitness)
             new_best_genome = state.best_genome
             metric_best = new_best_fitness
         else:
@@ -984,10 +987,6 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             )
 
         return final_state, history, elapsed_time
-
-    def __post_init__(self):
-        """Validate components that require instantiation."""
-        # Validation could be added here if necessary
 
     def init_state(self, rng_key: Union[int, jnp.ndarray]) -> GeneticEvolutionState:
         """Initialize evolution and compile the inference plan (Init-Phase Compilation).
@@ -1341,8 +1340,10 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         )
 
         next_genes = self._merge(elites, mutants.genes, state)
+        unevaluated_fitness = jnp.full_like(state.population.fitness, jnp.nan)
         next_population = cast(
-            BasePopulation[Any], cast(Any, state.population).replace(genes=next_genes)
+            BasePopulation[Any],
+            cast(Any, state.population).replace(genes=next_genes, fitness=unevaluated_fitness),
         )
 
         final_state = replace(

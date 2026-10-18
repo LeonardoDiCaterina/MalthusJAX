@@ -88,7 +88,11 @@ class TournamentSelection(BaseSelection[P, C]):
         candidates and picks the fittest (lowest fitness in minimization convention).
         The returned array contains the winning indices.
         """
-        if self.typed_keys:
+        if keys.ndim == 0:
+            rng = keys
+        elif keys.shape == (1,):
+            rng = keys[0]
+        elif self.typed_keys:
             rng = keys if keys.ndim == 0 else keys[0]
         else:
             rng = keys if keys.ndim <= 1 else keys[0]

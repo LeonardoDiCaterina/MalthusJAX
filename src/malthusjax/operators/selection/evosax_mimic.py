@@ -19,7 +19,12 @@ class EvoSaxMimicSelection(BaseSelection[P, C]):
     def _select(
         self, keys: chex.Array, fitness: chex.Array, config: Optional[C] = None, **kwargs: Any
     ) -> chex.Array:
-        rng = keys if keys.ndim <= 1 else keys[0]
+        if keys.ndim == 0:
+            rng = keys
+        elif keys.shape == (1,):
+            rng = keys[0]
+        else:
+            rng = keys if keys.ndim <= 1 else keys[0]
         pop_size = fitness.shape[0]
         idx = jnp.argsort(fitness)
         p = (jnp.arange(pop_size) < self.elite_k).astype(jnp.float32)
@@ -30,7 +35,12 @@ class EvoSaxMimicSelection(BaseSelection[P, C]):
         self, keys: chex.Array, population: P, config: Optional[C] = None, **kwargs: Any
     ) -> Tuple[chex.Array, chex.Array]:
         fitness = jnp.asarray(getattr(population, "fitness", population))
-        rng = keys if keys.ndim <= 1 else keys[0]
+        if keys.ndim == 0:
+            rng = keys
+        elif keys.shape == (1,):
+            rng = keys[0]
+        else:
+            rng = keys if keys.ndim <= 1 else keys[0]
 
         # Select parents
         parent_idx = self._select(rng, fitness)

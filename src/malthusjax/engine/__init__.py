@@ -292,6 +292,16 @@ def _register_engines() -> None:
                 },
             ),
             (
+                "native_fast",
+                _ga_factory,
+                {
+                    "pop_size": 50,
+                    "generations": 100,
+                    "elitism": 2,
+                    "genome_type": "real",
+                },
+            ),
+            (
                 "island",
                 _island_factory,
                 {
