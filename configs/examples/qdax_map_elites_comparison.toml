@@ -1,0 +1,30 @@
+[experiment]
+name = "qdax_map_elites_comparison"
+output_dir = "results/qdax_map_elites_comparison"
+description = "Quality-Diversity MAP-Elites: Native QDAX vs MalthusJAX"
+seeds = [1, 2, 3, 4, 5]
+
+[logging]
+level = "INFO"
+format_type = "color"
+show_timestamps = false
+log_interval = 10
+log_nan_watchdog = true
+
+[experiment.shared]
+fitness = "rosenbrock:dim=10"
+pop_size = 64
+generations = 100
+seeds = [1, 2, 3, 4, 5]
+
+[pipelines.qdax_baseline]
+backend = "qdax"
+qdax_strategy = "MAPElites"
+grid_shape = [50, 50]
+bd_extractors = ["identity", "identity"]
+
+[pipelines.malthusjax_native]
+backend = "malthusjax"
+engine_type = "map_elites"
+map_elites_emitter = "mixing"
+grid_shape = [50, 50]

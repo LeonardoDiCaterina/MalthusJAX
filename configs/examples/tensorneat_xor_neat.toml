@@ -1,0 +1,32 @@
+[experiment]
+name = "tensorneat_xor_neat"
+output_dir = "results/tensorneat_xor_neat"
+description = "Neuroevolution on XOR problem via TensorNEAT (Speciation Ablation)"
+seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+[logging]
+level = "INFO"
+format_type = "color"
+show_timestamps = false
+log_interval = 5
+log_nan_watchdog = true
+
+[experiment.shared]
+fitness = "xor"
+pop_size = 50
+generations = 15
+seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+[pipelines.neat_speciation_2]
+backend = "tensorneat"
+tensorneat_problem = "xor"
+species_size = 2
+max_nodes = 10
+max_conns = 20
+
+[pipelines.neat_speciation_5]
+backend = "tensorneat"
+tensorneat_problem = "xor"
+species_size = 5
+max_nodes = 10
+max_conns = 20
