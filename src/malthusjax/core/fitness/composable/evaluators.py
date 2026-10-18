@@ -29,7 +29,9 @@ from malthusjax.core.fitness.composable.base import (
     BaseSupervisedEnvironment,
     BaseTransform,
     IdentityTransform,
+    ScalarOutput,
 )
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 
 E = TypeVar("E")
 T = TypeVar("T", bound=BaseTransform)
@@ -44,12 +46,14 @@ O = TypeVar("O", bound=BaseOutputMode)  # noqa: E741
 
 @struct.dataclass
 class BaseComposableEvaluator(Generic[E, T, I, O]):
-    """Base class for the 4-axis evaluator paradigm."""
+    """Base class for the 4-axis evaluator paradigm: Environment × Transform × Interpreter × Output."""
 
     env: E = struct.field(pytree_node=False)
-    interpreter: I = struct.field(pytree_node=False)
-    output: O = struct.field(pytree_node=False)
     transform: T = struct.field(pytree_node=False, default_factory=IdentityTransform)
+    interpreter: I = struct.field(pytree_node=False, default_factory=IdentityInterpreter)
+    output: O = struct.field(
+        pytree_node=False, default_factory=lambda: ScalarOutput(maximize=False)
+    )
 
     def get_gap_to_optimum(self, fitness: jax.Array) -> float:
         """Returns the gap to optimum, delegating to the environment if possible."""
@@ -247,7 +251,8 @@ class TensorNeatEvaluator(
     ) -> BasePopulation:
         # 1. Initialize a localized TensorNEAT State to manage PRNG for this generation
         key = jax.random.PRNGKey(self.seed) if rng is None else rng
-        tn_state = TNState(randkey=key, generation=jnp.float32(0))
+        generation = getattr(state, "generation", 0) if state is not None else 0
+        tn_state = TNState(randkey=key, generation=jnp.float32(generation))
 
         # 2. Extract raw topology matrices
         pop_values = getattr(population.genes, "values", population.genes)

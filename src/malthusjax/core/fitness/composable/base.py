@@ -274,6 +274,7 @@ class ScalarOutput(BaseOutputMode):
     def compute_loss(self, predictions: chex.Array, targets: chex.Array) -> chex.Numeric:
         """Compute scalar loss between predictions and targets."""
         predictions = jnp.squeeze(predictions)
+        targets = jnp.squeeze(targets)
 
         if self.loss_fn == "mse":
             loss = jnp.mean(jnp.square(predictions - targets))
@@ -393,11 +394,29 @@ class MOOutput(BaseOutputMode):
     def process_opt(
         self, genome: Any, solution: chex.Array, raw_score: chex.Numeric
     ) -> tuple[chex.Array, dict]:
-        fitness_vec = jnp.stack([obj.format_fitness(raw_score) for obj in self.objectives])
+        if (
+            hasattr(raw_score, "ndim")
+            and raw_score.ndim > 0
+            and raw_score.shape[0] == len(self.objectives)
+        ):
+            fitness_vec = jnp.stack(
+                [obj.format_fitness(raw_score[i]) for i, obj in enumerate(self.objectives)]
+            )
+        else:
+            fitness_vec = jnp.stack([obj.format_fitness(raw_score) for obj in self.objectives])
         return fitness_vec, {}
 
     def process_rl(
         self, genome: Any, total_reward: chex.Numeric, final_state: Any, step_infos: Any
     ) -> tuple[chex.Array, dict]:
-        fitness_vec = jnp.stack([obj.format_fitness(total_reward) for obj in self.objectives])
+        if (
+            hasattr(total_reward, "ndim")
+            and total_reward.ndim > 0
+            and total_reward.shape[0] == len(self.objectives)
+        ):
+            fitness_vec = jnp.stack(
+                [obj.format_fitness(total_reward[i]) for i, obj in enumerate(self.objectives)]
+            )
+        else:
+            fitness_vec = jnp.stack([obj.format_fitness(total_reward) for obj in self.objectives])
         return fitness_vec, {}

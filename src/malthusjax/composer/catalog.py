@@ -39,7 +39,13 @@ def _ensure_registered() -> None:
 
     Idempotent — repeated calls are cheap (Python caches imports).
     """
-    import malthusjax.core.fitness  # noqa: F401
+    import malthusjax.core.fitness as fitness_mod
+
+    from ._registry import register_table
+
+    if hasattr(fitness_mod, "register_fitness_catalog"):
+        fitness_mod.register_fitness_catalog(register_table)
+
     import malthusjax.operators.crossover  # noqa: F401
     import malthusjax.operators.emitters  # noqa: F401
     import malthusjax.operators.mutation  # noqa: F401

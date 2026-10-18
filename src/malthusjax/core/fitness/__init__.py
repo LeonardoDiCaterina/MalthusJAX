@@ -5,6 +5,8 @@ This module provides fitness evaluators using @struct.dataclass
 for efficient batch evaluation using JAX JIT compilation.
 """
 
+from typing import Any
+
 # Evaluators
 from malthusjax.core.fitness.base import BaseEvaluator, BaseEvaluatorConfig
 from malthusjax.core.fitness.binary_evaluators import (
@@ -127,20 +129,46 @@ def _create_bbob_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
 
 
 def _create_knapsack_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
+    import jax
+    import jax.numpy as jnp
+
     _resolved_data = kwargs.pop("_resolved_data", None)
     kwargs.pop("data_id", None)
     maximize = kwargs.get("maximize", False)
 
-    if _resolved_data is not None:
-        if isinstance(_resolved_data, dict) and _resolved_data.get("source") == "synthetic":
-            # For simplicity, we just use defaults if synthetic
-            pass
+    weights = kwargs.get("weights")
+    values = kwargs.get("values")
+    capacity = kwargs.get("capacity", 100.0)
+
+    if (weights is None or values is None) and _resolved_data is not None:
+        if isinstance(_resolved_data, dict):
+            if "weights" in _resolved_data and "values" in _resolved_data:
+                weights = jnp.array(_resolved_data["weights"], dtype=jnp.float32)
+                values = jnp.array(_resolved_data["values"], dtype=jnp.float32)
+                if "capacity" in _resolved_data:
+                    capacity = float(_resolved_data["capacity"])
+            elif _resolved_data.get("source") == "synthetic":
+                num_items = _resolved_data.get("num_items", 50)
+                capacity = float(_resolved_data.get("capacity", capacity))
+                w_min, w_max = _resolved_data.get("weight_range", [10, 50])
+                v_min, v_max = _resolved_data.get("value_range", [30, 150])
+                seed = _resolved_data.get("random_seed", 42)
+                k1, k2 = jax.random.split(jax.random.PRNGKey(seed))
+                weights = jax.random.uniform(k1, (num_items,), minval=w_min, maxval=w_max)
+                values = jax.random.uniform(k2, (num_items,), minval=v_min, maxval=v_max)
+
+    if weights is None or values is None:
+        num_items = kwargs.get("num_items", 50)
+        seed = kwargs.get("seed", 42)
+        k1, k2 = jax.random.split(jax.random.PRNGKey(seed))
+        weights = jax.random.uniform(k1, (num_items,), minval=10.0, maxval=50.0)
+        values = jax.random.uniform(k2, (num_items,), minval=30.0, maxval=150.0)
 
     return OptimizationEvaluator(
         env=KnapsackEnv(
-            weights=kwargs.get("weights"),
-            values=kwargs.get("values"),
-            capacity=kwargs.get("capacity", 100.0),
+            weights=weights,
+            values=values,
+            capacity=capacity,
         ),
         transform=IdentityTransform(),
         interpreter=IdentityInterpreter(),
@@ -196,11 +224,9 @@ def _create_tsp_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
     )
 
 
-def _register_fitness() -> None:
+def register_fitness_catalog(register_table_fn: Any) -> None:
     """Register fitness evaluators with the global catalog registry."""
-    from malthusjax.composer._registry import register_table
-
-    register_table(
+    register_table_fn(
         [
             # BBOB presets - Standard functions
             ("sphere", _make_bbob_factory("sphere", maximize=False), {}),
@@ -219,6 +245,3 @@ def _register_fitness() -> None:
         ],
         override=True,
     )
-
-
-_register_fitness()
