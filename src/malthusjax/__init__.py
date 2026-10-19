@@ -92,9 +92,14 @@ __all__ = [
     "set_log_level",
     "configure_logging",
     "StepLoggingConfig",
+    # High-level declarative Composer
+    "Composer",
 ]
 
 # --- 3. ENGINE (Top Level) ---
+# from .engine.diversity_engine import DiversityAwareEngine
+# --- 4. COMPOSER (Top Level) ---
+from .composer.composer import Composer
 from .engine.base import (
     AbstractEngine,
     AbstractEngineParams,
@@ -103,4 +108,3 @@ from .engine.base import (
 )
 from .engine.genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
 from .engine.schedules import ScheduleType, compute_scheduled_strength
-# from .engine.diversity_engine import DiversityAwareEngine

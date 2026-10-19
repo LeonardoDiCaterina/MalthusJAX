@@ -44,18 +44,17 @@ MalthusJAX is designed so you can enter the framework at the exact depth your pr
 
 ## ⚡ Quickstart (Level 4: The Composer)
 
-Get your first hardware-accelerated evolutionary pipeline running on a GPU in under 10 lines of code:
+> 💡 **Interactive Tutorial**: Open **[`notebooks/00_quickstart_in_5_minutes.ipynb`](notebooks/00_quickstart_in_5_minutes.ipynb)** for a hands-on, 5-minute Jupyter walkthrough featuring convergence plots, custom operators, and algorithm comparisons.
+
+Get your first hardware-accelerated evolutionary pipeline running in under 5 lines of code:
 
 ### Option A: Interactive Exploratory Run
 ```python
-from malthusjax.composer import Composer
+import malthusjax as mj
 
-composer = Composer.create_default()
+composer = mj.Composer.create_default()
 result = composer.quick_run(
     fitness="sphere:dim=10",
-    selection="tournament:num_selections=64,tournament_size=3",
-    crossover="blend:alpha=0.5",
-    mutation="gaussian:mutation_rate=0.1",
     pop_size=100,
     generations=200,
     seeds=(42, 43, 44),
