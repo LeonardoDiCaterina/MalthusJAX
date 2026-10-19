@@ -39,12 +39,15 @@ def trace_single_pipeline(toml_path: str, trace_dir: str, target_pipeline: str, 
     print(f"\n--- Tracing Pipeline: {target_pipeline} (seed 1) ---")
     jax.profiler.start_trace(str(out_dir))
 
+    dummy_out = base_trace_dir / f"dummy_{target_pipeline}"
     composer.compare(
         pipelines={target_pipeline: formatted_pipeline_def},
         seeds=[1],
-        output_dir=f"results/traces/dummy_{target_pipeline}",
+        output_dir=str(dummy_out),
         **shared,
     )
+    if dummy_out.exists():
+        shutil.rmtree(dummy_out, ignore_errors=True)
 
     jax.profiler.stop_trace()
     print(f"  Trace saved to: {out_dir}")

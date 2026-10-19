@@ -97,7 +97,11 @@ def main():
     print(f"Scanning {base} for results JSONs...")
     count = 0
     for p in base.rglob("*.json"):
-        if "parity_results" in p.name or "ablation_results" in p.name:
+        if (
+            "parity_results" in p.name
+            or "ablation_results" in p.name
+            or "benchmark_results" in p.name
+        ):
             print(f"Processing {p}...")
             process_result_json(p)
             count += 1

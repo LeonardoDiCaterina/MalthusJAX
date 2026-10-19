@@ -317,7 +317,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
 
                     if datasets:
                         for ds in datasets:
-                            # Configure spec dynamically based on metric
+                            min_seeds = min(10, max(2, len(ds.seeds)))
                             if ds.metric_name == "best_fitness":
                                 ref_std = np.std(ds.right_values, ddof=1)
                                 delta = max(1e-9, 0.2 * ref_std)
@@ -325,6 +325,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                                     metric_name="best_fitness",
                                     hypothesis_kind=HypothesisKind.EQUIVALENCE,
                                     equivalence_margin=delta,
+                                    min_paired_seeds=min_seeds,
                                     multiple_testing=MultipleTestingPolicy.NONE,
                                     include_tests=("wilcoxon", "paired_t"),
                                     include_mean_summary=True,
@@ -334,6 +335,7 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                                     metric_name="execution_time",
                                     hypothesis_kind=HypothesisKind.LOCATION_SHIFT,
                                     sidedness=Sidedness.TWO_SIDED,
+                                    min_paired_seeds=min_seeds,
                                     multiple_testing=MultipleTestingPolicy.NONE,
                                     include_tests=("wilcoxon", "paired_t"),
                                     include_mean_summary=True,
@@ -427,10 +429,27 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
 def main():
     parser = argparse.ArgumentParser(description="Unified TOML-Driven Benchmark Analyzer")
     parser.add_argument(
-        "--toml", type=str, required=True, help="Path to the TOML configuration file"
+        "--toml", type=str, default=None, help="Path to the TOML configuration file"
     )
-    parser.add_argument("--data_dir", type=str, default=None, help="Override the results directory")
+    parser.add_argument(
+        "--dir",
+        "--data_dir",
+        dest="data_dir",
+        type=str,
+        default=None,
+        help="Results directory (containing suite_config.toml or data)",
+    )
     args = parser.parse_args()
+
+    if not args.toml and not args.data_dir:
+        parser.error("Must provide either --toml <config.toml> or --dir <results_dir>")
+
+    if not args.toml and args.data_dir:
+        suite_toml = Path(args.data_dir) / "suite_config.toml"
+        if suite_toml.exists():
+            args.toml = str(suite_toml)
+        else:
+            parser.error(f"No --toml specified and {suite_toml} does not exist.")
 
     analyze_suite(args.toml, args.data_dir)
 

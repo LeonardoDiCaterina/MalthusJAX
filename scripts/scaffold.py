@@ -5,6 +5,8 @@ MalthusJAX Scaffolding Tool
 Generates boilerplate code for building JAX-compliant components for MalthusJAX.
 """
 
+from __future__ import annotations
+
 import argparse
 import re
 import string
@@ -74,7 +76,10 @@ class ${name}:
 ''')
 
 
-SELECTION_TEMPLATE = string.Template('''import jax
+SELECTION_TEMPLATE = string.Template('''from typing import Any, Optional
+
+import chex
+import jax
 import jax.numpy as jnp
 from flax import struct
 
@@ -89,19 +94,25 @@ logger = get_logger("operators.selection.${key}")
 class ${name}(BaseSelection):
     """A custom selection operator."""
 
-    num_selections: int = struct.field(pytree_node=False)
+    num_selections: int = struct.field(pytree_node=False, default=10)
 
-    def set_input_length(self, length: int) -> "${name}":
-        logger.debug("Configuring ${name} selection count: %d", length)
-        return self.replace(num_selections=length)
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 0
 
-    def _select_one(self, rng: jax.Array, population: jax.Array, fitness: jax.Array) -> jax.Array:
-        # TODO: Implement your selection logic here for ONE selection.
-        # Return the indices of the selected individual.
-        return jnp.zeros((), dtype=jnp.int32)
+    def _select(
+        self, keys: chex.Array, fitness: chex.Array, config: Optional[Any] = None, **kwargs: Any
+    ) -> chex.Array:
+        logger.debug("Executing ${name} selection")
+        # TODO: Implement selection logic (e.g., tournament, roulette, truncation).
+        # Return indices of selected individuals: shape (self.num_selections,)
+        return jnp.zeros(self.num_selections, dtype=jnp.int32)
 ''')
 
-MUTATION_TEMPLATE = string.Template('''import jax
+MUTATION_TEMPLATE = string.Template('''from typing import Any, Optional
+
+import chex
+import jax
 import jax.numpy as jnp
 from flax import struct
 
@@ -118,19 +129,26 @@ class ${name}(BaseMutation):
 
     mutation_rate: float = 0.1
 
-    def set_input_length(self, length: int) -> "${name}":
-        logger.debug("Configuring ${name} input length: %d", length)
-        return self
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 1
 
-    def _mutate_one(self, rng: jax.Array, genome: jax.Array) -> jax.Array:
-        # TODO: Implement your mutation logic here
+    def _generate_noise(self, keys: chex.PRNGKey, config: Any = None, generation: int = 0) -> Any:
+        # TODO: Generate noise array or PyTree matching individual genome
+        return jnp.zeros(())
+
+    def _mutate_one(self, genome: Any, noise_data: Any, config: Any = None, **kwargs: Any) -> Any:
+        logger.debug("Applying ${name} mutation")
+        # TODO: Pure mutation arithmetic: genome + noise -> mutated genome
         return genome
 ''')
 
-CROSSOVER_TEMPLATE = string.Template('''import jax
+CROSSOVER_TEMPLATE = string.Template('''from typing import Any, Optional
+
+import chex
+import jax
 import jax.numpy as jnp
 from flax import struct
-from typing import Tuple
 
 from malthusjax.operators.base import BaseCrossover
 from malthusjax.composer import register_crossover
@@ -145,13 +163,18 @@ class ${name}(BaseCrossover):
 
     crossover_rate: float = 0.9
 
-    def set_input_length(self, length: int) -> "${name}":
-        logger.debug("Configuring ${name} input length: %d", length)
-        return self
+    @property
+    def num_keys_per_atomic_operation(self) -> int:
+        return 1
 
-    def _recombine_one(self, rng: jax.Array, parent1: jax.Array, parent2: jax.Array) -> Tuple[jax.Array, jax.Array]:
-        # TODO: Implement your crossover logic here
-        return parent1, parent2
+    def _generate_noise(self, keys: chex.PRNGKey, config: Any = None, generation: int = 0) -> Any:
+        # TODO: Generate recombination mask / noise PyTree
+        return jnp.zeros(())
+
+    def _recombine_one(self, p1: Any, p2: Any, noise_data: Any, config: Any = None, **kwargs: Any) -> Any:
+        logger.debug("Applying ${name} crossover")
+        # TODO: Pure recombination: p1 + p2 + noise -> offspring genome
+        return p1
 ''')
 
 EMITTER_TEMPLATE = string.Template('''from typing import Any, Optional, Tuple
@@ -215,18 +238,25 @@ class ${name}(BaseEmitter):
 
 ENGINE_TEMPLATE = string.Template('''from typing import Any, Dict, Optional, Tuple
 
+import chex
 import jax
 import jax.numpy as jnp
 from flax import struct
 
-from malthusjax.engine.base import AbstractEngine, EngineState, AbstractEngineParams
+from malthusjax.core.base import BasePopulation
+from malthusjax.engine.base import (
+    AbstractEngine,
+    AbstractEvolutionState,
+    AbstractEngineParams,
+    AbstractGenerationOutput,
+)
 from malthusjax.composer import register_engine
 from malthusjax.core.logger import StepLoggingConfig, get_logger, _host_log_step, _host_log_nan_anomaly
 
 logger = get_logger("engine.${key}")
 
 @struct.dataclass
-class ${name}State(EngineState):
+class ${name}State(AbstractEvolutionState):
     """Custom state for ${name}."""
     pass
 
@@ -241,18 +271,22 @@ class ${name}(AbstractEngine):
     def maximize(self) -> bool:
         return True
 
-    def init_state(self, rng_key: jax.Array) -> ${name}State:
+    def init_state(self, rng_key: chex.Array) -> ${name}State:
         logger.debug("Initializing ${name} state")
         # TODO: Initialize engine state
+        pop = BasePopulation(
+            genes=jnp.zeros((self.engine_params.pop_size, 10)),
+            fitness=jnp.zeros(self.engine_params.pop_size),
+        )
         return ${name}State(
             generation=0,
-            best_fitness=-jnp.inf,
-            best_genome=jnp.zeros(()),
-            population=None, # Define initial pop
-            rng_key=rng_key
+            best_fitness=jnp.array(-jnp.inf if self.maximize else jnp.inf),
+            best_genome=jnp.zeros((10,)),
+            population=pop,
+            rng_key=rng_key,
         )
 
-    def step(self, state: ${name}State) -> Tuple[${name}State, Any]:
+    def step(self, state: ${name}State) -> Tuple[${name}State, AbstractGenerationOutput]:
         # TODO: Implement a single generation step.
         # To bridge step telemetry to Python host logging:
         # if self.engine_params.step_logging and self.engine_params.step_logging.is_active():
@@ -263,8 +297,14 @@ class ${name}(AbstractEngine):
         #         ),
         #         lambda: None,
         #     )
-        output = None
-        return state, output
+        output = AbstractGenerationOutput(
+            best_fitness=state.best_fitness,
+            mean_fitness=state.best_fitness,
+            std_fitness=jnp.zeros(()),
+            generation=jnp.asarray(state.generation),
+        )
+        next_state = state.replace(generation=state.generation + 1)
+        return next_state, output
 ''')
 
 EVALUATOR_TEMPLATE = string.Template('''import jax
@@ -651,7 +691,7 @@ class ${name}Provider:
 # ---------------------------------------------------------------------------
 
 _${key}_provider = ${name}Provider()
-register_backend("${key}", _${key}_provider)
+register_backend("${key}", _${key}_provider, override=True)
 ''')
 
 
@@ -782,7 +822,6 @@ class Test${name}(AdapterComplianceSuite):
 TEST_SELECTION = string.Template("""import jax
 import jax.numpy as jnp
 import pytest
-from malthusjax.core.base import BasePopulation
 from ${import_path}.${module_name} import ${name}
 from malthusjax.testing.compliance import SelectionComplianceSuite
 
@@ -792,10 +831,8 @@ class Test${name}(SelectionComplianceSuite):
         return ${name}(${dummy_args})
 
     @pytest.fixture
-    def mock_population(self):
-        genes = jnp.zeros((10, 5))
-        fitness = jnp.zeros(10)
-        return BasePopulation(genes=genes, fitness=fitness)
+    def mock_fitness(self):
+        return jnp.zeros(10)
 """)
 
 TEST_MUTATION = string.Template("""import jax
@@ -830,7 +867,13 @@ class Test${name}(CrossoverComplianceSuite):
         return ${name}(${dummy_args})
 
     @pytest.fixture
-    def mock_population(self):
+    def mock_pop1(self):
+        genes = jnp.zeros((10, 5))
+        fitness = jnp.zeros(10)
+        return BasePopulation(genes=genes, fitness=fitness)
+
+    @pytest.fixture
+    def mock_pop2(self):
         genes = jnp.zeros((10, 5))
         fitness = jnp.zeros(10)
         return BasePopulation(genes=genes, fitness=fitness)
@@ -997,7 +1040,7 @@ TEMPLATES = {
 }
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="MalthusJAX Component Scaffolder")
     parser.add_argument(
         "--type",
@@ -1025,7 +1068,7 @@ def main():
         help="Type of environment (only used if type=environment)",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.type != "evaluator" and not args.key:
         print("Error: --key is required for all components except evaluator.")
@@ -1088,7 +1131,10 @@ def main():
             )
             env_body = """
     # Set data = (X, y) at initialization
-    data: Any = struct.field(pytree_node=False, default=None)
+    data: Any = struct.field(
+        pytree_node=False,
+        default_factory=lambda: (jnp.zeros((10, 2)), jnp.zeros(10)),
+    )
 """
         else:  # opt
             base_class = "BaseOptimizationEnvironment"
@@ -1124,7 +1170,11 @@ def main():
 
     impl_file.write_text(impl_content)
 
-    import_path = str(out_dir).replace("/", ".")
+    try:
+        rel_path = out_dir.resolve().relative_to(Path.cwd())
+        import_path = ".".join(rel_path.parts)
+    except ValueError:
+        import_path = out_dir.name
 
     # Render Test Boilerplate
     if args.type == "backend":

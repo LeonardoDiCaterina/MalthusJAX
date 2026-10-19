@@ -510,9 +510,9 @@ def main(args_list: list[str] | None = None) -> int:
         )
     else:
         print("\nTo execute this benchmarking suite:")
-        print(f"  python scripts/benchmark_runner.py {args.output}")
+        print(f"  python scripts/benchmark_runner.py --toml {args.output}")
         print("  # or run a quick smoke test:")
-        print(f"  python scripts/benchmark_runner.py {args.output} --smoke")
+        print(f"  python scripts/benchmark_runner.py --toml {args.output} --smoke")
 
     return 0
 

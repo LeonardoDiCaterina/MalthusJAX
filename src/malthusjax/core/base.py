@@ -319,7 +319,7 @@ class BasePopulation(Generic[G]):
             fitness = jnp.broadcast_to(jnp.nan, (n_offspring,))
 
         if info is None:
-            info = self.info
+            info = {}
 
         return replace(self, genes=new_genes, fitness=fitness, info=info)
 

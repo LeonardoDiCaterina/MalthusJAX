@@ -125,7 +125,8 @@ def extract_mjx_hlo(
     optimize: bool = True,
 ) -> str:
     """Extract HLO for a MalthusJAX pipeline using its built-in get_hlo_text()."""
-    from malthusjax.composer.engine_factory import build_engine
+    from malthusjax.composer.backends.malthusjax import MalthusJAXProvider
+    from malthusjax.composer.strategies.core import GeneticStrategy
     from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
     from malthusjax.core.fitness.composable.environments import SphereEnv
     from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
@@ -138,29 +139,48 @@ def extract_mjx_hlo(
         output=ScalarOutput(maximize=False),
     )
 
-    # Strip keys not understood by build_engine
-    kwargs = {
+    elite_k = max(2, int(pop_size / 6))
+    formatted_kwargs = {}
+    for k, v in pipeline_kwargs.items():
+        if isinstance(v, str):
+            formatted_kwargs[k] = v.format(
+                pop_size=pop_size, genome_length=num_dims, generations=gens, elite_k=elite_k
+            )
+        else:
+            formatted_kwargs[k] = v
+
+    strategy = GeneticStrategy(
+        selection=formatted_kwargs.get("selection"),
+        crossover=formatted_kwargs.get("crossover"),
+        mutation=formatted_kwargs.get("mutation"),
+    )
+
+    engine_kwargs = {
         k: v
-        for k, v in pipeline_kwargs.items()
+        for k, v in formatted_kwargs.items()
         if k
         not in {
             "backend",
-            "engine_type",
+            "selection",
+            "crossover",
+            "mutation",
             "evosax_strategy",
             "strategy_params",
         }
     }
 
-    adapter = build_engine(
-        fitness_evaluator=evaluator,
-        genome_type="real",
+    provider = MalthusJAXProvider()
+    adapter = provider.build_engine(
+        strategy=strategy,
+        evaluator=evaluator,
         pop_size=pop_size,
         generations=gens,
+        genome_length=num_dims,
         genome_shape=(num_dims,),
         bounds=(-5.0, 5.0),
-        **kwargs,
+        **engine_kwargs,
     )
-    engine = adapter.genetic_engine
+    engine = getattr(adapter, "genetic_engine", adapter)
     key = jax.random.PRNGKey(0)
     state = engine.init_state(key)
     hlo = engine.get_hlo_text(state, optimize=optimize, print_analysis=False)
