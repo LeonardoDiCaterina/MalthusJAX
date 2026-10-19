@@ -37,12 +37,18 @@ from .engine_registry import register as _engine_register
 
 
 def _ensure_engines_registered() -> None:
-    """Force-import the engine package so that its
-    ``_register_engines()`` call runs and populates the global registry.
+    """Force-import the engine package and populate the global registry.
 
     Idempotent — repeated calls are cheap (Python caches imports).
     """
-    import malthusjax.engine  # noqa: F401
+    import malthusjax.engine as engine_mod
+
+    from .engine_registry import register_table
+
+    if hasattr(engine_mod, "register_engine_catalog"):
+        engine_mod.register_engine_catalog(register_table)
+    elif hasattr(engine_mod, "_register_engines"):
+        engine_mod._register_engines()
 
 
 class EngineRegistry:

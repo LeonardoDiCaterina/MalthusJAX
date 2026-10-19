@@ -180,7 +180,7 @@ cd MalthusJAX
 # Install in development mode with all dependencies
 make install-dev
 ```
-*Requires Python 3.10+ and JAX 0.4+.*
+*Requires Python 3.11+ and JAX 0.4+.*
 
 ### Docker Deployment
 MalthusJAX includes a robust, multi-stage `Dockerfile` to simplify deployment on shared GPU clusters. Isolate optional dependencies (`qdax`, `evosax`, `tensorneat`, `rl`) during the build:

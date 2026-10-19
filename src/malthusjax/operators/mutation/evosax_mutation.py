@@ -3,8 +3,15 @@ from typing import Any
 import chex
 import jax
 import jax.numpy as jnp
-from evosax.algorithms.population_based.simple_ga import mutation as evosax_mutation
 from flax import struct
+
+try:
+    from evosax.algorithms.population_based.simple_ga import mutation as evosax_mutation
+
+    _HAS_EVOSAX = True
+except ImportError:
+    evosax_mutation = None  # type: ignore[assignment]
+    _HAS_EVOSAX = False
 
 from malthusjax.core.base import BasePopulation
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig

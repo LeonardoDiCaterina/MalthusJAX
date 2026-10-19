@@ -31,9 +31,6 @@ except ImportError:  # pragma: no cover
     tqdm = None
 
 
-from malthusjax.composer.engine_protocol import Engine as Engine
-
-
 @dataclass
 class BenchmarkRunner:
     """Runs benchmarking experiments across multiple seeds."""
@@ -273,3 +270,7 @@ class StubEngine:
             "summary": summary,
             "timings": timings,
         }
+
+
+# Deferred import to break circular dependency with composer
+from malthusjax.composer.engine_protocol import Engine as Engine

@@ -36,15 +36,22 @@ import time
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 import chex
-import evosax
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-from evosax.algorithms import population_based_algorithms
+
+try:
+    import evosax
+    from evosax.algorithms import population_based_algorithms
+
+    EVOSAX_STRATEGIES: Dict[str, type] = dict(population_based_algorithms)
+    _HAS_EVOSAX = True
+except ImportError:
+    evosax = None  # type: ignore[assignment]
+    EVOSAX_STRATEGIES = {}
+    _HAS_EVOSAX = False
 
 from malthusjax.core.fitness.base import BaseEvaluator
-
-EVOSAX_STRATEGIES: Dict[str, type] = population_based_algorithms
 
 
 def list_strategies() -> list[str]:

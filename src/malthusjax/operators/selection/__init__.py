@@ -2,6 +2,8 @@
 Selection Operators Module.
 """
 
+from typing import Any
+
 from .elite_pool import ElitePoolSelection
 from .evosax_mimic import EvoSaxMimicSelection
 from .roulette import RouletteSelection
@@ -16,11 +18,9 @@ __all__ = [
 ]
 
 
-def _register_selection() -> None:
+def register_selection_catalog(register_table_fn: Any) -> None:
     """Register selection operators with the global catalog registry."""
-    from malthusjax.composer._registry import register_table
-
-    register_table(
+    register_table_fn(
         [
             ("tournament", TournamentSelection, {"num_selections": 4, "tournament_size": 3}),
             ("roulette", RouletteSelection, {"num_selections": 4}),
@@ -35,4 +35,10 @@ def _register_selection() -> None:
     )
 
 
-_register_selection()
+def _register_selection(register_table_fn: Any = None) -> None:
+    """Backward-compatible registration helper."""
+    if register_table_fn is None:
+        from malthusjax.composer._registry import register_table
+
+        register_table_fn = register_table
+    register_selection_catalog(register_table_fn)

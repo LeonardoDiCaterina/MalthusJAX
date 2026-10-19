@@ -34,22 +34,29 @@ from ._registry import register as _registry_register
 
 
 def _ensure_registered() -> None:
-    """Force-import every operator sub-package so that their
-    ``_register_*()`` calls run and populate the global registry.
+    """Force-import every operator sub-package and register their
+    factories into the global registry.
 
     Idempotent — repeated calls are cheap (Python caches imports).
     """
     import malthusjax.core.fitness as fitness_mod
+    import malthusjax.operators.crossover as crossover_mod
+    import malthusjax.operators.emitters as emitters_mod
+    import malthusjax.operators.mutation as mutation_mod
+    import malthusjax.operators.selection as selection_mod
 
     from ._registry import register_table
 
     if hasattr(fitness_mod, "register_fitness_catalog"):
         fitness_mod.register_fitness_catalog(register_table)
-
-    import malthusjax.operators.crossover  # noqa: F401
-    import malthusjax.operators.emitters  # noqa: F401
-    import malthusjax.operators.mutation  # noqa: F401
-    import malthusjax.operators.selection  # noqa: F401
+    if hasattr(crossover_mod, "register_crossover_catalog"):
+        crossover_mod.register_crossover_catalog(register_table)
+    if hasattr(emitters_mod, "register_emitters_catalog"):
+        emitters_mod.register_emitters_catalog(register_table)
+    if hasattr(mutation_mod, "register_mutation_catalog"):
+        mutation_mod.register_mutation_catalog(register_table)
+    if hasattr(selection_mod, "register_selection_catalog"):
+        selection_mod.register_selection_catalog(register_table)
 
 
 class OperatorCatalog:

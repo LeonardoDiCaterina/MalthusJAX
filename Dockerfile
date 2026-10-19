@@ -1,6 +1,6 @@
 # Default to a standard python image, but can be overridden with a CUDA base if needed
 # Example: --build-arg BASE_IMAGE=nvidia/cuda:12.2.0-base-ubuntu22.04
-ARG BASE_IMAGE=python:3.10-slim
+ARG BASE_IMAGE=python:3.11-slim
 FROM ${BASE_IMAGE}
 
 # Allow passing the extras (e.g. "[cuda12,qdax,rl,stats]") during build

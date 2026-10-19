@@ -2,6 +2,8 @@
 Mutation Operators Module.
 """
 
+from typing import Any
+
 from .binary import BitFlipMutation, ScrambleMutation, SwapMutation
 from .categorical import ScrambleMutation as CategoricalScrambleMutation
 from .categorical import SwapMutation as CategoricalSwapMutation
@@ -47,11 +49,9 @@ if _HAS_EVOSAX:
 # ---------------------------------------------------------------------------
 
 
-def _register_mutation() -> None:
+def register_mutation_catalog(register_table_fn: Any) -> None:
     """Register mutation operators with the global catalog registry."""
-    from typing import Any, Callable, Dict, List, Tuple
-
-    from malthusjax.composer._registry import register_table
+    from typing import Callable, Dict, List, Tuple
 
     table: List[Tuple[str, Callable[..., Any], Dict[str, Any]]] = [
         # Real-valued mutation
@@ -77,7 +77,13 @@ def _register_mutation() -> None:
                 ("batched_evosax_gaussian", BatchedEvosaxGaussianWrapper, {}),
             ]
         )
-    register_table(table, override=True)
+    register_table_fn(table, override=True)
 
 
-_register_mutation()
+def _register_mutation(register_table_fn: Any = None) -> None:
+    """Backward-compatible registration helper."""
+    if register_table_fn is None:
+        from malthusjax.composer._registry import register_table
+
+        register_table_fn = register_table
+    register_mutation_catalog(register_table_fn)

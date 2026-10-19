@@ -29,11 +29,11 @@ from malthusjax.operators.emitters.base import BaseEmitter, EmitterState
 # Import QDAX repertoire for internal Map representation
 try:
     from qdax.core.containers.mapelites_repertoire import MapElitesRepertoire
-except ImportError as e:
-    raise ImportError(
-        "The native MapElitesEngine requires `qdax` to be installed for its internal "
-        "repertoire storage grid. Please install it with: pip install qdax"
-    ) from e
+
+    _HAS_QDAX = True
+except ImportError:
+    MapElitesRepertoire = None  # type: ignore[assignment, misc]
+    _HAS_QDAX = False
 
 G = TypeVar("G", bound=BaseGenome)
 P = TypeVar("P", bound=BasePopulation[Any])
@@ -120,6 +120,12 @@ class MapElitesEngine(AbstractEngine[G, P]):
         )
 
         # 2. Initialize the QDAX MapElitesRepertoire
+        if not _HAS_QDAX or MapElitesRepertoire is None:
+            raise ImportError(
+                "The native MapElitesEngine requires `qdax` to be installed for its internal "
+                "repertoire storage grid. Please install it with: pip install 'malthusjax[qdax]'"
+            )
+
         # Notice that MapElitesRepertoire expects genotypes as a PyTree
         # We pass the underlying genome values instead of the wrapper for cleaner JAX tree structures.
         repertoire = MapElitesRepertoire.init(

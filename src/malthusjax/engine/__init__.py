@@ -58,9 +58,8 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 
-def _register_engines() -> None:
+def register_engine_catalog(register_table_fn: Any) -> None:
     """Register built-in engines with the global engine registry."""
-    from ..composer.engine_registry import register_table
 
     def _ga_factory(
         evaluator: Any,
@@ -279,7 +278,7 @@ def _register_engines() -> None:
             topology=topology,
         )
 
-    register_table(
+    register_table_fn(
         [
             (
                 "ga",
@@ -344,4 +343,10 @@ def _register_engines() -> None:
     )
 
 
-_register_engines()
+def _register_engines(register_table_fn: Any = None) -> None:
+    """Backward-compatible engine registration helper."""
+    if register_table_fn is None:
+        from ..composer.engine_registry import register_table
+
+        register_table_fn = register_table
+    register_engine_catalog(register_table_fn)

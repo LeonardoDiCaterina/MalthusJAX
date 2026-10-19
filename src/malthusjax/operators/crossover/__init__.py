@@ -5,6 +5,8 @@ Crossover operators generate offspring from parent pairs using the new batch-fir
 All crossover operators inherit from BaseCrossover and return (num_offspring, genome_shape).
 """
 
+from typing import Any
+
 from .binary import SinglePointCrossover
 from .binary import UniformCrossover as BinaryUniformCrossover
 
@@ -53,11 +55,9 @@ if _HAS_EVOSAX:
     __all__.extend(["EvosaxUniformCrossoverWrapper", "BatchedEvosaxUniformWrapper"])
 
 
-def _register_crossover() -> None:
+def register_crossover_catalog(register_table_fn: Any) -> None:
     """Register crossover operators with the global catalog registry."""
-    from typing import Any, Callable, Dict, List, Tuple
-
-    from malthusjax.composer._registry import register_table
+    from typing import Callable, Dict, List, Tuple
 
     table: List[Tuple[str, Callable[..., Any], Dict[str, Any]]] = [
         ("uniform_real", RealUniformCrossover, {}),
@@ -79,7 +79,13 @@ def _register_crossover() -> None:
                 ("batched_evosax_uniform", BatchedEvosaxUniformWrapper, {}),
             ]
         )
-    register_table(table, override=True)
+    register_table_fn(table, override=True)
 
 
-_register_crossover()
+def _register_crossover(register_table_fn: Any = None) -> None:
+    """Backward-compatible registration helper."""
+    if register_table_fn is None:
+        from malthusjax.composer._registry import register_table
+
+        register_table_fn = register_table
+    register_crossover_catalog(register_table_fn)

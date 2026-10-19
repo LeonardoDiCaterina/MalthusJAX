@@ -19,8 +19,8 @@ from malthusjax.composer.engine_factory_v2 import EngineFactory
 from malthusjax.composer.experiment_config import ExperimentConfig
 from malthusjax.composer.strategies.base import BaseStrategy
 
-from ..benchmarking import BenchmarkRunner, ExperimentResult
-from ..benchmarking.results import ComparisonResult
+from ..benchmarking.results import ComparisonResult, ExperimentResult
+from ..benchmarking.runner import BenchmarkRunner
 from ..core.logger import (
     StepLoggingConfig,
     configure_logging,

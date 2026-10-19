@@ -13,9 +13,16 @@ import chex
 import jax
 import jax.numpy as jnp
 from flax import struct
-from qdax.core.containers.mapelites_repertoire import (
-    compute_cvt_centroids,
-)
+
+try:
+    from qdax.core.containers.mapelites_repertoire import (
+        compute_cvt_centroids,
+    )
+
+    _HAS_QDAX = True
+except ImportError:
+    compute_cvt_centroids = None  # type: ignore[assignment]
+    _HAS_QDAX = False
 
 from malthusjax.core.logger import StepLoggingConfig, get_logger
 from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesState
@@ -73,6 +80,12 @@ class MapElitesEngineAdapter:
         self.step_logging = step_logging
 
         # Precompute CVT Voronoi centroids for static repertoire layout
+        if not _HAS_QDAX or compute_cvt_centroids is None:
+            raise ImportError(
+                "MapElitesAdapter requires `qdax` to compute CVT centroids. "
+                "Please install it with: pip install 'malthusjax[qdax]'"
+            )
+
         k_cent = jax.random.PRNGKey(centroids_key)
         self.centroids: jnp.ndarray = compute_cvt_centroids(
             num_descriptors=len(self.minval),
@@ -161,6 +174,12 @@ class IslandMapElitesAdapter:
         self.topology = topology
 
         # Precompute centroids shared across all islands
+        if not _HAS_QDAX or compute_cvt_centroids is None:
+            raise ImportError(
+                "IslandMapElitesAdapter requires `qdax` to compute CVT centroids. "
+                "Please install it with: pip install 'malthusjax[qdax]'"
+            )
+
         k_cent = jax.random.PRNGKey(centroids_key)
         self.centroids: jnp.ndarray = compute_cvt_centroids(
             num_descriptors=len(self.minval),
